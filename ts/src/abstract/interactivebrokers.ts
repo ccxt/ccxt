@@ -8,281 +8,1098 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    webapiGetV1ApiIserverAccountPnlPartitioned (params?: {}): Promise<Dict>;
-    webapiGetV1ApiAceswsAccountIdSignaturesAndOwners (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccounts (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountSearchSearchPattern (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountAccountIdSummaryBalances (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountAccountIdSummaryMargins (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountAccountIdSummaryMarketValue (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountAccountIdSummary (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountAccountIdSummaryAvailableFunds (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountMta (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountAlertAlertId (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountAccountIdAlerts (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverCurrencyPairs (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverExchangerate (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverContractConidInfo (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverSecdefInfo (params?: {}): Promise<Dict>;
-    webapiGetV1ApiTrsrvSecdef (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverContractConidInfoAndRules (params?: {}): Promise<Dict>;
-    webapiGetV1ApiTrsrvAllConids (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverContractConidAlgos (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverSecdefBondFilters (params?: {}): Promise<Dict>;
-    webapiGetV1ApiTrsrvFutures (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverSecdefSearch (params?: {}): Promise<Dict>;
-    webapiGetV1ApiTrsrvStocks (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverSecdefStrikes (params?: {}): Promise<Dict>;
-    webapiGetV1ApiTrsrvSecdefSchedule (params?: {}): Promise<Dict>;
-    webapiGetV1ApiForecastCategoryTree (params?: {}): Promise<Dict>;
-    webapiGetV1ApiForecastContractDetails (params?: {}): Promise<Dict>;
-    webapiGetV1ApiForecastContractRules (params?: {}): Promise<Dict>;
-    webapiGetV1ApiForecastContractSchedules (params?: {}): Promise<Dict>;
-    webapiGetV1ApiForecastContractMarket (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountAllocationGroup (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountAllocationAccounts (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountAllocationPresets (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountAllocationModels (params?: {}): Promise<Dict>;
-    webapiGetV1ApiFyiDeliveryoptions (params?: {}): Promise<Dict>;
-    webapiGetV1ApiFyiDisclaimerTypecode (params?: {}): Promise<Dict>;
-    webapiGetV1ApiFyiSettings (params?: {}): Promise<Dict>;
-    webapiGetV1ApiFyiUnreadnumber (params?: {}): Promise<Dict>;
-    webapiGetV1ApiFyiNotifications (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverMarketdataUnsubscribeall (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverMarketdataHistory (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverMarketdataSnapshot (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountOrders (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountOrderStatusOrderId (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverAccountTrades (params?: {}): Promise<Dict>;
-    webapiGetV1ApiPortfolioAccountIdAllocation (params?: {}): Promise<Dict>;
-    webapiGetV1ApiPortfolioAccountIdMeta (params?: {}): Promise<Dict>;
-    webapiGetV1ApiPortfolioAccountIdLedger (params?: {}): Promise<Dict>;
-    webapiGetV1ApiPortfolioAccountIdSummary (params?: {}): Promise<Dict>;
-    webapiGetV1ApiPortfolioAccountIdPositionConid (params?: {}): Promise<Dict>;
-    webapiGetV1ApiPortfolioAccountIdPositionsPageId (params?: {}): Promise<Dict>;
-    webapiGetV1ApiPortfolio2AccountIdPositions (params?: {}): Promise<Dict>;
-    webapiGetV1ApiPortfolioPositionsConid (params?: {}): Promise<Dict>;
-    webapiGetV1ApiPortfolioAccountIdComboPositions (params?: {}): Promise<Dict>;
-    webapiGetV1ApiPortfolioAccounts (params?: {}): Promise<Dict>;
-    webapiGetV1ApiPortfolioSubaccounts (params?: {}): Promise<Dict>;
-    webapiGetV1ApiPortfolioSubaccounts2 (params?: {}): Promise<Dict>;
-    webapiGetV1ApiSsoValidate (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverScannerParams (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverWatchlist (params?: {}): Promise<Dict>;
-    webapiGetV1ApiIserverWatchlists (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1AccountsAccountIdDetails (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1AccountsStatus (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1AccountsAccountIdLoginMessages (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1AccountsLoginMessages (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1AccountsAccountIdTasks (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1AccountsAccountIdStatus (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1AccountsAccountIdKyc (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1Accounts (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1ClientInstructionsClientInstructionId (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1InstructionsInstructionId (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1InstructionSetsInstructionSetId (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1StatementsAvailable (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1TaxDocumentsAvailable (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1TradeConfirmationsAvailable (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1EnumerationsComplexAssetTransfer (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1EnumerationsEnumerationType (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1Forms (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1ParticipatingBanks (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1Requests (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1FormsRequiredForms (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1RequestsRequestIdStatus (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1ValidationsUsernamesUsername (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1RestrictionsList (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1RestrictionsListsIds (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1RestrictionsRestriction (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1RestrictionsIds (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1RestrictionsUser (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1RestrictionsAccount (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1RestrictionsRestrictionScope (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1TaxVouchersRequestIdDownload (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1TaxVouchersDividends (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1TaxVouchersActiveCountries (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1TaxVouchersYears (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1TaxVouchersRequestIdState (params?: {}): Promise<Dict>;
-    webapiGetGwApiV1EchoHttps (params?: {}): Promise<Dict>;
-    webapiPostV1ApiOauthRequestToken (params?: {}): Promise<Dict>;
-    webapiPostV1ApiOauthAccessToken (params?: {}): Promise<Dict>;
-    webapiPostV1ApiOauthLiveSessionToken (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1SsoBrowserSessions (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1SsoSessions (params?: {}): Promise<Dict>;
-    webapiPostOauth2ApiV1Token (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverDynaccount (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverAccount (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverAccountAccountIdAlertActivate (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverAccountAccountIdAlert (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverContractRules (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverSecdefSearch (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverAccountAllocationGroup (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverAccountAllocationGroupDelete (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverAccountAllocationGroupSingle (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverAccountAllocationPresets (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaFaPresetGet (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaModelAccountsDetails (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaModelInvestDivest (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaIsFullMaster (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaModelCashAnalyzer (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaModelRebalanceToExistingTargets (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaModelRebalanceToNewTargets (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaModelRebalanceToSpecificTargets (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaModelList (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaModelPositions (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaModelSummary (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaModelSave (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaFaPresetSave (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverAccountModelCodeOrders (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaModelSubmitTransfers (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaModelInvestDivestPositions (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFaModelTwsInvestDivest (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFyiSettingsTypecode (params?: {}): Promise<Dict>;
-    webapiPostV1ApiFyiDeliveryoptionsDevice (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverMarketdataUnsubscribe (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverReplyReplyId (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverNotification (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverAccountAccountIdOrderOrderId (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverAccountAccountIdOrdersWhatif (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverQuestionsSuppressReset (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverAccountAccountIdOrders (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverQuestionsSuppress (params?: {}): Promise<Dict>;
-    webapiPostV1ApiPortfolioAccountIdPositionsInvalidate (params?: {}): Promise<Dict>;
-    webapiPostV1ApiPaPerformance (params?: {}): Promise<Dict>;
-    webapiPostV1ApiPaAllperiods (params?: {}): Promise<Dict>;
-    webapiPostV1ApiPaAllocation (params?: {}): Promise<Dict>;
-    webapiPostV1ApiPaTransactions (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverScannerRun (params?: {}): Promise<Dict>;
-    webapiPostV1ApiTickle (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverAuthStatus (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverAuthSsodhInit (params?: {}): Promise<Dict>;
-    webapiPostV1ApiIserverWatchlist (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1AccountsAccountIdTasks (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1Accounts (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1AccountsDocuments (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1InstructionsCancel (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1BankInstructionsBulk (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1InstructionsCancelBulk (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1ExternalAssetTransfersBulk (params?: {}): Promise<Dict>;
-    webapiPostGwApiV2ExternalAssetTransfersBulk (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1ExternalCashTransfersBulk (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1InternalAssetTransfersBulk (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1InternalCashTransfersBulk (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1InstructionsQuery (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1BankInstructions (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1ExternalCashTransfers (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1InternalCashTransfers (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1ExternalAssetTransfers (params?: {}): Promise<Dict>;
-    webapiPostGwApiV2ExternalAssetTransfers (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1InternalAssetTransfers (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1BankInstructionsQuery (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1ExternalCashTransfersQuery (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1TaxDocuments (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1TradeConfirmations (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1Statements (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1Restrictions (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1RestrictionsVerify (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1BalancesQuery (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1TaxVouchers (params?: {}): Promise<Dict>;
-    webapiPostGwApiV1EchoSignedJwt (params?: {}): Promise<Dict>;
-    webapiPutV1ApiIserverAccountAllocationGroup (params?: {}): Promise<Dict>;
-    webapiPutV1ApiFyiDisclaimerTypecode (params?: {}): Promise<Dict>;
-    webapiPutV1ApiFyiNotificationsNotificationId (params?: {}): Promise<Dict>;
-    webapiPutV1ApiFyiDeliveryoptionsEmail (params?: {}): Promise<Dict>;
-    webapiDeleteV1ApiIserverAccountAccountIdAlertAlertId (params?: {}): Promise<Dict>;
-    webapiDeleteV1ApiFyiDeliveryoptionsDeviceId (params?: {}): Promise<Dict>;
-    webapiDeleteV1ApiIserverAccountAccountIdOrderOrderId (params?: {}): Promise<Dict>;
-    webapiDeleteV1ApiIserverWatchlist (params?: {}): Promise<Dict>;
-    webapiPatchGwApiV1Accounts (params?: {}): Promise<Dict>;
-    webapiPatchGwApiV1AccountsAccountIdStatus (params?: {}): Promise<Dict>;
-    webapiPatchGwApiV1AccountsAccountIdTasks (params?: {}): Promise<Dict>;
-    webapiPatchGwApiV1RequestsRequestIdStatus (params?: {}): Promise<Dict>;
-    privateGetOauthRequestToken (params?: {}): Promise<Dict>;
-    privateGetTrsrvSecdefSchedule (params?: {}): Promise<List>;
-    privateGetTrsrvFutures (params?: {}): Promise<Dict>;
-    privateGetTrsrvStocks (params?: {}): Promise<Dict>;
-    privateGetTrsrvAllConids (params?: {}): Promise<List>;
-    privateGetTrsrvSecdef (params?: {}): Promise<Dict>;
-    privateGetIserverCurrencyPairs (params?: {}): Promise<Dict>;
-    privateGetIserverExchangerate (params?: {}): Promise<Dict>;
-    privateGetIserverAccountTrades (params?: {}): Promise<List>;
-    privateGetIserverAccountAccountIdAlerts (params?: {}): Promise<List>;
-    privateGetIserverAccountAlertId (params?: {}): Promise<Dict>;
-    privateGetIserverAccountMta (params?: {}): Promise<Dict>;
-    privateGetIserverAccountOrders (params?: {}): Promise<Dict>;
-    privateGetIserverAccountOrderStatusOrderId (params?: {}): Promise<Dict>;
-    privateGetIserverAccountPnlPartitioned (params?: {}): Promise<Dict>;
-    privateGetIserverAccounts (params?: {}): Promise<Dict>;
-    privateGetIserverMarketdataSnapshot (params?: {}): Promise<List>;
-    privateGetIserverMarketdataConidUnsubscribe (params?: {}): Promise<Dict>;
-    privateGetIserverMarketdataUnsubscribeall (params?: {}): Promise<Dict>;
-    privateGetIserverMarketdataHistory (params?: {}): Promise<Dict>;
-    privateGetIserverContractConidInfo (params?: {}): Promise<Dict>;
-    privateGetIserverSecdefStrikes (params?: {}): Promise<Dict>;
-    privateGetIserverSecdefInfo (params?: {}): Promise<List>;
-    privateGetIserverContractConidAlgos (params?: {}): Promise<Dict>;
-    privateGetIserverContractConidInfoAndRules (params?: {}): Promise<Dict>;
-    privateGetIserverScannerParams (params?: {}): Promise<Dict>;
-    privateGetPortfolioAccounts (params?: {}): Promise<List>;
-    privateGetPortfolioSubaccounts (params?: {}): Promise<List>;
-    privateGetPortfolioAccountIdMeta (params?: {}): Promise<Dict>;
-    privateGetPortfolioAccountIdAllocation (params?: {}): Promise<Dict>;
-    privateGetPortfolioAccountIdPositionsPageId (params?: {}): Promise<List>;
-    privateGetPortfolioAccountIdPositionConid (params?: {}): Promise<List>;
-    privateGetPortfolioAccountIdSummary (params?: {}): Promise<Dict>;
-    privateGetPortfolioAccountIdLedger (params?: {}): Promise<Dict>;
-    privateGetPortfolioPositionsConid (params?: {}): Promise<Dict>;
-    privateGetPortfolio2AccountIdPositions (params?: {}): Promise<List>;
-    privateGetIserverAccountAccountIdSummaryAvailableFunds (params?: {}): Promise<Dict>;
-    privateGetFyiUnreadnumber (params?: {}): Promise<Dict>;
-    privateGetFyiSettings (params?: {}): Promise<List>;
-    privateGetFyiDisclaimerTypecode (params?: {}): Promise<Dict>;
-    privateGetFyiDeliveryoptions (params?: {}): Promise<Dict>;
-    privateGetFyiNotifications (params?: {}): Promise<List>;
-    privateGetFyiNotificationsMore (params?: {}): Promise<List>;
-    privateGetIbcustEntityInfo (params?: {}): Promise<Dict>;
-    privateGetPortalSsoValidate (params?: {}): Promise<Dict>;
-    privateGetSsoDispatcher (params?: {}): Promise<Dict>;
-    privatePostOauthAccessToken (params?: {}): Promise<Dict>;
-    privatePostOauthLiveSessionToken (params?: {}): Promise<Dict>;
-    privatePostIserverAuthSsodhInit (params?: {}): Promise<Dict>;
-    privatePostIserverAuthStatus (params?: {}): Promise<Dict>;
-    privatePostIserverReauthenticate (params?: {}): Promise<Dict>;
-    privatePostIserverAccount (params?: {}): Promise<Dict>;
-    privatePostIserverAccountAccountIdAlert (params?: {}): Promise<Dict>;
-    privatePostIserverAccountAccountIdAlertActivate (params?: {}): Promise<Dict>;
-    privatePostIserverAccountAccountIdOrders (params?: {}): Promise<List>;
-    privatePostIserverAccountOrdersFaGroup (params?: {}): Promise<List>;
-    privatePostIserverReplyReplyid (params?: {}): Promise<List>;
-    privatePostIserverAccountAccountIdOrdersWhatif (params?: {}): Promise<Dict>;
-    privatePostIserverAccountAccountIdOrderOrderId (params?: {}): Promise<List>;
-    privatePostIserverSecdefSearch (params?: {}): Promise<List>;
-    privatePostIserverContractRules (params?: {}): Promise<Dict>;
-    privatePostIserverQuestionsSuppress (params?: {}): Promise<Dict>;
-    privatePostIserverScannerRun (params?: {}): Promise<Dict>;
-    privatePostPortfolioAllocation (params?: {}): Promise<Dict>;
-    privatePostPortfolioAccountIdPositionsInvalidate (params?: {}): Promise<Dict>;
-    privatePostFyiSettingsTypecode (params?: {}): Promise<Dict>;
-    privatePostFyiDeliveryoptionsDevice (params?: {}): Promise<Dict>;
-    privatePostPaPerformance (params?: {}): Promise<Dict>;
-    privatePostPaSummary (params?: {}): Promise<Dict>;
-    privatePostPaTransactions (params?: {}): Promise<Dict>;
-    privatePostWs (params?: {}): Promise<Dict>;
-    privatePostTickle (params?: {}): Promise<Dict>;
-    privatePostLogout (params?: {}): Promise<Dict>;
-    privatePostTrsrvSecdef (params?: {}): Promise<Dict>;
-    privatePutFyiDisclaimerTypecode (params?: {}): Promise<Dict>;
-    privatePutFyiDeliveryoptionsEmail (params?: {}): Promise<Dict>;
-    privatePutFyiNotificationsNotificationId (params?: {}): Promise<Dict>;
-    privateDeleteFyiDeliveryoptionsDeviceId (params?: {}): Promise<Dict>;
-    privateDeleteIserverAccountAccountIdAlertAlertId (params?: {}): Promise<Dict>;
-    privateDeleteIserverAccountAccountIdOrderOrderId (params?: {}): Promise<Dict>;
-    gwPrivateGetAccountsAccountIdDetails (params?: {}): Promise<Dict>;
-    gwPrivatePostAccountsAccountIdTasks (params?: {}): Promise<Dict>;
-    gwPrivatePostAccounts (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    webapiGetV1ApiIserverAccountPnlPartitioned (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/pnl/partitioned', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    webapiGetV1ApiAceswsAccountIdSignaturesAndOwners (params = {}): Promise<Dict> {
+        return this.request ('v1/api/acesws/:accountId/signatures-and-owners', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccounts (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/accounts', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountSearchSearchPattern (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/search/:searchPattern', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountAccountIdSummaryBalances (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/:accountId/summary/balances', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountAccountIdSummaryMargins (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/:accountId/summary/margins', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountAccountIdSummaryMarketValue (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/:accountId/summary/market_value', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountAccountIdSummary (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/:accountId/summary', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountAccountIdSummaryAvailableFunds (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/:accountId/summary/available_funds', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountMta (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/mta', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountAlertAlertId (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/alert/:alertId', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountAccountIdAlerts (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/:accountId/alerts', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverCurrencyPairs (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/currency/pairs', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverExchangerate (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/exchangerate', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverContractConidInfo (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/contract/:conid/info', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverSecdefInfo (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/secdef/info', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiTrsrvSecdef (params = {}): Promise<Dict> {
+        return this.request ('v1/api/trsrv/secdef', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverContractConidInfoAndRules (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/contract/:conid/info-and-rules', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiTrsrvAllConids (params = {}): Promise<Dict> {
+        return this.request ('v1/api/trsrv/all-conids', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverContractConidAlgos (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/contract/:conid/algos', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverSecdefBondFilters (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/secdef/bond-filters', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiTrsrvFutures (params = {}): Promise<Dict> {
+        return this.request ('v1/api/trsrv/futures', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverSecdefSearch (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/secdef/search', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiTrsrvStocks (params = {}): Promise<Dict> {
+        return this.request ('v1/api/trsrv/stocks', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverSecdefStrikes (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/secdef/strikes', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiTrsrvSecdefSchedule (params = {}): Promise<Dict> {
+        return this.request ('v1/api/trsrv/secdef/schedule', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiForecastCategoryTree (params = {}): Promise<Dict> {
+        return this.request ('v1/api/forecast/category/tree', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiForecastContractDetails (params = {}): Promise<Dict> {
+        return this.request ('v1/api/forecast/contract/details', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiForecastContractRules (params = {}): Promise<Dict> {
+        return this.request ('v1/api/forecast/contract/rules', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiForecastContractSchedules (params = {}): Promise<Dict> {
+        return this.request ('v1/api/forecast/contract/schedules', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiForecastContractMarket (params = {}): Promise<Dict> {
+        return this.request ('v1/api/forecast/contract/market', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountAllocationGroup (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/allocation/group', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountAllocationAccounts (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/allocation/accounts', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountAllocationPresets (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/allocation/presets', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountAllocationModels (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/allocation/models', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiFyiDeliveryoptions (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fyi/deliveryoptions', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiFyiDisclaimerTypecode (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fyi/disclaimer/:typecode', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiFyiSettings (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fyi/settings', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiFyiUnreadnumber (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fyi/unreadnumber', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiFyiNotifications (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fyi/notifications', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverMarketdataUnsubscribeall (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/marketdata/unsubscribeall', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverMarketdataHistory (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/marketdata/history', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverMarketdataSnapshot (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/marketdata/snapshot', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountOrders (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/orders', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountOrderStatusOrderId (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/order/status/:orderId', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverAccountTrades (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/trades', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiPortfolioAccountIdAllocation (params = {}): Promise<Dict> {
+        return this.request ('v1/api/portfolio/:accountId/allocation', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiPortfolioAccountIdMeta (params = {}): Promise<Dict> {
+        return this.request ('v1/api/portfolio/:accountId/meta', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiPortfolioAccountIdLedger (params = {}): Promise<Dict> {
+        return this.request ('v1/api/portfolio/:accountId/ledger', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiPortfolioAccountIdSummary (params = {}): Promise<Dict> {
+        return this.request ('v1/api/portfolio/:accountId/summary', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiPortfolioAccountIdPositionConid (params = {}): Promise<Dict> {
+        return this.request ('v1/api/portfolio/:accountId/position/:conid', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiPortfolioAccountIdPositionsPageId (params = {}): Promise<Dict> {
+        return this.request ('v1/api/portfolio/:accountId/positions/:pageId', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiPortfolio2AccountIdPositions (params = {}): Promise<Dict> {
+        return this.request ('v1/api/portfolio2/:accountId/positions', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiPortfolioPositionsConid (params = {}): Promise<Dict> {
+        return this.request ('v1/api/portfolio/positions/:conid', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiPortfolioAccountIdComboPositions (params = {}): Promise<Dict> {
+        return this.request ('v1/api/portfolio/:accountId/combo/positions', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiPortfolioAccounts (params = {}): Promise<Dict> {
+        return this.request ('v1/api/portfolio/accounts', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiPortfolioSubaccounts (params = {}): Promise<Dict> {
+        return this.request ('v1/api/portfolio/subaccounts', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiPortfolioSubaccounts2 (params = {}): Promise<Dict> {
+        return this.request ('v1/api/portfolio/subaccounts2', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiSsoValidate (params = {}): Promise<Dict> {
+        return this.request ('v1/api/sso/validate', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverScannerParams (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/scanner/params', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverWatchlist (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/watchlist', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetV1ApiIserverWatchlists (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/watchlists', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1AccountsAccountIdDetails (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/accounts/:accountId/details', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1AccountsStatus (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/accounts/status', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1AccountsAccountIdLoginMessages (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/accounts/:accountId/login-messages', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1AccountsLoginMessages (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/accounts/login-messages', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1AccountsAccountIdTasks (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/accounts/:accountId/tasks', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1AccountsAccountIdStatus (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/accounts/:accountId/status', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1AccountsAccountIdKyc (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/accounts/:accountId/kyc', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1Accounts (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/accounts', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1ClientInstructionsClientInstructionId (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/client-instructions/:clientInstructionId', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1InstructionsInstructionId (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/instructions/:instructionId', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1InstructionSetsInstructionSetId (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/instruction-sets/:instructionSetId', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1StatementsAvailable (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/statements/available', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1TaxDocumentsAvailable (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/tax-documents/available', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1TradeConfirmationsAvailable (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/trade-confirmations/available', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1EnumerationsComplexAssetTransfer (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/enumerations/complex-asset-transfer', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1EnumerationsEnumerationType (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/enumerations/:enumerationType', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1Forms (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/forms', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1ParticipatingBanks (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/participating-banks', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1Requests (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/requests', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1FormsRequiredForms (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/forms/required-forms', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1RequestsRequestIdStatus (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/requests/:requestId/status', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1ValidationsUsernamesUsername (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/validations/usernames/:username', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1RestrictionsList (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/restrictions/list', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1RestrictionsListsIds (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/restrictions/lists/ids', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1RestrictionsRestriction (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/restrictions/restriction', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1RestrictionsIds (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/restrictions/ids', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1RestrictionsUser (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/restrictions/user', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1RestrictionsAccount (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/restrictions/account', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1RestrictionsRestrictionScope (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/restrictions/restriction-scope', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1TaxVouchersRequestIdDownload (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/tax-vouchers/:requestId/download', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1TaxVouchersDividends (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/tax-vouchers/dividends', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1TaxVouchersActiveCountries (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/tax-vouchers/active-countries', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1TaxVouchersYears (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/tax-vouchers/years', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1TaxVouchersRequestIdState (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/tax-vouchers/:requestId/state', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiGetGwApiV1EchoHttps (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/echo/https', [ 'webapi' ], 'GET', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiOauthRequestToken (params = {}): Promise<Dict> {
+        return this.request ('v1/api/oauth/request_token', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiOauthAccessToken (params = {}): Promise<Dict> {
+        return this.request ('v1/api/oauth/access_token', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiOauthLiveSessionToken (params = {}): Promise<Dict> {
+        return this.request ('v1/api/oauth/live_session_token', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1SsoBrowserSessions (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/sso-browser-sessions', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1SsoSessions (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/sso-sessions', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostOauth2ApiV1Token (params = {}): Promise<Dict> {
+        return this.request ('oauth2/api/v1/token', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverDynaccount (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/dynaccount', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverAccount (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverAccountAccountIdAlertActivate (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/:accountId/alert/activate', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverAccountAccountIdAlert (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/:accountId/alert', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverContractRules (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/contract/rules', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverSecdefSearch (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/secdef/search', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverAccountAllocationGroup (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/allocation/group', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverAccountAllocationGroupDelete (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/allocation/group/delete', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverAccountAllocationGroupSingle (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/allocation/group/single', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverAccountAllocationPresets (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/allocation/presets', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaFaPresetGet (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/fa-preset/get', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaModelAccountsDetails (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/model/accounts-details', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaModelInvestDivest (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/model/invest-divest', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaIsFullMaster (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/is-full-master', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaModelCashAnalyzer (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/model/cash-analyzer', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaModelRebalanceToExistingTargets (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/model/rebalance/to-existing-targets', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaModelRebalanceToNewTargets (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/model/rebalance/to-new-targets', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaModelRebalanceToSpecificTargets (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/model/rebalance/to-specific-targets', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaModelList (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/model/list', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaModelPositions (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/model/positions', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaModelSummary (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/model/summary', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaModelSave (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/model/save', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaFaPresetSave (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/fa-preset/save', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverAccountModelCodeOrders (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/:modelCode/orders', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaModelSubmitTransfers (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/model/submit-transfers', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaModelInvestDivestPositions (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/model/invest-divest-positions', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFaModelTwsInvestDivest (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fa/model/tws-invest-divest', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFyiSettingsTypecode (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fyi/settings/:typecode', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiFyiDeliveryoptionsDevice (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fyi/deliveryoptions/device', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverMarketdataUnsubscribe (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/marketdata/unsubscribe', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverReplyReplyId (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/reply/:replyId', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverNotification (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/notification', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverAccountAccountIdOrderOrderId (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/:accountId/order/:orderId', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverAccountAccountIdOrdersWhatif (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/:accountId/orders/whatif', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverQuestionsSuppressReset (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/questions/suppress/reset', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverAccountAccountIdOrders (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/:accountId/orders', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverQuestionsSuppress (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/questions/suppress', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiPortfolioAccountIdPositionsInvalidate (params = {}): Promise<Dict> {
+        return this.request ('v1/api/portfolio/:accountId/positions/invalidate', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiPaPerformance (params = {}): Promise<Dict> {
+        return this.request ('v1/api/pa/performance', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiPaAllperiods (params = {}): Promise<Dict> {
+        return this.request ('v1/api/pa/allperiods', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiPaAllocation (params = {}): Promise<Dict> {
+        return this.request ('v1/api/pa/allocation', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiPaTransactions (params = {}): Promise<Dict> {
+        return this.request ('v1/api/pa/transactions', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverScannerRun (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/scanner/run', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiTickle (params = {}): Promise<Dict> {
+        return this.request ('v1/api/tickle', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverAuthStatus (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/auth/status', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverAuthSsodhInit (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/auth/ssodh/init', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostV1ApiIserverWatchlist (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/watchlist', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1AccountsAccountIdTasks (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/accounts/:accountId/tasks', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1Accounts (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/accounts', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1AccountsDocuments (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/accounts/documents', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1InstructionsCancel (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/instructions/cancel', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1BankInstructionsBulk (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/bank-instructions:bulk', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1InstructionsCancelBulk (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/instructions/cancel:bulk', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1ExternalAssetTransfersBulk (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/external-asset-transfers:bulk', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV2ExternalAssetTransfersBulk (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v2/external-asset-transfers:bulk', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1ExternalCashTransfersBulk (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/external-cash-transfers:bulk', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1InternalAssetTransfersBulk (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/internal-asset-transfers:bulk', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1InternalCashTransfersBulk (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/internal-cash-transfers:bulk', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1InstructionsQuery (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/instructions/query', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1BankInstructions (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/bank-instructions', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1ExternalCashTransfers (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/external-cash-transfers', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1InternalCashTransfers (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/internal-cash-transfers', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1ExternalAssetTransfers (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/external-asset-transfers', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV2ExternalAssetTransfers (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v2/external-asset-transfers', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1InternalAssetTransfers (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/internal-asset-transfers', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1BankInstructionsQuery (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/bank-instructions/query', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1ExternalCashTransfersQuery (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/external-cash-transfers/query', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1TaxDocuments (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/tax-documents', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1TradeConfirmations (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/trade-confirmations', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1Statements (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/statements', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1Restrictions (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/restrictions', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1RestrictionsVerify (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/restrictions/verify', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1BalancesQuery (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/balances/query', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1TaxVouchers (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/tax-vouchers', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPostGwApiV1EchoSignedJwt (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/echo/signed-jwt', [ 'webapi' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webapiPutV1ApiIserverAccountAllocationGroup (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/allocation/group', [ 'webapi' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    webapiPutV1ApiFyiDisclaimerTypecode (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fyi/disclaimer/:typecode', [ 'webapi' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    webapiPutV1ApiFyiNotificationsNotificationId (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fyi/notifications/:notificationId', [ 'webapi' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    webapiPutV1ApiFyiDeliveryoptionsEmail (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fyi/deliveryoptions/email', [ 'webapi' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    webapiDeleteV1ApiIserverAccountAccountIdAlertAlertId (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/:accountId/alert/:alertId', [ 'webapi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    webapiDeleteV1ApiFyiDeliveryoptionsDeviceId (params = {}): Promise<Dict> {
+        return this.request ('v1/api/fyi/deliveryoptions/:deviceId', [ 'webapi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    webapiDeleteV1ApiIserverAccountAccountIdOrderOrderId (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/account/:accountId/order/:orderId', [ 'webapi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    webapiDeleteV1ApiIserverWatchlist (params = {}): Promise<Dict> {
+        return this.request ('v1/api/iserver/watchlist', [ 'webapi' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    webapiPatchGwApiV1Accounts (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/accounts', [ 'webapi' ], 'PATCH', params, { 'cost': 1 });
+    }
+
+    webapiPatchGwApiV1AccountsAccountIdStatus (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/accounts/:accountId/status', [ 'webapi' ], 'PATCH', params, { 'cost': 1 });
+    }
+
+    webapiPatchGwApiV1AccountsAccountIdTasks (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/accounts/:accountId/tasks', [ 'webapi' ], 'PATCH', params, { 'cost': 1 });
+    }
+
+    webapiPatchGwApiV1RequestsRequestIdStatus (params = {}): Promise<Dict> {
+        return this.request ('gw/api/v1/requests/:requestId/status', [ 'webapi' ], 'PATCH', params, { 'cost': 1 });
+    }
+
+    privateGetOauthRequestToken (params = {}): Promise<Dict> {
+        return this.request ('oauth/request_token', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetTrsrvSecdefSchedule (params = {}): Promise<List> {
+        return this.request ('trsrv/secdef/schedule', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetTrsrvFutures (params = {}): Promise<Dict> {
+        return this.request ('trsrv/futures', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetTrsrvStocks (params = {}): Promise<Dict> {
+        return this.request ('trsrv/stocks', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetTrsrvAllConids (params = {}): Promise<List> {
+        return this.request ('trsrv/all-conids', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetTrsrvSecdef (params = {}): Promise<Dict> {
+        return this.request ('trsrv/secdef', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverCurrencyPairs (params = {}): Promise<Dict> {
+        return this.request ('iserver/currency/pairs', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverExchangerate (params = {}): Promise<Dict> {
+        return this.request ('iserver/exchangerate', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverAccountTrades (params = {}): Promise<List> {
+        return this.request ('iserver/account/trades', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverAccountAccountIdAlerts (params = {}): Promise<List> {
+        return this.request ('iserver/account/{accountId}/alerts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverAccountAlertId (params = {}): Promise<Dict> {
+        return this.request ('iserver/account/alert/{id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverAccountMta (params = {}): Promise<Dict> {
+        return this.request ('iserver/account/mta', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverAccountOrders (params = {}): Promise<Dict> {
+        return this.request ('iserver/account/orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverAccountOrderStatusOrderId (params = {}): Promise<Dict> {
+        return this.request ('iserver/account/order/status/{orderId}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverAccountPnlPartitioned (params = {}): Promise<Dict> {
+        return this.request ('iserver/account/pnl/partitioned', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverAccounts (params = {}): Promise<Dict> {
+        return this.request ('iserver/accounts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverMarketdataSnapshot (params = {}): Promise<List> {
+        return this.request ('iserver/marketdata/snapshot', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverMarketdataConidUnsubscribe (params = {}): Promise<Dict> {
+        return this.request ('iserver/marketdata/{conid}/unsubscribe', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverMarketdataUnsubscribeall (params = {}): Promise<Dict> {
+        return this.request ('iserver/marketdata/unsubscribeall', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverMarketdataHistory (params = {}): Promise<Dict> {
+        return this.request ('iserver/marketdata/history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverContractConidInfo (params = {}): Promise<Dict> {
+        return this.request ('iserver/contract/{conid}/info', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverSecdefStrikes (params = {}): Promise<Dict> {
+        return this.request ('iserver/secdef/strikes', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverSecdefInfo (params = {}): Promise<List> {
+        return this.request ('iserver/secdef/info', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverContractConidAlgos (params = {}): Promise<Dict> {
+        return this.request ('iserver/contract/{conid}/algos', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverContractConidInfoAndRules (params = {}): Promise<Dict> {
+        return this.request ('iserver/contract/{conid}/info-and-rules', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverScannerParams (params = {}): Promise<Dict> {
+        return this.request ('iserver/scanner/params', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPortfolioAccounts (params = {}): Promise<List> {
+        return this.request ('portfolio/accounts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPortfolioSubaccounts (params = {}): Promise<List> {
+        return this.request ('portfolio/subaccounts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPortfolioAccountIdMeta (params = {}): Promise<Dict> {
+        return this.request ('portfolio/{accountId}/meta', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPortfolioAccountIdAllocation (params = {}): Promise<Dict> {
+        return this.request ('portfolio/{accountId}/allocation', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPortfolioAccountIdPositionsPageId (params = {}): Promise<List> {
+        return this.request ('portfolio/{accountId}/positions/{pageId}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPortfolioAccountIdPositionConid (params = {}): Promise<List> {
+        return this.request ('portfolio/{accountId}/position/{conid}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPortfolioAccountIdSummary (params = {}): Promise<Dict> {
+        return this.request ('portfolio/{accountId}/summary', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPortfolioAccountIdLedger (params = {}): Promise<Dict> {
+        return this.request ('portfolio/{accountId}/ledger', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPortfolioPositionsConid (params = {}): Promise<Dict> {
+        return this.request ('portfolio/positions/{conid}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPortfolio2AccountIdPositions (params = {}): Promise<List> {
+        return this.request ('portfolio2/{accountId}/positions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIserverAccountAccountIdSummaryAvailableFunds (params = {}): Promise<Dict> {
+        return this.request ('iserver/account/{accountId}/summary/available_funds', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetFyiUnreadnumber (params = {}): Promise<Dict> {
+        return this.request ('fyi/unreadnumber', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetFyiSettings (params = {}): Promise<List> {
+        return this.request ('fyi/settings', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetFyiDisclaimerTypecode (params = {}): Promise<Dict> {
+        return this.request ('fyi/disclaimer/{typecode}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetFyiDeliveryoptions (params = {}): Promise<Dict> {
+        return this.request ('fyi/deliveryoptions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetFyiNotifications (params = {}): Promise<List> {
+        return this.request ('fyi/notifications', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetFyiNotificationsMore (params = {}): Promise<List> {
+        return this.request ('fyi/notifications/more', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetIbcustEntityInfo (params = {}): Promise<Dict> {
+        return this.request ('ibcust/entity/info', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPortalSsoValidate (params = {}): Promise<Dict> {
+        return this.request ('portal/sso/validate', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetSsoDispatcher (params = {}): Promise<Dict> {
+        return this.request ('sso/Dispatcher', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostOauthAccessToken (params = {}): Promise<Dict> {
+        return this.request ('oauth/access_token', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOauthLiveSessionToken (params = {}): Promise<Dict> {
+        return this.request ('oauth/live_session_token', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverAuthSsodhInit (params = {}): Promise<Dict> {
+        return this.request ('iserver/auth/ssodh/init', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverAuthStatus (params = {}): Promise<Dict> {
+        return this.request ('iserver/auth/status', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverReauthenticate (params = {}): Promise<Dict> {
+        return this.request ('iserver/reauthenticate', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverAccount (params = {}): Promise<Dict> {
+        return this.request ('iserver/account', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverAccountAccountIdAlert (params = {}): Promise<Dict> {
+        return this.request ('iserver/account/{accountId}/alert', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverAccountAccountIdAlertActivate (params = {}): Promise<Dict> {
+        return this.request ('iserver/account/{accountId}/alert/activate', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverAccountAccountIdOrders (params = {}): Promise<List> {
+        return this.request ('iserver/account/{accountId}/orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverAccountOrdersFaGroup (params = {}): Promise<List> {
+        return this.request ('iserver/account/orders/{faGroup}', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverReplyReplyid (params = {}): Promise<List> {
+        return this.request ('iserver/reply/{replyid}', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverAccountAccountIdOrdersWhatif (params = {}): Promise<Dict> {
+        return this.request ('iserver/account/{accountId}/orders/whatif', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverAccountAccountIdOrderOrderId (params = {}): Promise<List> {
+        return this.request ('iserver/account/{accountId}/order/{orderId}', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverSecdefSearch (params = {}): Promise<List> {
+        return this.request ('iserver/secdef/search', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverContractRules (params = {}): Promise<Dict> {
+        return this.request ('iserver/contract/rules', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverQuestionsSuppress (params = {}): Promise<Dict> {
+        return this.request ('iserver/questions/suppress', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostIserverScannerRun (params = {}): Promise<Dict> {
+        return this.request ('iserver/scanner/run', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPortfolioAllocation (params = {}): Promise<Dict> {
+        return this.request ('portfolio/allocation', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPortfolioAccountIdPositionsInvalidate (params = {}): Promise<Dict> {
+        return this.request ('portfolio/{accountId}/positions/invalidate', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostFyiSettingsTypecode (params = {}): Promise<Dict> {
+        return this.request ('fyi/settings/{typecode}', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostFyiDeliveryoptionsDevice (params = {}): Promise<Dict> {
+        return this.request ('fyi/deliveryoptions/device', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPaPerformance (params = {}): Promise<Dict> {
+        return this.request ('pa/performance', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPaSummary (params = {}): Promise<Dict> {
+        return this.request ('pa/summary', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPaTransactions (params = {}): Promise<Dict> {
+        return this.request ('pa/transactions', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostWs (params = {}): Promise<Dict> {
+        return this.request ('ws', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostTickle (params = {}): Promise<Dict> {
+        return this.request ('tickle', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostLogout (params = {}): Promise<Dict> {
+        return this.request ('logout', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostTrsrvSecdef (params = {}): Promise<Dict> {
+        return this.request ('trsrv/secdef', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePutFyiDisclaimerTypecode (params = {}): Promise<Dict> {
+        return this.request ('fyi/disclaimer/{typecode}', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    privatePutFyiDeliveryoptionsEmail (params = {}): Promise<Dict> {
+        return this.request ('fyi/deliveryoptions/email', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    privatePutFyiNotificationsNotificationId (params = {}): Promise<Dict> {
+        return this.request ('fyi/notifications/{notificationId}', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    privateDeleteFyiDeliveryoptionsDeviceId (params = {}): Promise<Dict> {
+        return this.request ('fyi/deliveryoptions/{deviceId}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    privateDeleteIserverAccountAccountIdAlertAlertId (params = {}): Promise<Dict> {
+        return this.request ('iserver/account/{accountId}/alert/{alertId}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    privateDeleteIserverAccountAccountIdOrderOrderId (params = {}): Promise<Dict> {
+        return this.request ('iserver/account/{accountId}/order/{orderId}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    gwPrivateGetAccountsAccountIdDetails (params = {}): Promise<Dict> {
+        return this.request ('accounts/{accountId}/details', [ 'gwPrivate' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gwPrivatePostAccountsAccountIdTasks (params = {}): Promise<Dict> {
+        return this.request ('accounts/{accountId}/tasks', [ 'gwPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+
+    gwPrivatePostAccounts (params = {}): Promise<Dict> {
+        return this.request ('accounts', [ 'gwPrivate' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

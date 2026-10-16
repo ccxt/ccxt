@@ -839,15 +839,11 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         await this.loadServiceAccounts ();
-        const aaa = await this.fetchStockMarkets (params);
-        return aaa;
         const stockMarketsPromise = this.fetchStockMarkets (params);
         const cryptoMarketsPromise = this.fetchCryptoMarkets (params);
         const fxMarketsPromise = this.fetchForexMarkets (params);
         const [ stockMarkets, cryptoMarkets, fxMarkets ] = await Promise.all ([ stockMarketsPromise, cryptoMarketsPromise, fxMarketsPromise ]);
-        const markets1 = this.arrayConcat (stockMarkets, cryptoMarkets);
-        const markets2 = this.arrayConcat (markets1, fxMarkets);
-        return markets2;
+        return this.arraysConcat ([ stockMarkets, cryptoMarkets, fxMarkets ]);
     }
 
     async fetchWithDetails (plainEntries: Dict) {
@@ -857,7 +853,7 @@ export default class interactivebrokers extends Exchange {
         if (numDetails === 0) {
             return entries;
         }
-        const chunkSize = 300;
+        const chunkSize = 330; // above this number, response becomes unreliable
         const promises = [];
         let offset = 0;
         while (offset < numDetails) {
@@ -891,9 +887,7 @@ export default class interactivebrokers extends Exchange {
                 const secdef = secdefs[j];
                 const conid = this.safeString (secdef, 'conid');
                 const entry = this.safeDict (plainEntries, conid);
-                if (entry !== undefined) {
-                    entries.push (this.extend (entry, secdef));
-                }
+                entries.push (this.extend (entry, secdef));
             }
         }
         return entries;
@@ -1065,7 +1059,8 @@ export default class interactivebrokers extends Exchange {
         const assetClass = this.safeString (market, 'assetClass');
         const isCrypto = (assetClass === 'CRYPTO');
         const isForex = (assetClass === 'CASH');
-        const id = this.safeString (market, 'id');
+        const isStock = (assetClass === 'STK');
+        const id = this.safeString (market, 'conid');
         const baseTickerId = this.safeString (market, 'ticker') as string; 
         const quoteId = this.safeString (market, 'currency');
         const quote = this.safeCurrencyCode (quoteId);
@@ -1082,7 +1077,7 @@ export default class interactivebrokers extends Exchange {
             amountPrecision = this.safeString (options, 'stockAmountIncrement', '1');
         }
         let base: Str = undefined;
-        if (assetClass === 'STK') {
+        if (isStock) {
             // stock tickers are not currencies, skip commonCurrencies remapping, 'BRK B' -> 'BRK.B'
             base = baseTickerId.split (' ').join ('.');
         } else {
