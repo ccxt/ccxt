@@ -9491,6 +9491,115 @@
         ],
         "fetchTrades": [
             {
+                "description": "forward paginate stops once until is reached",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    1710327600000,
+                    null,
+                    {
+                        "paginate": true,
+                        "paginationDirection": "forward",
+                        "paginationCalls": 2,
+                        "until": 1710327700000
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "startTime=1710327600000": [
+                        {
+                            "a": "2913537567",
+                            "p": "73238.70000000",
+                            "q": "0.00109000",
+                            "f": "2913537567",
+                            "l": "2913537567",
+                            "T": "1710327661939",
+                            "m": false,
+                            "M": true
+                        },
+                        {
+                            "a": "2913537568",
+                            "p": "73238.70000000",
+                            "q": "0.00109000",
+                            "f": "2913537568",
+                            "l": "2913537568",
+                            "T": "1710327699999",
+                            "m": false,
+                            "M": true
+                        }
+                    ],
+                    "startTime=1710327700000": [
+                        {
+                            "a": "2913537569",
+                            "p": "73238.70000000",
+                            "q": "0.00109000",
+                            "f": "2913537569",
+                            "l": "2913537569",
+                            "T": "1710327705000",
+                            "m": false,
+                            "M": true
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "a": "2913537567",
+                            "p": "73238.70000000",
+                            "q": "0.00109000",
+                            "f": "2913537567",
+                            "l": "2913537567",
+                            "T": "1710327661939",
+                            "m": false,
+                            "M": true
+                        },
+                        "timestamp": 1710327661939,
+                        "datetime": "2024-03-13T11:01:01.939Z",
+                        "symbol": "BTC/USDT",
+                        "id": "2913537567",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73238.7,
+                        "amount": 0.00109,
+                        "cost": 79.830183,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "a": "2913537568",
+                            "p": "73238.70000000",
+                            "q": "0.00109000",
+                            "f": "2913537568",
+                            "l": "2913537568",
+                            "T": "1710327699999",
+                            "m": false,
+                            "M": true
+                        },
+                        "timestamp": 1710327699999,
+                        "datetime": "2024-03-13T11:01:39.999Z",
+                        "symbol": "BTC/USDT",
+                        "id": "2913537568",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 73238.7,
+                        "amount": 0.00109,
+                        "cost": 79.830183,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
                 "description": "public spot trades",
                 "method": "fetchTrades",
                 "input": [

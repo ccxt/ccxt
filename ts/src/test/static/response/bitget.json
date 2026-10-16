@@ -7143,6 +7143,64 @@
         ],
         "fetchFundingRateHistory": [
             {
+                "description": "paginate stops at the first empty page",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "paginate": true,
+                        "paginationCalls": 3
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "pageNo=1": {
+                        "code": "00000",
+                        "msg": "success",
+                        "requestTime": "1750435573219",
+                        "data": [
+                            {
+                                "symbol": "BTCUSDT",
+                                "fundingRate": "-0.000013",
+                                "fundingTime": "1750435200000"
+                            }
+                        ]
+                    },
+                    "pageNo=2": {
+                        "code": "00000",
+                        "msg": "success",
+                        "requestTime": "1750435573219",
+                        "data": []
+                    },
+                    "pageNo=3": {
+                        "code": "00000",
+                        "msg": "success",
+                        "requestTime": "1750435573219",
+                        "data": [
+                            {
+                                "symbol": "BTCUSDT",
+                                "fundingRate": "0.0001",
+                                "fundingTime": "1750406400000"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTCUSDT",
+                            "fundingRate": "-0.000013",
+                            "fundingTime": "1750435200000"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": -1.3e-05,
+                        "timestamp": 1750435200000,
+                        "datetime": "2025-06-20T16:00:00.000Z"
+                    }
+                ]
+            },
+            {
                 "description": "fetchFundingRate history with a limit argument",
                 "method": "fetchFundingRateHistory",
                 "input": [
