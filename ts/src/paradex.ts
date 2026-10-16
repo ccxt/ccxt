@@ -867,20 +867,20 @@ export default class paradex extends Exchange {
             const quoteParts = quoteAndSettle.split (':');
             quote = this.safeString (quoteParts, 0);
             settle = this.safeString (quoteParts, 1, quote);
-            expiryDate = parts[1];
-            strike = parts[2];
-            optionType = parts[3];
+            expiryDate = this.safeString (parts, 1);
+            strike = this.safeString (parts, 2);
+            optionType = this.safeString (parts, 3);
         } else {
             if (partsLength !== 5) {
                 throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
             }
-            base = parts[0];
-            quote = parts[1];
+            base = this.safeString (parts, 0);
+            quote = this.safeString (parts, 1);
             settle = 'USDC'; // every option on the venue settles in USDC
-            expiryDate = this.convertMarketIdExpireDate (parts[2]);
+            expiryDate = this.convertMarketIdExpireDate (this.safeString (parts, 2));
             const strikeId = parts[3];
             strike = strikeId.replace ('_', '.');
-            optionType = parts[4];
+            optionType = this.safeString (parts, 4);
         }
         // the id carries the day without a leading zero, 6NOV26
         let idDate = this.convertExpireDateToMarketIdDate (expiryDate) as string;
@@ -894,7 +894,10 @@ export default class paradex extends Exchange {
         if ((timestamp !== undefined) && (this.sum (timestamp, 86400000) <= this.milliseconds ())) {
             active = false;
         }
-        const strikeInId = strike.replace ('.', '_');
+        let strikeInId = '';
+        if (strike !== undefined) {
+            strikeInId = strike.replace ('.', '_');
+        }
         return {
             'id': base + '-' + quote + '-' + idDate + '-' + strikeInId + '-' + optionType,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiryDate + '-' + strike + '-' + optionType,
@@ -3996,7 +3999,9 @@ export default class paradex extends Exchange {
         const rates: List = [];
         for (let i = 0; i < results.length; i++) {
             const rate = results[i];
-            rate['next'] = next;
+            if (next !== undefined) {
+                rate['next'] = next; // the cursor helper reads it from info, the last page has none
+            }
             const timestamp = this.safeInteger (rate, 'created_at');
             const datetime = this.iso8601 (timestamp);
             rates.push ({
