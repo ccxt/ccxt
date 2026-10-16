@@ -2096,6 +2096,7 @@ fetches the bid and ask price and volume for multiple markets
 ##### Supported exchanges
 * [aster](/exchanges/aster.md#fetchbidsasks)
 * [binance](/exchanges/binance.md#fetchbidsasks)
+* [bingx](/exchanges/bingx.md#fetchbidsasks)
 * [bitrue](/exchanges/bitrue.md#fetchbidsasks)
 * [bybit](/exchanges/bybit.md#fetchbidsasks)
 * [coinbase](/exchanges/coinbase.md#fetchbidsasks)
