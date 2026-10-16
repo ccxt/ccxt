@@ -10948,8 +10948,8 @@ public class Bybit extends BybitApi
         for (var i = 0; i < Helpers.getArrayLength(info); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(info, i, (Object) null);
-            String marketId = this.safeString(info, "symbol");
-            Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            String marketId = this.safeString(tier, "symbol");
+            Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "contract");
             Double minNotional = this.parseNumber("0");
             if ((i != 0))
             {

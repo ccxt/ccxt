@@ -539,6 +539,16 @@ export interface OrderBook {
     copy (): OrderBook;
 }
 
+export interface OrderBookL3 {
+    asks: [Num, Num, Str][];
+    bids: [Num, Num, Str][];
+    datetime: Str;
+    timestamp: Int;
+    nonce: Int;
+    symbol: Str;
+    copy (): OrderBookL3;
+}
+
 export interface OrderBooks extends Dictionary<OrderBook> {
 }
 

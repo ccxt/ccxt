@@ -108,11 +108,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     put( "ws", new HashMap<String, Object>() {{
                         put( "spot", "wss://stream.testnet.binance.vision/ws" );
                         put( "margin", "wss://stream.testnet.binance.vision/ws" );
-                        put( "future", "wss://fstream.binancefuture.com/ws" );
+                        put( "linear", "wss://fstream.binancefuture.com/ws" );
                         put( "inverse", "wss://dstream.binancefuture.com/ws" );
                         put( "ws-api", new HashMap<String, Object>() {{
                             put( "spot", "wss://ws-api.testnet.binance.vision/ws-api/v3" );
-                            put( "future", "wss://testnet.binancefuture.com/ws-fapi/v1" );
+                            put( "linear", "wss://testnet.binancefuture.com/ws-fapi/v1" );
                             put( "inverse", "wss://testnet.binancefuture.com/ws-dapi/v1" );
                         }} );
                     }} );
@@ -121,11 +121,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     put( "ws", new HashMap<String, Object>() {{
                         put( "spot", "wss://demo-stream.binance.com/ws" );
                         put( "margin", "wss://demo-stream.binance.com/ws" );
-                        put( "future", "wss://fstream.binancefuture.com/ws" );
+                        put( "linear", "wss://fstream.binancefuture.com/ws" );
                         put( "inverse", "wss://dstream.binancefuture.com/ws" );
                         put( "ws-api", new HashMap<String, Object>() {{
                             put( "spot", "wss://demo-ws-api.binance.com/ws-api/v3" );
-                            put( "future", "wss://testnet.binancefuture.com/ws-fapi/v1" );
+                            put( "linear", "wss://testnet.binancefuture.com/ws-fapi/v1" );
                             put( "inverse", "wss://testnet.binancefuture.com/ws-dapi/v1" );
                         }} );
                     }} );
@@ -134,7 +134,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     put( "ws", new HashMap<String, Object>() {{
                         put( "spot", "wss://stream.binance.com:9443/ws" );
                         put( "margin", "wss://stream.binance.com:9443/ws" );
-                        put( "future", "wss://fstream.binance.com/ws" );
+                        put( "linear", "wss://fstream.binance.com/ws" );
                         put( "inverse", "wss://dstream.binance.com/ws" );
                         put( "stock", "wss://nbstream.binance.com/equity/ws" );
                         put( "option", "wss://fstream.binance.com/public/ws" );
@@ -142,7 +142,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         put( "optionPrivate", "wss://fstream.binance.com/private/ws" );
                         put( "ws-api", new HashMap<String, Object>() {{
                             put( "spot", "wss://ws-api.binance.com:443/ws-api/v3" );
-                            put( "future", "wss://ws-fapi.binance.com/ws-fapi/v1" );
+                            put( "linear", "wss://ws-fapi.binance.com/ws-fapi/v1" );
                             put( "inverse", "wss://ws-dapi.binance.com/ws-dapi/v1" );
                         }} );
                         put( "papi", "wss://fstream.binance.com/pm/ws" );
@@ -158,7 +158,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "streamLimits", new HashMap<String, Object>() {{
                     put( "spot", 50 );
                     put( "margin", 50 );
-                    put( "future", 50 );
+                    put( "linear", 50 );
                     put( "inverse", 50 );
                     put( "stock", 50 );
                     put( "option", 50 );
@@ -167,7 +167,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "subscriptionLimitByStream", new HashMap<String, Object>() {{
                     put( "spot", 200 );
                     put( "margin", 200 );
-                    put( "future", 200 );
+                    put( "linear", 200 );
                     put( "inverse", 200 );
                     put( "stock", 200 );
                     put( "option", 200 );
@@ -293,7 +293,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             return Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
         }
         Object baseUrl = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
-        if (java.util.Objects.equals(type, "future"))
+        if (java.util.Objects.equals(type, "linear"))
         {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
             // const firstProtocol = baseUrl.indexOf ('://');
@@ -333,7 +333,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             throw new AuthenticationError((this.id + " getPrivateWsUrl() requires a listenKey from authenticate()")) ;
         }
-        if (java.util.Objects.equals(type, "future"))
+        if (java.util.Objects.equals(type, "linear"))
         {
             return ((this.getWsUrl(type, "private") + "?listenKey=") + listenKey);
         }
@@ -891,7 +891,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 type = "option";
             } else if (java.util.Objects.equals(firstMarket.get("contract"), true))
             {
-                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "future" : "inverse";
+                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "linear" : "inverse";
             }
             String name = "depth";
             String streamHash = "multipleOrderbook";
@@ -911,7 +911,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Pair<Boolean, Map<String, Object>> rpiparamsRpiVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsRate), "watchOrderBookForSymbols", "rpi", false);
             Boolean rpi = rpiparamsRpiVariable.first();
             Map<String, Object> paramsRpi = rpiparamsRpiVariable.second();
-            if (Boolean.TRUE.equals(rpi) && java.util.Objects.equals(type, "future"))
+            if (Boolean.TRUE.equals(rpi) && java.util.Objects.equals(type, "linear"))
             {
                 name = "rpiDepth";
                 watchOrderBookRate = "500";
@@ -988,7 +988,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 type = "option";
             } else if (java.util.Objects.equals(firstMarket.get("contract"), true))
             {
-                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "future" : "inverse";
+                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "linear" : "inverse";
             }
             String name = "depth";
             String streamHash = "multipleOrderbook";
@@ -1092,7 +1092,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 payload.put("limit", limit);
             }
             Object marketType = this.getMarketType("fetchOrderBookWs", market, parameters);
-            if (!java.util.Objects.equals(marketType, "future"))
+            if (!java.util.Objects.equals(marketType, "linear"))
             {
                 throw new BadRequest((this.id + " fetchOrderBookWs only supports swap markets")) ;
             }
@@ -1193,7 +1193,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         continue;
                     }
                     Long pu = this.safeInteger(messageItem, "pu");
-                    if (java.util.Objects.equals(type, "future"))
+                    if (java.util.Objects.equals(type, "linear"))
                     {
                         // 4. Drop any event where u is < lastUpdateId in the snapshot
                         if (Helpers.isLessThan(u, (orderbook == null ? null : orderbook.get("nonce"))))
@@ -1514,7 +1514,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 type = "option";
             } else if (java.util.Objects.equals(firstMarket.get("contract"), true))
             {
-                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "future" : "inverse";
+                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "linear" : "inverse";
             }
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> subParams = new ArrayList<Object>(Arrays.asList());
@@ -1620,7 +1620,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 type = "option";
             } else if (java.util.Objects.equals(firstMarket.get("contract"), true))
             {
-                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "future" : "inverse";
+                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "linear" : "inverse";
             }
             List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> subParams = new ArrayList<Object>(Arrays.asList());
@@ -2068,7 +2068,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
             } else if (java.util.Objects.equals(firstMarket.get("contract"), true))
             {
-                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "future" : "inverse";
+                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "linear" : "inverse";
                 wsUrlType = type;
             }
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
@@ -2169,7 +2169,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
             } else if (java.util.Objects.equals(firstMarket.get("contract"), true))
             {
-                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "future" : "inverse";
+                type = (((java.util.Objects.equals(firstMarket.get("linear"), true)))) ? "linear" : "inverse";
                 wsUrlType = type;
             }
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
@@ -2357,7 +2357,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 put( "symbol", market.get("id") );
             }};
             Object type = this.getMarketType("fetchTickerWs", market, parameters);
-            if (!java.util.Objects.equals(type, "future"))
+            if (!java.util.Objects.equals(type, "linear"))
             {
                 throw new BadRequest((this.id + " fetchTickerWs only supports swap markets")) ;
             }
@@ -2417,7 +2417,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Map<String, Object> market = this.market(symbol);
             Object marketType = this.getMarketType("fetchOHLCVWs", market, parameters);
-            if (!java.util.Objects.equals(marketType, "spot") && !java.util.Objects.equals(marketType, "future"))
+            if (!java.util.Objects.equals(marketType, "spot") && !java.util.Objects.equals(marketType, "linear"))
             {
                 throw new BadRequest((this.id + " fetchOHLCVWs only supports spot or swap markets")) ;
             }
@@ -2893,7 +2893,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 rawMarketType = ((Boolean.TRUE.equals(isOptionMarkPrice))) ? "optionMarket" : "option";
             } else if (this.isLinear(marketType, subType))
             {
-                rawMarketType = "future";
+                rawMarketType = "linear";
             } else if (this.isInverse(marketType, subType))
             {
                 rawMarketType = "inverse";
@@ -3256,7 +3256,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         String messageHash = this.safeString(message, "id");
         Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(result, "future");
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(result, "contract");
         client.resolve(ticker, messageHash);
     }
 
@@ -3760,7 +3760,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     } else if (Boolean.TRUE.equals(isPortfolioMargin))
                     {
                         response = (this.papiPostListenKey(paramsOmitted)).join();
-                    } else if (java.util.Objects.equals(type, "future"))
+                    } else if (java.util.Objects.equals(type, "linear"))
                     {
                         response = (this.fapiPrivatePostListenKey(paramsOmitted)).join();
                     } else if (java.util.Objects.equals(type, "inverse"))
@@ -3830,15 +3830,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (!java.util.Objects.equals(type, "option") && !java.util.Objects.equals(type, "stock"))
             {
                 // guard options first: isLinear returns true for linear-settled options (subType='linear')
-                // which would incorrectly convert type='option' to 'future'.
+                // which would incorrectly convert type='option' to 'linear'.
                 // stock needs the same exemption: with a defaultSubType of 'linear' -
                 // always on binanceusdm, common on mixed instances - isLinear keys off
-                // subType alone and would flip 'stock' to 'future' - the stock branch
+                // subType alone and would flip 'stock' to 'linear' - the stock branch
                 // below would never run, and the bucket lookup would renew the
                 // FUTURES listen key while the stock key silently expires
                 if (this.isLinear(type, subType))
                 {
-                    type = "future";
+                    type = "linear";
                 } else if (this.isInverse(type, subType))
                 {
                     type = "inverse";
@@ -3874,7 +3874,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 } else if (Boolean.TRUE.equals(isPortfolioMargin))
                 {
                     (this.papiPutListenKey(this.extend(request, paramsOmitted))).join();
-                } else if (java.util.Objects.equals(type, "future"))
+                } else if (java.util.Objects.equals(type, "linear"))
                 {
                     (this.fapiPrivatePutListenKey(this.extend(request, paramsOmitted))).join();
                 } else if (java.util.Objects.equals(type, "inverse"))
@@ -4040,7 +4040,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object type = this.getMarketType("fetchBalanceWs", null, parameters);
-            if (!java.util.Objects.equals(type, "spot") && !java.util.Objects.equals(type, "future") && !java.util.Objects.equals(type, "inverse"))
+            if (!java.util.Objects.equals(type, "spot") && !java.util.Objects.equals(type, "linear") && !java.util.Objects.equals(type, "inverse"))
             {
                 throw new BadRequest((this.id + " fetchBalanceWs only supports spot or swap markets")) ;
             }
@@ -4202,9 +4202,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 // when symbols aren't provide
                 // we shouldn't rely on the defaultType
-                type = "future";
+                type = "linear";
             }
-            if (!java.util.Objects.equals(type, "future") && !java.util.Objects.equals(type, "inverse"))
+            if (!java.util.Objects.equals(type, "linear") && !java.util.Objects.equals(type, "inverse"))
             {
                 throw new BadRequest((this.id + " fetchPositionsWs only supports swap markets")) ;
             }
@@ -4490,7 +4490,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
             Object subscription = (subscriptions == null || i < 0 || i >= ((List<?>)subscriptions).size() ? null : ((List<?>)subscriptions).get(i));
-            if ((java.util.Objects.equals(subscription, "spot")) || (java.util.Objects.equals(subscription, "margin")) || (java.util.Objects.equals(subscription, "future")) || (java.util.Objects.equals(subscription, "inverse")) || (java.util.Objects.equals(subscription, "option")))
+            if ((java.util.Objects.equals(subscription, "spot")) || (java.util.Objects.equals(subscription, "margin")) || (java.util.Objects.equals(subscription, "linear")) || (java.util.Objects.equals(subscription, "inverse")) || (java.util.Objects.equals(subscription, "option")))
             {
                 accountType = subscription;
                 break;
@@ -4519,7 +4519,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             if (this.isLinear(type, subType))
             {
-                type = "future";
+                type = "linear";
             } else if (this.isInverse(type, subType))
             {
                 type = "inverse";
@@ -4540,7 +4540,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String subType = (String) ((List<Object>)this.handleSubTypeAndParams(method, Helpers.toMapArg(market), paramsMarketType, (Object) null)).get(0);
         if (this.isLinear(type, subType))
         {
-            type = "future";
+            type = "linear";
         } else if (this.isInverse(type, subType))
         {
             type = "inverse";
@@ -4577,7 +4577,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Map<String, Object> market = this.market(symbol);
             Object marketType = this.getMarketType("createOrderWs", market, parameters);
-            if (!java.util.Objects.equals(marketType, "spot") && !java.util.Objects.equals(marketType, "future") && !java.util.Objects.equals(marketType, "inverse"))
+            if (!java.util.Objects.equals(marketType, "spot") && !java.util.Objects.equals(marketType, "linear") && !java.util.Objects.equals(marketType, "inverse"))
             {
                 throw new BadRequest((this.id + " createOrderWs only supports spot or swap markets")) ;
             }
@@ -4763,7 +4763,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Map<String, Object> market = this.market(symbol);
             Object marketType = this.getMarketType("editOrderWs", market, parameters);
-            if (!java.util.Objects.equals(marketType, "spot") && !java.util.Objects.equals(marketType, "future") && !java.util.Objects.equals(marketType, "inverse"))
+            if (!java.util.Objects.equals(marketType, "spot") && !java.util.Objects.equals(marketType, "linear") && !java.util.Objects.equals(marketType, "inverse"))
             {
                 throw new BadRequest((this.id + " editOrderWs only supports spot or swap markets")) ;
             }
@@ -4774,7 +4774,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Long requestId = this.requestId(url);
             String messageHash = String.valueOf(requestId);
-            Boolean isSwap = (java.util.Objects.equals(marketType, "future") || java.util.Objects.equals(marketType, "inverse"));
+            Boolean isSwap = (java.util.Objects.equals(marketType, "linear") || java.util.Objects.equals(marketType, "inverse"));
             Object payload = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -5077,7 +5077,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Map<String, Object> market = this.market(symbol);
             Object type = this.getMarketType("fetchOrderWs", market, parameters);
-            if (!java.util.Objects.equals(type, "spot") && !java.util.Objects.equals(type, "future") && !java.util.Objects.equals(type, "inverse"))
+            if (!java.util.Objects.equals(type, "spot") && !java.util.Objects.equals(type, "linear") && !java.util.Objects.equals(type, "inverse"))
             {
                 throw new BadRequest((this.id + " fetchOrderWs only supports spot or swap markets")) ;
             }
@@ -6037,9 +6037,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // the same stream the old raw-type ordering produced in every case
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
             {
-                type = (((java.util.Objects.equals(subType, "inverse")))) ? "inverse" : "future";
+                type = (((java.util.Objects.equals(subType, "inverse")))) ? "inverse" : "linear";
             }
-            // 'option' stays as 'option', don't redirect to 'future' - the helper's
+            // 'option' stays as 'option', don't redirect to 'linear' - the helper's
             // guard finally makes this comment true
             Map<String, Object> marketTypeObject = new HashMap<String, Object>() {{}};
             marketTypeObject.put("type", type);
@@ -6360,7 +6360,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Map<String, Object> market = this.market(symbol);
             Object type = this.getMarketType("fetchMyTradesWs", market, parameters);
-            if (!java.util.Objects.equals(type, "spot") && !java.util.Objects.equals(type, "future"))
+            if (!java.util.Objects.equals(type, "spot") && !java.util.Objects.equals(type, "linear"))
             {
                 throw new BadRequest((((this.id + " fetchMyTradesWs does not support ") + type) + " markets")) ;
             }
@@ -6429,7 +6429,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Map<String, Object> market = this.market(symbol);
             Object type = this.getMarketType("fetchTradesWs", market, parameters);
-            if (!java.util.Objects.equals(type, "spot") && !java.util.Objects.equals(type, "future"))
+            if (!java.util.Objects.equals(type, "spot") && !java.util.Objects.equals(type, "linear"))
             {
                 throw new BadRequest((((this.id + " fetchTradesWs does not support ") + type) + " markets")) ;
             }

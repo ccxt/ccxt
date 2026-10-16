@@ -2109,6 +2109,43 @@ class testMainClass:
         # inverse swap
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
         assert client_order_id_inverse.startswith(inverse_swap_id), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + inverse_swap_id
+        # defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
+        exchange.extend_exchange_options({
+            'defaultType': 'swap',
+        })
+        swap_no_sub_type_request = {}
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swap_no_sub_type_request = self.urlencoded_to_dict(exchange.last_request_body)
+        swap_no_sub_type_id = swap_no_sub_type_request['newClientOrderId']
+        assert swap_no_sub_type_id.startswith(swap_id), 'binance - defaultType swap without subType clientOrderId: ' + swap_no_sub_type_id + ' does not start with swapId' + swap_id
+        exchange.extend_exchange_options({
+            'defaultSubType': 'linear',
+        })
+        swap_linear_request = {}
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swap_linear_request = self.urlencoded_to_dict(exchange.last_request_body)
+        swap_linear_id = swap_linear_request['newClientOrderId']
+        assert swap_linear_id.startswith(swap_id), 'binance - defaultType swap linear clientOrderId: ' + swap_linear_id + ' does not start with swapId' + swap_id
+        exchange.extend_exchange_options({
+            'defaultSubType': 'inverse',
+        })
+        swap_inverse_request = {}
+        try:
+            exchange.create_order('BTC/USD', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swap_inverse_request = self.urlencoded_to_dict(exchange.last_request_body)
+        swap_inverse_id = swap_inverse_request['newClientOrderId']
+        assert swap_inverse_id.startswith(inverse_swap_id), 'binance - defaultType swap inverse clientOrderId: ' + swap_inverse_id + ' does not start with inverseSwapId' + inverse_swap_id
+        exchange.extend_exchange_options({
+            'defaultType': 'spot',
+        })
+        exchange.extend_exchange_options({
+            'defaultSubType': 'linear',
+        })
         # linear swap conditional order
         swap_algo_order_request = {}
         try:

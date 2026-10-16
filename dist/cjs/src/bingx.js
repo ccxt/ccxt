@@ -540,13 +540,11 @@ class bingx extends bingx$1["default"] {
                     'asset': {
                         'v1': {
                             'private': {
-                                'post': {
-                                    'transfer': { 'cost': 5 },
-                                },
-                            },
-                            'public': {
                                 'get': {
                                     'transfer/supportCoins': { 'cost': 5 },
+                                },
+                                'post': {
+                                    'transfer': { 'cost': 5 },
                                 },
                             },
                         },

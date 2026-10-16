@@ -3050,6 +3050,52 @@ public partial class testMainClass
         // inverse swap
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
         assert((((string)clientOrderIdInverse).StartsWith(((string)inverseSwapId)) == true), ((("binance - swap clientOrderIdInverse: " + (clientOrderIdInverse)) + " does not start with swapId") + inverseSwapId));
+        // defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultType", "swap" },
+        });
+        object swapNoSubTypeRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapNoSubTypeRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object swapNoSubTypeId = getValue(swapNoSubTypeRequest, "newClientOrderId");
+        assert((((string)swapNoSubTypeId).StartsWith(((string)swapId)) == true), ((("binance - defaultType swap without subType clientOrderId: " + (swapNoSubTypeId)) + " does not start with swapId") + swapId));
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultSubType", "linear" },
+        });
+        object swapLinearRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapLinearRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object swapLinearId = getValue(swapLinearRequest, "newClientOrderId");
+        assert((((string)swapLinearId).StartsWith(((string)swapId)) == true), ((("binance - defaultType swap linear clientOrderId: " + (swapLinearId)) + " does not start with swapId") + swapId));
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultSubType", "inverse" },
+        });
+        object swapInverseRequest = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USD", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapInverseRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object swapInverseId = getValue(swapInverseRequest, "newClientOrderId");
+        assert((((string)swapInverseId).StartsWith(((string)inverseSwapId)) == true), ((("binance - defaultType swap inverse clientOrderId: " + (swapInverseId)) + " does not start with inverseSwapId") + inverseSwapId));
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultType", "spot" },
+        });
+        exchange.extendExchangeOptions(new Dictionary<string, object>() {
+            { "defaultSubType", "linear" },
+        });
         // linear swap conditional order
         object swapAlgoOrderRequest = new Dictionary<string, object>() {};
         try

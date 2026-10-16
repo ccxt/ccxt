@@ -12123,8 +12123,8 @@ func (this *Bybit) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	var tiers []any = []any{}
 	for i := 0; i < GetArrayLength(info); i++ {
 		var tier map[string]any = SafeMapTyped(info, i)
-		var marketId *string = this.SafeString(info, "symbol")
-		var marketResolved map[string]any = this.SafeMarket(marketId)
+		var marketId *string = this.SafeString(tier, "symbol")
+		var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "contract")
 		var minNotional *float64
 		if derefNum, isNum := this.ParseNumber("0").(float64); isNum {
 			minNotional = &derefNum

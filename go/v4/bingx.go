@@ -913,15 +913,13 @@ func (this *Bingx) Describe() any {
 				"asset": map[string]any{
 					"v1": map[string]any{
 						"private": map[string]any{
-							"post": map[string]any{
-								"transfer": map[string]any{
+							"get": map[string]any{
+								"transfer/supportCoins": map[string]any{
 									"cost": 5,
 								},
 							},
-						},
-						"public": map[string]any{
-							"get": map[string]any{
-								"transfer/supportCoins": map[string]any{
+							"post": map[string]any{
+								"transfer": map[string]any{
 									"cost": 5,
 								},
 							},
@@ -1789,11 +1787,11 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes123319 []any = ListTyped(r1.Value)
-		if retRes123319 == nil {
+		var retRes123119 []any = ListTyped(r1.Value)
+		if retRes123119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes123319}
+			ch <- AsyncResult[any]{Value: retRes123119}
 		}
 		return nil
 	}
@@ -2634,11 +2632,11 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes188919 []any = ListTyped(r1.Value)
-		if retRes188919 == nil {
+		var retRes188719 []any = ListTyped(r1.Value)
+		if retRes188719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes188919}
+			ch <- AsyncResult[any]{Value: retRes188719}
 		}
 		return nil
 	}
@@ -2754,11 +2752,11 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes196619 []any = ListTyped(r1.Value)
-		if retRes196619 == nil {
+		var retRes196419 []any = ListTyped(r1.Value)
+		if retRes196419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes196619}
+			ch <- AsyncResult[any]{Value: retRes196419}
 		}
 		return nil
 	}
@@ -3997,11 +3995,11 @@ func (this *Bingx) createMarketOrderWithCostBody(ch chan AsyncResult[map[string]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes312115 map[string]any = r.Value
-	if retRes312115 == nil {
+	var retRes311915 map[string]any = r.Value
+	if retRes311915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes312115}
+		ch <- AsyncResult[map[string]any]{Value: retRes311915}
 	}
 	return nil
 }
@@ -4031,11 +4029,11 @@ func (this *Bingx) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes313515 map[string]any = r.Value
-	if retRes313515 == nil {
+	var retRes313315 map[string]any = r.Value
+	if retRes313315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes313515}
+		ch <- AsyncResult[any]{Value: retRes313315}
 	}
 	return nil
 }
@@ -4065,11 +4063,11 @@ func (this *Bingx) createMarketSellOrderWithCostBody(ch chan AsyncResult[any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes314915 map[string]any = r.Value
-	if retRes314915 == nil {
+	var retRes314715 map[string]any = r.Value
+	if retRes314715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes314915}
+		ch <- AsyncResult[any]{Value: retRes314715}
 	}
 	return nil
 }
@@ -6423,11 +6421,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes542019 []any = ListTyped(r1.Value)
-		if retRes542019 == nil {
+		var retRes541819 []any = ListTyped(r1.Value)
+		if retRes541819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes542019}
+			ch <- AsyncResult[any]{Value: retRes541819}
 		}
 		return nil
 	}
@@ -6700,11 +6698,11 @@ func (this *Bingx) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...a
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6246 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
-	if listEp6246.Err != nil {
-		panic(listEp6246.Err)
+	listEp6244 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
+	if listEp6244.Err != nil {
+		panic(listEp6244.Err)
 	}
-	var response []any = listEp6246.Value
+	var response []any = listEp6244.Value
 
 	//
 	//    [
@@ -6776,11 +6774,11 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs .
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6315 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
-	if listEp6315.Err != nil {
-		panic(listEp6315.Err)
+	listEp6313 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
+	if listEp6313.Err != nil {
+		panic(listEp6313.Err)
 	}
-	var response []any = listEp6315.Value
+	var response []any = listEp6313.Value
 
 	//
 	//    [
@@ -7039,11 +7037,11 @@ func (this *Bingx) addMarginBody(ch chan AsyncResult[map[string]any], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes587915 map[string]any = MapTyped(r.Value)
-	if retRes587915 == nil {
+	var retRes587715 map[string]any = MapTyped(r.Value)
+	if retRes587715 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes587915}
+		ch <- AsyncResult[map[string]any]{Value: retRes587715}
 	}
 	return nil
 }
@@ -7065,11 +7063,11 @@ func (this *Bingx) reduceMarginBody(ch chan EndpointResult[map[string]any], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes588615 map[string]any = MapTyped(r.Value)
-	if retRes588615 == nil {
+	var retRes588415 map[string]any = MapTyped(r.Value)
+	if retRes588415 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes588615, Raw: retRes588615}
+		ch <- EndpointResult[map[string]any]{Value: retRes588415, Raw: retRes588415}
 	}
 	return nil
 }

@@ -949,15 +949,13 @@ public class Bingx extends BingxApi
                     put( "asset", new HashMap<String, Object>() {{
                         put( "v1", new HashMap<String, Object>() {{
                             put( "private", new HashMap<String, Object>() {{
-                                put( "post", new HashMap<String, Object>() {{
-                                    put( "transfer", new HashMap<String, Object>() {{
+                                put( "get", new HashMap<String, Object>() {{
+                                    put( "transfer/supportCoins", new HashMap<String, Object>() {{
                                         put( "cost", 5 );
                                     }} );
                                 }} );
-                            }} );
-                            put( "public", new HashMap<String, Object>() {{
-                                put( "get", new HashMap<String, Object>() {{
-                                    put( "transfer/supportCoins", new HashMap<String, Object>() {{
+                                put( "post", new HashMap<String, Object>() {{
+                                    put( "transfer", new HashMap<String, Object>() {{
                                         put( "cost", 5 );
                                     }} );
                                 }} );

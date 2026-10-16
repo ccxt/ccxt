@@ -71,6 +71,22 @@
         ],
         "createOrder": [
             {
+                "description": "linear swap limit order via defaultType swap without defaultSubType and a spot-style symbol",
+                "method": "createOrder",
+                "url": "https://fapi.binance.com/fapi/v1/order",
+                "options": {
+                    "defaultType": "swap"
+                },
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.002,
+                    20000
+                ],
+                "output": "timestamp=1790607822610&symbol=BTCUSDT&side=BUY&newClientOrderId=x-cvBPrNm9b555bf5f520a46cab69e32&newOrderRespType=RESULT&type=LIMIT&timeInForce=GTC&quantity=0.002&price=20000&recvWindow=10000&signature=x"
+            },
+            {
                 "description": "Swap trailingPercent order",
                 "method": "createOrder",
                 "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",

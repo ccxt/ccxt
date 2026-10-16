@@ -10583,8 +10583,8 @@ public partial class bybit : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
         {
             IDictionary<string, object> tier = this.safeDict(info, i);
-            string? marketId = this.safeString(info, "symbol");
-            Dictionary<string, object> marketResolved = this.safeMarket(marketId);
+            string? marketId = this.safeString(tier, "symbol");
+            Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "contract");
             double? minNotional = this.parseNumber("0");
             if (!isEqual(i, 0))
             {

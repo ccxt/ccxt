@@ -534,13 +534,11 @@ class bingx extends Exchange {
                     'asset' => array(
                         'v1' => array(
                             'private' => array(
-                                'post' => array(
-                                    'transfer' => array( 'cost' => 5 ),
-                                ),
-                            ),
-                            'public' => array(
                                 'get' => array(
                                     'transfer/supportCoins' => array( 'cost' => 5 ),
+                                ),
+                                'post' => array(
+                                    'transfer' => array( 'cost' => 5 ),
                                 ),
                             ),
                         ),

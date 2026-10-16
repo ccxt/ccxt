@@ -43,7 +43,7 @@ import { WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.
 // ----------------------------------------------------------------------------
 //
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, NullableList, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, NullableList, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses, OrderBookL3 } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
@@ -5786,6 +5786,15 @@ export class BaseExchange {
         return result;
     }
 
+    parseOrderBookBidsAsksL3 (bidasks: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): any[][] {
+        const bidasksValue: any = this.toArray (bidasks);
+        const result: any[][] = [];
+        for (let i = 0; i < bidasksValue.length; i++) {
+            result.push (this.parseOrderBookBidAskL3 (bidasksValue[i], priceKey, amountKey, countOrIdKey));
+        }
+        return result;
+    }
+
     filterByKey (objects: any, key: IndexType, value: Str = undefined) {
         if (value === undefined) {
             return objects;
@@ -5968,6 +5977,19 @@ export class BaseExchange {
     parseOrderBook (orderbook: object | undefined, symbol: Str, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): OrderBook {
         const bids = this.parseOrderBookBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
         const asks = this.parseOrderBookBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        return {
+            'symbol': symbol,
+            'bids': this.sortBy (bids, 0, true),
+            'asks': this.sortBy (asks, 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        } as any;
+    }
+
+    parseOrderBookL3 (orderbook: object | undefined, symbol: Str, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): OrderBookL3 {
+        const bids = this.parseOrderBookBidsAsksL3 (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsksL3 (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy (bids, 0, true),
@@ -6536,6 +6558,17 @@ export class BaseExchange {
         const amount = this.safeFloat (bidask, amountKey);
         const countOrId = this.safeInteger (bidask, countOrIdKey);
         const bidAsk = [ price, amount ];
+        if (countOrId !== undefined) {
+            bidAsk.push (countOrId);
+        }
+        return bidAsk;
+    }
+
+    parseOrderBookBidAskL3 (bidask: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): any[] {
+        const price = this.safeFloat (bidask, priceKey);
+        const amount = this.safeFloat (bidask, amountKey);
+        const countOrId = this.safeString (bidask, countOrIdKey);
+        const bidAsk: any[] = [ price, amount ];
         if (countOrId !== undefined) {
             bidAsk.push (countOrId);
         }
@@ -9355,7 +9388,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' watchMarkPrices () is not supported yet');
     }
 
-    async fetchL3OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+    async fetchL3OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBookL3> {
         throw new BadRequest (this.id + ' fetchL3OrderBook() is not supported yet');
     }
 
