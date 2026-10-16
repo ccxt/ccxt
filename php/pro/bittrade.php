@@ -639,8 +639,12 @@ class bittrade extends \ccxt\async\bittrade {
             $subscription = $this->safe_dict($subscriptionsById, $id);
             if ($subscription !== null) {
                 $errorCode = $this->safe_string($message, 'err-code');
+                $errorMessage = $this->safe_string($message, 'err-msg');
+                $feedback = $this->id . ' ' . $this->json($message);
                 try {
-                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $this->json($message));
+                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+                    throw new ExchangeError($feedback);
                 } catch (Exception $e) {
                     $messageHash = $this->safe_string($subscription, 'messageHash');
                     $client->reject($e, $messageHash);

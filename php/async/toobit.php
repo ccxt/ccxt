@@ -1531,7 +1531,7 @@ class toobit extends Exchange {
             'symbol' => $marketResolved['symbol'],
             'timestamp' => null,
             'datetime' => null,
-            'price' => $this->safe_number_omit_zero($entry, 'price'),
+            'price' => $this->safe_number_omit_zero($entry, 'p'),
             'side' => null,
             'info' => $entry,
         );

@@ -520,6 +520,7 @@ class modetrade extends Exchange {
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
+        //     "status": "ACTIVE",
         //     "quote_min": 123,
         //     "quote_max": 100000,
         //     "quote_tick": 0.1,
@@ -545,6 +546,11 @@ class modetrade extends Exchange {
         //   }
         //
         $marketId = $this->safe_string($market, 'symbol', '');
+        $status = $this->safe_string($market, 'status');
+        $active = null;
+        if ($status !== null) {
+            $active = ($status === 'ACTIVE');
+        }
         $parts = explode('_', $marketId);
         $marketType = 'swap';
         $baseId = $this->safe_string($parts, 1);
@@ -572,7 +578,7 @@ class modetrade extends Exchange {
             'swap' => true,
             'future' => false,
             'option' => false,
-            'active' => null,
+            'active' => $active,
             'contract' => true,
             'linear' => true,
             'inverse' => false,
@@ -626,6 +632,7 @@ class modetrade extends Exchange {
         //       "rows": [
         //         {
         //           "symbol": "PERP_BTC_USDC",
+        //           "status": "ACTIVE",
         //           "quote_min": 123,
         //           "quote_max": 100000,
         //           "quote_tick": 0.1,

@@ -1417,7 +1417,7 @@ class lighter extends Exchange {
             'limit' => 100,
         );
         if ($limit !== null) {
-            $request['limit'] = min($limit, 100);
+            $request['limit'] = min($limit, 250);
         }
         $response = $this->publicGetOrderBookOrders($this->extend($request, $params));
         //
