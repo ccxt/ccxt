@@ -68,11 +68,11 @@ export default class binance extends binanceRest {
                 ws: {
                     spot: string;
                     margin: string;
-                    future: string;
+                    linear: string;
                     inverse: string;
                     'ws-api': {
                         spot: string;
-                        future: string;
+                        linear: string;
                         inverse: string;
                     };
                 };
@@ -81,11 +81,11 @@ export default class binance extends binanceRest {
                 ws: {
                     spot: string;
                     margin: string;
-                    future: string;
+                    linear: string;
                     inverse: string;
                     'ws-api': {
                         spot: string;
-                        future: string;
+                        linear: string;
                         inverse: string;
                     };
                 };
@@ -94,7 +94,7 @@ export default class binance extends binanceRest {
                 ws: {
                     spot: string;
                     margin: string;
-                    future: string;
+                    linear: string;
                     inverse: string;
                     stock: string;
                     option: string;
@@ -102,7 +102,7 @@ export default class binance extends binanceRest {
                     optionPrivate: string;
                     'ws-api': {
                         spot: string;
-                        future: string;
+                        linear: string;
                         inverse: string;
                     };
                     papi: string;
@@ -118,7 +118,7 @@ export default class binance extends binanceRest {
             streamLimits: {
                 spot: number;
                 margin: number;
-                future: number;
+                linear: number;
                 inverse: number;
                 stock: number;
                 option: number;
@@ -127,7 +127,7 @@ export default class binance extends binanceRest {
             subscriptionLimitByStream: {
                 spot: number;
                 margin: number;
-                future: number;
+                linear: number;
                 inverse: number;
                 stock: number;
                 option: number;
