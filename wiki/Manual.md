@@ -8126,6 +8126,8 @@ Position-local relationships hold for both `cross` and `isolated` positions. Whe
 
 `positionMargin` is the balance taken from your free balance and marked as used when the position is opened. On most exchanges it starts at `initialMargin` (`notional / leverage` at the entry price), plus an opening or closing fee buffer on some exchanges (for example gate, bybit, kucoin). After that it changes only when you add or remove margin, or when fees or funding are taken out of it; it can end up below `initialMargin`. For cross positions it is the part of the account balance set aside for that position.
 
+`positionMargin` is the margin the exchange actually holds in the position, so funding only shows up in it where the exchange settles funding into the position margin (for example okx, gate, bitget, kucoin, hyperliquid and htx isolated positions). On exchanges that settle funding to the available balance (binance, xt, mexc) or to realized PnL (phemex), `positionMargin` changes only if the balance cannot cover a funding payment, and funding appears in `realizedPnl` or the account balance instead. ccxt never adds cumulative funding to `positionMargin` itself, because that would break the liquidation equation and double-count deductions the exchange already made.
+
 A position is liquidated when its remaining collateral falls to `maintenanceMargin`. For **isolated** positions this gives:
 
 ```

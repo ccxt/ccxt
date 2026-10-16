@@ -4058,7 +4058,7 @@ export default class digifinex extends Exchange {
         let collateralString: Str = undefined;
         let marginString: Str = undefined;
         if (marginMode === 'isolated') {
-            const isolatedMargin = this.safeString2 (position, 'posi_balance', 'margin');
+            const isolatedMargin = this.safeString (position, 'posi_balance');
             if (isolatedMargin !== undefined) {
                 marginString = isolatedMargin;
                 collateralString = (unrealizedPnl !== undefined) ? Precise.stringAdd (isolatedMargin, unrealizedPnl) : isolatedMargin;

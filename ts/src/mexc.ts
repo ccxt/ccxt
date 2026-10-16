@@ -5468,7 +5468,6 @@ export default class mexc extends Exchange {
         const contracts = this.safeString (position, 'holdVol');
         const entryPrice = this.safeNumber (position, 'openAvgPrice');
         const initialMargin = this.omitZero (this.safeString (position, 'im'));
-        const holdFee = this.omitZero (this.safeString (position, 'holdFee'));
         const unrealizedPnl = this.safeString (position, 'unRealizedPnl');
         const rawSide = this.safeString (position, 'positionType');
         const side = (rawSide === '1') ? 'long' : 'short';
@@ -5477,7 +5476,8 @@ export default class mexc extends Exchange {
         let collateralString: Str = undefined;
         let marginString: Str = undefined;
         if ((marginType === 'isolated') && (initialMargin !== undefined)) {
-            collateralString = (holdFee !== undefined) ? Precise.stringAdd (initialMargin, holdFee) : initialMargin;
+            // im is the margin mexc holds in the position; funding settles to the available balance
+            collateralString = initialMargin;
             marginString = collateralString;
             if (unrealizedPnl !== undefined) {
                 collateralString = Precise.stringAdd (collateralString, unrealizedPnl);

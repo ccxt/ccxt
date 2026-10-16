@@ -983,7 +983,7 @@
                         "maintenanceMargin": 1.5882408,
                         "maintenanceMarginPercentage": 0.006,
                         "positionMargin": null,
-                        "collateral": "264559.759999999999999998",
+                        "collateral": null,
                         "initialMargin": "3.529424",
                         "initialMarginPercentage": 0.013333333333333332,
                         "leverage": 75,
