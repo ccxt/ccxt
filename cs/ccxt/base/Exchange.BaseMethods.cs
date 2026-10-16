@@ -3613,6 +3613,20 @@ public partial class BaseExchange
         return result;
     }
 
+    public virtual object parseOrderBookBidsAsksL3(object bidasks, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    {
+        priceKey ??= 0;
+        amountKey ??= 1;
+        countOrIdKey ??= 2;
+        IList<object> bidasksValue = this.toArray(bidasks);
+        List<object> result = new List<object>() {};
+        for (int i = 0; i < (bidasksValue?.Count ?? 0); i++)
+        {
+            result.Add(this.parseOrderBookBidAskL3(bidasksValue[i], priceKey, amountKey, countOrIdKey));
+        }
+        return result;
+    }
+
     public virtual IList<object> filterByKey(object objects, object key, object value = null)
     {
         if ((value == null))
@@ -3837,6 +3851,25 @@ public partial class BaseExchange
             { "datetime", this.iso8601(timestamp) },
             { "nonce", null },
         }));
+    }
+
+    public virtual object parseOrderBookL3(object orderbook, object symbol, object timestamp = null, object bidsKey = null, object asksKey = null, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    {
+        bidsKey ??= "bids";
+        asksKey ??= "asks";
+        priceKey ??= 0;
+        amountKey ??= 1;
+        countOrIdKey ??= 2;
+        List<object> bids = ((List<object>)this.parseOrderBookBidsAsksL3(this.safeValue(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey));
+        List<object> asks = ((List<object>)this.parseOrderBookBidsAsksL3(this.safeValue(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey));
+        return ((object)new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "bids", this.sortBy(bids, 0, true) },
+            { "asks", this.sortBy(asks, 0) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "nonce", null },
+        });
     }
 
     public virtual IList<object> parseOHLCVs(object ohlcvs, object market = null, string timeframe = null, object since = null, object limit = null, bool? tail = null)
@@ -4552,6 +4585,22 @@ public partial class BaseExchange
         double? price = this.safeFloat(bidask, priceKey);
         double? amount = this.safeFloat(bidask, amountKey);
         Int64? countOrId = this.safeInteger(bidask, countOrIdKey);
+        List<object> bidAsk = new List<object>() {price, amount};
+        if ((countOrId != null))
+        {
+            bidAsk.Add(countOrId);
+        }
+        return bidAsk;
+    }
+
+    public virtual object parseOrderBookBidAskL3(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    {
+        priceKey ??= 0;
+        amountKey ??= 1;
+        countOrIdKey ??= 2;
+        double? price = this.safeFloat(bidask, priceKey);
+        double? amount = this.safeFloat(bidask, amountKey);
+        string? countOrId = this.safeString(bidask, countOrIdKey);
         List<object> bidAsk = new List<object>() {price, amount};
         if ((countOrId != null))
         {
