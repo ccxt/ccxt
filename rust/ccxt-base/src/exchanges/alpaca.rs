@@ -1504,8 +1504,8 @@ impl AlpacaCore {
                 let mut pageToken: Value = self.safe_string_k(response.clone(), "next_page_token", &[]);
                 {
                                         let mut i: Value = Value::Int(1);
-                    let mut __for_first_213: bool = true;
-                    while { if !__for_first_213 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_213 = false; i.as_f64().unwrap_or(f64::NAN) < paginationCalls.as_f64().unwrap_or(f64::NAN) } {
+                    let mut __for_first_214: bool = true;
+                    while { if !__for_first_214 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_214 = false; i.as_f64().unwrap_or(f64::NAN) < paginationCalls.as_f64().unwrap_or(f64::NAN) } {
                     let mut ohlcvsLength: f64 = ((ohlcvs.len() as i64) as f64);
                     if (pageToken == Value::Null) || ((limit != Value::Null) && (ohlcvsLength >= limit.as_f64().unwrap_or(f64::NAN))) {
                         break;
@@ -1704,8 +1704,8 @@ impl AlpacaCore {
         let mut marketIds: Value = object_keys(&snapshots);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_214: bool = true;
-            while { if !__for_first_214 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_214 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
+            let mut __for_first_215: bool = true;
+            while { if !__for_first_215 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_215 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut entry: Value = self.safe_dict(snapshots.clone(), marketId, &[]);
@@ -2604,8 +2604,8 @@ impl AlpacaCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_215: bool = true;
-                while { if !__for_first_215 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_215 = false; i.as_f64().unwrap_or(f64::NAN) < ((ledger.len() as i64) as f64) } {
+                let mut __for_first_216: bool = true;
+                while { if !__for_first_216 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_216 = false; i.as_f64().unwrap_or(f64::NAN) < ((ledger.len() as i64) as f64) } {
                 let mut entry: Value = ledger.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut activityType: Option<String> = self.safe_string_k(entry.clone(), "activity_type", &[]).as_str().map(str::to_owned);
                 let mut amount: Value = self.safe_string_k(entry.clone(), "net_amount", &[]);
@@ -2646,8 +2646,8 @@ impl AlpacaCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_216: bool = true;
-            while { if !__for_first_216 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_216 = false; i.as_f64().unwrap_or(f64::NAN) < ((transfers.len() as i64) as f64) } {
+            let mut __for_first_217: bool = true;
+            while { if !__for_first_217 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_217 = false; i.as_f64().unwrap_or(f64::NAN) < ((transfers.len() as i64) as f64) } {
             let mut entry: Value = transfers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut direction: Value = self.safe_string_k(entry.clone(), "direction", &[]);
             if (direction.as_str() == type_var.as_str()) {
@@ -3005,8 +3005,8 @@ impl AlpacaCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_217: bool = true;
-            while { if !__for_first_217 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_217 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
+            let mut __for_first_218: bool = true;
+            while { if !__for_first_218 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_218 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
             let mut position: Value = self.safe_dict(positions.clone(), i.clone(), &[]);
             let mut positionSymbol: Value = self.safe_string_k(position.clone(), "symbol", &[]);
             if (positionSymbol == Value::Null) {
