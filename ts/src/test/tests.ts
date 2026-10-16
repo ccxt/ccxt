@@ -2168,12 +2168,26 @@ class testMainClass {
         // successive states (e.g. an order going from open to closed)
         try {
             for (let i = 0; i < expectedResults.length; i++) {
-                const result = await callExchangeMethodDynamically (exchange, method, input);
-                // ws structures can be live typed objects (e.g. orderbooks) in some
-                // runtimes — roundtrip through json so the deep-compare sees plain
-                // dicts in every language
-                const unifiedResult = jsonParse (jsonStringify (result));
-                this.assertStaticResponseOutput (exchange, skipKeys, unifiedResult, expectedResults[i]);
+                // a { "rejectsWith": "<ErrorClass>" } step expects this watch call to be
+                // rejected, with that error class named in the exception message
+                const expectedError = exchange.safeString (expectedResults[i], 'rejectsWith');
+                if (expectedError !== undefined) {
+                    let rejectionMessage: Str = undefined;
+                    try {
+                        await callExchangeMethodDynamically (exchange, method, input);
+                    } catch (e) {
+                        rejectionMessage = exceptionMessage (e);
+                    }
+                    assert (rejectionMessage !== undefined, method + ' resolved, expected a rejection with ' + expectedError);
+                    assert ((rejectionMessage as string).indexOf (expectedError) >= 0, method + ' rejected without ' + expectedError + ': ' + rejectionMessage);
+                } else {
+                    const result = await callExchangeMethodDynamically (exchange, method, input);
+                    // ws structures can be live typed objects (e.g. orderbooks) in some
+                    // runtimes — roundtrip through json so the deep-compare sees plain
+                    // dicts in every language
+                    const unifiedResult = jsonParse (jsonStringify (result));
+                    this.assertStaticResponseOutput (exchange, skipKeys, unifiedResult, expectedResults[i]);
+                }
             }
         } catch (e) {
             // let the injector's rejection loop exit before the caller reports
