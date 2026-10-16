@@ -364,7 +364,11 @@ class bittrade extends \ccxt\async\bittrade {
         $symbol = $this->safe_string($subscription, 'symbol');
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $timestamp = $this->safe_integer($message, 'ts');
-        $orderbook = $this->orderbooks[$symbol];
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            // the book was removed (unwatch/cleanCache) before the snapshot arrived
+            return;
+        }
         $data = $this->safe_dict($message, 'data');
         $snapshot = $this->parse_order_book($data, $symbol);
         $snapshot['nonce'] = $this->safe_integer($data, 'seqNum');
@@ -497,7 +501,11 @@ class bittrade extends \ccxt\async\bittrade {
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $symbol = $this->safe_symbol($marketId);
-        $orderbook = $this->orderbooks[$symbol];
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            // no active subscription holds a book for this symbol, drop the delta
+            return;
+        }
         if ($orderbook['nonce'] === null) {
             $orderbook->cache[] = $message;
         } else {
