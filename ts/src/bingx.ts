@@ -2232,9 +2232,11 @@ export default class bingx extends Exchange {
             const data = this.safeDict (response, 'data', {});
             rows = [ this.safeDict (data, 'book_ticker', {}) ];
         }
+        // a multi-symbol spot response holds every listed pair, the first symbol's market must not label unknown rows
+        const rowMarket = (symbolsLength === 1) ? market : undefined;
         const results = [];
         for (let i = 0; i < rows.length; i++) {
-            results.push (this.parseTicker (rows[i], market));
+            results.push (this.parseTicker (rows[i], rowMarket));
         }
         return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
     }
