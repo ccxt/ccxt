@@ -710,7 +710,6 @@ export interface Position {
     unrealizedPnl?: Num;
     realizedPnl?: Num;
     margin?: Num;
-    /** @deprecated use margin + unrealizedPnl */
     collateral?: Num;
     entryPrice?: Num;
     markPrice?: Num;

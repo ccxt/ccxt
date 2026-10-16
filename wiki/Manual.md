@@ -8081,7 +8081,7 @@ Returns
    'notional': 100000,          // float, the value of the position in the settlement currency
    'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
    'margin': 5000,              // float, the margin held in the position (what was put in, plus/minus margin added or removed), not affected by pnl
-   'collateral': 5300,          // float, DEPRECATED, always margin + unrealizedPnl, will be removed in a future version
+   'collateral': 5300,          // float, margin + unrealizedPnl, the current value backing the position
    'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position
    'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated
    'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
@@ -8120,7 +8120,7 @@ Position-local relationships hold for both `cross` and `isolated` positions. Whe
 
 `margin` is the money held in the position: what you opened it with, plus or minus any margin added or removed since. It does not move with the price. For example, if you opened with 100 USDT of margin, `margin` stays 100 whether the position is up 20 USDT or down 20 USDT.
 
-`collateral` is **deprecated** and will be removed in a future version. It is always `margin + unrealizedPnl` (120 or 80 in the example above), so use `margin` and `unrealizedPnl` instead. When an exchange reports only one of them, `safePosition` fills in the other.
+`collateral` is the current value backing the position: `margin + unrealizedPnl` (120 or 80 in the example above). It moves with the price, while `margin` does not. When an exchange reports only one of `margin` and `collateral`, `safePosition` fills in the other.
 
 `margin` differs from `initialMargin`: `initialMargin` is the margin the leverage requires (`notional / leverage`, often recalculated at the mark price), while `margin` is what is actually in the position. They differ when margin is added or removed, or when the exchange reprices `initialMargin`.
 
