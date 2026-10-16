@@ -984,6 +984,7 @@ impl BittradeCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("contract is restricted of closing positions on API.  Please contact customer service".to_string(), Value::Str("OnMaintenance".into()).clone());
         m.insert("maintain".to_string(), Value::Str("OnMaintenance".into()).clone());
+        m.insert("trade not open now".to_string(), Value::Str("BadSymbol".into()).clone());
     m
 }));
         m.insert("exact".to_string(), Value::Map({
