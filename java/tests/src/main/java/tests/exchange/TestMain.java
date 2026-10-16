@@ -3206,6 +3206,52 @@ public class TestMain extends BaseTest
             // inverse swap
             Object clientOrderIdInverse = ((Map<String, Object>)swapInverseOrderRequest).get("newClientOrderId");
             Assert(java.util.Objects.equals(((String)clientOrderIdInverse).startsWith(inverseSwapId), true), ((("binance - swap clientOrderIdInverse: " + clientOrderIdInverse) + " does not start with swapId") + inverseSwapId));
+            // defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
+            exchange.extendExchangeOptions(new HashMap<String, Object>() {{
+                put( "defaultType", "swap" );
+            }});
+            Object swapNoSubTypeRequest = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                swapNoSubTypeRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            Object swapNoSubTypeId = ((Map<String, Object>)swapNoSubTypeRequest).get("newClientOrderId");
+            Assert(java.util.Objects.equals(((String)swapNoSubTypeId).startsWith(swapId), true), ((("binance - defaultType swap without subType clientOrderId: " + swapNoSubTypeId) + " does not start with swapId") + swapId));
+            exchange.extendExchangeOptions(new HashMap<String, Object>() {{
+                put( "defaultSubType", "linear" );
+            }});
+            Object swapLinearRequest = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDT", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                swapLinearRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            Object swapLinearId = ((Map<String, Object>)swapLinearRequest).get("newClientOrderId");
+            Assert(java.util.Objects.equals(((String)swapLinearId).startsWith(swapId), true), ((("binance - defaultType swap linear clientOrderId: " + swapLinearId) + " does not start with swapId") + swapId));
+            exchange.extendExchangeOptions(new HashMap<String, Object>() {{
+                put( "defaultSubType", "inverse" );
+            }});
+            Object swapInverseRequest = new HashMap<String, Object>() {{}};
+            try
+            {
+                ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USD", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
+            } catch(Exception e)
+            {
+                swapInverseRequest = this.urlencodedToDict(exchange.last_request_body);
+            }
+            Object swapInverseId = ((Map<String, Object>)swapInverseRequest).get("newClientOrderId");
+            Assert(java.util.Objects.equals(((String)swapInverseId).startsWith(inverseSwapId), true), ((("binance - defaultType swap inverse clientOrderId: " + swapInverseId) + " does not start with inverseSwapId") + inverseSwapId));
+            exchange.extendExchangeOptions(new HashMap<String, Object>() {{
+                put( "defaultType", "spot" );
+            }});
+            exchange.extendExchangeOptions(new HashMap<String, Object>() {{
+                put( "defaultSubType", "linear" );
+            }});
             // linear swap conditional order
             Object swapAlgoOrderRequest = new HashMap<String, Object>() {{}};
             try
