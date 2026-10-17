@@ -182,6 +182,7 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.ParseSearchQueries': '[]any',
     ...Object.fromEntries ([ 'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])), // U06
     ...Object.fromEntries ([ [ 'ParseLeverageTiers', 'map[string]any' ], [ 'ParseLeverages', 'map[string]any' ], [ 'ParseMarginModes', 'map[string]any' ], [ 'ParseMarketLeverageTiers', '[]any' ], [ 'ParseEmulatedLeverageTiers', '[]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])), // U14
+    'this.ApplyEventFetchParams': '[]any',
     // exchange.go / exchange_string.go
     'this.StringToCharsArray': '[]string',
     // exchange_market_type.go (hand-written)

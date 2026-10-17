@@ -435,7 +435,7 @@ type IDerivedExchange interface {
 	FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	CreateExpiredOptionMarket(symbol any) any
 	FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64]
-	FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[any]
 	FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncResult[any]
 	SignEvmTransaction(tx any, privateKey any) any
