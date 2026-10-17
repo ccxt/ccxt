@@ -2509,8 +2509,7 @@ export default class paradex extends Exchange {
         }
         const market = this.market (symbol);
         const positions = await this.fetchPositions ([ market['symbol'] ], params);
-        const position = this.safeDict (positions, 0, {});
-        return position as Position;
+        return this.safeDict (positions, 0, {}) as Position;
     }
 
     /**

@@ -3704,8 +3704,7 @@ export default class weex extends Exchange {
      */
     override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
         const positions = await this.fetchPositionsForSymbol (symbol, params);
-        const position = this.safeDict (positions, 0);
-        return position as Position;
+        return this.safeDict (positions, 0) as Position;
     }
 
     /**
@@ -3900,8 +3899,7 @@ export default class weex extends Exchange {
         };
         const response = await this.contractPrivatePostCapiV3ClosePositions (this.extend (request, params));
         const orders = this.parseOrders (response, market);
-        const order = this.safeDict (orders, 0);
-        return order as Order;
+        return this.safeDict (orders, 0) as Order;
     }
 
     /**

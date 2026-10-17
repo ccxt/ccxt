@@ -2184,8 +2184,7 @@ export default class predictfun extends Exchange {
         const positions = await this.fetchPositions ([ outcome ], this.extend (request, params));
         // holding none of an outcome is an ordinary read, so the empty slot is returned rather
         // than raised - the same shape polymarket and binance answer with
-        const position = this.safeDict (positions, 0);
-        return position as PredictionPosition;
+        return this.safeDict (positions, 0) as PredictionPosition;
     }
 
     /**

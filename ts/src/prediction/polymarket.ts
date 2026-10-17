@@ -1763,8 +1763,7 @@ export default class polymarket extends Exchange {
      */
     override async fetchPosition (outcome: string, params: Dict = {}): Promise<PredictionPosition> {
         const positions = await this.fetchPositions ([ outcome ], params);
-        const position = this.safeDict (positions, 0);
-        return position as PredictionPosition;
+        return this.safeDict (positions, 0) as PredictionPosition;
     }
 
     /**

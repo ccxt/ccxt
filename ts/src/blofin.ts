@@ -3223,8 +3223,7 @@ export default class blofin extends Exchange {
             request['clientOrderId'] = clientOrderId;
         }
         const response = await this.privatePostTradeClosePosition (this.extend (request, paramsMarginMode));
-        const order = this.safeDict (response, 'data');
-        return order as Order;
+        return this.safeDict (response, 'data') as Order;
     }
 
     /**

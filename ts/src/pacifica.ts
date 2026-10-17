@@ -2713,8 +2713,7 @@ export default class pacifica extends Exchange {
      */
     override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
         const positions = await this.fetchPositions ([ symbol ], params);
-        const position = this.safeDict (positions, 0, {});
-        return position as Position;
+        return this.safeDict (positions, 0, {}) as Position;
     }
 
     /**

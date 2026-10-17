@@ -1334,8 +1334,7 @@ export default class binance extends Exchange {
         const positions = this.safeList (response, 'positions', []);
         const parsedPositions = this.parsePredictionPositions (positions);
         const filteredPositions = this.filterByOutcomeSinceLimit (parsedPositions, outcome, undefined, undefined);
-        const position = this.safeDict (filteredPositions, 0);
-        return position as PredictionPosition;
+        return this.safeDict (filteredPositions, 0) as PredictionPosition;
     }
 
     /**

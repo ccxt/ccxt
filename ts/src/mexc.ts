@@ -5349,8 +5349,7 @@ export default class mexc extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.fetchPositions (undefined, this.extend (request, params));
-        const position = this.safeDict (response, 0);
-        return position as Position;
+        return this.safeDict (response, 0) as Position;
     }
 
     /**
