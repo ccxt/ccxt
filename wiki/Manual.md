@@ -8080,7 +8080,8 @@ Returns
    'markPrice': 20050,          // float, a price that is used for funding calculations
    'notional': 100000,          // float, the value of the position in the settlement currency
    'leverage': 100,             // float, the leverage of the position, related to how many contracts you can buy with a given amount of collateral
-   'collateral': 5300,          // float, the maximum amount of collateral that can be lost, affected by pnl
+   'positionMargin': 5000,      // float, the margin held in the position (what was put in, plus/minus margin added or removed), not affected by pnl
+   'collateral': 5300,          // float, positionMargin + unrealizedPnl, the current value backing the position
    'initialMargin': 5000,       // float, the amount of collateral that is locked up in this position
    'maintenanceMargin': 1000,   // float, the mininum amount of collateral needed to avoid being liquidated
    'initialMarginPercentage': 0.05,      // float, the initialMargin as a percentage of the notional
@@ -8100,6 +8101,56 @@ As the price of the underlying index changes so does the unrealisedPnl and as a 
 It is recommended to use the `maintenanceMargin` and `initialMargin` instead of the `maintenanceMarginPercentage` and `initialMarginPercentage` since these tend to be more accurate. The maintenanceMargin might be calculated from other factors outside of the maintenanceMarginPercentage including the funding rate and taker fees, for example on [kucoin](https://futures.kucoin.com/contract/detail).
 
 An inverse contract will allow you to go long or short on BTC/USD by putting up BTC as collateral. Our API for inverse contracts is the same as for linear contracts. The amounts in an inverse contracts are quoted as if they were traded USD/BTC, however the price is still quoted terms of BTC/USD.  The formula for the profit and loss of a inverse contract is `(1/markPrice - 1/price) * contracts`. The profit and loss and collateral will now be quoted in BTC, and the number of contracts are quoted in USD.
+
+##### Position Semantics
+
+How the fields of a position relate to each other. The formulas use two size helpers:
+
+- `baseCurrencySize = contracts * contractSize` for linear contracts. This is the position size in the base currency (for example BTC on `BTC/USDT:USDT`).
+- `quoteCurrencySize = contracts * contractSize` for inverse contracts. Their `contractSize` is in the quote currency, so this is the position size in the quote currency (for example USD on `BTC/USD:BTC`).
+
+Position-local relationships hold for both `cross` and `isolated` positions. When an exchange leaves one of these fields out, `safePosition` derives it from the others:
+
+- `notional = baseCurrencySize * markPrice` (linear) or `quoteCurrencySize / markPrice` (inverse). The notional is in the settlement currency.
+- `unrealizedPnl = ±(markPrice - entryPrice) * baseCurrencySize` (linear) or `±(1 / entryPrice - 1 / markPrice) * quoteCurrencySize` (inverse). Use `+` for long and `-` for short.
+- `initialMargin = notional * initialMarginPercentage`. `initialMarginPercentage ≈ 1 / leverage`.
+- `maintenanceMargin = notional * maintenanceMarginPercentage`
+- `marginRatio = maintenanceMargin / (positionMargin + unrealizedPnl)`
+- `percentage = unrealizedPnl / initialMargin * 100`
+
+`positionMargin` is the money held in the position: what you opened it with, plus or minus any margin added or removed since. It does not move with the price. For example, if you opened with 100 USDT of margin, `positionMargin` stays 100 whether the position is up 20 USDT or down 20 USDT.
+
+`collateral` is the current value backing the position: `positionMargin + unrealizedPnl` (120 or 80 in the example above). It moves with the price, while `positionMargin` does not. When an exchange reports only one of `positionMargin` and `collateral`, `safePosition` fills in the other.
+
+`positionMargin` differs from `initialMargin`: `initialMargin` is the margin the leverage requires (`notional / leverage`, often recalculated at the mark price), while `positionMargin` is what is actually in the position. They differ when margin is added or removed, or when the exchange reprices `initialMargin`.
+
+`positionMargin` is the balance taken from your free balance and marked as used when the position is opened. On most exchanges it starts at `initialMargin` (`notional / leverage` at the entry price), plus an opening or closing fee buffer on some exchanges (for example gate, bybit, kucoin). After that it changes only when you add or remove margin, or when fees or funding are taken out of it; it can end up below `initialMargin`. For cross positions it is the part of the account balance set aside for that position.
+
+`positionMargin` is the margin the exchange actually holds in the position, so funding only shows up in it where the exchange settles funding into the position margin (for example okx, gate, bitget, kucoin, hyperliquid and htx isolated positions). On exchanges that settle funding to the available balance (binance, xt, mexc) or to realized PnL (phemex), `positionMargin` changes only if the balance cannot cover a funding payment, and funding appears in `realizedPnl` or the account balance instead. ccxt never adds cumulative funding to `positionMargin` itself, because that would break the liquidation equation and double-count deductions the exchange already made.
+
+A position is liquidated when its remaining collateral falls to `maintenanceMargin`. For **isolated** positions this gives:
+
+```
+linear:  positionMargin - abs(entryPrice - liquidationPrice) * baseCurrencySize = maintenanceMargin
+inverse: positionMargin - abs(1 / entryPrice - 1 / liquidationPrice) * quoteCurrencySize = maintenanceMargin
+```
+
+- Equivalently, `abs(liquidationPrice - bustPrice) * baseCurrencySize = maintenanceMargin` (linear). The bust price is where the remaining collateral reaches zero.
+- When five of these values are known, `safePosition` derives the missing sixth one on isolated positions. It only does this when the result is positive.
+
+Common pitfalls:
+
+- `abs(entryPrice - liquidationPrice) * baseCurrencySize` is **not** the maintenance margin. It is the loss the position takes before liquidation, which equals `positionMargin - maintenanceMargin`.
+- The isolated equation does not apply to **cross** positions. Their `liquidationPrice` depends on the equity of the whole account and on other positions, while `collateral` and `initialMargin` often describe only this one position. On cross positions `liquidationPrice` can be far away, `0`, negative, or clamped to the smallest tick (for example `0.0001`).
+- Inverse contracts use `1 / price`, and their margins and PnL are in the base currency.
+- `contracts` is a number of contracts, not a base amount. Multiply by `contractSize` before doing any arithmetic with prices.
+
+Exchange peculiarities:
+
+- **Price used for maintenance margin.** Some exchanges calculate `maintenanceMargin` at `entryPrice` (for example bingx, kucoin, mexc, xt, phemex). Others use `markPrice` (okx, binance, htx, hyperliquid). The liquidation trigger itself is evaluated at `liquidationPrice`, so the reported `maintenanceMargin` can differ from the value at liquidation by roughly `markPrice / liquidationPrice`.
+- **Closing taker fees.** Some exchanges add a closing taker fee to `liquidationPrice`, to `maintenanceMargin`, or to both: gate (0.075%), bitget (0.06%), okx (0.05%), and bybit (`feeToClose` in `positionIM` and `positionMM`). Expect a gap of a few percent between the reported values and the equation above.
+- **Tiered deductions.** binance and aster subtract a tiered maintenance amount (`cum`) from the maintenance margin.
+- **Fixed maintenance rate.** hyperliquid and pacifica use `maintenanceMarginPercentage = 1 / (2 * maxLeverage)`.
 
 #### Closing Positions
 
@@ -8180,19 +8231,23 @@ Returns
 
 #### Liquidation Price
 
-It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
+It is the price at which `positionMargin + unrealizedPnl = maintenanceMargin`, i.e. only maintenanceMargin collateral is left. This holds for isolated positions; see [Position Semantics](#position-semantics) for cross positions and exchange caveats.
 
 ```javascript
+// baseCurrencySize = contracts * contractSize (linear)
+// quoteCurrencySize = contracts * contractSize (inverse)
+// margin = the margin held in the position, excluding unrealizedPnl
 // if long
-(liquidationPrice - price) * contracts = maintenanceMargin
+positionMargin - (entryPrice - liquidationPrice) * baseCurrencySize = maintenanceMargin
 
 // if short
-(price - liquidationPrice) * contracts = maintenanceMargin
+positionMargin - (liquidationPrice - entryPrice) * baseCurrencySize = maintenanceMargin
+
 // if inverse long
-(1/liquidationPrice - 1/price) * contracts = maintenanceMargin
+positionMargin - (1/liquidationPrice - 1/entryPrice) * quoteCurrencySize = maintenanceMargin
 
 // if inverse short
-(1/price - 1/liquidationPrice) * contracts = maintenanceMargin
+positionMargin - (1/entryPrice - 1/liquidationPrice) * quoteCurrencySize = maintenanceMargin
 ```
 
 ### Funding History

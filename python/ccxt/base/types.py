@@ -160,6 +160,7 @@ class Position(TypedDict):
     leverage: Num
     unrealizedPnl: Num
     realizedPnl: Num
+    positionMargin: Num
     collateral: Num
     entryPrice: Num
     markPrice: Num

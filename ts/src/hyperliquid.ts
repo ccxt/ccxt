@@ -4032,6 +4032,12 @@ export default class hyperliquid extends Exchange {
             initialMargin = marginUsed;
         }
         const percentage = Precise.stringMul (Precise.stringDiv (absRawUnrealizedPnl, marginUsed), '100');
+        const positionValueString = this.safeString (entry, 'positionValue');
+        const markPriceString = Precise.stringDiv (positionValueString, size);
+        let marginString: Str = undefined;
+        if (isIsolated) {
+            marginString = initialMargin;
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -4044,9 +4050,10 @@ export default class hyperliquid extends Exchange {
             'contracts': this.parseNumber (size),
             'contractSize': undefined,
             'entryPrice': this.safeNumber (entry, 'entryPx'),
-            'markPrice': undefined,
-            'notional': this.safeNumber (entry, 'positionValue'),
+            'markPrice': this.parseNumber (markPriceString),
+            'notional': this.parseNumber (positionValueString),
             'leverage': this.safeNumber (leverage, 'value'),
+            'positionMargin': this.parseNumber (marginString),
             'collateral': this.parseNumber (marginUsed),
             'initialMargin': this.parseNumber (initialMargin),
             'maintenanceMargin': undefined,
@@ -4055,6 +4062,7 @@ export default class hyperliquid extends Exchange {
             'unrealizedPnl': this.parseNumber (rawUnrealizedPnl),
             'liquidationPrice': this.safeNumber (entry, 'liquidationPx'),
             'marginMode': marginMode,
+            'marginRatio': undefined,
             'percentage': this.parseNumber (percentage),
         });
     }

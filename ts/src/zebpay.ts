@@ -1801,12 +1801,20 @@ export default class zebpay extends Exchange {
         const datetime = this.safeString (position, 'datetime');
         const marketId = this.safeString (position, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        return {
+        const marginMode = this.safeStringLower (position, 'marginMode', 'isolated');
+        const initialMargin = this.safeNumber (position, 'initialMargin');
+        // isolated positions hold exactly the initial margin posted for them
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = initialMargin;
+        }
+        return this.safePosition ({
             'info': position,
-            'symbol': marketId,
+            'id': this.safeString (position, 'id'),
+            'symbol': marketResolved['symbol'],
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-            'initialMargin': this.safeNumber (position, 'initialMargin'),
+            'initialMargin': initialMargin,
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
@@ -1819,11 +1827,12 @@ export default class zebpay extends Exchange {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
-            'marginMode': 'isolated',
-            'side': this.safeString (position, 'side'),
+            'marginMode': marginMode,
+            'side': this.safeStringLower (position, 'side'),
             'percentage': undefined,
-        };
+        });
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
