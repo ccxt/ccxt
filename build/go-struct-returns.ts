@@ -376,7 +376,7 @@ export function goStructReturnsSelfTest (): string[] {
         problems.push ('GOSTRUCT Position not idempotent');
     }
     // gochan32 U31: FundingRate / OpenInterest (package ccxt: unqualified helpers)
-    const src2 = [
+    const src31 = [
         'package ccxt',
         '',
         'func (this *X) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {',
@@ -398,7 +398,7 @@ export function goStructReturnsSelfTest (): string[] {
         '}',
         '',
     ].join ('\n');
-    const want2 = [
+    const want31 = [
         'package ccxt',
         '',
         'func (this *X) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {',
@@ -420,11 +420,11 @@ export function goStructReturnsSelfTest (): string[] {
         '}',
         '',
     ].join ('\n');
-    const got2 = goStructReturnsPass (src2);
-    if (got2 !== want2) {
-        problems.push ('GOSTRUCT U31 self-test mismatch:\n' + got2);
+    const got31 = goStructReturnsPass (src31);
+    if (got31 !== want31) {
+        problems.push ('GOSTRUCT U31 self-test mismatch:\n' + got31);
     }
-    if (goStructReturnsPass (got2) !== got2) {
+    if (goStructReturnsPass (got31) !== got31) {
         problems.push ('GOSTRUCT U31 not idempotent');
     }
     // struct channel sends (go-chan3): `OrderFromMap(row builder)` and a bare `AsyncResult[Order]{Value: row builder}` stay the struct

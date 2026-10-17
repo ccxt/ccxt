@@ -3875,7 +3875,11 @@ function goProvenMapCollectionMethods (): string[] {
         'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash', // U06
         // venue balance parsers (every override ends in SafeBalance(<balance local>) or returns another of these)
         'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance',
-        'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance' ];
+        'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance', // U07
+        'ParseCurrenciesCustom', // U08
+        'ParseLeverageTiers', 'ParseLeverages', 'ParseMarginModes', // U14
+        'ParseOpenInterests', // U16
+        'ParseAllGreeks', 'ParseOptionChain', 'ParseAccount' ]; // U17
 }
 
 // `X` is a balance local: declared once as a map literal, and every later write keeps the same map
@@ -3892,11 +3896,7 @@ export function goBalanceLocalIsMap (body: string, name: string): boolean {
     }
     const writes = body.match (new RegExp ('(^|[^\\w.])' + name + '\\s*[-+*/:]?=[^=][^\\n]*', 'gm')) || [];
     const keeps = new RegExp ('^[^\\w.]?' + name + ' = this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)$)');
-    return writes.every ((w) => keeps.test (w,
- 'ParseCurrenciesCustom',
-        'ParseLeverageTiers', 'ParseLeverages', 'ParseMarginModes', // U14
-        'ParseOpenInterests', // U16
-        'ParseAllGreeks', 'ParseOptionChain', 'ParseAccount' ]; // U17
+    return writes.every ((w) => keeps.test (w));
 }
 
 // one family: `names` retype to `type`; returns proven by a `type` literal, a call of `calls`, a typed/proven local,
