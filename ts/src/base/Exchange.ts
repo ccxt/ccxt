@@ -2932,7 +2932,7 @@ export class BaseExchange {
                 'fetchMarginMode': undefined,
                 'fetchMarginModes': undefined,
                 'fetchMarketLeverageTiers': undefined,
-                'fetchMarkets': 'emulated',
+                'fetchMarkets': true,
                 'fetchMarketsWs': undefined,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyLiquidations': undefined,
@@ -4109,20 +4109,22 @@ export class BaseExchange {
     }
 
     hasAutocorrect () {
-        if (this.has['fetchOrderBook'] !== undefined && this.has['fetchL2OrderBook'] === undefined) {
-            this.has['fetchL2OrderBook'] = this.has['fetchOrderBook'];
-        }
-        if (this.has['createLimitOrder'] === undefined && this.has['createOrder'] !== undefined) {
-            this.has['createLimitOrder'] = this.has['createOrder'];
-        }
-        if (this.has['createMarketOrder'] === undefined && this.has['createOrder'] !== undefined) {
-            this.has['createMarketOrder'] = this.has['createOrder'];
-        }
-        if (this.has['createOrderWs'] !== undefined && this.has['createLimitOrderWs'] === undefined) {
-            this.has['createLimitOrderWs'] = this.has['createOrderWs'];
-        }
-        if (this.has['createOrderWs'] !== undefined && this.has['createMarketOrderWs'] === undefined) {
-            this.has['createMarketOrderWs'] = this.has['createOrderWs'];
+        const fallbacks: Dict = {
+            'fetchL2OrderBook': 'fetchOrderBook',
+            'createLimitOrder': 'createOrder',
+            'createMarketOrder': 'createOrder',
+            'createLimitOrderWs': 'createOrderWs',
+            'createMarketOrderWs': 'createOrderWs',
+        };
+        const targets = Object.keys (fallbacks);
+        for (let i = 0; i < targets.length; i++) {
+            const target = targets[i];
+            const source = fallbacks[target];
+            const sourceDefined = (source in this.has) && (this.has[source] !== undefined);
+            const targetDefined = (target in this.has) && (this.has[target] !== undefined);
+            if (sourceDefined && !targetDefined) {
+                this.has[target] = this.has[source];
+            }
         }
     }
 
