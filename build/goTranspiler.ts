@@ -3854,7 +3854,8 @@ function goProvenListMethods (): string[] {
     return [ 'ParseOrders', 'ParseTrades', 'ParseTradesHelper', 'ParseTransactions', 'ParseOHLCVs', 'ParseLedger', 'ParsePositions', 'ParseMarkets',
         'ParseTransfers', 'FilterBySinceLimit', 'FilterBySymbolSinceLimit', 'FilterBySymbolsSinceLimit', 'FilterByArrayPositions',
         'FilterByValueSinceLimit', 'FilterByCurrencySinceLimit', 'FilterByLimit', 'ParseCancelOrders',
-        'ParseBorrowRateHistory' ]; // U15
+        'ParseBorrowRateHistory', // U15
+        'InsertMissingCandles', 'ParseTradingViewOHLCV' ]; // gochan32-U05
 }
 
 // dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays

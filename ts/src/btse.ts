@@ -823,7 +823,7 @@ export default class btse extends Exchange {
         const maxLimit = 300;
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit) as OHLCV[];
         }
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
@@ -876,8 +876,7 @@ export default class btse extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const result = this.parseOHLCVs (data, market, timeframe, since, limit);
-        return result;
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
