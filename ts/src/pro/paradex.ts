@@ -33,6 +33,14 @@ export default class paradex extends paradexRest {
                 'watchTradesForSymbols': true,
                 'watchBalance': true,
                 'watchOHLCV': false,
+                'unWatchBidsAsks': true,
+                'unWatchFundingRate': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
             },
             'urls': {
                 'logo': 'https://x.com/tradeparadex/photo',
@@ -209,6 +217,66 @@ export default class paradex extends paradexRest {
         return result;
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name paradex#sendUnsubscribe
+     * @description sends an unsubscribe or modify request and waits for its reply, which forgets the subscriptions it ends and rejects their watchers
+     * @param {string} url the websocket url
+     * @param {string} unsubHash the message hash the reply resolves
+     * @param {object} request the json-rpc request
+     * @param {object} subscription what the reply cleans up: subscribeHashes, subMessageHashes, prefix, topic and symbols
+     * @param {object} [params] extra parameters merged into the request
+     * @returns {boolean} true once the reply is in
+     */
+    async sendUnsubscribe (url: string, unsubHash: string, request: Dict, subscription: Dict, params: Dict = {}): Promise<any> {
+        // an error reply rejects the unwatch only, the watchers keep their subscription
+        const unsubscription = this.extend (subscription, {
+            'id': request['id'],
+            'messageHashes': [ unsubHash ],
+        });
+        return await this.watch (url, unsubHash, this.deepExtend (request, params), unsubHash, unsubscription);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name paradex#unsubscribeChannels
+     * @description unsubscribes from a list of channels, one request per channel as the server takes one channel per request, each sent once the previous one is acknowledged
+     * @param {string} url the websocket url
+     * @param {string} topic the cache the replies clear, see cleanCache
+     * @param {string[]} channels the channels to unsubscribe from
+     * @param {string[]} subMessageHashes the message hash the watchers of each channel wait on
+     * @param {string[]} symbols the unified symbol of each channel, empty for an all-markets channel
+     * @param {object} [params] extra parameters merged into each unsubscribe request
+     * @returns {boolean} true once every channel is unsubscribed
+     */
+    async unsubscribeChannels (url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], params: Dict = {}): Promise<any> {
+        let result: any = undefined;
+        for (let i = 0; i < channels.length; i++) {
+            const channel = channels[i];
+            const symbol = this.safeString (symbols, i);
+            const hashes: string[] = [ subMessageHashes[i] ];
+            const channelSymbols: string[] = [];
+            if (symbol !== undefined) {
+                channelSymbols.push (symbol);
+                if (topic === 'trades') {
+                    // the liquidations of a market come from its trades channel
+                    hashes.push ('liquidations:' + symbol);
+                }
+            }
+            const subscription: Dict = {
+                'topic': topic,
+                'subscribeHashes': [ channel ],
+                'subMessageHashes': hashes,
+                'symbols': channelSymbols,
+            };
+            const request = this.unsubscribeRequest (channel);
+            result = await this.sendUnsubscribe (url, 'unsubscribe:' + channel, request, subscription, params);
+        }
+        return result;
+    }
+
     async authenticate (params: Dict = {}) {
         const url = this.getWsUrl ();
         const client = this.client (url);
@@ -277,12 +345,61 @@ export default class paradex extends paradexRest {
             this.handleAuthenticationMessage (client, message);
         }
         if (requestId !== undefined) {
+            this.handleUnsubscribeReply (client, requestId);
             // sendRequest waits on the request id, a request without a subscription of its own is kept under it
             const requestHash = 'request:' + requestId;
             if (requestHash in client.subscriptions) {
                 delete client.subscriptions[requestHash];
             }
             client.resolve (message, requestHash);
+        }
+    }
+
+    handleUnsubscribeReply (client: Client, requestId: string) {
+        //
+        // the reply to an unsubscribe, a modify_subscription with remove is acknowledged the same way
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 2,
+        //         "result": { "channel": "trades.BTC-USD-PERP" }
+        //     }
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 4,
+        //         "result": { "channel": "markets_summary", "remove": [ "ETH-USD-PERP" ] }
+        //     }
+        //
+        const keys = Object.keys (client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const unsubHash = keys[i];
+            if (unsubHash.indexOf ('unsubscribe:') !== 0) {
+                continue;
+            }
+            const subscription = this.safeDict (client.subscriptions, unsubHash);
+            if (this.safeString (subscription, 'id') !== requestId) {
+                continue;
+            }
+            const subscribeHashes = this.safeList (subscription, 'subscribeHashes', []);
+            for (let j = 0; j < subscribeHashes.length; j++) {
+                const subscribeHash = subscribeHashes[j] as string;
+                if (subscribeHash in client.subscriptions) {
+                    delete client.subscriptions[subscribeHash];
+                }
+                // a market moved to the deltas feed goes back to the snapshots on its next watch
+                const requestedHash = subscribeHash + ':requested';
+                if (requestedHash in client.subscriptions) {
+                    delete client.subscriptions[requestedHash];
+                }
+            }
+            const prefix = this.safeBool (subscription, 'prefix', false);
+            const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+            for (let j = 0; j < subMessageHashes.length; j++) {
+                this.cleanUnsubscription (client, subMessageHashes[j], unsubHash, prefix);
+            }
+            this.cleanCache (subscription);
+            client.resolve (true, unsubHash);
         }
     }
 
@@ -355,6 +472,46 @@ export default class paradex extends paradexRest {
             limitResolved = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+    }
+
+    /**
+     * @method
+     * @name paradex#unWatchTrades
+     * @description unsubscribes from the trades channel of a market
+     * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
+     * @param {string} symbol unified symbol of the market, the all-markets channel when undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once unsubscribed
+     */
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+        if (symbol !== undefined) {
+            return await this.unWatchTradesForSymbols ([ symbol ], params);
+        }
+        const channel = 'trades.ALL';
+        return await this.unsubscribeChannels (this.getWsUrl (), 'trades', [ channel ], [ channel ], [], params);
+    }
+
+    /**
+     * @method
+     * @name paradex#unWatchTradesForSymbols
+     * @description unsubscribes from the trades channels of a list of markets, the liquidations of those markets end with them
+     * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
+     * @param {string[]} symbols unified symbols of the markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once unsubscribed
+     */
+    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
+        const channels: string[] = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
+            channels.push ('trades.' + market['id']);
+        }
+        // the watchers of a market wait on its channel
+        return await this.unsubscribeChannels (this.getWsUrl (), 'trades', channels, channels, symbolsNormalized, params);
     }
 
     /**
@@ -537,6 +694,57 @@ export default class paradex extends paradexRest {
         }
         const orderbook: WsOrderBook = await this.subscribeChannels (url, messageHashes, channels, paramsDeltas);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name paradex#unWatchOrderBook
+     * @description unsubscribes from the order book feed of a market
+     * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.deltas] the feed to unsubscribe from when the market is not watched on this connection, true for the full-depth deltas, default false
+     * @returns {boolean} true once unsubscribed
+     */
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name paradex#unWatchOrderBookForSymbols
+     * @description unsubscribes from the order book feeds of a list of markets
+     * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+     * @param {string[]} symbols unified symbols of the markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.deltas] the feed to unsubscribe from when a market is not watched on this connection, true for the full-depth deltas, default false
+     * @returns {boolean} true once unsubscribed
+     */
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
+        const [ deltasOption, paramsDeltas ] = this.handleOptionAndParams (params, 'watchOrderBook', 'deltas', false);
+        const url = this.getWsUrl ();
+        const client = this.client (url);
+        const channels: string[] = [];
+        const subMessageHashes: string[] = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
+            // the feed the market is on, a market is on one of them at a time
+            const deltasChannel = this.getOrderBookChannel (market['id'], true);
+            const snapshotChannel = this.getOrderBookChannel (market['id'], false);
+            let channel = (deltasOption === true) ? deltasChannel : snapshotChannel;
+            if (deltasChannel in client.subscriptions) {
+                channel = deltasChannel;
+            } else if (snapshotChannel in client.subscriptions) {
+                channel = snapshotChannel;
+            }
+            channels.push (channel);
+            subMessageHashes.push ('orderbook:' + market['symbol']);
+        }
+        return await this.unsubscribeChannels (url, 'orderbook', channels, subMessageHashes, symbolsNormalized, paramsDeltas);
     }
 
     handleOrderBook (client: Client, message: Dict) {
@@ -778,6 +986,99 @@ export default class paradex extends paradexRest {
     }
 
     /**
+     * @method
+     * @name paradex#unWatchTicker
+     * @description stops watching the market summary of a market
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once unsubscribed
+     */
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTickers ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name paradex#unWatchTickers
+     * @description stops watching the market summaries of a list of markets, they are removed from the scoped subscription in place, the last ones unsubscribe it
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+     * @param {string[]} [symbols] unified symbols of the markets, the whole channel when undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once unsubscribed
+     */
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        let symbolsLength = 0;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
+        }
+        const channel = 'markets_summary';
+        const scopedHash = channel + ':scoped';
+        const url = this.getWsUrl ();
+        const client = this.client (url);
+        const marketIds: string[] = [];
+        const subscribeHashes: string[] = [];
+        const subMessageHashes: string[] = [];
+        for (let i = 0; i < symbolsLength; i++) {
+            const symbol = (symbolsNormalized as string[])[i];
+            const marketId = this.market (symbol)['id'] as string;
+            marketIds.push (marketId);
+            subscribeHashes.push (channel + '.' + marketId);
+            subMessageHashes.push (channel + '.' + symbol);
+        }
+        const tickerSymbols: string[] = (symbolsNormalized === undefined) ? [] : symbolsNormalized;
+        if ((symbolsLength > 0) && (channel in client.subscriptions)) {
+            // the all-markets subscription has no market filter to remove these from, their watchers are ended here
+            for (let i = 0; i < subMessageHashes.length; i++) {
+                this.cleanUnsubscription (client, subMessageHashes[i], 'unsubscribe:' + subMessageHashes[i]);
+            }
+            this.cleanCache ({ 'topic': 'ticker', 'symbols': tickerSymbols });
+            return true;
+        }
+        // the markets left in the scoped subscription once these are removed
+        let remaining = 0;
+        const keys = Object.keys (client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            if ((keys[i].indexOf (channel + '.') === 0) && !this.inArray (keys[i], subscribeHashes)) {
+                remaining = remaining + 1;
+            }
+        }
+        if ((symbolsLength === 0) || ((scopedHash in client.subscriptions) && (remaining === 0))) {
+            // a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
+            const channelSubscription: Dict = {
+                'topic': 'ticker',
+                'subscribeHashes': [ channel, scopedHash ],
+                'subMessageHashes': [ channel ],
+                'prefix': true,
+                'symbols': tickerSymbols,
+            };
+            const unsubscribe = this.unsubscribeRequest (channel);
+            return await this.sendUnsubscribe (url, 'unsubscribe:' + channel, unsubscribe, channelSubscription, params);
+        }
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'id': this.requestId (),
+            'method': 'modify_subscription',
+            'params': {
+                'channel': channel,
+                'remove': marketIds,
+            },
+        };
+        const subscription: Dict = {
+            'topic': 'ticker',
+            'subscribeHashes': subscribeHashes,
+            'subMessageHashes': subMessageHashes,
+            'symbols': tickerSymbols,
+        };
+        const unsubHash = 'unsubscribe:' + channel + ':' + marketIds.join (',');
+        return await this.sendUnsubscribe (url, unsubHash, request, subscription, params);
+    }
+
+    /**
      * @ignore
      * @method
      * @name paradex#subscribeMarketsSummary
@@ -905,6 +1206,41 @@ export default class paradex extends paradexRest {
             return result;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
+    }
+
+    /**
+     * @method
+     * @name paradex#unWatchBidsAsks
+     * @description unsubscribes from the best bid & ask channels of a list of markets
+     * @see https://docs.paradex.trade/ws/web-socket-channels/bbo-market-symbol/bbo-market-symbol
+     * @param {string[]} [symbols] unified symbols of the markets, the all-markets channel when undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once unsubscribed
+     */
+    override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        let symbolsLength = 0;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
+        }
+        const channels: string[] = [];
+        const subMessageHashes: string[] = [];
+        const bidAskSymbols: string[] = [];
+        if (symbolsLength > 0) {
+            for (let i = 0; i < symbolsLength; i++) {
+                const market = this.market ((symbolsNormalized as string[])[i]);
+                channels.push ('bbo.' + market['id']);
+                subMessageHashes.push ('bidask:' + market['symbol']);
+                bidAskSymbols.push (market['symbol']);
+            }
+        } else {
+            channels.push ('bbo.ALL');
+            subMessageHashes.push ('bidask');
+        }
+        return await this.unsubscribeChannels (this.getWsUrl (), 'bidsasks', channels, subMessageHashes, bidAskSymbols, params);
     }
 
     handleBidAsk (client: Client, message: Dict) {
@@ -1370,6 +1706,25 @@ export default class paradex extends paradexRest {
         const url = this.getWsUrl ();
         const messageHash = 'funding_data.' + market['symbol'];
         return await this.subscribeChannels (url, [ messageHash ], [ channel ], params);
+    }
+
+    /**
+     * @method
+     * @name paradex#unWatchFundingRate
+     * @description unsubscribes from the funding data channel of a market
+     * @see https://docs.paradex.trade/ws/web-socket-channels/funding-data-market-symbol/funding-data-market-symbol
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once unsubscribed
+     */
+    override async unWatchFundingRate (symbol: string, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const channel = 'funding_data.' + market['id'];
+        const messageHash = 'funding_data.' + market['symbol'];
+        return await this.unsubscribeChannels (this.getWsUrl (), 'fundingRate', [ channel ], [ messageHash ], [ market['symbol'] ], params);
     }
 
     /**
