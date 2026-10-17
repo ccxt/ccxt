@@ -346,13 +346,13 @@ type ICoreExchange interface {
 	CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any]
 	WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	// WS methods
-	FetchBalanceWsAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchBalanceWsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	// FetchCurrenciesWs(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchDepositsWsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	// FetchMarketsWs(optionalArgs ...any) <-chan AsyncResult[any]
-	FetchOHLCVWsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
+	FetchOHLCVWsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchOrdersByStatusWsAsync(status string, optionalArgs ...any) <-chan AsyncResult[[]any]
-	FetchTradingFeesWsAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchTradingFeesWsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchWithdrawalsWsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	UnWatchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	UnWatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any]
@@ -379,7 +379,7 @@ type ICoreExchange interface {
 	WatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	WatchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]any]
-	WithdrawWsAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[any]
+	WithdrawWsAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	Close(cleanInstanceCache ...any) []error
 	CleanWsData()
 	CleanRestData()

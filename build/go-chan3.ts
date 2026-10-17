@@ -240,8 +240,8 @@ let GO_CHAN3_RESOLVED: Set<string> | undefined = undefined;
 
 export function goChan3Resolved (): Set<string> {
     if (GO_CHAN3_RESOLVED === undefined) {
-        const f = path.join (GO_CHAN3_DIR, 'chan3-ws2.json');
-        GO_CHAN3_RESOLVED = new Set (fs.existsSync (f) ? Object.keys (JSON.parse (fs.readFileSync (f, 'utf8'))) : []);
+        const files = fs.existsSync (GO_CHAN3_DIR) ? fs.readdirSync (GO_CHAN3_DIR).filter ((f) => /^chan3-ws2.*\.json$/.test (f)).sort () : [];
+        GO_CHAN3_RESOLVED = new Set (files.flatMap ((f) => Object.keys (JSON.parse (fs.readFileSync (path.join (GO_CHAN3_DIR, f), 'utf8')))));
     }
     return GO_CHAN3_RESOLVED;
 }

@@ -1,0 +1,11 @@
+{
+  "CancelOrdersWs": "[]any",
+  "FetchOpenOrdersWs": "[]any",
+  "FetchOrderWs": "map[string]any",
+  "FetchOHLCVWs": "[]any",
+  "FetchBalanceWs": "map[string]any",
+  "FetchTickerWs": "map[string]any",
+  "FetchTradesWs": "[]any",
+  "FetchTradingFeesWs": "map[string]any",
+  "WithdrawWs": "map[string]any"
+}
