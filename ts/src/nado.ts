@@ -151,7 +151,7 @@ export default class nado extends Exchange {
                         'get': {
                             'tickers': { 'cost': 2 } as Endpoint<Dict>,
                             'contracts': { 'cost': 2 } as Endpoint<Dict>,
-                            'trades': { 'cost': 4, 'byLimit': [ [ 100, 4 ], [ 250, 7 ], [ 500, 12 ] ] } as Endpoint<List>,
+                            'trades': { 'cost': 4, 'byRows': [ 2, 50 ] } as Endpoint<List>,
                             'symbols': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
@@ -3262,15 +3262,13 @@ export default class nado extends Exchange {
                 }
             }
         }
-        if (('byLimit' in config) && ('limit' in params)) {
-            const limit = params['limit'];
-            const byLimit = this.safeList (config, 'byLimit', []);
-            for (let i = 0; i < byLimit.length; i++) {
-                const entry = byLimit[i];
-                if (limit <= entry[0]) {
-                    return entry[1];
-                }
-            }
+        const byRows = this.safeList (config, 'byRows');
+        if (byRows !== undefined) {
+            // distinct local names: the C# emitter rejects a name already used in a sibling block
+            const rowsBaseWeight = this.safeInteger (byRows, 0, 2);
+            const rowsDivisor = this.safeInteger (byRows, 1, 50);
+            const rowCount = this.safeInteger (params, 'limit', 100); // the v2 default page
+            return this.sum (rowsBaseWeight, this.parseToInt (rowCount / rowsDivisor));
         }
         return this.safeValue (config, 'cost', 1);
     }
