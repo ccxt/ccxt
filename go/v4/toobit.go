@@ -4109,7 +4109,7 @@ func (this *Toobit) ParsePosition(position any, optionalArgs ...any) any {
 		"unrealizedPnl":               this.SafeNumber(position, "unrealizedPnL"),
 		"side":                        side,
 		"contracts":                   this.ParseNumber(quantity),
-		"contractSize":                nil,
+		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"timestamp":                   nil,
 		"datetime":                    nil,
 		"hedged":                      nil,

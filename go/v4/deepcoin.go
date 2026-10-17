@@ -3619,6 +3619,13 @@ func (this *Deepcoin) ParsePosition(position any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(position, "instId")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(position, "cTime")
+	var marginMode *string = this.SafeString(position, "mgnMode")
+	var useMargin *float64 = this.SafeNumber(position, "useMargin")
+	// useMargin is the margin held in the position (excludes unrealized pnl)
+	var positionMargin *float64 = nil
+	if marginMode != nil && *marginMode == "isolated" {
+		positionMargin = useMargin
+	}
 	return this.SafePosition(map[string]any{
 		"symbol":                      marketResolved["symbol"],
 		"id":                          this.SafeString(position, "posId"),
@@ -3629,17 +3636,18 @@ func (this *Deepcoin) ParsePosition(position any, optionalArgs ...any) any {
 		"side":                        this.SafeString(position, "posSide"),
 		"notional":                    nil,
 		"leverage":                    this.ParseNumber(this.OmitZero(this.SafeString(position, "lever"))),
-		"unrealizedPnl":               nil,
+		"unrealizedPnl":               this.SafeNumber(position, "unrealizedProfit"),
 		"realizedPnl":                 nil,
+		"positionMargin":              positionMargin,
 		"collateral":                  nil,
 		"entryPrice":                  this.SafeNumber(position, "avgPx"),
 		"markPrice":                   nil,
 		"liquidationPrice":            this.SafeNumber(position, "liqPx"),
-		"marginMode":                  this.SafeString(position, "mgnMode"),
+		"marginMode":                  marginMode,
 		"hedged":                      true,
-		"maintenanceMargin":           this.SafeNumber(position, "useMargin"),
+		"maintenanceMargin":           nil,
 		"maintenanceMarginPercentage": nil,
-		"initialMargin":               nil,
+		"initialMargin":               useMargin,
 		"initialMarginPercentage":     nil,
 		"marginRatio":                 nil,
 		"lastUpdateTimestamp":         this.SafeInteger(position, "uTime"),
@@ -4049,11 +4057,11 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes297319 []any = ListTyped(r1.Value)
-		if retRes297319 == nil {
+		var retRes298119 []any = ListTyped(r1.Value)
+		if retRes298119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes297319}
+			ch <- AsyncResult[any]{Value: retRes298119}
 		}
 		return nil
 	}
@@ -4169,11 +4177,11 @@ func (this *Deepcoin) fetchOrderTradesBody(ch chan AsyncResult[any], id string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes304915 []any = ListTyped(r1.Value)
-	if retRes304915 == nil {
+	var retRes305715 []any = ListTyped(r1.Value)
+	if retRes305715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes304915}
+		ch <- AsyncResult[any]{Value: retRes305715}
 	}
 	return nil
 }

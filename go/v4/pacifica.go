@@ -3816,13 +3816,17 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var margin *string = this.SafeString(position, "margin")
+	var rawIsolated *bool = this.SafeBool(position, "isolated")
+	var isIsolated any = ((margin != nil) && (margin == nil || *margin != "0"))
+	if rawIsolated != nil {
+		isIsolated = rawIsolated
+	}
 	var marginMode string = func() string {
-		if (margin != nil) && (margin == nil || *margin != "0") {
+		if EvalTruthy(isIsolated) {
 			return "isolated"
 		}
 		return "cross"
 	}()
-	var isIsolated bool = (marginMode == "isolated")
 	var side *string = this.SafeString(position, "side")
 	if side != nil {
 		side = SafeStringPtr(func() string {
@@ -3848,13 +3852,13 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any {
 		"markPrice":                   nil,
 		"notional":                    nil,
 		"leverage":                    nil,
-		"collateral":                  margin,
+		"collateral":                  this.SafeNumber(position, "margin"),
 		"initialMargin":               nil,
 		"maintenanceMargin":           nil,
 		"initialMarginPercentage":     nil,
 		"maintenanceMarginPercentage": nil,
 		"unrealizedPnl":               nil,
-		"liquidationPrice":            nil,
+		"liquidationPrice":            this.SafeNumber(position, "liquidation_price"),
 		"marginMode":                  marginMode,
 		"percentage":                  nil,
 	})
@@ -4346,11 +4350,11 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes311819 []any = ListTyped(r1.Value)
-		if retRes311819 == nil {
+		var retRes312219 []any = ListTyped(r1.Value)
+		if retRes312219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes311819}
+			ch <- AsyncResult[any]{Value: retRes312219}
 		}
 		return nil
 	}
@@ -4651,11 +4655,11 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[any], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes332719 []any = ListTyped(r1.Value)
-		if retRes332719 == nil {
+		var retRes333119 []any = ListTyped(r1.Value)
+		if retRes333119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes332719}
+			ch <- AsyncResult[any]{Value: retRes333119}
 		}
 		return nil
 	}

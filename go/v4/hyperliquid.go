@@ -5324,6 +5324,12 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
 		initialMargin = marginUsed
 	}
 	var percentage *string = Precise.StringMul(Precise.StringDiv(absRawUnrealizedPnl, marginUsed), "100")
+	var positionValueString *string = this.SafeString(entry, "positionValue")
+	var markPriceString *string = Precise.StringDiv(positionValueString, size)
+	var marginString *string = nil
+	if isIsolated {
+		marginString = initialMargin
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -5336,9 +5342,10 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
 		"contracts":                   this.ParseNumber(size),
 		"contractSize":                nil,
 		"entryPrice":                  this.SafeNumber(entry, "entryPx"),
-		"markPrice":                   nil,
-		"notional":                    this.SafeNumber(entry, "positionValue"),
+		"markPrice":                   this.ParseNumber(markPriceString),
+		"notional":                    this.ParseNumber(positionValueString),
 		"leverage":                    this.SafeNumber(leverage, "value"),
+		"positionMargin":              this.ParseNumber(marginString),
 		"collateral":                  this.ParseNumber(marginUsed),
 		"initialMargin":               this.ParseNumber(initialMargin),
 		"maintenanceMargin":           nil,
@@ -5347,6 +5354,7 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
 		"unrealizedPnl":               this.ParseNumber(rawUnrealizedPnl),
 		"liquidationPrice":            this.SafeNumber(entry, "liquidationPx"),
 		"marginMode":                  marginMode,
+		"marginRatio":                 nil,
 		"percentage":                  this.ParseNumber(percentage),
 	})
 }
@@ -5542,11 +5550,11 @@ func (this *Hyperliquid) addMarginBody(ch chan AsyncResult[map[string]any], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes419215 map[string]any = MapTyped(r.Value)
-	if retRes419215 == nil {
+	var retRes420015 map[string]any = MapTyped(r.Value)
+	if retRes420015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes419215}
+		ch <- AsyncResult[map[string]any]{Value: retRes420015}
 	}
 	return nil
 }
@@ -5578,11 +5586,11 @@ func (this *Hyperliquid) reduceMarginBody(ch chan EndpointResult[map[string]any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes420815 map[string]any = MapTyped(r.Value)
-	if retRes420815 == nil {
+	var retRes421615 map[string]any = MapTyped(r.Value)
+	if retRes421615 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes420815, Raw: retRes420815}
+		ch <- EndpointResult[map[string]any]{Value: retRes421615, Raw: retRes421615}
 	}
 	return nil
 }

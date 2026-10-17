@@ -1706,6 +1706,7 @@ func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) any {
 		"lastPrice":                   this.SafeNumber(position, "closed_price"),
 		"notional":                    notional,
 		"leverage":                    this.SafeInteger(position, "leverage"),
+		"positionMargin":              this.ParseNumber(initialMargin),
 		"collateral":                  this.ParseNumber(initialMargin),
 		"initialMargin":               this.ParseNumber(initialMargin),
 		"initialMarginPercentage":     nil,
@@ -1896,11 +1897,11 @@ func (this *Mudrex) reduceMarginBody(ch chan EndpointResult[map[string]any], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes126515 map[string]any = r.Value
-	if retRes126515 == nil {
+	var retRes126615 map[string]any = r.Value
+	if retRes126615 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes126515, Raw: retRes126515}
+		ch <- EndpointResult[map[string]any]{Value: retRes126615, Raw: retRes126615}
 	}
 	return nil
 }

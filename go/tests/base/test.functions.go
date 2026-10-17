@@ -52,6 +52,7 @@ var FunctionsMap = map[string]any{
 	"rawencode":                       TestRawencode,
 	"removeRepeatedElementsFromArray": TestRemoveRepeatedElementsFromArray,
 	"safeMethods":                     TestSafeMethods,
+	"safePosition":                    TestSafePosition,
 	"safeTicker":                      TestSafeTicker,
 	"setMarketsFromExchange":          TestSetMarketsFromExchangeAsync,
 	"sleep":                           TestSleepAsync,

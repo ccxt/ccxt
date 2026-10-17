@@ -7045,7 +7045,8 @@ func (this *Mexc) ParsePosition(position any, optionalArgs ...any) any {
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var contracts *string = this.SafeString(position, "holdVol")
 	var entryPrice *float64 = this.SafeNumber(position, "openAvgPrice")
-	var initialMargin *string = this.SafeString(position, "im")
+	var initialMargin any = this.OmitZero(this.SafeString(position, "im"))
+	var unrealizedPnl *string = this.SafeString(position, "unRealizedPnl")
 	var rawSide *string = this.SafeString(position, "positionType")
 	var side string = func() string {
 		if rawSide != nil && *rawSide == "1" {
@@ -7053,26 +7054,40 @@ func (this *Mexc) ParsePosition(position any, optionalArgs ...any) any {
 		}
 		return "short"
 	}()
-	var openType *string = this.SafeString(position, "margin_mode")
+	var openType *string = this.SafeString2(position, "openType", "margin_mode")
 	var marginType string = func() string {
 		if openType != nil && *openType == "1" {
 			return "isolated"
 		}
 		return "cross"
 	}()
+	var collateralString any = nil
+	var marginString any = nil
+	if (marginType == "isolated") && (initialMargin != nil) {
+		// im is the margin mexc holds in the position; funding settles to the available balance
+		collateralString = initialMargin
+		marginString = collateralString
+		if unrealizedPnl != nil {
+			collateralString = Precise.StringAdd(collateralString, unrealizedPnl)
+		}
+	}
 	var leverage *float64 = this.SafeNumber(position, "leverage")
-	var liquidationPrice *float64 = this.SafeNumber(position, "liquidatePrice")
+	var liquidationPrice *float64
+	if derefNum, isNum := this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidatePrice"))).(float64); isNum {
+		liquidationPrice = &derefNum
+	}
 	var timestamp *int64 = this.SafeInteger(position, "updateTime")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      symbol,
 		"contracts":                   this.ParseNumber(contracts),
-		"contractSize":                nil,
+		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"entryPrice":                  entryPrice,
-		"collateral":                  nil,
+		"positionMargin":              this.ParseNumber(marginString),
+		"collateral":                  this.ParseNumber(collateralString),
 		"side":                        side,
-		"unrealizedPnl":               nil,
+		"unrealizedPnl":               this.ParseNumber(unrealizedPnl),
 		"leverage":                    this.ParseNumber(leverage),
 		"percentage":                  nil,
 		"marginMode":                  marginType,
@@ -7709,11 +7724,11 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan AsyncResult[any], optionalArg
 		}
 	}
 
-	listEp7193 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7193.Err != nil {
-		panic(listEp7193.Err)
+	listEp7205 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7205.Err != nil {
+		panic(listEp7205.Err)
 	}
-	var response []any = listEp7193.Value
+	var response []any = listEp7205.Value
 
 	//
 	//    [
@@ -7836,11 +7851,11 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], optiona
 		}
 	}
 
-	listEp7313 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7313.Err != nil {
-		panic(listEp7313.Err)
+	listEp7325 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7325.Err != nil {
+		panic(listEp7325.Err)
 	}
-	var response []any = listEp7313.Value
+	var response []any = listEp7325.Value
 
 	//
 	//    [

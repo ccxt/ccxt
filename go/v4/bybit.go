@@ -9404,7 +9404,15 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) any {
 	if lastUpdateTimestamp == nil {
 		lastUpdateTimestamp = this.SafeInteger2(position, "updatedTime", "updatedAt")
 	}
-	var collateralString *string = this.SafeString(position, "positionBalance")
+	// positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
+	var positionMarginString any = this.OmitZero(this.SafeString(position, "positionBalance"))
+	var collateralString any = nil
+	if positionMarginString != nil {
+		collateralString = positionMarginString
+		if unrealisedPnl != nil {
+			collateralString = Precise.StringAdd(positionMarginString, unrealisedPnl)
+		}
+	}
 	var entryPrice any = this.OmitZero(this.SafeStringN(position, []any{"entryPrice", "avgPrice", "avgEntryPrice"}))
 	var liquidationPrice any = this.OmitZero(this.SafeString(position, "liqPrice"))
 	var leverage *string = this.SafeString(position, "leverage")
@@ -9418,30 +9426,42 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) any {
 			}
 			var difference *string = Precise.StringAbs(Precise.StringSub(price, liquidationPrice))
 			collateralString = Precise.StringAdd(Precise.StringAdd(Precise.StringMul(difference, size), maintenanceMarginString), unrealisedPnl)
+			positionMarginString = nil // derived from collateral by safePosition
 		} else {
-			var bustPrice *string = this.SafeString(position, "bustPrice")
+			var bustPrice any = this.OmitZero(this.SafeString(position, "bustPrice"))
+			var closingFee any = this.OmitZero(this.SafeString(position, "occClosingFee"))
 			if marketResolved["linear"] == true {
-				// derived from the following formulas
+				// derived from the following formula:
 				//  (Entry price - Bust price) * Contracts = Collateral
 				//  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
 				// Maintenance Margin = (Bust price - Liq price) x Contracts
-				var maintenanceMarginPriceDifference *string = Precise.StringAbs(Precise.StringSub(liquidationPrice, bustPrice))
-				maintenanceMarginString = Precise.StringMul(maintenanceMarginPriceDifference, size)
-				// Initial Margin = Contracts x Entry Price / Leverage
+				if (maintenanceMarginString == nil) && (bustPrice != nil) && !Precise.StringEq(bustPrice, liquidationPrice) {
+					var maintenanceMarginPriceDifference *string = Precise.StringAbs(Precise.StringSub(liquidationPrice, bustPrice))
+					maintenanceMarginString = Precise.StringMul(maintenanceMarginPriceDifference, size)
+				}
+				// Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
 				if (entryPrice != nil) && (initialMarginString == nil) {
 					initialMarginString = Precise.StringDiv(Precise.StringMul(size, entryPrice), leverage)
+					if closingFee != nil {
+						initialMarginString = Precise.StringAdd(initialMarginString, closingFee)
+					}
 				}
 			} else {
 				// Contracts * (1 / Entry price - 1 / Bust price) = Collateral
 				// Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
 				// Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
 				// Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-				var difference *string = Precise.StringAbs(Precise.StringSub(bustPrice, liquidationPrice))
-				var multiply *string = Precise.StringMul(bustPrice, liquidationPrice)
-				maintenanceMarginString = Precise.StringDiv(Precise.StringMul(size, difference), multiply)
-				// Initial Margin = Leverage x Contracts / EntryPrice
+				if (maintenanceMarginString == nil) && (bustPrice != nil) && !Precise.StringEq(bustPrice, liquidationPrice) {
+					var difference *string = Precise.StringAbs(Precise.StringSub(bustPrice, liquidationPrice))
+					var multiply *string = Precise.StringMul(bustPrice, liquidationPrice)
+					maintenanceMarginString = Precise.StringDiv(Precise.StringMul(size, difference), multiply)
+				}
+				// Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
 				if (entryPrice != nil) && (initialMarginString == nil) {
 					initialMarginString = Precise.StringDiv(size, Precise.StringMul(entryPrice, leverage))
+					if closingFee != nil {
+						initialMarginString = Precise.StringAdd(initialMarginString, closingFee)
+					}
 				}
 			}
 		}
@@ -9471,6 +9491,7 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) any {
 		"markPrice":                   this.ParseNumber(markPrice),
 		"lastPrice":                   this.SafeNumber(position, "avgExitPrice"),
 		"collateral":                  this.ParseNumber(collateralString),
+		"positionMargin":              this.ParseNumber(positionMarginString),
 		"marginMode":                  nil,
 		"side":                        side,
 		"percentage":                  nil,
@@ -9566,8 +9587,8 @@ func (this *Bybit) setMarginModeBody(ch chan AsyncResult[any], marginMode string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv9073 := r1.Value
-	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv9073
+	listRecv9094 := r1.Value
+	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv9094
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (enableUnifiedMargin == true) || (enableUnifiedAccount == true)
@@ -10046,11 +10067,11 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes749819 []any = ListTyped(r1.Value)
-		if retRes749819 == nil {
+		var retRes751919 []any = ListTyped(r1.Value)
+		if retRes751919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes749819}
+			ch <- AsyncResult[any]{Value: retRes751919}
 		}
 		return nil
 	}
@@ -10069,11 +10090,11 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes751015 []any = ListTyped(r2.Value)
-	if retRes751015 == nil {
+	var retRes753115 []any = ListTyped(r2.Value)
+	if retRes753115 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes751015}
+		ch <- AsyncResult[any]{Value: retRes753115}
 	}
 	return nil
 }
@@ -10533,11 +10554,11 @@ func (this *Bybit) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes782919 []any = ListTyped(r1.Value)
-		if retRes782919 == nil {
+		var retRes785019 []any = ListTyped(r1.Value)
+		if retRes785019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes782919}
+			ch <- AsyncResult[any]{Value: retRes785019}
 		}
 		return nil
 	}
@@ -10878,11 +10899,11 @@ func (this *Bybit) fetchMarketLeverageTiersBody(ch chan AsyncResult[any], symbol
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes808315 []any = ListTyped(r1.Value)
-	if retRes808315 == nil {
+	var retRes810415 []any = ListTyped(r1.Value)
+	if retRes810415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes808315}
+		ch <- AsyncResult[any]{Value: retRes810415}
 	}
 	return nil
 }
@@ -11807,11 +11828,11 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan AsyncResult[any], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes877419 []any = ListTyped(r1.Value)
-		if retRes877419 == nil {
+		var retRes879519 []any = ListTyped(r1.Value)
+		if retRes879519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes877419}
+			ch <- AsyncResult[any]{Value: retRes879519}
 		}
 		return nil
 	}
@@ -11965,11 +11986,11 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan AsyncResult[any], optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes889719 []any = ListTyped(r1.Value)
-		if retRes889719 == nil {
+		var retRes891819 []any = ListTyped(r1.Value)
+		if retRes891819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes889719}
+			ch <- AsyncResult[any]{Value: retRes891819}
 		}
 		return nil
 	}
@@ -12188,11 +12209,11 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes903519 []any = ListTyped(r1.Value)
-		if retRes903519 == nil {
+		var retRes905619 []any = ListTyped(r1.Value)
+		if retRes905619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes903519}
+			ch <- AsyncResult[any]{Value: retRes905619}
 		}
 		return nil
 	}
@@ -12660,8 +12681,8 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan EndpointResult[map[string]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv11919 := r1.Value
-	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv11919
+	listRecv11940 := r1.Value
+	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv11940
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (enableUnifiedMargin == true) || (enableUnifiedAccount == true)
@@ -12798,8 +12819,8 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan AsyncResult[map[string]any], fr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12046 := r1.Value
-	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv12046
+	listRecv12067 := r1.Value
+	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv12067
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (enableUnifiedMargin == true) || (enableUnifiedAccount == true)
@@ -12943,8 +12964,8 @@ func (this *Bybit) fetchConvertTradeBody(ch chan AsyncResult[map[string]any], id
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12172 := r1.Value
-	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv12172
+	listRecv12193 := r1.Value
+	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv12193
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (enableUnifiedMargin == true) || (enableUnifiedAccount == true)

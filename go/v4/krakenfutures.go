@@ -4307,7 +4307,7 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) any 
 	}
 	var marketId *string = this.SafeString2(position, "symbol", "tradeable")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	return map[string]any{
+	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "executionUid"),
 		"symbol":                      marketResolved["symbol"],
@@ -4332,7 +4332,7 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) any 
 		"marginMode":                  marginType,
 		"side":                        side,
 		"percentage":                  nil,
-	}
+	})
 }
 
 /**

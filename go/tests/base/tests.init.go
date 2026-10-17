@@ -38,6 +38,7 @@ func baseTestsInitBody(ch chan ccxt.AsyncResult[any]) any {
 	TestPrecise()
 	TestSafeMethods()
 	TestSafeTicker()
+	TestSafePosition()
 	TestMergeBalanceAccount()
 	TestBase58ToBinary()
 	TestToArray()
