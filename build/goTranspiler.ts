@@ -3862,7 +3862,8 @@ function goProvenListMethods (): string[] {
         'ParseTransactionsByType', // U09: kraken, FilterByCurrencySinceLimit on its only path
         'ParseMarketLeverageTiers', 'ParseEmulatedLeverageTiers', // U14
         'ParseOpenInterestsHistory', 'ParseLiquidations', 'ParseADLRanks', 'FilterByArrayADLRanks', 'FilterByArrayPositions', // U16
-        'ParseConversions', 'ParseLongShortRatioHistory', 'ParseAccounts' ]; // U17
+        'ParseConversions', 'ParseLongShortRatioHistory', 'ParseAccounts', // U17
+        'ParsePredictionOrders', 'FilterByOutcomeSinceLimit' ]; // U03
 }
 
 // dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays

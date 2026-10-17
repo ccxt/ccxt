@@ -2032,14 +2032,15 @@ export default class paradex extends Exchange {
         const responseOrders: Dict[] = this.safeList (response, 'orders', []);
         const parsedOrders = this.parseOrders (responseOrders);
         const errors = this.safeList (response, 'errors', []) as List;
+        const rejected: Order[] = [];
         for (let i = 0; i < errors.length; i++) {
             const error = errors[i];
-            parsedOrders.push (this.safeOrder ({
+            rejected.push (this.safeOrder ({
                 'info': error,
                 'status': 'rejected',
             }));
         }
-        return parsedOrders as Order[];
+        return this.arrayConcat (parsedOrders, rejected);
     }
 
     /**
