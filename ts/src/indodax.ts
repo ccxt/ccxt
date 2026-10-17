@@ -652,7 +652,7 @@ export default class indodax extends Exchange {
             const parsed = this.parseTicker (rawTicker, market);
             parsedTickers[marketId] = parsed;
         }
-        return this.filterByArray (parsedTickers, 'symbol', symbols);
+        return this.filterByArrayTickers (parsedTickers, 'symbol', symbols);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {

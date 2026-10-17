@@ -172,6 +172,7 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.Outcome': 'map[string]any',
     'this.SafeOutcome': 'map[string]any',
     'this.ParseSearchQueries': '[]any',
+    ...Object.fromEntries ([ 'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])), // U06
     // exchange.go / exchange_string.go
     'this.StringToCharsArray': '[]string',
     // exchange_market_type.go (hand-written)

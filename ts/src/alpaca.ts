@@ -1061,7 +1061,7 @@ export default class alpaca extends Exchange {
             }, market);
             results.push (ticker);
         }
-        return this.filterByArray (results, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
     }
 
     generateClientOrderId (params: Dict): Str {

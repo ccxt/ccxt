@@ -1753,7 +1753,7 @@ export default class aster extends Exchange {
             results.push (priceData);
         }
         const symbolsNormalized2: Strings = this.marketSymbols (symbolsNormalized);
-        return this.filterByArray (results, 'symbol', symbolsNormalized2) as LastPrices;
+        return this.indexBy (this.filterByArray (results, 'symbol', symbolsNormalized2, false), 'symbol');
     }
 
     override parseLastPrice (entry: Dict, market: Market = undefined): LastPrice {

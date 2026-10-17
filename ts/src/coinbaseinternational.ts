@@ -1617,7 +1617,7 @@ export default class coinbaseinternational extends Exchange {
             const quote = this.safeDict (instrument, 'quote', {});
             tickers[symbol] = this.parseTicker (quote, this.safeMarket (marketId));
         }
-        return this.filterByArray (tickers, 'symbol', symbolsNormalized, true);
+        return this.filterByArrayTickers (tickers, 'symbol', symbolsNormalized);
     }
 
     /**

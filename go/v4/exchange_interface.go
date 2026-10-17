@@ -57,7 +57,7 @@ type IWatchTickers interface {
 	WatchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 type IFetchTickers interface {
-	FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 type ICancelOrderWs interface {
 	CancelOrderWsAsync(id string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
@@ -75,7 +75,7 @@ type IFetchPositionsHistory interface {
 	FetchPositionsHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 }
 type IFetchBidsAsks interface {
-	FetchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 type IWatchBidsAsks interface {
 	WatchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
@@ -225,7 +225,7 @@ type ICoreExchange interface {
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
-	FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	ParseOpenInterest(interest any, optionalArgs ...any) map[string]any
 	FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	ParseLiquidation(liquidation any, optionalArgs ...any) any
@@ -447,7 +447,7 @@ type IDerivedExchange interface {
 	ParseFundingRateHistory(info any, optionalArgs ...any) any
 	ParseFundingRate(contract any, optionalArgs ...any) map[string]any
 	FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
-	FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchFundingIntervalsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchDepositsWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	ParseMarginModification(data any, optionalArgs ...any) map[string]any

@@ -2931,7 +2931,7 @@ export default class hitbtc extends Exchange {
             const fundingRate = this.parseFundingRate (rawFundingRate, marketInner);
             fundingRates[symbol] = fundingRate;
         }
-        return this.filterByArray (fundingRates, 'symbol', symbolsNormalized);
+        return this.indexBy (this.filterByArray (fundingRates, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
     /**
