@@ -404,7 +404,7 @@ export default class independentreserve extends Exchange {
                         },
                     },
                     'created': undefined,
-                    'info': id,
+                    'info': { 'primaryCurrencyCode': baseId, 'secondaryCurrencyCode': quoteId },
                 });
             }
         }
@@ -1201,6 +1201,6 @@ export default class independentreserve extends Exchange {
             const signedHeaders: Dict = { 'Content-Type': 'application/json' };
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': {} };
     }
 }
