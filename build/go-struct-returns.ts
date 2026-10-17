@@ -19,6 +19,7 @@ export const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: st
     'Trade': { 'names': [ 'ParseTrade', 'SafeTrade' ] },
     'OHLCV': { 'names': [ 'ParseOHLCV' ], 'from': 'OHLCVFromList', 'to': 'OHLCVToList' },
     'Order': { 'names': [ 'ParseOrder', 'SafeOrder' ] },
+    'Position': { 'names': [ 'ParsePosition', 'SafePosition' ] }, // U28
 };
 
 // what a call of a struct-return name reads as after step 3 boxes it (to-helper result; any for OHLCV)
@@ -252,6 +253,49 @@ export function goStructReturnsSelfTest (): string[] {
     }
     if (goStructReturnsPass (got) !== got) {
         problems.push ('GOSTRUCT not idempotent');
+    }
+    const posSrc = [
+        'package ccxt',
+        '',
+        'func (this *BaseExchange) SafePosition(position any) any {',
+        '\tposition = this.Extend(position, map[string]any{})',
+        '\treturn position',
+        '}',
+        'func (this *X) ParsePosition(position any, optionalArgs ...any) any {',
+        '\treturn this.SafePosition(map[string]any{',
+        '\t\t"info": position,',
+        '\t})',
+        '}',
+        'func (this *BaseExchange) ParsePositions(positions any) []any {',
+        '\tvar position map[string]any = this.Extend(this.DerivedExchange.ParsePosition(positions), nil)',
+        '\treturn []any{position}',
+        '}',
+        '',
+    ].join ('\n');
+    const posWant = [
+        'package ccxt',
+        '',
+        'func (this *BaseExchange) SafePosition(position any) Position {',
+        '\tposition = this.Extend(position, map[string]any{})',
+        '\treturn PositionFromMap(position)',
+        '}',
+        'func (this *X) ParsePosition(position any, optionalArgs ...any) Position {',
+        '\treturn this.SafePosition(map[string]any{',
+        '\t\t"info": position,',
+        '\t})',
+        '}',
+        'func (this *BaseExchange) ParsePositions(positions any) []any {',
+        '\tvar position map[string]any = this.Extend(PositionToMap(this.DerivedExchange.ParsePosition(positions)), nil)',
+        '\treturn []any{position}',
+        '}',
+        '',
+    ].join ('\n');
+    const posGot = goStructReturnsPass (posSrc);
+    if (posGot !== posWant) {
+        problems.push ('GOSTRUCT Position self-test mismatch:\n' + posGot);
+    }
+    if (goStructReturnsPass (posGot) !== posGot) {
+        problems.push ('GOSTRUCT Position not idempotent');
     }
     return problems;
 }

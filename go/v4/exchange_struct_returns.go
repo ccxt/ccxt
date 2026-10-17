@@ -60,6 +60,28 @@ func OrderToMap(o Order) map[string]any {
 	return StructToMap(o)
 }
 
+// PositionFromMap builds a Position from a unified position map.
+func PositionFromMap(data any) Position {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Position{}
+	}
+	return NewPosition(m)
+}
+
+// PositionToMap is the map shape every untyped caller expects. The Go port holds the Int
+// timestamps as *float64 (build/typeEmitters/go.ts TYPE_OVERRIDES), so they are handed back
+// as the int64 the parsers produced.
+func PositionToMap(p Position) map[string]any {
+	m := StructToMap(p)
+	for _, k := range []string{"timestamp", "lastUpdateTimestamp"} {
+		if f, isFloat := m[k].(float64); isFloat && f == float64(int64(f)) {
+			m[k] = int64(f)
+		}
+	}
+	return m
+}
+
 func copyMap(m map[string]any) map[string]any {
 	out := make(map[string]any, len(m))
 	for k, v := range m {
