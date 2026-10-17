@@ -38,7 +38,7 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     ...Object.fromEntries ([ 'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories' ].flatMap ((n) => [ [ 'this.' + n, '[]any' ], [ 'this.DerivedExchange.' + n, '[]any' ] ])), // U13
     'this.ParsePredictionTrades': '[]any', // U04
     'this.ParseDepositAddressSpecial': 'map[string]any', 'this.DerivedExchange.ParseDepositAddressSpecial': 'map[string]any', // U11
-    ...Object.fromEntries ([ 'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])), // U12
+    ...Object.fromEntries ([ 'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee', 'ParsePublicDepositWithdrawFees' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])), // U12
 };
 // the Go element type of a table value (`T?` marks cores that may also send a bare nil)
 export function goChanType (value: string | undefined): string | undefined {
