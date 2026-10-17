@@ -3791,7 +3791,8 @@ function goProvenParseMapMethods (): string[] {
         'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
         'SafePredictionOrder', 'SafePredictionTicker', 'SafePredictionOrderBook', 'ParsePredictionOrder', 'ParsePredictionTicker', 'ParsePredictionOpenInterest',
         'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting',
-        'ParseMarginLoan' ]; // U15
+        'ParseMarginLoan', // U15
+        'ParseADLRank' ]; // U16
 }
 
 // function-level `return` expressions of a Go body (func literal bodies skipped); undefined when unscannable
@@ -3802,8 +3803,9 @@ function goFunctionLevelReturnExprs (body: string): string[] | undefined {
     for (let i = 0; i < body.length; i++) {
         inLiteral[i] = literalOpen > 0;
         const c = body[i];
-        if ((c === '"') || (c === '`') || (c === "'") || ((c === '/') && (body[i + 1] === '/'))) {
-            const end = (c === '/') ? goSkipCommentText (body, i) - 1 : goSkipLiteralText (body, i);
+        // block comments too: a doc URL (`https://`) would otherwise open a line comment mid-docblock
+        if ((c === '"') || (c === '`') || (c === "'") || ((c === '/') && ((body[i + 1] === '/') || (body[i + 1] === '*')))) {
+            const end = ((c === '/') && (body[i + 1] === '/')) ? goSkipCommentText (body, i) - 1 : (c === '/') ? goSkipCommentText (body, i) : goSkipLiteralText (body, i);
             for (let k = i + 1; k <= end; k++) {
                 inLiteral[k] = literalOpen > 0;
             }
@@ -3858,7 +3860,8 @@ function goProvenListMethods (): string[] {
         'InsertMissingCandles', 'ParseTradingViewOHLCV', // gochan32-U05
  'ArraysConcat',
         'ParseTransactionsByType', // U09: kraken, FilterByCurrencySinceLimit on its only path
-        'ParseMarketLeverageTiers', 'ParseEmulatedLeverageTiers' ]; // U14
+        'ParseMarketLeverageTiers', 'ParseEmulatedLeverageTiers', // U14
+        'ParseOpenInterestsHistory', 'ParseLiquidations', 'ParseADLRanks', 'FilterByArrayADLRanks', 'FilterByArrayPositions' ]; // U16
 }
 
 // dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays
@@ -3889,7 +3892,8 @@ export function goBalanceLocalIsMap (body: string, name: string): boolean {
     const keeps = new RegExp ('^[^\\w.]?' + name + ' = this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)$)');
     return writes.every ((w) => keeps.test (w,
  'ParseCurrenciesCustom',
-        'ParseLeverageTiers', 'ParseLeverages', 'ParseMarginModes' ]; // U14
+        'ParseLeverageTiers', 'ParseLeverages', 'ParseMarginModes', // U14
+        'ParseOpenInterests' ]; // U16
 }
 
 // one family: `names` retype to `type`; returns proven by a `type` literal, a call of `calls`, a typed/proven local,
