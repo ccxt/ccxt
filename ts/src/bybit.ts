@@ -5536,7 +5536,8 @@ export default class bybit extends Exchange {
         if (length > 1) {
             throw new InvalidOrder (this.id + ' returned more than one order');
         }
-        return this.safeValue (result, 0) as Order;
+        const order = this.safeDict (result, 0);
+        return order as Order;
     }
 
     /**
@@ -5573,7 +5574,8 @@ export default class bybit extends Exchange {
         if (length > 1) {
             throw new InvalidOrder (this.id + ' returned more than one order');
         }
-        return this.safeValue (result, 0) as Order;
+        const order = this.safeDict (result, 0);
+        return order as Order;
     }
 
     /**

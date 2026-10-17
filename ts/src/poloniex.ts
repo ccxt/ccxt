@@ -2606,7 +2606,9 @@ export default class poloniex extends Exchange {
         await this.loadMarkets ();
         const orders = await this.fetchOpenOrders (symbol, undefined, undefined, params);
         const indexed = this.indexBy (orders, 'id');
-        return (id in indexed) ? 'open' : 'closed';
+        const statuses: Dict = { 'true': 'open', 'false': 'closed' };
+        const found = (id in indexed) ? 'true' : 'false';
+        return this.safeString (statuses, found);
     }
 
     /**
