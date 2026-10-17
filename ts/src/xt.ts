@@ -2025,8 +2025,8 @@ export default class xt extends Exchange {
         const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (ticker, 't');
         const open = this.safeString (ticker, 'o');
-        // 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
-        let percentage = undefined;
+        // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
+        let percentage = this.safeString (ticker, 'r');
         if (open === undefined) {
             percentage = this.safeString2 (ticker, 'cr', 'r');
         }
