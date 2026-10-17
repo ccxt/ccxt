@@ -396,6 +396,9 @@ class okx extends \ccxt\async\okx {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
         $symbolValue = $this->symbol($symbol);
         $fr = Async\await($this->watch_funding_rates(array( $symbolValue ), $params));
         return $fr[$symbolValue];
@@ -499,6 +502,9 @@ class okx extends \ccxt\async\okx {
          * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
         list($channel, $paramsChannel) = $this->handle_option_string_and_params($params, 'watchTicker', 'channel', 'tickers');
         $paramsChannel['channel'] = $channel;
         $market = $this->market($symbol);
@@ -563,6 +569,9 @@ class okx extends \ccxt\async\okx {
          * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
         list($channel, $paramsChannel) = $this->handle_option_string_and_params($params, 'watchMarkPrice', 'channel', 'mark-price');
         $paramsChannel['channel'] = $channel;
         $market = $this->market($symbol);
