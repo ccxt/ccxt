@@ -1,0 +1,6 @@
+{
+    "CreateOrder": "Order",
+    "EditOrder": "Order",
+    "FetchOrder": "Order",
+    "CancelOrder": "Order"
+}

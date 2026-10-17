@@ -184,6 +184,15 @@ export function goStructReturnsPass (content: string): string {
         const to = toName (struct) + '(';
         if (identitySpans.has (nameAt) || content.slice (Math.max (0, m.index - to.length), m.index) === to) continue;
         const close = matchClose (content, mask, m.index + m[0].length - 1);
+        // the Value of a struct channel send (`AsyncResult[T]{Value: call}`, go-chan3) is the struct itself
+        if (new RegExp ('AsyncResult\\[(?:ccxt\\.)?' + struct + '\\]\\{Value: $').test (content.slice (Math.max (0, m.index - 80), m.index))) continue;
+        // `<T>FromMap(call)` (a struct channel send of a row builder, go-chan3) is the struct itself
+        const from = q + fromName (struct) + '(';
+        if ((content.slice (Math.max (0, m.index - from.length), m.index) === from) && (content[close + 1] === ')')) {
+            edits.push ({ 'at': m.index - from.length, 'del': from.length, 'text': '' });
+            edits.push ({ 'at': close + 1, 'del': 1, 'text': '' });
+            continue;
+        }
         edits.push ({ 'at': m.index, 'del': 0, 'text': q + toName (struct) + '(' });
         edits.push ({ 'at': close + 1, 'del': 0, 'text': ')' });
     }
@@ -252,6 +261,12 @@ export function goStructReturnsSelfTest (): string[] {
     }
     if (goStructReturnsPass (got) !== got) {
         problems.push ('GOSTRUCT not idempotent');
+    }
+    // struct channel sends (go-chan3): `OrderFromMap(row builder)` and a bare `AsyncResult[Order]{Value: row builder}` stay the struct
+    const chan = 'package ccxt\n\nfunc (this *X) f(ch chan AsyncResult[Order]) any {\n\tch <- AsyncResult[Order]{Value: OrderFromMap(this.ParseOrder(a))}\n\tch <- AsyncResult[Order]{Value: this.SafeOrder(a)}\n\tch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(this.ParseOrder(a), b))}\n\treturn nil\n}\n';
+    const chanOut = goStructReturnsPass (chan);
+    if (!chanOut.includes ('\tch <- AsyncResult[Order]{Value: this.ParseOrder(a)}\n\tch <- AsyncResult[Order]{Value: this.SafeOrder(a)}\n\tch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(OrderToMap(this.ParseOrder(a)), b))}\n') || (goStructReturnsPass (chanOut) !== chanOut)) {
+        problems.push ('GOSTRUCT struct channel sends:\n' + chanOut);
     }
     return problems;
 }

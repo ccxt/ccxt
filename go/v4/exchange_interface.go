@@ -13,6 +13,15 @@ type IPredictionDispatch interface {
 	ParsePredictionPosition(position any, optionalArgs ...any) any
 }
 
+// createOrder/cancelOrder as prediction venues carry them (a prediction order map); regular venues
+// carry them as AsyncResult[Order] through ICreateOrder/ICancelOrder.
+type IPredictionCreateOrder interface {
+	CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+}
+type IPredictionCancelOrder interface {
+	CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+}
+
 // Per-method interfaces for the 62 symbol-based methods that were trimmed from ICoreExchange/
 // IDerivedExchange so prediction cores (which lack them) can satisfy those interfaces. The base +
 // test transpilers type-assert individual call sites to the single-method interface for exactly the
@@ -20,8 +29,14 @@ type IPredictionDispatch interface {
 // kalshi has FetchTickers but not FetchL2OrderBook) runs the has-gated test for the ones it has, and
 // each per-method assertion succeeds because it requires only that one method. Regular venues have
 // all of them, so their (regular-only) base dispatch sites satisfy the assertions too.
+type ICreateOrder interface {
+	CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order]
+}
+type ICancelOrder interface {
+	CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order]
+}
 type IEditOrder interface {
-	EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type IEditOrderWithClientOrderId interface {
 	EditOrderWithClientOrderIdAsync(clientOrderId string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[any]
@@ -39,7 +54,7 @@ type IFetchOpenOrders interface {
 	FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any]
 }
 type IFetchOrder interface {
-	FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type IFetchOrderWithClientOrderId interface {
 	FetchOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan AsyncResult[any]
@@ -194,7 +209,6 @@ type ICoreExchange interface {
 	Json(object any) string
 	FilterBy(aa any, key any, value any) []any
 	IndexBy(array any, key any) map[string]any
-	CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	Sum(args ...any) any
 	NumberToString(num any) *string
 	Base16ToBinary(str any) []byte
@@ -420,7 +434,6 @@ type IDerivedExchange interface {
 	ParseBorrowInterest(info any, optionalArgs ...any) any
 	ParseOption(chain any, optionalArgs ...any) map[string]any
 	ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
-	CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	ParseMarketLeverageTiers(info any, optionalArgs ...any) any
 	FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
@@ -429,7 +442,6 @@ type IDerivedExchange interface {
 	SafeMarket(optionalArgs ...any) map[string]any
 	Sign(path string, optionalArgs ...any) any
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[any]
 	FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any]
