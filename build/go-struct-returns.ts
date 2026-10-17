@@ -24,6 +24,8 @@ export const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: st
     'LedgerEntry': { 'names': [ 'ParseLedgerEntry', 'SafeLedgerEntry' ] }, // U29
     'DepositAddress': { 'names': [ 'ParseDepositAddress' ] }, // gochan32-U30
     'TransferEntry': { 'names': [ 'ParseTransfer' ] }, // gochan32-U30
+    'FundingRate': { 'names': [ 'ParseFundingRate' ] }, // gochan32 U31
+    'OpenInterest': { 'names': [ 'ParseOpenInterest', 'SafeOpenInterest' ] }, // gochan32 U31
 };
 
 // what a call of a struct-return name reads as after step 3 boxes it (to-helper result; any for OHLCV)
@@ -357,6 +359,58 @@ export function goStructReturnsSelfTest (): string[] {
     }
     if (goStructReturnsPass (posGot) !== posGot) {
         problems.push ('GOSTRUCT Position not idempotent');
+    }
+    // gochan32 U31: FundingRate / OpenInterest (package ccxt: unqualified helpers)
+    const src2 = [
+        'package ccxt',
+        '',
+        'func (this *X) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {',
+        '\treturn map[string]any{',
+        '\t\t"info": contract,',
+        '\t}',
+        '}',
+        'func (this *X) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {',
+        '\treturn this.SafeOpenInterest(map[string]any{',
+        '\t\t"info": interest,',
+        '\t}, nil)',
+        '}',
+        'func (this *X) SafeOpenInterest(interest any, optionalArgs ...any) map[string]any {',
+        '\treturn this.Extend(interest, map[string]any{})',
+        '}',
+        'func (this *X) Fetch() any {',
+        '\tvar parsed any = this.DerivedExchange.ParseFundingRate(nil)',
+        '\treturn this.ParseOpenInterest(parsed)',
+        '}',
+        '',
+    ].join ('\n');
+    const want2 = [
+        'package ccxt',
+        '',
+        'func (this *X) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {',
+        '\treturn FundingRateFromMap(map[string]any{',
+        '\t\t"info": contract,',
+        '\t})',
+        '}',
+        'func (this *X) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {',
+        '\treturn this.SafeOpenInterest(map[string]any{',
+        '\t\t"info": interest,',
+        '\t}, nil)',
+        '}',
+        'func (this *X) SafeOpenInterest(interest any, optionalArgs ...any) OpenInterest {',
+        '\treturn OpenInterestFromMap(this.Extend(interest, map[string]any{}))',
+        '}',
+        'func (this *X) Fetch() any {',
+        '\tvar parsed any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(nil))',
+        '\treturn OpenInterestToMap(this.ParseOpenInterest(parsed))',
+        '}',
+        '',
+    ].join ('\n');
+    const got2 = goStructReturnsPass (src2);
+    if (got2 !== want2) {
+        problems.push ('GOSTRUCT U31 self-test mismatch:\n' + got2);
+    }
+    if (goStructReturnsPass (got2) !== got2) {
+        problems.push ('GOSTRUCT U31 not idempotent');
     }
     return problems;
 }
