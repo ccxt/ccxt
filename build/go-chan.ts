@@ -18,6 +18,7 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.SafeFloat': '*float64', 'this.SafeFloat2': '*float64', 'this.SafeFloatN': '*float64',
     'this.SafeNumber': '*float64', 'this.SafeNumber2': '*float64', 'this.SafeNumberN': '*float64',
     'this.SafeBool': '*bool', 'this.SafeBool2': '*bool', 'this.SafeBoolN': '*bool',
+    'this.ParseMarginLoan': 'map[string]any', 'this.DerivedExchange.ParseMarginLoan': 'map[string]any', 'this.ParseIsolatedBorrowRates': 'map[string]any', 'this.DerivedExchange.ParseIsolatedBorrowRates': 'map[string]any', 'this.ParseBorrowRateHistory': '[]any', 'this.DerivedExchange.ParseBorrowRateHistory': '[]any', // U15
 };
 // the Go element type of a table value (`T?` marks cores that may also send a bare nil)
 export function goChanType (value: string | undefined): string | undefined {
