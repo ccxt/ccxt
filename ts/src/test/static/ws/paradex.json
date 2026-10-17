@@ -465,7 +465,7 @@
                 ]
             },
             {
-                "description": "sbe deltas feed (limit above 15): a full-depth snapshot, then deltas in sequence: a level removed by a size of 0, a level added, empty deltas, the added level removed",
+                "description": "sbe deltas feed (limit above 15): a delta before the first snapshot is dropped, then a full-depth snapshot and deltas in sequence: a level removed by a size of 0, a level added, empty deltas, the added level removed",
                 "input": [
                     "XRP/USD:USDC",
                     50
@@ -481,6 +481,9 @@
                         "usIn": 1792183966581259,
                         "usDiff": 132,
                         "usOut": 1792183966581391
+                    },
+                    {
+                        "binary": "5900030001000300e875b258fb5d0600d49c88630000000001000000000000008000000000000000800000000000000080000000000000008000000000000000800000000000000080000000000000008000000000000000800000000000000080100000001000010010b0c8080000000000000000000000000c5852502d5553442d50455250"
                     },
                     {
                         "binary": "5900030001000300f0dfae58fb5d0600d39c8863000000000000000000000000800000000000000080000000000000008000000000000000800000000000000080000000000000008000000000000000800000000000000080000000000000008010000c00605da9070000000000f7ac3206000000e0609e070000000080c89d3b060000005080730700000000808852ef050000004059730700000000005d4b1f01000000205c27070000000080ecdac4520000001035270700000000008499030c000000000e270700000000001f372b01000000d0a6fa06000000008017b42c00000000105fa3060000000000c810ab99000000b0fff905000000008060333c0000000000e1f5050000000000116a8603000000c0e5fb030000000000c7f7e12200000010000900c01bdb0700000000002a560b060000004018e6070000000000effd0206000000b09c3c080000000000794df205000000703548080000000080e2b4f10500000010b0c8080000000000c810ab9900000030fec80800000000006488d54c0000004025c9080000000000f29ae40b0000009033f6090000000000ae4c2d00000000e04ce817000000000060bbcf050000000c5852502d5553442d50455250"
@@ -3590,7 +3593,7 @@
         ],
         "watchOrderBookForSymbols": [
             {
-                "description": "two markets on the snapshot feed: the first subscribe is acknowledged before the second is sent",
+                "description": "two markets on the snapshot feed, a subscribe per market",
                 "input": [
                     [
                         "XRP/USD:USDC",
@@ -4082,7 +4085,7 @@
         ],
         "watchBidsAsks": [
             {
-                "description": "sbe bbo frames, a subscribe per market",
+                "description": "sbe bbo frames, a subscribe per market, an empty bid side (a captured frame, its bid price and size set to null)",
                 "input": [
                     [
                         "XRP/USD:USDC",
@@ -4116,6 +4119,9 @@
                     },
                     {
                         "binary": "3000020001000300208ee458fb5d0600fa9c8863000000005080730700000000808852ef05000000c01bdb0700000000002a560b060000000c5852502d5553442d50455250"
+                    },
+                    {
+                        "binary": "3000020001000300208ee458fb5d0600fa9c88630000000000000000000000800000000000000080c01bdb0700000000002a560b060000000c5852502d5553442d50455250"
                     }
                 ],
                 "sentMessages": [
@@ -4204,6 +4210,40 @@
                             "indexPrice": null,
                             "markPrice": null
                         }
+                    },
+                    {
+                        "XRP/USD:USDC": {
+                            "symbol": "XRP/USD:USDC",
+                            "timestamp": 1792183969812,
+                            "datetime": "2026-10-16T20:52:49.812Z",
+                            "ask": 1.318,
+                            "askVolume": 259.6,
+                            "bid": null,
+                            "bidVolume": null,
+                            "info": {
+                                "market": "XRP-USD-PERP",
+                                "seq_no": "1669897466",
+                                "bid": null,
+                                "bid_size": null,
+                                "ask": "1.318",
+                                "ask_size": "259.6",
+                                "last_updated_at": 1792183969812
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
                     }
                 ]
             }
@@ -4256,7 +4296,7 @@
                         },
                         "symbol": "BTC/USD:USDC",
                         "contracts": 0.00227,
-                        "contractSize": null,
+                        "contractSize": 1,
                         "price": 83321.5,
                         "side": "buy",
                         "baseValue": 0.00227,
@@ -4347,6 +4387,134 @@
                             "currency": null
                         },
                         "fees": []
+                    }
+                ]
+            }
+        ],
+        "watchMarkPrices": [
+            {
+                "description": "sbe markets summary frames over one scoped subscription",
+                "input": [
+                    [
+                        "BTC/USD:USDC",
+                        "ETH/USD:USDC"
+                    ]
+                ],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "channel": "markets_summary",
+                            "markets": [
+                                "BTC-USD-PERP",
+                                "ETH-USD-PERP"
+                            ]
+                        },
+                        "usIn": 1792183966581259,
+                        "usDiff": 132,
+                        "usOut": 1792183966581391
+                    },
+                    {
+                        "binary": "f80004000100030098edbc58fb5d06000000000000000000a7014c383800000061f6613638000000c09b6d213800000037ba190e96c60100c06c0cd71c0000003c1f000000000000c0fb5038380000004010403c38000000f0e48eb023bcec461c57e7ffffffffff0000000000000080000000000000008000000000000000800000000000000080f614f6050000000000000000000000000000000000000000000000000000008000000000000000800000000000000080000000000000008000000000000000802d95523138000000a0a576740100000000b55c7401000000000000000000008000000000000000001419c4040000000000000000000000800c4554482d5553442d50455250"
+                    },
+                    {
+                        "binary": "f80004000100030098edbc58fb5d0600000000000000000043a108a16e07000001f02cb26d0700008088d05c6d0700001c770554b59e000080a2fdce01000000692500000000000000eab55d6e07000080804e5e6e070000ffffffffffffff7f10a8f7ffffffffff0000000000000080000000000000008000000000000000800000000000000080a7a0f605000000000000000000000000000000000000000000000000000000800000000000000080000000000000008000000000000000800000000000000080b3ca7f056d070000109ea70e00000000983a00000000000000000000000000800000000000000000de66b5050000000000000000000000800c4254432d5553442d50455250"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "markets_summary",
+                            "markets": [
+                                "BTC-USD-PERP",
+                                "ETH-USD-PERP"
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "ETH/USD:USDC": {
+                            "symbol": "ETH/USD:USDC",
+                            "timestamp": 1792183967215,
+                            "datetime": "2026-10-16T20:52:47.215Z",
+                            "high": null,
+                            "low": null,
+                            "bid": 2414.63,
+                            "bidVolume": null,
+                            "ask": 2415.29,
+                            "askVolume": null,
+                            "vwap": null,
+                            "open": 2450.390765155681,
+                            "close": 2410.79,
+                            "last": 2410.79,
+                            "previousClose": null,
+                            "change": -39.60076515568096,
+                            "percentage": -1.6161,
+                            "average": 2430.59,
+                            "baseVolume": null,
+                            "quoteVolume": 4998227.60671799,
+                            "markPrice": 2414.62673831,
+                            "info": {
+                                "symbol": "ETH-USD-PERP",
+                                "mark_price": "2414.62673831",
+                                "last_traded_price": "2410.79",
+                                "bid": "2414.63",
+                                "ask": "2415.29",
+                                "volume_24h": "4998227.60671799",
+                                "total_volume": "51106665386.3070232",
+                                "created_at": 1792183967215,
+                                "open_interest": "1238.67",
+                                "funding_rate": "0.00007996",
+                                "price_change_rate_24h": "-0.016161",
+                                "settlement_twap_estimate": null
+                            },
+                            "indexPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USD:USDC": {
+                            "symbol": "BTC/USD:USDC",
+                            "timestamp": 1792183967215,
+                            "datetime": "2026-10-16T20:52:47.215Z",
+                            "high": null,
+                            "low": null,
+                            "bid": 81706,
+                            "bidVolume": null,
+                            "ask": 81706.1,
+                            "askVolume": null,
+                            "vwap": null,
+                            "open": 82111.88780250409,
+                            "close": 81662.9,
+                            "last": 81662.9,
+                            "previousClose": null,
+                            "change": -448.9878025040924,
+                            "percentage": -0.5468,
+                            "average": 81887.3,
+                            "baseVolume": null,
+                            "quoteVolume": 1745016.359135,
+                            "markPrice": 81717.29494339,
+                            "info": {
+                                "symbol": "BTC-USD-PERP",
+                                "mark_price": "81717.29494339",
+                                "last_traded_price": "81662.9",
+                                "bid": "81706",
+                                "ask": "81706.1",
+                                "volume_24h": "1745016.359135",
+                                "total_volume": "92233720368.54775807",
+                                "created_at": 1792183967215,
+                                "open_interest": "77.67696",
+                                "funding_rate": "0.00009577",
+                                "price_change_rate_24h": "-0.005468",
+                                "settlement_twap_estimate": null
+                            },
+                            "indexPrice": null
+                        }
                     }
                 ]
             }

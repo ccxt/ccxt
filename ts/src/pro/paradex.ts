@@ -164,31 +164,45 @@ export default class paradex extends paradexRest {
      * @returns {object} the first update
      */
     async subscribeChannels (url: string, messageHashes: string[], channels: string[], params: Dict = {}): Promise<any> {
-        const client = this.client (url);
-        const missing: string[] = [];
-        for (let i = 0; i < channels.length; i++) {
-            if (!(channels[i] in client.subscriptions)) {
-                missing.push (channels[i]);
+        // messageHashes[i] is the hash the updates of channels[i] resolve. The channels still to subscribe are
+        // looked up again after each await: another watch may have subscribed one meanwhile, and a reconnect
+        // starts a client without any. Each but the last is sent once the previous one is acknowledged
+        const channelsLength = channels.length;
+        for (let attempt = 0; attempt < channelsLength; attempt++) {
+            const pending = this.unsubscribedChannels (url, channels);
+            const pendingLength = pending.length;
+            if (pendingLength < 2) {
+                break;
             }
-        }
-        const missingLength = missing.length;
-        // each but the last is sent once the previous one is acknowledged, which paces them
-        for (let i = 0; i < missingLength - 1; i++) {
-            const request = this.subscribeRequest (missing[i]);
-            await this.sendRequest (url, this.deepExtend (request, params), missing[i]);
+            const channel = channels[pending[0]];
+            const pendingRequest = this.subscribeRequest (channel);
+            await this.sendRequest (url, this.deepExtend (pendingRequest, params), channel);
         }
         // the last one goes with the watch, so that an update sent right after it is not missed
-        let message: any = undefined;
-        let subscription: any = undefined;
-        if (missingLength > 0) {
-            const request = this.subscribeRequest (missing[missingLength - 1]);
-            message = this.deepExtend (request, params);
-            subscription = {
-                'id': request['id'],
-                'messageHashes': messageHashes,
-            };
+        const missing = this.unsubscribedChannels (url, channels);
+        const missingLength = missing.length;
+        if (missingLength === 0) {
+            return await this.watchMultiple (url, messageHashes, undefined, channels);
         }
-        return await this.watchMultiple (url, messageHashes, message, channels, subscription);
+        const index = missing[0];
+        const request = this.subscribeRequest (channels[index]);
+        // a failed subscribe rejects the watchers of its own channel only
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHashes[index] ],
+        };
+        return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), [ channels[index] ], subscription);
+    }
+
+    unsubscribedChannels (url: string, channels: string[]): number[] {
+        const client = this.client (url);
+        const result: number[] = [];
+        for (let i = 0; i < channels.length; i++) {
+            if (!(channels[i] in client.subscriptions)) {
+                result.push (i);
+            }
+        }
+        return result;
     }
 
     async authenticate (params: Dict = {}) {
@@ -344,13 +358,13 @@ export default class paradex extends paradexRest {
     /**
      * @method
      * @name paradex#watchLiquidations
-     * @description watch the public liquidations of a trading pair, the liquidation trades of the trades channel, each call returns the liquidations received since the previous one
+     * @description watch the public liquidations of a trading pair, from the liquidation trades of the trades channel
      * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters
-     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+     * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     override async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Liquidation[]> {
         if (this.markets === undefined) {
@@ -361,7 +375,11 @@ export default class paradex extends paradexRest {
         const messageHash = 'liquidations:' + market['symbol'];
         const url = this.getWsUrl ();
         const liquidations = await this.subscribeChannels (url, [ messageHash ], [ channel ], params);
-        return this.filterBySinceLimit (liquidations, since, limit, 'timestamp', true);
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = liquidations.getLimit (market['symbol'], limit);
+        }
+        return this.filterBySinceLimit (liquidations, since, limitResolved, 'timestamp', true);
     }
 
     parseWsLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
@@ -385,7 +403,7 @@ export default class paradex extends paradexRest {
             'info': liquidation,
             'symbol': marketResolved['symbol'],
             'contracts': this.parseNumber (contracts),
-            'contractSize': this.safeNumber (marketResolved, 'contractSize'),
+            'contractSize': undefined,
             'price': this.parseNumber (price),
             // the side of the taker, the liquidated order
             'side': this.safeStringLower (liquidation, 'side'),
@@ -393,7 +411,7 @@ export default class paradex extends paradexRest {
             'quoteValue': this.parseNumber (Precise.stringMul (contracts, price)),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        });
+        }, marketResolved);
     }
 
     handleTrade (client: Client, message: Dict): Dict {
@@ -428,9 +446,18 @@ export default class paradex extends paradexRest {
         stored.append (parsedTrade);
         client.resolve (stored, messageHash);
         if (this.safeString (data, 'trade_type') === 'LIQUIDATION') {
-            // not kept in this.liquidations: its base type differs between the languages
+            // one cache per market, kept in the options next to the request id counter: this.liquidations
+            // is typed as a single cache in some languages and initialized as a map in others
             const liquidation = this.parseWsLiquidation (data);
-            client.resolve ([ liquidation ], 'liquidations:' + symbol);
+            const caches = this.safeDict (this.options, 'liquidationsBySymbol', {});
+            let liquidations = this.safeValue (caches, symbol);
+            if (liquidations === undefined) {
+                liquidations = new ArrayCache (this.safeInteger (this.options, 'liquidationsLimit', 1000));
+                caches[(symbol as string)] = liquidations;
+                this.options['liquidationsBySymbol'] = caches;
+            }
+            liquidations.append (liquidation);
+            client.resolve (liquidations, 'liquidations:' + symbol);
         }
         // an SBE frame names its market but not the subscription it was sent for,
         // so the trades.ALL subscription is resolved from the per-market channel too
@@ -447,7 +474,7 @@ export default class paradex extends paradexRest {
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return, above 15 the full-depth deltas feed is used
+     * @param {int} [limit] above 15 the full-depth deltas feed is used and the whole book is returned, otherwise the 15-level snapshots
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.deltas] true for the full-depth deltas feed, default false (the 15-level snapshots)
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
@@ -462,7 +489,7 @@ export default class paradex extends paradexRest {
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
      * @param {string[]} symbols unified array of symbols
-     * @param {int} [limit] the maximum amount of order book entries to return, above 15 the full-depth deltas feed is used
+     * @param {int} [limit] above 15 the full-depth deltas feed is used and the whole book is returned, otherwise the 15-level snapshots
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.deltas] true for the full-depth deltas feed, default false (the 15-level snapshots)
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
@@ -488,7 +515,13 @@ export default class paradex extends paradexRest {
             const snapshotChannel = this.getOrderBookChannel (market['id'], false);
             // one feed per market on a connection: both send BookEvent frames, which do not name their channel,
             // and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
-            const isDeltas = deltas || (deltasChannel in client.subscriptions);
+            // the market stays on the deltas feed from the first call that asks for it, a call made while the
+            // snapshot feed is being unsubscribed included
+            const deltasHash = deltasChannel + ':requested';
+            const isDeltas = deltas || (deltasHash in client.subscriptions);
+            if (isDeltas) {
+                client.subscriptions[deltasHash] = true;
+            }
             if (isDeltas && (snapshotChannel in client.subscriptions)) {
                 // the snapshot feed is unsubscribed before the deltas one is subscribed, no snapshot of it
                 // arrives once the reply is in
@@ -567,14 +600,15 @@ export default class paradex extends paradexRest {
         // levels go into local arrays first: pushing into orderbookData['bids'] appends to a copy in go
         const bids = [];
         const asks = [];
-        // a delete carries a size of 0, which removes the level like a size of 0 among the updates of an SBE delta
+        // a level of the deletes is removed whatever size it carries, an SBE delta removes one by a size of 0
         const levelKeys = [ 'inserts', 'updates', 'deletes' ];
         for (let k = 0; k < levelKeys.length; k++) {
+            const isDelete = (levelKeys[k] === 'deletes');
             const levels = this.safeList (data, levelKeys[k], []);
             for (let i = 0; i < levels.length; i++) {
                 const level = this.safeDict (levels, i);
                 const price = this.safeString (level, 'price');
-                const size = this.safeString (level, 'size');
+                const size = (isDelete) ? '0' : this.safeString (level, 'size');
                 if (this.safeString (level, 'side') === 'BUY') {
                     bids.push ([ price, size ]);
                 } else {
@@ -707,6 +741,19 @@ export default class paradex extends paradexRest {
         } else {
             // every listed market, options included
             const url = this.getWsUrl ();
+            const client = this.client (url);
+            const scopedHash = channel + ':scoped';
+            if (scopedHash in client.subscriptions) {
+                // a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
+                const subscribeHashes = Object.keys (client.subscriptions);
+                for (let i = 0; i < subscribeHashes.length; i++) {
+                    if ((subscribeHashes[i] === scopedHash) || (subscribeHashes[i].indexOf (channel + '.') === 0)) {
+                        delete client.subscriptions[subscribeHashes[i]];
+                    }
+                }
+                const unsubscribe = this.unsubscribeRequest (channel);
+                await this.sendRequest (url, unsubscribe);
+            }
             const request: Dict = this.subscribeRequest (channel);
             const subscription: Dict = {
                 'id': request['id'],
@@ -749,12 +796,15 @@ export default class paradex extends paradexRest {
         const scopedHash = channel + ':scoped';
         const subscribeHashes: string[] = [];
         const missing: string[] = [];
+        const missingHashes: string[] = [];
+        // messageHashes[i] is the hash the summaries of symbols[i] resolve
         for (let i = 0; i < symbols.length; i++) {
             const marketId = this.market (symbols[i])['id'] as string;
             const subscribeHash = channel + '.' + marketId;
             subscribeHashes.push (subscribeHash);
             if (!(subscribeHash in client.subscriptions)) {
                 missing.push (marketId);
+                missingHashes.push (messageHashes[i]);
             }
         }
         const missingLength = missing.length;
@@ -777,10 +827,11 @@ export default class paradex extends paradexRest {
             request['params']['markets'] = missing;
             subscribeHashes.push (scopedHash);
         }
-        // a failed request is forgotten with every market it carried, the next watch sends them again
+        // a failed request is forgotten with every market it carried, the next watch sends them again, and
+        // it rejects the watchers of those markets only
         const subscription: Dict = {
             'id': request['id'],
-            'messageHashes': messageHashes,
+            'messageHashes': missingHashes,
         };
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscribeHashes, subscription);
     }

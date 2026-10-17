@@ -11,7 +11,9 @@ import ccxt from '../../../../ccxt.js';
 // feed is subscribed, an error reply to the unsubscribe of a resync rejects no
 // watcher, and a markets summary frame of a market nobody subscribed to is
 // dropped before it is decoded, and the subscribes of a call watching several
-// markets go one at a time, each once the previous one is acknowledged
+// markets go one at a time, each once the previous one is acknowledged, a failed
+// request rejects the watchers of its own markets only, an all-markets summary
+// subscribe drops the scoped one first, and liquidations are kept between calls
 
 const WS_URL = 'wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3';
 
@@ -79,6 +81,9 @@ function reply (id: number, result: any) {
 // a captured MarketSummaryEvent frame of BTC-USD-PERP (schema 1:3)
 const BTC_SUMMARY = 'f8000400010003008028cba1bd5d06000000000000000000f4d179b98f070000ea20e9ae8e070000805c6ab2900700002462df31de2e0100f093dfdb01000000581f00000000000080a200a58f070000803143d88f070000ffffffffffffff7f54150f000000000000000000000000800000000000000080000000000000008000000000000000803db3f605000000000000000000000000000000000000000000000000000000800000000000000080000000000000008000000000000000800000000000000080858472d18d070000c8dc310100000000d8b96d000000000000000000000000800000000000000000ba7ac8040000000000000000000000800c4254432d5553442d50455250';
 
+// a captured TradeEvent frame of BTC-USD-PERP, its trade type set to LIQUIDATION
+const BTC_LIQUIDATION = '320001000100020098c258a6ba5d060080876aca01000000327a5c24817a3b21018049d7fa93070000b87603000000000098c258a6ba5d0600020c4254432d5553442d504552501c31373931393036303936333930323031373039323333343730303032';
+
 async function testParadexScopedTickers () {
     const { exchange, client, sent } = createHarness ();
     const first = exchange.watchTickers ([ 'BTC/USD:USDC' ]);
@@ -110,6 +115,12 @@ async function testParadexScopedTickers () {
         rejected = true;
     }
     assert (rejected, 'the watch that sent the failed modify must reject');
+    let firstError: any = undefined;
+    first.catch ((e: any) => {
+        firstError = e;
+    });
+    await sleep (0);
+    assert.equal (firstError, undefined, 'a failed modify must not reject the watchers of the markets subscribed before');
     const retry = exchange.watchTickers ([ 'ETH/USD:USDC' ]);
     retry.catch (() => {});
     await sleep (0);
@@ -159,10 +170,16 @@ async function testParadexSnapshotToDeltas () {
     assert.equal (sent[1]['method'], 'unsubscribe', 'the snapshot feed is unsubscribed first');
     assert.deepStrictEqual (sent[1]['params'], { 'channel': snapshotChannel }, 'the snapshot feed is unsubscribed first');
     assert (!(snapshotChannel in client.subscriptions), 'the snapshot feed subscription is forgotten');
+    // a snapshot watcher calling again while the unsubscribe is in flight stays on the deltas feed
+    const againWatch = exchange.watchOrderBook ('BTC/USD:USDC');
+    againWatch.catch (() => {});
+    await sleep (0);
+    assert.equal (sent.length, 3, 'a call during the switch takes the deltas feed');
+    assert.deepStrictEqual (sent[2]['params'], { 'channel': deltasChannel }, 'a call during the switch takes the deltas feed');
     exchange.handleMessage (client, reply (sent[1]['id'], { 'channel': snapshotChannel }));
     await sleep (0);
-    assert.equal (sent.length, 3, 'the deltas feed is subscribed once the unsubscribe is acknowledged');
-    assert.deepStrictEqual (sent[2]['params'], { 'channel': deltasChannel }, 'the deltas feed is subscribed once the unsubscribe is acknowledged');
+    assert.equal (sent.length, 3, 'the deltas feed is subscribed once');
+    assert (!(snapshotChannel in client.subscriptions), 'the snapshot feed is not subscribed again');
     // the deltas feed is a superset, a later call without a limit keeps it
     const laterWatch = exchange.watchOrderBook ('BTC/USD:USDC');
     laterWatch.catch (() => {});
@@ -216,6 +233,88 @@ async function testParadexSubscribePerMarket () {
     await sleep (0);
     assert (error !== undefined, 'an error reply to the subscribe rejects the watch');
     assert (!('trades.SOL-USD-PERP' in client.subscriptions), 'the failed channel is forgotten');
+    let pendingError: any = undefined;
+    pending.catch ((e: any) => {
+        pendingError = e;
+    });
+    await sleep (0);
+    assert.equal (pendingError, undefined, 'an error reply to a subscribe must not reject the watchers of other channels');
+    client.reject (new Error ('cleanup'));
+}
+
+async function testParadexThreeChannels () {
+    // every channel is subscribed, each once the previous one is acknowledged
+    const { exchange, client, sent } = createHarness ();
+    const pending = exchange.watchTradesForSymbols ([ 'BTC/USD:USDC', 'ETH/USD:USDC', 'SOL/USD:USDC' ]);
+    pending.catch (() => {});
+    await sleep (0);
+    exchange.handleMessage (client, reply (sent[0]['id'], { 'channel': 'trades.BTC-USD-PERP' }));
+    await sleep (0);
+    assert.equal (sent.length, 2, 'the second subscribe goes once the first is acknowledged');
+    exchange.handleMessage (client, reply (sent[1]['id'], { 'channel': 'trades.ETH-USD-PERP' }));
+    await sleep (0);
+    assert.equal (sent.length, 3, 'the third subscribe goes once the second is acknowledged');
+    assert.deepStrictEqual (sent[2]['params'], { 'channel': 'trades.SOL-USD-PERP' }, 'the third channel is subscribed');
+    client.reject (new Error ('cleanup'));
+}
+
+async function testParadexOverlappingSubscribes () {
+    // a channel subscribed by another watch while a call waits on an earlier acknowledgement is skipped, not awaited
+    const { exchange, client, sent } = createHarness ();
+    const many = exchange.watchTradesForSymbols ([ 'BTC/USD:USDC', 'ETH/USD:USDC', 'SOL/USD:USDC' ]);
+    many.catch (() => {});
+    await sleep (0);
+    assert.equal (sent.length, 1, 'the first subscribe goes alone');
+    const one = exchange.watchTrades ('ETH/USD:USDC');
+    one.catch (() => {});
+    await sleep (0);
+    assert.equal (sent.length, 2, 'the other watch subscribes its channel');
+    assert.deepStrictEqual (sent[1]['params'], { 'channel': 'trades.ETH-USD-PERP' }, 'the other watch subscribes its channel');
+    exchange.handleMessage (client, reply (sent[0]['id'], { 'channel': 'trades.BTC-USD-PERP' }));
+    await sleep (0);
+    assert.equal (sent.length, 3, 'the call goes on with the channels still missing');
+    assert.deepStrictEqual (sent[2]['params'], { 'channel': 'trades.SOL-USD-PERP' }, 'a channel subscribed meanwhile is not sent again');
+    client.reject (new Error ('cleanup'));
+}
+
+async function testParadexAllMarketsAfterScoped () {
+    // a plain subscribe keeps the market filter of a scoped subscription, so the scoped one is unsubscribed first
+    const { exchange, client, sent } = createHarness ();
+    const one = exchange.watchTicker ('BTC/USD:USDC');
+    one.catch (() => {});
+    await sleep (0);
+    const all = exchange.watchTickers ();
+    all.catch (() => {});
+    await sleep (0);
+    assert.equal (sent.length, 2, 'the scoped subscription is unsubscribed before the all-markets subscribe');
+    assert.equal (sent[1]['method'], 'unsubscribe', 'the scoped subscription is unsubscribed first');
+    assert (!('markets_summary.BTC-USD-PERP' in client.subscriptions), 'the scoped markets are forgotten');
+    exchange.handleMessage (client, reply (sent[1]['id'], { 'channel': 'markets_summary' }));
+    await sleep (0);
+    assert.equal (sent.length, 3, 'the all-markets subscribe goes once the unsubscribe is acknowledged');
+    assert.deepStrictEqual (sent[2]['params'], { 'channel': 'markets_summary' }, 'the all-markets subscribe has no filter');
+    client.reject (new Error ('cleanup'));
+}
+
+async function testParadexLiquidationsKept () {
+    // liquidations that arrive while nobody waits are returned by the next call
+    const { exchange, client, sent } = createHarness ();
+    const first = exchange.watchLiquidations ('BTC/USD:USDC');
+    first.catch (() => {});
+    await sleep (0);
+    exchange.handleMessage (client, reply (sent[0]['id'], { 'channel': 'trades.BTC-USD-PERP' }));
+    exchange.handleMessage (client, exchange.base16ToBinary (BTC_LIQUIDATION));
+    const firstResult = await first;
+    assert.equal (firstResult.length, 1, 'the first call returns the first liquidation');
+    assert.equal (firstResult[0]['contractSize'], 1, 'the contract size comes from the market');
+    exchange.handleMessage (client, exchange.base16ToBinary (BTC_LIQUIDATION));
+    exchange.handleMessage (client, exchange.base16ToBinary (BTC_LIQUIDATION));
+    const next = exchange.watchLiquidations ('BTC/USD:USDC');
+    next.catch (() => {});
+    await sleep (0);
+    exchange.handleMessage (client, exchange.base16ToBinary (BTC_LIQUIDATION));
+    const nextResult = await next;
+    assert.equal (nextResult.length, 3, 'liquidations received between two calls are not dropped');
     client.reject (new Error ('cleanup'));
 }
 
@@ -226,6 +325,10 @@ async function testParadexSubscriptions () {
     await testParadexSnapshotToDeltas ();
     await testParadexResyncUnsubscribeError ();
     await testParadexSubscribePerMarket ();
+    await testParadexThreeChannels ();
+    await testParadexOverlappingSubscribes ();
+    await testParadexAllMarketsAfterScoped ();
+    await testParadexLiquidationsKept ();
 }
 
 export default testParadexSubscriptions;
