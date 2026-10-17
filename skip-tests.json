@@ -235,6 +235,9 @@
             },
             "watchTickers": {
                 "compareQuoteVolumeBaseVolume": "coin-m ids (BTCUSD_PERP, ETHUSD_PERP, XRPUSD_260925, ...) leak into the usdm !miniTicker@arr stream; binanceusdm loads only linear markets, so they resolve to no loaded market and the inverse-contract exemption (safeBool(market,'inverse')) cannot fire, https://github.com/ccxt/ccxt/actions/runs/32295515130/job/96206607580?pr=29952#step:11:295"
+            },
+            "fetchTrades": {
+                "sideSequence": "venue data: aggTrades side comes from the m flag and same-millisecond aggregates can tick against it; live fapi/v1/aggTrades BTCUSDT showed 81471.8 buy -> 81471.9 sell at one T (checked from an NL host; CI region may differ)"
             }
         }
     },
@@ -2160,6 +2163,9 @@
         "skipMethods": {
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "fetchTrades": {
+                "sideSequence": "okx venue data: side is verbatim from the payload and same-millisecond fills walk the book both ways; live /api/v5/market/trades BTC-USDT-SWAP had 118/500 such pairs (checked from an NL host; CI region may differ)"
             }
         }
     },
