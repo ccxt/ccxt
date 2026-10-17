@@ -435,6 +435,146 @@ function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number): {
     return { 'type': list[0], edits };
 }
 
+// ===== GO-CHAN3 ENDPOINT SENDS: a core's send of its own receiver's implicit-endpoint receive =====
+// `ch <- {Value: rN.Raw|rN.Value}`, or a sent local whose every write is such a read (or a T literal) and whose
+// other uses are nil tests. The stub is resolved per receiver (`*_api.go` of that struct), so a name another
+// exchange types differently does not veto it. EndpointResult[T] stubs read Value (= endpointValue[T](Raw));
+// an untyped stub documented as "a JSON object." / "a JSON array." reads MapTyped/ListTyped(rN.Value), the
+// very conversion endpointValue[T] applies. `IsEqual(x, nil)` becomes `x == nil` (typed-nil trap).
+let GO_CHAN3_RECV_STUBS: Map<string, string> | undefined = undefined;
+
+// `Receiver.Stub` -> 'E:T' (EndpointResult[T]) | 'A:T' (AsyncResult[any] documented as JSON object/array)
+export function goChan3ReceiverStubs (): Map<string, string> {
+    if (GO_CHAN3_RECV_STUBS === undefined) {
+        const dir = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'go', 'v4');
+        const out = new Map<string, string> ();
+        const sig = /^(?:\/\/ \w+ returns a channel that yields ([^\n]*)\n)?func \(this \*(\w+)\) (\w+)\(args \.\.\.any\) <-chan (?:ccxt\.)?(?:EndpointResult\[(.+)\]|AsyncResult\[any\]) \{$/gm;
+        const doc: { [k: string]: string } = { 'a JSON object.': 'map[string]any', 'a JSON array.': '[]any' };
+        for (const d of [ dir, path.join (dir, 'prediction') ]) {
+            for (const f of fs.existsSync (d) ? fs.readdirSync (d).filter ((x) => x.endsWith ('_api.go')) : []) {
+                const text = fs.readFileSync (path.join (d, f), 'utf8');
+                for (let m = sig.exec (text); m !== null; m = sig.exec (text)) {
+                    const t = (m[4] !== undefined) ? ('E:' + m[4]) : ((doc[m[1] || ''] !== undefined) ? ('A:' + doc[m[1] as string]) : '');
+                    const k = m[2] + '.' + m[3];
+                    out.set (k, (out.has (k) && (out.get (k) !== t)) ? '' : t);
+                }
+            }
+        }
+        GO_CHAN3_RECV_STUBS = new Map ([ ...out ].filter (([ , t ]) => t !== ''));
+    }
+    return GO_CHAN3_RECV_STUBS;
+}
+
+export function goChan3SetReceiverStubsForTest (map: Map<string, string> | undefined) {
+    GO_CHAN3_RECV_STUBS = map;
+}
+
+// typed text of `r.field` when r is bound exactly once from `<-this.Stub(` of this receiver
+function goChan3EndpointRead (r: string, field: string, receiver: string, fnMasked: string, q: string): { type: string, text: string } | undefined {
+    const binds = fnMasked.match (new RegExp ('\\n\\t+' + r + ' := <-this\\.(\\w+)\\(', 'g')) || [];
+    const writes = fnMasked.match (new RegExp ('(?<![\\w.])' + r + '(?:\\s*,\\s*\\w+)*\\s*:?=(?!=)', 'g')) || [];
+    const stub = (binds.length === 1) ? /<-this\.(\w+)\($/.exec (binds[0]) : null;
+    const s = ((stub === null) || (writes.length !== 1)) ? undefined : goChan3ReceiverStubs ().get (receiver + '.' + stub[1]);
+    if (s === undefined) {
+        return undefined;
+    }
+    const type = s.substring (2);
+    if (s[0] === 'E') {
+        return { type, 'text': r + '.Value' };
+    }
+    return (field === 'Value') ? { type, 'text': q + ((type === '[]any') ? 'ListTyped(' : 'MapTyped(') + r + '.Value)' } : undefined;
+}
+
+// the proof of a send `{Value: expr}` (fnMasked offsets open/close of its braces) through endpoint reads, with edits
+function goChan3EndpointSend (expr: string, receiver: string, fnMasked: string, bodyStart: number, open: number, close: number, q: string, memo: Map<string, { type?: string, reason?: string, edits: Edit[] }>): { type: string, edits: Edit[] } | undefined {
+    const direct = /^(r\d*)\.(Raw|Value)$/.exec (expr);
+    if (direct !== null) {
+        const read = goChan3EndpointRead (direct[1], direct[2], receiver, fnMasked, q);
+        const at = open + 1 + 'Value: '.length;
+        return ((read === undefined) || (fnMasked.substring (at, close - 1) !== expr)) ? undefined : { 'type': read.type, 'edits': (read.text === expr) ? [] : [ { 'start': bodyStart + at, 'end': bodyStart + close - 1, 'text': read.text } ] };
+    }
+    if (!/^[a-z]\w*$/.test (expr)) {
+        return undefined;
+    }
+    const seen = memo.get ('#endpoint:' + expr);
+    if (seen !== undefined) {
+        return (seen.type === undefined) ? undefined : { 'type': seen.type, 'edits': [] };
+    }
+    const edits: Edit[] = [];
+    const types = new Set<string> ();
+    const occ = new RegExp ('(?<![\\w.])' + expr + '(?!\\w)', 'g');
+    let decls = 0;
+    let declAt = -1;
+    let ok = true;
+    for (let o = occ.exec (fnMasked); (o !== null) && ok; o = occ.exec (fnMasked)) {
+        const ls = fnMasked.lastIndexOf ('\n', o.index) + 1;
+        const lead = fnMasked.substring (ls, o.index);
+        const after = fnMasked.substring (o.index + expr.length, fnMasked.indexOf ('\n', o.index));
+        const w = /^ (:?=) (r\d*)\.(Raw|Value)\s*$/.exec (after);
+        const lit = /^ = (map\[string\]any|\[\]any)\{\s*$/.exec (after);
+        const eq = /(?:ccxt\.)?IsEqual\($/.exec (lead);
+        const done = /^ :?= (?:ccxt\.)?(MapTyped|ListTyped)\((r\d*)\.Value\)\s*$/.exec (after);
+        const doneRead = (done === null) ? undefined : goChan3EndpointRead (done[2], 'Value', receiver, fnMasked, q);
+        if (/^\t+$/.test (lead) && (doneRead !== undefined) && (doneRead.type === (((done as RegExpExecArray)[1] === 'MapTyped') ? 'map[string]any' : '[]any'))) {
+            decls += /^ :=/.test (after) ? 1 : 0;
+            types.add (doneRead.type);   // already rewritten (idempotency)
+        } else if (/^\t+$/.test (lead) && (w !== null)) {
+            const read = goChan3EndpointRead (w[2], w[3], receiver, fnMasked, q);
+            ok = read !== undefined;
+            if (read !== undefined) {
+                decls += (w[1] === ':=') ? 1 : 0;
+                types.add (read.type);
+                const at = o.index + expr.length + w[1].length + 2;
+                edits.push ({ 'start': bodyStart + at, 'end': bodyStart + at + w[2].length + 1 + w[3].length, 'text': read.text });
+            }
+        } else if (/^\t+var $/.test (lead) && /^ any = nil\s*$/.test (after)) {
+            decls++;
+            declAt = o.index + expr.length + 1;
+        } else if (/^\t+$/.test (lead) && (lit !== null)) {
+            types.add (lit[1]);
+        } else if ((/^\t+$/.test (lead) && /^ = nil\s*$/.test (after)) || /^ [!=]= nil\b/.test (after)) {
+            continue;
+        } else if ((eq !== null) && after.startsWith (', nil)')) {
+            edits.push ({ 'start': bodyStart + o.index - eq[0].length, 'end': bodyStart + o.index + expr.length + ', nil)'.length, 'text': expr + ' == nil' });
+        } else {
+            ok = /^\t+ch <- (?:ccxt\.)?AsyncResult\[any\]\{Value: $/.test (lead) && /^\}\s*$/.test (after);
+        }
+    }
+    const list = [ ...types ];
+    if (!ok || (decls !== 1) || (list.length !== 1) || !goChan3Nilable (list[0])) {
+        memo.set ('#endpoint:' + expr, { 'reason': 'local-untyped', 'edits': [] });
+        return undefined;
+    }
+    if (declAt >= 0) {
+        edits.push ({ 'start': bodyStart + declAt, 'end': bodyStart + declAt + 3, 'text': list[0] });
+    }
+    memo.set ('#endpoint:' + expr, { 'type': list[0], edits });
+    return { 'type': list[0], edits };
+}
+
+function goChan3EndpointSendSelfTest (ok: (c: boolean, m: string) => void, run: (src: string) => string, throws: (src: string) => boolean, core: (recv: string, body: string) => string) {
+    goChan3SetReceiverStubsForTest (new Map ([ [ 'X.PostE', 'E:map[string]any' ], [ 'X.PostA', 'A:map[string]any' ], [ 'X.PostL', 'E:[]any' ] ]));
+    const recv = (r: string, s: string) => '\tr' + r + ' := <-this.' + s + '(a)\n\tif r' + r + '.Err != nil {\n\t\tpanic(r' + r + '.Err)\n\t}\n';
+    const d = run ('package ccxt\n' + core ('X', recv ('1', 'PostE') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n'));
+    ok (d.includes ('ch <- AsyncResult[map[string]any]{Value: r1.Value}'), 'endpoint direct Raw send: ' + d);
+    ok (run (d) === d, 'endpoint direct idempotent');
+    const a = run ('package ccxt\n' + core ('X', recv ('1', 'PostA') + '\tch <- AsyncResult[any]{Value: r1.Value}\n\treturn nil\n'));
+    ok (a.includes ('ch <- AsyncResult[map[string]any]{Value: MapTyped(r1.Value)}'), 'documented object stub: ' + a);
+    ok (run (a) === a, 'documented object idempotent');
+    const sd = run ('package ccxt\n' + core ('X', recv ('1', 'PostE') + '\tresponse := r1.Raw\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n'));
+    ok (sd.includes ('\tresponse := r1.Value\n') && sd.includes ('ch <- AsyncResult[map[string]any]{Value: response}'), 'short-declared endpoint local: ' + sd);
+    ok (run (sd) === sd, 'short-declared idempotent');
+    const mix = run ('package ccxt\n' + core ('X', '\tvar response any = nil\n\tif a == nil {\n' + recv ('1', 'PostA').replace (/\n\t/g, '\n\t\t').replace (/^\t/, '\t\t') + '\t\tresponse = r1.Value\n\t} else {\n' + recv ('2', 'PostE').replace (/\n\t/g, '\n\t\t').replace (/^\t/, '\t\t') + '\t\tresponse = r2.Raw\n\t}\n\tif IsEqual(response, nil) {\n\t\tpanic(\"x\")\n\t}\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n'));
+    ok (mix.includes ('\tvar response map[string]any = nil\n') && mix.includes ('response = MapTyped(r1.Value)\n') && mix.includes ('response = r2.Value\n') && mix.includes ('if response == nil {') && mix.includes ('ch <- AsyncResult[map[string]any]{Value: response}'), 'mixed-stub endpoint join: ' + mix);
+    ok (run (mix) === mix, 'mixed-stub idempotent');
+    ok (throws ('package ccxt\n' + core ('X', recv ('1', 'PostL') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n')), 'list stub into map core throws');
+    ok (throws ('package ccxt\n' + core ('X', recv ('1', 'PostA') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n')), 'Raw of untyped stub throws');
+    ok (throws ('package ccxt\n' + core ('X', recv ('1', 'PostUnknown') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n')), 'unknown stub throws');
+    ok (throws ('package ccxt\n' + core ('Y', recv ('1', 'PostE') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n')), 'other receiver stub throws');
+    ok (throws ('package ccxt\n' + core ('X', recv ('1', 'PostE') + '\tresponse := r1.Raw\n\tthis.Use(response)\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n')), 'endpoint local other use throws');
+    goChan3SetReceiverStubsForTest (undefined);
+}
+
 // cores of tabled methods (or every core in audit mode) with their send edits; throws on an unprovable tabled core
 function goChan3Cores (content: string, masked: string, table: Map<string, string>, audit?: Report): GoChan3Core[] {
     const cores: GoChan3Core[] = [];
@@ -531,7 +671,11 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                 const expr = v[1];
                 let type: string | undefined = undefined;
                 const fwdVal = /^(r\d*)\.Value$/.exec (expr);
-                if (fwdVal !== null) {
+                const ep = goChan3EndpointSend (expr, receiver, fnMasked, bodyStart, open, close, q, joins);
+                if (ep !== undefined) {
+                    edits.push (...ep.edits);
+                    type = ep.type;
+                } else if (fwdVal !== null) {
                     const bind = new RegExp ('\\n\\t*' + fwdVal[1] + ' := (<-)').exec (fnMasked);
                     const fm = (bind === null) ? undefined : goChan3ReceiveMethod (fnMasked, bind.index + bind[0].length - 2, table);
                     type = (fm === undefined) ? undefined : table.get (fm);
@@ -1027,6 +1171,7 @@ export function goChan3SelfTest (): string[] {
     ok (run (pt) === pt, 'typed promiseAll idempotent');
     ok (run (pall.replace ('this.PubGetA(p)})', 'this.PubGetL(p)})')) === pall.replace ('this.PubGetA(p)})', 'this.PubGetL(p)})'), 'mixed promiseAll untouched');
     ok (run (pall.replace ('x := GetValue(v, 0)', 'x := v')) === pall.replace ('x := GetValue(v, 0)', 'x := v'), 'whole-list read untouched');
+    goChan3EndpointSendSelfTest (ok, run, throws, core);
     // WS2 Future boundary: untabled Watch forwards convert through an inline type switch
     goChan3SetTableForTest (new Map ([ [ 'WatchX', 'map[string]any' ] ]), new Set ([ 'WatchX' ]));
     const w = run ('package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n' + core ('X', '\tr := <-this.Watch(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tif a == nil {\n\t\tch <- <-this.WatchMultiple(a)\n\t\treturn nil\n\t}\n\tch <- ccxt.AsyncResult[any]{Value: r.Value}\n\treturn nil\n', 'WatchX', 'ccxt.'), goChan3Table ());
