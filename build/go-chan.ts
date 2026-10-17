@@ -35,6 +35,7 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     ...Object.fromEntries ([ [ 'ParseOpenInterestsHistory', '[]any' ], [ 'ParseLiquidations', '[]any' ], [ 'ParseADLRanks', '[]any' ], [ 'FilterByArrayADLRanks', '[]any' ], [ 'ParseOpenInterests', 'map[string]any' ], [ 'ParseADLRank', 'map[string]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])), // U16
     ...Object.fromEntries ([ [ 'ParseConversions', '[]any' ], [ 'ParseLongShortRatioHistory', '[]any' ], [ 'ParseAccounts', '[]any' ], [ 'ParseAllGreeks', 'map[string]any' ], [ 'ParseOptionChain', 'map[string]any' ], [ 'ParseAccount', 'map[string]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])), // U17
     'this.ParsePredictionOrders': '[]any', 'this.FilterByOutcomeSinceLimit': '[]any', // U03
+    ...Object.fromEntries ([ 'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories' ].flatMap ((n) => [ [ 'this.' + n, '[]any' ], [ 'this.DerivedExchange.' + n, '[]any' ] ])), // U13
 };
 // the Go element type of a table value (`T?` marks cores that may also send a bare nil)
 export function goChanType (value: string | undefined): string | undefined {
