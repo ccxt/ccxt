@@ -3864,7 +3864,8 @@ function goProvenListMethods (): string[] {
         'ParseOpenInterestsHistory', 'ParseLiquidations', 'ParseADLRanks', 'FilterByArrayADLRanks', 'FilterByArrayPositions', // U16
         'ParseConversions', 'ParseLongShortRatioHistory', 'ParseAccounts', // U17
         'ParsePredictionOrders', 'FilterByOutcomeSinceLimit', // U03
-        'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories' ]; // U13
+        'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories', // U13
+        'ParsePredictionTrades' ]; // U04
 }
 
 // dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays

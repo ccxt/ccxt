@@ -8172,6 +8172,7 @@ const CCXT_GO_PRODUCER_DECLARATIONS = {
     'this.ParseCancelOrders': 'list',
     'this.ParseBorrowRateHistory': 'list', // U15
     'this.ParsePredictionOrders': 'list', 'this.FilterByOutcomeSinceLimit': 'list', // U03
+    'this.ParsePredictionTrades': 'list', // U04
     'this.ParseFundingRate': 'map',
     'this.ParseMarketLeverageTiers': 'list',
     'this.ParseOHLCVs': 'list',
