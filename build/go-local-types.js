@@ -166,7 +166,8 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     ...Object.fromEntries ([ 'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry',
         'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
         'SafePredictionOrder', 'SafePredictionTicker', 'SafePredictionOrderBook', 'ParsePredictionOrder', 'ParsePredictionTicker', 'ParsePredictionOpenInterest',
-        'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting' ]
+        'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting',
+        'ParseADLRank' ] // U16
         .flatMap ((name) => [ [ 'this.' + name, 'map[string]any' ], [ 'this.DerivedExchange.' + name, 'map[string]any' ] ])),
     // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
     'this.Outcome': 'map[string]any',
@@ -8233,6 +8234,7 @@ const CCXT_GO_PRODUCER_DECLARATIONS = {
     'this.SafePredictionTicker': 'map',
     'this.SafePredictionTrade': 'map',
     'this.SeparateBidsOrAsks': 'list',
+    'this.ParseOpenInterestsHistory': 'list', 'this.ParseLiquidations': 'list', 'this.ParseADLRanks': 'list', 'this.FilterByArrayADLRanks': 'list', 'this.ParseOpenInterests': 'map', // U16
 };
 
 const CCXT_GO_PRODUCER_DICT_TYPE = 'map[string]any';

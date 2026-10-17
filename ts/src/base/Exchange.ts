@@ -7965,7 +7965,7 @@ export class BaseExchange {
                 result[parsed['symbol']] = parsed;
             }
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.indexBy (this.filterByArray (result, 'symbol', symbols, false), 'symbol');
     }
 
     parseOpenInterestsHistory (response: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
@@ -8338,7 +8338,7 @@ export class BaseExchange {
          * @method
          * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
          */
-        return this.filterByArray (objects, key, values, indexed) as ADL[];
+        return this.toArray (this.filterByArray (objects, key, values, indexed)) as ADL[];
     }
 
     createOHLCVObject (symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>> {

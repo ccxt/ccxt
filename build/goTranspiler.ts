@@ -3790,7 +3790,8 @@ function goProvenParseMapMethods (): string[] {
         'ParseContractTicker', 'ParseUtaOrder', 'ParseContractOrder', 'ParseSpotOrder', 'ParseSwapOrder',
         'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
         'SafePredictionOrder', 'SafePredictionTicker', 'SafePredictionOrderBook', 'ParsePredictionOrder', 'ParsePredictionTicker', 'ParsePredictionOpenInterest',
-        'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting' ];
+        'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting',
+        'ParseADLRank' ]; // U16
 }
 
 // function-level `return` expressions of a Go body (func literal bodies skipped); undefined when unscannable
@@ -3801,8 +3802,9 @@ function goFunctionLevelReturnExprs (body: string): string[] | undefined {
     for (let i = 0; i < body.length; i++) {
         inLiteral[i] = literalOpen > 0;
         const c = body[i];
-        if ((c === '"') || (c === '`') || (c === "'") || ((c === '/') && (body[i + 1] === '/'))) {
-            const end = (c === '/') ? goSkipCommentText (body, i) - 1 : goSkipLiteralText (body, i);
+        // block comments too: a doc URL (`https://`) would otherwise open a line comment mid-docblock
+        if ((c === '"') || (c === '`') || (c === "'") || ((c === '/') && ((body[i + 1] === '/') || (body[i + 1] === '*')))) {
+            const end = ((c === '/') && (body[i + 1] === '/')) ? goSkipCommentText (body, i) - 1 : (c === '/') ? goSkipCommentText (body, i) : goSkipLiteralText (body, i);
             for (let k = i + 1; k <= end; k++) {
                 inLiteral[k] = literalOpen > 0;
             }
@@ -3852,14 +3854,16 @@ export function retypeGoProvenParseMethods (content: string): string {
 function goProvenListMethods (): string[] {
     return [ 'ParseOrders', 'ParseTrades', 'ParseTradesHelper', 'ParseTransactions', 'ParseOHLCVs', 'ParseLedger', 'ParsePositions', 'ParseMarkets',
         'ParseTransfers', 'FilterBySinceLimit', 'FilterBySymbolSinceLimit', 'FilterBySymbolsSinceLimit', 'FilterByArrayPositions',
-        'FilterByValueSinceLimit', 'FilterByCurrencySinceLimit', 'FilterByLimit', 'ParseCancelOrders' ];
+        'FilterByValueSinceLimit', 'FilterByCurrencySinceLimit', 'FilterByLimit', 'ParseCancelOrders',
+        'ParseOpenInterestsHistory', 'ParseLiquidations', 'ParseADLRanks', 'FilterByArrayADLRanks', 'FilterByArrayPositions' ]; // U16
 }
 
 // dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays
 // `any` (ws venues hand it this.Balance, a *sync.Map); it returns its argument, so `SafeBalance(<map literal local>)` is proven
 function goProvenMapCollectionMethods (): string[] {
     return [ 'ParseBalance', 'ParseTickers', 'ParseCurrencies', 'FilterByArrayTickers', 'ParseFundingRate', 'ParseFundingRates',
-        'ParseDepositAddress', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositWithdrawFees' ];
+        'ParseDepositAddress', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositWithdrawFees',
+        'ParseOpenInterests' ]; // U16
 }
 
 // one family: `names` retype to `type`; returns proven by a `type` literal, a call of `calls`, a typed/proven local,

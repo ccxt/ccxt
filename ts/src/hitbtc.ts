@@ -3322,7 +3322,7 @@ export default class hitbtc extends Exchange {
             const openInterest = this.safeDict (response, marketId, {});
             results.push (this.parseOpenInterest (openInterest, marketInner));
         }
-        return this.filterByArray (results, 'symbol', symbolsNormalized) as OpenInterests;
+        return this.indexBy (this.filterByArray (results, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
     /**

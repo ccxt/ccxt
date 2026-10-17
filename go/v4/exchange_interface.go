@@ -227,7 +227,7 @@ type ICoreExchange interface {
 	FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	ParseOpenInterest(interest any, optionalArgs ...any) map[string]any
-	FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	ParseLiquidation(liquidation any, optionalArgs ...any) any
 	FetchGreeksAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	ParseGreeks(greeks any, optionalArgs ...any) map[string]any
@@ -270,14 +270,14 @@ type ICoreExchange interface {
 	ArrayConcat(aa, bb any) []any
 	FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchBorrowInterestAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
-	FetchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
+	FetchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchLedgerEntryAsync(id string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any]
-	FetchOpenInterestHistoryAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
+	FetchOpenInterestHistoryAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	FetchOpenInterestsAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchOpenInterestsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchOrderBooksAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any]
 	FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any]
@@ -467,11 +467,11 @@ type IDerivedExchange interface {
 	WatchLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[any]
 	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[any]
 	ParseWsTrade(trade any, optionalArgs ...any) any
-	FetchPositionsADLRankAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	ParseADLRank(info any, optionalArgs ...any) any
+	FetchPositionsADLRankAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	ParseADLRank(info any, optionalArgs ...any) map[string]any
 	FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	FetchOpenInterestsAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchOpenInterestsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 
 type Describer interface {
