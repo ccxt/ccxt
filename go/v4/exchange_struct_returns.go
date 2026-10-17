@@ -60,6 +60,34 @@ func OrderToMap(o Order) map[string]any {
 	return StructToMap(o)
 }
 
+// DepositAddressFromMap builds a DepositAddress from a unified deposit-address map.
+func DepositAddressFromMap(data any) DepositAddress {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return DepositAddress{}
+	}
+	return NewDepositAddress(m)
+}
+
+// DepositAddressToMap is the map shape every untyped caller expects.
+func DepositAddressToMap(d DepositAddress) map[string]any {
+	return StructToMap(d)
+}
+
+// TransferEntryFromMap builds a TransferEntry from a unified transfer map.
+func TransferEntryFromMap(data any) TransferEntry {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return TransferEntry{}
+	}
+	return NewTransferEntry(m)
+}
+
+// TransferEntryToMap is the map shape every untyped caller expects.
+func TransferEntryToMap(t TransferEntry) map[string]any {
+	return StructToMap(t)
+}
+
 func copyMap(m map[string]any) map[string]any {
 	out := make(map[string]any, len(m))
 	for k, v := range m {

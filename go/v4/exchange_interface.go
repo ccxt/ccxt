@@ -403,7 +403,7 @@ type IDerivedExchange interface {
 	ParseMarket(market any) any
 	ParseCurrency(rawCurrency any) map[string]any
 	ParseTransaction(transaction any, optionalArgs ...any) map[string]any
-	ParseTransfer(transfer any, optionalArgs ...any) map[string]any
+	ParseTransfer(transfer any, optionalArgs ...any) TransferEntry
 	ParseAccount(account any) any
 	ParseLedgerEntry(item any, optionalArgs ...any) map[string]any
 	ParseLastPrice(item any, optionalArgs ...any) any
@@ -442,7 +442,7 @@ type IDerivedExchange interface {
 	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	ParseDepositAddresses(addresses any, optionalArgs ...any) any
 	FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any
+	ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress
 	ParseBorrowRate(info any, optionalArgs ...any) map[string]any
 	ParseFundingRateHistory(info any, optionalArgs ...any) any
 	ParseFundingRate(contract any, optionalArgs ...any) map[string]any

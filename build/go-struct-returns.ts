@@ -19,6 +19,8 @@ export const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: st
     'Trade': { 'names': [ 'ParseTrade', 'SafeTrade' ] },
     'OHLCV': { 'names': [ 'ParseOHLCV' ], 'from': 'OHLCVFromList', 'to': 'OHLCVToList' },
     'Order': { 'names': [ 'ParseOrder', 'SafeOrder' ] },
+    'DepositAddress': { 'names': [ 'ParseDepositAddress' ] }, // gochan32-U30
+    'TransferEntry': { 'names': [ 'ParseTransfer' ] }, // gochan32-U30
 };
 
 // what a call of a struct-return name reads as after step 3 boxes it (to-helper result; any for OHLCV)
@@ -246,6 +248,45 @@ export function goStructReturnsSelfTest (): string[] {
         '}',
         '',
     ].join ('\n');
+    const src2 = [
+        'package ccxt',
+        '',
+        'func (this *Y) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {',
+        '\treturn map[string]any{',
+        '\t\t"info": depositAddress,',
+        '\t}',
+        '}',
+        'func (this *Y) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {',
+        '\treturn this.Extend(transfer, map[string]any{})',
+        '}',
+        'func (this *Y) Use() any {',
+        '\treturn []any{this.ParseDepositAddress(nil), this.ParseTransfer(nil)}',
+        '}',
+        '',
+    ].join ('\n');
+    const want2 = [
+        'package ccxt',
+        '',
+        'func (this *Y) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {',
+        '\treturn DepositAddressFromMap(map[string]any{',
+        '\t\t"info": depositAddress,',
+        '\t})',
+        '}',
+        'func (this *Y) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {',
+        '\treturn TransferEntryFromMap(this.Extend(transfer, map[string]any{}))',
+        '}',
+        'func (this *Y) Use() any {',
+        '\treturn []any{DepositAddressToMap(this.ParseDepositAddress(nil)), TransferEntryToMap(this.ParseTransfer(nil))}',
+        '}',
+        '',
+    ].join ('\n');
+    const got2 = goStructReturnsPass (src2);
+    if (got2 !== want2) {
+        problems.push ('GOSTRUCT U30 self-test mismatch:\n' + got2);
+    }
+    if (goStructReturnsPass (got2) !== got2) {
+        problems.push ('GOSTRUCT U30 not idempotent');
+    }
     const got = goStructReturnsPass (src);
     if (got !== want) {
         problems.push ('GOSTRUCT self-test mismatch:\n' + got);
