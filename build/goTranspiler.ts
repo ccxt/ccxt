@@ -3859,7 +3859,27 @@ function goProvenListMethods (): string[] {
 // `any` (ws venues hand it this.Balance, a *sync.Map); it returns its argument, so `SafeBalance(<map literal local>)` is proven
 function goProvenMapCollectionMethods (): string[] {
     return [ 'ParseBalance', 'ParseTickers', 'ParseCurrencies', 'FilterByArrayTickers', 'ParseFundingRate', 'ParseFundingRates',
-        'ParseDepositAddress', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositWithdrawFees' ];
+        'ParseDepositAddress', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositWithdrawFees',
+        // venue balance parsers (every override ends in SafeBalance(<balance local>) or returns another of these)
+        'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance',
+        'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance' ];
+}
+
+// `X` is a balance local: declared once as a map literal, and every later write keeps the same map
+// (`X = this.MergeBalanceAccount(X, ..)` / `X = this.SafeBalance(X)` both return their first argument)
+export function goBalanceLocalIsMap (body: string, name: string): boolean {
+    if ((body.match (new RegExp ('\\bvar ' + name + '\\b', 'g')) || []).length !== 1) {
+        return false;
+    }
+    if (!new RegExp ('\\n\\t+var ' + name + ' (?:any|map\\[string\\]any) = map\\[string\\]any\\{').test (body)) {
+        return false;
+    }
+    if (new RegExp ('(?<![\\w.])' + name + '\\s*(?:,[^\\n=]*)?:=|\\bfunc\\s*\\([^)]*\\b' + name + ' ').test (body)) {
+        return false;
+    }
+    const writes = body.match (new RegExp ('(^|[^\\w.])' + name + '\\s*[-+*/:]?=[^=][^\\n]*', 'gm')) || [];
+    const keeps = new RegExp ('^[^\\w.]?' + name + ' = this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)$)');
+    return writes.every ((w) => keeps.test (w));
 }
 
 // one family: `names` retype to `type`; returns proven by a `type` literal, a call of `calls`, a typed/proven local,
@@ -3891,9 +3911,7 @@ function retypeGoProvenFamily (content: string, names: string[], type: string, p
                 continue;
             }
             const balance = /^this\.SafeBalance\((\w+)\)$/.exec (expr);
-            if ((type === 'map[string]any') && (balance !== null) && ((newBody.match (new RegExp ('\\bvar ' + balance[1] + '\\b', 'g')) || []).length === 1)
-                && new RegExp ('\\n\\t+var ' + balance[1] + ' map\\[string\\]any = map\\[string\\]any\\{').test (newBody)
-                && !new RegExp ('(^|[^\\w.])' + balance[1] + '\\s*[-+*/:]?=[^=]', 'm').test (newBody)) {
+            if ((type === 'map[string]any') && (balance !== null) && goBalanceLocalIsMap (newBody, balance[1])) {
                 newBody = newBody.replace (new RegExp ('\\n(\\t+)return this\\.SafeBalance\\(' + balance[1] + '\\)\\n', 'g'), '\n$1return this.SafeBalance(' + balance[1] + ').(map[string]any)\n');
                 continue;
             }
@@ -3935,6 +3953,9 @@ function goProvenParseSelfTest (): string[] {
     ok (throws (fn ('ParseOrder', '\treturn this.SafeString(order, "x")\n')), 'other call rejected');
     ok (throws (fn ('ParseTicker', '\t_ = 1\n')), 'no return no panic rejected');
     ok (throws (fn ('ParseOrder', '\tif a {\n\t\tvar r any = this.SafeOrder(order)\n\t\t_ = r\n\t}\n\tvar r any = this.SafeString(order, "x")\n\treturn r\n')), 'shadowed local rejected');
+    ok (retypeGoProvenParseMethods (fn ('ParseBalanceCustom', '\tvar result any = map[string]any{}\n\tresult = this.MergeBalanceAccount(result, c, a)\n\treturn this.SafeBalance(result)\n')).includes ('\treturn this.SafeBalance(result).(map[string]any)\n'), 'merged balance local');
+    ok (throws (fn ('ParseBalanceCustom', '\tvar result any = map[string]any{}\n\tresult = this.MergeBalanceAccount(other, c, a)\n\treturn this.SafeBalance(result)\n')), 'foreign merge rejected');
+    ok (throws (fn ('ParseBalanceCustom', '\tvar result any = map[string]any{}\n\tresult = order\n\treturn this.SafeBalance(result)\n')), 'rewritten balance local rejected');
     ok (retypeGoProvenParseMethods (fn ('ParseTrade', '\treturn nil\n')).includes (') any {'), 'other method untouched');
     return problems;
 }

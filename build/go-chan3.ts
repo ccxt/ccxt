@@ -201,6 +201,57 @@ function goChan3WsSend (expr: string, fnMasked: string, want: string | undefined
     return q + 'OrderBookTyped(' + expr + ')'; // untyped nil stays nil, a book keeps its pointer
 }
 
+// a balance local: one `var X any|map[string]any = map[string]any{` declaration, every later write keeps that map
+// (`X = this.MergeBalanceAccount(X, ..)` / `X = this.SafeBalance(X)` return their first argument)
+export function goChan3BalanceLocal (fnMasked: string, name: string): boolean {
+    if ((fnMasked.match (new RegExp ('(?<![\\w.])var ' + name + '\\b', 'g')) || []).length !== 1) {
+        return false;
+    }
+    if (!new RegExp ('\\n\\t+var ' + name + ' (?:any|map\\[string\\]any) = map\\[string\\]any\\{').test (fnMasked)) {
+        return false;
+    }
+    if (new RegExp ('(?<![\\w.])' + name + '\\s*(?:,[^\\n=]*)?:=|\\bfunc\\s*\\([^)]*\\b' + name + ' ').test (fnMasked)) {
+        return false;
+    }
+    const writes = fnMasked.match (new RegExp ('(?<![\\w.])' + name + '\\s*[-+*/:]?=(?!=)[^\\n]*', 'g')) || [];
+    const keeps = new RegExp ('^' + name + ' = this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)$)');
+    return writes.every ((w) => keeps.test (w));
+}
+
+// a map[string]any send of a balance: `this.SafeBalance(X)` / `X` of a balance local (SafeBalance returns its
+// argument, so the value is that map; SafeBalance stays `any` for the ws callers' *sync.Map), or `X` declared once
+// `var X any = <map-returning call>` and never rewritten (the declaration is retyped)
+function goChan3BalanceSend (expr: string, fnMasked: string, ownCall: (name: string) => string | undefined): { value: string, decl?: { start: number, end: number } } | undefined {
+    const safe = /^this\.SafeBalance\((\w+)\)$/.exec (expr);
+    const name = (safe !== null) ? safe[1] : (/^[a-z]\w*$/.test (expr) ? expr : undefined);
+    if (name === undefined) {
+        return undefined;
+    }
+    if (goChan3BalanceLocal (fnMasked, name)) {
+        const typed = new RegExp ('\\n\\t+var ' + name + ' map\\[string\\]any = ').test (fnMasked);
+        // the SafeBalance call stays (it normalises the map in place); only its `any` result is narrowed
+        return { 'value': ((safe !== null) || !typed) ? expr + '.(map[string]any)' : expr };
+    }
+    if (safe !== null) {
+        return undefined;
+    }
+    const decl = new RegExp ('\\n\\t+var ' + name + ' (any) = this\\.(\\w+)\\(').exec (fnMasked);
+    if ((decl === null) || ((fnMasked.match (new RegExp ('(?<![\\w.])var ' + name + '\\b', 'g')) || []).length !== 1)) {
+        return undefined;
+    }
+    const callStart = decl.index + decl[0].length - decl[2].length - 6;
+    const callEnd = goChanExprEnd (fnMasked, callStart);
+    if ((goChanClose (fnMasked, decl.index + decl[0].length - 1) !== callEnd) || (ownCall (decl[2]) !== 'map[string]any')) {
+        return undefined;
+    }
+    const writes = fnMasked.match (new RegExp ('(?<![\\w.])' + name + '\\s*(?:,[^\\n=]*)?[-+*/:]?=(?!=)', 'g')) || [];
+    if ((writes.length !== 0) || new RegExp ('\\bfunc\\s*\\([^)]*\\b' + name + ' ').test (fnMasked)) {
+        return undefined;
+    }
+    const at = decl.index + decl[0].indexOf (' any = ') + 1;
+    return { 'value': name, 'decl': { 'start': at, 'end': at + 3 } };
+}
+
 // method -> T merged from chan3-*.json; a method tabled twice differently or also in a gochan table throws
 export function goChan3Table (): Map<string, string> {
     if (GO_CHAN3_TABLE === undefined) {
@@ -561,6 +612,19 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                             edits.push (...join.edits);
                         }
                         proof = (join.type !== undefined) ? { 'type': join.type } : { 'reason': join.reason || proof.reason };
+                    }
+                    const bal = ((proof.reason !== undefined) && (want === 'map[string]any')) ? goChan3BalanceSend (expr, fnMasked, (name) => goChanMethodReturn (masked, receiver, name)) : undefined;
+                    if (bal !== undefined) {
+                        if (bal.decl !== undefined) {
+                            const d = bal.decl;
+                            if (!edits.some ((e) => (e.start === bodyStart + d.start))) {
+                                edits.push ({ 'start': bodyStart + d.start, 'end': bodyStart + d.end, 'text': 'map[string]any' });
+                            }
+                        }
+                        if (bal.value !== expr) {
+                            edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': 'Value: ' + bal.value });
+                        }
+                        proof = { 'type': 'map[string]any' };
                     }
                     const ws = (proof.reason !== undefined) ? goChan3WsSend (expr, fnMasked, want, q) : undefined;
                     if (ws !== undefined) {
@@ -958,6 +1022,11 @@ export function goChan3SelfTest (): string[] {
     ok (out.includes ('ch <- AsyncResult[map[string]any]{Value: map[string]any{\n\t\t"k": 1,\n\t}}'), 'multi-line literal send');
     ok (out.includes ('ch <- AsyncResult[map[string]any]{Value: response} // c'), 'local send');
     ok (run (out) === out, 'idempotent');
+    // balance sends: SafeBalance of a merged map-literal local narrows; a rewritten local stays unproven
+    const balTable = new Map ([ [ 'SetX', 'map[string]any' ] ]);
+    const bal = run ('package ccxt\n\n' + core ('X', '\tvar result any = map[string]any{\n\t\t"info": a,\n\t}\n\tresult = this.MergeBalanceAccount(result, a, a)\n\tch <- AsyncResult[any]{Value: this.SafeBalance(result)}\n\treturn nil\n'), balTable);
+    ok (bal.includes ('ch <- AsyncResult[map[string]any]{Value: this.SafeBalance(result).(map[string]any)}'), 'balance send: ' + bal);
+    ok (throws ('package ccxt\n\n' + core ('X', '\tvar result any = map[string]any{}\n\tresult = a\n\tch <- AsyncResult[any]{Value: this.SafeBalance(result)}\n\treturn nil\n')), 'rewritten balance local rejected');
     // scalar core, pro qualification, typed call
     const pro = run ('package ccxtpro\n\n' + core ('X', '\tch <- ccxt.AsyncResult[any]{Value: this.ParseToInt(a)}\n\treturn nil\n', 'GetN', 'ccxt.'));
     ok (pro.includes ('<-chan ccxt.AsyncResult[int64] {') && pro.includes ('make(chan ccxt.AsyncResult[int64], 1)') && pro.includes ('ch <- ccxt.AsyncResult[int64]{Value: this.ParseToInt(a)}') && pro.includes ('(ch chan ccxt.AsyncResult[int64]'), 'pro qualification: ' + pro);

@@ -222,7 +222,7 @@ type ICoreExchange interface {
 	FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64]
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[any]
@@ -428,7 +428,7 @@ type IDerivedExchange interface {
 	FetchLeveragesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	SafeMarket(optionalArgs ...any) map[string]any
 	Sign(path string, optionalArgs ...any) any
-	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[any]
 	FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[any]
