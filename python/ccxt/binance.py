@@ -1440,7 +1440,6 @@ class binance(Exchange, ImplicitAPI):
                     'funding': 'FUNDING',
                     'margin': 'MARGIN',
                     'cross': 'MARGIN',
-                    'future': 'UMFUTURE',  # backwards compatibility
                     'linear': 'UMFUTURE',
                     'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
@@ -2915,10 +2914,11 @@ class binance(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' market() requires a symbol argument')
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
-        # defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
+        # defaultType 'swap' resolves spot-style symbols to the perpetual of defaultSubType
         defaultType = self.safe_string(self.options, 'defaultType')
         defaultSubType = self.safe_string(self.options, 'defaultSubType')
-        isLegacy = defaultType == 'future'
+        isLegacy = defaultType == 'swap'
+        isDerivative = isLegacy or (defaultType == 'future')
         isLegacyInverse = isLegacy and (defaultSubType == 'inverse')
         isLegacyLinear = isLegacy and not isLegacyInverse
         if isinstance(symbol, str):
@@ -2936,10 +2936,8 @@ class binance(Exchange, ImplicitAPI):
             elif (self.markets_by_id is not None) and (symbol in self.markets_by_id):
                 markets = self.markets_by_id[symbol]
                 # begin diff
-                if isLegacyLinear:
-                    defaultType = 'linear'
-                elif isLegacyInverse:
-                    defaultType = 'inverse'
+                if isDerivative:
+                    defaultType = 'inverse' if (defaultSubType == 'inverse') else 'linear'
                 elif defaultType is None:
                     defaultType = defaultSubType
                 # end diff
@@ -2949,7 +2947,7 @@ class binance(Exchange, ImplicitAPI):
                         return market
                 return markets[0]
             elif (symbol.find('/') > -1) and (symbol.find(':') < 0):
-                if (defaultType is not None) and (defaultType != 'spot'):
+                if isLegacy:
                     # support legacy symbols
                     base, quote = symbol.split('/')
                     settle = quote
@@ -9675,8 +9673,8 @@ class binance(Exchange, ImplicitAPI):
         if internal is not True:
             defaultType = self.safe_string_2(self.options, 'fetchTransfers', 'defaultType', 'spot')
             fromAccount = self.safe_string(paramsOmitted, 'fromAccount', defaultType)
-            defaultTo = 'future'
-            if fromAccount == 'future':
+            defaultTo = 'swap'
+            if (fromAccount == 'swap') or (fromAccount == 'linear'):
                 defaultTo = 'spot'
             toAccount = self.safe_string(paramsOmitted, 'toAccount', defaultTo)
             type = self.safe_string(paramsOmitted, 'type')
@@ -10488,7 +10486,7 @@ class binance(Exchange, ImplicitAPI):
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
-        defaultType = self.safe_string_2(self.options, 'fetchFundingRateHistory', 'defaultType', 'future')
+        defaultType = self.safe_string_2(self.options, 'fetchFundingRateHistory', 'defaultType', 'swap')
         type = self.safe_string(paramsPaginate, 'type', defaultType)
         market = None
         if symbol is not None:
@@ -10553,7 +10551,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
-        defaultType = self.safe_string_2(self.options, 'fetchFundingRates', 'defaultType', 'future')
+        defaultType = self.safe_string_2(self.options, 'fetchFundingRates', 'defaultType', 'swap')
         type = self.safe_string(params, 'type', defaultType)
         subType, paramsSubType = self.handle_sub_type_and_params('fetchFundingRates', None, params, 'linear')
         query = self.omit(paramsSubType, 'type')
@@ -11124,7 +11122,7 @@ class binance(Exchange, ImplicitAPI):
         # it contains useful stuff like the maintenance margin and initial margin for positions
         leverageBrackets = self.safe_dict(self.options, 'leverageBrackets')
         if (leverageBrackets is None) or (reload):
-            defaultType = self.safe_string(self.options, 'defaultType', 'future')
+            defaultType = self.safe_string(self.options, 'defaultType', 'swap')
             type = self.safe_string(params, 'type', defaultType)
             query = self.omit(params, 'type')
             subType = None
@@ -11495,7 +11493,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_leverage_brackets(False, params)
-        defaultType = self.safe_string(self.options, 'defaultType', 'future')
+        defaultType = self.safe_string(self.options, 'defaultType', 'swap')
         type = self.safe_string(params, 'type', defaultType)
         paramsOmitted = self.omit(params, 'type')
         subType, paramsSubType = self.handle_sub_type_and_params('fetchAccountPositions', None, paramsOmitted, 'linear')
@@ -11613,7 +11611,7 @@ class binance(Exchange, ImplicitAPI):
             self.load_markets()
         self.load_leverage_brackets(False, params)
         request = {}
-        defaultType = 'future'
+        defaultType = 'swap'
         defaultType = self.safe_string(self.options, 'defaultType', defaultType)
         type = self.safe_string(params, 'type', defaultType)
         subType = None
@@ -11797,7 +11795,7 @@ class binance(Exchange, ImplicitAPI):
             requestUntil['startTime'] = since
         if limit is not None:
             requestUntil['limit'] = limit
-        defaultType = self.safe_string_2(self.options, 'fetchFundingHistory', 'defaultType', 'future')
+        defaultType = self.safe_string_2(self.options, 'fetchFundingHistory', 'defaultType', 'swap')
         type = self.safe_string(paramsUntil, 'type', defaultType)
         paramsOmitted = self.omit(paramsUntil, 'type')
         response = None
@@ -12673,9 +12671,9 @@ class binance(Exchange, ImplicitAPI):
 
     def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: object, params: dict = {}) -> MarginModification:
         # used to modify isolated positions
-        defaultType = self.safe_string(self.options, 'defaultType', 'future')
+        defaultType = self.safe_string(self.options, 'defaultType', 'swap')
         if defaultType == 'spot':
-            defaultType = 'future'
+            defaultType = 'swap'
         type = self.safe_string(params, 'type', defaultType)
         if (type == 'margin') or (type == 'spot'):
             raise NotSupported(self.id + ' add / reduce margin only supported with linear or inverse swap/future markets')

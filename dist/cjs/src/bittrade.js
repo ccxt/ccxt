@@ -337,6 +337,7 @@ class bittrade extends bittrade$1["default"] {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': errors.OnMaintenance,
                     'maintain': errors.OnMaintenance,
+                    'trade not open now': errors.BadSymbol, // {"status":"error","err-code":"bad-request","err-msg":"symbol:maticjpy trade not open now "}
                 },
                 'exact': {
                     // err-code

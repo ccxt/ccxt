@@ -2603,6 +2603,46 @@ class testMainClass {
             // inverse swap
             $client_order_id_inverse = $swap_inverse_order_request['newClientOrderId'];
             assert(str_starts_with($client_order_id_inverse, $inverse_swap_id) === true, 'binance - swap clientOrderIdInverse: ' . $client_order_id_inverse . ' does not start with swapId' . $inverse_swap_id);
+            // defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
+            $exchange->extend_exchange_options(array(
+                'defaultType' => 'swap',
+            ));
+            $swap_no_sub_type_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $swap_no_sub_type_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
+            $swap_no_sub_type_id = $swap_no_sub_type_request['newClientOrderId'];
+            assert(str_starts_with($swap_no_sub_type_id, $swap_id) === true, 'binance - defaultType swap without subType clientOrderId: ' . $swap_no_sub_type_id . ' does not start with swapId' . $swap_id);
+            $exchange->extend_exchange_options(array(
+                'defaultSubType' => 'linear',
+            ));
+            $swap_linear_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $swap_linear_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
+            $swap_linear_id = $swap_linear_request['newClientOrderId'];
+            assert(str_starts_with($swap_linear_id, $swap_id) === true, 'binance - defaultType swap linear clientOrderId: ' . $swap_linear_id . ' does not start with swapId' . $swap_id);
+            $exchange->extend_exchange_options(array(
+                'defaultSubType' => 'inverse',
+            ));
+            $swap_inverse_request = array();
+            try {
+                \React\Async\await($exchange->create_order('BTC/USD', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $swap_inverse_request = $this->urlencoded_to_dict($exchange->last_request_body);
+            }
+            $swap_inverse_id = $swap_inverse_request['newClientOrderId'];
+            assert(str_starts_with($swap_inverse_id, $inverse_swap_id) === true, 'binance - defaultType swap inverse clientOrderId: ' . $swap_inverse_id . ' does not start with inverseSwapId' . $inverse_swap_id);
+            $exchange->extend_exchange_options(array(
+                'defaultType' => 'spot',
+            ));
+            $exchange->extend_exchange_options(array(
+                'defaultSubType' => 'linear',
+            ));
             // linear swap conditional order
             $swap_algo_order_request = array();
             try {

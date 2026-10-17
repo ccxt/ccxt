@@ -7761,8 +7761,8 @@ export default class okx extends Exchange {
         }
         const market = this.market(symbol);
         const type = (market['spot'] === true) ? 'MARGIN' : this.convertToInstrumentType(market['type']);
-        const uly = this.safeString(market['info'], 'uly');
-        if ((uly === undefined) || (uly === '')) {
+        const instFamily = this.safeString(market['info'], 'instFamily');
+        if ((instFamily === undefined) || (instFamily === '')) {
             if (type !== 'MARGIN') {
                 throw new BadRequest(this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
             }
@@ -7773,7 +7773,7 @@ export default class okx extends Exchange {
         const request = {
             'instType': type,
             'tdMode': marginMode,
-            'uly': uly,
+            'instFamily': instFamily,
         };
         if (type === 'MARGIN') {
             request['instId'] = market['id'];

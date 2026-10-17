@@ -2096,6 +2096,7 @@ fetches the bid and ask price and volume for multiple markets
 ##### Supported exchanges
 * [aster](/exchanges/aster.md#fetchbidsasks)
 * [binance](/exchanges/binance.md#fetchbidsasks)
+* [bingx](/exchanges/bingx.md#fetchbidsasks)
 * [bitrue](/exchanges/bitrue.md#fetchbidsasks)
 * [bybit](/exchanges/bybit.md#fetchbidsasks)
 * [coinbase](/exchanges/coinbase.md#fetchbidsasks)
@@ -6589,6 +6590,7 @@ fetches a transfer
 * [bitvavo](/exchanges/bitvavo.md#fetchtransfer)
 * [mexc](/exchanges/mexc.md#fetchtransfer)
 * [okx](/exchanges/okx.md#fetchtransfer)
+* [poloniex](/exchanges/poloniex.md#fetchtransfer)
 
 ---
 
@@ -6635,6 +6637,7 @@ fetch a history of internal transfers made on an account
 * [okx](/exchanges/okx.md#fetchtransfers)
 * [paradex](/exchanges/paradex.md#fetchtransfers)
 * [phemex](/exchanges/phemex.md#fetchtransfers)
+* [poloniex](/exchanges/poloniex.md#fetchtransfers)
 * [weex](/exchanges/weex.md#fetchtransfers)
 * [woo](/exchanges/woo.md#fetchtransfers)
 

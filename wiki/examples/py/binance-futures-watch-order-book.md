@@ -9,7 +9,7 @@ run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).r
 async def main():
     exchange = ccxt.pro.binance({
         'options': {
-            'defaultType': 'future',
+            'defaultType': 'swap',
         },
     })
     symbol = 'BTC/USDT'

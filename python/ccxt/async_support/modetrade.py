@@ -527,6 +527,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         #   {
         #     "symbol": "PERP_BTC_USDC",
+        #     "status": "ACTIVE",
         #     "quote_min": 123,
         #     "quote_max": 100000,
         #     "quote_tick": 0.1,
@@ -552,6 +553,10 @@ class modetrade(Exchange, ImplicitAPI):
         #   }
         #
         marketId = self.safe_string(market, 'symbol', '')
+        status = self.safe_string(market, 'status')
+        active = None
+        if status is not None:
+            active = (status == 'ACTIVE')
         parts = marketId.split('_')
         marketType = 'swap'
         baseId = self.safe_string(parts, 1)
@@ -578,7 +583,7 @@ class modetrade(Exchange, ImplicitAPI):
             'swap': True,
             'future': False,
             'option': False,
-            'active': None,
+            'active': active,
             'contract': True,
             'linear': True,
             'inverse': False,
@@ -631,6 +636,7 @@ class modetrade(Exchange, ImplicitAPI):
         #       "rows": [
         #         {
         #           "symbol": "PERP_BTC_USDC",
+        #           "status": "ACTIVE",
         #           "quote_min": 123,
         #           "quote_max": 100000,
         #           "quote_tick": 0.1,

@@ -5135,6 +5135,14 @@ class BaseExchange {
         }
         return result;
     }
+    parseOrderBookBidsAsksL3(bidasks, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+        const bidasksValue = this.toArray(bidasks);
+        const result = [];
+        for (let i = 0; i < bidasksValue.length; i++) {
+            result.push(this.parseOrderBookBidAskL3(bidasksValue[i], priceKey, amountKey, countOrIdKey));
+        }
+        return result;
+    }
     filterByKey(objects, key, value = undefined) {
         if (value === undefined) {
             return objects;
@@ -5313,6 +5321,18 @@ class BaseExchange {
     parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countOrIdKey = 2) {
         const bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
         const asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        return {
+            'symbol': symbol,
+            'bids': this.sortBy(bids, 0, true),
+            'asks': this.sortBy(asks, 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'nonce': undefined,
+        };
+    }
+    parseOrderBookL3(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+        const bids = this.parseOrderBookBidsAsksL3(this.safeValue(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsksL3(this.safeValue(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy(bids, 0, true),
@@ -5845,6 +5865,16 @@ class BaseExchange {
         const price = this.safeFloat(bidask, priceKey);
         const amount = this.safeFloat(bidask, amountKey);
         const countOrId = this.safeInteger(bidask, countOrIdKey);
+        const bidAsk = [price, amount];
+        if (countOrId !== undefined) {
+            bidAsk.push(countOrId);
+        }
+        return bidAsk;
+    }
+    parseOrderBookBidAskL3(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+        const price = this.safeFloat(bidask, priceKey);
+        const amount = this.safeFloat(bidask, amountKey);
+        const countOrId = this.safeString(bidask, countOrIdKey);
         const bidAsk = [price, amount];
         if (countOrId !== undefined) {
             bidAsk.push(countOrId);

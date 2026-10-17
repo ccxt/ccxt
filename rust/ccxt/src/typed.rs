@@ -868,11 +868,11 @@ pub trait TypedExchangeExt: TypedExchange {
         }
     }
     /// Typed `fetchL3OrderBook`.
-    fn fetch_l3_order_book<'a>(&'a mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<OrderBook>> + Send + 'a {
+    fn fetch_l3_order_book<'a>(&'a mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<OrderBookL3>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_l3_order_book", __args).await?;
-            Ok(OrderBook::from_value(v))
+            Ok(OrderBookL3::from_value(v))
         }
     }
     /// Typed `fetchTrades`.

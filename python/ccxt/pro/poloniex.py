@@ -1118,12 +1118,13 @@ class poloniex(ccxt.async_support.poloniex):
             asks = self.safe_list(item, 'asks')
             bids = self.safe_list(item, 'bids')
             if snapshot or update:
-                if snapshot and not (symbol in self.orderbooks):
-                    self.orderbooks[symbol] = self.order_book({}, limit)
-                if not (symbol in self.orderbooks):
-                    # a delta can arrive before the snapshot, it cannot be applied without a book
+                orderbook = self.safe_value(self.orderbooks, symbol)
+                if snapshot and (orderbook is None):
+                    orderbook = self.order_book({}, limit)
+                    self.orderbooks[symbol] = orderbook
+                if orderbook is None:
+                    # a delta before the snapshot (or after the book was dropped) cannot be applied
                     continue
-                orderbook = self.orderbooks[symbol]
                 if snapshot:
                     # reset the existing orderbook in place instead of
                     # replacing it: a consumer awakened earlier keeps a

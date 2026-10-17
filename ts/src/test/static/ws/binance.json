@@ -5153,7 +5153,7 @@
                 ],
                 "url": "wss://fstream.binance.com/private/ws?listenKey=offline-listen-key",
                 "options": {
-                    "future": {
+                    "linear": {
                         "listenKey": "offline-listen-key",
                         "lastAuthenticatedTime": 9999999999999
                     },
@@ -5257,7 +5257,7 @@
                 ],
                 "url": "wss://fstream.binance.com/private/ws?listenKey=offline-listen-key",
                 "options": {
-                    "future": {
+                    "linear": {
                         "listenKey": "offline-listen-key",
                         "lastAuthenticatedTime": 9999999999999
                     },

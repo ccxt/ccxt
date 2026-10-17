@@ -854,6 +854,7 @@ public class Modetrade extends ModetradeApi
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
+        //     "status": "ACTIVE",
         //     "quote_min": 123,
         //     "quote_max": 100000,
         //     "quote_tick": 0.1,
@@ -879,6 +880,12 @@ public class Modetrade extends ModetradeApi
         //   }
         //
         String marketId = this.safeString(market, "symbol", "");
+        String status = this.safeString(market, "status");
+        Boolean active = null;
+        if (!java.util.Objects.equals(status, null))
+        {
+            active = (java.util.Objects.equals(status, "ACTIVE"));
+        }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
         String marketType = "swap";
         String baseId = this.safeString(parts, 1);
@@ -907,7 +914,7 @@ public class Modetrade extends ModetradeApi
         mapLiteral1.put("swap", true);
         mapLiteral1.put("future", false);
         mapLiteral1.put("option", false);
-        mapLiteral1.put("active", null);
+        mapLiteral1.put("active", active);
         mapLiteral1.put("contract", true);
         mapLiteral1.put("linear", true);
         mapLiteral1.put("inverse", false);
@@ -965,6 +972,7 @@ public class Modetrade extends ModetradeApi
             //       "rows": [
             //         {
             //           "symbol": "PERP_BTC_USDC",
+            //           "status": "ACTIVE",
             //           "quote_min": 123,
             //           "quote_max": 100000,
             //           "quote_tick": 0.1,

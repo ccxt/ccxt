@@ -7715,12 +7715,25 @@ export class RustTranspilerBuilder {
             const preamble =
                 `\n        // virtual-dispatch (static: DerivedExchange::${name}(self, ...))\n` +
                 `        { let __v = ${callExpr}; if !matches!(__v, crate::Value::Null) { return __v; } }\n`;
+            if (this.superShimmedVirtualMethods().has(name)) {
+                // overrides that call super.X() reach `X_non_virtual`, so the virtual hop cannot recurse
+                const fwd = paramInfo.map(p => p.name).join(', ');
+                const wrapper = `pub fn ${name}(${argList}) ${retType} {${preamble}        self.${name}_non_virtual(${fwd})\n    }\n\n    `;
+                out += content.slice(last, m.index) + wrapper + m[0].replace(`fn ${name}(`, `fn ${name}_non_virtual(`);
+                last = m.index + m[0].length;
+                continue;
+            }
             const matchEnd = m.index + m[0].length;
             out += content.slice(last, matchEnd) + preamble;
             last = matchEnd;
         }
         out += content.slice(last);
         return out;
+    }
+
+    /** Trait methods whose overrides call `super.X()`; their base body is emitted as `X_non_virtual`. */
+    superShimmedVirtualMethods(): Set<string> {
+        return new Set([ 'market' ]);
     }
 
     /**
@@ -7776,6 +7789,7 @@ export class RustTranspilerBuilder {
             parse_prediction_order:     ['order', 'market'],
             parse_prediction_position:  ['position', 'market'],
             create_expired_option_market: ['symbol'],
+            market:                     ['symbol'],
             sign:                       ['path', 'api', 'method', 'params', 'headers', 'body'],
             handle_errors:              ['code', 'reason', 'url', 'method', 'headers', 'body', 'response', 'request_headers', 'request_body'],
         };

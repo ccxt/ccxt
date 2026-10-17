@@ -3924,6 +3924,25 @@ func (this *BaseExchange) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...an
 	}
 	return result
 }
+func (this *BaseExchange) ParseOrderBookBidsAsksL3(bidasks any, optionalArgs ...any) any {
+	priceKey := GetArg(optionalArgs, 0, 0)
+	_ = priceKey
+	amountKey := GetArg(optionalArgs, 1, 1)
+	_ = amountKey
+	countOrIdKey := GetArg(optionalArgs, 2, 2)
+	_ = countOrIdKey
+	var bidasksValue []any = this.ToArray(bidasks)
+	var result []any = []any{}
+	for i := 0; i < len(bidasksValue); i++ {
+		result = append(result, this.ParseOrderBookBidAskL3(func() any {
+			if i >= 0 && i < len(bidasksValue) {
+				return DerefScalar(bidasksValue[i])
+			}
+			return nil
+		}(), priceKey, amountKey, countOrIdKey))
+	}
+	return result
+}
 func (this *BaseExchange) FilterByKey(objects any, key any, optionalArgs ...any) any {
 	value := GetArg(optionalArgs, 0, nil)
 	_ = value
@@ -4147,6 +4166,30 @@ func (this *BaseExchange) ParseOrderBook(orderbook any, symbol any, optionalArgs
 
 	var asks any = this.DerivedExchange.ParseOrderBookBidsAsks(this.SafeValue(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
 	PanicOnError(asks)
+	return map[string]any{
+		"symbol":    symbol,
+		"bids":      this.SortBy(bids, 0, true),
+		"asks":      this.SortBy(asks, 0),
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+		"nonce":     nil,
+	}
+}
+func (this *BaseExchange) ParseOrderBookL3(orderbook any, symbol any, optionalArgs ...any) map[string]any {
+	var timestamp *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
+	_ = timestamp
+	var bidsKey string = GetArgString(optionalArgs, 1, "bids")
+	_ = bidsKey
+	var asksKey string = GetArgString(optionalArgs, 2, "asks")
+	_ = asksKey
+	priceKey := GetArg(optionalArgs, 3, 0)
+	_ = priceKey
+	amountKey := GetArg(optionalArgs, 4, 1)
+	_ = amountKey
+	countOrIdKey := GetArg(optionalArgs, 5, 2)
+	_ = countOrIdKey
+	var bids any = this.ParseOrderBookBidsAsksL3(this.SafeValue(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
+	var asks any = this.ParseOrderBookBidsAsksL3(this.SafeValue(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
 	return map[string]any{
 		"symbol":    symbol,
 		"bids":      this.SortBy(bids, 0, true),
@@ -5100,6 +5143,22 @@ func (this *BaseExchange) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) 
 	}
 	return bidAsk
 }
+func (this *BaseExchange) ParseOrderBookBidAskL3(bidask any, optionalArgs ...any) any {
+	priceKey := GetArg(optionalArgs, 0, 0)
+	_ = priceKey
+	amountKey := GetArg(optionalArgs, 1, 1)
+	_ = amountKey
+	countOrIdKey := GetArg(optionalArgs, 2, 2)
+	_ = countOrIdKey
+	var price *float64 = this.SafeFloat(bidask, priceKey)
+	var amount *float64 = this.SafeFloat(bidask, amountKey)
+	var countOrId *string = this.SafeString(bidask, countOrIdKey)
+	var bidAsk []any = []any{price, amount}
+	if countOrId != nil {
+		bidAsk = append(bidAsk, countOrId)
+	}
+	return bidAsk
+}
 func (this *BaseExchange) SafeCurrency(currencyId any, optionalArgs ...any) map[string]any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
@@ -5379,11 +5438,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan EndpointResult[map[str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes667115 map[string]any = MapTyped(r.Value)
-	if retRes667115 == nil {
+	var retRes670415 map[string]any = MapTyped(r.Value)
+	if retRes670415 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes667115, Raw: retRes667115}
+		ch <- EndpointResult[map[string]any]{Value: retRes670415, Raw: retRes670415}
 	}
 	return nil
 }
@@ -11408,12 +11467,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan EndpointResult[
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv10929, _ := r.Value.([]any)
-	var retRes1009815 []any = listRecv10929
-	if retRes1009815 == nil {
+	listRecv10988, _ := r.Value.([]any)
+	var retRes1013115 []any = listRecv10988
+	if retRes1013115 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- EndpointResult[[]any]{Value: retRes1009815, Raw: retRes1009815}
+		ch <- EndpointResult[[]any]{Value: retRes1013115, Raw: retRes1013115}
 	}
 	return nil
 }

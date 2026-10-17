@@ -942,14 +942,14 @@ impl BingxCore {
         self.call_method(Value::Str("api_v3_private_post_post_asset_transfer".into()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `apiAssetV1PrivateGetTransferSupportCoins` implicit endpoint.
+    pub async fn api_asset_v1_private_get_transfer_support_coins(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("api_asset_v1_private_get_transfer_support_coins".into()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `apiAssetV1PrivatePostTransfer` implicit endpoint.
     pub async fn api_asset_v1_private_post_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("api_asset_v1_private_post_transfer".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `apiAssetV1PublicGetTransferSupportCoins` implicit endpoint.
-    pub async fn api_asset_v1_public_get_transfer_support_coins(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("api_asset_v1_public_get_transfer_support_coins".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `agentV1PrivateGetAccountInviteAccountList` implicit endpoint.

@@ -2990,7 +2990,6 @@ public partial class binance : Exchange
                     { "funding", "FUNDING" },
                     { "margin", "MARGIN" },
                     { "cross", "MARGIN" },
-                    { "future", "UMFUTURE" },
                     { "linear", "UMFUTURE" },
                     { "swap", "UMFUTURE" },
                     { "inverse", "CMFUTURE" },
@@ -4357,10 +4356,11 @@ public partial class binance : Exchange
         {
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
-        // defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
+        // defaultType 'swap' resolves spot-style symbols to the perpetual of defaultSubType
         string? defaultType = this.safeString(this.options, "defaultType");
         string? defaultSubType = this.safeString(this.options, "defaultSubType");
-        bool isLegacy = defaultType == "future";
+        bool isLegacy = defaultType == "swap";
+        bool isDerivative = isLegacy || (defaultType == "future");
         bool isLegacyInverse = isLegacy && (defaultSubType == "inverse");
         bool isLegacyLinear = isLegacy && !isLegacyInverse;
         if ((symbol is string))
@@ -4385,12 +4385,9 @@ public partial class binance : Exchange
             {
                 object markets = getValue(this.markets_by_id, symbol);
                 // begin diff
-                if (isLegacyLinear)
+                if (isDerivative)
                 {
-                    defaultType = "linear";
-                } else if (isLegacyInverse)
-                {
-                    defaultType = "inverse";
+                    defaultType = (defaultSubType == "inverse") ? "inverse" : "linear";
                 } else if ((defaultType == null))
                 {
                     defaultType = defaultSubType;
@@ -4407,7 +4404,7 @@ public partial class binance : Exchange
                 return ccxt.BaseExchange.ToDict(getValue(markets, 0));
             } else if ((((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1) && (((string)symbol).IndexOf(":", StringComparison.Ordinal) < 0))
             {
-                if (((defaultType != null)) && (defaultType != "spot"))
+                if (isLegacy)
                 {
                     // support legacy symbols
                     var bsquoteVariable = ((string)symbol).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
@@ -12529,8 +12526,8 @@ public partial class binance : Exchange
         {
             string? defaultType = this.safeString2(this.options, "fetchTransfers", "defaultType", "spot");
             string? fromAccount = this.safeString(paramsOmitted, "fromAccount", defaultType);
-            string defaultTo = "future";
-            if (fromAccount == "future")
+            string defaultTo = "swap";
+            if ((fromAccount == "swap") || (fromAccount == "linear"))
             {
                 defaultTo = "spot";
             }
@@ -13424,7 +13421,7 @@ public partial class binance : Exchange
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
         }
-        string? defaultType = this.safeString2(this.options, "fetchFundingRateHistory", "defaultType", "future");
+        string? defaultType = this.safeString2(this.options, "fetchFundingRateHistory", "defaultType", "swap");
         string? type = this.safeString(paramsPaginate, "type", defaultType);
         IDictionary<string, object> market = null;
         if ((symbol != null))
@@ -13510,7 +13507,7 @@ public partial class binance : Exchange
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        string? defaultType = this.safeString2(this.options, "fetchFundingRates", "defaultType", "future");
+        string? defaultType = this.safeString2(this.options, "fetchFundingRates", "defaultType", "swap");
         string? type = this.safeString(parameters, "type", defaultType);
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchFundingRates", null, parameters, "linear");
         string? subType = (string)subTypeparamsSubTypeVariable[0];
@@ -14182,7 +14179,7 @@ public partial class binance : Exchange
         IDictionary<string, object> leverageBrackets = this.safeDict(this.options, "leverageBrackets");
         if (((leverageBrackets == null)) || isTrue((reload)))
         {
-            string? defaultType = this.safeString(this.options, "defaultType", "future");
+            string? defaultType = this.safeString(this.options, "defaultType", "swap");
             string? type = this.safeString(parameters, "type", defaultType);
             object query = this.omit(parameters, "type");
             string? subType = null;
@@ -14649,7 +14646,7 @@ public partial class binance : Exchange
             await this.loadMarkets();
         }
         await this.loadLeverageBrackets(false, parameters);
-        string? defaultType = this.safeString(this.options, "defaultType", "future");
+        string? defaultType = this.safeString(this.options, "defaultType", "swap");
         string? type = this.safeString(parameters, "type", defaultType);
         object paramsOmitted = this.omit(parameters, "type");
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchAccountPositions", null, paramsOmitted, "linear");
@@ -14729,7 +14726,7 @@ public partial class binance : Exchange
         }
         await this.loadLeverageBrackets(false, parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        string? defaultType = "future";
+        string? defaultType = "swap";
         defaultType = this.safeString(this.options, "defaultType", defaultType);
         string? type = this.safeString(parameters, "type", defaultType);
         string? subType = null;
@@ -14931,7 +14928,7 @@ public partial class binance : Exchange
         {
             requestUntil["limit"] = limit;
         }
-        string? defaultType = this.safeString2(this.options, "fetchFundingHistory", "defaultType", "future");
+        string? defaultType = this.safeString2(this.options, "fetchFundingHistory", "defaultType", "swap");
         string? type = this.safeString(paramsUntil, "type", defaultType);
         Dictionary<string, object> paramsOmitted = this.omit(paramsUntil, "type");
         List<object> response = null;
@@ -16163,10 +16160,10 @@ public partial class binance : Exchange
     {
         // used to modify isolated positions
         parameters ??= new Dictionary<string, object>();
-        string? defaultType = this.safeString(this.options, "defaultType", "future");
+        string? defaultType = this.safeString(this.options, "defaultType", "swap");
         if (defaultType == "spot")
         {
-            defaultType = "future";
+            defaultType = "swap";
         }
         string? type = this.safeString(parameters, "type", defaultType);
         if ((type == "margin") || (type == "spot"))

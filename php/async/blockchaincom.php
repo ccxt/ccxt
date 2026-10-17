@@ -449,7 +449,7 @@ class blockchaincom extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        return Async\await($this->fetch_l3_order_book($symbol, $limit, $params));
+        return Async\await($this->fetch_l2_order_book($symbol, $limit, $params));
     }
 
     public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -478,10 +478,10 @@ class blockchaincom extends Exchange {
             $request['depth'] = $limit;
         }
         $response = Async\await($this->publicGetL3Symbol($this->extend($request, $params)));
-        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty');
+        return $this->parse_order_book_l3($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty', 'num');
     }
 
-    public function fetch_l2_order_book(string $symbol, ?int $limit = null, $params = array()) {
+    public function fetch_l2_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_l2_order_book(...))($symbol, $limit, $params);
     }
 

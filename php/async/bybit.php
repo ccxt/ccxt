@@ -9291,8 +9291,8 @@ class bybit extends Exchange {
         $tiers = array();
         for ($i = 0; $i < count($info); $i++) {
             $tier = $this->safe_dict($info, $i);
-            $marketId = $this->safe_string($info, 'symbol');
-            $marketResolved = $this->safe_market($marketId);
+            $marketId = $this->safe_string($tier, 'symbol');
+            $marketResolved = $this->safe_market($marketId, $market, null, 'contract');
             $minNotional = $this->parse_number('0');
             if ($i !== 0) {
                 $minNotional = $this->safe_number($info[$i - 1], 'riskLimitValue');

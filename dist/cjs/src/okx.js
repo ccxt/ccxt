@@ -7760,8 +7760,8 @@ class okx extends okx$1["default"] {
         }
         const market = this.market(symbol);
         const type = (market['spot'] === true) ? 'MARGIN' : this.convertToInstrumentType(market['type']);
-        const uly = this.safeString(market['info'], 'uly');
-        if ((uly === undefined) || (uly === '')) {
+        const instFamily = this.safeString(market['info'], 'instFamily');
+        if ((instFamily === undefined) || (instFamily === '')) {
             if (type !== 'MARGIN') {
                 throw new errors.BadRequest(this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
             }
@@ -7772,7 +7772,7 @@ class okx extends okx$1["default"] {
         const request = {
             'instType': type,
             'tdMode': marginMode,
-            'uly': uly,
+            'instFamily': instFamily,
         };
         if (type === 'MARGIN') {
             request['instId'] = market['id'];

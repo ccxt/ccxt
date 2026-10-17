@@ -1106,7 +1106,7 @@ class bingx extends bingx$1["default"] {
         }
         const uuid = this.uuid();
         let baseUrl = undefined;
-        let request = {};
+        let request = undefined;
         if (type === 'swap') {
             if (subType === 'inverse') {
                 throw new errors.NotSupported(this.id + ' watchMyTrades is not supported for inverse swap markets yet');

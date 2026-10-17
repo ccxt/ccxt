@@ -9,7 +9,7 @@ print('CCXT Version:', ccxt.__version__)
 async def main():
     exchange = ccxt.pro.binance({
         'options': {
-            'defaultType': 'future',  # spot, margin, future, delivery
+            'defaultType': 'swap',  # spot, margin, swap (perpetuals), future (dated delivery)
         },
     })
     # or

@@ -276,6 +276,15 @@ class OrderBook(TypedDict):
     symbol: Str
 
 
+class OrderBookL3(TypedDict):
+    asks: list[list[Num]]
+    bids: list[list[Num]]
+    datetime: Str
+    timestamp: Int
+    nonce: Int
+    symbol: Str
+
+
 class Transaction(TypedDict):
     info: dict[str, Any]
     id: Str

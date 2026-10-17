@@ -28,6 +28,8 @@
 * [createDepositAddress](#createdepositaddress)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [transfer](#transfer)
+* [fetchTransfer](#fetchtransfer)
+* [fetchTransfers](#fetchtransfers)
 * [withdraw](#withdraw)
 * [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 * [fetchWithdrawals](#fetchwithdrawals)
@@ -623,6 +625,52 @@ transfer currency internally between wallets on the same account
 
 ```javascript
 poloniex.transfer (code, amount, fromAccount, toAccount, params?)
+```
+
+
+<a name="fetchTransfer" id="fetchtransfer"></a>
+
+### fetchTransfer{docsify-ignore}
+fetch a transfer
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-record  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | transfer id |
+| code | <code>string</code> | No | not used by poloniex fetchTransfer |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.fetchTransfer (id, code?, params?)
+```
+
+
+<a name="fetchTransfers" id="fetchtransfers"></a>
+
+### fetchTransfers{docsify-ignore}
+fetch a history of internal transfers made on an account
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-records  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code of the currency transferred |
+| since | <code>int</code> | No | the earliest time in ms to fetch transfers for |
+| limit | <code>int</code> | No | the maximum number of transfer structures to retrieve, default 100, max 1000 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch transfers for |
+
+
+```javascript
+poloniex.fetchTransfers (code?, since?, limit?, params?)
 ```
 
 

@@ -438,7 +438,7 @@ export default class blockchaincom extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        return await this.fetchL3OrderBook(symbol, limit, params);
+        return await this.fetchL2OrderBook(symbol, limit, params);
     }
     /**
      * @method
@@ -462,7 +462,7 @@ export default class blockchaincom extends Exchange {
             request['depth'] = limit;
         }
         const response = await this.publicGetL3Symbol(this.extend(request, params));
-        return this.parseOrderBook(response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty');
+        return this.parseOrderBookL3(response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty', 'num');
     }
     async fetchL2OrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {

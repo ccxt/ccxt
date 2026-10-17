@@ -387,7 +387,12 @@ public partial class bittrade : ccxt.bittrade
         string? symbol = this.safeString(subscription, "symbol");
         string? messageHash = this.safeString(subscription, "messageHash");
         Int64? timestamp = this.safeInteger(message, "ts");
-        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
+        if ((orderbook == null))
+        {
+            // the book was removed (unwatch/cleanCache) before the snapshot arrived
+            return;
+        }
         IDictionary<string, object> data = this.safeDict(message, "data");
         ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol);
         snapshot.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(data, "seqNum"));
@@ -529,7 +534,12 @@ public partial class bittrade : ccxt.bittrade
         List<object> parts = ((string)ch).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         string? symbol = this.safeSymbol(marketId);
-        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
+        if ((orderbook == null))
+        {
+            // no active subscription holds a book for this symbol, drop the delta
+            return;
+        }
         if (isEqual(getValue(orderbook, "nonce"), null))
         {
             (orderbook as ccxt.pro.OrderBook).cache.Add(message);
@@ -688,9 +698,13 @@ public partial class bittrade : ccxt.bittrade
             if ((subscription != null))
             {
                 string? errorCode = this.safeString(message, "err-code");
+                string? errorMessage = this.safeString(message, "err-msg");
+                string feedback = ((this.id + " ") + this.json(message));
                 try
                 {
-                    this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, this.json(message));
+                    this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
+                    this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+                    throw new ExchangeError (feedback) ;
                 } catch(Exception e)
                 {
                     string? messageHash = this.safeString(subscription, "messageHash");

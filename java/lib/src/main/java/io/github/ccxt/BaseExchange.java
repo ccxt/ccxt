@@ -7830,6 +7830,17 @@ public Object describe()
         return result;
     }
 
+    public Object parseOrderBookBidsAsksL3(Object bidasks, Object priceKey, Object amountKey, Object countOrIdKey)
+    {
+        List<Object> bidasksValue = this.toArray(bidasks);
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < (bidasksValue == null ? 0 : bidasksValue.size()); i++)
+        {
+            ((List<Object>)result).add(this.parseOrderBookBidAskL3((bidasksValue == null || i < 0 || i >= bidasksValue.size() ? null : bidasksValue.get(i)), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2)));
+        }
+        return result;
+    }
+
     public Object filterByKey(Object objects, Object key, String value)
     {
         if (java.util.Objects.equals(value, null))
@@ -8048,6 +8059,20 @@ public Object describe()
             put( "datetime", BaseExchange.this.iso8601(timestamp) );
             put( "nonce", null );
         }});
+    }
+
+    public Object parseOrderBookL3(Object orderbook, String symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
+    {
+        Object bids = this.parseOrderBookBidsAsksL3(this.safeValue(orderbook, java.util.Objects.requireNonNullElse(bidsKey, "bids"), new ArrayList<Object>(Arrays.asList())), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
+        Object asks = this.parseOrderBookBidsAsksL3(this.safeValue(orderbook, java.util.Objects.requireNonNullElse(asksKey, "asks"), new ArrayList<Object>(Arrays.asList())), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
+        return new HashMap<String, Object>() {{
+            put( "symbol", symbol );
+            put( "bids", BaseExchange.this.sortBy(bids, 0, true) );
+            put( "asks", BaseExchange.this.sortBy(asks, 0) );
+            put( "timestamp", timestamp );
+            put( "datetime", BaseExchange.this.iso8601(timestamp) );
+            put( "nonce", null );
+        }};
     }
 
     public List<Object> parseOHLCVs(Object ohlcvs, Object market, String timeframe, Long since, Long limit, Object tail)
@@ -8758,6 +8783,19 @@ public Object describe()
         Double price = this.safeFloat(bidask, java.util.Objects.requireNonNullElse(priceKey, 0));
         Double amount = this.safeFloat(bidask, java.util.Objects.requireNonNullElse(amountKey, 1));
         Long countOrId = this.safeInteger(bidask, java.util.Objects.requireNonNullElse(countOrIdKey, 2));
+        List<Object> bidAsk = new ArrayList<Object>(Arrays.asList(price, amount));
+        if (!java.util.Objects.equals(countOrId, null))
+        {
+            ((List<Object>)bidAsk).add(countOrId);
+        }
+        return bidAsk;
+    }
+
+    public Object parseOrderBookBidAskL3(Object bidask, Object priceKey, Object amountKey, Object countOrIdKey)
+    {
+        Double price = this.safeFloat(bidask, java.util.Objects.requireNonNullElse(priceKey, 0));
+        Double amount = this.safeFloat(bidask, java.util.Objects.requireNonNullElse(amountKey, 1));
+        String countOrId = this.safeString(bidask, java.util.Objects.requireNonNullElse(countOrIdKey, 2));
         List<Object> bidAsk = new ArrayList<Object>(Arrays.asList(price, amount));
         if (!java.util.Objects.equals(countOrId, null))
         {

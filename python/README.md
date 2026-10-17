@@ -296,12 +296,6 @@ The library supports concurrent asynchronous mode with asyncio and async/await i
 import ccxt.async_support as ccxt # link against the asynchronous version of ccxt
 ```
 
-#### orjson support
-
-CCXT also supports `orjson` for parsing JSON since it is much faster than the builtin library. This is especially important when using websockets because some exchanges return big messages that need to be parsed and dispatched as quickly as possible.
-
-However, `orjson` is not enabled by default because it is not supported by every python interpreter. If you want to opt-in, you just need to install it (`pip install orjson`) on your local environment. CCXT will detect the installion and pick it up automatically.
-
 #### ECDSA Support
 
 Some exchanges, such as Hyperliquid, Binance, and Paradex use **ECDSA** for request signing.

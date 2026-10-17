@@ -9139,8 +9139,8 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? type = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? "MARGIN" : this.convertToInstrumentType((market.ContainsKey("type") ? market["type"] : null));
-        string? uly = this.safeString((market.ContainsKey("info") ? market["info"] : null), "uly");
-        if (((uly == null)) || (uly == ""))
+        string? instFamily = this.safeString((market.ContainsKey("info") ? market["info"] : null), "instFamily");
+        if (((instFamily == null)) || (instFamily == ""))
         {
             if (type != "MARGIN")
             {
@@ -9155,7 +9155,7 @@ public partial class okx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", type },
             { "tdMode", marginMode },
-            { "uly", uly },
+            { "instFamily", instFamily },
         };
         if (type == "MARGIN")
         {

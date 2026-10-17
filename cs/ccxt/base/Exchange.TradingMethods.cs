@@ -148,7 +148,7 @@ public partial class Exchange
         throw new NotSupported ((this.id + " watchMarkPrices () is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.OrderBook> FetchL3OrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async virtual Task<ccxt.OrderBookL3> FetchL3OrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new BadRequest ((this.id + " fetchL3OrderBook() is not supported yet")) ;

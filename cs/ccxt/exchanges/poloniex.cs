@@ -79,8 +79,8 @@ public partial class poloniex : Exchange
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", true },
                 { "fetchTransactions", "emulated" },
-                { "fetchTransfer", false },
-                { "fetchTransfers", false },
+                { "fetchTransfer", true },
+                { "fetchTransfers", true },
                 { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
@@ -535,6 +535,8 @@ public partial class poloniex : Exchange
                 { "accountsById", new Dictionary<string, object>() {
                     { "exchange", "spot" },
                     { "futures", "future" },
+                    { "SPOT", "spot" },
+                    { "FUTURES", "future" },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
@@ -3409,9 +3411,10 @@ public partial class poloniex : Exchange
         Dictionary<string, object> currency = this.currency(code);
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? fromId = this.safeString(accountsByType, fromAccount, fromAccount);
-        string? toId = this.safeString(accountsByType, toAccount, fromAccount);
+        string? toId = this.safeString(accountsByType, toAccount, toAccount);
+        string? amountToPrecision = this.currencyToPrecision(code, amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "amount", this.currencyToPrecision(code, amount) },
+            { "amount", amountToPrecision },
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "fromAccount", fromId },
             { "toAccount", toId },
@@ -3422,26 +3425,138 @@ public partial class poloniex : Exchange
         //        "transferId" : "168041074"
         //    }
         //
-        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
+        return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(response, currency), new Dictionary<string, object>() {             { "amount", this.parseNumber(amountToPrecision) },             { "fromAccount", fromAccount },             { "toAccount", toAccount },         }));
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchTransfer
+     * @description fetch a transfer
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-record
+     * @param {string} id transfer id
+     * @param {string} [code] not used by poloniex fetchTransfer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public async override Task<ccxt.TransferEntry> FetchTransfer(string id, string code = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "id", id },
+        };
+        Dictionary<string, object> response = await this.privateGetAccountsTransferId(this.extend(request, parameters));
+        //
+        //     {
+        //         "id": "342284495",
+        //         "fromAccount": "FUTURES",
+        //         "toAccount": "SPOT",
+        //         "currency": "USDT",
+        //         "amount": "6",
+        //         "state": "SUCCESS",
+        //         "createTime": 1787154736417
+        //     }
+        //
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response));
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-records
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve, default 100, max 1000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        IDictionary<string, object> currency = null;
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        if ((code != null))
+        {
+            currency = this.currency(code);
+            request["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
+        }
+        if ((since != null))
+        {
+            request["startTime"] = since;
+        }
+        if ((limit != null))
+        {
+            request["limit"] = limit;
+        }
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
+        List<object> response = await this.privateGetAccountsTransfer(this.extend(requestUntil, paramsUntil));
+        //
+        //     [
+        //         {
+        //             "id": "342284495",
+        //             "fromAccount": "FUTURES",
+        //             "toAccount": "SPOT",
+        //             "currency": "USDT",
+        //             "amount": "6",
+        //             "state": "SUCCESS",
+        //             "createTime": 1787154736417
+        //         }
+        //     ]
+        //
+        return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(response, currency, since, limit));
+    }
+
+    public virtual string? parseTransferStatus(object status)
+    {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
+            { "SUCCESS", "ok" },
+            { "PROCESSING", "pending" },
+            { "PROCESSSING", "pending" },
+            { "FAILED", "failed" },
+        };
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
     {
         //
-        //    {
-        //        "transferId" : "168041074"
-        //    }
+        // transfer
         //
+        //     {
+        //         "transferId" : "168041074"
+        //     }
+        //
+        // fetchTransfer, fetchTransfers
+        //
+        //     {
+        //         "id": "342284495",
+        //         "fromAccount": "FUTURES",
+        //         "toAccount": "SPOT",
+        //         "currency": "USDT",
+        //         "amount": "6",
+        //         "state": "SUCCESS",
+        //         "createTime": 1787154736417
+        //     }
+        //
+        Int64? timestamp = this.safeInteger(transfer, "createTime");
+        string? fromAccountId = this.safeString(transfer, "fromAccount");
+        string? toAccountId = this.safeString(transfer, "toAccount");
+        IDictionary<string, object> accountIds = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
             { "info", transfer },
-            { "id", this.safeString(transfer, "transferId") },
-            { "timestamp", null },
-            { "datetime", null },
-            { "currency", this.safeString(currency, "id") },
-            { "amount", null },
-            { "fromAccount", null },
-            { "toAccount", null },
-            { "status", null },
+            { "id", this.safeString2(transfer, "id", "transferId") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "currency", this.safeCurrencyCode(this.safeString(transfer, "currency"), currency) },
+            { "amount", this.safeNumber(transfer, "amount") },
+            { "fromAccount", this.safeString(accountIds, fromAccountId, fromAccountId) },
+            { "toAccount", this.safeString(accountIds, toAccountId, toAccountId) },
+            { "status", this.parseTransferStatus(this.safeString(transfer, "state")) },
         };
     }
 
