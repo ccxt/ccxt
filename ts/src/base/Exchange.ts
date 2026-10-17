@@ -8815,7 +8815,7 @@ export class BaseExchange {
             }
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbolsNormalized);
+        return this.indexBy (this.filterByArray (results, 'symbol', symbolsNormalized, false), 'symbol') as AllGreeks;
     }
 
     parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {

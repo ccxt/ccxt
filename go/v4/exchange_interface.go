@@ -240,7 +240,7 @@ type ICoreExchange interface {
 	FetchConvertQuoteAsync(fromCode string, toCode string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	CreateConvertTradeAsync(id string, fromCode string, toCode string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchConvertTradeAsync(id string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	FetchConvertTradeHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchConvertTradeHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	SetFetchResponse(fetchResponse any)
 	SetFetchResponseByUrl(responsesByUrl any)
 	Init(params map[string]any)
@@ -268,7 +268,7 @@ type ICoreExchange interface {
 	FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	ArrayConcat(aa, bb any) []any
-	FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchBorrowInterestAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
 	FetchLedgerEntryAsync(id string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
@@ -404,7 +404,7 @@ type IDerivedExchange interface {
 	ParseCurrency(rawCurrency any) map[string]any
 	ParseTransaction(transaction any, optionalArgs ...any) map[string]any
 	ParseTransfer(transfer any, optionalArgs ...any) map[string]any
-	ParseAccount(account any) any
+	ParseAccount(account any) map[string]any
 	ParseLedgerEntry(item any, optionalArgs ...any) map[string]any
 	ParseLastPrice(item any, optionalArgs ...any) any
 	ParseOrder(order any, optionalArgs ...any) Order
@@ -453,7 +453,7 @@ type IDerivedExchange interface {
 	ParseMarginModification(data any, optionalArgs ...any) map[string]any
 	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	SetSandboxMode(enabled any)
 	Market(symbol any) map[string]any
 	ParseConversion(conversion any, optionalArgs ...any) map[string]any

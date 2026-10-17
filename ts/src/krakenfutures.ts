@@ -2918,7 +2918,7 @@ export default class krakenfutures extends Exchange {
                 type = symbol;
             }
         }
-        const accountName = this.parseAccount (type);
+        const accountName = this.parseKrakenAccountName (type);
         const accounts = this.safeDict (response, 'accounts');
         const account = this.safeDict (accounts, accountName);
         if (account === undefined) {
@@ -3599,7 +3599,7 @@ export default class krakenfutures extends Exchange {
         };
     }
 
-    override parseAccount (account: any) {
+    parseKrakenAccountName (account: string): string {
         const accountByType: Dict = {
             'main': 'cash',
             'funding': 'cash',
@@ -3665,14 +3665,14 @@ export default class krakenfutures extends Exchange {
         };
         let response: Dict;
         if (toAccount === 'spot') {
-            if (this.parseAccount (fromAccount) !== 'cash') {
+            if (this.parseKrakenAccountName (fromAccount) !== 'cash') {
                 throw new BadRequest (this.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount);
             }
             request['currency'] = currency['id'];
             response = await this.privatePostWithdrawal (this.extend (request, params));
         } else {
-            request['fromAccount'] = this.parseAccount (fromAccount);
-            request['toAccount'] = this.parseAccount (toAccount);
+            request['fromAccount'] = this.parseKrakenAccountName (fromAccount);
+            request['toAccount'] = this.parseKrakenAccountName (toAccount);
             request['unit'] = currency['id'];
             response = await this.privatePostTransfer (this.extend (request, params));
         }
