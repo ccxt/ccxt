@@ -1,3 +1,4 @@
+// NO_AUTO_TRANSPILE
 import assert from 'assert';
 import ccxt from '../../../../ccxt.js';
 
@@ -18,7 +19,10 @@ async function testLoadOrderBookResyncRejects () {
     const symbol = 'BTC/USDT';
     exchange.orderbooks[symbol] = exchange.orderBook ();
     // every snapshot attempt fails, e.g. a 429 from the REST endpoint
-    const failure = new Error ('429 Too Many Requests');
+    // a plain Error would be wrapped as NetworkError by onError, breaking the
+    // identity asserts below - use a real ccxt error so the rejected object
+    // is the failure itself
+    const failure = new ccxt.RateLimitExceeded ('429 Too Many Requests');
     exchange.fetchRestOrderBookSafe = async () => { throw failure; };
     const outcomes: any = {};
     const watch = async (name: string, messageHash: string) => {
