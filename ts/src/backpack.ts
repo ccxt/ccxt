@@ -1,12 +1,11 @@
-
 // ---------------------------------------------------------------------------
 
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/backpack.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, NetworkError, OperationFailed, OperationRejected, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, NetworkError, NotSupported, OrderNotFound, OperationFailed, OperationRejected, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, int, Int, List, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict, Status, Endpoint, FundingHistory, OpenInterest } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeString, FundingRate, FundingRateHistory, int, Int, List, Market, MarketInterface, MarketType, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict, Status, Endpoint, FundingHistory, OpenInterest, Conversion } from './base/types.js';
 import { eddsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
@@ -39,7 +38,7 @@ export default class backpack extends Exchange {
                 'cancelOrders': false,
                 'cancelWithdraw': false,
                 'closePosition': false,
-                'createConvertTrade': false, // todo
+                'createConvertTrade': true,
                 'createDepositAddress': false,
                 'createLimitBuyOrder': true,
                 'createLimitOrder': true,
@@ -68,7 +67,7 @@ export default class backpack extends Exchange {
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': false,
                 'fetchConvertCurrencies': false,
-                'fetchConvertQuote': false,
+                'fetchConvertQuote': true,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': true,
@@ -97,7 +96,7 @@ export default class backpack extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
-                'fetchOrder': false,
+                'fetchOrder': 'emulated',
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': false,
@@ -172,6 +171,9 @@ export default class backpack extends Exchange {
                         'api/v1/prediction/tags': { 'cost': 1 } as Endpoint<List>,
                         'api/v1/market-sessions': { 'cost': 1 } as Endpoint<List>,
                         'api/v1/market-holidays': { 'cost': 1 } as Endpoint<List>,
+                        'api/v1/stockSessions': { 'cost': 1 } as Endpoint<List>,
+                        'api/v1/stockHolidays': { 'cost': 1 } as Endpoint<List>,
+                        'api/v1/stockIndicativeQuote': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/securities': { 'cost': 1 } as Endpoint<List>,
                         'api/v1/klines': { 'cost': 1 } as Endpoint<List>, // done
                         'api/v1/markPrices': { 'cost': 1 } as Endpoint<List>, // done
@@ -227,7 +229,6 @@ export default class backpack extends Exchange {
                         'api/v1/orders': { 'cost': 1 } as Endpoint<List>, // done
                         'api/v1/rfq': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/rfq/accept': { 'cost': 1 } as Endpoint<Dict>,
-                        'api/v1/rfq/refresh': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/rfq/cancel': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/rfq/quote': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/strategy': { 'cost': 1 } as Endpoint<Dict>,
@@ -394,6 +395,24 @@ export default class backpack extends Exchange {
                     'wapi/v1/history/rfq': {
                         'GET': 'rfqHistoryQueryAll',
                     },
+                    'api/v1/rfq': {
+                        'POST': 'rfqSubmit',
+                    },
+                    'api/v1/rfqs': {
+                        'GET': 'rfqQuery',
+                    },
+                    'api/v1/rfq/accept': {
+                        'POST': 'quoteAccept',
+                    },
+                    'api/v1/rfq/cancel': {
+                        'POST': 'rfqCancel',
+                    },
+                    'wapi/v1/history/rfq/fill': {
+                        'GET': 'rfqFillHistoryQueryAll',
+                    },
+                    'wapi/v1/history/quote/fill': {
+                        'GET': 'quoteFillHistoryQueryAll',
+                    },
                     'wapi/v1/history/quote': {
                         'GET': 'quoteHistoryQueryAll',
                     },
@@ -518,13 +537,15 @@ export default class backpack extends Exchange {
     /**
      * @method
      * @name backpack#fetchCurrencies
-     * @description fetches all available currencies on an exchange
+     * @description fetches available crypto and tokenized stock currencies from the assets endpoint
      * @see https://docs.backpack.exchange/#tag/Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock assets only
      * @returns {object} an associative dictionary of currencies
      */
     override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
-        const response = await this.publicGetApiV1Assets (params);
+        const [ stock, query ] = this.handleStockParams ('fetchCurrencies', params);
+        const response = await this.publicGetApiV1Assets (query);
         //
         //     [
         //         {
@@ -548,11 +569,20 @@ export default class backpack extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseCurrencies (response);
+        const currencies: Currencies = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = this.parseCurrency (response[i]);
+            if ((stock !== true) || (currency['type'] === 'stock')) {
+                currencies[currency['code']] = currency;
+            }
+        }
+        return currencies;
     }
 
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'symbol');
+        const symbol = this.safeString (rawCurrency, 'symbol', '');
+        const stock = symbol.endsWith ('.US') || symbol.endsWith ('.HK');
         const code = this.safeCurrencyCode (currencyId);
         const networks: Dict[] = this.safeList (rawCurrency, 'tokens', []);
         const parsedNetworks: Dict = {};
@@ -588,7 +618,7 @@ export default class backpack extends Exchange {
         let deposit: Bool = undefined;
         let withdraw: Bool = undefined;
         if (this.isEmpty (parsedNetworks)) { // if networks are not provided
-            active = false;
+            active = (stock) ? undefined : false;
             deposit = false;
             withdraw = false;
         }
@@ -596,7 +626,7 @@ export default class backpack extends Exchange {
             'id': currencyId,
             'code': code,
             'precision': undefined,
-            'type': 'crypto', // todo check if it is always crypto
+            'type': (stock) ? 'stock' : 'crypto',
             'name': this.safeString (rawCurrency, 'displayName'),
             'active': active,
             'deposit': deposit,
@@ -620,17 +650,86 @@ export default class backpack extends Exchange {
     /**
      * @method
      * @name backpack#fetchMarkets
-     * @description retrieves data on all markets for bitbank
+     * @description retrieves venue markets and tokenized stock RFQ markets discovered from securities
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_markets
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_securities
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock markets only
+     * @param {string|string[]} [params.marketType] market types to discover: spot, swap or stock
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
-        const response = await this.publicGetApiV1Markets (params);
-        return this.parseMarkets (response);
+        const [ stock, query ] = this.handleStockParams ('fetchMarkets', params);
+        const marketType = this.safeString (query, 'marketType');
+        const defaultTypes = (marketType === undefined) ? [ 'SPOT', 'PERP', 'RFQ' ] : [ marketType ];
+        const requestedTypes = this.safeList (query, 'marketType', defaultTypes);
+        const aliases: Dict = { 'spot': 'SPOT', 'swap': 'PERP', 'stock': 'RFQ' };
+        const supportedTypes = [ 'SPOT', 'PERP', 'RFQ' ];
+        const marketTypes: Strings = [];
+        for (let i = 0; i < requestedTypes.length; i++) {
+            const requestedType = requestedTypes[i];
+            const normalizedType = this.safeString (aliases, requestedType, requestedType);
+            if (!this.inArray (normalizedType, supportedTypes)) {
+                throw new BadRequest (this.id + ' fetchMarkets() unsupported marketType ' + requestedType);
+            }
+            if (!this.inArray (normalizedType, marketTypes)) {
+                marketTypes.push (normalizedType);
+            }
+        }
+        const includeRfq = this.inArray ('RFQ', marketTypes);
+        const marketQuery = this.omit (query, 'marketType');
+        if ('marketType' in query) {
+            marketQuery['marketType'] = marketTypes;
+        }
+        const response = await this.publicGetApiV1Markets (marketQuery);
+        let securities: Dict[] = [];
+        if (includeRfq) {
+            securities = await this.fetchSecurities ();
+        }
+        const securityById = this.indexBy (securities, 'asset');
+        const markets: Market[] = [];
+        const marketIds: Dict = {};
+        for (let i = 0; i < response.length; i++) {
+            const rawMarket = response[i];
+            const rawType = this.safeString (rawMarket, 'marketType', '');
+            if (!this.inArray (rawType, marketTypes)) {
+                continue;
+            }
+            const baseId = this.safeString (rawMarket, 'baseSymbol');
+            const security = this.safeDict (securityById, baseId);
+            const market = this.parseMarket ((security === undefined) ? rawMarket : this.extend ({}, rawMarket, { 'security': security }));
+            if (market !== undefined) {
+                const marketId = this.safeString (market, 'id');
+                if ((marketId === undefined) || (marketId in marketIds)) {
+                    continue;
+                }
+                marketIds[marketId] = true;
+                if ((stock !== true) || (market['stock'] === true)) {
+                    markets.push (market);
+                }
+            }
+        }
+        if (includeRfq) {
+            for (let i = 0; i < securities.length; i++) {
+                const security = securities[i];
+                const assetId = this.safeString (security, 'asset');
+                if (assetId === undefined) {
+                    continue;
+                }
+                const marketId = assetId + '_USDC_RFQ';
+                if (!(marketId in marketIds)) {
+                    const market = this.parseMarket ({ 'symbol': marketId, 'baseSymbol': assetId, 'quoteSymbol': 'USDC', 'marketType': 'RFQ', 'rwaMarketType': 'STOCK', 'security': security });
+                    if (market !== undefined) {
+                        marketIds[marketId] = true;
+                        markets.push (market);
+                    }
+                }
+            }
+        }
+        return markets;
     }
 
     override parseMarket (market: Dict): Market {
@@ -722,6 +821,38 @@ export default class backpack extends Exchange {
         //         }
         //     ]
         //
+        // fetchMarkets stock
+        //
+        //     [
+        //         {
+        //             {
+        //                 "asset": "QNDX.US",
+        //                 "cusip": null,
+        //                 "name": "State Street SPDR Portfolio Nasdaq 100 ETF",
+        //                 "sessions": [
+        //                     {
+        //                         "maxQuantity": "1000",
+        //                         "minQuantity": "1",
+        //                         "name": "US_EQUITIES_PRE_MARKET",
+        //                         "stepSize": "1"
+        //                     },
+        //                     {
+        //                         "maxQuantity": "10000",
+        //                         "minQuantity": "0.01",
+        //                         "name": "US_EQUITIES_REGULAR",
+        //                         "stepSize": "0.01"
+        //                     },
+        //                     {
+        //                         "maxQuantity": "1000",
+        //                         "minQuantity": "1",
+        //                         "name": "US_EQUITIES_POST_MARKET",
+        //                         "stepSize": "1"
+        //                     }
+        //                 ]
+        //             },
+        //         }
+        //     ]
+        //
         const id = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'baseSymbol');
         const quoteId = this.safeString (market, 'quoteSymbol');
@@ -737,18 +868,53 @@ export default class backpack extends Exchange {
         const minPrice = this.safeNumber (priceFilter, 'minPrice');
         const pricePrecision = this.safeNumber (priceFilter, 'tickSize');
         const quantityFilter = this.safeDict (filters, 'quantity', {});
-        const maxQuantity = this.safeNumber (quantityFilter, 'maxQuantity');
-        const minQuantity = this.safeNumber (quantityFilter, 'minQuantity');
-        const amountPrecision = this.safeNumber (quantityFilter, 'stepSize');
+        let maxQuantity = this.safeNumber (quantityFilter, 'maxQuantity');
+        let minQuantity = this.safeNumber (quantityFilter, 'minQuantity');
+        let amountPrecision = this.safeNumber (quantityFilter, 'stepSize');
         let type: MarketType | undefined = undefined;
-        const typeOfMarket = this.parseMarketType (this.safeString (market, 'marketType'));
+        const rawType = this.safeString (market, 'marketType');
+        const rfq = rawType === 'RFQ';
+        const security = this.safeDict (market, 'security');
+        const baseSymbol = this.safeString (market, 'baseSymbol', '');
+        const stock = (this.safeString (market, 'rwaMarketType') === 'STOCK') || (security !== undefined) || baseSymbol.endsWith ('.US') || baseSymbol.endsWith ('.HK');
+        const typeOfMarket = this.parseMarketType (rawType);
         let linear: Bool = undefined;
         let inverse: Bool = undefined;
         let settle: Str = undefined;
         let settleId: Str = undefined;
         let contractSize: Num = undefined;
-        if (typeOfMarket === 'spot') {
+        if ((typeOfMarket === 'spot') || rfq) {
             type = 'spot';
+            if (rfq) {
+                symbol = base + '.RFQ/' + quote;
+                const sessions = this.safeList (security, 'sessions', []);
+                let stepSize: Str = undefined;
+                let minimum: Str = undefined;
+                let maximum: Str = undefined;
+                let unbounded = false;
+                for (let i = 0; i < sessions.length; i++) {
+                    const sessionStep = this.safeString (sessions[i], 'stepSize');
+                    if ((sessionStep !== undefined) && ((stepSize === undefined) || Precise.stringLt (sessionStep, stepSize))) {
+                        stepSize = sessionStep;
+                    }
+                    const sessionMin = this.safeString (sessions[i], 'minQuantity');
+                    const sessionMax = this.safeString (sessions[i], 'maxQuantity');
+                    if ((sessionMin !== undefined) && ((minimum === undefined) || Precise.stringLt (sessionMin, minimum))) {
+                        minimum = sessionMin;
+                    }
+                    if (sessionMax === undefined) {
+                        unbounded = true;
+                    } else if ((maximum === undefined) || Precise.stringGt (sessionMax, maximum)) {
+                        maximum = sessionMax;
+                    }
+                }
+                const sessionsLength = sessions.length;
+                if (sessionsLength > 0) {
+                    amountPrecision = this.parseNumber (stepSize);
+                    minQuantity = this.parseNumber (minimum);
+                    maxQuantity = (unbounded) ? undefined : this.parseNumber (maximum);
+                }
+            }
         } else if (typeOfMarket === 'swap') {
             type = 'swap';
             linear = true;
@@ -757,6 +923,8 @@ export default class backpack extends Exchange {
             settle = this.safeCurrencyCode (settleId);
             symbol += ':' + settle;
             contractSize = 1;
+        } else {
+            return undefined;
         }
         const orderBookState = this.safeString (market, 'orderBookState');
         return this.safeMarketStructure ({
@@ -770,11 +938,13 @@ export default class backpack extends Exchange {
             'settleId': settleId,
             'type': type,
             'spot': type === 'spot',
-            'margin': type === 'spot', // todo check if margin is supported for all markets
+            'margin': (type === 'spot') && !stock && !rfq,
+            'stock': stock,
+            'executionModel': (rfq) ? 'rfq' : undefined,
             'swap': type === 'swap',
             'future': false,
             'option': false,
-            'active': orderBookState === 'Open',
+            'active': (rfq) ? undefined : (orderBookState === 'Open'),
             'contract': type !== 'spot',
             'linear': linear,
             'inverse': inverse,
@@ -812,6 +982,393 @@ export default class backpack extends Exchange {
         });
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name backpack#handleStockParams
+     * @description resolves the stock market filter
+     * @param {string} methodName calling method
+     * @param {object} params exchange-specific parameters
+     * @param {object} [market] resolved market
+     * @returns {Array} stock flag and remaining parameters
+     */
+    handleStockParams (methodName: string, params: Dict, market: Market = undefined): List {
+        const defaultStock = this.safeBool (market, 'stock', false);
+        const [ stock, query ] = this.handleOptionBoolAndParams (params, methodName, 'stock', defaultStock);
+        if ((market !== undefined) && stock && !this.safeBool (market, 'stock', false)) {
+            throw new BadSymbol (this.id + ' ' + methodName + '() requires a stock market');
+        }
+        return [ stock, query ];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#fetchSecurities
+     * @description fetches stock security metadata and session-specific share quantity constraints
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_securities
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} security metadata, not account holdings or proof of equity ownership
+     */
+    async fetchSecurities (params: Dict = {}): Promise<Dict[]> {
+        const response = await this.publicGetApiV1Securities (params);
+        this.options['securities'] = response;
+        return response;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#fetchStockIndicativeQuote
+     * @description fetches a size-specific indicative stock quote without submitting or accepting an RFQ
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_stock_indicative_quote
+     * @param {string} symbol unified stock market symbol
+     * @param {string} side buy or sell
+     * @param {float} amount number of base shares
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @returns {object} indicative quote with availability, session constraints and non-guaranteed prices
+     */
+    async fetchStockIndicativeQuote (symbol: string, side: OrderSide, amount: number, params: Dict = {}): Promise<Dict> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const selection = this.handleStockParams ('fetchStockIndicativeQuote', params, market);
+        const query = this.safeDict (selection, 1, {});
+        if (market['stock'] !== true) {
+            throw new BadSymbol (this.id + ' fetchStockIndicativeQuote() requires a stock market');
+        }
+        if ((side !== 'buy') && (side !== 'sell')) {
+            throw new BadRequest (this.id + ' fetchStockIndicativeQuote() requires buy or sell');
+        }
+        if ((amount === undefined) || !Precise.stringGt (this.numberToString (amount), '0')) {
+            throw new InvalidOrder (this.id + ' fetchStockIndicativeQuote() requires a positive base share quantity');
+        }
+        const request: Dict = { 'symbol': market['baseId'], 'side': this.encodeOrderSide (side), 'quantity': this.numberToString (amount) };
+        const requestMethod = 'publicGetApiV1StockIndicativeQuote';
+        return await this[requestMethod] (this.extend (query, request));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#rfqConversionMarket
+     * @description resolves a stock RFQ market for a currency conversion pair
+     * @param {string} fromCode source currency code
+     * @param {string} toCode destination currency code
+     * @returns {object} resolved stock RFQ market
+     */
+    rfqConversionMarket (fromCode: string, toCode: string): MarketInterface {
+        const fromIsStock = fromCode.endsWith ('.US') || fromCode.endsWith ('.HK');
+        const toIsStock = toCode.endsWith ('.US') || toCode.endsWith ('.HK');
+        if (fromIsStock === toIsStock) {
+            throw new NotSupported (this.id + ' conversion requires exactly one stock currency');
+        }
+        const stockCode = (fromIsStock) ? fromCode : toCode;
+        const quoteCode = (fromIsStock) ? toCode : fromCode;
+        const symbol = stockCode + '.RFQ/' + quoteCode;
+        const market = this.safeDict (this.markets, symbol);
+        if ((market === undefined) || (market['executionModel'] !== 'rfq') || (market['stock'] !== true)) {
+            throw new BadSymbol (this.id + ' conversion requires a listed stock RFQ market: ' + symbol);
+        }
+        return market as MarketInterface;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#parseConversion
+     * @description converts a submitted or accepted RFQ order into a conversion structure
+     * @param {object} order parsed RFQ order
+     * @param {object} [fromCurrency] source currency
+     * @param {object} [toCurrency] destination currency
+     * @returns {object} unified conversion structure
+     */
+    override parseConversion (order: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
+        const fromCode = this.safeString (fromCurrency, 'code');
+        const toCode = this.safeString (toCurrency, 'code');
+        if ((fromCode === undefined) || (toCode === undefined)) {
+            throw new ArgumentsRequired (this.id + ' parseConversion() requires source and destination currencies');
+        }
+        const market = this.rfqConversionMarket (fromCode, toCode);
+        const fromIsBase = fromCode === market['base'];
+        const filled = this.safeNumber (order, 'filled');
+        const cost = this.safeNumber (order, 'cost');
+        const fee = this.safeDict (order, 'fee');
+        const timestamp = this.safeInteger (order, 'timestamp');
+        return {
+            'info': order['info'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (order, 'id'),
+            'fromCurrency': this.safeCurrencyCode (fromCode),
+            'fromAmount': (fromIsBase) ? filled : cost,
+            'toCurrency': this.safeCurrencyCode (toCode),
+            'toAmount': (fromIsBase) ? cost : filled,
+            'price': this.safeNumber2 (order, 'average', 'price'),
+            'fee': this.safeNumber (fee, 'cost'),
+        } as Conversion;
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchConvertQuote
+     * @description fetches an indicative quote for converting between a tokenized stock and its quote currency
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_stock_indicative_quote
+     * @param {string} fromCode the currency to convert from
+     * @param {string} toCode the currency to convert to
+     * @param {float} amount amount in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.price] optional limit price when converting quote currency to stock
+     * @returns {object} indicative conversion estimate; the price is a bound and is not guaranteed
+     */
+    override async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params: Dict = {}): Promise<Conversion> {
+        let amountString = this.numberToString (amount);
+        if ((amountString === undefined) || !Precise.stringGt (amountString, '0')) {
+            throw new ArgumentsRequired (this.id + ' fetchConvertQuote() requires a positive amount');
+        }
+        await this.loadMarkets ();
+        const market = this.rfqConversionMarket (fromCode, toCode);
+        const fromIsBase = fromCode === market['base'];
+        const side: OrderSide = (fromIsBase) ? 'sell' : 'buy';
+        if (!fromIsBase) {
+            const initialQuote = await this.fetchStockIndicativeQuote (market['symbol'], side, 1, { 'stock': true });
+            const initialPrice = this.safeString (initialQuote, 'price');
+            if (!this.safeBool (initialQuote, 'available', false) || (initialPrice === undefined)) {
+                throw new InvalidOrder (this.id + ' fetchConvertQuote() stock indicative quote unavailable: ' + this.safeString (initialQuote, 'reason', 'priceUnavailable'));
+            }
+            let priceParam = this.safeString (params, 'price');
+            if (priceParam === undefined) {
+                priceParam = initialPrice;
+            }
+            if (!Precise.stringGt (priceParam, '0')) {
+                throw new InvalidOrder (this.id + ' fetchConvertQuote() price must be positive');
+            }
+            const rawQuantity = Precise.stringDiv (amountString, priceParam, 18);
+            const preciseQuantity = this.amountToPrecision (market['symbol'], this.parseNumber (rawQuantity));
+            if (preciseQuantity === undefined) {
+                throw new InvalidOrder (this.id + ' fetchConvertQuote() could not determine a stock quantity');
+            }
+            amountString = preciseQuantity;
+            if (!Precise.stringGt (amountString, '0')) {
+                throw new InvalidOrder (this.id + ' fetchConvertQuote() amount is too small for one stock increment');
+            }
+        }
+        let quote = await this.fetchStockIndicativeQuote (market['symbol'], side, this.parseNumber (amountString), { 'stock': true });
+        if (!this.safeBool (quote, 'available', false) || (this.safeString (quote, 'price') === undefined)) {
+            throw new InvalidOrder (this.id + ' fetchConvertQuote() stock indicative quote unavailable: ' + this.safeString (quote, 'reason', 'priceUnavailable'));
+        }
+        if (!fromIsBase) {
+            const quoteQuantity = this.safeString (quote, 'quoteQuantity');
+            const quantityFilter = this.safeDict (quote, 'quantityFilter', {});
+            const stepSize = this.safeString (quantityFilter, 'stepSize');
+            if ((quoteQuantity !== undefined) && (stepSize !== undefined) && Precise.stringGt (quoteQuantity, this.numberToString (amount))) {
+                const reducedQuantity = Precise.stringSub (amountString, stepSize);
+                if ((reducedQuantity === undefined) || !Precise.stringGt (reducedQuantity, '0')) {
+                    throw new InvalidOrder (this.id + ' fetchConvertQuote() amount is too small for one stock increment');
+                }
+                amountString = reducedQuantity;
+                quote = await this.fetchStockIndicativeQuote (market['symbol'], side, this.parseNumber (amountString), { 'stock': true });
+                if (!this.safeBool (quote, 'available', false) || (this.safeString (quote, 'price') === undefined)) {
+                    throw new InvalidOrder (this.id + ' fetchConvertQuote() stock indicative quote unavailable: ' + this.safeString (quote, 'reason', 'priceUnavailable'));
+                }
+            }
+            const finalQuoteQuantity = this.safeString (quote, 'quoteQuantity');
+            if ((finalQuoteQuantity !== undefined) && Precise.stringGt (finalQuoteQuantity, this.numberToString (amount))) {
+                throw new InvalidOrder (this.id + ' fetchConvertQuote() rounded stock quantity exceeds the requested quote-currency amount');
+            }
+        }
+        const quoteAmount = this.safeNumber (quote, 'quoteQuantity');
+        const baseAmount = this.parseNumber (amountString);
+        const fromCurrency = this.safeCurrencyCode (fromCode);
+        const toCurrency = this.safeCurrencyCode (toCode);
+        return {
+            'info': quote,
+            'timestamp': this.safeInteger (quote, 'publishedAt'),
+            'datetime': this.iso8601 (this.safeInteger (quote, 'publishedAt')),
+            'id': undefined,
+            'fromCurrency': fromCurrency,
+            'fromAmount': (fromIsBase) ? baseAmount : quoteAmount,
+            'toCurrency': toCurrency,
+            'toAmount': (fromIsBase) ? quoteAmount : baseAmount,
+            'price': this.safeNumber (quote, 'price'),
+            'fee': undefined,
+        } as Conversion;
+    }
+
+    /**
+     * @method
+     * @name backpack#createConvertTrade
+     * @description converts between a tokenized stock and its quote currency through a bounded RFQ
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/accept_quote
+     * @param {string} id RFQ identifier when accepting a quote, or a numeric client identifier for a new RFQ
+     * @param {string} fromCode the currency to convert from
+     * @param {string} toCode the currency to convert to
+     * @param {float} [amount] amount in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.quoteId] accept this quote for RFQ id supplied as id
+     * @param {float} [params.price] price bound from fetchConvertQuote; required when buying stock
+     * @param {float} [params.baseAmount] stock quantity when converting quote currency to stock
+     * @param {int} [params.clientOrderId] requester client identifier for a newly submitted RFQ
+     * @returns {object} conversion result; RFQ submission may remain open and is not necessarily a fill
+     */
+    override async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params: Dict = {}): Promise<Conversion> {
+        await this.loadMarkets ();
+        const market = this.rfqConversionMarket (fromCode, toCode);
+        const selection = this.handleStockParams ('createConvertTrade', params, market);
+        const query = this.safeDict (selection, 1, {});
+        const quoteId = this.safeString (query, 'quoteId');
+        if (quoteId !== undefined) {
+            const acceptParams = this.omit (query, [ 'quoteId', 'price', 'baseAmount', 'clientOrderId' ]);
+            const accepted = await this.acceptRfqQuote (id, quoteId, market['symbol'], acceptParams);
+            return this.parseConversion (accepted, this.currency (fromCode), this.currency (toCode));
+        }
+        if ((amount === undefined) || !Precise.stringGt (this.numberToString (amount), '0')) {
+            throw new ArgumentsRequired (this.id + ' createConvertTrade() requires a positive amount');
+        }
+        const fromIsBase = fromCode === market['base'];
+        const side: OrderSide = (fromIsBase) ? 'sell' : 'buy';
+        let quantity = this.numberToString (amount);
+        let price = this.safeNumber (query, 'price');
+        if (!fromIsBase) {
+            const baseAmount = this.safeNumber (query, 'baseAmount');
+            if (baseAmount !== undefined) {
+                quantity = this.numberToString (baseAmount);
+            } else {
+                if ((price === undefined) || !Precise.stringGt (this.numberToString (price), '0')) {
+                    const indicative = await this.fetchStockIndicativeQuote (market['symbol'], side, 1, { 'stock': true });
+                    if (!this.safeBool (indicative, 'available', false)) {
+                        throw new InvalidOrder (this.id + ' createConvertTrade() stock indicative quote unavailable: ' + this.safeString (indicative, 'reason', 'priceUnavailable'));
+                    }
+                    price = this.safeNumber (indicative, 'price');
+                }
+                if ((price === undefined) || !Precise.stringGt (this.numberToString (price), '0')) {
+                    throw new InvalidOrder (this.id + ' createConvertTrade() buying stock requires a positive price bound');
+                }
+                const rawQuantity = Precise.stringDiv (this.numberToString (amount), this.numberToString (price), 18);
+                const preciseQuantity = this.amountToPrecision (market['symbol'], this.parseNumber (rawQuantity));
+                if (preciseQuantity === undefined) {
+                    throw new InvalidOrder (this.id + ' createConvertTrade() could not determine a stock quantity');
+                }
+                quantity = preciseQuantity;
+            }
+            if ((price === undefined) || !Precise.stringGt (this.numberToString (price), '0')) {
+                const indicative = await this.fetchStockIndicativeQuote (market['symbol'], side, this.parseNumber (quantity), { 'stock': true });
+                if (!this.safeBool (indicative, 'available', false)) {
+                    throw new InvalidOrder (this.id + ' createConvertTrade() stock indicative quote unavailable: ' + this.safeString (indicative, 'reason', 'priceUnavailable'));
+                }
+                price = this.safeNumber (indicative, 'price');
+            }
+            if ((price === undefined) || !Precise.stringGt (this.numberToString (price), '0')) {
+                throw new InvalidOrder (this.id + ' createConvertTrade() buying stock requires a positive price bound');
+            }
+            let quoteCost = Precise.stringMul (quantity, this.numberToString (price));
+            if (Precise.stringGt (quoteCost, this.numberToString (amount))) {
+                const precision = this.safeDict (market, 'precision', {});
+                const stepSize = this.numberToString (this.safeNumber (precision, 'amount'));
+                if (!Precise.stringGt (stepSize, '0')) {
+                    throw new InvalidOrder (this.id + ' createConvertTrade() cannot safely round stock quantity to the quote-currency budget');
+                }
+                const reducedQuantity = Precise.stringSub (quantity, stepSize);
+                if ((reducedQuantity === undefined) || !Precise.stringGt (reducedQuantity, '0')) {
+                    throw new InvalidOrder (this.id + ' createConvertTrade() stock quantity is too small for one increment');
+                }
+                quantity = reducedQuantity;
+                quoteCost = Precise.stringMul (quantity, this.numberToString (price));
+                if (!Precise.stringGt (quantity, '0') || Precise.stringGt (quoteCost, this.numberToString (amount))) {
+                    throw new InvalidOrder (this.id + ' createConvertTrade() stock quantity exceeds the quote-currency amount');
+                }
+            }
+        }
+        let clientOrderId = this.safeInteger (query, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            clientOrderId = this.safeInteger ({ 'id': id }, 'id');
+        }
+        const orderParams = this.omit (query, [ 'price', 'baseAmount', 'quoteId', 'clientOrderId' ]);
+        if (clientOrderId !== undefined) {
+            orderParams['clientOrderId'] = clientOrderId;
+        }
+        const order = await this.createRfqOrder (market['symbol'], 'market', side, this.parseNumber (quantity), price, this.extend (orderParams, { 'stock': true }));
+        return this.parseConversion (order, this.currency (fromCode), this.currency (toCode));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#stockDataRequest
+     * @description resolves venue or external stock statistics without treating RFQs as an order book
+     * @param {string} methodName calling method
+     * @param {object} params exchange-specific parameters
+     * @param {object} [market] resolved market
+     * @returns {object} market data parameters
+     */
+    stockDataRequest (methodName: string, params: Dict, market: Market = undefined): Dict {
+        const selection = this.handleStockParams (methodName, params, market);
+        const stock = this.safeBool (selection, 0, false);
+        const query = this.safeDict (selection, 1, {});
+        const request: Dict = this.extend ({}, query);
+        let source = this.safeString (query, 'source');
+        const isRfq = (market !== undefined) && (this.safeString (market['info'], 'marketType') === 'RFQ');
+        if (source === undefined) {
+            source = (isRfq) ? 'External' : 'Venue';
+        }
+        if ((source !== 'Venue') && (source !== 'External')) {
+            throw new BadRequest (this.id + ' ' + methodName + '() source must be Venue or External');
+        }
+        if (source === 'External') {
+            if (!stock) {
+                throw new BadRequest (this.id + ' ' + methodName + '() External provider data requires a stock market symbol or params.stock=true when no symbol is provided');
+            }
+            if ((market !== undefined) && (market['stock'] !== true)) {
+                throw new BadSymbol (this.id + ' ' + methodName + '() External data requires a stock market');
+            }
+            request['source'] = source;
+            if (methodName === 'fetchOHLCV') {
+                const priceType = this.safeString (query, 'priceType', 'Last');
+                const price = this.safeString (query, 'price');
+                if ((priceType !== 'Last') || ((price !== undefined) && (price !== 'last'))) {
+                    throw new BadRequest (this.id + ' fetchOHLCV() External data requires Last prices');
+                }
+                request['priceType'] = 'Last';
+            } else {
+                const interval = this.safeString (query, 'interval', '1d');
+                if (interval !== '1d') {
+                    throw new BadRequest (this.id + ' ' + methodName + '() External tickers require interval=1d');
+                }
+                request['interval'] = interval;
+            }
+        }
+        if (market !== undefined) {
+            let marketId = market['id'];
+            if (this.safeString (market['info'], 'marketType') === 'RFQ') {
+                marketId = market['baseId'] + '_' + market['quoteId'];
+            }
+            request['symbol'] = marketId;
+        }
+        return request;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#filterStockStructures
+     * @description filters parsed account structures by securities metadata, never by RFQ execution alone
+     * @param {Array} entries parsed trades or orders
+     * @returns {Array} tokenized stock structures
+     */
+    filterStockStructures (entries: List): List {
+        const result: List = [];
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
+            const symbol = this.safeString (entry, 'symbol');
+            const market = this.safeDict (this.markets, symbol);
+            if (this.safeBool (market, 'stock', false)) {
+                result.push (entry);
+            }
+        }
+        return result;
+    }
+
     parseMarketType (type: Str): Str {
         const types = {
             'SPOT': 'spot',
@@ -828,29 +1385,85 @@ export default class backpack extends Exchange {
     /**
      * @method
      * @name backpack#fetchTickers
+     * @description fetches venue or external provider statistics, not executable RFQ prices
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_tickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock tickers only; inferred from requested symbols when omitted
+     * @param {string} [params.source] Venue or External; RFQ symbols default to External, other symbols default to Venue
+     * @param {string} [params.interval] ticker interval, External requires 1d
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request: Dict = {};
-        const response = await this.publicGetApiV1Tickers (this.extend (request, params));
+        const selection = this.handleStockParams ('fetchTickers', params);
+        const stockOnly = this.safeBool (selection, 0, false);
+        const query = this.safeDict (selection, 1, {});
+        const source = this.safeString (query, 'source', 'Venue');
+        const symbolsNormalized = ((symbols === undefined) || (symbols.length === 0)) ? undefined : this.marketSymbols (symbols, undefined, false);
+        const symbolsResolved: Strings = (symbolsNormalized === undefined) ? Object.keys (this.markets as Dict) : symbolsNormalized;
+        let hasRfqSymbol = false;
+        let hasStockSymbol = false;
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbolsResolved.length; i++) {
+                const market = this.market (symbolsResolved[i]);
+                if (market['stock'] === true) {
+                    hasStockSymbol = true;
+                }
+                if (this.safeString (market['info'], 'marketType') === 'RFQ') {
+                    hasRfqSymbol = true;
+                }
+            }
+        }
+        const stockExplicitlyDisabled = this.safeValue2 (params, 'stock', 'defaultStock') === false;
+        const needsExternalRfqTickers = (source === 'Venue') && (this.safeString (query, 'source') === undefined) && hasRfqSymbol && !stockExplicitlyDisabled;
+        const requestParams = ((source === 'External') && (stockOnly || hasStockSymbol) && !stockExplicitlyDisabled) ? this.extend ({}, query, { 'stock': true }) : query;
+        const request = this.stockDataRequest ('fetchTickers', requestParams);
+        const response = await this.publicGetApiV1Tickers (request);
         const tickers = this.parseTickers (response);
-        return this.filterByArrayTickers (tickers, 'symbol', symbols);
+        const responseById = this.indexBy (response as List, 'symbol');
+        let externalResponse: List = [];
+        let externalResponseById: Dict = {};
+        if (needsExternalRfqTickers || (source === 'External')) {
+            const externalParams = this.extend ({}, query, { 'stock': true, 'source': 'External' });
+            externalResponse = await this.publicGetApiV1Tickers (this.stockDataRequest ('fetchTickers', externalParams));
+            externalResponseById = this.indexBy (externalResponse, 'symbol');
+        }
+        const result: Tickers = {};
+        for (let i = 0; i < symbolsResolved.length; i++) {
+            const marketSymbol = symbolsResolved[i];
+            const market = this.market (marketSymbol);
+            if (stockOnly && (market['stock'] !== true)) {
+                continue;
+            }
+            const marketIsRfq = this.safeString (market['info'], 'marketType') === 'RFQ';
+            const ticker = this.safeDict (tickers, marketSymbol);
+            if ((ticker !== undefined) && ((source !== 'External') || (market['stock'] === true))) {
+                result[marketSymbol] = ticker as Ticker;
+            } else if (marketIsRfq) {
+                const underlyingId = market['baseId'] + '_' + market['quoteId'];
+                const useExternal = (source === 'External') || needsExternalRfqTickers;
+                const underlyingTicker = this.safeDict (useExternal ? externalResponseById : responseById, underlyingId);
+                if (underlyingTicker !== undefined) {
+                    result[marketSymbol] = this.parseTicker (underlyingTicker, market);
+                }
+            }
+        }
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     /**
      * @method
      * @name backpack#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @description fetches underlying venue or external stock statistics, not an executable RFQ quote
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @param {string} [params.source] Venue or External; RFQ symbols default to External
+     * @param {string} [params.interval] ticker interval, External requires 1d
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
@@ -858,10 +1471,8 @@ export default class backpack extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
-        const response = await this.publicGetApiV1Ticker (this.extend (request, params));
+        const request = this.stockDataRequest ('fetchTicker', params, market);
+        const response = await this.publicGetApiV1Ticker (request);
         return this.parseTicker (response, market);
     }
 
@@ -883,8 +1494,8 @@ export default class backpack extends Exchange {
         //     }, ...
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, marketResolved);
+        const marketResolved: Market = (market === undefined) ? this.safeMarket (marketId) : market;
+        const symbol = marketResolved['symbol'];
         const open = this.safeString (ticker, 'firstPrice');
         const last = this.safeString (ticker, 'lastPrice');
         const high = this.safeString (ticker, 'high');
@@ -928,11 +1539,13 @@ export default class backpack extends Exchange {
     /**
      * @method
      * @name backpack#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @description fetches venue order-book depth, RFQ and external provider depth are not supported
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
+     * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects a tokenized stock spot order book; inferred from symbol when omitted
+     * @param {string} [params.source] Venue, External provider depth is not supported
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
@@ -940,24 +1553,28 @@ export default class backpack extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const selection = this.handleStockParams ('fetchOrderBook', params, market);
+        const query = this.safeDict (selection, 1, {});
+        const source = this.safeString (query, 'source', 'Venue');
+        if ((source !== 'Venue') || (this.safeString (market['info'], 'marketType') === 'RFQ')) {
+            throw new NotSupported (this.id + ' fetchOrderBook() requires a venue order-book market; use fetchStockIndicativeQuote() for size-specific RFQ prices');
+        }
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetApiV1Depth (this.extend (request, params));
-        //
-        //     {
-        //         "asks": [
-        //             ["118318.3","0.00633"],
-        //             ["118567.2","0.08450"]
-        //         ],
-        //         "bids": [
-        //             ["1.0","0.38647"],
-        //             ["12.9","1.00000"]
-        //         ],
-        //         "lastUpdateId":"1504999670",
-        //         "timestamp":1753102447307501
-        //     }
-        //
+        let requestLimit: Int = undefined;
+        if (limit !== undefined) {
+            const supportedLimits = [ 5, 10, 20, 50, 100, 500 ];
+            requestLimit = 500;
+            for (let i = 0; i < supportedLimits.length; i++) {
+                if (limit <= supportedLimits[i]) {
+                    requestLimit = supportedLimits[i];
+                    break;
+                }
+            }
+            request['limit'] = requestLimit;
+        }
+        const response = await this.publicGetApiV1Depth (this.extend (request, this.omit (query, 'source')));
         const microseconds = this.safeInteger (response, 'timestamp');
         if (microseconds === undefined) {
             throw new ExchangeError (this.id + ' fetchOrderBook() missing microseconds');
@@ -965,20 +1582,29 @@ export default class backpack extends Exchange {
         const timestamp = this.parseToInt (microseconds / 1000);
         const orderbook = this.parseOrderBook (response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
+        if (limit !== undefined) {
+            orderbook['bids'] = this.arraySlice (orderbook['bids'], 0, limit);
+            orderbook['asks'] = this.arraySlice (orderbook['asks'], 0, limit);
+        }
         return orderbook;
     }
 
     /**
      * @method
      * @name backpack#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @description fetches venue or external stock candlestick data for the underlying market
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_klines
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in seconds of the earliest candle to fetch
+     * @param {int} [since] timestamp in milliseconds of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @param {string} [params.source] Venue or External; RFQ symbols default to External
+     * @param {string} [params.price] last, mark or index, External requires last
+     * @param {string} [params.priceType] Last, Mark or Index, External requires Last
+     * @param {int} [params.until] latest candle timestamp in milliseconds
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
@@ -987,11 +1613,9 @@ export default class backpack extends Exchange {
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const duration = this.parseTimeframe (timeframe);
-        const request: Dict = {
-            'symbol': market['id'],
-            'interval': interval,
-        };
-        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (params, 'fetchOHLCV', 'until');
+        const dataRequest = this.stockDataRequest ('fetchOHLCV', params, market);
+        const request: Dict = { 'symbol': dataRequest['symbol'], 'interval': interval };
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (this.omit (dataRequest, 'symbol'), 'fetchOHLCV', 'until');
         if (until !== undefined) {
             request['endTime'] = this.parseToInt (until / 1000); // convert milliseconds to seconds
         }
@@ -1216,7 +1840,7 @@ export default class backpack extends Exchange {
     /**
      * @method
      * @name backpack#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
+     * @description gets recent venue order-book trades, not public RFQ or external provider fills
      * @see https://docs.backpack.exchange/#tag/Trades/operation/get_recent_trades
      * @see https://docs.backpack.exchange/#tag/Trades/operation/get_historical_trades
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -1224,6 +1848,7 @@ export default class backpack extends Exchange {
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.offset] the number of trades to skip, default is 0
+     * @param {boolean} [params.stock] selects tokenized stock spot trades; inferred from symbol when omitted
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
@@ -1231,6 +1856,11 @@ export default class backpack extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const selection = this.handleStockParams ('fetchTrades', params, market);
+        const query = this.safeDict (selection, 1, {});
+        if ((this.safeString (query, 'source', 'Venue') !== 'Venue') || (this.safeString (market['info'], 'marketType') === 'RFQ')) {
+            throw new NotSupported (this.id + ' fetchTrades() only supports venue order-book trades; use fetchMyTrades() for RFQ fills');
+        }
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -1238,11 +1868,11 @@ export default class backpack extends Exchange {
             request['limit'] = Math.min (limit, 1000); // api maximum 1000
         }
         let response = undefined;
-        const offset = this.safeInteger (params, 'offset');
+        const offset = this.safeInteger (query, 'offset');
         if (offset !== undefined) {
-            response = await this.publicGetApiV1TradesHistory (this.extend (request, params));
+            response = await this.publicGetApiV1TradesHistory (this.extend (request, query));
         } else {
-            response = await this.publicGetApiV1Trades (this.extend (request, params));
+            response = await this.publicGetApiV1Trades (this.extend (request, query));
         }
         const responseList = this.toArray (response);
         return this.parseTrades (responseList, market, since, limit);
@@ -1251,14 +1881,20 @@ export default class backpack extends Exchange {
     /**
      * @method
      * @name backpack#fetchMyTrades
-     * @description fetch all trades made by the user
+     * @description fetches venue fills or requester RFQ fills, combining stock records when no symbol is supplied
      * @see https://docs.backpack.exchange/#tag/History/operation/get_fills
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_fill_history
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [since] the earliest time in ms to fetch trades for, locally filtered for RFQ history pages
      * @param {int} [limit] the maximum number of trades structures to retrieve (default 100, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {string} [params.fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
+     * @param {int} [params.until] the latest time in ms to fetch trades for, locally filtered for RFQ history pages
+     * @param {boolean} [params.stock] selects tokenized stock fills; inferred from symbol when omitted
+     * @param {boolean} [params.rfq] selects requester RFQ fills only, inferred from RFQ symbols
+     * @param {int} [params.offset] exchange history pagination offset
+     * @param {string} [params.sortDirection] Asc or Desc
+     * @param {boolean} [params.deferredSettlement] selects deferred or immediate RFQ settlement records
+     * @param {string} [params.fillType] User or CollateralConversion for RFQs, additional exchange-specific types for venue fills
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
@@ -1271,14 +1907,56 @@ export default class backpack extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        const selection = this.handleStockParams ('fetchMyTrades', params, market);
+        const stock = this.safeBool (selection, 0, false);
+        const query = this.safeDict (selection, 1, {});
+        const rfq = this.safeBool (query, 'rfq', false) || (this.safeString (this.safeDict (market, 'info'), 'marketType') === 'RFQ');
+        const aggregate = stock && (market === undefined) && !rfq;
+        if (rfq && (market !== undefined) && (this.safeString (market['info'], 'marketType') !== 'RFQ')) {
+            throw new BadSymbol (this.id + ' fetchMyTrades() rfq requires an RFQ market symbol');
+        }
+        const accountParams = this.omit (query, [ 'rfq', 'until' ]);
+        const until = this.safeInteger (query, 'until');
+        if (rfq || aggregate) {
+            const rfqRequest: Dict = {};
+            if (market !== undefined) {
+                rfqRequest['symbol'] = market['id'];
+            }
+            if (limit !== undefined) {
+                rfqRequest['limit'] = Math.min (limit, 1000);
+            }
+            const rfqParams = this.omit (accountParams, [ 'assetClass', 'marketType', 'from', 'to' ]);
+            const rfqResponse = await this.privateGetWapiV1HistoryRfqFill (this.extend (rfqRequest, rfqParams));
+            let rfqTrades = this.parseTrades (rfqResponse, market, since);
+            if (aggregate) {
+                const venueParams = this.extend ({}, this.omit (accountParams, [ 'rfqId', 'quoteId', 'deferredSettlement' ]), { 'assetClass': 'STOCK', 'stock': false });
+                const venueTrades = await this.fetchMyTrades (undefined, since, limit, venueParams);
+                rfqTrades = this.arrayConcat (rfqTrades, venueTrades);
+            }
+            if (stock) {
+                rfqTrades = this.filterStockStructures (rfqTrades) as Trade[];
+            }
+            const filtered: Trade[] = [];
+            for (let i = 0; i < rfqTrades.length; i++) {
+                const trade = rfqTrades[i];
+                const timestamp = this.safeInteger (trade, 'timestamp');
+                if ((until === undefined) || ((timestamp !== undefined) && (timestamp <= until))) {
+                    filtered.push (trade);
+                }
+            }
+            const sorted = this.sortBy (filtered, 'timestamp');
+            return this.filterBySinceLimit (sorted, since, limit) as Trade[];
+        }
         if (since !== undefined) {
             request['from'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
-        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, [ 'until' ]) : params;
+        const paramsOmitted: Dict = accountParams;
+        if (stock) {
+            request['assetClass'] = 'STOCK';
+        }
         if (until !== undefined) {
             request['to'] = until;
         }
@@ -1286,7 +1964,7 @@ export default class backpack extends Exchange {
         if (fillType === undefined) {
             request['fillType'] = 'User'; // default
         }
-        const response = await this.privateGetWapiV1HistoryFills (this.extend (request, paramsOmitted));
+        const response = await this.privateGetWapiV1HistoryFills (this.extend (paramsOmitted, request));
         const responseList = this.toArray (response);
         return this.parseTrades (responseList, market, since, limit);
     }
@@ -1322,8 +2000,8 @@ export default class backpack extends Exchange {
         const id = this.safeString2 (trade, 'id', 'tradeId');
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const price = this.safeString (trade, 'price');
-        const amount = this.safeString (trade, 'quantity');
+        const price = this.safeString2 (trade, 'fillPrice', 'price');
+        const amount = this.safeString2 (trade, 'fillQuantity', 'quantity');
         const isBuyerMaker = this.safeBool (trade, 'isBuyerMaker');
         let side = this.parseOrderSide (this.safeString (trade, 'side'));
         const isMaker = this.safeBool (trade, 'isMaker');
@@ -1334,7 +2012,7 @@ export default class backpack extends Exchange {
             takerOrMaker = 'taker';
             side = isBuyerMaker ? 'sell' : 'buy';
         }
-        const orderId = this.safeString (trade, 'orderId');
+        const orderId = this.safeString2 (trade, 'orderId', 'rfqId');
         let fee: FeeString = undefined;
         const feeAmount = this.safeString (trade, 'fee');
         let timestamp = this.safeInteger (trade, 'timestamp');
@@ -1342,6 +2020,10 @@ export default class backpack extends Exchange {
             // if fetchMyTrades
             const datetime = this.safeString (trade, 'timestamp');
             timestamp = this.parse8601 (datetime);
+        }
+        const filledAt = this.safeString (trade, 'filledAt');
+        if (filledAt !== undefined) {
+            timestamp = this.parse8601 (filledAt);
         }
         const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeSymbol'));
         if (feeAmount !== undefined) {
@@ -1363,7 +2045,7 @@ export default class backpack extends Exchange {
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': undefined,
+            'cost': this.safeString2 (trade, 'fillQuoteQuantity', 'quoteQuantity'),
             'fee': fee,
         }, marketResolved);
     }
@@ -1416,16 +2098,36 @@ export default class backpack extends Exchange {
     /**
      * @method
      * @name backpack#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @description queries the capital account, optionally filtering tokenized stock assets locally
      * @see https://docs.backpack.exchange/#tag/Capital/operation/get_balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock holdings only, without quote-currency cash
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const response = await this.privateGetApiV1Capital (params);
+        const selection = this.handleStockParams ('fetchBalance', params);
+        const stock = this.safeBool (selection, 0, false);
+        const query = this.safeDict (selection, 1, {});
+        const response = await this.privateGetApiV1Capital (query);
+        if (stock) {
+            let securities = this.safeList (this.options, 'securities');
+            if (securities === undefined) {
+                securities = await this.fetchSecurities ();
+            }
+            const securityIds = this.indexBy (securities, 'asset');
+            const balances: Dict = {};
+            const assetIds = Object.keys (response);
+            for (let i = 0; i < assetIds.length; i++) {
+                const assetId = assetIds[i];
+                if (assetId in securityIds) {
+                    balances[assetId] = response[assetId];
+                }
+            }
+            return this.parseBalance (balances);
+        }
         return this.parseBalance (response);
     }
 
@@ -1744,31 +2446,35 @@ export default class backpack extends Exchange {
     /**
      * @method
      * @name backpack#createOrder
-     * @description create a trade order
+     * @description creates a venue order or bounded requester RFQ for a tokenized stock
      * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+     * @param {float} amount quantity in base currency, RFQs require base quantity
+     * @param {float} [price] limit price, ignored for venue market orders but an optional execution bound for market RFQs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency (could be used instead of amount)
+     * @param {float} [params.cost] venue market orders only, quote-currency cost instead of amount
+     * @param {boolean} [params.stock] selects tokenized stock spot or RFQ execution; inferred from symbol when omitted
+     * @param {string} [params.executionMode] RFQ only, Immediate (default) or AwaitAccept for manually accepted limit RFQs
+     * @param {int} [params.orderExpiryTime] RFQ only, resting Immediate RFQ expiry in milliseconds
      * @param {int} [params.clientOrderId] a unique id for the order
-     * @param {boolean} [params.postOnly] true to place a post only order
-     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
-     * @param {bool} [params.reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
-     * @param {string} [params.selfTradePrevention] one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
-     * @param {bool} [params.autoLend] *spot margin only* if true then the order can lend
-     * @param {bool} [params.autoLendRedeem] *spot margin only* if true then the order can redeem a lend if required
-     * @param {bool} [params.autoBorrow] *spot margin only* if true then the order can borrow
-     * @param {bool} [params.autoBorrowRepay] *spot margin only* if true then the order can repay a borrow
-     * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
-     * @param {object} [params.takeProfit] *swap markets only - takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+     * @param {boolean} [params.postOnly] venue orders only, true to place a post only order
+     * @param {string} [params.timeInForce] venue orders only, GTC, IOC, FOK or PO
+     * @param {bool} [params.reduceOnly] contracts only, reduces a position
+     * @param {string} [params.selfTradePrevention] venue orders only, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
+     * @param {bool} [params.autoLend] lend if required
+     * @param {bool} [params.autoLendRedeem] redeem a lend if required
+     * @param {bool} [params.autoBorrow] borrow if required
+     * @param {bool} [params.autoBorrowRepay] repay a borrow if required
+     * @param {float} [params.triggerPrice] venue orders only, trigger price
+     * @param {object} [params.takeProfit] swap markets only, attached take profit order
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-     * @param {float} [params.takeProfit.price] take profit order price (if not provided the order will be a market order)
-     * @param {object} [params.stopLoss] *swap markets only - stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+     * @param {float} [params.takeProfit.price] take profit limit price, omitted for a market order
+     * @param {object} [params.stopLoss] swap markets only, attached stop loss order
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
+     * @param {float} [params.stopLoss.price] stop loss limit price, omitted for a market order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
@@ -1776,25 +2482,160 @@ export default class backpack extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const selection = this.handleStockParams ('createOrder', params, market);
+        const query = this.safeDict (selection, 1, {});
+        const orderParams = this.extend ({}, query, { 'stock': this.safeBool (selection, 0, false) });
+        if (this.safeString (market['info'], 'marketType') === 'RFQ') {
+            return await this.createRfqOrder (symbol, type, side, amount, price, orderParams);
+        }
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
         const response = await this.privatePostApiV1Order (orderRequest);
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#createRfqOrder
+     * @description submits a base-quantity RFQ, with explicit market orders using an indicative execution bound
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
+     * @param {string} symbol unified RFQ market symbol
+     * @param {string} type market or limit
+     * @param {string} side buy or sell
+     * @param {float} amount base quantity
+     * @param {float} [price] required limit price, or optional market execution bound
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.executionMode] Immediate (default and required) to enforce the execution price bound
+     * @param {int} [params.orderExpiryTime] exchange-specific resting RFQ expiry in milliseconds
+     * @param {int} [params.clientOrderId] requester client identifier
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async createRfqOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const selection = this.handleStockParams ('createRfqOrder', params, market);
+        const paramsResolved = this.safeDict (selection, 1, {});
+        if (this.safeString (market['info'], 'marketType') !== 'RFQ') {
+            throw new BadSymbol (this.id + ' createRfqOrder() requires an RFQ market');
+        }
+        if ((type !== 'market') && (type !== 'limit')) {
+            throw new InvalidOrder (this.id + ' createOrder() RFQs support market or limit orders only');
+        }
+        if ((side !== 'buy') && (side !== 'sell')) {
+            throw new InvalidOrder (this.id + ' createOrder() requires buy or sell');
+        }
+        if ((amount === undefined) || !Precise.stringGt (this.numberToString (amount), '0')) {
+            throw new InvalidOrder (this.id + ' createOrder() RFQs require a positive base quantity');
+        }
+        const unsupported = [ 'cost', 'quoteQuantity', 'postOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'reduceOnly', 'timeInForce', 'selfTradePrevention' ];
+        for (let i = 0; i < unsupported.length; i++) {
+            const key = unsupported[i];
+            if (key in paramsResolved) {
+                throw new NotSupported (this.id + ' createOrder() RFQs do not support ' + key);
+            }
+        }
+        const executionMode = this.safeString (paramsResolved, 'executionMode', 'Immediate');
+        if (executionMode !== 'Immediate') {
+            throw new NotSupported (this.id + ' createOrder() requires Immediate RFQs to enforce the price bound; AwaitAccept has no engine-enforced limit price');
+        }
+        const quantity = this.numberToString (amount);
+        const precision = this.safeDict (market, 'precision', {});
+        if (this.safeNumber (precision, 'amount') !== undefined) {
+            const preciseQuantity = this.amountToPrecision (symbol, amount);
+            if (!Precise.stringEq (quantity, preciseQuantity)) {
+                throw new InvalidOrder (this.id + ' createOrder() RFQ quantity must match the share increment without rounding');
+            }
+        }
+        let limitPrice: Str = this.numberToString (price);
+        if (type === 'limit') {
+            if ((limitPrice === undefined) || !Precise.stringGt (limitPrice, '0')) {
+                throw new InvalidOrder (this.id + ' createOrder() limit RFQs require a positive price');
+            }
+        }
+        if (market['stock'] === true) {
+            const indicative = await this.fetchStockIndicativeQuote (symbol, side, amount, { 'stock': false });
+            const indicativePrice = this.safeString (indicative, 'price');
+            if (!this.safeBool (indicative, 'available', false) || (indicativePrice === undefined)) {
+                throw new InvalidOrder (this.id + ' createOrder() stock indicative quote unavailable: ' + this.safeString (indicative, 'reason', 'priceUnavailable'));
+            }
+            if ((type === 'market') && (limitPrice === undefined)) {
+                limitPrice = indicativePrice;
+            }
+            const quantityFilter = this.safeDict (indicative, 'quantityFilter', {});
+            const stepSize = this.safeString (quantityFilter, 'stepSize');
+            const minimum = this.safeString (quantityFilter, 'minQuantity');
+            const maximum = this.safeString (quantityFilter, 'maxQuantity');
+            if ((minimum === undefined) || (stepSize === undefined) || !Precise.stringGt (stepSize, '0')) {
+                throw new InvalidOrder (this.id + ' createOrder() stock indicative quote is missing valid session quantity constraints');
+            }
+            if (((minimum !== undefined) && Precise.stringLt (quantity, minimum)) || ((maximum !== undefined) && Precise.stringGt (quantity, maximum)) || ((stepSize !== undefined) && !Precise.stringEq (Precise.stringMod (quantity, stepSize), '0'))) {
+                throw new InvalidOrder (this.id + ' createOrder() quantity does not match the current stock session constraints');
+            }
+        } else if (limitPrice === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() crypto market RFQs require an explicit price bound');
+        }
+        if ((limitPrice !== undefined) && !Precise.stringGt (limitPrice, '0')) {
+            throw new InvalidOrder (this.id + ' createOrder() RFQ price must be positive');
+        }
+        if ((this.safeInteger (params, 'orderExpiryTime') !== undefined) && (executionMode !== 'Immediate')) {
+            throw new InvalidOrder (this.id + ' createOrder() resting RFQs require Immediate execution');
+        }
+        const request: Dict = { 'symbol': market['id'], 'side': this.encodeOrderSide (side), 'quantity': quantity, 'price': limitPrice, 'executionMode': executionMode };
+        const clientOrderId = this.safeInteger (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientId'] = clientOrderId;
+        }
+        const query = this.omit (paramsResolved, 'clientOrderId');
+        const response = await this.privatePostApiV1Rfq (this.extend (query, request));
+        const order = this.parseOrder (response, market);
+        order['type'] = type;
+        return order;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#acceptRfqQuote
+     * @description explicitly accepts a selected current best quote, which may bind funds before settlement
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/accept_quote
+     * @param {string} id requester RFQ identifier
+     * @param {string} quoteId selected quote identifier
+     * @param {string} symbol unified RFQ market symbol
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async acceptRfqQuote (id: string, quoteId: string, symbol: string, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const selection = this.handleStockParams ('acceptRfqQuote', params, market);
+        const query = this.safeDict (selection, 1, {});
+        if (this.safeString (market['info'], 'marketType') !== 'RFQ') {
+            throw new BadSymbol (this.id + ' acceptRfqQuote() requires an RFQ market');
+        }
+        const request: Dict = { 'rfqId': id, 'quoteId': quoteId };
+        const response = await this.privatePostApiV1RfqAccept (this.extend (query, request));
         return this.parseOrder (response, market);
     }
 
     /**
      * @method
      * @name backpack#createOrders
-     * @description create a list of trade orders
+     * @description creates venue order-book orders, RFQ batches are not supported
      * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     * @param {boolean} [params.stock] selects tokenized stock spot execution for all orders, otherwise inferred per symbol
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
+        const selection = this.handleStockParams ('createOrders', params);
+        const query = this.safeDict (selection, 1, {});
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const ordersRequests: List = [];
+        const stockOption = this.safeValue2 (params, 'stock', 'defaultStock');
+        const stock = this.safeBool (selection, 0, false);
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -1803,7 +2644,11 @@ export default class backpack extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            const baseParams: Dict = {};
+            if (stock || (stockOption === false)) {
+                baseParams['stock'] = stock;
+            }
+            const extendedParams = this.extend (baseParams, query, orderParams);
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
@@ -1811,6 +2656,19 @@ export default class backpack extends Exchange {
         return this.parseOrders (response);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name backpack#createOrderRequest
+     * @description builds a venue order-book request and rejects RFQ batch execution
+     * @param {string} symbol unified market symbol
+     * @param {string} type order type
+     * @param {string} side order side
+     * @param {float} amount base quantity
+     * @param {float} [price] limit price
+     * @param {object} [params] exchange-specific order parameters
+     * @returns {object} venue order payload
+     */
     createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
@@ -1819,24 +2677,28 @@ export default class backpack extends Exchange {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
         }
         const market = this.market (symbol);
+        const selection = this.handleStockParams ('createOrder', params, market);
+        const query = this.safeDict (selection, 1, {});
+        if (this.safeString (market['info'], 'marketType') === 'RFQ') {
+            throw new NotSupported (this.id + ' createOrders() does not support RFQ batches; use createOrder()');
+        }
         const request: Dict = {
             'symbol': market['id'],
             'side': this.encodeOrderSide (side),
             'orderType': this.capitalize (type),
         };
-        const triggerPrice = this.safeString (params, 'triggerPrice');
+        const triggerPrice = this.safeString (query, 'triggerPrice');
         const isTriggerOrder = triggerPrice !== undefined;
         let quantityKey: Str = 'quantity';
         if (isTriggerOrder) {
             quantityKey = 'triggerQuantity';
         }
         const omitKeys: string[] = [];
-        // handle basic limit/market order types
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
             request[quantityKey] = this.amountToPrecision (symbol, amount);
         } else if (type === 'market') {
-            const cost = this.safeString2 (params, 'cost', 'quoteQuantity');
+            const cost = this.safeString2 (query, 'cost', 'quoteQuantity');
             if (cost !== undefined) {
                 request['quoteQuantity'] = this.costToPrecision (symbol, cost);
                 omitKeys.push ('cost');
@@ -1845,17 +2707,16 @@ export default class backpack extends Exchange {
                 request[quantityKey] = this.amountToPrecision (symbol, amount);
             }
         }
-        // trigger orders
         if (isTriggerOrder) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
             omitKeys.push ('triggerPrice');
         }
-        const clientOrderId = this.safeInteger (params, 'clientOrderId'); // the exchange requires uint
+        const clientOrderId = this.safeInteger (query, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientId'] = clientOrderId;
             omitKeys.push ('clientOrderId');
         }
-        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', false, this.omit (params, omitKeys));
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', false, this.omit (query, omitKeys));
         if (postOnly) {
             paramsPostOnly['postOnly'] = true;
         }
@@ -1908,12 +2769,16 @@ export default class backpack extends Exchange {
     /**
      * @method
      * @name backpack#fetchOpenOrders
-     * @description fetch all unfilled currently open orders
+     * @description fetches open venue orders or RFQs with their candidate quotes
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_open_orders
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when provided, otherwise selects both venue/RFQ records
+     * @param {boolean} [params.rfq] selects requester RFQs only, inferred from RFQ symbols
+     * @param {boolean} [params.deferredSettlement] selects deferred or immediate RFQ records
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
@@ -1926,18 +2791,40 @@ export default class backpack extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetApiV1Orders (this.extend (request, params));
-        return this.parseOrders (response, market, since, limit);
+        const selection = this.handleStockParams ('fetchOpenOrders', params, market);
+        const stock = this.safeBool (selection, 0, false);
+        const query = this.safeDict (selection, 1, {});
+        const rfq = this.safeBool (query, 'rfq', false) || (this.safeString (this.safeDict (market, 'info'), 'marketType') === 'RFQ');
+        if (rfq && (market !== undefined) && (this.safeString (market['info'], 'marketType') !== 'RFQ')) {
+            throw new BadSymbol (this.id + ' fetchOpenOrders() rfq requires an RFQ market symbol');
+        }
+        const accountParams = this.omit (query, 'rfq');
+        let response: List = [];
+        if (!rfq) {
+            const venueParams = this.omit (accountParams, [ 'rfqId', 'deferredSettlement' ]);
+            response = await this.privateGetApiV1Orders (this.extend (request, venueParams));
+        }
+        if (rfq || (stock && (market === undefined))) {
+            const rfqResponse = await this.privateGetApiV1Rfqs (this.extend (request, this.omit (accountParams, 'marketType')));
+            response = this.arrayConcat (response, rfqResponse);
+        }
+        let orders = this.parseOrders (response, market, since);
+        if (stock) {
+            orders = this.filterStockStructures (orders) as Order[];
+        }
+        return this.filterBySinceLimit (this.sortBy (orders, 'timestamp'), since, limit) as Order[];
     }
 
     /**
      * @method
      * @name backpack#fetchOpenOrder
-     * @description fetch an open order by it's id
+     * @description fetches an open venue order or requester RFQ by identifier
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
-     * @param {string} id order id
-     * @param {string} symbol not used by fetchOpenOrder ()
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
+     * @param {string} id order or requester RFQ identifier
+     * @param {string} symbol unified market symbol, required
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
@@ -1948,23 +2835,81 @@ export default class backpack extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
         }
         const market = this.market (symbol);
+        const selection = this.handleStockParams ('fetchOpenOrder', params, market);
+        const query = this.safeDict (selection, 1, {});
+        if (this.safeString (market['info'], 'marketType') === 'RFQ') {
+            const rfqResponse = await this.privateGetApiV1Rfqs (this.extend (query, { 'symbol': market['id'], 'rfqId': id }));
+            for (let i = 0; i < rfqResponse.length; i++) {
+                const order = this.parseOrder (rfqResponse[i], market);
+                if (order['id'] === id) {
+                    return order;
+                }
+            }
+            throw new OrderNotFound (this.id + ' fetchOpenOrder() RFQ ' + id + ' not found');
+        }
         const request: Dict = {
             'symbol': market['id'],
             'orderId': id,
         };
-        const response = await this.privateGetApiV1Order (this.extend (request, params));
-        return this.parseOrder (response);
+        const response = await this.privateGetApiV1Order (this.extend (request, query));
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchOrder
+     * @description fetches an order from filtered history with an open-order fallback
+     * @see https://docs.backpack.exchange/#tag/History
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_history
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
+     * @param {string} id order or requester RFQ identifier
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const selection = this.handleStockParams ('fetchOrder', params, market);
+        const query = this.safeDict (selection, 1, {});
+        const rfq = this.safeString (market['info'], 'marketType') === 'RFQ';
+        const request: Dict = { 'symbol': market['id'] };
+        if (rfq) {
+            request['rfqId'] = id;
+        } else {
+            request['orderId'] = id;
+        }
+        let response: List = [];
+        if (rfq) {
+            response = await this.privateGetWapiV1HistoryRfq (this.extend (query, request));
+        } else {
+            response = await this.privateGetWapiV1HistoryOrders (this.extend (query, request));
+        }
+        for (let i = 0; i < response.length; i++) {
+            const order = this.parseOrder (response[i], market);
+            if (order['id'] === id) {
+                return order;
+            }
+        }
+        return await this.fetchOpenOrder (id, symbol, this.extend ({}, query, { 'stock': this.safeBool (selection, 0, false) }));
     }
 
     /**
      * @method
      * @name backpack#cancelOrder
-     * @description cancels an open order
+     * @description cancels a venue order or requests RFQ cancellation without assuming immediate cancellation
      * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_order
-     * @param {string} id order id
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/cancel_rfq
+     * @param {string} id order or requester RFQ identifier
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
+     * @param {int} [params.clientOrderId] RFQ client identifier instead of id
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
@@ -1974,21 +2919,36 @@ export default class backpack extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         const market = this.market (symbol);
+        const selection = this.handleStockParams ('cancelOrder', params, market);
+        const query = this.safeDict (selection, 1, {});
+        if (this.safeString (market['info'], 'marketType') === 'RFQ') {
+            const clientOrderId = this.safeInteger (query, 'clientOrderId');
+            const rfqRequest: Dict = {};
+            if (clientOrderId === undefined) {
+                rfqRequest['rfqId'] = id;
+            } else {
+                rfqRequest['clientId'] = clientOrderId;
+            }
+            const rfqResponse = await this.privatePostApiV1RfqCancel (this.extend (this.omit (query, 'clientOrderId'), rfqRequest));
+            return this.parseOrder (rfqResponse, market);
+        }
         const request: Dict = {
             'orderId': id,
             'symbol': market['id'],
         };
-        const response = await this.privateDeleteApiV1Order (this.extend (request, params));
-        return this.parseOrder (response);
+        const response = await this.privateDeleteApiV1Order (this.extend (request, query));
+        return this.parseOrder (response, market);
     }
 
     /**
      * @method
      * @name backpack#cancelAllOrders
-     * @description cancel all open orders
+     * @description cancels venue orders, bulk RFQ cancellation is not supported
      * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @see https://docs.backpack.exchange/#tag/RFQ
+     * @param {string} symbol unified market symbol, required
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
@@ -1996,25 +2956,36 @@ export default class backpack extends Exchange {
             await this.loadMarkets ();
         }
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         const market = this.market (symbol);
+        const selection = this.handleStockParams ('cancelAllOrders', params, market);
+        const query = this.safeDict (selection, 1, {});
+        if (this.safeString (market['info'], 'marketType') === 'RFQ') {
+            throw new NotSupported (this.id + ' cancelAllOrders() does not support RFQs; cancel each RFQ explicitly with cancelOrder()');
+        }
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.privateDeleteApiV1Orders (this.extend (request, params));
+        const response = await this.privateDeleteApiV1Orders (this.extend (request, query));
         return this.parseOrders (response, market);
     }
 
     /**
      * @method
      * @name backpack#fetchOrders
-     * @description fetches information on multiple orders made by the user
+     * @description fetches venue or requester RFQ order history
      * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_history
      * @param {string} [symbol] unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [since] the earliest time in ms to fetch orders for, locally filtered on retrieved pages
      * @param {int} [limit] the maximum number of order structures to retrieve (default 100, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when provided, otherwise selects both venue/RFQ records
+     * @param {boolean} [params.rfq] selects requester RFQ history only, inferred from RFQ symbols
+     * @param {int} [params.offset] exchange history pagination offset
+     * @param {string} [params.sortDirection] Asc or Desc
+     * @param {boolean} [params.deferredSettlement] selects deferred or immediate RFQ history
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
@@ -2030,11 +3001,37 @@ export default class backpack extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetWapiV1HistoryOrders (this.extend (request, params));
-        return this.parseOrders (response, market, since, limit);
+        const selection = this.handleStockParams ('fetchOrders', params, market);
+        const stock = this.safeBool (selection, 0, false);
+        const query = this.safeDict (selection, 1, {});
+        const rfq = this.safeBool (query, 'rfq', false) || (this.safeString (this.safeDict (market, 'info'), 'marketType') === 'RFQ');
+        if (rfq && (market !== undefined) && (this.safeString (market['info'], 'marketType') !== 'RFQ')) {
+            throw new BadSymbol (this.id + ' fetchOrders() rfq requires an RFQ market symbol');
+        }
+        const accountParams = this.omit (query, 'rfq');
+        let response: List = [];
+        if (!rfq) {
+            const venueParams = this.omit (accountParams, [ 'rfqId', 'status', 'side', 'deferredSettlement' ]);
+            response = await this.privateGetWapiV1HistoryOrders (this.extend (request, venueParams));
+        }
+        if (rfq || (stock && (market === undefined))) {
+            const rfqResponse = await this.privateGetWapiV1HistoryRfq (this.extend (request, this.omit (accountParams, 'marketType')));
+            response = this.arrayConcat (response, rfqResponse);
+        }
+        let orders = this.parseOrders (response, market, since);
+        if (stock) {
+            orders = this.filterStockStructures (orders) as Order[];
+        }
+        return this.filterBySinceLimit (this.sortBy (orders, 'timestamp'), since, limit) as Order[];
     }
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
+        const rfq = this.safeDict (order, 'rfq');
+        if (rfq !== undefined) {
+            const parsed = this.parseOrder (rfq, market);
+            parsed['info'] = order;
+            return parsed;
+        }
         //
         //     {
         //         "clientId": null,
@@ -2086,6 +3083,7 @@ export default class backpack extends Exchange {
         //         "stopLossTriggerPrice": null,
         //         "strategyId": null,
         //         "symbol": "ETH_USDC",
+        //         "systemOrderType": null,
         //         "takeProfitLimitPrice": null,
         //         "takeProfitTriggerBy": null,
         //         "takeProfitTriggerPrice": null,
@@ -2132,10 +3130,15 @@ export default class backpack extends Exchange {
         if (timestamp2 !== undefined) {
             timestamp = timestamp2;
         }
-        const id = this.safeString (order, 'id');
+        const id = this.safeString2 (order, 'id', 'rfqId');
         const clientOrderId = this.safeString (order, 'clientId');
-        const symbol = this.safeSymbol (this.safeString (order, 'symbol'), market);
-        const type = this.safeStringLower (order, 'orderType');
+        const marketId = this.safeString (order, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, marketResolved);
+        let type = this.safeStringLower (order, 'orderType');
+        if ((type === undefined) && (this.safeString (order, 'rfqId') !== undefined) && (this.safeString (order, 'price') !== undefined)) {
+            type = 'limit';
+        }
         const timeInForce = this.safeString (order, 'timeInForce');
         const side = this.parseOrderSide (this.safeString (order, 'side'));
         const amount = this.safeString2 (order, 'quantity', 'triggerQuantity');
@@ -2173,7 +3176,7 @@ export default class backpack extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderStatus (status: Str) {
@@ -2200,7 +3203,7 @@ export default class backpack extends Exchange {
     /**
      * @method
      * @name backpack#fetchPositions
-     * @description fetch all open positions
+     * @description fetches derivative positions
      * @see https://docs.backpack.exchange/#tag/Futures/operation/get_positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2252,7 +3255,6 @@ export default class backpack extends Exchange {
         //         "symbol": "ETH_USDC_PERP",
         //         "userId":1813870
         //     }
-        //
         //
         const id = this.safeString (position, 'positionId');
         const marketId = this.safeString (position, 'symbol');
@@ -2378,7 +3380,8 @@ export default class backpack extends Exchange {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl;
-        const sortedParams = Array.isArray (params) ? params : this.keysort (params);
+        const requestParams = Array.isArray (params) ? params : this.omit (params, [ 'stock', 'defaultStock', 'rfq', 'callerMethodName' ]);
+        const sortedParams = Array.isArray (requestParams) ? requestParams : this.keysort (requestParams);
         let headersSigned: NullableDict = undefined;
         let bodySigned: Str = undefined;
         if (api === 'private') {
@@ -2414,7 +3417,7 @@ export default class backpack extends Exchange {
             }
         }
         if (method === 'GET') {
-            const query = this.urlencode (sortedParams);
+            const query = this.urlencodeWithArrayRepeat (sortedParams);
             if (query.length !== 0) {
                 endpoint += '?' + query;
             }

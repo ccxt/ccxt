@@ -5,7 +5,222 @@
     "secret": "bSQmK8JSjtExl2iBSi0d9CxZRon4tjWTjFC7HfEhVv+IRkdI74dJ7d7l+MRWHFAZiQpQl76bnzDxBCuiAZYFCQ==",
     "options": {},
     "methods": {
+        "fetchMarkets": [
+            {
+                "description": "default keeps stock SPOT PERP and listed RFQ distinct and deduplicates listed IDs and securities",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponseByUrl": {
+                    "/api/v1/markets": [
+                        { "symbol": "AAPL.US_USDC", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "SPOT", "orderBookState": "Open" },
+                        { "symbol": "AAPL.US_USDC", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "SPOT", "orderBookState": "Open" },
+                        { "symbol": "AAPL.US_USDC_PERP", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "PERP", "orderBookState": "Open" },
+                        { "symbol": "AAPL.US_USDC_PERP", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "PERP", "orderBookState": "Open" },
+                        { "symbol": "AAPL.US_USDC_RFQ", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "RFQ" },
+                        { "symbol": "AAPL.US_USDC_RFQ", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "RFQ" },
+                        { "symbol": "AAPL.US_USDC_UNKNOWN", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "UNKNOWN" }
+                    ],
+                    "/api/v1/securities": [
+                        { "asset": "AAPL.US", "sessions": [] },
+                        { "asset": "AAPL.US", "sessions": [] },
+                        { "asset": "MSFT.US", "sessions": [] },
+                        { "asset": "MSFT.US", "sessions": [] },
+                        {}
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "AAPL.US_USDC", "lowercaseId": null, "symbol": "AAPL.US/USDC",
+                        "base": "AAPL.US", "quote": "USDC", "settle": null, "baseId": "AAPL.US", "quoteId": "USDC", "settleId": null,
+                        "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false,
+                        "active": true, "contract": false, "linear": null, "inverse": null, "subType": null,
+                        "taker": null, "maker": null, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
+                        "precision": { "amount": null, "price": null },
+                        "limits": { "leverage": { "min": null, "max": null }, "amount": { "min": null, "max": null }, "price": { "min": null, "max": null }, "cost": { "min": null, "max": null } },
+                        "marginModes": { "cross": null, "isolated": null }, "created": null, "stock": true, "executionModel": null,
+                        "info": { "symbol": "AAPL.US_USDC", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "SPOT", "orderBookState": "Open", "security": { "asset": "AAPL.US", "sessions": [] } }
+                    },
+                    {
+                        "id": "AAPL.US_USDC_PERP", "lowercaseId": null, "symbol": "AAPL.US/USDC:USDC",
+                        "base": "AAPL.US", "quote": "USDC", "settle": "USDC", "baseId": "AAPL.US", "quoteId": "USDC", "settleId": "USDC",
+                        "type": "swap", "spot": false, "margin": false, "swap": true, "future": false, "option": false, "index": null,
+                        "active": true, "contract": true, "linear": true, "inverse": false, "subType": null,
+                        "taker": null, "maker": null, "contractSize": 1, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
+                        "precision": { "amount": null, "price": null },
+                        "limits": { "leverage": { "min": null, "max": null }, "amount": { "min": null, "max": null }, "price": { "min": null, "max": null }, "cost": { "min": null, "max": null } },
+                        "marginModes": { "cross": null, "isolated": null }, "created": null, "stock": true, "executionModel": null,
+                        "info": { "symbol": "AAPL.US_USDC_PERP", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "PERP", "orderBookState": "Open", "security": { "asset": "AAPL.US", "sessions": [] } }
+                    },
+                    {
+                        "id": "AAPL.US_USDC_RFQ", "lowercaseId": null, "symbol": "AAPL.US.RFQ/USDC",
+                        "base": "AAPL.US", "quote": "USDC", "settle": null, "baseId": "AAPL.US", "quoteId": "USDC", "settleId": null,
+                        "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false,
+                        "active": null, "contract": false, "linear": null, "inverse": null, "subType": null,
+                        "taker": null, "maker": null, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
+                        "precision": { "amount": null, "price": null },
+                        "limits": { "leverage": { "min": null, "max": null }, "amount": { "min": null, "max": null }, "price": { "min": null, "max": null }, "cost": { "min": null, "max": null } },
+                        "marginModes": { "cross": null, "isolated": null }, "created": null, "stock": true, "executionModel": "rfq",
+                        "info": { "symbol": "AAPL.US_USDC_RFQ", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "RFQ", "security": { "asset": "AAPL.US", "sessions": [] } }
+                    },
+                    {
+                        "id": "MSFT.US_USDC_RFQ", "lowercaseId": null, "symbol": "MSFT.US.RFQ/USDC",
+                        "base": "MSFT.US", "quote": "USDC", "settle": null, "baseId": "MSFT.US", "quoteId": "USDC", "settleId": null,
+                        "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false,
+                        "active": null, "contract": false, "linear": null, "inverse": null, "subType": null,
+                        "taker": null, "maker": null, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
+                        "precision": { "amount": null, "price": null },
+                        "limits": { "leverage": { "min": null, "max": null }, "amount": { "min": null, "max": null }, "price": { "min": null, "max": null }, "cost": { "min": null, "max": null } },
+                        "marginModes": { "cross": null, "isolated": null }, "created": null, "stock": true, "executionModel": "rfq",
+                        "info": { "symbol": "MSFT.US_USDC_RFQ", "baseSymbol": "MSFT.US", "quoteSymbol": "USDC", "marketType": "RFQ", "rwaMarketType": "STOCK", "security": { "asset": "MSFT.US", "sessions": [] } }
+                    }
+                ]
+            },
+            {
+                "description": "stock SPOT restriction filters crypto and wrong market types locally without securities",
+                "method": "fetchMarkets",
+                "input": [{ "stock": true, "marketType": ["SPOT"] }],
+                "httpResponse": [
+                    { "symbol": "BTC_USDC", "baseSymbol": "BTC", "quoteSymbol": "USDC", "marketType": "SPOT", "orderBookState": "Open" },
+                    { "symbol": "AAPL.US_USDC", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "SPOT", "orderBookState": "Open" },
+                    { "symbol": "AAPL.US_USDC_PERP", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "PERP", "orderBookState": "Open" },
+                    { "symbol": "AAPL.US_USDC_RFQ", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "RFQ" },
+                    { "symbol": "AAPL.US_USDC_UNKNOWN", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "UNKNOWN" }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "AAPL.US_USDC", "lowercaseId": null, "symbol": "AAPL.US/USDC",
+                        "base": "AAPL.US", "quote": "USDC", "settle": null, "baseId": "AAPL.US", "quoteId": "USDC", "settleId": null,
+                        "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false,
+                        "active": true, "contract": false, "linear": null, "inverse": null, "subType": null,
+                        "taker": null, "maker": null, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
+                        "precision": { "amount": null, "price": null },
+                        "limits": { "leverage": { "min": null, "max": null }, "amount": { "min": null, "max": null }, "price": { "min": null, "max": null }, "cost": { "min": null, "max": null } },
+                        "marginModes": { "cross": null, "isolated": null }, "created": null, "stock": true, "executionModel": null,
+                        "info": { "symbol": "AAPL.US_USDC", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "SPOT", "orderBookState": "Open" }
+                    }
+                ]
+            },
+            {
+                "description": "stock PERP restriction filters crypto and wrong market types locally without securities",
+                "method": "fetchMarkets",
+                "input": [{ "stock": true, "marketType": ["PERP"] }],
+                "httpResponse": [
+                    { "symbol": "BTC_USDC_PERP", "baseSymbol": "BTC", "quoteSymbol": "USDC", "marketType": "PERP", "orderBookState": "Open" },
+                    { "symbol": "AAPL.US_USDC", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "SPOT", "orderBookState": "Open" },
+                    { "symbol": "AAPL.US_USDC_PERP", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "PERP", "orderBookState": "Open" },
+                    { "symbol": "AAPL.US_USDC_RFQ", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "RFQ" },
+                    { "symbol": "AAPL.US_USDC_UNKNOWN", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "UNKNOWN" }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "AAPL.US_USDC_PERP", "lowercaseId": null, "symbol": "AAPL.US/USDC:USDC",
+                        "base": "AAPL.US", "quote": "USDC", "settle": "USDC", "baseId": "AAPL.US", "quoteId": "USDC", "settleId": "USDC",
+                        "type": "swap", "spot": false, "margin": false, "swap": true, "future": false, "option": false, "index": null,
+                        "active": true, "contract": true, "linear": true, "inverse": false, "subType": null,
+                        "taker": null, "maker": null, "contractSize": 1, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
+                        "precision": { "amount": null, "price": null },
+                        "limits": { "leverage": { "min": null, "max": null }, "amount": { "min": null, "max": null }, "price": { "min": null, "max": null }, "cost": { "min": null, "max": null } },
+                        "marginModes": { "cross": null, "isolated": null }, "created": null, "stock": true, "executionModel": null,
+                        "info": { "symbol": "AAPL.US_USDC_PERP", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "PERP", "orderBookState": "Open" }
+                    }
+                ]
+            }
+        ],
+        "parseMarket": [
+            {
+                "description": "listed RFQ preserves price and quantity filters when security sessions are empty",
+                "method": "parseMarket",
+                "input": [{
+                    "symbol": "AAPL.US_USDC_RFQ", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "RFQ",
+                    "filters": { "price": { "tickSize": "0.01", "minPrice": "1", "maxPrice": "1000" }, "quantity": { "stepSize": "0.1", "minQuantity": "0.2", "maxQuantity": "50" } },
+                    "security": { "asset": "AAPL.US", "sessions": [] }
+                }],
+                "httpResponse": {},
+                "parsedResponse": {
+                    "id": "AAPL.US_USDC_RFQ", "lowercaseId": null, "symbol": "AAPL.US.RFQ/USDC",
+                    "base": "AAPL.US", "quote": "USDC", "settle": null, "baseId": "AAPL.US", "quoteId": "USDC", "settleId": null,
+                    "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false,
+                    "active": null, "contract": false, "linear": null, "inverse": null, "subType": null,
+                    "taker": null, "maker": null, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
+                    "precision": { "amount": 0.1, "price": 0.01 },
+                    "limits": { "leverage": { "min": null, "max": null }, "amount": { "min": 0.2, "max": 50 }, "price": { "min": 1, "max": 1000 }, "cost": { "min": null, "max": null } },
+                    "marginModes": { "cross": null, "isolated": null }, "created": null, "stock": true, "executionModel": "rfq",
+                    "info": {
+                        "symbol": "AAPL.US_USDC_RFQ", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "RFQ",
+                        "filters": { "price": { "tickSize": "0.01", "minPrice": "1", "maxPrice": "1000" }, "quantity": { "stepSize": "0.1", "minQuantity": "0.2", "maxQuantity": "50" } },
+                        "security": { "asset": "AAPL.US", "sessions": [] }
+                    }
+                }
+            },
+            {
+                "description": "HK suffix infers a stock SPOT market without security or RWA metadata",
+                "method": "parseMarket",
+                "input": [{ "symbol": "0700.HK_USDC", "baseSymbol": "0700.HK", "quoteSymbol": "USDC", "marketType": "SPOT", "orderBookState": "Open" }],
+                "httpResponse": {},
+                "parsedResponse": {
+                    "id": "0700.HK_USDC", "lowercaseId": null, "symbol": "0700.HK/USDC",
+                    "base": "0700.HK", "quote": "USDC", "settle": null, "baseId": "0700.HK", "quoteId": "USDC", "settleId": null,
+                    "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false,
+                    "active": true, "contract": false, "linear": null, "inverse": null, "subType": null,
+                    "taker": null, "maker": null, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
+                    "precision": { "amount": null, "price": null },
+                    "limits": { "leverage": { "min": null, "max": null }, "amount": { "min": null, "max": null }, "price": { "min": null, "max": null }, "cost": { "min": null, "max": null } },
+                    "marginModes": { "cross": null, "isolated": null }, "created": null, "stock": true, "executionModel": null,
+                    "info": { "symbol": "0700.HK_USDC", "baseSymbol": "0700.HK", "quoteSymbol": "USDC", "marketType": "SPOT", "orderBookState": "Open" }
+                }
+            },
+            {
+                "description": "US stock PERP remains a linear settled swap contract rather than RFQ or SPOT",
+                "method": "parseMarket",
+                "input": [{ "symbol": "AAPL.US_USDC_PERP", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "PERP", "orderBookState": "Open" }],
+                "httpResponse": {},
+                "parsedResponse": {
+                    "id": "AAPL.US_USDC_PERP", "lowercaseId": null, "symbol": "AAPL.US/USDC:USDC",
+                    "base": "AAPL.US", "quote": "USDC", "settle": "USDC", "baseId": "AAPL.US", "quoteId": "USDC", "settleId": "USDC",
+                    "type": "swap", "spot": false, "margin": false, "swap": true, "future": false, "option": false, "index": null,
+                    "active": true, "contract": true, "linear": true, "inverse": false, "subType": null,
+                    "taker": null, "maker": null, "contractSize": 1, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
+                    "precision": { "amount": null, "price": null },
+                    "limits": { "leverage": { "min": null, "max": null }, "amount": { "min": null, "max": null }, "price": { "min": null, "max": null }, "cost": { "min": null, "max": null } },
+                    "marginModes": { "cross": null, "isolated": null }, "created": null, "stock": true, "executionModel": null,
+                    "info": { "symbol": "AAPL.US_USDC_PERP", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "PERP", "orderBookState": "Open" }
+                }
+            },
+            {
+                "description": "unknown stock market type returns undefined rather than being reclassified",
+                "method": "parseMarket",
+                "input": [{ "symbol": "AAPL.US_USDC_UNKNOWN", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "UNKNOWN" }],
+                "httpResponse": {},
+                "parsedResponse": null
+            }
+        ],
         "fetchCurrencies": [
+            {
+                "description": "stock filter classifies assets without fetching securities",
+                "method": "fetchCurrencies",
+                "input": [{ "stock": true }],
+                "httpResponse": [
+                    { "symbol": "BCH", "displayName": "Bitcoin Cash", "tokens": [] },
+                    { "symbol": "AAPL.US", "displayName": "Apple Inc.", "tokens": [] },
+                    { "symbol": "0700.HK", "displayName": "0700.HK", "tokens": [] }
+                ],
+                "parsedResponse": {
+                    "AAPL.US": {
+                        "info": { "symbol": "AAPL.US", "displayName": "Apple Inc.", "tokens": [] },
+                        "id": "AAPL.US", "numericId": null, "code": "AAPL.US", "precision": null,
+                        "type": "stock", "name": "Apple Inc.", "active": null,
+                        "deposit": false, "withdraw": false, "fee": null, "fees": {}, "networks": {},
+                        "limits": { "deposit": { "min": null, "max": null }, "withdraw": { "min": null, "max": null } }
+                    },
+                    "0700.HK": {
+                        "info": { "symbol": "0700.HK", "displayName": "0700.HK", "tokens": [] },
+                        "id": "0700.HK", "numericId": null, "code": "0700.HK", "precision": null,
+                        "type": "stock", "name": "0700.HK", "active": null,
+                        "deposit": false, "withdraw": false, "fee": null, "fees": {}, "networks": {},
+                        "limits": { "deposit": { "min": null, "max": null }, "withdraw": { "min": null, "max": null } }
+                    }
+                }
+            },
             {
                 "description": "default",
                 "method": "fetchCurrencies",
@@ -770,6 +985,44 @@
                 }
             }
         ],
+        "parseCurrency": [
+            {
+                "description": "US stock with no security metadata",
+                "method": "parseCurrency",
+                "input": [{ "symbol": "BRK.B.US", "displayName": "Berkshire Hathaway", "tokens": [] }],
+                "parsedResponse": {
+                    "info": { "symbol": "BRK.B.US", "displayName": "Berkshire Hathaway", "tokens": [] },
+                    "id": "BRK.B.US", "numericId": null, "code": "BRK.B.US", "precision": null,
+                    "type": "stock", "name": "Berkshire Hathaway", "active": null,
+                    "deposit": false, "withdraw": false, "fee": null, "fees": {}, "networks": {},
+                    "limits": { "deposit": { "min": null, "max": null }, "withdraw": { "min": null, "max": null } }
+                }
+            },
+            {
+                "description": "HK stock not present in securities",
+                "method": "parseCurrency",
+                "input": [{ "symbol": "0700.HK", "displayName": "0700.HK", "tokens": [] }],
+                "parsedResponse": {
+                    "info": { "symbol": "0700.HK", "displayName": "0700.HK", "tokens": [] },
+                    "id": "0700.HK", "numericId": null, "code": "0700.HK", "precision": null,
+                    "type": "stock", "name": "0700.HK", "active": null,
+                    "deposit": false, "withdraw": false, "fee": null, "fees": {}, "networks": {},
+                    "limits": { "deposit": { "min": null, "max": null }, "withdraw": { "min": null, "max": null } }
+                }
+            },
+            {
+                "description": "crypto without networks remains crypto",
+                "method": "parseCurrency",
+                "input": [{ "symbol": "BCH", "displayName": "Bitcoin Cash", "tokens": [] }],
+                "parsedResponse": {
+                    "info": { "symbol": "BCH", "displayName": "Bitcoin Cash", "tokens": [] },
+                    "id": "BCH", "numericId": null, "code": "BCH", "precision": null,
+                    "type": "crypto", "name": "Bitcoin Cash", "active": false,
+                    "deposit": false, "withdraw": false, "fee": null, "fees": {}, "networks": {},
+                    "limits": { "deposit": { "min": null, "max": null }, "withdraw": { "min": null, "max": null } }
+                }
+            }
+        ],
         "fetchFundingHistory": [
             {
                 "description": "fetch funding history",
@@ -1009,6 +1262,209 @@
                         "stopPrice": null
                     }
                 ]
+            },
+            {
+                "description": "fetch orders stock",
+                "method": "fetchOrders",
+                "input": [
+                    "SPCX.US/USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "clientId": null,
+                        "createdAt": "2026-10-17T09:34:17.595",
+                        "executedQuantity": "0",
+                        "executedQuoteQuantity": "0",
+                        "expiryReason": null,
+                        "id": "70592684154",
+                        "orderType": "Limit",
+                        "postOnly": false,
+                        "price": "120",
+                        "quantity": "0.01",
+                        "quoteQuantity": "1.2",
+                        "selfTradePrevention": "RejectTaker",
+                        "side": "Bid",
+                        "slippageTolerance": null,
+                        "slippageToleranceType": null,
+                        "status": "New",
+                        "stopLossLimitPrice": null,
+                        "stopLossTriggerBy": null,
+                        "stopLossTriggerPrice": null,
+                        "strategyId": null,
+                        "symbol": "SPCX.US_USDC",
+                        "systemOrderType": null,
+                        "takeProfitLimitPrice": null,
+                        "takeProfitTriggerBy": null,
+                        "takeProfitTriggerPrice": null,
+                        "timeInForce": "GTC",
+                        "triggerBy": null,
+                        "triggerPrice": null,
+                        "triggerQuantity": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "clientId": null,
+                            "createdAt": "2026-10-17T09:34:17.595",
+                            "executedQuantity": "0",
+                            "executedQuoteQuantity": "0",
+                            "expiryReason": null,
+                            "id": "70592684154",
+                            "orderType": "Limit",
+                            "postOnly": false,
+                            "price": "120",
+                            "quantity": "0.01",
+                            "quoteQuantity": "1.2",
+                            "selfTradePrevention": "RejectTaker",
+                            "side": "Bid",
+                            "slippageTolerance": null,
+                            "slippageToleranceType": null,
+                            "status": "New",
+                            "stopLossLimitPrice": null,
+                            "stopLossTriggerBy": null,
+                            "stopLossTriggerPrice": null,
+                            "strategyId": null,
+                            "symbol": "SPCX.US_USDC",
+                            "systemOrderType": null,
+                            "takeProfitLimitPrice": null,
+                            "takeProfitTriggerBy": null,
+                            "takeProfitTriggerPrice": null,
+                            "timeInForce": "GTC",
+                            "triggerBy": null,
+                            "triggerPrice": null,
+                            "triggerQuantity": null
+                        },
+                        "id": "70592684154",
+                        "clientOrderId": null,
+                        "timestamp": 1792229657595,
+                        "datetime": "2026-10-17T09:34:17.595Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "SPCX.US/USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 120,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.01,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.01,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order stock",
+                "method": "fetchOrder",
+                "input": [
+                    "70592684154",
+                    "SPCX.US/USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "clientId": null,
+                        "createdAt": "2026-10-17T09:34:17.595",
+                        "executedQuantity": "0",
+                        "executedQuoteQuantity": "0",
+                        "expiryReason": null,
+                        "id": "70592684154",
+                        "orderType": "Limit",
+                        "postOnly": false,
+                        "price": "120",
+                        "quantity": "0.01",
+                        "quoteQuantity": "1.2",
+                        "selfTradePrevention": "RejectTaker",
+                        "side": "Bid",
+                        "slippageTolerance": null,
+                        "slippageToleranceType": null,
+                        "status": "New",
+                        "stopLossLimitPrice": null,
+                        "stopLossTriggerBy": null,
+                        "stopLossTriggerPrice": null,
+                        "strategyId": null,
+                        "symbol": "SPCX.US_USDC",
+                        "systemOrderType": null,
+                        "takeProfitLimitPrice": null,
+                        "takeProfitTriggerBy": null,
+                        "takeProfitTriggerPrice": null,
+                        "timeInForce": "GTC",
+                        "triggerBy": null,
+                        "triggerPrice": null,
+                        "triggerQuantity": null
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "clientId": null,
+                        "createdAt": "2026-10-17T09:34:17.595",
+                        "executedQuantity": "0",
+                        "executedQuoteQuantity": "0",
+                        "expiryReason": null,
+                        "id": "70592684154",
+                        "orderType": "Limit",
+                        "postOnly": false,
+                        "price": "120",
+                        "quantity": "0.01",
+                        "quoteQuantity": "1.2",
+                        "selfTradePrevention": "RejectTaker",
+                        "side": "Bid",
+                        "slippageTolerance": null,
+                        "slippageToleranceType": null,
+                        "status": "New",
+                        "stopLossLimitPrice": null,
+                        "stopLossTriggerBy": null,
+                        "stopLossTriggerPrice": null,
+                        "strategyId": null,
+                        "symbol": "SPCX.US_USDC",
+                        "systemOrderType": null,
+                        "takeProfitLimitPrice": null,
+                        "takeProfitTriggerBy": null,
+                        "takeProfitTriggerPrice": null,
+                        "timeInForce": "GTC",
+                        "triggerBy": null,
+                        "triggerPrice": null,
+                        "triggerQuantity": null
+                    },
+                    "id": "70592684154",
+                    "clientOrderId": null,
+                    "timestamp": 1792229657595,
+                    "datetime": "2026-10-17T09:34:17.595Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "SPCX.US/USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 120,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.01,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.01,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null
+                }
             }
         ],
         "cancelAllOrders": [
@@ -1020,6 +1476,103 @@
                 ],
                 "httpResponse": [],
                 "parsedResponse": []
+            },
+            {
+                "description": "cancel all orders stock",
+                "method": "cancelAllOrders",
+                "input": [
+                    "SPCX.US/USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "clientId": null,
+                        "createdAt": 1792230466095,
+                        "executedQuantity": "0",
+                        "executedQuoteQuantity": "0",
+                        "id": "70594609266",
+                        "orderType": "Limit",
+                        "postOnly": false,
+                        "price": "120",
+                        "quantity": "0.01",
+                        "reduceOnly": null,
+                        "relatedOrderId": null,
+                        "selfTradePrevention": "RejectTaker",
+                        "side": "Bid",
+                        "status": "Cancelled",
+                        "stopLossLimitPrice": null,
+                        "stopLossTriggerBy": null,
+                        "stopLossTriggerPrice": null,
+                        "strategyId": null,
+                        "symbol": "SPCX.US_USDC",
+                        "takeProfitLimitPrice": null,
+                        "takeProfitTriggerBy": null,
+                        "takeProfitTriggerPrice": null,
+                        "timeInForce": "GTC",
+                        "triggerBy": null,
+                        "triggerPrice": null,
+                        "triggerQuantity": null,
+                        "triggeredAt": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "clientId": null,
+                            "createdAt": 1792230466095,
+                            "executedQuantity": "0",
+                            "executedQuoteQuantity": "0",
+                            "id": "70594609266",
+                            "orderType": "Limit",
+                            "postOnly": false,
+                            "price": "120",
+                            "quantity": "0.01",
+                            "reduceOnly": null,
+                            "relatedOrderId": null,
+                            "selfTradePrevention": "RejectTaker",
+                            "side": "Bid",
+                            "status": "Cancelled",
+                            "stopLossLimitPrice": null,
+                            "stopLossTriggerBy": null,
+                            "stopLossTriggerPrice": null,
+                            "strategyId": null,
+                            "symbol": "SPCX.US_USDC",
+                            "takeProfitLimitPrice": null,
+                            "takeProfitTriggerBy": null,
+                            "takeProfitTriggerPrice": null,
+                            "timeInForce": "GTC",
+                            "triggerBy": null,
+                            "triggerPrice": null,
+                            "triggerQuantity": null,
+                            "triggeredAt": null
+                        },
+                        "id": "70594609266",
+                        "clientOrderId": null,
+                        "timestamp": 1792230466095,
+                        "datetime": "2026-10-17T09:47:46.095Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "SPCX.US/USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 120,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.01,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.01,
+                        "status": "canceled",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null
+                    }
+                ]
             }
         ],
         "cancelOrder": [
@@ -1109,6 +1662,100 @@
                     "average": null,
                     "filled": 0,
                     "remaining": 0.001,
+                    "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "cancel order stock",
+                "method": "cancelOrder",
+                "input": [
+                    "70592684154",
+                    "SPCX.US/USDC"
+                ],
+                "httpResponse": {
+                    "clientId": null,
+                    "createdAt": 1792229657595,
+                    "executedQuantity": "0",
+                    "executedQuoteQuantity": "0",
+                    "id": "70592684154",
+                    "orderType": "Limit",
+                    "postOnly": false,
+                    "price": "120",
+                    "quantity": "0.01",
+                    "reduceOnly": null,
+                    "relatedOrderId": null,
+                    "selfTradePrevention": "RejectTaker",
+                    "side": "Bid",
+                    "status": "Cancelled",
+                    "stopLossLimitPrice": null,
+                    "stopLossTriggerBy": null,
+                    "stopLossTriggerPrice": null,
+                    "strategyId": null,
+                    "symbol": "SPCX.US_USDC",
+                    "takeProfitLimitPrice": null,
+                    "takeProfitTriggerBy": null,
+                    "takeProfitTriggerPrice": null,
+                    "timeInForce": "GTC",
+                    "triggerBy": null,
+                    "triggerPrice": null,
+                    "triggerQuantity": null,
+                    "triggeredAt": null
+                },
+                "parsedResponse": {
+                    "info": {
+                        "clientId": null,
+                        "createdAt": 1792229657595,
+                        "executedQuantity": "0",
+                        "executedQuoteQuantity": "0",
+                        "id": "70592684154",
+                        "orderType": "Limit",
+                        "postOnly": false,
+                        "price": "120",
+                        "quantity": "0.01",
+                        "reduceOnly": null,
+                        "relatedOrderId": null,
+                        "selfTradePrevention": "RejectTaker",
+                        "side": "Bid",
+                        "status": "Cancelled",
+                        "stopLossLimitPrice": null,
+                        "stopLossTriggerBy": null,
+                        "stopLossTriggerPrice": null,
+                        "strategyId": null,
+                        "symbol": "SPCX.US_USDC",
+                        "takeProfitLimitPrice": null,
+                        "takeProfitTriggerBy": null,
+                        "takeProfitTriggerPrice": null,
+                        "timeInForce": "GTC",
+                        "triggerBy": null,
+                        "triggerPrice": null,
+                        "triggerQuantity": null,
+                        "triggeredAt": null
+                    },
+                    "id": "70592684154",
+                    "clientOrderId": null,
+                    "timestamp": 1792229657595,
+                    "datetime": "2026-10-17T09:34:17.595Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "SPCX.US/USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 120,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.01,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.01,
                     "status": "canceled",
                     "fee": null,
                     "trades": [],
@@ -1212,6 +1859,100 @@
                     "lastUpdateTimestamp": null,
                     "stopPrice": null
                 }
+            },
+            {
+                "description": "fetch open order stock",
+                "method": "fetchOpenOrder",
+                "input": [
+                    "70592684154",
+                    "SPCX.US/USDC"
+                ],
+                "httpResponse": {
+                    "clientId": null,
+                    "createdAt": 1792229657595,
+                    "executedQuantity": "0",
+                    "executedQuoteQuantity": "0",
+                    "id": "70592684154",
+                    "orderType": "Limit",
+                    "postOnly": false,
+                    "price": "120",
+                    "quantity": "0.01",
+                    "reduceOnly": null,
+                    "relatedOrderId": null,
+                    "selfTradePrevention": "RejectTaker",
+                    "side": "Bid",
+                    "status": "New",
+                    "stopLossLimitPrice": null,
+                    "stopLossTriggerBy": null,
+                    "stopLossTriggerPrice": null,
+                    "strategyId": null,
+                    "symbol": "SPCX.US_USDC",
+                    "takeProfitLimitPrice": null,
+                    "takeProfitTriggerBy": null,
+                    "takeProfitTriggerPrice": null,
+                    "timeInForce": "GTC",
+                    "triggerBy": null,
+                    "triggerPrice": null,
+                    "triggerQuantity": null,
+                    "triggeredAt": null
+                },
+                "parsedResponse": {
+                    "info": {
+                        "clientId": null,
+                        "createdAt": 1792229657595,
+                        "executedQuantity": "0",
+                        "executedQuoteQuantity": "0",
+                        "id": "70592684154",
+                        "orderType": "Limit",
+                        "postOnly": false,
+                        "price": "120",
+                        "quantity": "0.01",
+                        "reduceOnly": null,
+                        "relatedOrderId": null,
+                        "selfTradePrevention": "RejectTaker",
+                        "side": "Bid",
+                        "status": "New",
+                        "stopLossLimitPrice": null,
+                        "stopLossTriggerBy": null,
+                        "stopLossTriggerPrice": null,
+                        "strategyId": null,
+                        "symbol": "SPCX.US_USDC",
+                        "takeProfitLimitPrice": null,
+                        "takeProfitTriggerBy": null,
+                        "takeProfitTriggerPrice": null,
+                        "timeInForce": "GTC",
+                        "triggerBy": null,
+                        "triggerPrice": null,
+                        "triggerQuantity": null,
+                        "triggeredAt": null
+                    },
+                    "id": "70592684154",
+                    "clientOrderId": null,
+                    "timestamp": 1792229657595,
+                    "datetime": "2026-10-17T09:34:17.595Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "SPCX.US/USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 120,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.01,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.01,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null
+                }
             }
         ],
         "fetchOpenOrders": [
@@ -1305,6 +2046,105 @@
                         "average": null,
                         "filled": 0,
                         "remaining": 0.001,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "fetch open orders stock",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "SPCX.US/USDC",
+                    null,
+                    3
+                ],
+                "httpResponse": [
+                    {
+                        "clientId": null,
+                        "createdAt": 1792229657595,
+                        "executedQuantity": "0",
+                        "executedQuoteQuantity": "0",
+                        "id": "70592684154",
+                        "orderType": "Limit",
+                        "postOnly": false,
+                        "price": "120",
+                        "quantity": "0.01",
+                        "reduceOnly": null,
+                        "relatedOrderId": null,
+                        "selfTradePrevention": "RejectTaker",
+                        "side": "Bid",
+                        "status": "New",
+                        "stopLossLimitPrice": null,
+                        "stopLossTriggerBy": null,
+                        "stopLossTriggerPrice": null,
+                        "strategyId": null,
+                        "symbol": "SPCX.US_USDC",
+                        "takeProfitLimitPrice": null,
+                        "takeProfitTriggerBy": null,
+                        "takeProfitTriggerPrice": null,
+                        "timeInForce": "GTC",
+                        "triggerBy": null,
+                        "triggerPrice": null,
+                        "triggerQuantity": null,
+                        "triggeredAt": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "clientId": null,
+                            "createdAt": 1792229657595,
+                            "executedQuantity": "0",
+                            "executedQuoteQuantity": "0",
+                            "id": "70592684154",
+                            "orderType": "Limit",
+                            "postOnly": false,
+                            "price": "120",
+                            "quantity": "0.01",
+                            "reduceOnly": null,
+                            "relatedOrderId": null,
+                            "selfTradePrevention": "RejectTaker",
+                            "side": "Bid",
+                            "status": "New",
+                            "stopLossLimitPrice": null,
+                            "stopLossTriggerBy": null,
+                            "stopLossTriggerPrice": null,
+                            "strategyId": null,
+                            "symbol": "SPCX.US_USDC",
+                            "takeProfitLimitPrice": null,
+                            "takeProfitTriggerBy": null,
+                            "takeProfitTriggerPrice": null,
+                            "timeInForce": "GTC",
+                            "triggerBy": null,
+                            "triggerPrice": null,
+                            "triggerQuantity": null,
+                            "triggeredAt": null
+                        },
+                        "id": "70592684154",
+                        "clientOrderId": null,
+                        "timestamp": 1792229657595,
+                        "datetime": "2026-10-17T09:34:17.595Z",
+                        "lastTradeTimestamp": null,
+                        "symbol": "SPCX.US/USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 120,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.01,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.01,
                         "status": "open",
                         "fee": null,
                         "trades": [],
@@ -1995,6 +2835,103 @@
                     "lastUpdateTimestamp": null,
                     "stopPrice": null
                 }
+            },
+            {
+                "description": "create order stock limit buy",
+                "method": "createOrder",
+                "input": [
+                    "SPCX.US/USDC",
+                    "limit",
+                    "buy",
+                    0.01,
+                    120
+                ],
+                "httpResponse": {
+                    "clientId": null,
+                    "createdAt": 1792229657595,
+                    "executedQuantity": "0",
+                    "executedQuoteQuantity": "0",
+                    "id": "70592684154",
+                    "orderType": "Limit",
+                    "postOnly": false,
+                    "price": "120",
+                    "quantity": "0.01",
+                    "reduceOnly": null,
+                    "relatedOrderId": null,
+                    "selfTradePrevention": "RejectTaker",
+                    "side": "Bid",
+                    "status": "New",
+                    "stopLossLimitPrice": null,
+                    "stopLossTriggerBy": null,
+                    "stopLossTriggerPrice": null,
+                    "strategyId": null,
+                    "symbol": "SPCX.US_USDC",
+                    "takeProfitLimitPrice": null,
+                    "takeProfitTriggerBy": null,
+                    "takeProfitTriggerPrice": null,
+                    "timeInForce": "GTC",
+                    "triggerBy": null,
+                    "triggerPrice": null,
+                    "triggerQuantity": null,
+                    "triggeredAt": null
+                },
+                "parsedResponse": {
+                    "info": {
+                        "clientId": null,
+                        "createdAt": 1792229657595,
+                        "executedQuantity": "0",
+                        "executedQuoteQuantity": "0",
+                        "id": "70592684154",
+                        "orderType": "Limit",
+                        "postOnly": false,
+                        "price": "120",
+                        "quantity": "0.01",
+                        "reduceOnly": null,
+                        "relatedOrderId": null,
+                        "selfTradePrevention": "RejectTaker",
+                        "side": "Bid",
+                        "status": "New",
+                        "stopLossLimitPrice": null,
+                        "stopLossTriggerBy": null,
+                        "stopLossTriggerPrice": null,
+                        "strategyId": null,
+                        "symbol": "SPCX.US_USDC",
+                        "takeProfitLimitPrice": null,
+                        "takeProfitTriggerBy": null,
+                        "takeProfitTriggerPrice": null,
+                        "timeInForce": "GTC",
+                        "triggerBy": null,
+                        "triggerPrice": null,
+                        "triggerQuantity": null,
+                        "triggeredAt": null
+                    },
+                    "id": "70592684154",
+                    "clientOrderId": null,
+                    "timestamp": 1792229657595,
+                    "datetime": "2026-10-17T09:34:17.595Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "SPCX.US/USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 120,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.01,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.01,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null
+                }
             }
         ],
         "fetchDepositAddress": [
@@ -2280,6 +3217,121 @@
                         "price": 1626.15,
                         "amount": 0.0333,
                         "cost": 54.150795,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "fetch trades stock",
+                "method": "fetchTrades",
+                "input": [
+                    "SPCX.US/USDC",
+                    null,
+                    3
+                ],
+                "httpResponse": [
+                    {
+                        "id": 4740,
+                        "isBuyerMaker": false,
+                        "price": "145.57",
+                        "quantity": "0.1",
+                        "quoteQuantity": "14.557",
+                        "timestamp": 1792223948603
+                    },
+                    {
+                        "id": 4739,
+                        "isBuyerMaker": false,
+                        "price": "145.64",
+                        "quantity": "1",
+                        "quoteQuantity": "145.64",
+                        "timestamp": 1792222685281
+                    },
+                    {
+                        "id": 4738,
+                        "isBuyerMaker": false,
+                        "price": "145.63",
+                        "quantity": "2",
+                        "quoteQuantity": "291.26",
+                        "timestamp": 1792222667258
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": 4738,
+                            "isBuyerMaker": false,
+                            "price": "145.63",
+                            "quantity": "2",
+                            "quoteQuantity": "291.26",
+                            "timestamp": 1792222667258
+                        },
+                        "timestamp": 1792222667258,
+                        "datetime": "2026-10-17T07:37:47.258Z",
+                        "symbol": "SPCX.US/USDC",
+                        "id": "4738",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 145.63,
+                        "amount": 2,
+                        "cost": 291.26,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": 4739,
+                            "isBuyerMaker": false,
+                            "price": "145.64",
+                            "quantity": "1",
+                            "quoteQuantity": "145.64",
+                            "timestamp": 1792222685281
+                        },
+                        "timestamp": 1792222685281,
+                        "datetime": "2026-10-17T07:38:05.281Z",
+                        "symbol": "SPCX.US/USDC",
+                        "id": "4739",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 145.64,
+                        "amount": 1,
+                        "cost": 145.64,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": 4740,
+                            "isBuyerMaker": false,
+                            "price": "145.57",
+                            "quantity": "0.1",
+                            "quoteQuantity": "14.557",
+                            "timestamp": 1792223948603
+                        },
+                        "timestamp": 1792223948603,
+                        "datetime": "2026-10-17T07:59:08.603Z",
+                        "symbol": "SPCX.US/USDC",
+                        "id": "4740",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 145.57,
+                        "amount": 0.1,
+                        "cost": 14.557,
                         "fee": {
                             "cost": null,
                             "currency": null
@@ -2804,6 +3856,77 @@
                         7.3769
                     ]
                 ]
+            },
+            {
+                "description": "fetch OHLCV stock RFQ",
+                "method": "fetchOHLCV",
+                "input": [
+                    "AAPL.US.RFQ/USDC",
+                    "1m",
+                    null,
+                    3
+                ],
+                "httpResponse": [
+                    {
+                        "close": "342.68",
+                        "end": "2026-10-17 09:11:00",
+                        "high": "342.68",
+                        "low": "342.68",
+                        "open": "342.68",
+                        "quoteVolume": "0",
+                        "start": "2026-10-17 09:10:00",
+                        "trades": "0",
+                        "volume": "0"
+                    },
+                    {
+                        "close": "342.68",
+                        "end": "2026-10-17 09:12:00",
+                        "high": "342.68",
+                        "low": "342.68",
+                        "open": "342.68",
+                        "quoteVolume": "0",
+                        "start": "2026-10-17 09:11:00",
+                        "trades": "0",
+                        "volume": "0"
+                    },
+                    {
+                        "close": "342.68",
+                        "end": "2026-10-17 09:13:00",
+                        "high": "342.68",
+                        "low": "342.68",
+                        "open": "342.68",
+                        "quoteVolume": "0",
+                        "start": "2026-10-17 09:12:00",
+                        "trades": "0",
+                        "volume": "0"
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1792228200000,
+                        342.68,
+                        342.68,
+                        342.68,
+                        342.68,
+                        0
+                    ],
+                    [
+                        1792228260000,
+                        342.68,
+                        342.68,
+                        342.68,
+                        342.68,
+                        0
+                    ],
+                    [
+                        1792228320000,
+                        342.68,
+                        342.68,
+                        342.68,
+                        342.68,
+                        0
+                    ]
+                ]
             }
         ],
         "fetchTicker": [
@@ -2914,6 +4037,114 @@
                         "volume": "6732.4927"
                     }
                 }
+            },
+            {
+                "description": "fetch ticker stock RFQ",
+                "method": "fetchTicker",
+                "input": [
+                    "AAPL.US.RFQ/USDC"
+                ],
+                "httpResponse": {
+                    "firstPrice": "342.09",
+                    "high": "350.066",
+                    "lastPrice": "342.68",
+                    "low": "340.521",
+                    "priceChange": "0.59",
+                    "priceChangePercent": "0.001725",
+                    "quoteVolume": "20619748236.2173615979",
+                    "symbol": "AAPL.US_USDC",
+                    "trades": "36570",
+                    "volume": "59916300.868158"
+                },
+                "parsedResponse": {
+                    "symbol": "AAPL.US.RFQ/USDC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 350.066,
+                    "low": 340.521,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 344.14254447366176,
+                    "open": 342.09,
+                    "close": 342.68,
+                    "last": 342.68,
+                    "previousClose": null,
+                    "change": 0.59,
+                    "percentage": 0.1725,
+                    "average": 342.385,
+                    "baseVolume": 59916300.868158,
+                    "quoteVolume": 20619748236.21736,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "firstPrice": "342.09",
+                        "high": "350.066",
+                        "lastPrice": "342.68",
+                        "low": "340.521",
+                        "priceChange": "0.59",
+                        "priceChangePercent": "0.001725",
+                        "quoteVolume": "20619748236.2173615979",
+                        "symbol": "AAPL.US_USDC",
+                        "trades": "36570",
+                        "volume": "59916300.868158"
+                    }
+                }
+            },
+            {
+                "description": "fetch ticker stock",
+                "method": "fetchTicker",
+                "input": [
+                    "SPCX.US/USDC"
+                ],
+                "httpResponse": {
+                    "firstPrice": "151.33",
+                    "high": "151.33",
+                    "lastPrice": "145.57",
+                    "low": "144.6",
+                    "priceChange": "-5.76",
+                    "priceChangePercent": "-0.038063",
+                    "quoteVolume": "76036.9607",
+                    "symbol": "SPCX.US_USDC",
+                    "trades": "150",
+                    "volume": "521.23"
+                },
+                "parsedResponse": {
+                    "symbol": "SPCX.US/USDC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 151.33,
+                    "low": 144.6,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 145.87986244076512,
+                    "open": 151.33,
+                    "close": 145.57,
+                    "last": 145.57,
+                    "previousClose": null,
+                    "change": -5.76,
+                    "percentage": -3.8063,
+                    "average": 148.45,
+                    "baseVolume": 521.23,
+                    "quoteVolume": 76036.9607,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "firstPrice": "151.33",
+                        "high": "151.33",
+                        "lastPrice": "145.57",
+                        "low": "144.6",
+                        "priceChange": "-5.76",
+                        "priceChangePercent": "-0.038063",
+                        "quoteVolume": "76036.9607",
+                        "symbol": "SPCX.US_USDC",
+                        "trades": "150",
+                        "volume": "521.23"
+                    }
+                }
             }
         ],
         "fetchTickers": [
@@ -2971,6 +4202,114 @@
                             "volume": "6488.015"
                         }
                     }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch order book stock",
+                "method": "fetchOrderBook",
+                "input": [
+                    "SPCX.US/USDC",
+                    5
+                ],
+                "httpResponse": {
+                    "asks": [
+                        [
+                            "145.73",
+                            "1.76"
+                        ],
+                        [
+                            "145.77",
+                            "1.5"
+                        ],
+                        [
+                            "145.83",
+                            "3.58"
+                        ],
+                        [
+                            "145.84",
+                            "3.84"
+                        ],
+                        [
+                            "145.93",
+                            "11.33"
+                        ]
+                    ],
+                    "bids": [
+                        [
+                            "145.36",
+                            "3.77"
+                        ],
+                        [
+                            "145.46",
+                            "3.65"
+                        ],
+                        [
+                            "145.56",
+                            "1.48"
+                        ],
+                        [
+                            "145.57",
+                            "13.74"
+                        ],
+                        [
+                            "145.63",
+                            "1.88"
+                        ]
+                    ],
+                    "lastUpdateId": "58513605",
+                    "timestamp": 1792228200777485
+                },
+                "parsedResponse": {
+                    "symbol": "SPCX.US/USDC",
+                    "bids": [
+                        [
+                            145.63,
+                            1.88
+                        ],
+                        [
+                            145.57,
+                            13.74
+                        ],
+                        [
+                            145.56,
+                            1.48
+                        ],
+                        [
+                            145.46,
+                            3.65
+                        ],
+                        [
+                            145.36,
+                            3.77
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            145.73,
+                            1.76
+                        ],
+                        [
+                            145.77,
+                            1.5
+                        ],
+                        [
+                            145.83,
+                            3.58
+                        ],
+                        [
+                            145.84,
+                            3.84
+                        ],
+                        [
+                            145.93,
+                            11.33
+                        ]
+                    ],
+                    "timestamp": 1792228200777,
+                    "datetime": "2026-10-17T09:10:00.777Z",
+                    "nonce": 58513605
                 }
             }
         ],

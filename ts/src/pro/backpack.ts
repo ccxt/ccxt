@@ -1,10 +1,9 @@
-
 //  ---------------------------------------------------------------------------
 
 import { ed25519 } from '@noble/curves/ed25519.js';
 import backpackRest from '../backpack.js';
-import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import type { Bool, Dict, Fee, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { ArgumentsRequired, BadRequest, BadSymbol, ExchangeError, NotSupported } from '../base/errors.js';
+import type { Balances, Bool, Dict, Fee, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -17,7 +16,8 @@ export default class backpack extends backpackRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
+                'watchBalance': true,
+                'unWatchBalance': true,
                 'watchBidsAsks': true,
                 'watchMyTrades': false,
                 'watchOHLCV': true,
@@ -59,6 +59,160 @@ export default class backpack extends backpackRest {
                 'keepAlive': 119000,
             },
         });
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#prepareWsStockParams
+     * @description validates the stock selector before market loading and preserves it locally
+     * @param {string} methodName calling method
+     * @param {object} params exchange-specific parameters
+     * @returns {object} local parameters with the validated stock selector
+     */
+    async prepareWsStockParams (methodName: string, params: Dict): Promise<Dict> {
+        const [ stock, query ] = this.handleOptionBoolAndParams (params, methodName, 'stock');
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (stock === undefined) {
+            return query;
+        }
+        return this.extend ({}, query, { 'stock': stock });
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#wsVenueMarketId
+     * @description rejects undocumented provider and RFQ venue streams
+     * @param {string} methodName calling method
+     * @param {object} market resolved market
+     * @param {object} params local parameters
+     * @returns {string} venue market id
+     */
+    wsVenueMarketId (methodName: string, market: Market, params: Dict): Str {
+        if (market === undefined) {
+            throw new BadSymbol (this.id + ' ' + methodName + '() requires a market');
+        }
+        this.handleStockParams (methodName, params, market);
+        const source = this.safeString (params, 'source', 'Venue');
+        if ((source === 'External') || (this.safeString (market, 'executionModel') === 'rfq') || (this.safeString (market['info'], 'marketType') === 'RFQ')) {
+            throw new NotSupported (this.id + ' ' + methodName + '() requires a venue order-book market; provider and RFQ streams are not documented for this method');
+        }
+        if (source !== 'Venue') {
+            throw new BadRequest (this.id + ' ' + methodName + '() source must be Venue');
+        }
+        return market['id'];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#watchWsTickers
+     * @description subscribes to venue statistics or stock provider streams with explicit symbol routing
+     * @param {string} methodName calling method
+     * @param {string[]} [symbols] unified symbols
+     * @param {object} [params] local parameters
+     * @param {boolean} [bidAsk] whether bid and ask data is requested
+     * @param {boolean} [unwatch] whether to unsubscribe
+     * @returns {object} unified tickers
+     */
+    async watchWsTickers (methodName: string, symbols: Strings = undefined, params: Dict = {}, bidAsk = false, unwatch = false): Promise<Tickers> {
+        const query = await this.prepareWsStockParams (methodName, params);
+        const stock = this.safeBool (query, 'stock', false);
+        const explicitSource = this.safeString (query, 'source');
+        const channel = this.safeString (query, 'channel');
+        const normalized = this.marketSymbols (symbols, undefined, false);
+        const symbolsResolved: string[] = [];
+        const topics: string[] = [];
+        const messageHashes: string[] = [];
+        const url = this.urls['api']['ws']['public'];
+        const client = this.client (url);
+        const kind = (bidAsk) ? 'bidask' : 'ticker';
+        for (let i = 0; i < normalized.length; i++) {
+            const market = this.market (normalized[i]);
+            if ((symbols === undefined) && (stock || (explicitSource === 'External') || (channel !== undefined)) && (market['stock'] !== true)) {
+                continue;
+            }
+            const marketSelection = this.handleStockParams (methodName, query, market);
+            const marketStock = this.safeBool (marketSelection, 0, false);
+            const marketParams = this.safeDict (marketSelection, 1, {});
+            const isRfq = this.safeString (market['info'], 'marketType') === 'RFQ';
+            let source = explicitSource;
+            if (source === undefined) {
+                source = (isRfq && !bidAsk) ? 'External' : 'Venue';
+            }
+            const requestParams = this.extend ({}, marketParams, { 'stock': marketStock, 'source': source });
+            const request = this.stockDataRequest (methodName, requestParams, market);
+            let topic = 'ticker.' + this.safeString (request, 'symbol');
+            if (channel !== undefined) {
+                if ((channel !== 'stockPrice') && (channel !== 'stockIndicativeQuote')) {
+                    throw new BadRequest (this.id + ' ' + methodName + '() channel must be stockPrice or stockIndicativeQuote');
+                }
+                if (market['stock'] !== true) {
+                    throw new BadSymbol (this.id + ' ' + methodName + '() stock quote channels require a stock market');
+                }
+                const baseId = this.safeString (market, 'baseId', '');
+                const ticker = baseId.replace ('.US', '');
+                topic = channel + '.' + ticker;
+            } else if (bidAsk) {
+                if ((source === 'External') || (this.safeString (market, 'executionModel') === 'rfq') || isRfq) {
+                    if (market['stock'] !== true) {
+                        throw new NotSupported (this.id + ' ' + methodName + '() RFQ quote streams require a stock market');
+                    }
+                    const baseId = this.safeString (market, 'baseId', '');
+                    const ticker = baseId.replace ('.US', '');
+                    const quoteChannel = (source === 'External') ? 'stockPrice' : 'stockIndicativeQuote';
+                    topic = quoteChannel + '.' + ticker;
+                } else {
+                    topic = 'bookTicker.' + this.wsVenueMarketId (methodName, market, query);
+                }
+            } else if (source === 'External') {
+                topic = 'externalTicker.' + market['baseId'] + '_USDC';
+            } else if ((this.safeString (market, 'executionModel') === 'rfq') && (market['stock'] !== true)) {
+                throw new NotSupported (this.id + ' ' + methodName + '() RFQ venue tickers are only mapped for stock data');
+            }
+            const symbol = market['symbol'];
+            const messageHash = kind + ':' + symbol + '@' + topic;
+            const subscriptionKey = 'marketData:' + topic;
+            let subscriptions = this.safeDict (client.subscriptions, subscriptionKey, {});
+            if (unwatch) {
+                subscriptions = this.omit (subscriptions, messageHash);
+                this.cleanUnsubscription (client, messageHash, 'unsubscribe:' + messageHash);
+                if (bidAsk) {
+                    delete this.bidsasks[symbol];
+                } else {
+                    delete this.tickers[symbol];
+                }
+            } else {
+                subscriptions[messageHash] = { 'symbol': symbol, 'bidAsk': bidAsk };
+                messageHashes.push (messageHash);
+            }
+            client.subscriptions[subscriptionKey] = subscriptions;
+            if (!unwatch || (Object.keys (subscriptions).length === 0)) {
+                if (topics.indexOf (topic) === -1) {
+                    topics.push (topic);
+                }
+            }
+            symbolsResolved.push (symbol);
+        }
+        if (symbolsResolved.length === 0) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires at least one matching market');
+        }
+        const payload = this.omit (query, [ 'stock', 'source', 'interval', 'channel' ]);
+        if (unwatch) {
+            if (topics.length > 0) {
+                const request: Dict = this.extend ({ 'method': 'UNSUBSCRIBE', 'params': topics }, payload);
+                const messageHash = 'unsubscribe:marketData:' + topics.join (',');
+                this.watchMultiple (url, [ messageHash ], request);
+                client.resolve (true, messageHash);
+            }
+        } else {
+            await this.watchPublic (topics, messageHashes, payload);
+        }
+        const tickers = (bidAsk) ? this.bidsasks : this.tickers;
+        return this.filterByArray (tickers, 'symbol', symbolsResolved);
     }
 
     async watchPublic (topics: string[], messageHashes: string[], params: Dict = {}, unwatch: boolean = false) {
@@ -187,17 +341,15 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @param {string} [params.source] Venue or External; RFQ ticker symbols default to External
+     * @param {string} [params.interval] External ticker interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote for quotes instead of statistics
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
-        const topic = 'ticker' + '.' + market['id'];
-        const messageHash = 'ticker' + ':' + symbolValue;
-        return await this.watchPublic ([ topic ], [ messageHash ], params);
+        const tickers = await this.watchWsTickers ('watchTicker', [ symbol ], params);
+        return tickers[this.symbol (symbol)];
     }
 
     /**
@@ -207,10 +359,15 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @param {string} [params.source] Venue or External, matching the subscription
+     * @param {string} [params.interval] External ticker interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote, matching the subscription
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override unWatchTicker (symbol: string, params = {}): Promise<any> {
-        return this.unWatchTickers ([ symbol ], params);
+    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        await this.watchWsTickers ('watchTicker', [ symbol ], params, false, true);
+        return undefined;
     }
 
     /**
@@ -220,23 +377,14 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock markets only; inferred from symbols when omitted
+     * @param {string} [params.source] Venue or External; RFQ ticker symbols default to External
+     * @param {string} [params.interval] External ticker interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote for quotes instead of statistics
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
-        const messageHashes: string[] = [];
-        const topics: string[] = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const symbol = symbolsNormalized[i];
-            const marketId = this.marketId (symbol);
-            messageHashes.push ('ticker:' + symbol);
-            topics.push ('ticker.' + marketId);
-        }
-        await this.watchPublic (topics, messageHashes, params);
-        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
+        return await this.watchWsTickers ('watchTickers', symbols, params);
     }
 
     /**
@@ -246,22 +394,15 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock markets only; inferred from symbols when omitted
+     * @param {string} [params.source] Venue or External, matching the subscription
+     * @param {string} [params.interval] External ticker interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote, matching the subscription
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
-        const topics: string[] = [];
-        const messageHashes: string[] = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const symbol = symbolsNormalized[i];
-            const marketId = this.marketId (symbol);
-            topics.push ('ticker.' + marketId);
-            messageHashes.push ('unsubscribe:ticker:' + symbol);
-        }
-        return await this.watchPublic (topics, messageHashes, params, true);
+        await this.watchWsTickers ('watchTickers', symbols, params, false, true);
+        return undefined;
     }
 
     handleTicker (client: Client, message: Dict) {
@@ -283,13 +424,33 @@ export default class backpack extends backpackRest {
         //     }
         //
         const ticker = this.safeDict (message, 'data', {});
+        const stream = this.safeString (message, 'stream', '');
+        const subscriptions = this.safeDict (client.subscriptions, 'marketData:' + stream, {});
+        const hashes = Object.keys (subscriptions);
+        for (let i = 0; i < hashes.length; i++) {
+            const messageHash = hashes[i];
+            const subscription = this.safeDict (subscriptions, messageHash, {});
+            const symbol = this.safeString (subscription, 'symbol');
+            if (symbol === undefined) {
+                continue;
+            }
+            const market = this.market (symbol);
+            const mappedTicker = this.extend ({}, ticker, { 's': market['id'] });
+            const parsedTicker = this.parseWsTicker (mappedTicker, market);
+            parsedTicker['info'] = ticker;
+            this.tickers[symbol] = parsedTicker;
+            client.resolve (parsedTicker, messageHash);
+        }
+        if (hashes.length > 0) {
+            return;
+        }
         const marketId = this.safeString (ticker, 's');
-        const market = this.safeMarket (marketId);
-        const symbol = this.safeSymbol (marketId, market);
-        const parsedTicker = this.parseWsTicker (ticker, market);
-        const messageHash = 'ticker' + ':' + symbol;
-        this.tickers[symbol] = parsedTicker;
-        client.resolve (parsedTicker, messageHash);
+        const fallbackMarket = this.safeMarket (marketId);
+        const fallbackSymbol = this.safeSymbol (marketId, fallbackMarket);
+        const fallbackTicker = this.parseWsTicker (ticker, fallbackMarket);
+        const fallbackHash = 'ticker' + ':' + fallbackSymbol;
+        this.tickers[fallbackSymbol] = fallbackTicker;
+        client.resolve (fallbackTicker, fallbackHash);
     }
 
     parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -339,29 +500,61 @@ export default class backpack extends backpackRest {
     }
 
     /**
+     * @ignore
+     * @method
+     * @name backpack#handleStockTicker
+     * @description routes provider and indicative stock quotes without treating mid prices as trades
+     * @param {object} client websocket client
+     * @param {object} message stream envelope
+     * @returns {boolean} whether a subscription was updated
+     */
+    handleStockTicker (client: Client, message: Dict): boolean {
+        const data = this.safeDict (message, 'data', {});
+        const stream = this.safeString (message, 'stream', '');
+        const subscriptions = this.safeDict (client.subscriptions, 'marketData:' + stream, {});
+        const hashes = Object.keys (subscriptions);
+        for (let i = 0; i < hashes.length; i++) {
+            const messageHash = hashes[i];
+            const subscription = this.safeDict (subscriptions, messageHash, {});
+            const symbol = this.safeString (subscription, 'symbol');
+            if (symbol === undefined) {
+                continue;
+            }
+            const market = this.market (symbol);
+            const timestamp = this.safeInteger (data, 'timestamp');
+            const parsed = this.safeTicker ({
+                'symbol': symbol,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'bid': this.safeString (data, 'bid'),
+                'ask': this.safeString (data, 'ask'),
+                'info': data,
+            }, market);
+            if (this.safeBool (subscription, 'bidAsk', false)) {
+                this.bidsasks[symbol] = parsed;
+            } else {
+                this.tickers[symbol] = parsed;
+            }
+            client.resolve (parsed, messageHash);
+        }
+        return hashes.length > 0;
+    }
+
+    /**
      * @method
      * @name backpack#watchBidsAsks
      * @description watches best bid & ask for symbols
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Book-ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock quotes; inferred from symbols when omitted
+     * @param {string} [params.source] Venue or External; RFQ quotes default to indicative quotes
+     * @param {string} [params.interval] External data interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote, unavailable prices remain undefined
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
-        const topics: string[] = [];
-        const messageHashes: string[] = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const symbol = symbolsNormalized[i];
-            const marketId = this.marketId (symbol);
-            topics.push ('bookTicker.' + marketId);
-            messageHashes.push ('bidask:' + symbol);
-        }
-        await this.watchPublic (topics, messageHashes, params);
-        return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
+        return await this.watchWsTickers ('watchBidsAsks', symbols, params, true);
     }
 
     /**
@@ -370,22 +563,15 @@ export default class backpack extends backpackRest {
      * @description unWatches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock markets only; inferred from symbols when omitted
+     * @param {string} [params.source] Venue or External, matching the subscription
+     * @param {string} [params.interval] External data interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote, matching the subscription
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
-        const topics: string[] = [];
-        const messageHashes: string[] = [];
-        for (let i = 0; i < symbolsNormalized.length; i++) {
-            const symbol = symbolsNormalized[i];
-            const marketId = this.marketId (symbol);
-            topics.push ('bookTicker.' + marketId);
-            messageHashes.push ('unsubscribe:bidask:' + symbol);
-        }
-        return await this.watchPublic (topics, messageHashes, params, true);
+        await this.watchWsTickers ('watchBidsAsks', symbols, params, true, true);
+        return undefined;
     }
 
     handleBidAsk (client: Client, message: Dict) {
@@ -405,13 +591,31 @@ export default class backpack extends backpackRest {
         //         stream: 'bookTicker.ETH_USDC'
         //     }
         const data = this.safeDict (message, 'data', {});
+        const stream = this.safeString (message, 'stream', '');
+        const subscriptions = this.safeDict (client.subscriptions, 'marketData:' + stream, {});
+        const hashes = Object.keys (subscriptions);
+        for (let i = 0; i < hashes.length; i++) {
+            const messageHash = hashes[i];
+            const subscription = this.safeDict (subscriptions, messageHash, {});
+            const symbol = this.safeString (subscription, 'symbol');
+            if (symbol === undefined) {
+                continue;
+            }
+            const market = this.market (symbol);
+            const parsedBidAsk = this.parseWsBidAsk (data, market);
+            this.bidsasks[symbol] = parsedBidAsk;
+            client.resolve (parsedBidAsk, messageHash);
+        }
+        if (hashes.length > 0) {
+            return;
+        }
         const marketId = this.safeString (data, 's');
-        const market = this.safeMarket (marketId);
-        const symbol = this.safeSymbol (marketId, market);
-        const parsedBidAsk = this.parseWsBidAsk (data, market);
-        const messageHash = 'bidask' + ':' + symbol;
-        this.bidsasks[symbol] = parsedBidAsk;
-        client.resolve (parsedBidAsk, messageHash);
+        const fallbackMarket = this.safeMarket (marketId);
+        const fallbackSymbol = this.safeSymbol (marketId, fallbackMarket);
+        const fallbackBidAsk = this.parseWsBidAsk (data, fallbackMarket);
+        const fallbackHash = 'bidask' + ':' + fallbackSymbol;
+        this.bidsasks[fallbackSymbol] = fallbackBidAsk;
+        client.resolve (fallbackBidAsk, fallbackHash);
     }
 
     parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
@@ -459,10 +663,13 @@ export default class backpack extends backpackRest {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects stock spot order-book candles, RFQ candles are unsupported
+     * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
-        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
+        const query = await this.prepareWsStockParams ('watchOHLCV', params);
+        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, query);
         return result[symbol][timeframe];
     }
 
@@ -474,10 +681,13 @@ export default class backpack extends backpackRest {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects stock spot order-book candles
+     * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
-        return this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+        const query = await this.prepareWsStockParams ('watchOHLCV', params);
+        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], query);
     }
 
     /**
@@ -489,9 +699,12 @@ export default class backpack extends backpackRest {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets, not RFQ markets
+     * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+        const query = await this.prepareWsStockParams ('watchOHLCVForSymbols', params);
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
@@ -507,10 +720,10 @@ export default class backpack extends backpackRest {
             const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1);
             const interval = this.safeString (this.timeframes, tf, tf);
-            topics.push ('kline.' + interval + '.' + market['id']);
+            topics.push ('kline.' + interval + '.' + this.wsVenueMarketId ('watchOHLCVForSymbols', market, query));
             messageHashes.push ('candles:' + market['symbol'] + ':' + interval);
         }
-        const [ symbol, timeframe, candles ] = await this.watchPublic (topics, messageHashes, params);
+        const [ symbol, timeframe, candles ] = await this.watchPublic (topics, messageHashes, this.omit (query, [ 'stock', 'source' ]));
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = candles.getLimit (symbol, limit);
@@ -526,9 +739,12 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/K-Line
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets
+     * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
+        const query = await this.prepareWsStockParams ('watchOHLCVForSymbols', params);
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
@@ -544,10 +760,10 @@ export default class backpack extends backpackRest {
             const market = this.market (marketId);
             const tf = this.safeString (symbolAndTimeframe, 1);
             const interval = this.safeString (this.timeframes, tf, tf);
-            topics.push ('kline.' + interval + '.' + market['id']);
+            topics.push ('kline.' + interval + '.' + this.wsVenueMarketId ('watchOHLCVForSymbols', market, query));
             messageHashes.push ('unsubscribe:candles:' + market['symbol'] + ':' + interval);
         }
-        return await this.watchPublic (topics, messageHashes, params, true);
+        return await this.watchPublic (topics, messageHashes, this.omit (query, [ 'stock', 'source' ]), true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -628,10 +844,13 @@ export default class backpack extends backpackRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires a stock spot order-book market, RFQ public trades are unsupported
+     * @param {string} [params.source] Venue only
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        const query = await this.prepareWsStockParams ('watchTrades', params);
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, query);
     }
 
     /**
@@ -641,10 +860,13 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires a stock spot order-book market
+     * @param {string} [params.source] Venue only
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override unWatchTrades (symbol: string, params = {}): Promise<any> {
-        return this.unWatchTradesForSymbols ([ symbol ], params);
+    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        const query = await this.prepareWsStockParams ('watchTrades', params);
+        return await this.unWatchTradesForSymbols ([ symbol ], query);
     }
 
     /**
@@ -656,9 +878,12 @@ export default class backpack extends backpackRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets, not RFQ markets
+     * @param {string} [params.source] Venue only
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        const query = await this.prepareWsStockParams ('watchTradesForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -671,11 +896,11 @@ export default class backpack extends backpackRest {
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const marketId = this.marketId (symbol);
+            const marketId = this.wsVenueMarketId ('watchTradesForSymbols', this.market (symbol), query);
             topics.push ('trade.' + marketId);
             messageHashes.push ('trades:' + symbol);
         }
-        const trades = await this.watchPublic (topics, messageHashes, params);
+        const trades = await this.watchPublic (topics, messageHashes, this.omit (query, [ 'stock', 'source' ]));
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
@@ -693,9 +918,12 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets
+     * @param {string} [params.source] Venue only
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+        const query = await this.prepareWsStockParams ('watchTradesForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -708,11 +936,11 @@ export default class backpack extends backpackRest {
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const marketId = this.marketId (symbol);
+            const marketId = this.wsVenueMarketId ('watchTradesForSymbols', this.market (symbol), query);
             topics.push ('trade.' + marketId);
             messageHashes.push ('unsubscribe:trades:' + symbol);
         }
-        return await this.watchPublic (topics, messageHashes, params, true);
+        return await this.watchPublic (topics, messageHashes, this.omit (query, [ 'stock', 'source' ]), true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -817,10 +1045,13 @@ export default class backpack extends backpackRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires a stock spot order-book market, not an RFQ market
+     * @param {string} [params.source] Venue only
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        return this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        const query = await this.prepareWsStockParams ('watchOrderBook', params);
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, query);
     }
 
     /**
@@ -831,26 +1062,31 @@ export default class backpack extends backpackRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets, not RFQ markets
+     * @param {string} [params.source] Venue only
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        const query = await this.prepareWsStockParams ('watchOrderBookForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
-        const marketIds = this.marketIds (symbolsNormalized);
         const messageHashes: string[] = [];
         const topics: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             messageHashes.push ('orderbook:' + symbol);
-            const marketId = marketIds[i];
+            const marketId = this.wsVenueMarketId ('watchOrderBookForSymbols', this.market (symbol), query);
             const topic = 'depth.' + marketId;
             topics.push (topic);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            }
         }
-        const orderbook: WsOrderBook = await this.watchPublic (topics, messageHashes, params);
-        return orderbook.limit (); // todo check if limit is needed
+        const orderbook: WsOrderBook = await this.watchPublic (topics, messageHashes, this.omit (query, [ 'stock', 'source' ]));
+        return orderbook.limit ();
     }
 
     /**
@@ -859,10 +1095,13 @@ export default class backpack extends backpackRest {
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires a stock spot order-book market
+     * @param {string} [params.source] Venue only
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        return this.unWatchOrderBookForSymbols ([ symbol ], params);
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        const query = await this.prepareWsStockParams ('watchOrderBook', params);
+        return await this.unWatchOrderBookForSymbols ([ symbol ], query);
     }
 
     /**
@@ -871,25 +1110,27 @@ export default class backpack extends backpackRest {
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets
+     * @param {string} [params.source] Venue only
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+        const query = await this.prepareWsStockParams ('watchOrderBookForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
-        const marketIds = this.marketIds (symbolsNormalized);
         const messageHashes: string[] = [];
         const topics: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             messageHashes.push ('unsubscribe:orderbook:' + symbol);
-            const marketId = marketIds[i];
+            const marketId = this.wsVenueMarketId ('watchOrderBookForSymbols', this.market (symbol), query);
             const topic = 'depth.' + marketId;
             topics.push (topic);
         }
-        return await this.watchPublic (topics, messageHashes, params, true);
+        return await this.watchPublic (topics, messageHashes, this.omit (query, [ 'stock', 'source' ]), true);
     }
 
     handleOrderBook (client: Client, message: Dict) {
@@ -923,11 +1164,12 @@ export default class backpack extends backpackRest {
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            // the rest API is very delayed
-            // usually it takes at least 9 deltas to resolve
-            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
+            // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
+            const market = this.market (symbol);
+            const defaultSnapshotDelay = (market['stock'] === true) ? 0 : 10;
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay);
             if (cacheLength === snapshotDelay) {
-                this.spawn (this.loadOrderBook, client, messageHash, symbol, null, {});
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, undefined, {});
             }
             storedOrderBook.cache.push (data);
             return;
@@ -996,29 +1238,43 @@ export default class backpack extends backpackRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders, RFQ markets use account.rfqUpdate
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        const query = await this.prepareWsStockParams ('watchOrders', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            this.handleStockParams ('watchOrders', query, market);
         }
         const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
         let topic = 'account.orderUpdate';
         let messageHash = 'orders';
         if (market !== undefined) {
             topic = 'account.orderUpdate.' + market['id'];
+            if (this.safeString (market, 'executionModel') === 'rfq') {
+                topic = 'account.rfqUpdate.' + market['id'];
+            }
             messageHash = 'orders:' + symbolResolved;
         }
-        const orders = await this.watchPrivate ([ topic ], [ messageHash ], params);
+        const topics = [ topic ];
+        if (market === undefined) {
+            topics.push ('account.rfqUpdate');
+        }
+        const orders = await this.watchPrivate (topics, [ messageHash ], this.omit (query, 'stock'));
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        const filtered = this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+        if (this.safeBool (query, 'stock', false)) {
+            return this.filterStockStructures (filtered) as Order[];
+        }
+        return filtered;
     }
 
     /**
@@ -1028,24 +1284,34 @@ export default class backpack extends backpackRest {
      * @see https://docs.backpack.exchange/#tag/Streams/Private/Order-update
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock order subscriptions
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
+        const query = await this.prepareWsStockParams ('watchOrders', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            this.handleStockParams ('watchOrders', query, market);
         }
         const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         let topic = 'account.orderUpdate';
         let messageHash = 'unsubscribe:orders';
         if (market !== undefined) {
             topic = 'account.orderUpdate.' + market['id'];
+            if (this.safeString (market, 'executionModel') === 'rfq') {
+                topic = 'account.rfqUpdate.' + market['id'];
+            }
             messageHash = 'unsubscribe:orders:' + symbolResolved;
         }
-        return await this.watchPrivate ([ topic ], [ messageHash ], params, true);
+        const topics = [ topic ];
+        if (market === undefined) {
+            topics.push ('account.rfqUpdate');
+        }
+        return await this.watchPrivate (topics, [ messageHash ], this.omit (query, 'stock'), true);
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -1078,7 +1344,13 @@ export default class backpack extends backpackRest {
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const parsed = this.parseWsOrder (data, market);
+        const event = this.safeString (data, 'e', '');
+        let parsed: Order;
+        if ((event.indexOf ('rfq') === 0) || (event.indexOf ('quote') === 0)) {
+            parsed = this.parseWsRfqOrder (data, market);
+        } else {
+            parsed = this.parseWsOrder (data, market);
+        }
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1089,6 +1361,121 @@ export default class backpack extends backpackRest {
         client.resolve (orders, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve (orders, symbolSpecificMessageHash);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#parseWsRfqOrder
+     * @description maps documented RFQ lifecycle fields to the REST order parser without inventing fills or fees
+     * @param {object} data RFQ update payload
+     * @param {object} [market] resolved RFQ market
+     * @returns {object} unified order
+     */
+    parseWsRfqOrder (data: Dict, market: Market = undefined): Order {
+        const event = this.safeString (data, 'e', '');
+        const quoteEvent = event.indexOf ('quote') === 0;
+        const timestamp = this.parseToInt (this.safeInteger (data, 'E', 0) / 1000);
+        const request: Dict = {
+            'rfqId': this.safeString (data, 'R'),
+            'clientId': this.safeString (data, 'C'),
+            'symbol': this.safeString (data, 's'),
+            'side': this.safeString (data, 'S'),
+            'quantity': this.safeString (data, 'q'),
+            'quoteQuantity': this.safeString (data, 'Q'),
+            'price': this.safeString (data, 'p'),
+            'status': this.safeString (data, 'X'),
+            'createdAt': timestamp,
+            'submissionTime': this.safeInteger (data, 'w'),
+            'expiryTime': this.safeInteger (data, 'W'),
+            'systemOrderType': this.safeString (data, 'o'),
+        };
+        if (quoteEvent) {
+            request['id'] = this.safeString (data, 'u');
+        }
+        const parsed = this.parseOrder (request, market);
+        parsed['info'] = data;
+        if (event === 'rfqFilled') {
+            parsed['lastTradeTimestamp'] = this.parseToInt (this.safeInteger (data, 'T', 0) / 1000);
+        }
+        return parsed;
+    }
+
+    /**
+     * @method
+     * @name backpack#watchBalance
+     * @description watches absolute capital-account asset updates accumulated since subscription, without an initial snapshot
+     * @see https://docs.backpack.exchange/#tag/Streams/Private/Balance-update
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.stock] return tokenized stock assets only; explicit because this method has no symbol
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
+        const query = await this.prepareWsStockParams ('watchBalance', params);
+        const stock = this.safeBool (query, 'stock', false);
+        if (stock && (this.safeList (this.options, 'securities') === undefined)) {
+            await this.fetchSecurities ();
+        }
+        const balances = await this.watchPrivate ([ 'account.balanceUpdate' ], [ 'balance' ], this.omit (query, 'stock'));
+        if (stock) {
+            const securities = this.safeList (this.options, 'securities', []);
+            const result: Dict = { 'timestamp': this.safeInteger (balances, 'timestamp'), 'datetime': this.safeString (balances, 'datetime'), 'info': this.safeDict (balances, 'info') };
+            for (let i = 0; i < securities.length; i++) {
+                const security = this.safeDict (securities, i, {});
+                const code = this.safeCurrencyCode (this.safeString (security, 'asset'));
+                if (code === undefined) {
+                    continue;
+                }
+                const account = this.safeDict (balances, code);
+                if (account !== undefined) {
+                    result[code] = account;
+                }
+            }
+            return this.safeBalance (result);
+        }
+        return balances;
+    }
+
+    /**
+     * @method
+     * @name backpack#unWatchBalance
+     * @description unsubscribes from all capital-account asset updates
+     * @see https://docs.backpack.exchange/#tag/Streams/Private/Balance-update
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.stock] accepts the tokenized stock view selector; explicit because this method has no symbol
+     * @returns {object} unsubscription result
+     */
+    async unWatchBalance (params: Dict = {}): Promise<any> {
+        const query = await this.prepareWsStockParams ('watchBalance', params);
+        return await this.watchPrivate ([ 'account.balanceUpdate' ], [ 'unsubscribe:balance' ], this.omit (query, 'stock'), true);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#handleBalance
+     * @description merges absolute asset balances using the REST capital parser
+     * @param {object} client websocket client
+     * @param {object} message stream envelope
+     * @returns {boolean} whether a balance was updated
+     */
+    handleBalance (client: Client, message: Dict): boolean {
+        const data = this.safeDict (message, 'data', {});
+        const assetId = this.safeString (data, 'a');
+        if (assetId === undefined) {
+            return false;
+        }
+        const assets = this.safeDict (this.options, 'wsBalanceAssets', {});
+        assets[assetId] = { 'available': this.safeString (data, 'A'), 'locked': this.safeString (data, 'L'), 'staked': this.safeString (data, 'S') };
+        this.options['wsBalanceAssets'] = assets;
+        const parsed = this.parseBalance (assets);
+        const timestamp = this.parseToInt (this.safeInteger (data, 'E', 0) / 1000);
+        parsed['timestamp'] = timestamp;
+        parsed['datetime'] = this.iso8601 (timestamp);
+        parsed['info'] = assets;
+        this.balance = parsed;
+        client.resolve (parsed, 'balance');
+        return true;
     }
 
     override parseWsOrder (order: Dict, market: Market = undefined): Order {
@@ -1374,7 +1761,13 @@ export default class backpack extends backpackRest {
         }
         const data = this.safeDict (message, 'data');
         const event = this.safeString (data, 'e');
-        if (event === 'ticker') {
+        if ((event === 'stockPrice') || (event === 'stockIndicativeQuote')) {
+            this.handleStockTicker (client, message);
+        } else if (event === 'balanceUpdate') {
+            this.handleBalance (client, message);
+        } else if ((event === 'rfqAccepted') || (event === 'rfqCandidate') || (event === 'rfqAcceptedBinding') || (event === 'rfqFilled') || (event === 'rfqCancelled') || (event === 'quoteAccepted') || (event === 'quoteCancelled')) {
+            this.handleOrder (client, message);
+        } else if ((event === 'ticker') || (event === 'externalTicker')) {
             this.handleTicker (client, message);
         } else if (event === 'bookTicker') {
             this.handleBidAsk (client, message);

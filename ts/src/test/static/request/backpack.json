@@ -37,6 +37,27 @@
                     1
                 ],
                 "output": null
+            },
+            {
+                "description": "fetchOrders stock",
+                "method": "fetchOrders",
+                "url": "https://api.backpack.exchange/wapi/v1/history/orders?symbol=SPCX.US_USDC",
+                "input": [
+                    "SPCX.US/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder stock",
+                "method": "fetchOrder",
+                "url": "https://api.backpack.exchange/wapi/v1/history/orders?orderId=70592684154&symbol=SPCX.US_USDC",
+                "input": [
+                    "70592684154",
+                    "SPCX.US/USDC"
+                ],
+                "output": null
             }
         ],
         "cancelAllOrders": [
@@ -48,6 +69,15 @@
                     "ETH/USDC"
                 ],
                 "output": "{\"symbol\":\"ETH_USDC\"}"
+            },
+            {
+                "description": "cancelAllOrders stock",
+                "method": "cancelAllOrders",
+                "url": "https://api.backpack.exchange/api/v1/orders",
+                "input": [
+                    "SPCX.US/USDC"
+                ],
+                "output": "{\"symbol\":\"SPCX.US_USDC\"}"
             }
         ],
         "cancelOrder": [
@@ -60,6 +90,16 @@
                     "ETH/USDC"
                 ],
                 "output": "{\"orderId\":8284661092,\"symbol\":\"ETH_USDC\"}"
+            },
+            {
+                "description": "cancelOrder stock",
+                "method": "cancelOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "70592684154",
+                    "SPCX.US/USDC"
+                ],
+                "output": "{\"orderId\":\"70592684154\",\"symbol\":\"SPCX.US_USDC\"}"
             }
         ],
         "fetchOpenOrder": [
@@ -70,6 +110,16 @@
                 "input": [
                     8284661092,
                     "ETH/USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOpenOrder stock",
+                "method": "fetchOpenOrder",
+                "url": "https://api.backpack.exchange/api/v1/order?orderId=70592684154&symbol=SPCX.US_USDC",
+                "input": [
+                    "70592684154",
+                    "SPCX.US/USDC"
                 ],
                 "output": null
             }
@@ -83,6 +133,17 @@
                     "ETH/USDC",
                     null,
                     1
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOpenOrders stock",
+                "method": "fetchOpenOrders",
+                "url": "https://api.backpack.exchange/api/v1/orders?symbol=SPCX.US_USDC",
+                "input": [
+                    "SPCX.US/USDC",
+                    null,
+                    3
                 ],
                 "output": null
             }
@@ -238,6 +299,19 @@
                     }
                 ],
                 "output": "{\"orderType\":\"Limit\",\"price\":\"3500\",\"quantity\":\"0.001\",\"selfTradePrevention\":\"RejectBoth\",\"side\":\"Bid\",\"symbol\":\"ETH_USDC\"}"
+            },
+            {
+                "description": "createOrder limit buy stock",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "SPCX.US/USDC",
+                    "limit",
+                    "buy",
+                    0.01,
+                    120
+                ],
+                "output": "{\"orderType\":\"Limit\",\"price\":\"120\",\"quantity\":\"0.01\",\"side\":\"Bid\",\"symbol\":\"SPCX.US_USDC\"}"
             }
         ],
         "fetchDepositAddress": [
@@ -323,6 +397,17 @@
                     5
                 ],
                 "output": null
+            },
+            {
+                "description": "fetchTrades stock",
+                "method": "fetchTrades",
+                "url": "https://api.backpack.exchange/api/v1/trades?limit=3&symbol=SPCX.US_USDC",
+                "input": [
+                    "SPCX.US/USDC",
+                    null,
+                    3
+                ],
+                "output": null
             }
         ],
         "fetchFundingRateHistory": [
@@ -392,6 +477,19 @@
                     "1m"
                 ],
                 "output": null
+            },
+            {
+                "description": "fetchOHLCV stock RFQ",
+                "method": "fetchOHLCV",
+                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1792228403&interval=1m&priceType=Last&source=External&startTime=1792228223&symbol=AAPL.US_USDC",
+                "input": [
+                    "AAPL.US.RFQ/USDC",
+                    "1m",
+                    null,
+                    3,
+                    { "until": 1792228403000 }
+                ],
+                "output": null
             }
         ],
         "fetchOrderBook": [
@@ -403,6 +501,16 @@
                     "ETH/USDC"
                 ],
                 "output": null
+            },
+            {
+                "description": "fetchOrderBook stock",
+                "method": "fetchOrderBook",
+                "url": "https://api.backpack.exchange/api/v1/depth?limit=5&symbol=SPCX.US_USDC",
+                "input": [
+                    "SPCX.US/USDC",
+                    5
+                ],
+                "output": null
             }
         ],
         "fetchTicker": [
@@ -412,6 +520,24 @@
                 "url": "https://api.backpack.exchange/api/v1/ticker?symbol=ETH_USDC",
                 "input": [
                     "ETH/USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchTicker stock RFQ",
+                "method": "fetchTicker",
+                "url": "https://api.backpack.exchange/api/v1/ticker?interval=1d&source=External&symbol=AAPL.US_USDC",
+                "input": [
+                    "AAPL.US.RFQ/USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchTicker stock",
+                "method": "fetchTicker",
+                "url": "https://api.backpack.exchange/api/v1/ticker?symbol=SPCX.US_USDC",
+                "input": [
+                    "SPCX.US/USDC"
                 ],
                 "output": null
             }
@@ -432,6 +558,13 @@
                 "url": "https://api.backpack.exchange/api/v1/assets",
                 "input": [],
                 "output": null
+            },
+            {
+                "description": "stock filter uses assets endpoint without forwarding stock",
+                "method": "fetchCurrencies",
+                "url": "https://api.backpack.exchange/api/v1/assets",
+                "input": [{ "stock": true }],
+                "output": null
             }
         ],
         "fetchBalance": [
@@ -445,10 +578,45 @@
         ],
         "fetchMarkets": [
             {
+                "description": "Unified spot scalar alias",
+                "method": "fetchMarkets",
+                "url": "https://api.backpack.exchange/api/v1/markets?marketType=SPOT",
+                "input": [{ "marketType": "spot" }],
+                "output": null
+            },
+            {
+                "description": "Unified swap array alias",
+                "method": "fetchMarkets",
+                "url": "https://api.backpack.exchange/api/v1/markets?marketType=PERP",
+                "input": [{ "marketType": ["swap", "PERP"] }],
+                "output": null
+            },
+            {
+                "description": "Unified stock scalar alias",
+                "method": "fetchMarkets",
+                "url": "https://api.backpack.exchange/api/v1/markets?marketType=RFQ",
+                "input": [{ "marketType": "stock" }],
+                "output": null
+            },
+            {
                 "description": "Fetch all markets",
                 "method": "fetchMarkets",
                 "url": "https://api.backpack.exchange/api/v1/markets",
                 "input": [],
+                "output": null
+            },
+            {
+                "description": "Stock spot markets use the market type filter without forwarding stock",
+                "method": "fetchMarkets",
+                "url": "https://api.backpack.exchange/api/v1/markets?marketType=SPOT",
+                "input": [{ "stock": true, "marketType": ["SPOT"] }],
+                "output": null
+            },
+            {
+                "description": "Perpetual markets use the market type filter",
+                "method": "fetchMarkets",
+                "url": "https://api.backpack.exchange/api/v1/markets?marketType=PERP",
+                "input": [{ "marketType": ["PERP"] }],
                 "output": null
             }
         ]
