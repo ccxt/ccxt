@@ -467,7 +467,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 'borrowMargin' => null,
                 'cancelAllOrders' => null,
                 'cancelAllOrdersWs' => null,
-                'cancelOrder' => true,
+                'cancelOrder' => null,
                 'cancelOrderWithClientOrderId' => null,
                 'cancelOrderWs' => null,
                 'cancelOrders' => null,
@@ -478,7 +478,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 'createDepositAddress' => null,
                 'createLimitBuyOrder' => null,
                 'createLimitBuyOrderWs' => null,
-                'createLimitOrder' => true,
+                'createLimitOrder' => null,
                 'createLimitOrderWs' => null,
                 'createLimitSellOrder' => null,
                 'createLimitSellOrderWs' => null,
@@ -486,15 +486,15 @@ class BaseExchange extends \ccxt\BaseExchange {
                 'createMarketBuyOrderWs' => null,
                 'createMarketBuyOrderWithCost' => null,
                 'createMarketBuyOrderWithCostWs' => null,
-                'createMarketOrder' => true,
-                'createMarketOrderWs' => true,
+                'createMarketOrder' => null,
+                'createMarketOrderWs' => null,
                 'createMarketOrderWithCost' => null,
                 'createMarketOrderWithCostWs' => null,
                 'createMarketSellOrder' => null,
                 'createMarketSellOrderWs' => null,
                 'createMarketSellOrderWithCost' => null,
                 'createMarketSellOrderWithCostWs' => null,
-                'createOrder' => true,
+                'createOrder' => null,
                 'createOrderWs' => null,
                 'createOrders' => null,
                 'createOrderWithTakeProfitAndStopLoss' => null,
@@ -526,7 +526,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 'editOrderWs' => null,
                 'fetchAccounts' => null,
                 'fetchADLRank' => null,
-                'fetchBalance' => true,
+                'fetchBalance' => null,
                 'fetchBalanceWs' => null,
                 'fetchBidsAsks' => null,
                 'fetchBorrowInterest' => null,
@@ -569,7 +569,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 'fetchIsolatedBorrowRates' => null,
                 'fetchMarginAdjustmentHistory' => null,
                 'fetchIsolatedPositions' => null,
-                'fetchL2OrderBook' => true,
+                'fetchL2OrderBook' => null,
                 'fetchL3OrderBook' => null,
                 'fetchLastPrices' => null,
                 'fetchLedger' => null,
@@ -602,7 +602,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 'fetchOptionChain' => null,
                 'fetchOrder' => null,
                 'fetchOrderWithClientOrderId' => null,
-                'fetchOrderBook' => true,
+                'fetchOrderBook' => null,
                 'fetchOrderBooks' => null,
                 'fetchOrderBookWs' => null,
                 'fetchOrders' => null,
@@ -625,13 +625,13 @@ class BaseExchange extends \ccxt\BaseExchange {
                 'fetchPremiumIndexOHLCV' => null,
                 'fetchSettlementHistory' => null,
                 'fetchStatus' => null,
-                'fetchTicker' => true,
+                'fetchTicker' => 'emulated',
                 'fetchTickerWs' => null,
                 'fetchTickers' => null,
                 'fetchMarkPrices' => null,
                 'fetchTickersWs' => null,
                 'fetchTime' => null,
-                'fetchTrades' => true,
+                'fetchTrades' => null,
                 'fetchTradesWs' => null,
                 'fetchTradingFee' => null,
                 'fetchTradingFees' => null,
@@ -1723,6 +1723,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $networkIdsToCodesGenerated = $this->invert_flat_string_dictionary($this->safe_value($this->options, 'networks', array()));
         $this->options['networksById'] = $this->extend($networkIdsToCodesGenerated, $this->safe_value($this->options, 'networksById', array()));
         $this->features_generator();
+        $this->has_autocorrect();
         // init predefined markets if any
         if ($this->markets !== null) {
             $this->set_markets($this->markets);
@@ -1737,6 +1738,26 @@ class BaseExchange extends \ccxt\BaseExchange {
         // compatibility for sandbox/testnet options in userConfig
         if (($this->safe_bool($userConfig, 'sandbox', false)) || ($this->safe_bool($userConfig, 'testnet', false))) {
             $this->set_sandbox_mode(true);
+        }
+    }
+
+    public function has_autocorrect() {
+        $fallbacks = array(
+            'fetchL2OrderBook' => 'fetchOrderBook',
+            'createLimitOrder' => 'createOrder',
+            'createMarketOrder' => 'createOrder',
+            'createLimitOrderWs' => 'createOrderWs',
+            'createMarketOrderWs' => 'createOrderWs',
+        );
+        $targets = is_array($fallbacks) ? array_keys($fallbacks) : array();
+        for ($i = 0; $i < count($targets); $i++) {
+            $target = $targets[$i];
+            $source = $fallbacks[$target];
+            $sourceDefined = (is_array($this->has) && array_key_exists($source ?? '', $this->has)) && ($this->has[$source] !== null);
+            $targetDefined = (is_array($this->has) && array_key_exists($target ?? '', $this->has)) && ($this->has[$target] !== null);
+            if ($sourceDefined && !$targetDefined) {
+                $this->has[$target] = $this->has[$source];
+            }
         }
     }
 
