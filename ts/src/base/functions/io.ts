@@ -71,13 +71,14 @@ export function getTempDir(): string | undefined {
  */
 function ensureWhitelistedFile(filePath: string) {
     if (pathSyncModule === null) {
-        throw new Error('path module is not available');
+        throw new Error ('path module is not available');
     }
-    const sanitizedFilePath = pathSyncModule.resolve(filePath);
-    if ((sanitizedFilePath.startsWith(filePath) && sanitizedFilePath.endsWith('.ccxtfile')) || sanitizedFilePath.endsWith('.wasm')) {
-        return;
+    const resolvedInputFilePath = pathSyncModule.resolve (filePath);
+    const allowedExtensions = [ '.ccxtfile', '.wasm' ];
+    if (!allowedExtensions.some (ext => resolvedInputFilePath.endsWith (ext))) {
+        throw new Error ('File path is not permitted: ' + filePath + ', allowed extensions are: ' + allowedExtensions.join (', '));
     }
-    throw new Error('invalid file path: ' + filePath);
+    return resolvedInputFilePath;
 }
 
 /*  ------------------------------------------------------------------------ */
@@ -94,12 +95,12 @@ export function readFile (path: string, encoding: BufferEncoding | null = 'utf8'
         // Sync module not initialized yet
         return undefined;
     }
-    ensureWhitelistedFile (path);
+    const normalizedPath = ensureWhitelistedFile (path);
     try {
         if (encoding === null) {
-            return fsSyncModule.readFileSync (path);
+            return fsSyncModule.readFileSync (normalizedPath);
         }
-        return fsSyncModule.readFileSync (path, encoding);
+        return fsSyncModule.readFileSync (normalizedPath, encoding);
     } catch (e) {
         return undefined;
     }
@@ -117,9 +118,9 @@ export function writeFile (path: string, data: string, encoding: BufferEncoding 
     if (!isNode || fsSyncModule === null) {
         return false;
     }
-    ensureWhitelistedFile (path);
+    const normalizedPath = ensureWhitelistedFile (path);
     try {
-        fsSyncModule.writeFileSync (path, data, encoding);
+        fsSyncModule.writeFileSync (normalizedPath, data, encoding);
         return true;
     } catch (e) {
         // Silent fail
@@ -139,9 +140,9 @@ export function existsFile (path: string): boolean {
         // Sync module not initialized yet
         return false;
     }
-    ensureWhitelistedFile (path);
+    const normalizedPath = ensureWhitelistedFile (path);
     try {
-        fsSyncModule.accessSync (path);
+        fsSyncModule.accessSync (normalizedPath);
         return true;
     } catch (e) {
         return false;
