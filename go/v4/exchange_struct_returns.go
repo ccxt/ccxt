@@ -60,6 +60,37 @@ func OrderToMap(o Order) map[string]any {
 	return StructToMap(o)
 }
 
+// TransactionFromMap builds a Transaction from a unified transaction map (a non-dict `fee` reads as absent).
+func TransactionFromMap(data any) Transaction {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Transaction{}
+	}
+	return NewTransaction(m)
+}
+
+// TransactionToMap is the map shape every untyped caller expects (TxId is keyed `txid`).
+func TransactionToMap(t Transaction) map[string]any {
+	m := StructToMap(t)
+	m["txid"] = m["txId"]
+	delete(m, "txId")
+	return m
+}
+
+// LedgerEntryFromMap builds a LedgerEntry from a unified ledger entry map.
+func LedgerEntryFromMap(data any) LedgerEntry {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return LedgerEntry{}
+	}
+	return NewLedgerEntry(withDictFee(m))
+}
+
+// LedgerEntryToMap is the map shape every untyped caller expects.
+func LedgerEntryToMap(l LedgerEntry) map[string]any {
+	return StructToMap(l)
+}
+
 func copyMap(m map[string]any) map[string]any {
 	out := make(map[string]any, len(m))
 	for k, v := range m {

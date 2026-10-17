@@ -402,10 +402,10 @@ type IDerivedExchange interface {
 	ParseGreeks(greeks any, optionalArgs ...any) map[string]any
 	ParseMarket(market any) any
 	ParseCurrency(rawCurrency any) map[string]any
-	ParseTransaction(transaction any, optionalArgs ...any) map[string]any
+	ParseTransaction(transaction any, optionalArgs ...any) Transaction
 	ParseTransfer(transfer any, optionalArgs ...any) map[string]any
 	ParseAccount(account any) any
-	ParseLedgerEntry(item any, optionalArgs ...any) map[string]any
+	ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry
 	ParseLastPrice(item any, optionalArgs ...any) any
 	ParseOrder(order any, optionalArgs ...any) Order
 	ParseTicker(ticker any, optionalArgs ...any) Ticker

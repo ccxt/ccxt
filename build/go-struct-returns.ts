@@ -19,6 +19,8 @@ export const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: st
     'Trade': { 'names': [ 'ParseTrade', 'SafeTrade' ] },
     'OHLCV': { 'names': [ 'ParseOHLCV' ], 'from': 'OHLCVFromList', 'to': 'OHLCVToList' },
     'Order': { 'names': [ 'ParseOrder', 'SafeOrder' ] },
+    'Transaction': { 'names': [ 'ParseTransaction' ] }, // U29
+    'LedgerEntry': { 'names': [ 'ParseLedgerEntry', 'SafeLedgerEntry' ] }, // U29
 };
 
 // what a call of a struct-return name reads as after step 3 boxes it (to-helper result; any for OHLCV)
@@ -220,6 +222,15 @@ export function goStructReturnsSelfTest (): string[] {
         'func (this *X) ParseContractTicker(ticker any, optionalArgs ...any) map[string]any {',
         '\treturn this.Extend(ticker, map[string]any{})',
         '}',
+        'func (this *X) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {',
+        '\treturn map[string]any{\n\t\t"txid": nil,\n\t}',
+        '}',
+        'func (this *X) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {',
+        '\treturn this.SafeLedgerEntry(map[string]any{}, nil)',
+        '}',
+        'func (this *X) Ledger() any {',
+        '\treturn this.Extend(this.DerivedExchange.ParseLedgerEntry(nil), this.ParseTransaction(nil))',
+        '}',
         '',
     ].join ('\n');
     const want = [
@@ -243,6 +254,15 @@ export function goStructReturnsSelfTest (): string[] {
         '}',
         'func (this *X) ParseContractTicker(ticker any, optionalArgs ...any) ccxt.Ticker {',
         '\treturn ccxt.TickerFromMap(this.Extend(ticker, map[string]any{}))',
+        '}',
+        'func (this *X) ParseTransaction(transaction any, optionalArgs ...any) ccxt.Transaction {',
+        '\treturn ccxt.TransactionFromMap(map[string]any{\n\t\t"txid": nil,\n\t})',
+        '}',
+        'func (this *X) ParseLedgerEntry(item any, optionalArgs ...any) ccxt.LedgerEntry {',
+        '\treturn this.SafeLedgerEntry(map[string]any{}, nil)',
+        '}',
+        'func (this *X) Ledger() any {',
+        '\treturn this.Extend(ccxt.LedgerEntryToMap(this.DerivedExchange.ParseLedgerEntry(nil)), ccxt.TransactionToMap(this.ParseTransaction(nil)))',
         '}',
         '',
     ].join ('\n');
