@@ -279,7 +279,7 @@ type ICoreExchange interface {
 	FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchOpenInterestsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchOrderBooksAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
-	FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any]
+	FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	Currency(code any) map[string]any
 	ParseDate(datetime2 any) any

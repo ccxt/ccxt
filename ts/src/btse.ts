@@ -1611,7 +1611,7 @@ export default class btse extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'data', []);
-        const trades = this.parseTrades (data, market, since, limit);
+        const trades: Trade[] = this.parseTrades (data, market, since, limit);
         if (until === undefined) {
             return trades;
         }
