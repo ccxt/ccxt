@@ -9295,8 +9295,7 @@ export default class Exchange extends BaseExchange {
          * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
          */
         if (this.has['fetchPositionsHistory'] !== undefined && this.has['fetchPositionsHistory'] !== false) {
-            const positions = await this.fetchPositionsHistory ([ symbol ], since, limit, params);
-            return positions as Position[];
+            return await this.fetchPositionsHistory ([ symbol ], since, limit, params);
         } else {
             throw new NotSupported (this.id + ' fetchPositionHistory () is not supported yet');
         }

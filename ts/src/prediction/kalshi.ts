@@ -1593,10 +1593,10 @@ export default class kalshi extends Exchange {
         const positions = this.safeList (response, 'market_positions', []);
         // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
-        const parsed = this.parsePredictionPositions (positions);
         if (outcomesLength === 0) {
-            return parsed as PredictionPosition[];
+            return this.parsePredictionPositions (positions);
         }
+        const parsed = this.parsePredictionPositions (positions);
         const wantedTickers: Dict = {};
         if (outcomes === undefined) {
             throw new ExchangeError (this.id + ' fetchPositions() missing outcomes');

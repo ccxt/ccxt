@@ -2212,12 +2212,11 @@ export default class backpack extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.privateGetApiV1Position (params);
-        const positions = this.parsePositions (response);
         if (this.isEmpty (symbols)) {
-            return positions;
+            return this.parsePositions (response);
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (positions, 'symbol', symbolsNormalized);
+        return this.parsePositions (response, symbolsNormalized);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {

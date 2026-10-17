@@ -1292,10 +1292,10 @@ export default class binance extends Exchange {
         // }
         //
         const data = this.safeList (response, 'positions', []);
-        const positions = this.parsePredictionPositions (data);
         if (outcomes === undefined) {
-            return positions;
+            return this.parsePredictionPositions (data);
         }
+        const positions = this.parsePredictionPositions (data);
         const filtered: PredictionPosition[] = [];
         const positionsLength = positions.length;
         for (let i = 0; i < positionsLength; i++) {
@@ -1334,7 +1334,8 @@ export default class binance extends Exchange {
         const positions = this.safeList (response, 'positions', []);
         const parsedPositions = this.parsePredictionPositions (positions);
         const filteredPositions = this.filterByOutcomeSinceLimit (parsedPositions, outcome, undefined, undefined);
-        return this.safeDict (filteredPositions, 0) as PredictionPosition;
+        const position = this.safeDict (filteredPositions, 0);
+        return position as PredictionPosition;
     }
 
     /**

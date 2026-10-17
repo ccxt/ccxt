@@ -166,12 +166,14 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     ...Object.fromEntries ([ 'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry',
         'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
         'SafePredictionOrder', 'SafePredictionTicker', 'SafePredictionOrderBook', 'ParsePredictionOrder', 'ParsePredictionTicker', 'ParsePredictionOpenInterest',
-        'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting' ]
+        'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting',
+        'SafePosition', 'ParsePosition', 'ParseOptionPosition' ] // gochan32-U10
         .flatMap ((name) => [ [ 'this.' + name, 'map[string]any' ], [ 'this.DerivedExchange.' + name, 'map[string]any' ] ])),
     // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
     'this.Outcome': 'map[string]any',
     'this.SafeOutcome': 'map[string]any',
     'this.ParseSearchQueries': '[]any',
+    'this.ParsePredictionPositions': '[]any', // U10
     // exchange.go / exchange_string.go
     'this.StringToCharsArray': '[]string',
     // exchange_market_type.go (hand-written)

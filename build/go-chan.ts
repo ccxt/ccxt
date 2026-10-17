@@ -18,6 +18,8 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.SafeFloat': '*float64', 'this.SafeFloat2': '*float64', 'this.SafeFloatN': '*float64',
     'this.SafeNumber': '*float64', 'this.SafeNumber2': '*float64', 'this.SafeNumberN': '*float64',
     'this.SafeBool': '*bool', 'this.SafeBool2': '*bool', 'this.SafeBoolN': '*bool',
+    'this.SafePosition': 'map[string]any', 'this.DerivedExchange.SafePosition': 'map[string]any', 'this.ParsePosition': 'map[string]any', 'this.DerivedExchange.ParsePosition': 'map[string]any', 'this.ParseOptionPosition': 'map[string]any', 'this.DerivedExchange.ParseOptionPosition': 'map[string]any', // gochan32-U10
+    'this.ParsePredictionPositions': '[]any', 'this.DerivedExchange.ParsePredictionPositions': '[]any', // U10
 };
 // the Go element type of a table value (`T?` marks cores that may also send a bare nil)
 export function goChanType (value: string | undefined): string | undefined {

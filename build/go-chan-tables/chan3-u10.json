@@ -1,0 +1,6 @@
+{
+    "FetchPositions": "[]any",
+    "FetchPosition": "map[string]any",
+    "FetchPositionHistory": "[]any",
+    "ClosePosition": "map[string]any"
+}

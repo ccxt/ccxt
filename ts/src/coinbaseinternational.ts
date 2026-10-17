@@ -1193,12 +1193,11 @@ export default class coinbaseinternational extends Exchange {
         //        }
         //    ]
         //
-        const positions = this.parsePositions (response);
         if (this.isEmpty (symbols)) {
-            return positions;
+            return this.parsePositions (response);
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (positions, 'symbol', symbolsNormalized);
+        return this.parsePositions (response, symbolsNormalized);
     }
 
     /**
