@@ -90,11 +90,29 @@ export default class nado extends Exchange {
                     'public': {
                         'get': {
                             'symbols': { 'cost': 2 } as Endpoint<List>,
-                            'query': { 'cost': 1 } as Endpoint<Dict>,
+                            'query': {
+                                'cost': 2,
+                                'byType': {
+                                    'status': 1,
+                                    'contracts': 1,
+                                    'order': 1,
+                                    'subaccount_orders': 2,
+                                    'subaccount_info': 2,
+                                },
+                            } as Endpoint<Dict>,
                             'edge/query': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'query': { 'cost': 1 } as Endpoint<Dict>,
+                            'query': {
+                                'cost': 2,
+                                'byType': {
+                                    'status': 1,
+                                    'contracts': 1,
+                                    'order': 1,
+                                    'subaccount_orders': 2,
+                                    'subaccount_info': 2,
+                                },
+                            } as Endpoint<Dict>,
                             'edge/query': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
@@ -108,23 +126,33 @@ export default class nado extends Exchange {
                     'public': {
                         'get': {
                             'assets': { 'cost': 2 } as Endpoint<List>,
-                            'pairs': { 'cost': 1 } as Endpoint<List>,
+                            'pairs': { 'cost': 2 } as Endpoint<List>,
                             'orderbook': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
                 'archive': {
                     'post': {
-                        '': { 'cost': 1 } as Endpoint<Dict>,
+                        '': {
+                            'cost': 2,
+                            // [ base weight, rows per extra weight unit ]
+                            'byQuery': {
+                                'candlesticks': [ 2, 100 ],
+                                'events': [ 2, 10 ],
+                                'matches': [ 2, 10 ],
+                                'orders': [ 2, 20 ],
+                                'interest_and_funding': [ 5 ],
+                            },
+                        } as Endpoint<Dict>,
                     },
                 },
                 'archiveV2': {
                     'public': {
                         'get': {
-                            'tickers': { 'cost': 1 } as Endpoint<Dict>,
-                            'contracts': { 'cost': 1 } as Endpoint<Dict>,
-                            'trades': { 'cost': 1 } as Endpoint<List>,
-                            'symbols': { 'cost': 1 } as Endpoint<Dict>,
+                            'tickers': { 'cost': 2 } as Endpoint<Dict>,
+                            'contracts': { 'cost': 2 } as Endpoint<Dict>,
+                            'trades': { 'cost': 4, 'byLimit': [ [ 100, 4 ], [ 250, 7 ], [ 500, 12 ] ] } as Endpoint<List>,
+                            'symbols': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -3200,6 +3228,51 @@ export default class nado extends Exchange {
             return marketId.slice (0, -5);
         }
         return marketId;
+    }
+
+    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
+        // the gateway weighs a query by its 'type' param, the archive by the query key of the
+        // body, and every archive weight grows with the number of rows requested
+        if (('byType' in config) && ('type' in params)) {
+            const queryType = params['type'];
+            const byType = config['byType'] as Dict;
+            if (queryType in byType) {
+                return byType[queryType];
+            }
+        }
+        const byQuery = this.safeDict (config, 'byQuery');
+        if (byQuery !== undefined) {
+            const queryNames = Object.keys (byQuery);
+            for (let i = 0; i < queryNames.length; i++) {
+                const queryName = queryNames[i];
+                if (queryName in params) {
+                    const weights = this.safeList (byQuery, queryName, []);
+                    const baseWeight = this.safeInteger (weights, 0, 2);
+                    const rowsPerWeight = this.safeInteger (weights, 1);
+                    if (rowsPerWeight === undefined) {
+                        return baseWeight;
+                    }
+                    const query = this.safeDict (params, queryName, {});
+                    let rows = this.safeInteger (query, 'limit', 100); // the archive default page
+                    const nestedLimit = this.safeDict (query, 'limit'); // the events query sends { 'raw': 100 }
+                    if (nestedLimit !== undefined) {
+                        rows = this.safeInteger (nestedLimit, 'raw', 100);
+                    }
+                    return this.sum (baseWeight, this.parseToInt (rows / rowsPerWeight));
+                }
+            }
+        }
+        if (('byLimit' in config) && ('limit' in params)) {
+            const limit = params['limit'];
+            const byLimit = this.safeList (config, 'byLimit', []);
+            for (let i = 0; i < byLimit.length; i++) {
+                const entry = byLimit[i];
+                if (limit <= entry[0]) {
+                    return entry[1];
+                }
+            }
+        }
+        return this.safeValue (config, 'cost', 1);
     }
 
     override sign (path: string, api: string[] = [], method = 'GET', params: Dict = {}): Dict {
