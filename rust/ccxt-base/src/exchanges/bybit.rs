@@ -9885,7 +9885,15 @@ impl BybitCore {
         if (lastUpdateTimestamp == Value::Null) {
             lastUpdateTimestamp = self.safe_integer2(position.clone(), Value::Str("updatedTime".into()), Value::Str("updatedAt".into()), &[]);
         }
-        let mut collateralString: Value = self.safe_string_k(position.clone(), "positionBalance", &[]);
+        // positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
+        let mut positionMarginString: Value = self.omit_zero(self.safe_string_k(position.clone(), "positionBalance", &[]));
+        let mut collateralString: Value = Value::Null;
+        if (positionMarginString != Value::Null) {
+            collateralString = positionMarginString.clone();
+            if (unrealisedPnl != Value::Null) {
+                collateralString = crate::precise::Precise::stringAdd(&positionMarginString, &unrealisedPnl);
+            }
+        }
         let mut entryPrice: Value = self.omit_zero(self.safe_string_n(position.clone(), Value::from(vec![Value::Str("entryPrice".into()), Value::Str("avgPrice".into()), Value::Str("avgEntryPrice".into())]), &[]));
         let mut liquidationPrice: Value = self.omit_zero(self.safe_string_k(position.clone(), "liqPrice", &[]));
         let mut leverage: Value = self.safe_string_k(position.clone(), "leverage", &[]);
@@ -9899,30 +9907,42 @@ impl BybitCore {
                 }
                 let mut difference: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&price, &liquidationPrice));
                 collateralString = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&difference, &size), &maintenanceMarginString), &unrealisedPnl);
+                positionMarginString = Value::Null; // derived from collateral by safePosition
             }  else {
-                let mut bustPrice: Value = self.safe_string_k(position.clone(), "bustPrice", &[]);
+                let mut bustPrice: Value = self.omit_zero(self.safe_string_k(position.clone(), "bustPrice", &[]));
+                let mut closingFee: Value = self.omit_zero(self.safe_string_k(position.clone(), "occClosingFee", &[]));
                 if (marketResolved.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                    // derived from the following formulas
+                    // derived from the following formula:
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     // Maintenance Margin = (Bust price - Liq price) x Contracts
-                    let mut maintenanceMarginPriceDifference: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&liquidationPrice, &bustPrice));
-                    maintenanceMarginString = crate::precise::Precise::stringMul(&maintenanceMarginPriceDifference, &size);
-                    // Initial Margin = Contracts x Entry Price / Leverage
+                    if (maintenanceMarginString == Value::Null) && (bustPrice != Value::Null) && !is_true(&crate::precise::Precise::stringEq(&bustPrice, &liquidationPrice)) {
+                        let mut maintenanceMarginPriceDifference: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&liquidationPrice, &bustPrice));
+                        maintenanceMarginString = crate::precise::Precise::stringMul(&maintenanceMarginPriceDifference, &size);
+                    }
+                    // Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
                     if (entryPrice != Value::Null) && (initialMarginString == Value::Null) {
                         initialMarginString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&size, &entryPrice), &leverage);
+                        if (closingFee != Value::Null) {
+                            initialMarginString = crate::precise::Precise::stringAdd(&initialMarginString, &closingFee);
+                        }
                     }
                 }  else {
                     // Contracts * (1 / Entry price - 1 / Bust price) = Collateral
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    let mut difference: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&bustPrice, &liquidationPrice));
-                    let mut multiply: Value = crate::precise::Precise::stringMul(&bustPrice, &liquidationPrice);
-                    maintenanceMarginString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&size, &difference), &multiply);
-                    // Initial Margin = Leverage x Contracts / EntryPrice
+                    if (maintenanceMarginString == Value::Null) && (bustPrice != Value::Null) && !is_true(&crate::precise::Precise::stringEq(&bustPrice, &liquidationPrice)) {
+                        let mut difference: Value = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&bustPrice, &liquidationPrice));
+                        let mut multiply: Value = crate::precise::Precise::stringMul(&bustPrice, &liquidationPrice);
+                        maintenanceMarginString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&size, &difference), &multiply);
+                    }
+                    // Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
                     if (entryPrice != Value::Null) && (initialMarginString == Value::Null) {
                         initialMarginString = crate::precise::Precise::stringDiv(&size, &crate::precise::Precise::stringMul(&entryPrice, &leverage));
+                        if (closingFee != Value::Null) {
+                            initialMarginString = crate::precise::Precise::stringAdd(&initialMarginString, &closingFee);
+                        }
                     }
                 }
             }
@@ -9953,6 +9973,7 @@ impl BybitCore {
         m.insert("markPrice".to_string(), self.parse_number(markPrice, &[]));
         m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "avgExitPrice", &[]));
         m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
+        m.insert("positionMargin".to_string(), self.parse_number(positionMarginString, &[]));
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("percentage".to_string(), Value::Null);

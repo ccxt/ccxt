@@ -26,6 +26,7 @@ pub async fn baseTestsInit() {
     testPrecise();
     testSafeMethods();
     testSafeTicker();
+    testSafePosition();
     testMergeBalanceAccount();
     testBase58ToBinary();
     testToArray();

@@ -4904,9 +4904,13 @@ impl PoloniexCore {
         let mut leverage: Value = self.safe_string_k(position.clone(), "lever", &[]);
         let mut initialMargin: Value = self.safe_string_k(position.clone(), "im", &[]);
         let mut notional: Value = crate::precise::Precise::stringMul(&leverage, &initialMargin);
-        let mut qty: Value = self.safe_string_k(position.clone(), "qty", &[]);
-        let mut avgPrice: Value = self.safe_string_k(position.clone(), "openAvgPx", &[]);
-        let mut collateral: Value = crate::precise::Precise::stringMul(&qty, &avgPrice);
+        let mut positionMargin: Value = Value::Null;
+        let mut collateral: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) {
+            positionMargin = self.omit_zero(self.safe_string_k(position.clone(), "mgn", &[]));
+            let mut upl: Value = self.safe_string_k(position.clone(), "upl", &[]);
+            collateral = (if ((positionMargin != Value::Null) && (upl != Value::Null)) { crate::precise::Precise::stringAdd(&positionMargin, &upl) } else { Value::Null });
+        }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -4929,7 +4933,8 @@ impl PoloniexCore {
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), self.safe_number_k(position.clone(), "mm", &[]));
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("collateral".to_string(), collateral);
+        m.insert("collateral".to_string(), self.parse_number(collateral, &[]));
+        m.insert("positionMargin".to_string(), self.parse_number(positionMargin, &[]));
         m.insert("initialMargin".to_string(), initialMargin);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), (match &leverage { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));

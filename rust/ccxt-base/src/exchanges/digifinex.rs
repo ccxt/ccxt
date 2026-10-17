@@ -5360,7 +5360,7 @@ impl DigifinexCore {
         if (marginMode != Value::Null) {
             marginMode = (if (marginMode.as_str() == Some("crossed")) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
         }  else {
-            marginMode = Value::Str("crossed".into());
+            marginMode = Value::Str("cross".into());
         }
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "timestamp", &[]);
         let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
@@ -5368,6 +5368,22 @@ impl DigifinexCore {
             side = Value::Str("long".into());
         }  else if (side.as_str() == Some("go_short")) {
             side = Value::Str("short".into());
+        }
+        let mut positionMargin: Value = self.safe_string_k(position.clone(), "margin", &[]);
+        let mut unrealizedPnl: Value = self.safe_string_k(position.clone(), "unrealized_pnl", &[]);
+        let mut collateralString: Value = Value::Null;
+        let mut marginString: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) {
+            let mut isolatedMargin: Value = self.safe_string_k(position.clone(), "posi_balance", &[]);
+            if (isolatedMargin != Value::Null) {
+                marginString = isolatedMargin.clone();
+                collateralString = (if (unrealizedPnl != Value::Null) { crate::precise::Precise::stringAdd(&isolatedMargin, &unrealizedPnl) } else { isolatedMargin.clone() });
+            }
+        }
+        let mut maintenanceMarginString: Value = self.safe_string_k(position.clone(), "maintain_margin", &[]);
+        let mut forceCloseFee: Value = self.omit_zero(self.safe_string_k(position.clone(), "force_close_fee", &[]));
+        if (maintenanceMarginString != Value::Null) && (forceCloseFee != Value::Null) {
+            maintenanceMarginString = crate::precise::Precise::stringAdd(&maintenanceMarginString, &forceCloseFee);
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5378,18 +5394,19 @@ impl DigifinexCore {
         m.insert("marginMode".to_string(), marginMode);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidation_price", &[]));
         m.insert("entryPrice".to_string(), self.safe_number2(position.clone(), Value::Str("avg_cost".into()), Value::Str("entry_price".into()), &[]));
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealized_pnl", &[]));
-        m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "avail_position", &[]));
+        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnl, &[]));
+        m.insert("contracts".to_string(), self.safe_number2(position.clone(), Value::Str("position".into()), Value::Str("avail_position".into()), &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
-        m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "last", &[]));
+        m.insert("markPrice".to_string(), self.safe_number2(position.clone(), Value::Str("mark_price".into()), Value::Str("last".into()), &[]));
         m.insert("side".to_string(), side);
         m.insert("hedged".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("maintenanceMargin".to_string(), self.safe_number_k(position.clone(), "margin", &[]));
+        m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString, &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.safe_number_k(position.clone(), "maint_margin_ratio", &[]));
-        m.insert("collateral".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), Value::Null);
+        m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
+        m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
+        m.insert("initialMargin".to_string(), self.parse_number(positionMargin, &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.safe_number2(position.clone(), Value::Str("leverage".into()), Value::Str("leverage_ratio".into()), &[]));
         m.insert("marginRatio".to_string(), self.safe_number_k(position, "margin_ratio", &[]));

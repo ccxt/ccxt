@@ -3903,9 +3903,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut margin: Value = self.safe_string_k(position.clone(), "margin", &[]);
-        let mut marginMode: Value = (if ((margin != Value::Null) && (margin.as_str() != Some("0"))) { Value::Str("isolated".into()) } else { Value::Str("cross".into()) });
-        let mut isIsolated: Value = (Value::Bool(marginMode.as_str() == Some("isolated")));
+        let mut margin: Option<String> = self.safe_string_k(position.clone(), "margin", &[]).as_str().map(str::to_owned);
+        let mut rawIsolated: Value = self.safe_bool_k(position.clone(), "isolated", &[]);
+        let mut isIsolated: Value = (Value::Bool((margin.is_some()) && (margin.as_deref() != Some("0"))));
+        if (rawIsolated != Value::Null) {
+            isIsolated = rawIsolated;
+        }
+        let mut marginMode: Value = (if is_true(&isIsolated) { Value::Str("isolated".into()) } else { Value::Str("cross".into()) });
         let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
         if (side != Value::Null) {
             side = (if (side.as_str() == Some("bid")) { Value::Str("long".into()) } else { Value::Str("short".into()) });
@@ -3923,17 +3927,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("side".to_string(), side);
         m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "amount", &[]));
         m.insert("contractSize".to_string(), Value::Null);
-        m.insert("entryPrice".to_string(), self.safe_number_k(position, "entry_price", &[]));
+        m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "entry_price", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("notional".to_string(), Value::Null);
         m.insert("leverage".to_string(), Value::Null);
-        m.insert("collateral".to_string(), margin);
+        m.insert("collateral".to_string(), self.safe_number_k(position.clone(), "margin", &[]));
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), Value::Null);
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(position, "liquidation_price", &[]));
         m.insert("marginMode".to_string(), marginMode);
         m.insert("percentage".to_string(), Value::Null);
     m

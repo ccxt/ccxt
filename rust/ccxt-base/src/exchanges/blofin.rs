@@ -4226,6 +4226,8 @@ impl BlofinCore {
         let mut notionalString: Value = self.safe_string_k(position.clone(), "notionalUsd", &[]);
         if (marketResolved.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             notionalString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString), &markPriceString);
+        }  else if (notionalString == Value::Null) {
+            notionalString = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString), &markPriceString);
         }
         let mut notional: Value = self.parse_number(notionalString.clone(), &[]);
         let mut marginMode: Value = self.safe_string_k(position.clone(), "marginMode", &[]);
@@ -4235,12 +4237,18 @@ impl BlofinCore {
         let mut leverageString: Value = self.safe_string_k(position.clone(), "leverage", &[]);
         let mut initialMarginPercentage: Value = Value::Null;
         let mut collateralString: Value = Value::Null;
+        let mut marginString: Value = Value::Null;
         if (marginMode.as_str() == Some("cross")) {
             initialMarginString = self.safe_string_k(position.clone(), "initialMargin", &[]);
-            collateralString = crate::precise::Precise::stringAdd(&initialMarginString, &unrealizedPnlString);
+            collateralString = (if (unrealizedPnlString != Value::Null) { crate::precise::Precise::stringAdd(&initialMarginString, &unrealizedPnlString) } else { initialMarginString.clone() });
         }  else if (marginMode.as_str() == Some("isolated")) {
             initialMarginPercentage = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &leverageString);
-            collateralString = self.safe_string_k(position.clone(), "margin", &[]);
+            let mut isolatedMarginString: Value = self.omit_zero(self.safe_string2(position.clone(), Value::Str("margin".into()), Value::Str("initialMargin".into()), &[]));
+            if (isolatedMarginString != Value::Null) {
+                initialMarginString = isolatedMarginString.clone();
+                marginString = isolatedMarginString.clone();
+                collateralString = (if (unrealizedPnlString != Value::Null) { crate::precise::Precise::stringAdd(&isolatedMarginString, &unrealizedPnlString) } else { isolatedMarginString.clone() });
+            }
         }
         let mut maintenanceMarginString: Value = self.safe_string_k(position.clone(), "maintenanceMargin", &[]);
         let mut maintenanceMargin: Value = self.parse_number(maintenanceMarginString.clone(), &[]);
@@ -4252,8 +4260,20 @@ impl BlofinCore {
             initialMarginString = crate::precise::Precise::stringMul(&initialMarginPercentageString, &notionalString);
         }
         let mut rounder: Value = Value::Str("0.00005".into()); // round to closest 0.01%
-        let mut maintenanceMarginPercentage: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&maintenanceMarginPercentageString, &rounder), &Value::Str("1".into()), &Value::Int(4)), &[]);
-        let mut liquidationPrice: Value = self.safe_number_k(position.clone(), "liquidationPrice", &[]);
+        let mut maintenanceMarginPercentage: Value = (if (maintenanceMarginPercentageString != Value::Null) { self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&maintenanceMarginPercentageString, &rounder), &Value::Str("1".into()), &Value::Int(4)), &[]) } else { Value::Null });
+        let mut liquidationPriceString: Value = self.omit_zero(self.safe_string_k(position.clone(), "liquidationPrice", &[]));
+        if (liquidationPriceString == Value::Null) && (marginMode.as_str() == Some("isolated")) && (initialMarginString != Value::Null) && (entryPriceString != Value::Null) && (contractsAbs != Value::Null) && is_true(&crate::precise::Precise::stringGt(&contractsAbs, &Value::Str("0".into()))) && (contractSizeString != Value::Null) && (maintenanceMarginPercentage != Value::Null) {
+            let mut takerFeeRate: Value = self.safe_string_k(marketResolved, "taker", &[Value::Str("0.0006".into())]);
+            let mut mmpWithFee: Value = crate::precise::Precise::stringAdd(&self.number_to_string(maintenanceMarginPercentage.clone()), &takerFeeRate);
+            let mut totalSize: Value = crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString);
+            let mut marginPerUnit: Value = crate::precise::Precise::stringDiv(&initialMarginString, &totalSize);
+            let mut num: Value = (if (side.as_str() == Some("long")) { crate::precise::Precise::stringSub(&entryPriceString, &marginPerUnit) } else { crate::precise::Precise::stringAdd(&entryPriceString, &marginPerUnit) });
+            let mut denom: Value = (if (side.as_str() == Some("long")) { crate::precise::Precise::stringSub(&Value::Str("1".into()), &mmpWithFee) } else { crate::precise::Precise::stringAdd(&Value::Str("1".into()), &mmpWithFee) });
+            if (denom != Value::Null) && is_true(&crate::precise::Precise::stringGt(&denom, &Value::Str("0".into()))) {
+                liquidationPriceString = crate::precise::Precise::stringDiv(&num, &denom);
+            }
+        }
+        let mut liquidationPrice: Value = (if ((liquidationPriceString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&liquidationPriceString, &Value::Str("0".into())))) { self.parse_number(liquidationPriceString, &[]) } else { Value::Null });
         let mut percentageString: Value = self.safe_string_k(position.clone(), "unrealizedPnlRatio", &[]);
         let mut percentage: Value = self.parse_number(crate::precise::Precise::stringMul(&percentageString, &Value::Str("100".into())), &[]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "updateTime", &[]);
@@ -4282,6 +4302,7 @@ impl BlofinCore {
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), maintenanceMargin);
         m.insert("maintenanceMarginPercentage".to_string(), maintenanceMarginPercentage);
+        m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
         m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString, &[]));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentage, &[]));

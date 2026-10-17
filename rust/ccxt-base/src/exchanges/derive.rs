@@ -4362,6 +4362,8 @@ impl DeriveCore {
         let mut markPrice: Value = self.safe_string_k(position.clone(), "mark_price", &[]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "creation_timestamp", &[]);
         let mut unrealisedPnl: Value = self.safe_string_k(position.clone(), "unrealized_pnl", &[]);
+        let mut initialMarginString: Value = crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "initial_margin", &[]));
+        let mut maintenanceMarginString: Value = crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "maintenance_margin", &[]));
         size = crate::precise::Precise::stringAbs(&size);
         let mut notional: Value = crate::precise::Precise::stringMul(&size, &markPrice);
         return self.safe_position(Value::Map({
@@ -4372,11 +4374,11 @@ impl DeriveCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "initial_margin", &[]));
-        m.insert("initialMarginPercentage".to_string(), Value::Null);
-        m.insert("maintenanceMargin".to_string(), self.safe_number_k(position.clone(), "maintenance_margin", &[]));
-        m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("entryPrice".to_string(), Value::Null);
+        m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.clone(), &[]));
+        m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDivPrec(&initialMarginString, &notional, &Value::Int(8)), &[]));
+        m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString.clone(), &[]));
+        m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDivPrec(&maintenanceMarginString, &notional, &Value::Int(8)), &[]));
+        m.insert("entryPrice".to_string(), self.safe_number2(position.clone(), Value::Str("average_price".into()), Value::Str("average_price_excl_fees".into()), &[]));
         m.insert("notional".to_string(), self.parse_number(notional, &[]));
         m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealisedPnl, &[]));

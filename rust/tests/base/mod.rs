@@ -99,6 +99,8 @@ pub use test_rawencode::testRawencode;
 pub use test_removeRepeatedElementsFromArray::testRemoveRepeatedElementsFromArray;
 #[path = "test.safeMethods.rs"] pub mod test_safeMethods;
 pub use test_safeMethods::testSafeMethods;
+#[path = "test.safePosition.rs"] pub mod test_safePosition;
+pub use test_safePosition::testSafePosition;
 #[path = "test.safeTicker.rs"] pub mod test_safeTicker;
 pub use test_safeTicker::testSafeTicker;
 #[path = "test.setMarketsFromExchange.rs"] pub mod test_setMarketsFromExchange;

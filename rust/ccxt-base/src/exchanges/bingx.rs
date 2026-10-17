@@ -4597,6 +4597,15 @@ impl BingxCore {
         if (isolated != Value::Null) {
             marginMode = (if isolated.as_bool() == Some(true) { Value::Str("isolated".into()) } else { Value::Str("cross".into()) });
         }
+        let mut initialMarginString: Value = self.safe_string_k(position.clone(), "initialMargin", &[]);
+        let mut unrealizedPnlString: Value = self.safe_string_k(position.clone(), "unrealizedProfit", &[]);
+        let mut collateralString: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) {
+            collateralString = self.omit_zero(self.safe_string_k(position.clone(), "margin", &[]));
+            if (collateralString == Value::Null) && (initialMarginString != Value::Null) {
+                collateralString = (if (unrealizedPnlString != Value::Null) { crate::precise::Precise::stringAdd(&initialMarginString, &unrealizedPnlString) } else { initialMarginString.clone() });
+            }
+        }
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "openTime", &[]);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4607,7 +4616,7 @@ impl BingxCore {
         m.insert("marginMode".to_string(), marginMode);
         m.insert("liquidationPrice".to_string(), self.safe_number_omit_zero(position.clone(), Value::Str("liquidationPrice".into()), &[]));
         m.insert("entryPrice".to_string(), self.safe_number2(position.clone(), Value::Str("avgPrice".into()), Value::Str("entryPrice".into()), &[]));
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizedProfit", &[]));
+        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnlString, &[]));
         m.insert("realizedPnl".to_string(), self.safe_number_k(position.clone(), "realisedProfit", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "positionAmt", &[]));
@@ -4621,8 +4630,8 @@ impl BingxCore {
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(position.clone(), "updateTime", &[]));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("collateral".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "initialMargin", &[]));
+        m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
+        m.insert("initialMargin".to_string(), self.parse_number(initialMarginString, &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.safe_number_k(position, "leverage", &[]));
         m.insert("marginRatio".to_string(), Value::Null);

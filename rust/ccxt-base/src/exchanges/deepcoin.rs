@@ -3731,6 +3731,13 @@ impl DeepcoinCore {
         let mut marketId: Value = self.safe_string_k(position.clone(), "instId", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "cTime", &[]);
+        let mut marginMode: Value = self.safe_string_k(position.clone(), "mgnMode", &[]);
+        let mut useMargin: Value = self.safe_number_k(position.clone(), "useMargin", &[]);
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        let mut positionMargin: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) {
+            positionMargin = useMargin.clone();
+        }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -3742,17 +3749,18 @@ impl DeepcoinCore {
         m.insert("side".to_string(), self.safe_string_k(position.clone(), "posSide", &[]));
         m.insert("notional".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "lever", &[])), &[]));
-        m.insert("unrealizedPnl".to_string(), Value::Null);
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizedProfit", &[]));
         m.insert("realizedPnl".to_string(), Value::Null);
+        m.insert("positionMargin".to_string(), positionMargin);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "avgPx", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liqPx", &[]));
-        m.insert("marginMode".to_string(), self.safe_string_k(position.clone(), "mgnMode", &[]));
+        m.insert("marginMode".to_string(), marginMode);
         m.insert("hedged".to_string(), Value::Bool(true));
-        m.insert("maintenanceMargin".to_string(), self.safe_number_k(position.clone(), "useMargin", &[]));
+        m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), Value::Null);
+        m.insert("initialMargin".to_string(), useMargin);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(position.clone(), "uTime", &[]));

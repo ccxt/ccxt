@@ -2538,9 +2538,9 @@ impl DeltaCore {
         let mut side: Value = Value::Null;
         if (sizeString != Value::Null) {
             if is_true(&crate::precise::Precise::stringGt(&sizeString, &Value::Str("0".into()))) {
-                side = Value::Str("buy".into());
+                side = Value::Str("long".into());
             }  else if is_true(&crate::precise::Precise::stringLt(&sizeString, &Value::Str("0".into()))) {
-                side = Value::Str("sell".into());
+                side = Value::Str("short".into());
             }
         }
         return self.safe_position(Value::Map({
@@ -2549,9 +2549,9 @@ impl DeltaCore {
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
         m.insert("notional".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), Value::Null);
+        m.insert("marginMode".to_string(), self.safe_string_k(position.clone(), "margin_mode", &[]));
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidation_price", &[]));
-        m.insert("entryPrice".to_string(), self.safe_number_k(position, "entry_price", &[]));
+        m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "entry_price", &[]));
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("contracts".to_string(), self.parse_number(sizeString, &[]));
@@ -2563,6 +2563,7 @@ impl DeltaCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
+        m.insert("positionMargin".to_string(), self.safe_number_k(position, "margin", &[]));
         m.insert("collateral".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);

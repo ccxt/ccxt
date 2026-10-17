@@ -4706,17 +4706,6 @@ pub trait ExchangeBase:
 
     fn safe_position(&self, mut position: Value) -> Value {
         // simplified version of: /pull/12765/
-        let mut unrealizedPnlString: Value = self.safe_string_k(position.clone(), "unrealizedPnl", &[]);
-        let mut initialMarginString: Value = self.safe_string_k(position.clone(), "initialMargin", &[]);
-        //
-        // PERCENTAGE
-        //
-        let mut percentage: Value = self.safe_value_k(position.clone(), "percentage", &[]);
-        if (percentage == Value::Null) && (unrealizedPnlString != Value::Null) && (initialMarginString != Value::Null) {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
-            let mut percentageString: Value = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnlString, &initialMarginString, &Value::Int(4)), &Value::Str("100".into()));
-            if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("percentage".into(), self.parse_number(percentageString, &[])); }
-        }
         // if contractSize is undefined get from market
         let mut contractSize: Value = self.safe_number_k(position.clone(), "contractSize", &[]);
         let mut symbol: Value = self.safe_string_k(position.clone(), "symbol", &[]);
@@ -4725,8 +4714,296 @@ pub trait ExchangeBase:
             market = self.safe_value(self.markets.clone(), symbol, &[]);
         }
         if (contractSize == Value::Null) && (market != Value::Null) {
-            contractSize = self.safe_number_k(market, "contractSize", &[]);
+            contractSize = self.safe_number_k(market.clone(), "contractSize", &[]);
             if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("contractSize".into(), contractSize); }
+        }
+        let mut isInverse: bool = (market != Value::Null) && is_true(&self.safe_bool_k(market, "inverse", &[Value::Bool(false)]));
+        let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
+        let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "marginMode", &[]).as_str().map(str::to_owned);
+        let mut unrealizedPnlString: Value = self.safe_string_k(position.clone(), "unrealizedPnl", &[]);
+        let mut initialMarginString: Value = self.safe_string_k(position.clone(), "initialMargin", &[]);
+        let mut maintenanceMarginString: Value = self.safe_string_k(position.clone(), "maintenanceMargin", &[]);
+        let mut collateralString: Value = self.safe_string_k(position.clone(), "collateral", &[]);
+        let mut entryPriceString: Value = self.safe_string_k(position.clone(), "entryPrice", &[]);
+        let mut liquidationPriceString: Value = self.safe_string_k(position.clone(), "liquidationPrice", &[]);
+        let mut contractsString: Value = self.safe_string_k(position.clone(), "contracts", &[]);
+        let mut contractSizeString: Value = self.safe_string_k(position.clone(), "contractSize", &[]);
+        // margin is the amount held in the position (excludes unrealized pnl), collateral = margin + unrealizedPnl
+        let mut marginString: Value = self.safe_string_k(position.clone(), "positionMargin", &[]);
+        if (marginString == Value::Null) && (marginMode.as_deref() == Some("isolated")) && (collateralString != Value::Null) {
+            let mut derivedMargin: Value = collateralString.clone();
+            if (unrealizedPnlString != Value::Null) && !is_true(&crate::precise::Precise::stringEq(&collateralString, &initialMarginString)) {
+                derivedMargin = crate::precise::Precise::stringSub(&collateralString, &unrealizedPnlString);
+            }
+            if is_true(&crate::precise::Precise::stringGt(&derivedMargin, &Value::Str("0".into()))) {
+                marginString = derivedMargin.clone();
+                if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("positionMargin".into(), self.parse_number(derivedMargin, &[])); }
+            }
+        }
+        if (marginString == Value::Null) {
+            if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("positionMargin".into(), Value::Null); }; // keep the unified key present across all exchanges
+        }
+        if (collateralString == Value::Null) && (marginString != Value::Null) && (unrealizedPnlString != Value::Null) {
+            collateralString = crate::precise::Precise::stringAdd(&marginString, &unrealizedPnlString);
+            if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("collateral".into(), self.parse_number(collateralString.clone(), &[])); }
+        }
+        if (marginMode.as_deref() == Some("isolated")) {
+            let mut entryMarginString: Value = marginString.clone();
+            if (entryMarginString == Value::Null) && (collateralString == Value::Null) {
+                entryMarginString = initialMarginString.clone();
+            }
+            let mut hasEntryMargin: bool = (entryMarginString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&entryMarginString, &Value::Str("0".into())));
+            let mut hasEntryPrice: bool = (entryPriceString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into())));
+            let mut hasLiqPrice: bool = (liquidationPriceString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&liquidationPriceString, &Value::Str("0".into())));
+            let mut hasContracts: bool = (contractsString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&contractsString, &Value::Str("0".into())));
+            let mut hasContractSize: bool = (contractSizeString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&contractSizeString, &Value::Str("0".into())));
+            let mut hasMm: bool = (maintenanceMarginString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&maintenanceMarginString, &Value::Str("0".into())));
+            let mut priceDiff: Value = Value::Null;
+            if hasEntryPrice && hasLiqPrice {
+                if isInverse {
+                    let mut invEntry: Value = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceString);
+                    let mut invLiq: Value = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &liquidationPriceString);
+                    if (side.as_deref() == Some("long")) {
+                        priceDiff = crate::precise::Precise::stringSub(&invLiq, &invEntry);
+                    }  else if (side.as_deref() == Some("short")) {
+                        priceDiff = crate::precise::Precise::stringSub(&invEntry, &invLiq);
+                    }  else {
+                        priceDiff = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&invEntry, &invLiq));
+                    }
+                }  else {
+                    if (side.as_deref() == Some("long")) {
+                        priceDiff = crate::precise::Precise::stringSub(&entryPriceString, &liquidationPriceString);
+                    }  else if (side.as_deref() == Some("short")) {
+                        priceDiff = crate::precise::Precise::stringSub(&liquidationPriceString, &entryPriceString);
+                    }  else {
+                        priceDiff = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&entryPriceString, &liquidationPriceString));
+                    }
+                }
+            }
+            let mut hasPriceDiff: bool = (priceDiff != Value::Null) && is_true(&crate::precise::Precise::stringGt(&priceDiff, &Value::Str("0".into())));
+            if (maintenanceMarginString == Value::Null) && hasEntryMargin && hasPriceDiff && hasContracts && hasContractSize {
+                let mut lossFromEntry: Value = crate::precise::Precise::stringMul(&priceDiff, &crate::precise::Precise::stringMul(&contractsString, &contractSizeString));
+                let mut derivedMm: Value = crate::precise::Precise::stringSub(&entryMarginString, &lossFromEntry);
+                if is_true(&crate::precise::Precise::stringGt(&derivedMm, &Value::Str("0".into()))) {
+                    maintenanceMarginString = derivedMm.clone();
+                    if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("maintenanceMargin".into(), self.parse_number(derivedMm.clone(), &[])); }
+                }
+            }  else if (collateralString == Value::Null) && (initialMarginString == Value::Null) && hasMm && hasPriceDiff && hasContracts && hasContractSize {
+                let mut lossFromEntry: Value = crate::precise::Precise::stringMul(&priceDiff, &crate::precise::Precise::stringMul(&contractsString, &contractSizeString));
+                let mut derivedEntryMargin: Value = crate::precise::Precise::stringAdd(&maintenanceMarginString, &lossFromEntry);
+                if is_true(&crate::precise::Precise::stringGt(&derivedEntryMargin, &Value::Str("0".into()))) {
+                    initialMarginString = derivedEntryMargin.clone();
+                    if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("initialMargin".into(), self.parse_number(derivedEntryMargin.clone(), &[])); }
+                    marginString = derivedEntryMargin.clone();
+                    if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("positionMargin".into(), self.parse_number(derivedEntryMargin.clone(), &[])); }
+                    let mut derivedCollateral: Value = (if (unrealizedPnlString != Value::Null) { crate::precise::Precise::stringAdd(&derivedEntryMargin, &unrealizedPnlString) } else { derivedEntryMargin.clone() });
+                    if is_true(&crate::precise::Precise::stringGt(&derivedCollateral, &Value::Str("0".into()))) {
+                        collateralString = derivedCollateral.clone();
+                        if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("collateral".into(), self.parse_number(derivedCollateral, &[])); }
+                    }
+                }
+            }  else if (liquidationPriceString == Value::Null) && hasEntryMargin && hasMm && hasEntryPrice && hasContracts && hasContractSize && ((side.as_deref() == Some("long")) || (side.as_deref() == Some("short"))) {
+                let mut marginBuffer: Value = crate::precise::Precise::stringSub(&entryMarginString, &maintenanceMarginString);
+                let mut totalSize: Value = crate::precise::Precise::stringMul(&contractsString, &contractSizeString);
+                if is_true(&crate::precise::Precise::stringGt(&marginBuffer, &Value::Str("0".into()))) && is_true(&crate::precise::Precise::stringGt(&totalSize, &Value::Str("0".into()))) {
+                    let mut bufferPerUnit: Value = crate::precise::Precise::stringDiv(&marginBuffer, &totalSize);
+                    let mut derivedLp: Value = Value::Null;
+                    if isInverse {
+                        let mut invEntry: Value = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceString);
+                        let mut invLp: Value = (if (side.as_deref() == Some("long")) { crate::precise::Precise::stringAdd(&invEntry, &bufferPerUnit) } else { crate::precise::Precise::stringSub(&invEntry, &bufferPerUnit) });
+                        if is_true(&crate::precise::Precise::stringGt(&invLp, &Value::Str("0".into()))) {
+                            derivedLp = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &invLp);
+                        }
+                    }  else {
+                        derivedLp = (if (side.as_deref() == Some("long")) { crate::precise::Precise::stringSub(&entryPriceString, &bufferPerUnit) } else { crate::precise::Precise::stringAdd(&entryPriceString, &bufferPerUnit) });
+                    }
+                    if (derivedLp != Value::Null) && is_true(&crate::precise::Precise::stringGt(&derivedLp, &Value::Str("0".into()))) {
+                        liquidationPriceString = derivedLp.clone();
+                        if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("liquidationPrice".into(), self.parse_number(derivedLp, &[])); }
+                    }
+                }
+            }  else if (entryPriceString == Value::Null) && hasEntryMargin && hasMm && hasLiqPrice && hasContracts && hasContractSize && ((side.as_deref() == Some("long")) || (side.as_deref() == Some("short"))) {
+                let mut marginBuffer: Value = crate::precise::Precise::stringSub(&entryMarginString, &maintenanceMarginString);
+                let mut totalSize: Value = crate::precise::Precise::stringMul(&contractsString, &contractSizeString);
+                if is_true(&crate::precise::Precise::stringGt(&marginBuffer, &Value::Str("0".into()))) && is_true(&crate::precise::Precise::stringGt(&totalSize, &Value::Str("0".into()))) {
+                    let mut bufferPerUnit: Value = crate::precise::Precise::stringDiv(&marginBuffer, &totalSize);
+                    let mut derivedEp: Value = Value::Null;
+                    if isInverse {
+                        let mut invLp: Value = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &liquidationPriceString);
+                        let mut invEp: Value = (if (side.as_deref() == Some("long")) { crate::precise::Precise::stringSub(&invLp, &bufferPerUnit) } else { crate::precise::Precise::stringAdd(&invLp, &bufferPerUnit) });
+                        if is_true(&crate::precise::Precise::stringGt(&invEp, &Value::Str("0".into()))) {
+                            derivedEp = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &invEp);
+                        }
+                    }  else {
+                        derivedEp = (if (side.as_deref() == Some("long")) { crate::precise::Precise::stringAdd(&liquidationPriceString, &bufferPerUnit) } else { crate::precise::Precise::stringSub(&liquidationPriceString, &bufferPerUnit) });
+                    }
+                    if (derivedEp != Value::Null) && is_true(&crate::precise::Precise::stringGt(&derivedEp, &Value::Str("0".into()))) {
+                        entryPriceString = derivedEp.clone();
+                        if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("entryPrice".into(), self.parse_number(derivedEp, &[])); }
+                    }
+                }
+            }  else if (contractsString == Value::Null) && hasEntryMargin && hasMm && hasPriceDiff && hasContractSize {
+                let mut marginBuffer: Value = crate::precise::Precise::stringSub(&entryMarginString, &maintenanceMarginString);
+                let mut denom: Value = crate::precise::Precise::stringMul(&priceDiff, &contractSizeString);
+                if is_true(&crate::precise::Precise::stringGt(&marginBuffer, &Value::Str("0".into()))) && is_true(&crate::precise::Precise::stringGt(&denom, &Value::Str("0".into()))) {
+                    let mut derivedContracts: Value = crate::precise::Precise::stringDiv(&marginBuffer, &denom);
+                    if is_true(&crate::precise::Precise::stringGt(&derivedContracts, &Value::Str("0".into()))) {
+                        contractsString = derivedContracts.clone();
+                        if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("contracts".into(), self.parse_number(derivedContracts.clone(), &[])); }
+                    }
+                }
+            }  else if (contractSizeString == Value::Null) && hasEntryMargin && hasMm && hasPriceDiff && hasContracts {
+                let mut marginBuffer: Value = crate::precise::Precise::stringSub(&entryMarginString, &maintenanceMarginString);
+                let mut denom: Value = crate::precise::Precise::stringMul(&priceDiff, &contractsString);
+                if is_true(&crate::precise::Precise::stringGt(&marginBuffer, &Value::Str("0".into()))) && is_true(&crate::precise::Precise::stringGt(&denom, &Value::Str("0".into()))) {
+                    let mut derivedContractSize: Value = crate::precise::Precise::stringDiv(&marginBuffer, &denom);
+                    if is_true(&crate::precise::Precise::stringGt(&derivedContractSize, &Value::Str("0".into()))) {
+                        contractSizeString = derivedContractSize.clone();
+                        if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("contractSize".into(), self.parse_number(derivedContractSize.clone(), &[])); }
+                    }
+                }
+            }
+        }
+        //
+        // POSITION-LOCAL DERIVATIONS (CROSS & ISOLATED)
+        //
+        let mut isZeroPosition: bool = (contractsString != Value::Null) && is_true(&crate::precise::Precise::stringEq(&contractsString, &Value::Str("0".into())));
+        if !isZeroPosition {
+            let mut notionalString: Value = self.safe_string_k(position.clone(), "notional", &[]);
+            let mut markPriceString: Value = self.safe_string_k(position.clone(), "markPrice", &[]);
+            let mut lastPriceString: Option<String> = self.safe_string_k(position.clone(), "lastPrice", &[]).as_str().map(str::to_owned);
+            let mut hasContracts: bool = (contractsString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&contractsString, &Value::Str("0".into())));
+            let mut hasContractSize: bool = (contractSizeString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&contractSizeString, &Value::Str("0".into())));
+            let mut hasMarkPrice: bool = (markPriceString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&markPriceString, &Value::Str("0".into())));
+            let mut hasNotional: bool = (notionalString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&notionalString, &Value::Str("0".into())));
+            // 1. notional <-> markPrice / contracts / contractSize
+            if (notionalString == Value::Null) && hasMarkPrice && hasContracts && hasContractSize {
+                let mut totalSize: Value = crate::precise::Precise::stringMul(&contractsString, &contractSizeString);
+                let mut derivedNotional: Value = (if isInverse { crate::precise::Precise::stringDiv(&totalSize, &markPriceString) } else { crate::precise::Precise::stringMul(&totalSize, &markPriceString) });
+                if is_true(&crate::precise::Precise::stringGt(&derivedNotional, &Value::Str("0".into()))) {
+                    notionalString = derivedNotional.clone();
+                    if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("notional".into(), self.parse_number(derivedNotional, &[])); }
+                }
+            }  else if (markPriceString == Value::Null) && (entryPriceString == Value::Null) && (lastPriceString.is_none()) && hasNotional && hasContracts && hasContractSize {
+                let mut totalSize: Value = crate::precise::Precise::stringMul(&contractsString, &contractSizeString);
+                let mut derivedMark: Value = (if isInverse { crate::precise::Precise::stringDiv(&totalSize, &notionalString) } else { crate::precise::Precise::stringDiv(&notionalString, &totalSize) });
+                if is_true(&crate::precise::Precise::stringGt(&derivedMark, &Value::Str("0".into()))) {
+                    markPriceString = derivedMark.clone();
+                    if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("markPrice".into(), self.parse_number(derivedMark, &[])); }
+                }
+            }  else if (contractsString == Value::Null) && hasNotional && hasMarkPrice && hasContractSize {
+                let mut derivedContracts: Value = (if isInverse { crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&notionalString, &markPriceString), &contractSizeString) } else { crate::precise::Precise::stringDiv(&notionalString, &crate::precise::Precise::stringMul(&markPriceString, &contractSizeString)) });
+                if is_true(&crate::precise::Precise::stringGt(&derivedContracts, &Value::Str("0".into()))) {
+                    contractsString = derivedContracts.clone();
+                    if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("contracts".into(), self.parse_number(derivedContracts, &[])); }
+                }
+            }  else if (contractSizeString == Value::Null) && hasNotional && hasMarkPrice && hasContracts {
+                let mut derivedContractSize: Value = (if isInverse { crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&notionalString, &markPriceString), &contractsString) } else { crate::precise::Precise::stringDiv(&notionalString, &crate::precise::Precise::stringMul(&markPriceString, &contractsString)) });
+                if is_true(&crate::precise::Precise::stringGt(&derivedContractSize, &Value::Str("0".into()))) {
+                    contractSizeString = derivedContractSize.clone();
+                    if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("contractSize".into(), self.parse_number(derivedContractSize, &[])); }
+                }
+            }
+            // 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
+            if (unrealizedPnlString == Value::Null) && (entryPriceString != Value::Null) && (markPriceString != Value::Null) && (contractsString != Value::Null) && (contractSizeString != Value::Null) {
+                if is_true(&crate::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into()))) && is_true(&crate::precise::Precise::stringGt(&markPriceString, &Value::Str("0".into()))) && is_true(&crate::precise::Precise::stringGt(&contractsString, &Value::Str("0".into()))) && is_true(&crate::precise::Precise::stringGt(&contractSizeString, &Value::Str("0".into()))) {
+                    let mut totalSize: Value = crate::precise::Precise::stringMul(&contractsString, &contractSizeString);
+                    let mut pnlDiff: Value = Value::Null;
+                    if isInverse {
+                        let mut invEntry: Value = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceString);
+                        let mut invMark: Value = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &markPriceString);
+                        if (side.as_deref() == Some("long")) {
+                            pnlDiff = crate::precise::Precise::stringSub(&invEntry, &invMark);
+                        }  else if (side.as_deref() == Some("short")) {
+                            pnlDiff = crate::precise::Precise::stringSub(&invMark, &invEntry);
+                        }
+                    }  else {
+                        if (side.as_deref() == Some("long")) {
+                            pnlDiff = crate::precise::Precise::stringSub(&markPriceString, &entryPriceString);
+                        }  else if (side.as_deref() == Some("short")) {
+                            pnlDiff = crate::precise::Precise::stringSub(&entryPriceString, &markPriceString);
+                        }
+                    }
+                    if (pnlDiff != Value::Null) {
+                        let mut candidateUpnl: Value = crate::precise::Precise::stringMul(&pnlDiff, &totalSize);
+                        if is_true(&crate::precise::Precise::stringEq(&candidateUpnl, &Value::Str("0".into()))) || is_true(&crate::precise::Precise::stringGe(&crate::precise::Precise::stringAbs(&candidateUpnl), &Value::Str("0.000001".into()))) {
+                            unrealizedPnlString = candidateUpnl.clone();
+                            if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("unrealizedPnl".into(), self.parse_number(unrealizedPnlString.clone(), &[])); }
+                        }
+                    }
+                }
+            }
+            // 3. initialMargin <-> initialMarginPercentage <-> leverage / notional
+            let mut hasValidNotional: bool = (notionalString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&notionalString, &Value::Str("0".into())));
+            let mut hasNegativeCollateral: bool = (collateralString != Value::Null) && is_true(&crate::precise::Precise::stringLt(&collateralString, &Value::Str("0".into())));
+            let mut initialMarginPercentageString: Value = self.safe_string_k(position.clone(), "initialMarginPercentage", &[]);
+            let mut leverageString: Value = self.safe_string_k(position.clone(), "leverage", &[]);
+            let mut hasLeverage: bool = (leverageString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&leverageString, &Value::Str("0".into())));
+            let mut hasInitialMargin: bool = (initialMarginString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&initialMarginString, &Value::Str("0".into())));
+            let mut hadInitialMargin: bool = initialMarginString != Value::Null;
+            if (initialMarginPercentageString == Value::Null) && !hasNegativeCollateral && (hasInitialMargin || !hadInitialMargin) {
+                if hasInitialMargin && hasValidNotional {
+                    initialMarginPercentageString = crate::precise::Precise::stringDiv(&initialMarginString, &notionalString);
+                }  else if hasLeverage {
+                    initialMarginPercentageString = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &leverageString);
+                }
+                if (initialMarginPercentageString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&initialMarginPercentageString, &Value::Str("0".into()))) {
+                    if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("initialMarginPercentage".into(), self.parse_number(initialMarginPercentageString.clone(), &[])); }
+                }
+            }
+            let mut hasImp: bool = (initialMarginPercentageString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&initialMarginPercentageString, &Value::Str("0".into())));
+            if (initialMarginString == Value::Null) && !hasNegativeCollateral && hasValidNotional {
+                if hasLeverage {
+                    initialMarginString = crate::precise::Precise::stringDiv(&notionalString, &leverageString);
+                }  else if hasImp {
+                    initialMarginString = crate::precise::Precise::stringMul(&notionalString, &initialMarginPercentageString);
+                }
+                if (initialMarginString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&initialMarginString, &Value::Str("0".into()))) {
+                    if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("initialMargin".into(), self.parse_number(initialMarginString.clone(), &[])); }
+                }
+            }
+            if (leverageString == Value::Null) && !hadInitialMargin && hasImp {
+                let mut derivedLeverage: Value = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMarginPercentageString);
+                if is_true(&crate::precise::Precise::stringGt(&derivedLeverage, &Value::Str("0".into()))) && is_true(&crate::precise::Precise::stringLe(&derivedLeverage, &Value::Str("200".into()))) {
+                    if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("leverage".into(), self.parse_number(derivedLeverage, &[])); }
+                }
+            }
+            // 4. maintenanceMargin <-> maintenanceMarginPercentage / notional
+            let mut maintenanceMarginPercentageString: Value = self.safe_string_k(position.clone(), "maintenanceMarginPercentage", &[]);
+            let mut hasValidMm: bool = (maintenanceMarginString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&maintenanceMarginString, &Value::Str("0".into())));
+            let mut hasValidMmp: bool = (maintenanceMarginPercentageString != Value::Null) && is_true(&crate::precise::Precise::stringGt(&maintenanceMarginPercentageString, &Value::Str("0".into())));
+            if (maintenanceMarginString == Value::Null) && hasValidNotional && hasValidMmp {
+                let mut derivedMm: Value = crate::precise::Precise::stringMul(&notionalString, &maintenanceMarginPercentageString);
+                if is_true(&crate::precise::Precise::stringGt(&derivedMm, &Value::Str("0".into()))) {
+                    maintenanceMarginString = derivedMm.clone();
+                    if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("maintenanceMargin".into(), self.parse_number(derivedMm, &[])); }
+                }
+            }  else if (maintenanceMarginPercentageString == Value::Null) && hasValidNotional && hasValidMm {
+                let mut derivedMmp: Value = crate::precise::Precise::stringDiv(&maintenanceMarginString, &notionalString);
+                if is_true(&crate::precise::Precise::stringGt(&derivedMmp, &Value::Str("0".into()))) {
+                    maintenanceMarginPercentageString = derivedMmp.clone();
+                    if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("maintenanceMarginPercentage".into(), self.parse_number(derivedMmp, &[])); }
+                }
+            }
+            // 5. marginRatio = maintenanceMargin / collateral
+            let mut marginRatio: Value = self.safe_value_k(position.clone(), "marginRatio", &[]);
+            if (marginRatio == Value::Null) && (maintenanceMarginString != Value::Null) && (collateralString != Value::Null) {
+                if is_true(&crate::precise::Precise::stringGt(&maintenanceMarginString, &Value::Str("0".into()))) && is_true(&crate::precise::Precise::stringGt(&collateralString, &Value::Str("0".into()))) {
+                    let mut derivedMarginRatio: Value = crate::precise::Precise::stringDivPrec(&maintenanceMarginString, &collateralString, &Value::Int(4));
+                    if (derivedMarginRatio != Value::Null) && is_true(&crate::precise::Precise::stringGt(&derivedMarginRatio, &Value::Str("0".into()))) {
+                        if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("marginRatio".into(), self.parse_number(derivedMarginRatio, &[])); }
+                    }
+                }
+            }
+        }
+        //
+        // PERCENTAGE
+        //
+        let mut percentage: Value = self.safe_value_k(position.clone(), "percentage", &[]);
+        if (percentage == Value::Null) && (unrealizedPnlString != Value::Null) && (initialMarginString != Value::Null) {
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+            let mut percentageString: Value = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnlString, &initialMarginString, &Value::Int(4)), &Value::Str("100".into()));
+            if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("percentage".into(), self.parse_number(percentageString, &[])); }
         }
         return position;
 
