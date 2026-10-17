@@ -5277,6 +5277,10 @@ class NewTranspiler {
             // fetchTime cores carry *int64 (AsyncResult[*int64]); ParseInt derefs it
             return `ParseInt(res)`;
         }
+        if (methodName === 'fetchOrderStatus') {
+            // fetchOrderStatus cores carry *string (AsyncResult[*string]); ToString derefs it
+            return `ToString(res)`;
+        }
 
         if (unwrappedType === 'float64') {
             return `(res).(float64)`;

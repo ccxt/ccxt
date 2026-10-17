@@ -1,0 +1,6 @@
+{
+    "FetchOpenOrder": "map[string]any",
+    "FetchClosedOrder": "map[string]any",
+    "FetchOrderStatus": "*string",
+    "CancelUnifiedOrder": "map[string]any"
+}
