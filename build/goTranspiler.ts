@@ -3882,7 +3882,8 @@ function goProvenMapCollectionMethods (): string[] {
         'ParseLeverageTiers', 'ParseLeverages', 'ParseMarginModes', // U14
         'ParseOpenInterests', // U16
         'ParseAllGreeks', 'ParseOptionChain', 'ParseAccount', // U17
-        'ParseDepositAddressSpecial' ]; // U11
+        'ParseDepositAddressSpecial', // U11
+        'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee' ]; // U12
 }
 
 // `X` is a balance local: declared once as a map literal, and every later write keeps the same map

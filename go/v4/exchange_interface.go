@@ -279,7 +279,7 @@ type ICoreExchange interface {
 	FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	ArrayConcat(aa, bb any) []any
 	FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
@@ -433,7 +433,7 @@ type IDerivedExchange interface {
 	ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode
 	ParseBorrowInterest(info any, optionalArgs ...any) any
 	ParseOption(chain any, optionalArgs ...any) Option
-	ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
+	ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[string]any
 	ParseMarketLeverageTiers(info any, optionalArgs ...any) []any
 	FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
@@ -443,7 +443,7 @@ type IDerivedExchange interface {
 	Sign(path string, optionalArgs ...any) any
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]any]
-	FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	CreateExpiredOptionMarket(symbol any) any
 	FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64]
@@ -453,7 +453,7 @@ type IDerivedExchange interface {
 	SignEvmTransaction(tx any, privateKey any) any
 	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	ParseDepositAddresses(addresses any, optionalArgs ...any) any
-	FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress
 	ParseBorrowRate(info any, optionalArgs ...any) map[string]any
 	ParseFundingRateHistory(info any, optionalArgs ...any) any

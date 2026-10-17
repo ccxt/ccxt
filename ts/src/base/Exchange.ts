@@ -6768,7 +6768,8 @@ export class BaseExchange {
             throw new NotSupported (this.id + ' fetchDepositWithdrawFee() is not supported yet');
         }
         const fees = await this.fetchDepositWithdrawFees ([ code ], params);
-        return this.safeValue (fees, code);
+        const fee = this.safeDict (fees, code);
+        return fee as DepositWithdrawFee;
     }
 
     getSupportedMapping (key: Str, mapping: Dict = {}) {
