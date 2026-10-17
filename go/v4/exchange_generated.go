@@ -33,7 +33,7 @@ func (this *BaseExchange) Describe() any {
 			"borrowMargin":                           nil,
 			"cancelAllOrders":                        nil,
 			"cancelAllOrdersWs":                      nil,
-			"cancelOrder":                            true,
+			"cancelOrder":                            nil,
 			"cancelOrderWithClientOrderId":           nil,
 			"cancelOrderWs":                          nil,
 			"cancelOrders":                           nil,
@@ -44,7 +44,7 @@ func (this *BaseExchange) Describe() any {
 			"createDepositAddress":                   nil,
 			"createLimitBuyOrder":                    nil,
 			"createLimitBuyOrderWs":                  nil,
-			"createLimitOrder":                       true,
+			"createLimitOrder":                       nil,
 			"createLimitOrderWs":                     nil,
 			"createLimitSellOrder":                   nil,
 			"createLimitSellOrderWs":                 nil,
@@ -52,15 +52,15 @@ func (this *BaseExchange) Describe() any {
 			"createMarketBuyOrderWs":                 nil,
 			"createMarketBuyOrderWithCost":           nil,
 			"createMarketBuyOrderWithCostWs":         nil,
-			"createMarketOrder":                      true,
-			"createMarketOrderWs":                    true,
+			"createMarketOrder":                      nil,
+			"createMarketOrderWs":                    nil,
 			"createMarketOrderWithCost":              nil,
 			"createMarketOrderWithCostWs":            nil,
 			"createMarketSellOrder":                  nil,
 			"createMarketSellOrderWs":                nil,
 			"createMarketSellOrderWithCost":          nil,
 			"createMarketSellOrderWithCostWs":        nil,
-			"createOrder":                            true,
+			"createOrder":                            nil,
 			"createOrderWs":                          nil,
 			"createOrders":                           nil,
 			"createOrderWithTakeProfitAndStopLoss":   nil,
@@ -92,7 +92,7 @@ func (this *BaseExchange) Describe() any {
 			"editOrderWs":                            nil,
 			"fetchAccounts":                          nil,
 			"fetchADLRank":                           nil,
-			"fetchBalance":                           true,
+			"fetchBalance":                           nil,
 			"fetchBalanceWs":                         nil,
 			"fetchBidsAsks":                          nil,
 			"fetchBorrowInterest":                    nil,
@@ -135,7 +135,7 @@ func (this *BaseExchange) Describe() any {
 			"fetchIsolatedBorrowRates":               nil,
 			"fetchMarginAdjustmentHistory":           nil,
 			"fetchIsolatedPositions":                 nil,
-			"fetchL2OrderBook":                       true,
+			"fetchL2OrderBook":                       nil,
 			"fetchL3OrderBook":                       nil,
 			"fetchLastPrices":                        nil,
 			"fetchLedger":                            nil,
@@ -168,7 +168,7 @@ func (this *BaseExchange) Describe() any {
 			"fetchOptionChain":                       nil,
 			"fetchOrder":                             nil,
 			"fetchOrderWithClientOrderId":            nil,
-			"fetchOrderBook":                         true,
+			"fetchOrderBook":                         nil,
 			"fetchOrderBooks":                        nil,
 			"fetchOrderBookWs":                       nil,
 			"fetchOrders":                            nil,
@@ -191,13 +191,13 @@ func (this *BaseExchange) Describe() any {
 			"fetchPremiumIndexOHLCV":                 nil,
 			"fetchSettlementHistory":                 nil,
 			"fetchStatus":                            nil,
-			"fetchTicker":                            true,
+			"fetchTicker":                            "emulated",
 			"fetchTickerWs":                          nil,
 			"fetchTickers":                           nil,
 			"fetchMarkPrices":                        nil,
 			"fetchTickersWs":                         nil,
 			"fetchTime":                              nil,
-			"fetchTrades":                            true,
+			"fetchTrades":                            nil,
 			"fetchTradesWs":                          nil,
 			"fetchTradingFee":                        nil,
 			"fetchTradingFees":                       nil,
@@ -1882,6 +1882,7 @@ func (this *BaseExchange) AfterConstruct(optionalArgs ...any) {
 	var networkIdsToCodesGenerated any = this.InvertFlatStringDictionary(this.SafeValue(this.Options, "networks", map[string]any{}))
 	this.Options.Store("networksById", this.Extend(networkIdsToCodesGenerated, this.SafeValue(this.Options, "networksById", map[string]any{})))
 	this.FeaturesGenerator()
+	this.HasAutocorrect()
 	// init predefined markets if any
 	if this.Markets != nil {
 		this.SetMarkets(this.Markets)
@@ -1896,6 +1897,31 @@ func (this *BaseExchange) AfterConstruct(optionalArgs ...any) {
 	// compatibility for sandbox/testnet options in userConfig
 	if (this.SafeBool(userConfig, "sandbox", false) != nil && *this.SafeBool(userConfig, "sandbox", false)) || (this.SafeBool(userConfig, "testnet", false) != nil && *this.SafeBool(userConfig, "testnet", false)) {
 		this.DerivedExchange.SetSandboxMode(true)
+	}
+}
+func (this *BaseExchange) HasAutocorrect() {
+	var fallbacks map[string]any = map[string]any{
+		"fetchL2OrderBook":    "fetchOrderBook",
+		"createLimitOrder":    "createOrder",
+		"createMarketOrder":   "createOrder",
+		"createLimitOrderWs":  "createOrderWs",
+		"createMarketOrderWs": "createOrderWs",
+	}
+	var targets []string = nil
+	if fallbacks != nil {
+		targets = make([]string, 0, len(fallbacks))
+		for objectKey := range fallbacks {
+			targets = append(targets, objectKey)
+		}
+	}
+	for i := 0; i < len(targets); i++ {
+		var target string = targets[i]
+		var source any = fallbacks[target]
+		var sourceDefined bool = (InOp(this.Has, source)) && (!IsEqual(GetValue(this.Has, source), nil))
+		var targetDefined bool = (InOp(this.Has, target)) && (!IsEqual(this.Has[target], nil))
+		if sourceDefined && !targetDefined {
+			this.Has[target] = GetValue(this.Has, source)
+		}
 	}
 }
 func (this *BaseExchange) InitRestRateLimiter() {
@@ -5438,11 +5464,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan EndpointResult[map[str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes670415 map[string]any = MapTyped(r.Value)
-	if retRes670415 == nil {
+	var retRes672515 map[string]any = MapTyped(r.Value)
+	if retRes672515 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes670415, Raw: retRes670415}
+		ch <- EndpointResult[map[string]any]{Value: retRes672515, Raw: retRes672515}
 	}
 	return nil
 }
@@ -11467,12 +11493,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan EndpointResult[
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv10988, _ := r.Value.([]any)
-	var retRes1013115 []any = listRecv10988
-	if retRes1013115 == nil {
+	listRecv11014, _ := r.Value.([]any)
+	var retRes1015215 []any = listRecv11014
+	if retRes1015215 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- EndpointResult[[]any]{Value: retRes1013115, Raw: retRes1013115}
+		ch <- EndpointResult[[]any]{Value: retRes1015215, Raw: retRes1015215}
 	}
 	return nil
 }
