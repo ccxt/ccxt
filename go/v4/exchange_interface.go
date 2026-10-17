@@ -42,7 +42,7 @@ type IFetchOrder interface {
 	FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 type IFetchOrderWithClientOrderId interface {
-	FetchOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan AsyncResult[any]
+	FetchOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 type IFetchPositions interface {
 	FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any]
