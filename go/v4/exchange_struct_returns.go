@@ -60,6 +60,34 @@ func OrderToMap(o Order) map[string]any {
 	return StructToMap(o)
 }
 
+// FundingRateFromMap builds a FundingRate from a unified funding-rate map.
+func FundingRateFromMap(data any) FundingRate {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return FundingRate{}
+	}
+	return NewFundingRate(m)
+}
+
+// FundingRateToMap is the map shape every untyped caller expects.
+func FundingRateToMap(f FundingRate) map[string]any {
+	return StructToMap(f)
+}
+
+// OpenInterestFromMap builds an OpenInterest from a unified open-interest map.
+func OpenInterestFromMap(data any) OpenInterest {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return OpenInterest{}
+	}
+	return NewOpenInterest(m)
+}
+
+// OpenInterestToMap is the map shape every untyped caller expects.
+func OpenInterestToMap(o OpenInterest) map[string]any {
+	return StructToMap(o)
+}
+
 func copyMap(m map[string]any) map[string]any {
 	out := make(map[string]any, len(m))
 	for k, v := range m {

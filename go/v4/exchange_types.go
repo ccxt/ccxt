@@ -1165,7 +1165,7 @@ func (b *Balances) String() string {
 
 type FundingRate struct {
 	Symbol                   *string
-	Info                     map[string]any
+	Info                     any
 	Timestamp                *int64
 	Datetime                 *string
 	FundingRate              *float64
@@ -1189,7 +1189,7 @@ func NewFundingRate(fundingRateEntry2 any) FundingRate {
 	fundingRateEntry := fundingRateEntry2.(map[string]any)
 	return FundingRate{
 		Symbol:                   SafeStringTyped(fundingRateEntry, "symbol"),
-		Info:                     GetInfo(fundingRateEntry),
+		Info:                     SafeValue(fundingRateEntry, "info", nil),
 		Datetime:                 SafeStringTyped(fundingRateEntry, "datetime"),
 		Timestamp:                SafeInt64Typed(fundingRateEntry, "timestamp"),
 		FundingRate:              SafeFloatTyped(fundingRateEntry, "fundingRate"),
@@ -1534,7 +1534,7 @@ type OpenInterest struct {
 	QuoteVolume        *float64
 	Timestamp          *int64
 	Datetime           *string
-	Info               map[string]any
+	Info               any
 }
 
 func NewOpenInterest(data any) OpenInterest {
@@ -1546,7 +1546,7 @@ func NewOpenInterest(data any) OpenInterest {
 		QuoteVolume:        SafeFloatTyped(data, "quoteVolume"),
 		Timestamp:          SafeInt64Typed(data, "timestamp"),
 		Datetime:           SafeStringTyped(data, "datetime"),
-		Info:               GetInfo(data),
+		Info:               SafeValue(data, "info", nil),
 	}
 }
 

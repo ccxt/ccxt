@@ -226,7 +226,7 @@ type ICoreExchange interface {
 	FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	ParseOpenInterest(interest any, optionalArgs ...any) map[string]any
+	ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest
 	FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	ParseLiquidation(liquidation any, optionalArgs ...any) any
 	FetchGreeksAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
@@ -413,7 +413,7 @@ type IDerivedExchange interface {
 	ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) map[string]any
 	ParsePosition(position any, optionalArgs ...any) any
 	SafeMarketStructure(optionalArgs ...any) map[string]any
-	ParseOpenInterest(interest any, optionalArgs ...any) map[string]any
+	ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest
 	ParseLiquidation(liquidation any, optionalArgs ...any) any
 	ParseIncome(info any, optionalArgs ...any) any
 	ParseMarginMode(marginMode any, optionalArgs ...any) map[string]any
@@ -445,7 +445,7 @@ type IDerivedExchange interface {
 	ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any
 	ParseBorrowRate(info any, optionalArgs ...any) map[string]any
 	ParseFundingRateHistory(info any, optionalArgs ...any) any
-	ParseFundingRate(contract any, optionalArgs ...any) map[string]any
+	ParseFundingRate(contract any, optionalArgs ...any) FundingRate
 	FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
 	FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchFundingIntervalsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
