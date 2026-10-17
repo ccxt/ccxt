@@ -2054,6 +2054,14 @@ class lighter extends Exchange {
                 $leverage = 100 / $imf;
             }
         }
+        $contractsString = $this->safe_string($position, 'position');
+        $positionValueString = $this->safe_string($position, 'position_value');
+        $markPriceString = Precise::string_div($positionValueString, $contractsString);
+        // allocated_margin is the isolated collateral balance (0 for cross)
+        $positionMargin = null;
+        if ($marginMode === 'isolated') {
+            $positionMargin = $this->safe_number($position, 'allocated_margin');
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -2063,13 +2071,14 @@ class lighter extends Exchange {
             'isolated' => ($marginMode === 'isolated'),
             'hedged' => null,
             'side' => $side,
-            'contracts' => $this->safe_number($position, 'position'),
+            'contracts' => $this->parse_number($contractsString),
             'contractSize' => null,
             'entryPrice' => $this->safe_number($position, 'avg_entry_price'),
-            'markPrice' => null,
-            'notional' => $this->safe_number($position, 'position_value'),
+            'markPrice' => $this->parse_number($markPriceString),
+            'notional' => $this->parse_number($positionValueString),
             'leverage' => $leverage,
-            'collateral' => $this->safe_number($position, 'allocated_margin'),
+            'positionMargin' => $positionMargin,
+            'collateral' => null,
             'initialMargin' => null,
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,

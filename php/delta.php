@@ -1853,9 +1853,9 @@ class delta extends Exchange {
         $side = null;
         if ($sizeString !== null) {
             if (Precise::string_gt($sizeString, '0')) {
-                $side = 'buy';
+                $side = 'long';
             } elseif (Precise::string_lt($sizeString, '0')) {
-                $side = 'sell';
+                $side = 'short';
             }
         }
         return $this->safe_position(array(
@@ -1863,7 +1863,7 @@ class delta extends Exchange {
             'id' => null,
             'symbol' => $symbol,
             'notional' => null,
-            'marginMode' => null,
+            'marginMode' => $this->safe_string($position, 'margin_mode'),
             'liquidationPrice' => $this->safe_number($position, 'liquidation_price'),
             'entryPrice' => $this->safe_number($position, 'entry_price'),
             'unrealizedPnl' => null, // todo - realized_pnl ?
@@ -1877,6 +1877,7 @@ class delta extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
+            'positionMargin' => $this->safe_number($position, 'margin'),
             'collateral' => null,
             'initialMargin' => null,
             'initialMarginPercentage' => null,

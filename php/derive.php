@@ -3158,6 +3158,8 @@ class derive extends Exchange {
         $markPrice = $this->safe_string($position, 'mark_price');
         $timestamp = $this->safe_integer($position, 'creation_timestamp');
         $unrealisedPnl = $this->safe_string($position, 'unrealized_pnl');
+        $initialMarginString = Precise::string_abs($this->safe_string($position, 'initial_margin'));
+        $maintenanceMarginString = Precise::string_abs($this->safe_string($position, 'maintenance_margin'));
         $size = Precise::string_abs($size);
         $notional = Precise::string_mul($size, $markPrice);
         return $this->safe_position(array(
@@ -3167,11 +3169,11 @@ class derive extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => null,
-            'initialMargin' => $this->safe_number($position, 'initial_margin'),
-            'initialMarginPercentage' => null,
-            'maintenanceMargin' => $this->safe_number($position, 'maintenance_margin'),
-            'maintenanceMarginPercentage' => null,
-            'entryPrice' => null,
+            'initialMargin' => $this->parse_number($initialMarginString),
+            'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notional, 8)),
+            'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
+            'maintenanceMarginPercentage' => $this->parse_number(Precise::string_div($maintenanceMarginString, $notional, 8)),
+            'entryPrice' => $this->safe_number_2($position, 'average_price', 'average_price_excl_fees'),
             'notional' => $this->parse_number($notional),
             'leverage' => $this->safe_number($position, 'leverage'),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),

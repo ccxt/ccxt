@@ -3388,7 +3388,7 @@ class toobit extends Exchange {
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnL'),
             'side' => $side,
             'contracts' => $this->parse_number($quantity),
-            'contractSize' => null,
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'timestamp' => null,
             'datetime' => null,
             'hedged' => null,

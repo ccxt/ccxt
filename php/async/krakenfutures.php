@@ -3529,7 +3529,7 @@ class krakenfutures extends Exchange {
         }
         $marketId = $this->safe_string_2($position, 'symbol', 'tradeable');
         $marketResolved = $this->safe_market($marketId, $market);
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'executionUid'),
             'symbol' => $marketResolved['symbol'],
@@ -3554,7 +3554,7 @@ class krakenfutures extends Exchange {
             'marginMode' => $marginType,
             'side' => $side,
             'percentage' => null,
-        );
+        ));
     }
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array()): PromiseInterface {

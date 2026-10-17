@@ -1781,6 +1781,78 @@ class testMainClass {
         return true;
     }
 
+    public function assert_static_isolated_position($exchange, $entry) {
+        if (!$exchange->is_dictionary($entry)) {
+            return true;
+        }
+        $margin_mode = $exchange->safe_string($entry, 'marginMode');
+        if ($margin_mode !== 'isolated') {
+            return true;
+        }
+        $side = $exchange->safe_string($entry, 'side');
+        $entry_price = $exchange->safe_number($entry, 'entryPrice');
+        $liquidation_price = $exchange->safe_number($entry, 'liquidationPrice');
+        $contracts = $exchange->safe_number($entry, 'contracts');
+        $contract_size = $exchange->safe_number($entry, 'contractSize');
+        $maintenance_margin = $exchange->safe_number($entry, 'maintenanceMargin');
+        $collateral = $exchange->safe_number($entry, 'collateral');
+        $initial_margin = $exchange->safe_number($entry, 'initialMargin');
+        $unrealized_pnl = $exchange->safe_number($entry, 'unrealizedPnl');
+        if (($entry_price !== null) && ($liquidation_price !== null) && ($entry_price > 0) && ($liquidation_price > 0)) {
+            if ($side === 'long') {
+                $this->assert_static_error($liquidation_price < $entry_price, 'isolated long liquidationPrice should be less than entryPrice', $entry_price, $liquidation_price);
+            } elseif ($side === 'short') {
+                $this->assert_static_error($liquidation_price > $entry_price, 'isolated short liquidationPrice should be greater than entryPrice', $entry_price, $liquidation_price);
+            }
+        }
+        $entry_margin = null;
+        if ($collateral !== null) {
+            if (($unrealized_pnl !== null) && ($collateral !== $initial_margin)) {
+                $entry_margin = $collateral - $unrealized_pnl;
+            } else {
+                $entry_margin = $collateral;
+            }
+        } elseif ($initial_margin !== null) {
+            $entry_margin = $initial_margin;
+        }
+        if (($entry_margin !== null) && ($entry_price !== null) && ($liquidation_price !== null) && ($contracts !== null) && ($contract_size !== null) && ($maintenance_margin !== null)) {
+            if (($entry_margin > 0) && ($entry_price > 0) && ($liquidation_price > 0) && ($contracts > 0) && ($contract_size > 0) && ($maintenance_margin > 0)) {
+                $symbol = $exchange->safe_string($entry, 'symbol');
+                $market = ($symbol !== null) ? $exchange->safe_dict($exchange->markets, $symbol) : null;
+                $is_inverse = ($market !== null) && $exchange->safe_bool($market, 'inverse', false);
+                $price_diff = 0;
+                if ($is_inverse) {
+                    $inv_entry = 1 / $entry_price;
+                    $inv_liq = 1 / $liquidation_price;
+                    $price_diff = ($inv_entry > $inv_liq) ? ($inv_entry - $inv_liq) : ($inv_liq - $inv_entry);
+                } else {
+                    $price_diff = ($entry_price > $liquidation_price) ? ($entry_price - $liquidation_price) : ($liquidation_price - $entry_price);
+                }
+                $loss_from_entry = $price_diff * $contracts * $contract_size;
+                $calculated_mm = $entry_margin - $loss_from_entry;
+                $this->assert_static_error($calculated_mm > 0, 'isolated position remaining collateral at liquidationPrice should be greater than 0', $maintenance_margin, $calculated_mm);
+                $mm_diff = ($calculated_mm > $maintenance_margin) ? ($calculated_mm - $maintenance_margin) : ($maintenance_margin - $calculated_mm);
+                $max_tolerance = $entry_margin * 0.05;
+                $this->assert_static_error($mm_diff <= $max_tolerance, 'isolated position maintenanceMargin does not match remaining collateral at liquidationPrice', $maintenance_margin, $calculated_mm);
+            }
+        }
+        return true;
+    }
+
+    public function assert_static_isolated_positions($exchange, $method, $output) {
+        if (($method === 'fetchPosition') || ($method === 'fetchPositions') || ($method === 'fetchPositionsForSymbol') || ($method === 'fetchPositionsRisk')) {
+            if (gettype($output) === 'array' && array_is_list($output)) {
+                $output_length = count($output);
+                for ($i = 0; $i < $output_length; $i++) {
+                    $this->assert_static_isolated_position($exchange, $output[$i]);
+                }
+            } elseif ($exchange->is_dictionary($output)) {
+                $this->assert_static_isolated_position($exchange, $output);
+            }
+        }
+        return true;
+    }
+
     public function assert_static_response_output($exchange, $skip_keys, $computed_result, $stored_result) {
         $this->assert_new_and_stored_output($exchange, $skip_keys, $computed_result, $stored_result, false);
     }
@@ -1866,9 +1938,11 @@ class testMainClass {
             if (!is_sync()) {
                 $unified_result = call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input']));
                 $this->assert_static_response_output($mocked_exchange, $skip_keys, $unified_result, $expected_result);
+                $this->assert_static_isolated_positions($mocked_exchange, $method, $expected_result);
             } else {
                 $unified_result_sync = call_exchange_method_dynamically_sync($exchange, $method, $this->sanitize_data_input($data['input']));
                 $this->assert_static_response_output($mocked_exchange, $skip_keys, $unified_result_sync, $expected_result);
+                $this->assert_static_isolated_positions($mocked_exchange, $method, $expected_result);
             }
         } catch(\Throwable $e) {
             $this->response_tests_failed = true;

@@ -2418,12 +2418,18 @@ class grvt extends Exchange {
         if ($isLong) {
             $side = 'long';
         }
+        // isolated_balance is the wallet balance reserved for the isolated position
+        $marginMode = $this->safe_string_lower($position, 'margin_type');
+        $positionMargin = null;
+        if ($marginMode === 'isolated') {
+            $positionMargin = $this->safe_number($position, 'isolated_balance');
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $this->safe_symbol($marketId, $market),
             'notional' => $this->parse_number(Precise::string_abs($this->safe_string($position, 'notional'))),
-            'marginMode' => null,
+            'marginMode' => $marginMode,
             'liquidationPrice' => $this->safe_number($position, 'est_liquidation_price'),
             'entryPrice' => $this->safe_number($position, 'entry_price'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealized_pnl'),
@@ -2437,10 +2443,11 @@ class grvt extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => $this->safe_integer($position, 'lastUpdateTime'),
-            'maintenanceMargin' => $this->safe_number($position, 'maintenanceMargin'),
+            'maintenanceMargin' => $this->safe_number_2($position, 'isolated_mm', 'maintenanceMargin'),
             'maintenanceMarginPercentage' => null,
+            'positionMargin' => $positionMargin,
             'collateral' => null,
-            'initialMargin' => $this->safe_number($position, 'initialMargin'),
+            'initialMargin' => $this->safe_number_2($position, 'isolated_im', 'initialMargin'),
             'initialMarginPercentage' => null,
             'leverage' => $this->safe_number($position, 'leverage'),
             'marginRatio' => null,

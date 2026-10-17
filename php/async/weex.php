@@ -3979,27 +3979,39 @@ class weex extends Exchange {
         $notional = $this->safe_string($position, 'openValue');
         $size = $this->safe_string($position, 'size');
         $entryPrice = Precise::string_div($notional, $size);
+        $unrealizePnl = $this->safe_string($position, 'unrealizePnl');
+        $isolatedMargin = $this->omit_zero($this->safe_string_2($position, 'isolatedMargin', 'marginSize'));
+        $collateralString = null;
+        if (($marginMode === 'isolated') && ($isolatedMargin !== null)) {
+            $collateralString = ($unrealizePnl !== null) ? Precise::string_add($isolatedMargin, $unrealizePnl) : $isolatedMargin;
+        }
+        $initialMarginString = $this->omit_zero($this->safe_string_2($position, 'marginSize', 'isolatedMargin'));
+        $marginString = null;
+        if ($marginMode === 'isolated') {
+            $marginString = $isolatedMargin;
+        }
         return $this->safe_position(array(
             'symbol' => $marketResolved['symbol'],
             'id' => $this->safe_string_2($position, 'id', 'positionId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'contracts' => $this->parse_number($size),
-            'contractSize' => null,
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'side' => $this->safe_string_lower($position, 'side'),
             'notional' => $this->parse_number($notional),
             'leverage' => $this->safe_number($position, 'leverage'),
-            'unrealizedPnl' => $this->safe_number($position, 'unrealizePnl'),
+            'unrealizedPnl' => $this->parse_number($unrealizePnl),
             'realizedPnl' => null,
-            'collateral' => null,
+            'positionMargin' => $this->parse_number($marginString),
+            'collateral' => $this->parse_number($collateralString),
             'entryPrice' => $this->parse_number($entryPrice),
             'markPrice' => null,
-            'liquidationPrice' => $this->safe_number($position, 'liquidatePrice'),
+            'liquidationPrice' => $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidatePrice'))),
             'marginMode' => $marginMode,
             'hedged' => $hedged,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
-            'initialMargin' => $this->safe_number($position, 'marginSize'),
+            'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => null,
             'marginRatio' => null,
             'lastUpdateTimestamp' => $this->safe_integer($position, 'updatedTime'),

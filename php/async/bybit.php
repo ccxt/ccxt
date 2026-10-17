@@ -7230,7 +7230,15 @@ class bybit extends Exchange {
         if ($lastUpdateTimestamp === null) {
             $lastUpdateTimestamp = $this->safe_integer_2($position, 'updatedTime', 'updatedAt');
         }
-        $collateralString = $this->safe_string($position, 'positionBalance');
+        // positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
+        $positionMarginString = $this->omit_zero($this->safe_string($position, 'positionBalance'));
+        $collateralString = null;
+        if ($positionMarginString !== null) {
+            $collateralString = $positionMarginString;
+            if ($unrealisedPnl !== null) {
+                $collateralString = Precise::string_add($positionMarginString, $unrealisedPnl);
+            }
+        }
         $entryPrice = $this->omit_zero($this->safe_string_n($position, array( 'entryPrice', 'avgPrice', 'avgEntryPrice' )));
         $liquidationPrice = $this->omit_zero($this->safe_string($position, 'liqPrice'));
         $leverage = $this->safe_string($position, 'leverage');
@@ -7244,30 +7252,42 @@ class bybit extends Exchange {
                 }
                 $difference = Precise::string_abs(Precise::string_sub($price, $liquidationPrice));
                 $collateralString = Precise::string_add(Precise::string_add(Precise::string_mul($difference, $size), $maintenanceMarginString), $unrealisedPnl);
+                $positionMarginString = null; // derived from collateral by safePosition
             } else {
-                $bustPrice = $this->safe_string($position, 'bustPrice');
+                $bustPrice = $this->omit_zero($this->safe_string($position, 'bustPrice'));
+                $closingFee = $this->omit_zero($this->safe_string($position, 'occClosingFee'));
                 if ($marketResolved['linear'] === true) {
-                    // derived from the following formulas
+                    // derived from the following formula:
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     // Maintenance Margin = (Bust price - Liq price) x Contracts
-                    $maintenanceMarginPriceDifference = Precise::string_abs(Precise::string_sub($liquidationPrice, $bustPrice));
-                    $maintenanceMarginString = Precise::string_mul($maintenanceMarginPriceDifference, $size);
-                    // Initial Margin = Contracts x Entry Price / Leverage
+                    if (($maintenanceMarginString === null) && ($bustPrice !== null) && !Precise::string_eq($bustPrice, $liquidationPrice)) {
+                        $maintenanceMarginPriceDifference = Precise::string_abs(Precise::string_sub($liquidationPrice, $bustPrice));
+                        $maintenanceMarginString = Precise::string_mul($maintenanceMarginPriceDifference, $size);
+                    }
+                    // Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
                     if (($entryPrice !== null) && ($initialMarginString === null)) {
                         $initialMarginString = Precise::string_div(Precise::string_mul($size, $entryPrice), $leverage);
+                        if ($closingFee !== null) {
+                            $initialMarginString = Precise::string_add($initialMarginString, $closingFee);
+                        }
                     }
                 } else {
                     // Contracts * (1 / Entry price - 1 / Bust price) = Collateral
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    $difference = Precise::string_abs(Precise::string_sub($bustPrice, $liquidationPrice));
-                    $multiply = Precise::string_mul($bustPrice, $liquidationPrice);
-                    $maintenanceMarginString = Precise::string_div(Precise::string_mul($size, $difference), $multiply);
-                    // Initial Margin = Leverage x Contracts / EntryPrice
+                    if (($maintenanceMarginString === null) && ($bustPrice !== null) && !Precise::string_eq($bustPrice, $liquidationPrice)) {
+                        $difference = Precise::string_abs(Precise::string_sub($bustPrice, $liquidationPrice));
+                        $multiply = Precise::string_mul($bustPrice, $liquidationPrice);
+                        $maintenanceMarginString = Precise::string_div(Precise::string_mul($size, $difference), $multiply);
+                    }
+                    // Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
                     if (($entryPrice !== null) && ($initialMarginString === null)) {
                         $initialMarginString = Precise::string_div($size, Precise::string_mul($entryPrice, $leverage));
+                        if ($closingFee !== null) {
+                            $initialMarginString = Precise::string_add($initialMarginString, $closingFee);
+                        }
                     }
                 }
             }
@@ -7297,6 +7317,7 @@ class bybit extends Exchange {
             'markPrice' => $this->parse_number($markPrice),
             'lastPrice' => $this->safe_number($position, 'avgExitPrice'),
             'collateral' => $this->parse_number($collateralString),
+            'positionMargin' => $this->parse_number($positionMarginString),
             'marginMode' => null, // tradeMode was deprecated
             'side' => $side,
             'percentage' => null,

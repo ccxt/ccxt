@@ -28,6 +28,7 @@ include_once __DIR__ . '/test_network_methods.php';
 include_once __DIR__ . '/language_specific/test_language_specific.php';
 include_once __DIR__ . '/test_safe_methods.php';
 include_once __DIR__ . '/test_safe_ticker.php';
+include_once __DIR__ . '/test_safe_position.php';
 include_once __DIR__ . '/test_merge_balance_account.php';
 include_once __DIR__ . '/test_json.php';
 include_once __DIR__ . '/test_io.php';
@@ -100,6 +101,7 @@ function base_tests_init() {
         test_precise();
         test_safe_methods();
         test_safe_ticker();
+        test_safe_position();
         test_merge_balance_account();
         test_base58_to_binary();
         test_to_array();

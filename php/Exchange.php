@@ -6369,17 +6369,6 @@ class BaseExchange {
 
     public function safe_position(array $position) {
         // simplified version of: /pull/12765/
-        $unrealizedPnlString = $this->safe_string($position, 'unrealizedPnl');
-        $initialMarginString = $this->safe_string($position, 'initialMargin');
-        //
-        // PERCENTAGE
-        //
-        $percentage = $this->safe_value($position, 'percentage');
-        if (($percentage === null) && ($unrealizedPnlString !== null) && ($initialMarginString !== null)) {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
-            $percentageString = Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100');
-            $position['percentage'] = $this->parse_number($percentageString);
-        }
         // if contractSize is undefined get from market
         $contractSize = $this->safe_number($position, 'contractSize');
         $symbol = $this->safe_string($position, 'symbol');
@@ -6390,6 +6379,294 @@ class BaseExchange {
         if ($contractSize === null && $market !== null) {
             $contractSize = $this->safe_number($market, 'contractSize');
             $position['contractSize'] = $contractSize;
+        }
+        $isInverse = ($market !== null) && $this->safe_bool($market, 'inverse', false);
+        $side = $this->safe_string($position, 'side');
+        $marginMode = $this->safe_string($position, 'marginMode');
+        $unrealizedPnlString = $this->safe_string($position, 'unrealizedPnl');
+        $initialMarginString = $this->safe_string($position, 'initialMargin');
+        $maintenanceMarginString = $this->safe_string($position, 'maintenanceMargin');
+        $collateralString = $this->safe_string($position, 'collateral');
+        $entryPriceString = $this->safe_string($position, 'entryPrice');
+        $liquidationPriceString = $this->safe_string($position, 'liquidationPrice');
+        $contractsString = $this->safe_string($position, 'contracts');
+        $contractSizeString = $this->safe_string($position, 'contractSize');
+        // margin is the amount held in the position (excludes unrealized pnl), collateral = margin + unrealizedPnl
+        $marginString = $this->safe_string($position, 'positionMargin');
+        if (($marginString === null) && ($marginMode === 'isolated') && ($collateralString !== null)) {
+            $derivedMargin = $collateralString;
+            if (($unrealizedPnlString !== null) && !Precise::string_eq($collateralString, $initialMarginString)) {
+                $derivedMargin = Precise::string_sub($collateralString, $unrealizedPnlString);
+            }
+            if (Precise::string_gt($derivedMargin, '0')) {
+                $marginString = $derivedMargin;
+                $position['positionMargin'] = $this->parse_number($derivedMargin);
+            }
+        }
+        if ($marginString === null) {
+            $position['positionMargin'] = null; // keep the unified key present across all exchanges
+        }
+        if (($collateralString === null) && ($marginString !== null) && ($unrealizedPnlString !== null)) {
+            $collateralString = Precise::string_add($marginString, $unrealizedPnlString);
+            $position['collateral'] = $this->parse_number($collateralString);
+        }
+        if ($marginMode === 'isolated') {
+            $entryMarginString = $marginString;
+            if (($entryMarginString === null) && ($collateralString === null)) {
+                $entryMarginString = $initialMarginString;
+            }
+            $hasEntryMargin = ($entryMarginString !== null) && Precise::string_gt($entryMarginString, '0');
+            $hasEntryPrice = ($entryPriceString !== null) && Precise::string_gt($entryPriceString, '0');
+            $hasLiqPrice = ($liquidationPriceString !== null) && Precise::string_gt($liquidationPriceString, '0');
+            $hasContracts = ($contractsString !== null) && Precise::string_gt($contractsString, '0');
+            $hasContractSize = ($contractSizeString !== null) && Precise::string_gt($contractSizeString, '0');
+            $hasMm = ($maintenanceMarginString !== null) && Precise::string_gt($maintenanceMarginString, '0');
+            $priceDiff = null;
+            if ($hasEntryPrice && $hasLiqPrice) {
+                if ($isInverse) {
+                    $invEntry = Precise::string_div('1', $entryPriceString);
+                    $invLiq = Precise::string_div('1', $liquidationPriceString);
+                    if ($side === 'long') {
+                        $priceDiff = Precise::string_sub($invLiq, $invEntry);
+                    } elseif ($side === 'short') {
+                        $priceDiff = Precise::string_sub($invEntry, $invLiq);
+                    } else {
+                        $priceDiff = Precise::string_abs(Precise::string_sub($invEntry, $invLiq));
+                    }
+                } else {
+                    if ($side === 'long') {
+                        $priceDiff = Precise::string_sub($entryPriceString, $liquidationPriceString);
+                    } elseif ($side === 'short') {
+                        $priceDiff = Precise::string_sub($liquidationPriceString, $entryPriceString);
+                    } else {
+                        $priceDiff = Precise::string_abs(Precise::string_sub($entryPriceString, $liquidationPriceString));
+                    }
+                }
+            }
+            $hasPriceDiff = ($priceDiff !== null) && Precise::string_gt($priceDiff, '0');
+            if (($maintenanceMarginString === null) && $hasEntryMargin && $hasPriceDiff && $hasContracts && $hasContractSize) {
+                $lossFromEntry = Precise::string_mul($priceDiff, Precise::string_mul($contractsString, $contractSizeString));
+                $derivedMm = Precise::string_sub($entryMarginString, $lossFromEntry);
+                if (Precise::string_gt($derivedMm, '0')) {
+                    $maintenanceMarginString = $derivedMm;
+                    $position['maintenanceMargin'] = $this->parse_number($derivedMm);
+                }
+            } elseif (($collateralString === null) && ($initialMarginString === null) && $hasMm && $hasPriceDiff && $hasContracts && $hasContractSize) {
+                $lossFromEntry = Precise::string_mul($priceDiff, Precise::string_mul($contractsString, $contractSizeString));
+                $derivedEntryMargin = Precise::string_add($maintenanceMarginString, $lossFromEntry);
+                if (Precise::string_gt($derivedEntryMargin, '0')) {
+                    $initialMarginString = $derivedEntryMargin;
+                    $position['initialMargin'] = $this->parse_number($derivedEntryMargin);
+                    $marginString = $derivedEntryMargin;
+                    $position['positionMargin'] = $this->parse_number($derivedEntryMargin);
+                    $derivedCollateral = ($unrealizedPnlString !== null) ? Precise::string_add($derivedEntryMargin, $unrealizedPnlString) : $derivedEntryMargin;
+                    if (Precise::string_gt($derivedCollateral, '0')) {
+                        $collateralString = $derivedCollateral;
+                        $position['collateral'] = $this->parse_number($derivedCollateral);
+                    }
+                }
+            } elseif (($liquidationPriceString === null) && $hasEntryMargin && $hasMm && $hasEntryPrice && $hasContracts && $hasContractSize && (($side === 'long') || ($side === 'short'))) {
+                $marginBuffer = Precise::string_sub($entryMarginString, $maintenanceMarginString);
+                $totalSize = Precise::string_mul($contractsString, $contractSizeString);
+                if (Precise::string_gt($marginBuffer, '0') && Precise::string_gt($totalSize, '0')) {
+                    $bufferPerUnit = Precise::string_div($marginBuffer, $totalSize);
+                    $derivedLp = null;
+                    if ($isInverse) {
+                        $invEntry = Precise::string_div('1', $entryPriceString);
+                        $invLp = ($side === 'long') ? Precise::string_add($invEntry, $bufferPerUnit) : Precise::string_sub($invEntry, $bufferPerUnit);
+                        if (Precise::string_gt($invLp, '0')) {
+                            $derivedLp = Precise::string_div('1', $invLp);
+                        }
+                    } else {
+                        $derivedLp = ($side === 'long') ? Precise::string_sub($entryPriceString, $bufferPerUnit) : Precise::string_add($entryPriceString, $bufferPerUnit);
+                    }
+                    if (($derivedLp !== null) && Precise::string_gt($derivedLp, '0')) {
+                        $liquidationPriceString = $derivedLp;
+                        $position['liquidationPrice'] = $this->parse_number($derivedLp);
+                    }
+                }
+            } elseif (($entryPriceString === null) && $hasEntryMargin && $hasMm && $hasLiqPrice && $hasContracts && $hasContractSize && (($side === 'long') || ($side === 'short'))) {
+                $marginBuffer = Precise::string_sub($entryMarginString, $maintenanceMarginString);
+                $totalSize = Precise::string_mul($contractsString, $contractSizeString);
+                if (Precise::string_gt($marginBuffer, '0') && Precise::string_gt($totalSize, '0')) {
+                    $bufferPerUnit = Precise::string_div($marginBuffer, $totalSize);
+                    $derivedEp = null;
+                    if ($isInverse) {
+                        $invLp = Precise::string_div('1', $liquidationPriceString);
+                        $invEp = ($side === 'long') ? Precise::string_sub($invLp, $bufferPerUnit) : Precise::string_add($invLp, $bufferPerUnit);
+                        if (Precise::string_gt($invEp, '0')) {
+                            $derivedEp = Precise::string_div('1', $invEp);
+                        }
+                    } else {
+                        $derivedEp = ($side === 'long') ? Precise::string_add($liquidationPriceString, $bufferPerUnit) : Precise::string_sub($liquidationPriceString, $bufferPerUnit);
+                    }
+                    if (($derivedEp !== null) && Precise::string_gt($derivedEp, '0')) {
+                        $entryPriceString = $derivedEp;
+                        $position['entryPrice'] = $this->parse_number($derivedEp);
+                    }
+                }
+            } elseif (($contractsString === null) && $hasEntryMargin && $hasMm && $hasPriceDiff && $hasContractSize) {
+                $marginBuffer = Precise::string_sub($entryMarginString, $maintenanceMarginString);
+                $denom = Precise::string_mul($priceDiff, $contractSizeString);
+                if (Precise::string_gt($marginBuffer, '0') && Precise::string_gt($denom, '0')) {
+                    $derivedContracts = Precise::string_div($marginBuffer, $denom);
+                    if (Precise::string_gt($derivedContracts, '0')) {
+                        $contractsString = $derivedContracts;
+                        $position['contracts'] = $this->parse_number($derivedContracts);
+                    }
+                }
+            } elseif (($contractSizeString === null) && $hasEntryMargin && $hasMm && $hasPriceDiff && $hasContracts) {
+                $marginBuffer = Precise::string_sub($entryMarginString, $maintenanceMarginString);
+                $denom = Precise::string_mul($priceDiff, $contractsString);
+                if (Precise::string_gt($marginBuffer, '0') && Precise::string_gt($denom, '0')) {
+                    $derivedContractSize = Precise::string_div($marginBuffer, $denom);
+                    if (Precise::string_gt($derivedContractSize, '0')) {
+                        $contractSizeString = $derivedContractSize;
+                        $position['contractSize'] = $this->parse_number($derivedContractSize);
+                    }
+                }
+            }
+        }
+        //
+        // POSITION-LOCAL DERIVATIONS (CROSS & ISOLATED)
+        //
+        $isZeroPosition = ($contractsString !== null) && Precise::string_eq($contractsString, '0');
+        if (!$isZeroPosition) {
+            $notionalString = $this->safe_string($position, 'notional');
+            $markPriceString = $this->safe_string($position, 'markPrice');
+            $lastPriceString = $this->safe_string($position, 'lastPrice');
+            $hasContracts = ($contractsString !== null) && Precise::string_gt($contractsString, '0');
+            $hasContractSize = ($contractSizeString !== null) && Precise::string_gt($contractSizeString, '0');
+            $hasMarkPrice = ($markPriceString !== null) && Precise::string_gt($markPriceString, '0');
+            $hasNotional = ($notionalString !== null) && Precise::string_gt($notionalString, '0');
+            // 1. notional <-> markPrice / contracts / contractSize
+            if (($notionalString === null) && $hasMarkPrice && $hasContracts && $hasContractSize) {
+                $totalSize = Precise::string_mul($contractsString, $contractSizeString);
+                $derivedNotional = $isInverse ? Precise::string_div($totalSize, $markPriceString) : Precise::string_mul($totalSize, $markPriceString);
+                if (Precise::string_gt($derivedNotional, '0')) {
+                    $notionalString = $derivedNotional;
+                    $position['notional'] = $this->parse_number($derivedNotional);
+                }
+            } elseif (($markPriceString === null) && ($entryPriceString === null) && ($lastPriceString === null) && $hasNotional && $hasContracts && $hasContractSize) {
+                $totalSize = Precise::string_mul($contractsString, $contractSizeString);
+                $derivedMark = $isInverse ? Precise::string_div($totalSize, $notionalString) : Precise::string_div($notionalString, $totalSize);
+                if (Precise::string_gt($derivedMark, '0')) {
+                    $markPriceString = $derivedMark;
+                    $position['markPrice'] = $this->parse_number($derivedMark);
+                }
+            } elseif (($contractsString === null) && $hasNotional && $hasMarkPrice && $hasContractSize) {
+                $derivedContracts = $isInverse ? Precise::string_div(Precise::string_mul($notionalString, $markPriceString), $contractSizeString) : Precise::string_div($notionalString, Precise::string_mul($markPriceString, $contractSizeString));
+                if (Precise::string_gt($derivedContracts, '0')) {
+                    $contractsString = $derivedContracts;
+                    $position['contracts'] = $this->parse_number($derivedContracts);
+                }
+            } elseif (($contractSizeString === null) && $hasNotional && $hasMarkPrice && $hasContracts) {
+                $derivedContractSize = $isInverse ? Precise::string_div(Precise::string_mul($notionalString, $markPriceString), $contractsString) : Precise::string_div($notionalString, Precise::string_mul($markPriceString, $contractsString));
+                if (Precise::string_gt($derivedContractSize, '0')) {
+                    $contractSizeString = $derivedContractSize;
+                    $position['contractSize'] = $this->parse_number($derivedContractSize);
+                }
+            }
+            // 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
+            if (($unrealizedPnlString === null) && ($entryPriceString !== null) && ($markPriceString !== null) && ($contractsString !== null) && ($contractSizeString !== null)) {
+                if (Precise::string_gt($entryPriceString, '0') && Precise::string_gt($markPriceString, '0') && Precise::string_gt($contractsString, '0') && Precise::string_gt($contractSizeString, '0')) {
+                    $totalSize = Precise::string_mul($contractsString, $contractSizeString);
+                    $pnlDiff = null;
+                    if ($isInverse) {
+                        $invEntry = Precise::string_div('1', $entryPriceString);
+                        $invMark = Precise::string_div('1', $markPriceString);
+                        if ($side === 'long') {
+                            $pnlDiff = Precise::string_sub($invEntry, $invMark);
+                        } elseif ($side === 'short') {
+                            $pnlDiff = Precise::string_sub($invMark, $invEntry);
+                        }
+                    } else {
+                        if ($side === 'long') {
+                            $pnlDiff = Precise::string_sub($markPriceString, $entryPriceString);
+                        } elseif ($side === 'short') {
+                            $pnlDiff = Precise::string_sub($entryPriceString, $markPriceString);
+                        }
+                    }
+                    if ($pnlDiff !== null) {
+                        $candidateUpnl = Precise::string_mul($pnlDiff, $totalSize);
+                        if (Precise::string_eq($candidateUpnl, '0') || Precise::string_ge(Precise::string_abs($candidateUpnl), '0.000001')) {
+                            $unrealizedPnlString = $candidateUpnl;
+                            $position['unrealizedPnl'] = $this->parse_number($unrealizedPnlString);
+                        }
+                    }
+                }
+            }
+            // 3. initialMargin <-> initialMarginPercentage <-> leverage / notional
+            $hasValidNotional = ($notionalString !== null) && Precise::string_gt($notionalString, '0');
+            $hasNegativeCollateral = ($collateralString !== null) && Precise::string_lt($collateralString, '0');
+            $initialMarginPercentageString = $this->safe_string($position, 'initialMarginPercentage');
+            $leverageString = $this->safe_string($position, 'leverage');
+            $hasLeverage = ($leverageString !== null) && Precise::string_gt($leverageString, '0');
+            $hasInitialMargin = ($initialMarginString !== null) && Precise::string_gt($initialMarginString, '0');
+            $hadInitialMargin = ($initialMarginString !== null);
+            if (($initialMarginPercentageString === null) && !$hasNegativeCollateral && ($hasInitialMargin || !$hadInitialMargin)) {
+                if ($hasInitialMargin && $hasValidNotional) {
+                    $initialMarginPercentageString = Precise::string_div($initialMarginString, $notionalString);
+                } elseif ($hasLeverage) {
+                    $initialMarginPercentageString = Precise::string_div('1', $leverageString);
+                }
+                if (($initialMarginPercentageString !== null) && Precise::string_gt($initialMarginPercentageString, '0')) {
+                    $position['initialMarginPercentage'] = $this->parse_number($initialMarginPercentageString);
+                }
+            }
+            $hasImp = ($initialMarginPercentageString !== null) && Precise::string_gt($initialMarginPercentageString, '0');
+            if (($initialMarginString === null) && !$hasNegativeCollateral && $hasValidNotional) {
+                if ($hasLeverage) {
+                    $initialMarginString = Precise::string_div($notionalString, $leverageString);
+                } elseif ($hasImp) {
+                    $initialMarginString = Precise::string_mul($notionalString, $initialMarginPercentageString);
+                }
+                if (($initialMarginString !== null) && Precise::string_gt($initialMarginString, '0')) {
+                    $position['initialMargin'] = $this->parse_number($initialMarginString);
+                }
+            }
+            if (($leverageString === null) && !$hadInitialMargin && $hasImp) {
+                $derivedLeverage = Precise::string_div('1', $initialMarginPercentageString);
+                if (Precise::string_gt($derivedLeverage, '0') && Precise::string_le($derivedLeverage, '200')) {
+                    $position['leverage'] = $this->parse_number($derivedLeverage);
+                }
+            }
+            // 4. maintenanceMargin <-> maintenanceMarginPercentage / notional
+            $maintenanceMarginPercentageString = $this->safe_string($position, 'maintenanceMarginPercentage');
+            $hasValidMm = ($maintenanceMarginString !== null) && Precise::string_gt($maintenanceMarginString, '0');
+            $hasValidMmp = ($maintenanceMarginPercentageString !== null) && Precise::string_gt($maintenanceMarginPercentageString, '0');
+            if (($maintenanceMarginString === null) && $hasValidNotional && $hasValidMmp) {
+                $derivedMm = Precise::string_mul($notionalString, $maintenanceMarginPercentageString);
+                if (Precise::string_gt($derivedMm, '0')) {
+                    $maintenanceMarginString = $derivedMm;
+                    $position['maintenanceMargin'] = $this->parse_number($derivedMm);
+                }
+            } elseif (($maintenanceMarginPercentageString === null) && $hasValidNotional && $hasValidMm) {
+                $derivedMmp = Precise::string_div($maintenanceMarginString, $notionalString);
+                if (Precise::string_gt($derivedMmp, '0')) {
+                    $maintenanceMarginPercentageString = $derivedMmp;
+                    $position['maintenanceMarginPercentage'] = $this->parse_number($derivedMmp);
+                }
+            }
+            // 5. marginRatio = maintenanceMargin / collateral
+            $marginRatio = $this->safe_value($position, 'marginRatio');
+            if (($marginRatio === null) && ($maintenanceMarginString !== null) && ($collateralString !== null)) {
+                if (Precise::string_gt($maintenanceMarginString, '0') && Precise::string_gt($collateralString, '0')) {
+                    $derivedMarginRatio = Precise::string_div($maintenanceMarginString, $collateralString, 4);
+                    if (($derivedMarginRatio !== null) && Precise::string_gt($derivedMarginRatio, '0')) {
+                        $position['marginRatio'] = $this->parse_number($derivedMarginRatio);
+                    }
+                }
+            }
+        }
+        //
+        // PERCENTAGE
+        //
+        $percentage = $this->safe_value($position, 'percentage');
+        if (($percentage === null) && ($unrealizedPnlString !== null) && ($initialMarginString !== null)) {
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+            $percentageString = Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100');
+            $position['percentage'] = $this->parse_number($percentageString);
         }
         return $position;
     }

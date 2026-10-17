@@ -1221,6 +1221,7 @@ class mudrex extends Exchange {
             'lastPrice' => $this->safe_number($position, 'closed_price'), // exit price for closed positions
             'notional' => $notional,
             'leverage' => $this->safe_integer($position, 'leverage'),
+            'positionMargin' => $this->parse_number($initialMargin),
             'collateral' => $this->parse_number($initialMargin),
             'initialMargin' => $this->parse_number($initialMargin),
             'initialMarginPercentage' => null,
