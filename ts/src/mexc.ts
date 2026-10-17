@@ -5019,25 +5019,23 @@ export default class mexc extends Exchange {
     override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         const network = this.safeString (params, 'network');
         const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
-        let result: NullableDict;
+        let key: Str = undefined;
         if (network !== undefined) {
-            const netCode = this.networkIdToCode (network, code);
-            result = (netCode === undefined) ? undefined : this.safeDict (addressStructures, netCode);
+            key = this.networkIdToCode (network, code);
         } else {
             const options = this.safeDict (this.options, 'defaultNetworks');
             const defaultNetworkForCurrency = this.safeString (options, code);
             if (defaultNetworkForCurrency !== undefined) {
-                result = this.safeDict (addressStructures, defaultNetworkForCurrency);
+                key = defaultNetworkForCurrency;
             } else {
                 const keys = Object.keys (addressStructures);
-                const key = this.safeString (keys, 0);
-                result = this.safeDict (addressStructures, key);
+                key = this.safeString (keys, 0);
             }
         }
-        if (result === undefined) {
+        if ((key === undefined) || (this.safeDict (addressStructures, key) === undefined)) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', and network' + network + 'consider creating one using .createDepositAddress() method or in MEXC website');
         }
-        return result as DepositAddress;
+        return this.safeDict (addressStructures, key) as DepositAddress;
     }
 
     /**

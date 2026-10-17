@@ -7272,12 +7272,10 @@ export class BaseExchange {
     async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.has['fetchDepositAddresses'] !== undefined && this.has['fetchDepositAddresses'] !== false) {
             const depositAddresses = await this.fetchDepositAddresses ([ code ], params);
-            const depositAddress = this.safeValue (depositAddresses, code);
-            if (depositAddress === undefined) {
+            if (this.safeDict (depositAddresses, code) === undefined) {
                 throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
-            } else {
-                return depositAddress;
             }
+            return this.safeDict (depositAddresses, code) as DepositAddress;
         } else if (this.has['fetchDepositAddressesByNetwork'] !== undefined && this.has['fetchDepositAddressesByNetwork'] !== false) {
             const network = this.safeString (params, 'network');
             const paramsOmitted: Dict = this.omit (params, 'network');

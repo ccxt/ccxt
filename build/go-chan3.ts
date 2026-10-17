@@ -372,7 +372,7 @@ export function goChan3SetStubsForTest (map: Map<string, string> | undefined) {
 
 // a sent local whose every write is an awaited typed endpoint (`x := rN.Raw`, `var x any = nil` + `x = rN.Raw`)
 // and whose other uses are nil tests only: typed T, writes read Value (endpointValue[T] of Raw) instead of Raw
-function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number): { type?: string, reason?: string, edits: Edit[] } {
+function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number, table?: Map<string, string>): { type?: string, reason?: string, edits: Edit[] } {
     const edits: Edit[] = [];
     const types = new Set<string> ();
     const stubs = goChan3EndpointStubs ();
@@ -395,7 +395,11 @@ function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number): {
             decls += (w[1] === ':=') ? 1 : 0;
             const binds = fnMasked.match (new RegExp ('\\n\\t+' + w[2] + ' := <-this\\.(\\w+)\\(', 'g')) || [];
             const stub = (binds.length === 1) ? /<-this\.(\w+)\($/.exec (binds[0]) : null;
-            const t = (stub === null) ? undefined : stubs.get (stub[1]);
+            const fwds = fnMasked.match (new RegExp ('\\n\\t+' + w[2] + ' := <-(?:this|this\\.Exchange|this\\.DerivedExchange)\\.(\\w+)Async\\(', 'g')) || [];
+            const fwd = (fwds.length === 1) ? /\.(\w+)Async\($/.exec (fwds[0]) : null;
+            // a forward of a tabled AsyncResult[T] core (Value) or of an EndpointResult[T] carrier (Raw is the same value)
+            const fwdType = (fwd === null) ? undefined : ((table !== undefined) && table.has (fwd[1]) && (w[3] === 'Value')) ? table.get (fwd[1]) : goChanTable ().get (fwd[1]);
+            const t = ((stub === null) ? undefined : stubs.get (stub[1])) ?? fwdType;
             if (t === undefined) {
                 return bad ('local-untyped');
             }
@@ -553,10 +557,17 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                     }
                 } else {
                     let proof: { type?: string, nil?: boolean, reason?: string } = goChanSendType (expr.replace (/^ccxt\./, ''), fnMasked, signature, (name) => goChanMethodReturn (masked, receiver, name));
+                    // `this.SafeDict(..)` under a map carrier: its typed twin SafeDictMap (exchange_safe.go) is the same read as a map (absent -> nil map)
+                    const safeDict = /^this\.SafeDict(2|N)?\(/.exec (expr);
+                    if ((proof.reason !== undefined) && (want === 'map[string]any') && (safeDict !== null) && (goChanClose (expr, safeDict[0].length - 1) === expr.length)) {
+                        const nameAt = open + 1 + 'Value: this.'.length;
+                        edits.push ({ 'start': bodyStart + nameAt, 'end': bodyStart + nameAt + safeDict[0].length - 'this.('.length, 'text': 'SafeDict' + (safeDict[1] || '') + 'Map' });
+                        proof = { 'type': want };
+                    }
                     if ((proof.reason !== undefined) && /^local-/.test (proof.reason)) {
                         let join = joins.get (expr);
                         if (join === undefined) {
-                            join = goChan3LocalJoin (expr, fnMasked, bodyStart);
+                            join = goChan3LocalJoin (expr, fnMasked, bodyStart, table);
                             joins.set (expr, join);
                             edits.push (...join.edits);
                         }

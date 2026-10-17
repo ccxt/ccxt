@@ -6457,7 +6457,7 @@ export default class htx extends Exchange {
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkKeyFromNetworks (currency['code'], networkCode, indexedAddresses, true);
-        return this.safeValue (indexedAddresses, selectedNetworkCode);
+        return this.safeDict (indexedAddresses, selectedNetworkCode) as DepositAddress;
     }
 
     async fetchWithdrawAddresses (code: string, note: Str = undefined, networkCode: Str = undefined, params: Dict = {}): Promise<DepositAddress[]> {

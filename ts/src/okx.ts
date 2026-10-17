@@ -5599,7 +5599,7 @@ export default class okx extends Exchange {
         }
         const codeNetwork = this.networkIdToCode (codeValue, codeValue);
         if ((codeNetwork !== undefined) && (codeNetwork in response)) {
-            return response[codeNetwork];
+            return this.safeDict (response, codeNetwork) as DepositAddress;
         }
         // if the network is not specified, return the first address
         const keys = Object.keys (response);
