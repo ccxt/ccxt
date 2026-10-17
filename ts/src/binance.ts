@@ -4978,7 +4978,7 @@ export default class binance extends Exchange {
         return this.parseTickers (response, symbolsNormalized);
     }
 
-    parseTickersForRolling (response: any, symbols: any) {
+    parseTickersForRolling (response: any, symbols: Strings): Tickers {
         const results: List = [];
         for (let i = 0; i < response.length; i++) {
             const marketId = this.safeString (response[i], 'symbol');
@@ -4987,7 +4987,7 @@ export default class binance extends Exchange {
             parsedTicker['symbol'] = tickerMarket['symbol'];
             results.push (parsedTicker);
         }
-        return this.filterByArray (results, 'symbol', symbols);
+        return this.filterByArrayTickers (results, 'symbol', symbols);
     }
 
     /**
