@@ -3859,7 +3859,8 @@ function goProvenListMethods (): string[] {
 // `any` (ws venues hand it this.Balance, a *sync.Map); it returns its argument, so `SafeBalance(<map literal local>)` is proven
 function goProvenMapCollectionMethods (): string[] {
     return [ 'ParseBalance', 'ParseTickers', 'ParseCurrencies', 'FilterByArrayTickers', 'ParseFundingRate', 'ParseFundingRates',
-        'ParseDepositAddress', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositWithdrawFees' ];
+        'ParseDepositAddress', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositWithdrawFees',
+        'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee' ]; // U12
 }
 
 // one family: `names` retype to `type`; returns proven by a `type` literal, a call of `calls`, a typed/proven local,
