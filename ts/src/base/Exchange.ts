@@ -7586,7 +7586,8 @@ export class BaseExchange {
                 throw new BadSymbol (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
             const tiers = await this.fetchLeverageTiers ([ symbol ]);
-            return this.safeValue (tiers, symbol);
+            const marketTiers = this.safeList (tiers, symbol);
+            return marketTiers as LeverageTier[];
         } else {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }

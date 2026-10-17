@@ -29,6 +29,7 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.ParseMarginLoan': 'map[string]any', 'this.DerivedExchange.ParseMarginLoan': 'map[string]any', 'this.ParseIsolatedBorrowRates': 'map[string]any', 'this.DerivedExchange.ParseIsolatedBorrowRates': 'map[string]any', 'this.ParseBorrowRateHistory': '[]any', 'this.DerivedExchange.ParseBorrowRateHistory': '[]any', // U15
     ...Object.fromEntries ([ 'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])), // U06
     'this.ParseTransactionsByType': '[]any', // U09: retyped by goProvenListMethods (kraken only)
+    ...Object.fromEntries ([ [ 'ParseLeverageTiers', 'map[string]any' ], [ 'ParseLeverages', 'map[string]any' ], [ 'ParseMarginModes', 'map[string]any' ], [ 'ParseMarketLeverageTiers', '[]any' ], [ 'ParseEmulatedLeverageTiers', '[]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])), // U14
 };
 // the Go element type of a table value (`T?` marks cores that may also send a bare nil)
 export function goChanType (value: string | undefined): string | undefined {

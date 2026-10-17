@@ -8912,7 +8912,7 @@ export default class bybit extends Exchange {
             'nextPageCursor': cursorValue,
         };
         result[lastIndex] = last;
-        return result;
+        return this.toArray (result);
     }
 
     /**

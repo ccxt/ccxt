@@ -3857,7 +3857,8 @@ function goProvenListMethods (): string[] {
         'ParseBorrowRateHistory', // U15
         'InsertMissingCandles', 'ParseTradingViewOHLCV', // gochan32-U05
  'ArraysConcat',
-        'ParseTransactionsByType' ]; // U09: kraken, FilterByCurrencySinceLimit on its only path
+        'ParseTransactionsByType', // U09: kraken, FilterByCurrencySinceLimit on its only path
+        'ParseMarketLeverageTiers', 'ParseEmulatedLeverageTiers' ]; // U14
 }
 
 // dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays
@@ -3887,7 +3888,8 @@ export function goBalanceLocalIsMap (body: string, name: string): boolean {
     const writes = body.match (new RegExp ('(^|[^\\w.])' + name + '\\s*[-+*/:]?=[^=][^\\n]*', 'gm')) || [];
     const keeps = new RegExp ('^[^\\w.]?' + name + ' = this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)$)');
     return writes.every ((w) => keeps.test (w,
- 'ParseCurrenciesCustom' ];
+ 'ParseCurrenciesCustom',
+        'ParseLeverageTiers', 'ParseLeverages', 'ParseMarginModes' ]; // U14
 }
 
 // one family: `names` retype to `type`; returns proven by a `type` literal, a call of `calls`, a typed/proven local,

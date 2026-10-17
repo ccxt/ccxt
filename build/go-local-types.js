@@ -180,6 +180,7 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.SafeOutcome': 'map[string]any',
     'this.ParseSearchQueries': '[]any',
     ...Object.fromEntries ([ 'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])), // U06
+    ...Object.fromEntries ([ [ 'ParseLeverageTiers', 'map[string]any' ], [ 'ParseLeverages', 'map[string]any' ], [ 'ParseMarginModes', 'map[string]any' ], [ 'ParseMarketLeverageTiers', '[]any' ], [ 'ParseEmulatedLeverageTiers', '[]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])), // U14
     // exchange.go / exchange_string.go
     'this.StringToCharsArray': '[]string',
     // exchange_market_type.go (hand-written)
@@ -1722,7 +1723,8 @@ function ccxtGoStructureDictionaryFetch (checker, node) {
         || (call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword) || !/^fetch[A-Z]/.test (call.expression.name?.text ?? '')) {
         return false;
     }
-    return /^(?:Tickers|OpenInterests|FundingRates|MarginModes|Leverages|TradingFees|IsolatedBorrowRates|CrossBorrowRates)$/.test (checker.typeToString (checker.getTypeAtLocation (node)));
+    // LeverageTiers: fetchLeverageTiers cores send map[string]any (ParseLeverageTiers retyped, U14)
+    return /^(?:Tickers|OpenInterests|FundingRates|MarginModes|Leverages|TradingFees|IsolatedBorrowRates|CrossBorrowRates|LeverageTiers)$/.test (checker.typeToString (checker.getTypeAtLocation (node)));
 }
 
 // `this.<endpoint> (...)` declared in ts/src/abstract: the awaited value is the decoded HTTP body
