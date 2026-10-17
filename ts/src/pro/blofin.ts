@@ -73,13 +73,6 @@ export default class blofin extends blofinRest {
         return 'ping';
     }
 
-    handlePong (client: Client, message: string) {
-        //
-        //   'pong'
-        //
-        client.lastPong = this.milliseconds ();
-    }
-
     /**
      * @method
      * @name blofin#watchTrades
@@ -819,7 +812,7 @@ export default class blofin extends blofinRest {
         };
         let method: any = undefined;
         if (message === 'pong') {
-            this.handlePong (client, message);
+            client.lastPong = this.milliseconds ();
             return;
         } else {
             const event = this.safeString (message, 'event');
