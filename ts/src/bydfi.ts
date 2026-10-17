@@ -2802,7 +2802,8 @@ export default class bydfi extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('deposit', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('deposit', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     /**
@@ -2817,7 +2818,8 @@ export default class bydfi extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('withdrawal', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('withdrawal', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     async fetchTransactionsHelper (type: string, code: Str, since: Int, limit: Int, params: any): Promise<Transaction[]> {

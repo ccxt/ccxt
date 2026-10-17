@@ -244,7 +244,7 @@ type ICoreExchange interface {
 	SetFetchResponse(fetchResponse any)
 	SetFetchResponseByUrl(responsesByUrl any)
 	Init(params map[string]any)
-	FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	Milliseconds() int64
 	GetCcxtVersion() string
 	ParseNumber(v any, a ...any) any
@@ -261,12 +261,12 @@ type ICoreExchange interface {
 	Iso8601(ts2 any) *string
 	FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any]
 	FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	FetchTransactionsAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchTransactionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
 	FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	ArrayConcat(aa, bb any) []any
 	FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchBorrowInterestAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
@@ -280,7 +280,7 @@ type ICoreExchange interface {
 	FetchOpenInterestsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchOrderBooksAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any]
-	FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	Currency(code any) map[string]any
 	ParseDate(datetime2 any) any
 	RoundTimeframe(timeframe any, timestamp any, direction ...any) any
@@ -449,7 +449,7 @@ type IDerivedExchange interface {
 	FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
 	FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchFundingIntervalsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	FetchDepositsWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchDepositsWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	ParseMarginModification(data any, optionalArgs ...any) map[string]any
 	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any]
