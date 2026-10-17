@@ -63,10 +63,10 @@ type IFetchPositions interface {
 	FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 }
 type IFetchTicker interface {
-	FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker]
 }
 type IWatchTicker interface {
-	WatchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	WatchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker]
 }
 type IWatchTickers interface {
 	WatchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
