@@ -645,7 +645,12 @@ class BaseExchange(SyncExchange):
         client.reject(error, messageHash)
         if client.error is None:
             client.error = error  # on_close must not treat this as a server disconnect
-        asyncio.ensure_future(client.close())
+        # on_error rejects every remaining pending future with the resync error
+        # instead of cancelling them: a cancelled future raises a bare
+        # CancelledError, which a watch loop cannot tell apart from its own task
+        # being stopped, so all other symbols on the shared connection would
+        # silently die, see https://github.com/ccxt/ccxt/issues/30876
+        client.on_error(error)
         if self.clients.get(client.url) is client:
             del self.clients[client.url]
         self.orderbooks[symbol] = self.order_book()  # clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
