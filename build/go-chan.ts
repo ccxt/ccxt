@@ -13,6 +13,8 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.IndexBy': 'map[string]any',
     'OrderToMap': 'map[string]any', 'TickerToMap': 'map[string]any', 'TradeToMap': 'map[string]any', 'StructToMap': 'map[string]any',
     'MapTyped': 'map[string]any', 'MarketTyped': 'map[string]any', 'ListTyped': '[]any',
+    // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
+    'this.ApplyEventFetchParams': '[]any',
     'this.SafeString': '*string', 'this.SafeString2': '*string', 'this.SafeStringN': '*string',
     'this.SafeInteger': '*int64', 'this.SafeInteger2': '*int64', 'this.SafeIntegerN': '*int64',
     'this.SafeFloat': '*float64', 'this.SafeFloat2': '*float64', 'this.SafeFloatN': '*float64',
