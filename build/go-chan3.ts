@@ -370,6 +370,26 @@ export function goChan3SetStubsForTest (map: Map<string, string> | undefined) {
     GO_CHAN3_STUBS = map;
 }
 
+// T of a sent `rN.Raw` bound once by `rN := <-this.Stub(..)` (typed implicit-API stub) or `<-this.MAsync(..)` (gochan
+// EndpointResult carrier); its Value is the same response's typed view
+function goChan3EndpointRawType (expr: string, fnMasked: string): string | undefined {
+    const m = /^(r\d*)\.Raw$/.exec (expr);
+    if (m === null) {
+        return undefined;
+    }
+    const binds = [ ...fnMasked.matchAll (new RegExp ('\\n\\t+' + m[1] + ' :?= <-this\\.(\\w+)\\(', 'g')) ];
+    if ((binds.length !== 1) || ((fnMasked.match (new RegExp ('(?<![\\w.])' + m[1] + '\\s*:?=(?!=)', 'g')) || []).length !== 1)) {
+        return undefined;
+    }
+    const callee = binds[0][1];
+    const stub = goChan3EndpointStubs ().get (callee);
+    if (stub !== undefined) {
+        return stub;
+    }
+    const carrier = /^(\w+)Async$/.exec (callee);
+    return (carrier === null) ? undefined : goChanTable ().get (carrier[1]);
+}
+
 // a sent local whose every write is an awaited typed endpoint (`x := rN.Raw`, `var x any = nil` + `x = rN.Raw`)
 // and whose other uses are nil tests only: typed T, writes read Value (endpointValue[T] of Raw) instead of Raw
 function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number): { type?: string, reason?: string, edits: Edit[] } {
@@ -551,6 +571,10 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                         fail ('forward-untabled:' + name);
                         continue;
                     }
+                } else if (goChan3EndpointRawType (expr, fnMasked) !== undefined) {
+                    // `rN.Raw` of a single typed endpoint / carrier receive: send its typed view (same as the local join)
+                    type = goChan3EndpointRawType (expr, fnMasked) as string;
+                    edits.push ({ 'start': bodyStart + open + 1 + 7 + expr.length - 3, 'end': bodyStart + open + 1 + 7 + expr.length, 'text': 'Value' });
                 } else {
                     let proof: { type?: string, nil?: boolean, reason?: string } = goChanSendType (expr.replace (/^ccxt\./, ''), fnMasked, signature, (name) => goChanMethodReturn (masked, receiver, name));
                     if ((proof.reason !== undefined) && /^local-/.test (proof.reason)) {
@@ -1020,6 +1044,9 @@ export function goChan3SelfTest (): string[] {
     ok (joined.includes ('\tvar response map[string]any = nil\n') && joined.includes ('response = r.Value\n') && joined.includes ('response = r1.Value\n') && joined.includes ('ch <- AsyncResult[map[string]any]{Value: response}'), 'endpoint join: ' + joined);
     ok (throws ('package ccxt\n' + core ('X', '\tvar response any = nil\n\tr := <-this.PubGetL(a)\n\tresponse = r.Raw\n\tr1 := <-this.PubGetA(a)\n\tresponse = r1.Raw\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n')), 'mixed endpoint join throws');
     ok (throws ('package ccxt\n' + core ('X', '\tr := <-this.PubGetA(a)\n\tresponse := r.Raw\n\tthis.Use(response)\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n')), 'other use throws');
+    const rawSend = run ('package ccxt\n' + core ('X', '\tr := <-this.PubGetA(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tch <- AsyncResult[any]{Value: r.Raw}\n\treturn nil\n'));
+    ok (rawSend.includes ('\tch <- AsyncResult[map[string]any]{Value: r.Value}\n'), 'endpoint Raw send: ' + rawSend);
+    ok (throws ('package ccxt\n' + core ('X', '\tr := <-this.PubGetL(a)\n\tch <- AsyncResult[any]{Value: r.Raw}\n\treturn nil\n')), 'endpoint Raw send of another T throws');
     // typed promiseAll
     const pall = 'package ccxt\n\nfunc (this *Y) f(p any) any {\n\tvar a any = EndpointRaw(this.PubGetA(p))\n\tr := <-promiseAll([]any{a, this.PubGetA(p)})\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar v []any = ListTyped(r.Value)\n\tx := GetValue(v, 0)\n\treturn []any{x, GetValue(v, 1)}\n}\n';
     const pt = run (pall);
