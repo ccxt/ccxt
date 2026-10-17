@@ -2780,7 +2780,7 @@ class BaseExchange(object):
                 'borrowMargin': None,
                 'cancelAllOrders': None,
                 'cancelAllOrdersWs': None,
-                'cancelOrder': True,
+                'cancelOrder': None,
                 'cancelOrderWithClientOrderId': None,
                 'cancelOrderWs': None,
                 'cancelOrders': None,
@@ -2791,7 +2791,7 @@ class BaseExchange(object):
                 'createDepositAddress': None,
                 'createLimitBuyOrder': None,
                 'createLimitBuyOrderWs': None,
-                'createLimitOrder': True,
+                'createLimitOrder': None,
                 'createLimitOrderWs': None,
                 'createLimitSellOrder': None,
                 'createLimitSellOrderWs': None,
@@ -2799,15 +2799,15 @@ class BaseExchange(object):
                 'createMarketBuyOrderWs': None,
                 'createMarketBuyOrderWithCost': None,
                 'createMarketBuyOrderWithCostWs': None,
-                'createMarketOrder': True,
-                'createMarketOrderWs': True,
+                'createMarketOrder': None,
+                'createMarketOrderWs': None,
                 'createMarketOrderWithCost': None,
                 'createMarketOrderWithCostWs': None,
                 'createMarketSellOrder': None,
                 'createMarketSellOrderWs': None,
                 'createMarketSellOrderWithCost': None,
                 'createMarketSellOrderWithCostWs': None,
-                'createOrder': True,
+                'createOrder': None,
                 'createOrderWs': None,
                 'createOrders': None,
                 'createOrderWithTakeProfitAndStopLoss': None,
@@ -2839,7 +2839,7 @@ class BaseExchange(object):
                 'editOrderWs': None,
                 'fetchAccounts': None,
                 'fetchADLRank': None,
-                'fetchBalance': True,
+                'fetchBalance': None,
                 'fetchBalanceWs': None,
                 'fetchBidsAsks': None,
                 'fetchBorrowInterest': None,
@@ -2882,7 +2882,7 @@ class BaseExchange(object):
                 'fetchIsolatedBorrowRates': None,
                 'fetchMarginAdjustmentHistory': None,
                 'fetchIsolatedPositions': None,
-                'fetchL2OrderBook': True,
+                'fetchL2OrderBook': None,
                 'fetchL3OrderBook': None,
                 'fetchLastPrices': None,
                 'fetchLedger': None,
@@ -2915,7 +2915,7 @@ class BaseExchange(object):
                 'fetchOptionChain': None,
                 'fetchOrder': None,
                 'fetchOrderWithClientOrderId': None,
-                'fetchOrderBook': True,
+                'fetchOrderBook': None,
                 'fetchOrderBooks': None,
                 'fetchOrderBookWs': None,
                 'fetchOrders': None,
@@ -2938,13 +2938,13 @@ class BaseExchange(object):
                 'fetchPremiumIndexOHLCV': None,
                 'fetchSettlementHistory': None,
                 'fetchStatus': None,
-                'fetchTicker': True,
+                'fetchTicker': 'emulated',
                 'fetchTickerWs': None,
                 'fetchTickers': None,
                 'fetchMarkPrices': None,
                 'fetchTickersWs': None,
                 'fetchTime': None,
-                'fetchTrades': True,
+                'fetchTrades': None,
                 'fetchTradesWs': None,
                 'fetchTradingFee': None,
                 'fetchTradingFees': None,
@@ -3828,6 +3828,7 @@ class BaseExchange(object):
         networkIdsToCodesGenerated = self.invert_flat_string_dictionary(self.safe_value(self.options, 'networks', {}))
         self.options['networksById'] = self.extend(networkIdsToCodesGenerated, self.safe_value(self.options, 'networksById', {}))
         self.features_generator()
+        self.has_autocorrect()
         # init predefined markets if any
         if self.markets is not None:
             self.set_markets(self.markets)
@@ -3840,6 +3841,23 @@ class BaseExchange(object):
         # compatibility for sandbox/testnet options in userConfig
         if (self.safe_bool(userConfig, 'sandbox', False)) or (self.safe_bool(userConfig, 'testnet', False)):
             self.set_sandbox_mode(True)
+
+    def has_autocorrect(self):
+        fallbacks = {
+            'fetchL2OrderBook': 'fetchOrderBook',
+            'createLimitOrder': 'createOrder',
+            'createMarketOrder': 'createOrder',
+            'createLimitOrderWs': 'createOrderWs',
+            'createMarketOrderWs': 'createOrderWs',
+        }
+        targets = list(fallbacks.keys())
+        for i in range(0, len(targets)):
+            target = targets[i]
+            source = fallbacks[target]
+            sourceDefined = (source in self.has) and (self.has[source] is not None)
+            targetDefined = (target in self.has) and (self.has[target] is not None)
+            if sourceDefined and not targetDefined:
+                self.has[target] = self.has[source]
 
     def init_rest_rate_limiter(self):
         if self.rateLimit is None or (self.id is not None and self.rateLimit == -1):
