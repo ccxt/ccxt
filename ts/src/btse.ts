@@ -1001,10 +1001,10 @@ export default class btse extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const rates = this.parseFundingRateHistories (data, market, since, limit);
         if (until === undefined) {
-            return rates;
+            return this.parseFundingRateHistories (data, market, since, limit);
         }
+        const rates: FundingRateHistory[] = this.parseFundingRateHistories (data, market, since, limit);
         const result: FundingRateHistory[] = [];
         for (let i = 0; i < rates.length; i++) {
             const rate = rates[i];

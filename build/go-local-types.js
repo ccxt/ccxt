@@ -8233,6 +8233,7 @@ const CCXT_GO_PRODUCER_DECLARATIONS = {
     'this.SafePredictionTicker': 'map',
     'this.SafePredictionTrade': 'map',
     'this.SeparateBidsOrAsks': 'list',
+    'this.ParseFundingRateHistories': 'list', 'this.ParseIncomes': 'list', 'this.ParseFundingHistories': 'list', // U13
 };
 
 const CCXT_GO_PRODUCER_DICT_TYPE = 'map[string]any';
