@@ -2323,7 +2323,7 @@ export default class whitebit extends Exchange {
         const sortedOrders = this.sortBy (allOrders, 'timestamp', true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
         if (limit !== undefined && sortedOrders.length > limit) {
-            return sortedOrders.slice (0, limit);
+            return this.arraySlice (sortedOrders, 0, limit);
         }
         return sortedOrders;
     }
@@ -2554,9 +2554,7 @@ export default class whitebit extends Exchange {
                 results.push (this.extend (order, { 'status': 'closed' }));
             }
         }
-        results = this.sortBy (results, 'timestamp');
-        results = this.filterBySymbolSinceLimit (results, symbolResolved, since, limit);
-        return results as Order[];
+        return this.filterBySymbolSinceLimit (this.sortBy (results, 'timestamp'), symbolResolved, since, limit);
     }
 
     parseOrderType (type: Str) {

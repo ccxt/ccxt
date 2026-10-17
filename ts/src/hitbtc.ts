@@ -2022,7 +2022,14 @@ export default class hitbtc extends Exchange {
             }
         }
         const parsed = this.parseOrders (response, market, since, limit);
-        return this.filterByArray (parsed, 'status', [ 'closed', 'canceled' ], false) as Order[];
+        const result: Order[] = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const status = this.safeString (parsed[i], 'status');
+            if ((status === 'closed') || (status === 'canceled')) {
+                result.push (parsed[i]);
+            }
+        }
+        return result;
     }
 
     /**

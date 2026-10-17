@@ -2424,8 +2424,7 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.addPaginationCursorToResult (response);
-        const orders = this.parseOrders (data, market, since, limit);
-        return orders as Order[];
+        return this.parseOrders (data, market, since, limit);
     }
 
     addPaginationCursorToResult (response: Dict): Dict[] {

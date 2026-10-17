@@ -36,7 +36,7 @@ type IFetchL2OrderBook interface {
 	FetchL2OrderBookAsync(symbol string, optionalArgs ...any) <-chan EndpointResult[map[string]any]
 }
 type IFetchOpenOrders interface {
-	FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 }
 type IFetchOrder interface {
 	FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
@@ -255,12 +255,12 @@ type ICoreExchange interface {
 	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any]
 	FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
-	FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	SafeCurrency(currencyId any, optionalArgs ...any) map[string]any
 	Parse8601(datetime2 any) *int64
 	Iso8601(ts2 any) *string
 	FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any]
-	FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchTransactionsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any]
@@ -343,7 +343,7 @@ type ICoreExchange interface {
 	ConvertToSafeDictionary(data any) any
 	CreateSafeDictionary(isWs ...bool) *sync.Map
 	SetOptions(options any)
-	CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any]
+	CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]any]
 	WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	// WS methods
 	FetchBalanceWsAsync(optionalArgs ...any) <-chan AsyncResult[any]
@@ -430,9 +430,9 @@ type IDerivedExchange interface {
 	Sign(path string, optionalArgs ...any) any
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[any]
+	CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	CreateExpiredOptionMarket(symbol any) any
 	FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64]
 	FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[any]

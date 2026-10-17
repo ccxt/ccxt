@@ -1,0 +1,9 @@
+{
+    "FetchOpenOrders": "[]any",
+    "FetchOrders": "[]any",
+    "FetchClosedOrders": "[]any",
+    "CancelOrders": "[]any",
+    "CancelAllOrders": "[]any",
+    "CreateOrders": "[]any",
+    "FetchOrdersByIds": "[]any"
+}
