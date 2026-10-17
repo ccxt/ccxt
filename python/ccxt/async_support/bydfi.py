@@ -2075,6 +2075,10 @@ class bydfi(Exchange, ImplicitAPI):
             # in fetchPositions, the 'volume' is in base currency units, need to convert to contracts
             contracts = Precise.string_div(contracts, contractSize)
         timestamp = self.safe_integer(position, 'createTime')
+        # raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+        positionMargin = self.safe_string(position, 'positionMargin')
+        if (positionMargin is not None) and not Precise.string_gt(positionMargin, '0'):
+            positionMargin = None
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'id'),
@@ -2083,6 +2087,7 @@ class bydfi(Exchange, ImplicitAPI):
             'markPrice': self.parse_number(self.safe_string(position, 'markPrice')),
             'lastPrice': self.parse_number(self.safe_string(position, 'avgClosePositionPrice')),
             'notional': self.parse_number(self.safe_string(position, 'closePositionCost')),
+            'positionMargin': self.parse_number(positionMargin),
             'collateral': None,
             'unrealizedPnl': self.parse_number(self.safe_string(position, 'unPnl')),
             'realizedPnl': self.parse_number(self.safe_string(position, 'positionProfits')),

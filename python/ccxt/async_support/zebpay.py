@@ -1700,12 +1700,19 @@ class zebpay(Exchange, ImplicitAPI):
         datetime = self.safe_string(position, 'datetime')
         marketId = self.safe_string(position, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        return {
+        marginMode = self.safe_string_lower(position, 'marginMode', 'isolated')
+        initialMargin = self.safe_number(position, 'initialMargin')
+        # isolated positions hold exactly the initial margin posted for them
+        positionMargin = None
+        if marginMode == 'isolated':
+            positionMargin = initialMargin
+        return self.safe_position({
             'info': position,
-            'symbol': marketId,
+            'id': self.safe_string(position, 'id'),
+            'symbol': marketResolved['symbol'],
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
-            'initialMargin': self.safe_number(position, 'initialMargin'),
+            'initialMargin': initialMargin,
             'initialMarginPercentage': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
@@ -1718,11 +1725,12 @@ class zebpay(Exchange, ImplicitAPI):
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'markPrice': None,
+            'positionMargin': positionMargin,
             'collateral': None,
-            'marginMode': 'isolated',
-            'side': self.safe_string(position, 'side'),
+            'marginMode': marginMode,
+            'side': self.safe_string_lower(position, 'side'),
             'percentage': None,
-        }
+        })
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')

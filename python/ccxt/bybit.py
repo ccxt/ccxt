@@ -6640,7 +6640,13 @@ classic accounts only/ spot not supported*  fetches information on an order made
         lastUpdateTimestamp = self.parse8601(self.safe_string(position, 'updated_at'))
         if lastUpdateTimestamp is None:
             lastUpdateTimestamp = self.safe_integer_2(position, 'updatedTime', 'updatedAt')
-        collateralString = self.safe_string(position, 'positionBalance')
+        # positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
+        positionMarginString = self.omit_zero(self.safe_string(position, 'positionBalance'))
+        collateralString = None
+        if positionMarginString is not None:
+            collateralString = positionMarginString
+            if unrealisedPnl is not None:
+                collateralString = Precise.string_add(positionMarginString, unrealisedPnl)
         entryPrice = self.omit_zero(self.safe_string_n(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']))
         liquidationPrice = self.omit_zero(self.safe_string(position, 'liqPrice'))
         leverage = self.safe_string(position, 'leverage')
@@ -6653,29 +6659,37 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     price = markPrice
                 difference = Precise.string_abs(Precise.string_sub(price, liquidationPrice))
                 collateralString = Precise.string_add(Precise.string_add(Precise.string_mul(difference, size), maintenanceMarginString), unrealisedPnl)
+                positionMarginString = None  # derived from collateral by safePosition
             else:
-                bustPrice = self.safe_string(position, 'bustPrice')
+                bustPrice = self.omit_zero(self.safe_string(position, 'bustPrice'))
+                closingFee = self.omit_zero(self.safe_string(position, 'occClosingFee'))
                 if marketResolved['linear'] is True:
-                    # derived from the following formulas
+                    # derived from the following formula:
                     #  (Entry price - Bust price) * Contracts = Collateral
                     #  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     # Maintenance Margin = (Bust price - Liq price) x Contracts
-                    maintenanceMarginPriceDifference = Precise.string_abs(Precise.string_sub(liquidationPrice, bustPrice))
-                    maintenanceMarginString = Precise.string_mul(maintenanceMarginPriceDifference, size)
-                    # Initial Margin = Contracts x Entry Price / Leverage
+                    if (maintenanceMarginString is None) and (bustPrice is not None) and not Precise.string_eq(bustPrice, liquidationPrice):
+                        maintenanceMarginPriceDifference = Precise.string_abs(Precise.string_sub(liquidationPrice, bustPrice))
+                        maintenanceMarginString = Precise.string_mul(maintenanceMarginPriceDifference, size)
+                    # Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
                     if (entryPrice is not None) and (initialMarginString is None):
                         initialMarginString = Precise.string_div(Precise.string_mul(size, entryPrice), leverage)
+                        if closingFee is not None:
+                            initialMarginString = Precise.string_add(initialMarginString, closingFee)
                 else:
                     # Contracts * (1 / Entry price - 1 / Bust price) = Collateral
                     # Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     # Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     # Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    difference = Precise.string_abs(Precise.string_sub(bustPrice, liquidationPrice))
-                    multiply = Precise.string_mul(bustPrice, liquidationPrice)
-                    maintenanceMarginString = Precise.string_div(Precise.string_mul(size, difference), multiply)
-                    # Initial Margin = Leverage x Contracts / EntryPrice
+                    if (maintenanceMarginString is None) and (bustPrice is not None) and not Precise.string_eq(bustPrice, liquidationPrice):
+                        difference = Precise.string_abs(Precise.string_sub(bustPrice, liquidationPrice))
+                        multiply = Precise.string_mul(bustPrice, liquidationPrice)
+                        maintenanceMarginString = Precise.string_div(Precise.string_mul(size, difference), multiply)
+                    # Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
                     if (entryPrice is not None) and (initialMarginString is None):
                         initialMarginString = Precise.string_div(size, Precise.string_mul(entryPrice, leverage))
+                        if closingFee is not None:
+                            initialMarginString = Precise.string_add(initialMarginString, closingFee)
         maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notional)
         marginRatio = Precise.string_div(maintenanceMarginString, collateralString, 4)
         return self.safe_position({
@@ -6701,6 +6715,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'markPrice': self.parse_number(markPrice),
             'lastPrice': self.safe_number(position, 'avgExitPrice'),
             'collateral': self.parse_number(collateralString),
+            'positionMargin': self.parse_number(positionMarginString),
             'marginMode': None,  # tradeMode was deprecated
             'side': side,
             'percentage': None,

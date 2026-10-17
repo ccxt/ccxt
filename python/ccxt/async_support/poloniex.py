@@ -3667,9 +3667,12 @@ class poloniex(Exchange, ImplicitAPI):
         leverage = self.safe_string(position, 'lever')
         initialMargin = self.safe_string(position, 'im')
         notional = Precise.string_mul(leverage, initialMargin)
-        qty = self.safe_string(position, 'qty')
-        avgPrice = self.safe_string(position, 'openAvgPx')
-        collateral = Precise.string_mul(qty, avgPrice)
+        positionMargin = None
+        collateral = None
+        if marginMode == 'isolated':
+            positionMargin = self.omit_zero(self.safe_string(position, 'mgn'))
+            upl = self.safe_string(position, 'upl')
+            collateral = Precise.string_add(positionMargin, upl) if ((positionMargin is not None) and (upl is not None)) else None
         # todo: some more fields
         return self.safe_position({
             'info': position,
@@ -3692,7 +3695,8 @@ class poloniex(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': None,
             'maintenanceMargin': self.safe_number(position, 'mm'),
             'maintenanceMarginPercentage': None,
-            'collateral': collateral,
+            'collateral': self.parse_number(collateral),
+            'positionMargin': self.parse_number(positionMargin),
             'initialMargin': initialMargin,
             'initialMarginPercentage': None,
             'leverage': int(leverage),

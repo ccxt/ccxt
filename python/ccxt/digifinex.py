@@ -3787,13 +3787,26 @@ class digifinex(Exchange, ImplicitAPI):
         if marginMode is not None:
             marginMode = 'cross' if (marginMode == 'crossed') else 'isolated'
         else:
-            marginMode = 'crossed'
+            marginMode = 'cross'
         timestamp = self.safe_integer(position, 'timestamp')
         side = self.safe_string(position, 'side')
         if side == 'go_long':
             side = 'long'
         elif side == 'go_short':
             side = 'short'
+        positionMargin = self.safe_string(position, 'margin')
+        unrealizedPnl = self.safe_string(position, 'unrealized_pnl')
+        collateralString = None
+        marginString = None
+        if marginMode == 'isolated':
+            isolatedMargin = self.safe_string(position, 'posi_balance')
+            if isolatedMargin is not None:
+                marginString = isolatedMargin
+                collateralString = Precise.string_add(isolatedMargin, unrealizedPnl) if (unrealizedPnl is not None) else isolatedMargin
+        maintenanceMarginString = self.safe_string(position, 'maintain_margin')
+        forceCloseFee = self.omit_zero(self.safe_string(position, 'force_close_fee'))
+        if (maintenanceMarginString is not None) and (forceCloseFee is not None):
+            maintenanceMarginString = Precise.string_add(maintenanceMarginString, forceCloseFee)
         return self.safe_position({
             'info': position,
             'id': None,
@@ -3802,18 +3815,19 @@ class digifinex(Exchange, ImplicitAPI):
             'marginMode': marginMode,
             'liquidationPrice': self.safe_number(position, 'liquidation_price'),
             'entryPrice': self.safe_number_2(position, 'avg_cost', 'entry_price'),
-            'unrealizedPnl': self.safe_number(position, 'unrealized_pnl'),
-            'contracts': self.safe_number(position, 'avail_position'),
+            'unrealizedPnl': self.parse_number(unrealizedPnl),
+            'contracts': self.safe_number_2(position, 'position', 'avail_position'),
             'contractSize': self.safe_number(marketResolved, 'contractSize'),
-            'markPrice': self.safe_number(position, 'last'),
+            'markPrice': self.safe_number_2(position, 'mark_price', 'last'),
             'side': side,
             'hedged': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'maintenanceMargin': self.safe_number(position, 'margin'),
+            'maintenanceMargin': self.parse_number(maintenanceMarginString),
             'maintenanceMarginPercentage': self.safe_number(position, 'maint_margin_ratio'),
-            'collateral': None,
-            'initialMargin': None,
+            'positionMargin': self.parse_number(marginString),
+            'collateral': self.parse_number(collateralString),
+            'initialMargin': self.parse_number(positionMargin),
             'initialMarginPercentage': None,
             'leverage': self.safe_number_2(position, 'leverage', 'leverage_ratio'),
             'marginRatio': self.safe_number(position, 'margin_ratio'),

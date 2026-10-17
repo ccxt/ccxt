@@ -1480,6 +1480,64 @@ class testMainClass:
         self.assert_new_and_stored_output(exchange, skip_keys, new_output, stored_output)
         return True
 
+    def assert_static_isolated_position(self, exchange, entry):
+        if not exchange.is_dictionary(entry):
+            return True
+        margin_mode = exchange.safe_string(entry, 'marginMode')
+        if margin_mode != 'isolated':
+            return True
+        side = exchange.safe_string(entry, 'side')
+        entry_price = exchange.safe_number(entry, 'entryPrice')
+        liquidation_price = exchange.safe_number(entry, 'liquidationPrice')
+        contracts = exchange.safe_number(entry, 'contracts')
+        contract_size = exchange.safe_number(entry, 'contractSize')
+        maintenance_margin = exchange.safe_number(entry, 'maintenanceMargin')
+        collateral = exchange.safe_number(entry, 'collateral')
+        initial_margin = exchange.safe_number(entry, 'initialMargin')
+        unrealized_pnl = exchange.safe_number(entry, 'unrealizedPnl')
+        if (entry_price is not None) and (liquidation_price is not None) and (entry_price > 0) and (liquidation_price > 0):
+            if side == 'long':
+                self.assert_static_error(liquidation_price < entry_price, 'isolated long liquidationPrice should be less than entryPrice', entry_price, liquidation_price)
+            elif side == 'short':
+                self.assert_static_error(liquidation_price > entry_price, 'isolated short liquidationPrice should be greater than entryPrice', entry_price, liquidation_price)
+        entry_margin = None
+        if collateral is not None:
+            if (unrealized_pnl is not None) and (collateral != initial_margin):
+                entry_margin = collateral - unrealized_pnl
+            else:
+                entry_margin = collateral
+        elif initial_margin is not None:
+            entry_margin = initial_margin
+        if (entry_margin is not None) and (entry_price is not None) and (liquidation_price is not None) and (contracts is not None) and (contract_size is not None) and (maintenance_margin is not None):
+            if (entry_margin > 0) and (entry_price > 0) and (liquidation_price > 0) and (contracts > 0) and (contract_size > 0) and (maintenance_margin > 0):
+                symbol = exchange.safe_string(entry, 'symbol')
+                market = exchange.safe_dict(exchange.markets, symbol) if (symbol is not None) else None
+                is_inverse = (market is not None) and exchange.safe_bool(market, 'inverse', False)
+                price_diff = 0
+                if is_inverse:
+                    inv_entry = 1 / entry_price
+                    inv_liq = 1 / liquidation_price
+                    price_diff = (inv_entry - inv_liq) if (inv_entry > inv_liq) else (inv_liq - inv_entry)
+                else:
+                    price_diff = (entry_price - liquidation_price) if (entry_price > liquidation_price) else (liquidation_price - entry_price)
+                loss_from_entry = price_diff * contracts * contract_size
+                calculated_mm = entry_margin - loss_from_entry
+                self.assert_static_error(calculated_mm > 0, 'isolated position remaining collateral at liquidationPrice should be greater than 0', maintenance_margin, calculated_mm)
+                mm_diff = (calculated_mm - maintenance_margin) if (calculated_mm > maintenance_margin) else (maintenance_margin - calculated_mm)
+                max_tolerance = entry_margin * 0.05
+                self.assert_static_error(mm_diff <= max_tolerance, 'isolated position maintenanceMargin does not match remaining collateral at liquidationPrice', maintenance_margin, calculated_mm)
+        return True
+
+    def assert_static_isolated_positions(self, exchange, method, output):
+        if (method == 'fetchPosition') or (method == 'fetchPositions') or (method == 'fetchPositionsForSymbol') or (method == 'fetchPositionsRisk'):
+            if isinstance(output, list):
+                output_length = len(output)
+                for i in range(0, output_length):
+                    self.assert_static_isolated_position(exchange, output[i])
+            elif exchange.is_dictionary(output):
+                self.assert_static_isolated_position(exchange, output)
+        return True
+
     def assert_static_response_output(self, exchange, skip_keys, computed_result, stored_result):
         self.assert_new_and_stored_output(exchange, skip_keys, computed_result, stored_result, False)
 
@@ -1550,9 +1608,11 @@ class testMainClass:
             if not is_sync():
                 unified_result = await call_exchange_method_dynamically(exchange, method, self.sanitize_data_input(data['input']))
                 self.assert_static_response_output(mocked_exchange, skip_keys, unified_result, expected_result)
+                self.assert_static_isolated_positions(mocked_exchange, method, expected_result)
             else:
                 unified_result_sync = call_exchange_method_dynamically_sync(exchange, method, self.sanitize_data_input(data['input']))
                 self.assert_static_response_output(mocked_exchange, skip_keys, unified_result_sync, expected_result)
+                self.assert_static_isolated_positions(mocked_exchange, method, expected_result)
         except Exception as e:
             self.response_tests_failed = True
             error_message = '[' + self.lang + '][STATIC_RESPONSE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exception_message(e)

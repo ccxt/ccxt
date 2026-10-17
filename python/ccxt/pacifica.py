@@ -2628,8 +2628,11 @@ class pacifica(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market)
         symbol = marketResolved['symbol']
         margin = self.safe_string(position, 'margin')
-        marginMode = 'isolated' if (margin is not None and margin != '0') else 'cross'
-        isIsolated = (marginMode == 'isolated')
+        rawIsolated = self.safe_bool(position, 'isolated')
+        isIsolated = (margin is not None and margin != '0')
+        if rawIsolated is not None:
+            isIsolated = rawIsolated
+        marginMode = 'isolated' if isIsolated else 'cross'
         side = self.safe_string(position, 'side')
         if side is not None:
             side = 'long' if (side == 'bid') else 'short'
@@ -2649,13 +2652,13 @@ class pacifica(Exchange, ImplicitAPI):
             'markPrice': None,
             'notional': None,
             'leverage': None,
-            'collateral': margin,
+            'collateral': self.safe_number(position, 'margin'),
             'initialMargin': None,
             'maintenanceMargin': None,
             'initialMarginPercentage': None,
             'maintenanceMarginPercentage': None,
             'unrealizedPnl': None,
-            'liquidationPrice': None,
+            'liquidationPrice': self.safe_number(position, 'liquidation_price'),
             'marginMode': marginMode,
             'percentage': None,
         })

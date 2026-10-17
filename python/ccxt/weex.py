@@ -3549,27 +3549,37 @@ class weex(Exchange, ImplicitAPI):
         notional = self.safe_string(position, 'openValue')
         size = self.safe_string(position, 'size')
         entryPrice = Precise.string_div(notional, size)
+        unrealizePnl = self.safe_string(position, 'unrealizePnl')
+        isolatedMargin = self.omit_zero(self.safe_string_2(position, 'isolatedMargin', 'marginSize'))
+        collateralString = None
+        if (marginMode == 'isolated') and (isolatedMargin is not None):
+            collateralString = Precise.string_add(isolatedMargin, unrealizePnl) if (unrealizePnl is not None) else isolatedMargin
+        initialMarginString = self.omit_zero(self.safe_string_2(position, 'marginSize', 'isolatedMargin'))
+        marginString = None
+        if marginMode == 'isolated':
+            marginString = isolatedMargin
         return self.safe_position({
             'symbol': marketResolved['symbol'],
             'id': self.safe_string_2(position, 'id', 'positionId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'contracts': self.parse_number(size),
-            'contractSize': None,
+            'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'side': self.safe_string_lower(position, 'side'),
             'notional': self.parse_number(notional),
             'leverage': self.safe_number(position, 'leverage'),
-            'unrealizedPnl': self.safe_number(position, 'unrealizePnl'),
+            'unrealizedPnl': self.parse_number(unrealizePnl),
             'realizedPnl': None,
-            'collateral': None,
+            'positionMargin': self.parse_number(marginString),
+            'collateral': self.parse_number(collateralString),
             'entryPrice': self.parse_number(entryPrice),
             'markPrice': None,
-            'liquidationPrice': self.safe_number(position, 'liquidatePrice'),
+            'liquidationPrice': self.parse_number(self.omit_zero(self.safe_string(position, 'liquidatePrice'))),
             'marginMode': marginMode,
             'hedged': hedged,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'initialMargin': self.safe_number(position, 'marginSize'),
+            'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': None,
             'marginRatio': None,
             'lastUpdateTimestamp': self.safe_integer(position, 'updatedTime'),

@@ -5983,6 +5983,16 @@ class gate(Exchange, ImplicitAPI):
         # gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         # it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
         maintenanceMarginString = self.omit_zero(self.safe_string(position, 'maintenance_margin'))
+        marketInfo = self.safe_dict(marketResolved, 'info', {})
+        takerFeeRate = self.safe_string(marketInfo, 'taker_fee_rate', '0.00075')
+        hasPositiveMarginBalance = (marginBalance is None) or Precise.string_gt(marginBalance, '0')
+        if (initialMarginString is None) and hasPositiveMarginBalance and (notional is not None) and (leverage is not None) and Precise.string_gt(leverage, '0'):
+            closeFee = Precise.string_mul(notional, takerFeeRate)
+            initialMarginString = Precise.string_add(Precise.string_div(notional, leverage), closeFee)
+        liqPriceString = self.omit_zero(self.safe_string(position, 'liq_price'))
+        maintenanceRate = self.omit_zero(self.safe_string(position, 'maintenance_rate'))
+        if (maintenanceMarginString is None) and (liqPriceString is None) and hasPositiveMarginBalance and (notional is not None) and (maintenanceRate is not None):
+            maintenanceMarginString = Precise.string_mul(notional, Precise.string_add(maintenanceRate, takerFeeRate))
         # the margin field is the position margin balance, which excludes the unrealized pnl,
         # the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         # so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -6012,9 +6022,10 @@ class gate(Exchange, ImplicitAPI):
             'contracts': self.parse_number(Precise.string_abs(size)),
             'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'marginRatio': None,
-            'liquidationPrice': self.safe_number(position, 'liq_price'),
+            'liquidationPrice': self.parse_number(liqPriceString),
             'markPrice': self.safe_number(position, 'mark_price'),
             'lastPrice': None,
+            'positionMargin': self.parse_number(marginBalance),
             'collateral': self.parse_number(collateral),
             'marginMode': marginMode,
             'side': side,
