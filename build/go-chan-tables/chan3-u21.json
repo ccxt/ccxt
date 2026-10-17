@@ -1,0 +1,11 @@
+{
+  "WatchMarkPrice": "map[string]any",
+  "WatchMarkPrices": "map[string]any",
+  "WatchFundingRate": "map[string]any",
+  "WatchFundingRates": "map[string]any",
+  "WatchLiquidations": "[]any",
+  "WatchLiquidationsForSymbols": "[]any",
+  "WatchMyLiquidations": "[]any",
+  "WatchMyLiquidationsForSymbols": "[]any",
+  "WatchOHLCVForSymbols": "map[string]any"
+}

@@ -184,3 +184,27 @@ func lowerFirst(s string) string {
 	}
 	return string(b)
 }
+
+// NewOHLCVForSymbolsMap converts a watchOHLCVForSymbols result (symbol -> timeframe -> candles,
+// built by createOHLCVObject as nested map[string]any) into the typed wrapper shape.
+func NewOHLCVForSymbolsMap(data any) map[string]map[string][]OHLCV {
+	result := map[string]map[string][]OHLCV{}
+	bySymbol, ok := data.(map[string]any)
+	if !ok {
+		return result
+	}
+	for symbol, frames := range bySymbol {
+		byFrame, ok := frames.(map[string]any)
+		if !ok {
+			continue
+		}
+		typed := map[string][]OHLCV{}
+		for timeframe, candles := range byFrame {
+			if candles != nil {
+				typed[timeframe] = NewOHLCVArray(candles)
+			}
+		}
+		result[symbol] = typed
+	}
+	return result
+}

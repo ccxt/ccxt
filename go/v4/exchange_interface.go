@@ -368,13 +368,13 @@ type ICoreExchange interface {
 	UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
 	UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[any]
 	WatchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	WatchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
-	WatchLiquidationsForSymbolsAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any]
-	WatchMyLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
-	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[any]
+	WatchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchLiquidationsForSymbolsAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchMyLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]any]
 	WatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
-	WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan AsyncResult[any]
+	WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface]
 	WatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
@@ -464,8 +464,8 @@ type IDerivedExchange interface {
 	OnClose(client any, err any)
 	OnConnected(client any, err any)
 	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
-	WatchLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[any]
-	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[any]
+	WatchLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]any]
 	ParseWsTrade(trade any, optionalArgs ...any) any
 	FetchPositionsADLRankAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	ParseADLRank(info any, optionalArgs ...any) any

@@ -240,8 +240,9 @@ let GO_CHAN3_RESOLVED: Set<string> | undefined = undefined;
 
 export function goChan3Resolved (): Set<string> {
     if (GO_CHAN3_RESOLVED === undefined) {
-        const f = path.join (GO_CHAN3_DIR, 'chan3-ws2.json');
-        GO_CHAN3_RESOLVED = new Set (fs.existsSync (f) ? Object.keys (JSON.parse (fs.readFileSync (f, 'utf8'))) : []);
+        // chan3-ws2.json plus per-unit chan3-ws2-<unit>.json files
+        const files = fs.existsSync (GO_CHAN3_DIR) ? fs.readdirSync (GO_CHAN3_DIR).filter ((f) => /^chan3-ws2(?:-[\w-]+)?\.json$/.test (f)).sort () : [];
+        GO_CHAN3_RESOLVED = new Set (files.flatMap ((f) => Object.keys (JSON.parse (fs.readFileSync (path.join (GO_CHAN3_DIR, f), 'utf8')))));
     }
     return GO_CHAN3_RESOLVED;
 }
@@ -1033,6 +1034,8 @@ export function goChan3SelfTest (): string[] {
     ok (w.includes ('\tvar resolved1 map[string]any\n\tswitch resolved1Box := r.Value.(type) {\n\tcase map[string]any:\n\t\tresolved1 = resolved1Box\n\tcase *sync.Map:\n\t\tresolved1 = ccxt.SafeMapToMap(resolved1Box)\n\tcase nil:\n\tdefault:\n\t\tpanic(ccxt.ExchangeError("resolved value is not map[string]any"))\n\t}\n\tch <- ccxt.AsyncResult[map[string]any]{Value: resolved1}\n')
         && w.includes ('\t\tr1 := <-this.WatchMultiple(a)\n\t\tif r1.Err != nil {\n\t\t\tpanic(r1.Err)\n\t\t}\n\t\tvar resolved map[string]any\n') && w.includes ('import "sync"\n') && (w.indexOf ('ResolvedAs') < 0), 'ws2 boundary: ' + w);
     ok (run (w, goChan3Table ()) === w, 'ws2 idempotent');
+    goChan3SetTableForTest (undefined, undefined);
+    ok ([ 'WatchTicker', 'WatchMarkPrice' ].every ((m) => goChan3Resolved ().has (m)), 'ws2 set merges every chan3-ws2*.json');
     goChan3SetTableForTest (undefined, undefined);
     goChan3SetStubsForTest (undefined);
     goChanSetBaseReturnsForTest (undefined);
