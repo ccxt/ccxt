@@ -60,7 +60,7 @@ type IFetchOrderWithClientOrderId interface {
 	FetchOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 type IFetchPositions interface {
-	FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 }
 type IFetchTicker interface {
 	FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker]
@@ -273,7 +273,7 @@ type ICoreExchange interface {
 	SafeCurrency(currencyId any, optionalArgs ...any) map[string]any
 	Parse8601(datetime2 any) *int64
 	Iso8601(ts2 any) *string
-	FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any]
+	FetchPositionAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchTransactionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]

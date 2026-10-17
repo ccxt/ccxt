@@ -175,7 +175,8 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
         'ParseMarginLoan', 'ParseIsolatedBorrowRates', // U15
         'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance', 'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance', // U07
         'ParseADLRank', // U16
-        'ParseDepositAddressSpecial' ] // U11
+        'ParseDepositAddressSpecial', // U11
+        'SafePosition', 'ParsePosition', 'ParseOptionPosition' ] // gochan32-U10
         .flatMap ((name) => [ [ 'this.' + name, 'map[string]any' ], [ 'this.DerivedExchange.' + name, 'map[string]any' ] ])),
     ...Object.fromEntries ([ 'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee', 'ParsePublicDepositWithdrawFees' ].flatMap ((name) => [ [ 'this.' + name, 'map[string]any' ], [ 'this.DerivedExchange.' + name, 'map[string]any' ] ])), // U12
     // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
@@ -185,6 +186,7 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     ...Object.fromEntries ([ 'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])), // U06
     ...Object.fromEntries ([ [ 'ParseLeverageTiers', 'map[string]any' ], [ 'ParseLeverages', 'map[string]any' ], [ 'ParseMarginModes', 'map[string]any' ], [ 'ParseMarketLeverageTiers', '[]any' ], [ 'ParseEmulatedLeverageTiers', '[]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])), // U14
     'this.ApplyEventFetchParams': '[]any',
+    'this.ParsePredictionPositions': '[]any', // U10
     // exchange.go / exchange_string.go
     'this.StringToCharsArray': '[]string',
     // exchange_market_type.go (hand-written)

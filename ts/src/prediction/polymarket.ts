@@ -1728,10 +1728,10 @@ export default class polymarket extends Exchange {
         const positions = this.safeList (response, 'data', []);
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
-        const parsed = this.parsePredictionPositions (positions);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions (positions);
         }
+        const parsed = this.parsePredictionPositions (positions);
         const wantedIds: Dict = {};
         if (outcomes === undefined) {
             throw new ExchangeError (this.id + ' fetchPositions() missing outcomes');
@@ -1763,7 +1763,8 @@ export default class polymarket extends Exchange {
      */
     override async fetchPosition (outcome: string, params: Dict = {}): Promise<PredictionPosition> {
         const positions = await this.fetchPositions ([ outcome ], params);
-        return this.safeDict (positions, 0) as PredictionPosition;
+        const position = this.safeDict (positions, 0);
+        return position as PredictionPosition;
     }
 
     /**

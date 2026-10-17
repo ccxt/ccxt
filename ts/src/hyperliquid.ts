@@ -3875,7 +3875,8 @@ export default class hyperliquid extends Exchange {
      */
     override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
         const positions = await this.fetchPositions ([ symbol ], params);
-        return this.safeDict (positions, 0, {}) as Position;
+        const position = this.safeDict (positions, 0, {});
+        return position as Position;
     }
 
     getDexFromSymbols (methodName: string, symbols: Strings = undefined) {

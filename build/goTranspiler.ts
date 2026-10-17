@@ -3792,7 +3792,8 @@ function goProvenParseMapMethods (): string[] {
         'SafePredictionOrder', 'SafePredictionTicker', 'SafePredictionOrderBook', 'ParsePredictionOrder', 'ParsePredictionTicker', 'ParsePredictionOpenInterest',
         'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting',
         'ParseMarginLoan', // U15
-        'ParseADLRank' ]; // U16
+        'ParseADLRank', // U16
+        'SafePosition', 'ParsePosition', 'ParseOptionPosition' ]; // gochan32-U10
 }
 
 // function-level `return` expressions of a Go body (func literal bodies skipped); undefined when unscannable
@@ -3865,7 +3866,8 @@ function goProvenListMethods (): string[] {
         'ParseConversions', 'ParseLongShortRatioHistory', 'ParseAccounts', // U17
         'ParsePredictionOrders', 'FilterByOutcomeSinceLimit', // U03
         'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories', // U13
-        'ParsePredictionTrades' ]; // U04
+        'ParsePredictionTrades', // U04
+        'ParsePredictionPositions' ]; // U10
 }
 
 // dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays
