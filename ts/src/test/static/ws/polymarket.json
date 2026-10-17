@@ -1,0 +1,1684 @@
+{
+    "exchange": "polymarket",
+    "skipKeys": [],
+    "options": {
+        "proxyCredentials": {
+            "proxy": "0x74844b4c330Fb0E97914a377b4650ac2E5bc8f89",
+            "privateKey": "0x9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+            "secret": "ZmFrZS1wcm94eS1zZWNyZXQtZm9yLXN0YXRpYy10ZXN0cw",
+            "expires": 9999999999999
+        },
+        "watchPositions": {
+            "fetchPositionsSnapshot": false
+        },
+        "watchBalance": {
+            "fetchBalanceSnapshot": false
+        }
+    },
+    "methods": {
+        "watchOrderBook": [
+            {
+                "description": "watch the order book, every frame is a full snapshot",
+                "method": "watchOrderBook",
+                "input": [
+                    "SP500/USD:PUSD"
+                ],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "book::1",
+                        "ts": 1788546819901,
+                        "ets": 1788546819900,
+                        "sq": 35879868127,
+                        "data": {
+                            "a": [
+                                [
+                                    "7715.7",
+                                    "0.31631"
+                                ],
+                                [
+                                    "7716.5",
+                                    "0.71286"
+                                ],
+                                [
+                                    "7716.9",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7717",
+                                    "3.9529"
+                                ],
+                                [
+                                    "7717.1",
+                                    "78.15438"
+                                ],
+                                [
+                                    "7717.3",
+                                    "26.2113"
+                                ],
+                                [
+                                    "7717.4",
+                                    "26.06745"
+                                ],
+                                [
+                                    "7718",
+                                    "0.63731"
+                                ],
+                                [
+                                    "7718.4",
+                                    "19.58655"
+                                ],
+                                [
+                                    "7718.5",
+                                    "65.12865"
+                                ],
+                                [
+                                    "7719.2",
+                                    "0.64687"
+                                ],
+                                [
+                                    "7720.7",
+                                    "1.55863"
+                                ],
+                                [
+                                    "7720.9",
+                                    "28.5549"
+                                ],
+                                [
+                                    "7721",
+                                    "26.2113"
+                                ],
+                                [
+                                    "7721.1",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7721.2",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7722.1",
+                                    "28.63165"
+                                ],
+                                [
+                                    "7723.8",
+                                    "0.00263"
+                                ],
+                                [
+                                    "7724.3",
+                                    "3.7362"
+                                ],
+                                [
+                                    "7724.8",
+                                    "9.3158"
+                                ]
+                            ],
+                            "b": [
+                                [
+                                    "7715.6",
+                                    "7.43477"
+                                ],
+                                [
+                                    "7714.9",
+                                    "16.23901"
+                                ],
+                                [
+                                    "7714.4",
+                                    "78.1488"
+                                ],
+                                [
+                                    "7714",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7713.8",
+                                    "3.9545"
+                                ],
+                                [
+                                    "7713.4",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7713.3",
+                                    "26.06745"
+                                ],
+                                [
+                                    "7713",
+                                    "78.22965"
+                                ],
+                                [
+                                    "7711.9",
+                                    "4.1923"
+                                ],
+                                [
+                                    "7711.8",
+                                    "13.75745"
+                                ],
+                                [
+                                    "7711.4",
+                                    "6.48131"
+                                ],
+                                [
+                                    "7710.6",
+                                    "22.115"
+                                ],
+                                [
+                                    "7710.3",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7710.1",
+                                    "9.3167"
+                                ],
+                                [
+                                    "7709.8",
+                                    "14.73055"
+                                ],
+                                [
+                                    "7709.7",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7709.6",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7709.3",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7706.3",
+                                    "3.9015"
+                                ],
+                                [
+                                    "7703.3",
+                                    "21.739"
+                                ]
+                            ]
+                        }
+                    },
+                    {
+                        "ch": "book::1",
+                        "ts": 1788546820003,
+                        "ets": 1788546820000,
+                        "sq": 35879868526,
+                        "data": {
+                            "a": [
+                                [
+                                    "7715.7",
+                                    "0.31631"
+                                ],
+                                [
+                                    "7716.5",
+                                    "0.71286"
+                                ],
+                                [
+                                    "7716.9",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7717",
+                                    "3.9529"
+                                ],
+                                [
+                                    "7717.1",
+                                    "78.15438"
+                                ],
+                                [
+                                    "7717.3",
+                                    "26.2113"
+                                ],
+                                [
+                                    "7717.4",
+                                    "26.06745"
+                                ],
+                                [
+                                    "7718",
+                                    "0.63731"
+                                ],
+                                [
+                                    "7718.4",
+                                    "19.58655"
+                                ],
+                                [
+                                    "7718.5",
+                                    "65.12865"
+                                ],
+                                [
+                                    "7719.2",
+                                    "0.64687"
+                                ],
+                                [
+                                    "7720.7",
+                                    "1.55863"
+                                ],
+                                [
+                                    "7720.9",
+                                    "28.5549"
+                                ],
+                                [
+                                    "7721",
+                                    "26.2113"
+                                ],
+                                [
+                                    "7721.1",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7721.2",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7722.1",
+                                    "28.63165"
+                                ],
+                                [
+                                    "7723.8",
+                                    "0.00263"
+                                ],
+                                [
+                                    "7724.3",
+                                    "3.7362"
+                                ],
+                                [
+                                    "7724.8",
+                                    "9.3158"
+                                ]
+                            ],
+                            "b": [
+                                [
+                                    "7715.6",
+                                    "7.43477"
+                                ],
+                                [
+                                    "7714.9",
+                                    "16.23901"
+                                ],
+                                [
+                                    "7714.4",
+                                    "78.1488"
+                                ],
+                                [
+                                    "7714",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7713.8",
+                                    "3.9545"
+                                ],
+                                [
+                                    "7713.4",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7713.3",
+                                    "26.06745"
+                                ],
+                                [
+                                    "7713",
+                                    "78.22965"
+                                ],
+                                [
+                                    "7711.9",
+                                    "4.1923"
+                                ],
+                                [
+                                    "7711.8",
+                                    "13.75745"
+                                ],
+                                [
+                                    "7711.4",
+                                    "6.48131"
+                                ],
+                                [
+                                    "7710.6",
+                                    "22.115"
+                                ],
+                                [
+                                    "7710.3",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7710.1",
+                                    "9.3167"
+                                ],
+                                [
+                                    "7709.8",
+                                    "14.73055"
+                                ],
+                                [
+                                    "7709.7",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7709.6",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7709.3",
+                                    "13.10565"
+                                ],
+                                [
+                                    "7706.3",
+                                    "3.9015"
+                                ],
+                                [
+                                    "7703.3",
+                                    "21.739"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "sub",
+                        "chs": [
+                            "book::1"
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            7715.6,
+                            7.43477
+                        ],
+                        [
+                            7714.9,
+                            16.23901
+                        ],
+                        [
+                            7714.4,
+                            78.1488
+                        ],
+                        [
+                            7714,
+                            13.10565
+                        ],
+                        [
+                            7713.8,
+                            3.9545
+                        ],
+                        [
+                            7713.4,
+                            13.10565
+                        ],
+                        [
+                            7713.3,
+                            26.06745
+                        ],
+                        [
+                            7713,
+                            78.22965
+                        ],
+                        [
+                            7711.9,
+                            4.1923
+                        ],
+                        [
+                            7711.8,
+                            13.75745
+                        ],
+                        [
+                            7711.4,
+                            6.48131
+                        ],
+                        [
+                            7710.6,
+                            22.115
+                        ],
+                        [
+                            7710.3,
+                            13.10565
+                        ],
+                        [
+                            7710.1,
+                            9.3167
+                        ],
+                        [
+                            7709.8,
+                            14.73055
+                        ],
+                        [
+                            7709.7,
+                            13.10565
+                        ],
+                        [
+                            7709.6,
+                            13.10565
+                        ],
+                        [
+                            7709.3,
+                            13.10565
+                        ],
+                        [
+                            7706.3,
+                            3.9015
+                        ],
+                        [
+                            7703.3,
+                            21.739
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            7715.7,
+                            0.31631
+                        ],
+                        [
+                            7716.5,
+                            0.71286
+                        ],
+                        [
+                            7716.9,
+                            13.10565
+                        ],
+                        [
+                            7717,
+                            3.9529
+                        ],
+                        [
+                            7717.1,
+                            78.15438
+                        ],
+                        [
+                            7717.3,
+                            26.2113
+                        ],
+                        [
+                            7717.4,
+                            26.06745
+                        ],
+                        [
+                            7718,
+                            0.63731
+                        ],
+                        [
+                            7718.4,
+                            19.58655
+                        ],
+                        [
+                            7718.5,
+                            65.12865
+                        ],
+                        [
+                            7719.2,
+                            0.64687
+                        ],
+                        [
+                            7720.7,
+                            1.55863
+                        ],
+                        [
+                            7720.9,
+                            28.5549
+                        ],
+                        [
+                            7721,
+                            26.2113
+                        ],
+                        [
+                            7721.1,
+                            13.10565
+                        ],
+                        [
+                            7721.2,
+                            13.10565
+                        ],
+                        [
+                            7722.1,
+                            28.63165
+                        ],
+                        [
+                            7723.8,
+                            0.00263
+                        ],
+                        [
+                            7724.3,
+                            3.7362
+                        ],
+                        [
+                            7724.8,
+                            9.3158
+                        ]
+                    ],
+                    "timestamp": 1788546820003,
+                    "datetime": "2026-09-04T18:33:40.003Z",
+                    "nonce": 35879868526,
+                    "symbol": "SP500/USD:PUSD"
+                }
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "watch the ticker",
+                "method": "watchTicker",
+                "input": [
+                    "SP500/USD:PUSD"
+                ],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "tickers::1",
+                        "ts": 1788546819901,
+                        "ets": 1788546819900,
+                        "sq": 35879868127,
+                        "data": {
+                            "iid": 1,
+                            "idx": "7713.6",
+                            "mark": "7715.6",
+                            "last": "7714",
+                            "mid": "7715.6",
+                            "oi": "1101.82729",
+                            "fr": "0.00000625",
+                            "nxf": 1788548400000
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "sub",
+                        "chs": [
+                            "tickers::1"
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "SP500/USD:PUSD",
+                    "timestamp": 1788546819901,
+                    "datetime": "2026-09-04T18:33:39.901Z",
+                    "close": 7714,
+                    "last": 7714,
+                    "markPrice": 7715.6,
+                    "indexPrice": 7713.6,
+                    "info": {
+                        "iid": 1,
+                        "idx": "7713.6",
+                        "mark": "7715.6",
+                        "last": "7714",
+                        "mid": "7715.6",
+                        "oi": "1101.82729",
+                        "fr": "0.00000625",
+                        "nxf": 1788548400000
+                    },
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "high": null,
+                    "low": null,
+                    "open": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "vwap": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "previousClose": null
+                }
+            }
+        ],
+        "watchBidsAsks": [
+            {
+                "description": "watch best bid and ask",
+                "method": "watchBidsAsks",
+                "input": [
+                    [
+                        "SP500/USD:PUSD"
+                    ]
+                ],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "bbo::1",
+                        "ts": 1788546825639,
+                        "ets": 1788546825639,
+                        "sq": 35879900880,
+                        "data": {
+                            "iid": 1,
+                            "bp": "7715.6",
+                            "bq": "6.7879",
+                            "ap": "7715.7",
+                            "aq": "0.31631"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "sub",
+                        "chs": [
+                            "bbo::1"
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "SP500/USD:PUSD": {
+                        "symbol": "SP500/USD:PUSD",
+                        "timestamp": 1788546825639,
+                        "datetime": "2026-09-04T18:33:45.639Z",
+                        "bid": 7715.6,
+                        "bidVolume": 6.7879,
+                        "ask": 7715.7,
+                        "askVolume": 0.31631,
+                        "info": {
+                            "iid": 1,
+                            "bp": "7715.6",
+                            "bq": "6.7879",
+                            "ap": "7715.7",
+                            "aq": "0.31631"
+                        },
+                        "high": null,
+                        "low": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "previousClose": null,
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "watch hourly candles, frames carry the candles touched by fresh trades",
+                "method": "watchOHLCV",
+                "input": [
+                    "SP500/USD:PUSD",
+                    "1h"
+                ],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "klines::1::1h",
+                        "ts": 1788546917425,
+                        "ets": 1788540038482,
+                        "sq": 35880349683,
+                        "data": [
+                            [
+                                1788537600000,
+                                "7724.9",
+                                "7724.9",
+                                "7724.2",
+                                "7724.2",
+                                "0.02872",
+                                5
+                            ]
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "sub",
+                        "chs": [
+                            "klines::1::1h"
+                        ]
+                    }
+                ],
+                "parsedResponse": [
+                    [
+                        1788537600000,
+                        7724.9,
+                        7724.9,
+                        7724.2,
+                        7724.2,
+                        0.02872
+                    ]
+                ]
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "watch public trades, both sides, hand-authored frames following the asyncapi trade schema since no public trade printed during the capture window",
+                "method": "watchTrades",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "trades::6",
+                        "ts": 1788546565800,
+                        "ets": 1788546565789,
+                        "sq": 35879860000,
+                        "data": {
+                            "tid": 3738280849593744,
+                            "iid": 6,
+                            "side": "long",
+                            "p": "79631",
+                            "qty": "0.00126",
+                            "ts": 1788546565789,
+                            "hash": "0x"
+                        }
+                    },
+                    {
+                        "ch": "trades::6",
+                        "ts": 1788546566800,
+                        "ets": 1788546566789,
+                        "sq": 35879860500,
+                        "data": {
+                            "tid": 3738280849593745,
+                            "iid": 6,
+                            "side": "short",
+                            "p": "79630",
+                            "qty": "0.002",
+                            "ts": 1788546566789,
+                            "hash": "0x"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "sub",
+                        "chs": [
+                            "trades::6"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "3738280849593744",
+                            "info": {
+                                "tid": 3738280849593744,
+                                "iid": 6,
+                                "side": "long",
+                                "p": "79631",
+                                "qty": "0.00126",
+                                "ts": 1788546565789,
+                                "hash": "0x"
+                            },
+                            "timestamp": 1788546565789,
+                            "datetime": "2026-09-04T18:29:25.789Z",
+                            "symbol": "BTC/USD:PUSD",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 79631,
+                            "amount": 0.00126,
+                            "cost": 100.33506,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "id": "3738280849593745",
+                            "info": {
+                                "tid": 3738280849593745,
+                                "iid": 6,
+                                "side": "short",
+                                "p": "79630",
+                                "qty": "0.002",
+                                "ts": 1788546566789,
+                                "hash": "0x"
+                            },
+                            "timestamp": 1788546566789,
+                            "datetime": "2026-09-04T18:29:26.789Z",
+                            "symbol": "BTC/USD:PUSD",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 79630,
+                            "amount": 0.002,
+                            "cost": 159.26,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            },
+            {
+                "description": "watch public trades with the array-shaped data field described by the asyncapi spec, hand-authored",
+                "method": "watchTrades",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "trades::6",
+                        "ts": 1788546567800,
+                        "ets": 1788546567789,
+                        "sq": 35879861000,
+                        "data": [
+                            {
+                                "tid": 3738280849593744,
+                                "iid": 6,
+                                "side": "long",
+                                "p": "79631",
+                                "qty": "0.00126",
+                                "ts": 1788546565789,
+                                "hash": "0x"
+                            },
+                            {
+                                "tid": 3738280849593745,
+                                "iid": 6,
+                                "side": "short",
+                                "p": "79630",
+                                "qty": "0.002",
+                                "ts": 1788546566789,
+                                "hash": "0x"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "sub",
+                        "chs": [
+                            "trades::6"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "3738280849593744",
+                            "info": {
+                                "tid": 3738280849593744,
+                                "iid": 6,
+                                "side": "long",
+                                "p": "79631",
+                                "qty": "0.00126",
+                                "ts": 1788546565789,
+                                "hash": "0x"
+                            },
+                            "timestamp": 1788546565789,
+                            "datetime": "2026-09-04T18:29:25.789Z",
+                            "symbol": "BTC/USD:PUSD",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 79631,
+                            "amount": 0.00126,
+                            "cost": 100.33506,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "id": "3738280849593745",
+                            "info": {
+                                "tid": 3738280849593745,
+                                "iid": 6,
+                                "side": "short",
+                                "p": "79630",
+                                "qty": "0.002",
+                                "ts": 1788546566789,
+                                "hash": "0x"
+                            },
+                            "timestamp": 1788546566789,
+                            "datetime": "2026-09-04T18:29:26.789Z",
+                            "symbol": "BTC/USD:PUSD",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 79630,
+                            "amount": 0.002,
+                            "cost": 159.26,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchTickers": [
+            {
+                "description": "watch all tickers, the all-instruments channel fans out one frame per instrument",
+                "method": "watchTickers",
+                "input": [],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "tickers::1",
+                        "ts": 1788546819901,
+                        "ets": 1788546819900,
+                        "sq": 35879868127,
+                        "data": {
+                            "iid": 1,
+                            "idx": "7713.6",
+                            "mark": "7715.6",
+                            "last": "7714",
+                            "mid": "7715.6",
+                            "oi": "1101.82729",
+                            "fr": "0.00000625",
+                            "nxf": 1788548400000
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "sub",
+                        "chs": [
+                            "tickers::all"
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "SP500/USD:PUSD": {
+                        "symbol": "SP500/USD:PUSD",
+                        "timestamp": 1788546819901,
+                        "datetime": "2026-09-04T18:33:39.901Z",
+                        "close": 7714,
+                        "last": 7714,
+                        "markPrice": 7715.6,
+                        "indexPrice": 7713.6,
+                        "info": {
+                            "iid": 1,
+                            "idx": "7713.6",
+                            "mark": "7715.6",
+                            "last": "7714",
+                            "mid": "7715.6",
+                            "oi": "1101.82729",
+                            "fr": "0.00000625",
+                            "nxf": 1788548400000
+                        },
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "high": null,
+                        "low": null,
+                        "open": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "vwap": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "previousClose": null
+                    }
+                }
+            }
+        ],
+        "unWatchOrderBook": [
+            {
+                "description": "unsubscribe the order book, the unsub ack is matched by request id and clears the cached book",
+                "method": "unWatchOrderBook",
+                "input": [
+                    "SP500/USD:PUSD"
+                ],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "unsub",
+                        "chs": [
+                            "book::1"
+                        ]
+                    }
+                ],
+                "parsedResponse": true,
+                "disabledCS": "the csharp base cleanUnsubscription never resolves the unsubscribe future, its final client.resolve is commented out in Exchange.BaseMethods.cs - recheck when the port catches up"
+            }
+        ],
+        "unWatchTicker": [
+            {
+                "description": "unsubscribe the ticker",
+                "method": "unWatchTicker",
+                "input": [
+                    "SP500/USD:PUSD"
+                ],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "unsub",
+                        "chs": [
+                            "tickers::1"
+                        ]
+                    }
+                ],
+                "parsedResponse": true,
+                "disabledCS": "the csharp base cleanUnsubscription never resolves the unsubscribe future, its final client.resolve is commented out in Exchange.BaseMethods.cs - recheck when the port catches up"
+            }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "unsubscribe the trades stream",
+                "method": "unWatchTrades",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "unsub",
+                        "chs": [
+                            "trades::6"
+                        ]
+                    }
+                ],
+                "parsedResponse": true,
+                "disabledCS": "the csharp base cleanUnsubscription never resolves the unsubscribe future, its final client.resolve is commented out in Exchange.BaseMethods.cs - recheck when the port catches up"
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "unsubscribe the candle stream, exercises the per-timeframe cache cleanup branch",
+                "method": "unWatchOHLCV",
+                "input": [
+                    "SP500/USD:PUSD",
+                    "1h"
+                ],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "unsub",
+                        "chs": [
+                            "klines::1::1h"
+                        ]
+                    }
+                ],
+                "parsedResponse": true,
+                "disabledCS": "the csharp base cleanUnsubscription never resolves the unsubscribe future, its final client.resolve is commented out in Exchange.BaseMethods.cs - recheck when the port catches up"
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "watch the orders channel, the frame carries one short-form order object",
+                "method": "watchOrders",
+                "input": [],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": {
+                            "status": "ok"
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "orders",
+                        "ts": 1788546565800,
+                        "ets": 1788546565789,
+                        "sq": 35879860000,
+                        "data": {
+                            "oid": 1234567890,
+                            "iid": 6,
+                            "buy": true,
+                            "p": "79000.0",
+                            "qty": "0.001",
+                            "tif": "gtc",
+                            "po": false,
+                            "ro": false,
+                            "rest": "0.001",
+                            "fill": "0",
+                            "cts": 1788546565789,
+                            "uts": 1788546565789,
+                            "status": "open"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "post",
+                        "op": {
+                            "type": "auth",
+                            "args": {
+                                "proxy": "0x74844b4c330Fb0E97914a377b4650ac2E5bc8f89",
+                                "secret": "ZmFrZS1wcm94eS1zZWNyZXQtZm9yLXN0YXRpYy10ZXN0cw"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "req": "sub",
+                        "chs": [
+                            "orders"
+                        ]
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "oid": 1234567890,
+                            "iid": 6,
+                            "buy": true,
+                            "p": "79000.0",
+                            "qty": "0.001",
+                            "tif": "gtc",
+                            "po": false,
+                            "ro": false,
+                            "rest": "0.001",
+                            "fill": "0",
+                            "cts": 1788546565789,
+                            "uts": 1788546565789,
+                            "status": "open"
+                        },
+                        "id": "1234567890",
+                        "clientOrderId": null,
+                        "timestamp": 1788546565789,
+                        "datetime": "2026-09-04T18:29:25.789Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1788546565789,
+                        "symbol": "BTC/USD:PUSD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 79000,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.001,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "watchMyTrades": [
+            {
+                "description": "watch the fills channel, the data field is an array of short-form fill objects",
+                "method": "watchMyTrades",
+                "input": [],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": {
+                            "status": "ok"
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "fills",
+                        "ts": 1788546571800,
+                        "ets": 1788546571789,
+                        "sq": 35879861000,
+                        "data": [
+                            {
+                                "tid": 3738280849593744,
+                                "oid": 1234567891,
+                                "iid": 6,
+                                "side": "short",
+                                "p": "80100.0",
+                                "qty": "0.002",
+                                "taker": true,
+                                "fee": "0.064",
+                                "fea": "pUSD",
+                                "psz": "0.003",
+                                "pep": "79650.0",
+                                "pnl": "0.9",
+                                "liq": false,
+                                "adl": false,
+                                "ts": 1788546571789
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "post",
+                        "op": {
+                            "type": "auth",
+                            "args": {
+                                "proxy": "0x74844b4c330Fb0E97914a377b4650ac2E5bc8f89",
+                                "secret": "ZmFrZS1wcm94eS1zZWNyZXQtZm9yLXN0YXRpYy10ZXN0cw"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "req": "sub",
+                        "chs": [
+                            "fills"
+                        ]
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "3738280849593744",
+                        "info": {
+                            "tid": 3738280849593744,
+                            "oid": 1234567891,
+                            "iid": 6,
+                            "side": "short",
+                            "p": "80100.0",
+                            "qty": "0.002",
+                            "taker": true,
+                            "fee": "0.064",
+                            "fea": "pUSD",
+                            "psz": "0.003",
+                            "pep": "79650.0",
+                            "pnl": "0.9",
+                            "liq": false,
+                            "adl": false,
+                            "ts": 1788546571789
+                        },
+                        "timestamp": 1788546571789,
+                        "datetime": "2026-09-04T18:29:31.789Z",
+                        "symbol": "BTC/USD:PUSD",
+                        "order": "1234567891",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 80100,
+                        "amount": 0.002,
+                        "cost": 160.2,
+                        "fee": {
+                            "currency": "PUSD",
+                            "cost": 0.064
+                        },
+                        "fees": [
+                            {
+                                "currency": "PUSD",
+                                "cost": 0.064
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "watchPositions": [
+            {
+                "description": "watch the portfolio channel, every frame is a full snapshot with long field names plus the adl index",
+                "method": "watchPositions",
+                "input": [],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": {
+                            "status": "ok"
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "portfolio",
+                        "ts": 1788546565789,
+                        "ets": 1788546565789,
+                        "sq": 35879862000,
+                        "data": {
+                            "positions": [
+                                {
+                                    "instrument_id": 6,
+                                    "symbol": "BTC-USD",
+                                    "size": "0.001",
+                                    "entry_price": "79650.0",
+                                    "leverage": 10,
+                                    "cross": true,
+                                    "initial_margin": "7.97",
+                                    "maintenance_margin": "3.99",
+                                    "position_value": "79.65",
+                                    "liquidation_price": "72000.0",
+                                    "unrealized_pnl": "-0.10",
+                                    "return_on_equity": "-0.0125",
+                                    "cumulative_funding": "0.01",
+                                    "adl_index": 0
+                                }
+                            ],
+                            "margin": {
+                                "total_account_value": "100.00",
+                                "available_order_margin": "90.00",
+                                "total_initial_margin": "10.00",
+                                "total_maintenance_margin": "5.00",
+                                "total_position_value": "79.65"
+                            },
+                            "withdrawable": "90.00",
+                            "in_liquidation": false,
+                            "timestamp": 1788546565789
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "post",
+                        "op": {
+                            "type": "auth",
+                            "args": {
+                                "proxy": "0x74844b4c330Fb0E97914a377b4650ac2E5bc8f89",
+                                "secret": "ZmFrZS1wcm94eS1zZWNyZXQtZm9yLXN0YXRpYy10ZXN0cw"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "req": "sub",
+                        "chs": [
+                            "portfolio"
+                        ]
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "instrument_id": 6,
+                            "symbol": "BTC-USD",
+                            "size": "0.001",
+                            "entry_price": "79650.0",
+                            "leverage": 10,
+                            "cross": true,
+                            "initial_margin": "7.97",
+                            "maintenance_margin": "3.99",
+                            "position_value": "79.65",
+                            "liquidation_price": "72000.0",
+                            "unrealized_pnl": "-0.10",
+                            "return_on_equity": "-0.0125",
+                            "cumulative_funding": "0.01",
+                            "adl_index": 0,
+                            "timestamp": 1788546565789
+                        },
+                        "id": null,
+                        "symbol": "BTC/USD:PUSD",
+                        "timestamp": 1788546565789,
+                        "datetime": "2026-09-04T18:29:25.789Z",
+                        "lastUpdateTimestamp": null,
+                        "initialMargin": 7.97,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": 3.99,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 79650,
+                        "notional": 79.65,
+                        "leverage": 10,
+                        "unrealizedPnl": -0.1,
+                        "realizedPnl": null,
+                        "contracts": 0.001,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": 72000,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "collateral": 7.97,
+                        "marginMode": "cross",
+                        "side": "long",
+                        "percentage": -1.25,
+                        "hedged": false,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
+        "watchBalance": [
+            {
+                "description": "watch the margin summary through the portfolio channel",
+                "method": "watchBalance",
+                "input": [],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": {
+                            "status": "ok"
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "portfolio",
+                        "ts": 1788546565789,
+                        "ets": 1788546565789,
+                        "sq": 35879862000,
+                        "data": {
+                            "positions": [
+                                {
+                                    "instrument_id": 6,
+                                    "symbol": "BTC-USD",
+                                    "size": "0.001",
+                                    "entry_price": "79650.0",
+                                    "leverage": 10,
+                                    "cross": true,
+                                    "initial_margin": "7.97",
+                                    "maintenance_margin": "3.99",
+                                    "position_value": "79.65",
+                                    "liquidation_price": "72000.0",
+                                    "unrealized_pnl": "-0.10",
+                                    "return_on_equity": "-0.0125",
+                                    "cumulative_funding": "0.01",
+                                    "adl_index": 0
+                                }
+                            ],
+                            "margin": {
+                                "total_account_value": "100.00",
+                                "available_order_margin": "90.00",
+                                "total_initial_margin": "10.00",
+                                "total_maintenance_margin": "5.00",
+                                "total_position_value": "79.65"
+                            },
+                            "withdrawable": "90.00",
+                            "in_liquidation": false,
+                            "timestamp": 1788546565789
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "post",
+                        "op": {
+                            "type": "auth",
+                            "args": {
+                                "proxy": "0x74844b4c330Fb0E97914a377b4650ac2E5bc8f89",
+                                "secret": "ZmFrZS1wcm94eS1zZWNyZXQtZm9yLXN0YXRpYy10ZXN0cw"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "req": "sub",
+                        "chs": [
+                            "portfolio"
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "positions": [
+                            {
+                                "instrument_id": 6,
+                                "symbol": "BTC-USD",
+                                "size": "0.001",
+                                "entry_price": "79650.0",
+                                "leverage": 10,
+                                "cross": true,
+                                "initial_margin": "7.97",
+                                "maintenance_margin": "3.99",
+                                "position_value": "79.65",
+                                "liquidation_price": "72000.0",
+                                "unrealized_pnl": "-0.10",
+                                "return_on_equity": "-0.0125",
+                                "cumulative_funding": "0.01",
+                                "adl_index": 0
+                            }
+                        ],
+                        "margin": {
+                            "total_account_value": "100.00",
+                            "available_order_margin": "90.00",
+                            "total_initial_margin": "10.00",
+                            "total_maintenance_margin": "5.00",
+                            "total_position_value": "79.65"
+                        },
+                        "withdrawable": "90.00",
+                        "in_liquidation": false,
+                        "timestamp": 1788546565789
+                    },
+                    "timestamp": 1788546565789,
+                    "datetime": "2026-09-04T18:29:25.789Z",
+                    "PUSD": {
+                        "free": 90,
+                        "used": 10,
+                        "total": 100
+                    },
+                    "free": {
+                        "PUSD": 90
+                    },
+                    "used": {
+                        "PUSD": 10
+                    },
+                    "total": {
+                        "PUSD": 100
+                    }
+                }
+            }
+        ]
+    }
+}
