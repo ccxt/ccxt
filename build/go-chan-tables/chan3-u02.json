@@ -1,0 +1,23 @@
+{
+    "AuthenticateUta": "*string",
+    "BorrowMargin": "map[string]any",
+    "CreateVault": "map[string]any",
+    "DeleteApiKey": "map[string]any",
+    "FetchBorrowRate": "map[string]any",
+    "FetchLongShortRatio": "map[string]any",
+    "FetchMarginMode": "map[string]any",
+    "FetchPositionsForSymbolWs": "[]any",
+    "FetchQuote": "map[string]any",
+    "FetchRawQuestionById": "map[string]any",
+    "FetchSpotTickers": "map[string]any",
+    "FetchTickersWs": "map[string]any",
+    "FetchTradingFee": "map[string]any",
+    "GetMarketsPaginated": "[]any",
+    "Onboarding": "map[string]any",
+    "ReserveRequestWeight": "map[string]any",
+    "SetAgentAbstraction": "map[string]any",
+    "SetMargin": "map[string]any",
+    "SignInWithApiKey": "map[string]any",
+    "SignInWithPrivateKey": "map[string]any",
+    "WatchPositionForSymbols": "[]any"
+}
