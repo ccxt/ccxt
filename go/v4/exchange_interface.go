@@ -24,10 +24,10 @@ type IEditOrder interface {
 	EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 type IEditOrderWithClientOrderId interface {
-	EditOrderWithClientOrderIdAsync(clientOrderId string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[any]
+	EditOrderWithClientOrderIdAsync(clientOrderId string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 type ICancelOrderWithClientOrderId interface {
-	CancelOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan AsyncResult[any]
+	CancelOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 type ICancelOrdersWithClientOrderIds interface {
 	CancelOrdersWithClientOrderIdsAsync(clientOrderIds any, optionalArgs ...any) <-chan EndpointResult[[]any]
@@ -42,7 +42,7 @@ type IFetchOrder interface {
 	FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 type IFetchOrderWithClientOrderId interface {
-	FetchOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan AsyncResult[any]
+	FetchOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 }
 type IFetchPositions interface {
 	FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any]
