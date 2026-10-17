@@ -1259,7 +1259,8 @@ export default class btse extends Exchange {
             throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
         }
         const result = await this.fetchLeverageTiers ([ symbol ], params);
-        return result[symbol];
+        const tiers = this.safeList (result, symbol);
+        return tiers as LeverageTier[];
     }
 
     /**

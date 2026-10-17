@@ -11423,7 +11423,8 @@ export default class kucoin extends Exchange {
         const [ utaOption, paramsUta ] = this.handleOptionBoolAndParams (params, 'fetchMarketLeverageTiers', 'uta', uta);
         if (utaOption) {
             const result = await this.fetchLeverageTiers ([ symbol ], paramsUta);
-            return this.safeList (result, symbol, []);
+            const tiers = this.safeList (result, symbol, []);
+            return tiers;
         }
         const request: Dict = {
             'symbol': market['id'],

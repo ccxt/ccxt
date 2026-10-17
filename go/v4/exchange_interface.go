@@ -233,7 +233,7 @@ type ICoreExchange interface {
 	ParseGreeks(greeks any, optionalArgs ...any) map[string]any
 	FetchTradingLimitsAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
-	FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchOptionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchConvertCurrenciesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
@@ -252,9 +252,9 @@ type ICoreExchange interface {
 	PrecisionFromString(str2 any) int
 	OmitZero(v any) any
 	FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
-	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any]
-	FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
+	FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	SafeCurrency(currencyId any, optionalArgs ...any) map[string]any
 	Parse8601(datetime2 any) *int64
@@ -421,11 +421,11 @@ type IDerivedExchange interface {
 	ParseOption(chain any, optionalArgs ...any) map[string]any
 	ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
 	CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	ParseMarketLeverageTiers(info any, optionalArgs ...any) any
-	FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	ParseMarketLeverageTiers(info any, optionalArgs ...any) []any
+	FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any
-	FetchLeveragesAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchLeveragesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	SafeMarket(optionalArgs ...any) map[string]any
 	Sign(path string, optionalArgs ...any) any
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any]
@@ -439,7 +439,7 @@ type IDerivedExchange interface {
 	FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[any]
 	FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncResult[any]
 	SignEvmTransaction(tx any, privateKey any) any
-	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	ParseDepositAddresses(addresses any, optionalArgs ...any) any
 	FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any
