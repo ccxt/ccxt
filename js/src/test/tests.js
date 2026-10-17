@@ -1867,6 +1867,81 @@ class testMainClass {
         this.assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput);
         return true;
     }
+    assertStaticIsolatedPosition(exchange, entry) {
+        if (!exchange.isDictionary(entry)) {
+            return true;
+        }
+        const marginMode = exchange.safeString(entry, 'marginMode');
+        if (marginMode !== 'isolated') {
+            return true;
+        }
+        const side = exchange.safeString(entry, 'side');
+        const entryPrice = exchange.safeNumber(entry, 'entryPrice');
+        const liquidationPrice = exchange.safeNumber(entry, 'liquidationPrice');
+        const contracts = exchange.safeNumber(entry, 'contracts');
+        const contractSize = exchange.safeNumber(entry, 'contractSize');
+        const maintenanceMargin = exchange.safeNumber(entry, 'maintenanceMargin');
+        const collateral = exchange.safeNumber(entry, 'collateral');
+        const initialMargin = exchange.safeNumber(entry, 'initialMargin');
+        const unrealizedPnl = exchange.safeNumber(entry, 'unrealizedPnl');
+        if ((entryPrice !== undefined) && (liquidationPrice !== undefined) && (entryPrice > 0) && (liquidationPrice > 0)) {
+            if (side === 'long') {
+                this.assertStaticError(liquidationPrice < entryPrice, 'isolated long liquidationPrice should be less than entryPrice', entryPrice, liquidationPrice);
+            }
+            else if (side === 'short') {
+                this.assertStaticError(liquidationPrice > entryPrice, 'isolated short liquidationPrice should be greater than entryPrice', entryPrice, liquidationPrice);
+            }
+        }
+        let entryMargin = undefined;
+        if (collateral !== undefined) {
+            if ((unrealizedPnl !== undefined) && (collateral !== initialMargin)) {
+                entryMargin = collateral - unrealizedPnl;
+            }
+            else {
+                entryMargin = collateral;
+            }
+        }
+        else if (initialMargin !== undefined) {
+            entryMargin = initialMargin;
+        }
+        if ((entryMargin !== undefined) && (entryPrice !== undefined) && (liquidationPrice !== undefined) && (contracts !== undefined) && (contractSize !== undefined) && (maintenanceMargin !== undefined)) {
+            if ((entryMargin > 0) && (entryPrice > 0) && (liquidationPrice > 0) && (contracts > 0) && (contractSize > 0) && (maintenanceMargin > 0)) {
+                const symbol = exchange.safeString(entry, 'symbol');
+                const market = (symbol !== undefined) ? exchange.safeDict(exchange.markets, symbol) : undefined;
+                const isInverse = (market !== undefined) && exchange.safeBool(market, 'inverse', false);
+                let priceDiff = 0;
+                if (isInverse) {
+                    const invEntry = 1 / entryPrice;
+                    const invLiq = 1 / liquidationPrice;
+                    priceDiff = (invEntry > invLiq) ? (invEntry - invLiq) : (invLiq - invEntry);
+                }
+                else {
+                    priceDiff = (entryPrice > liquidationPrice) ? (entryPrice - liquidationPrice) : (liquidationPrice - entryPrice);
+                }
+                const lossFromEntry = priceDiff * contracts * contractSize;
+                const calculatedMm = entryMargin - lossFromEntry;
+                this.assertStaticError(calculatedMm > 0, 'isolated position remaining collateral at liquidationPrice should be greater than 0', maintenanceMargin, calculatedMm);
+                const mmDiff = (calculatedMm > maintenanceMargin) ? (calculatedMm - maintenanceMargin) : (maintenanceMargin - calculatedMm);
+                const maxTolerance = entryMargin * 0.05;
+                this.assertStaticError(mmDiff <= maxTolerance, 'isolated position maintenanceMargin does not match remaining collateral at liquidationPrice', maintenanceMargin, calculatedMm);
+            }
+        }
+        return true;
+    }
+    assertStaticIsolatedPositions(exchange, method, output) {
+        if ((method === 'fetchPosition') || (method === 'fetchPositions') || (method === 'fetchPositionsForSymbol') || (method === 'fetchPositionsRisk')) {
+            if (Array.isArray(output)) {
+                const outputLength = output.length;
+                for (let i = 0; i < outputLength; i++) {
+                    this.assertStaticIsolatedPosition(exchange, output[i]);
+                }
+            }
+            else if (exchange.isDictionary(output)) {
+                this.assertStaticIsolatedPosition(exchange, output);
+            }
+        }
+        return true;
+    }
     assertStaticResponseOutput(exchange, skipKeys, computedResult, storedResult) {
         this.assertNewAndStoredOutput(exchange, skipKeys, computedResult, storedResult, false);
     }
@@ -1956,10 +2031,12 @@ class testMainClass {
             if (!isSync()) {
                 const unifiedResult = await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(data['input']));
                 this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult);
+                this.assertStaticIsolatedPositions(mockedExchange, method, expectedResult);
             }
             else {
                 const unifiedResultSync = callExchangeMethodDynamicallySync(exchange, method, this.sanitizeDataInput(data['input']));
                 this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResultSync, expectedResult);
+                this.assertStaticIsolatedPositions(mockedExchange, method, expectedResult);
             }
         }
         catch (e) {

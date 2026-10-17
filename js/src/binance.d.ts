@@ -1045,6 +1045,7 @@ export default class binance extends Exchange {
         marginRatio: Num;
         liquidationPrice: Num;
         markPrice: undefined;
+        positionMargin: number;
         collateral: number;
         marginMode: string;
         side: Str;

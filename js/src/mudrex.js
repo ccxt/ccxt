@@ -1131,6 +1131,7 @@ export default class mudrex extends Exchange {
             'lastPrice': this.safeNumber(position, 'closed_price'), // exit price for closed positions
             'notional': notional,
             'leverage': this.safeInteger(position, 'leverage'),
+            'positionMargin': this.parseNumber(initialMargin),
             'collateral': this.parseNumber(initialMargin),
             'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': undefined,

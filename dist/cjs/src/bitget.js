@@ -9299,11 +9299,14 @@ class bitget extends bitget$1["default"] {
         const timestamp = this.safeIntegerN(position, ['cTime', 'ctime', 'createdTime']);
         let marginMode = this.safeString(position, 'marginMode');
         let collateral = undefined;
+        let marginString = undefined;
         let initialMargin = undefined;
         const unrealizedPnl = this.safeString2(position, 'unrealizedPL', 'unrealisedPnl');
-        const rawCollateral = this.safeString2(position, 'marginSize', 'positionBalance');
+        const rawCollateral = this.omitZero(this.safeString2(position, 'marginSize', 'positionBalance'));
         if (marginMode === 'isolated') {
-            collateral = Precise["default"].stringAdd(rawCollateral, unrealizedPnl);
+            collateral = (unrealizedPnl !== undefined) ? Precise["default"].stringAdd(rawCollateral, unrealizedPnl) : rawCollateral;
+            initialMargin = rawCollateral;
+            marginString = rawCollateral;
         }
         else if (marginMode === 'crossed') {
             marginMode = 'cross';
@@ -9323,7 +9326,7 @@ class bitget extends bitget$1["default"] {
         const contractSize = this.numberToString(contractSizeNumber);
         const baseAmount = this.safeString2(position, 'total', 'openTotalPos');
         const entryPrice = this.safeStringN(position, ['openPriceAvg', 'openAvgPrice', 'avgPrice']);
-        const maintenanceMarginPercentage = this.safeString(position, 'keepMarginRate');
+        const maintenanceMarginPercentage = this.safeString2(position, 'keepMarginRate', 'mmr');
         const openNotional = Precise["default"].stringMul(entryPrice, baseAmount);
         if (initialMargin === undefined) {
             initialMargin = Precise["default"].stringDiv(openNotional, leverage);
@@ -9335,9 +9338,10 @@ class bitget extends bitget$1["default"] {
         const markPrice = this.safeString(position, 'markPrice');
         const notional = Precise["default"].stringMul(baseAmount, markPrice);
         const initialMarginPercentage = Precise["default"].stringDiv(initialMargin, notional);
-        let liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, 'liquidationPrice')));
-        const calcTakerFeeRate = '0.0006';
-        const calcTakerFeeMult = '0.9994';
+        const rawLiquidationPrice = this.omitZero(this.safeString(position, 'liquidationPrice'));
+        let liquidationPrice = ((rawLiquidationPrice !== undefined) && Precise["default"].stringGt(rawLiquidationPrice, '0')) ? this.parseNumber(rawLiquidationPrice) : undefined;
+        const calcTakerFeeRate = this.safeString(marketResolved, 'taker', '0.0006');
+        const calcTakerFeeMult = Precise["default"].stringSub('1', calcTakerFeeRate);
         if ((liquidationPrice === undefined) && (marginMode === 'isolated') && Precise["default"].stringGt(baseAmount, '0')) {
             let signedMargin = Precise["default"].stringDiv(rawCollateral, baseAmount);
             let signedMmp = maintenanceMarginPercentage;
@@ -9353,7 +9357,10 @@ class bitget extends bitget$1["default"] {
             else {
                 numerator = Precise["default"].stringMul(numerator, calcTakerFeeMult);
             }
-            liquidationPrice = this.parseNumber(Precise["default"].stringDiv(numerator, mmrMinusOne));
+            const derivedLiq = Precise["default"].stringDiv(numerator, mmrMinusOne);
+            if ((derivedLiq !== undefined) && Precise["default"].stringGt(derivedLiq, '0')) {
+                liquidationPrice = this.parseNumber(derivedLiq);
+            }
         }
         const feeToClose = Precise["default"].stringMul(notional, calcTakerFeeRate);
         const maintenanceMargin = Precise["default"].stringAdd(Precise["default"].stringMul(maintenanceMarginPercentage, notional), feeToClose);
@@ -9380,11 +9387,12 @@ class bitget extends bitget$1["default"] {
             'lastUpdateTimestamp': this.safeInteger2(position, 'utime', 'updatedTime'),
             'maintenanceMargin': this.parseNumber(maintenanceMargin),
             'maintenanceMarginPercentage': this.parseNumber(maintenanceMarginPercentage),
+            'positionMargin': this.parseNumber(marginString),
             'collateral': this.parseNumber(collateral),
             'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
             'leverage': this.parseNumber(leverage),
-            'marginRatio': this.safeNumber2(position, 'marginRatio', 'mmr'),
+            'marginRatio': this.safeNumber(position, 'marginRatio'),
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });

@@ -1850,10 +1850,10 @@ export default class delta extends Exchange {
         let side = undefined;
         if (sizeString !== undefined) {
             if (Precise.stringGt(sizeString, '0')) {
-                side = 'buy';
+                side = 'long';
             }
             else if (Precise.stringLt(sizeString, '0')) {
-                side = 'sell';
+                side = 'short';
             }
         }
         return this.safePosition({
@@ -1861,7 +1861,7 @@ export default class delta extends Exchange {
             'id': undefined,
             'symbol': symbol,
             'notional': undefined,
-            'marginMode': undefined,
+            'marginMode': this.safeString(position, 'margin_mode'),
             'liquidationPrice': this.safeNumber(position, 'liquidation_price'),
             'entryPrice': this.safeNumber(position, 'entry_price'),
             'unrealizedPnl': undefined, // todo - realized_pnl ?
@@ -1875,6 +1875,7 @@ export default class delta extends Exchange {
             'datetime': this.iso8601(timestamp),
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
+            'positionMargin': this.safeNumber(position, 'margin'),
             'collateral': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,

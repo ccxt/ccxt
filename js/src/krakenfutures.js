@@ -3408,7 +3408,7 @@ export default class krakenfutures extends Exchange {
         }
         const marketId = this.safeString2(position, 'symbol', 'tradeable');
         const marketResolved = this.safeMarket(marketId, market);
-        return {
+        return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'executionUid'),
             'symbol': marketResolved['symbol'],
@@ -3433,7 +3433,7 @@ export default class krakenfutures extends Exchange {
             'marginMode': marginType,
             'side': side,
             'percentage': undefined,
-        };
+        });
     }
     /**
      * @method

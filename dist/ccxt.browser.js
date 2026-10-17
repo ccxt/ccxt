@@ -171181,6 +171181,10 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         }
         const positionSide = this.safeString(position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
+        let isolatedWalletString = undefined;
+        if (marginMode === 'isolated') {
+            isolatedWalletString = this.safeString(position, 'isolatedWallet');
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -171190,6 +171194,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
             'unrealizedPnl': unrealizedPnl,
             'leverage': this.parseNumber(leverageString),
             'liquidationPrice': liquidationPrice,
+            'positionMargin': this.parseNumber(isolatedWalletString),
             'collateral': collateral,
             'notional': notional,
             'markPrice': markPrice,
@@ -171467,6 +171472,10 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         }
         const positionSide = this.safeString(position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
+        let isolatedWalletString = undefined;
+        if (marginMode === 'isolated') {
+            isolatedWalletString = this.safeString(position, 'isolatedWallet');
+        }
         return {
             'info': position,
             'id': undefined,
@@ -171486,6 +171495,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': undefined,
+            'positionMargin': this.parseNumber(isolatedWalletString),
             'collateral': collateral,
             'marginMode': marginMode,
             'side': side,
@@ -179795,17 +179805,6 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     }
     safePosition(position) {
         // simplified version of: /pull/12765/
-        const unrealizedPnlString = this.safeString(position, 'unrealizedPnl');
-        const initialMarginString = this.safeString(position, 'initialMargin');
-        //
-        // PERCENTAGE
-        //
-        const percentage = this.safeValue(position, 'percentage');
-        if (percentage === undefined && unrealizedPnlString !== undefined && initialMarginString !== undefined) {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
-            const percentageString = _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(_Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(unrealizedPnlString, initialMarginString, 4), '100');
-            position['percentage'] = this.parseNumber(percentageString);
-        }
         // if contractSize is undefined get from market
         let contractSize = this.safeNumber(position, 'contractSize');
         const symbol = this.safeString(position, 'symbol');
@@ -179816,6 +179815,294 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         if (contractSize === undefined && market !== undefined) {
             contractSize = this.safeNumber(market, 'contractSize');
             position['contractSize'] = contractSize;
+        }
+        const isInverse = market !== undefined && this.safeBool(market, 'inverse', false);
+        const side = this.safeString(position, 'side');
+        const marginMode = this.safeString(position, 'marginMode');
+        let unrealizedPnlString = this.safeString(position, 'unrealizedPnl');
+        let initialMarginString = this.safeString(position, 'initialMargin');
+        let maintenanceMarginString = this.safeString(position, 'maintenanceMargin');
+        let collateralString = this.safeString(position, 'collateral');
+        let entryPriceString = this.safeString(position, 'entryPrice');
+        let liquidationPriceString = this.safeString(position, 'liquidationPrice');
+        let contractsString = this.safeString(position, 'contracts');
+        let contractSizeString = this.safeString(position, 'contractSize');
+        // margin is the amount held in the position (excludes unrealized pnl), collateral = margin + unrealizedPnl
+        let marginString = this.safeString(position, 'positionMargin');
+        if (marginString === undefined && marginMode === 'isolated' && collateralString !== undefined) {
+            let derivedMargin = collateralString;
+            if (unrealizedPnlString !== undefined && !_Precise_js__rspack_import_12/* .Precise.stringEq */.Y.stringEq(collateralString, initialMarginString)) {
+                derivedMargin = _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(collateralString, unrealizedPnlString);
+            }
+            if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedMargin, '0')) {
+                marginString = derivedMargin;
+                position['positionMargin'] = this.parseNumber(derivedMargin);
+            }
+        }
+        if (marginString === undefined) {
+            position['positionMargin'] = undefined; // keep the unified key present across all exchanges
+        }
+        if (collateralString === undefined && marginString !== undefined && unrealizedPnlString !== undefined) {
+            collateralString = _Precise_js__rspack_import_12/* .Precise.stringAdd */.Y.stringAdd(marginString, unrealizedPnlString);
+            position['collateral'] = this.parseNumber(collateralString);
+        }
+        if (marginMode === 'isolated') {
+            let entryMarginString = marginString;
+            if (entryMarginString === undefined && collateralString === undefined) {
+                entryMarginString = initialMarginString;
+            }
+            const hasEntryMargin = entryMarginString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(entryMarginString, '0');
+            const hasEntryPrice = entryPriceString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(entryPriceString, '0');
+            const hasLiqPrice = liquidationPriceString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(liquidationPriceString, '0');
+            const hasContracts = contractsString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(contractsString, '0');
+            const hasContractSize = contractSizeString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(contractSizeString, '0');
+            const hasMm = maintenanceMarginString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(maintenanceMarginString, '0');
+            let priceDiff = undefined;
+            if (hasEntryPrice && hasLiqPrice) {
+                if (isInverse) {
+                    const invEntry = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv('1', entryPriceString);
+                    const invLiq = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv('1', liquidationPriceString);
+                    if (side === 'long') {
+                        priceDiff = _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(invLiq, invEntry);
+                    } else if (side === 'short') {
+                        priceDiff = _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(invEntry, invLiq);
+                    } else {
+                        priceDiff = _Precise_js__rspack_import_12/* .Precise.stringAbs */.Y.stringAbs(_Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(invEntry, invLiq));
+                    }
+                } else {
+                    if (side === 'long') {
+                        priceDiff = _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(entryPriceString, liquidationPriceString);
+                    } else if (side === 'short') {
+                        priceDiff = _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(liquidationPriceString, entryPriceString);
+                    } else {
+                        priceDiff = _Precise_js__rspack_import_12/* .Precise.stringAbs */.Y.stringAbs(_Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(entryPriceString, liquidationPriceString));
+                    }
+                }
+            }
+            const hasPriceDiff = priceDiff !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(priceDiff, '0');
+            if (maintenanceMarginString === undefined && hasEntryMargin && hasPriceDiff && hasContracts && hasContractSize) {
+                const lossFromEntry = _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(priceDiff, _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(contractsString, contractSizeString));
+                const derivedMm = _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(entryMarginString, lossFromEntry);
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedMm, '0')) {
+                    maintenanceMarginString = derivedMm;
+                    position['maintenanceMargin'] = this.parseNumber(derivedMm);
+                }
+            } else if (collateralString === undefined && initialMarginString === undefined && hasMm && hasPriceDiff && hasContracts && hasContractSize) {
+                const lossFromEntry = _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(priceDiff, _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(contractsString, contractSizeString));
+                const derivedEntryMargin = _Precise_js__rspack_import_12/* .Precise.stringAdd */.Y.stringAdd(maintenanceMarginString, lossFromEntry);
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedEntryMargin, '0')) {
+                    initialMarginString = derivedEntryMargin;
+                    position['initialMargin'] = this.parseNumber(derivedEntryMargin);
+                    marginString = derivedEntryMargin;
+                    position['positionMargin'] = this.parseNumber(derivedEntryMargin);
+                    const derivedCollateral = unrealizedPnlString !== undefined ? _Precise_js__rspack_import_12/* .Precise.stringAdd */.Y.stringAdd(derivedEntryMargin, unrealizedPnlString) : derivedEntryMargin;
+                    if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedCollateral, '0')) {
+                        collateralString = derivedCollateral;
+                        position['collateral'] = this.parseNumber(derivedCollateral);
+                    }
+                }
+            } else if (liquidationPriceString === undefined && hasEntryMargin && hasMm && hasEntryPrice && hasContracts && hasContractSize && (side === 'long' || side === 'short')) {
+                const marginBuffer = _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(entryMarginString, maintenanceMarginString);
+                const totalSize = _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(contractsString, contractSizeString);
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(marginBuffer, '0') && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(totalSize, '0')) {
+                    const bufferPerUnit = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(marginBuffer, totalSize);
+                    let derivedLp = undefined;
+                    if (isInverse) {
+                        const invEntry = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv('1', entryPriceString);
+                        const invLp = side === 'long' ? _Precise_js__rspack_import_12/* .Precise.stringAdd */.Y.stringAdd(invEntry, bufferPerUnit) : _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(invEntry, bufferPerUnit);
+                        if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(invLp, '0')) {
+                            derivedLp = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv('1', invLp);
+                        }
+                    } else {
+                        derivedLp = side === 'long' ? _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(entryPriceString, bufferPerUnit) : _Precise_js__rspack_import_12/* .Precise.stringAdd */.Y.stringAdd(entryPriceString, bufferPerUnit);
+                    }
+                    if (derivedLp !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedLp, '0')) {
+                        liquidationPriceString = derivedLp;
+                        position['liquidationPrice'] = this.parseNumber(derivedLp);
+                    }
+                }
+            } else if (entryPriceString === undefined && hasEntryMargin && hasMm && hasLiqPrice && hasContracts && hasContractSize && (side === 'long' || side === 'short')) {
+                const marginBuffer = _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(entryMarginString, maintenanceMarginString);
+                const totalSize = _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(contractsString, contractSizeString);
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(marginBuffer, '0') && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(totalSize, '0')) {
+                    const bufferPerUnit = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(marginBuffer, totalSize);
+                    let derivedEp = undefined;
+                    if (isInverse) {
+                        const invLp = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv('1', liquidationPriceString);
+                        const invEp = side === 'long' ? _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(invLp, bufferPerUnit) : _Precise_js__rspack_import_12/* .Precise.stringAdd */.Y.stringAdd(invLp, bufferPerUnit);
+                        if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(invEp, '0')) {
+                            derivedEp = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv('1', invEp);
+                        }
+                    } else {
+                        derivedEp = side === 'long' ? _Precise_js__rspack_import_12/* .Precise.stringAdd */.Y.stringAdd(liquidationPriceString, bufferPerUnit) : _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(liquidationPriceString, bufferPerUnit);
+                    }
+                    if (derivedEp !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedEp, '0')) {
+                        entryPriceString = derivedEp;
+                        position['entryPrice'] = this.parseNumber(derivedEp);
+                    }
+                }
+            } else if (contractsString === undefined && hasEntryMargin && hasMm && hasPriceDiff && hasContractSize) {
+                const marginBuffer = _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(entryMarginString, maintenanceMarginString);
+                const denom = _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(priceDiff, contractSizeString);
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(marginBuffer, '0') && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(denom, '0')) {
+                    const derivedContracts = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(marginBuffer, denom);
+                    if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedContracts, '0')) {
+                        contractsString = derivedContracts;
+                        position['contracts'] = this.parseNumber(derivedContracts);
+                    }
+                }
+            } else if (contractSizeString === undefined && hasEntryMargin && hasMm && hasPriceDiff && hasContracts) {
+                const marginBuffer = _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(entryMarginString, maintenanceMarginString);
+                const denom = _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(priceDiff, contractsString);
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(marginBuffer, '0') && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(denom, '0')) {
+                    const derivedContractSize = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(marginBuffer, denom);
+                    if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedContractSize, '0')) {
+                        contractSizeString = derivedContractSize;
+                        position['contractSize'] = this.parseNumber(derivedContractSize);
+                    }
+                }
+            }
+        }
+        //
+        // POSITION-LOCAL DERIVATIONS (CROSS & ISOLATED)
+        //
+        const isZeroPosition = contractsString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringEq */.Y.stringEq(contractsString, '0');
+        if (!isZeroPosition) {
+            let notionalString = this.safeString(position, 'notional');
+            let markPriceString = this.safeString(position, 'markPrice');
+            const lastPriceString = this.safeString(position, 'lastPrice');
+            const hasContracts = contractsString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(contractsString, '0');
+            const hasContractSize = contractSizeString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(contractSizeString, '0');
+            const hasMarkPrice = markPriceString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(markPriceString, '0');
+            const hasNotional = notionalString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(notionalString, '0');
+            // 1. notional <-> markPrice / contracts / contractSize
+            if (notionalString === undefined && hasMarkPrice && hasContracts && hasContractSize) {
+                const totalSize = _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(contractsString, contractSizeString);
+                const derivedNotional = isInverse ? _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(totalSize, markPriceString) : _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(totalSize, markPriceString);
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedNotional, '0')) {
+                    notionalString = derivedNotional;
+                    position['notional'] = this.parseNumber(derivedNotional);
+                }
+            } else if (markPriceString === undefined && entryPriceString === undefined && lastPriceString === undefined && hasNotional && hasContracts && hasContractSize) {
+                const totalSize = _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(contractsString, contractSizeString);
+                const derivedMark = isInverse ? _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(totalSize, notionalString) : _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(notionalString, totalSize);
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedMark, '0')) {
+                    markPriceString = derivedMark;
+                    position['markPrice'] = this.parseNumber(derivedMark);
+                }
+            } else if (contractsString === undefined && hasNotional && hasMarkPrice && hasContractSize) {
+                const derivedContracts = isInverse ? _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(_Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(notionalString, markPriceString), contractSizeString) : _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(notionalString, _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(markPriceString, contractSizeString));
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedContracts, '0')) {
+                    contractsString = derivedContracts;
+                    position['contracts'] = this.parseNumber(derivedContracts);
+                }
+            } else if (contractSizeString === undefined && hasNotional && hasMarkPrice && hasContracts) {
+                const derivedContractSize = isInverse ? _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(_Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(notionalString, markPriceString), contractsString) : _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(notionalString, _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(markPriceString, contractsString));
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedContractSize, '0')) {
+                    contractSizeString = derivedContractSize;
+                    position['contractSize'] = this.parseNumber(derivedContractSize);
+                }
+            }
+            // 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
+            if (unrealizedPnlString === undefined && entryPriceString !== undefined && markPriceString !== undefined && contractsString !== undefined && contractSizeString !== undefined) {
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(entryPriceString, '0') && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(markPriceString, '0') && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(contractsString, '0') && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(contractSizeString, '0')) {
+                    const totalSize = _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(contractsString, contractSizeString);
+                    let pnlDiff = undefined;
+                    if (isInverse) {
+                        const invEntry = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv('1', entryPriceString);
+                        const invMark = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv('1', markPriceString);
+                        if (side === 'long') {
+                            pnlDiff = _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(invEntry, invMark);
+                        } else if (side === 'short') {
+                            pnlDiff = _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(invMark, invEntry);
+                        }
+                    } else {
+                        if (side === 'long') {
+                            pnlDiff = _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(markPriceString, entryPriceString);
+                        } else if (side === 'short') {
+                            pnlDiff = _Precise_js__rspack_import_12/* .Precise.stringSub */.Y.stringSub(entryPriceString, markPriceString);
+                        }
+                    }
+                    if (pnlDiff !== undefined) {
+                        const candidateUpnl = _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(pnlDiff, totalSize);
+                        if (_Precise_js__rspack_import_12/* .Precise.stringEq */.Y.stringEq(candidateUpnl, '0') || _Precise_js__rspack_import_12/* .Precise.stringGe */.Y.stringGe(_Precise_js__rspack_import_12/* .Precise.stringAbs */.Y.stringAbs(candidateUpnl), '0.000001')) {
+                            unrealizedPnlString = candidateUpnl;
+                            position['unrealizedPnl'] = this.parseNumber(unrealizedPnlString);
+                        }
+                    }
+                }
+            }
+            // 3. initialMargin <-> initialMarginPercentage <-> leverage / notional
+            const hasValidNotional = notionalString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(notionalString, '0');
+            const hasNegativeCollateral = collateralString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringLt */.Y.stringLt(collateralString, '0');
+            let initialMarginPercentageString = this.safeString(position, 'initialMarginPercentage');
+            const leverageString = this.safeString(position, 'leverage');
+            const hasLeverage = leverageString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(leverageString, '0');
+            const hasInitialMargin = initialMarginString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(initialMarginString, '0');
+            const hadInitialMargin = initialMarginString !== undefined;
+            if (initialMarginPercentageString === undefined && !hasNegativeCollateral && (hasInitialMargin || !hadInitialMargin)) {
+                if (hasInitialMargin && hasValidNotional) {
+                    initialMarginPercentageString = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(initialMarginString, notionalString);
+                } else if (hasLeverage) {
+                    initialMarginPercentageString = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv('1', leverageString);
+                }
+                if (initialMarginPercentageString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(initialMarginPercentageString, '0')) {
+                    position['initialMarginPercentage'] = this.parseNumber(initialMarginPercentageString);
+                }
+            }
+            const hasImp = initialMarginPercentageString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(initialMarginPercentageString, '0');
+            if (initialMarginString === undefined && !hasNegativeCollateral && hasValidNotional) {
+                if (hasLeverage) {
+                    initialMarginString = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(notionalString, leverageString);
+                } else if (hasImp) {
+                    initialMarginString = _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(notionalString, initialMarginPercentageString);
+                }
+                if (initialMarginString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(initialMarginString, '0')) {
+                    position['initialMargin'] = this.parseNumber(initialMarginString);
+                }
+            }
+            if (leverageString === undefined && !hadInitialMargin && hasImp) {
+                const derivedLeverage = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv('1', initialMarginPercentageString);
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedLeverage, '0') && _Precise_js__rspack_import_12/* .Precise.stringLe */.Y.stringLe(derivedLeverage, '200')) {
+                    position['leverage'] = this.parseNumber(derivedLeverage);
+                }
+            }
+            // 4. maintenanceMargin <-> maintenanceMarginPercentage / notional
+            let maintenanceMarginPercentageString = this.safeString(position, 'maintenanceMarginPercentage');
+            const hasValidMm = maintenanceMarginString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(maintenanceMarginString, '0');
+            const hasValidMmp = maintenanceMarginPercentageString !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(maintenanceMarginPercentageString, '0');
+            if (maintenanceMarginString === undefined && hasValidNotional && hasValidMmp) {
+                const derivedMm = _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(notionalString, maintenanceMarginPercentageString);
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedMm, '0')) {
+                    maintenanceMarginString = derivedMm;
+                    position['maintenanceMargin'] = this.parseNumber(derivedMm);
+                }
+            } else if (maintenanceMarginPercentageString === undefined && hasValidNotional && hasValidMm) {
+                const derivedMmp = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(maintenanceMarginString, notionalString);
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedMmp, '0')) {
+                    maintenanceMarginPercentageString = derivedMmp;
+                    position['maintenanceMarginPercentage'] = this.parseNumber(derivedMmp);
+                }
+            }
+            // 5. marginRatio = maintenanceMargin / collateral
+            const marginRatio = this.safeValue(position, 'marginRatio');
+            if (marginRatio === undefined && maintenanceMarginString !== undefined && collateralString !== undefined) {
+                if (_Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(maintenanceMarginString, '0') && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(collateralString, '0')) {
+                    const derivedMarginRatio = _Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(maintenanceMarginString, collateralString, 4);
+                    if (derivedMarginRatio !== undefined && _Precise_js__rspack_import_12/* .Precise.stringGt */.Y.stringGt(derivedMarginRatio, '0')) {
+                        position['marginRatio'] = this.parseNumber(derivedMarginRatio);
+                    }
+                }
+            }
+        }
+        //
+        // PERCENTAGE
+        //
+        const percentage = this.safeValue(position, 'percentage');
+        if (percentage === undefined && unrealizedPnlString !== undefined && initialMarginString !== undefined) {
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+            const percentageString = _Precise_js__rspack_import_12/* .Precise.stringMul */.Y.stringMul(_Precise_js__rspack_import_12/* .Precise.stringDiv */.Y.stringDiv(unrealizedPnlString, initialMarginString, 4), '100');
+            position['percentage'] = this.parseNumber(percentageString);
         }
         return position;
     }
@@ -211471,6 +211758,10 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         }
         const positionSide = this.safeString(position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
+        let isolatedWalletString = undefined;
+        if (marginMode === 'isolated') {
+            isolatedWalletString = this.safeString(position, 'isolatedWallet');
+        }
         return {
             'info': position,
             'id': undefined,
@@ -211490,6 +211781,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': undefined,
+            'positionMargin': this.parseNumber(isolatedWalletString),
             'collateral': collateral,
             'marginMode': marginMode,
             'side': side,
@@ -211702,6 +211994,10 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         }
         const positionSide = this.safeString(position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
+        let isolatedWalletString = undefined;
+        if (marginMode === 'isolated') {
+            isolatedWalletString = this.safeString(position, 'isolatedWallet');
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -211711,6 +212007,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             'unrealizedPnl': unrealizedPnl,
             'leverage': this.parseNumber(leverageString),
             'liquidationPrice': liquidationPrice,
+            'positionMargin': this.parseNumber(isolatedWalletString),
             'collateral': collateral,
             'notional': notional,
             'markPrice': markPrice,
@@ -219900,6 +220197,15 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         if (isolated !== undefined) {
             marginMode = isolated ? 'isolated' : 'cross';
         }
+        const initialMarginString = this.safeString(position, 'initialMargin');
+        const unrealizedPnlString = this.safeString(position, 'unrealizedProfit');
+        let collateralString = undefined;
+        if (marginMode === 'isolated') {
+            collateralString = this.omitZero(this.safeString(position, 'margin'));
+            if (collateralString === undefined && initialMarginString !== undefined) {
+                collateralString = unrealizedPnlString !== undefined ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
+            }
+        }
         const timestamp = this.safeInteger(position, 'openTime');
         return this.safePosition({
             'info': position,
@@ -219909,7 +220215,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'marginMode': marginMode,
             'liquidationPrice': this.safeNumberOmitZero(position, 'liquidationPrice'),
             'entryPrice': this.safeNumber2(position, 'avgPrice', 'entryPrice'),
-            'unrealizedPnl': this.safeNumber(position, 'unrealizedProfit'),
+            'unrealizedPnl': this.parseNumber(unrealizedPnlString),
             'realizedPnl': this.safeNumber(position, 'realisedProfit'),
             'percentage': undefined,
             'contracts': this.safeNumber(position, 'positionAmt'),
@@ -219923,8 +220229,8 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'lastUpdateTimestamp': this.safeInteger(position, 'updateTime'),
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'collateral': undefined,
-            'initialMargin': this.safeNumber(position, 'initialMargin'),
+            'collateral': this.parseNumber(collateralString),
+            'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber(position, 'leverage'),
             'marginRatio': undefined,
@@ -244719,11 +245025,14 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         ]);
         let marginMode = this.safeString(position, 'marginMode');
         let collateral = undefined;
+        let marginString = undefined;
         let initialMargin = undefined;
         const unrealizedPnl = this.safeString2(position, 'unrealizedPL', 'unrealisedPnl');
-        const rawCollateral = this.safeString2(position, 'marginSize', 'positionBalance');
+        const rawCollateral = this.omitZero(this.safeString2(position, 'marginSize', 'positionBalance'));
         if (marginMode === 'isolated') {
-            collateral = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(rawCollateral, unrealizedPnl);
+            collateral = unrealizedPnl !== undefined ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(rawCollateral, unrealizedPnl) : rawCollateral;
+            initialMargin = rawCollateral;
+            marginString = rawCollateral;
         } else if (marginMode === 'crossed') {
             marginMode = 'cross';
             initialMargin = rawCollateral;
@@ -244745,7 +245054,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             'openAvgPrice',
             'avgPrice'
         ]);
-        const maintenanceMarginPercentage = this.safeString(position, 'keepMarginRate');
+        const maintenanceMarginPercentage = this.safeString2(position, 'keepMarginRate', 'mmr');
         const openNotional = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(entryPrice, baseAmount);
         if (initialMargin === undefined) {
             initialMargin = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(openNotional, leverage);
@@ -244757,9 +245066,10 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         const markPrice = this.safeString(position, 'markPrice');
         const notional = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(baseAmount, markPrice);
         const initialMarginPercentage = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(initialMargin, notional);
-        let liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, 'liquidationPrice')));
-        const calcTakerFeeRate = '0.0006';
-        const calcTakerFeeMult = '0.9994';
+        const rawLiquidationPrice = this.omitZero(this.safeString(position, 'liquidationPrice'));
+        let liquidationPrice = rawLiquidationPrice !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(rawLiquidationPrice, '0') ? this.parseNumber(rawLiquidationPrice) : undefined;
+        const calcTakerFeeRate = this.safeString(marketResolved, 'taker', '0.0006');
+        const calcTakerFeeMult = _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub('1', calcTakerFeeRate);
         if (liquidationPrice === undefined && marginMode === 'isolated' && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(baseAmount, '0')) {
             let signedMargin = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(rawCollateral, baseAmount);
             let signedMmp = maintenanceMarginPercentage;
@@ -244774,7 +245084,10 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             } else {
                 numerator = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(numerator, calcTakerFeeMult);
             }
-            liquidationPrice = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(numerator, mmrMinusOne));
+            const derivedLiq = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(numerator, mmrMinusOne);
+            if (derivedLiq !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(derivedLiq, '0')) {
+                liquidationPrice = this.parseNumber(derivedLiq);
+            }
         }
         const feeToClose = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(notional, calcTakerFeeRate);
         const maintenanceMargin = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(maintenanceMarginPercentage, notional), feeToClose);
@@ -244805,11 +245118,12 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             'lastUpdateTimestamp': this.safeInteger2(position, 'utime', 'updatedTime'),
             'maintenanceMargin': this.parseNumber(maintenanceMargin),
             'maintenanceMarginPercentage': this.parseNumber(maintenanceMarginPercentage),
+            'positionMargin': this.parseNumber(marginString),
             'collateral': this.parseNumber(collateral),
             'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
             'leverage': this.parseNumber(leverage),
-            'marginRatio': this.safeNumber2(position, 'marginRatio', 'mmr'),
+            'marginRatio': this.safeNumber(position, 'marginRatio'),
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined
         });
@@ -274744,6 +275058,8 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         let notionalString = this.safeString(position, 'notionalUsd');
         if (marketResolved['inverse'] === true) {
             notionalString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(contractsAbs, contractSizeString), markPriceString);
+        } else if (notionalString === undefined) {
+            notionalString = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
         const notional = this.parseNumber(notionalString);
         const marginMode = this.safeString(position, 'marginMode');
@@ -274753,12 +275069,18 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const leverageString = this.safeString(position, 'leverage');
         let initialMarginPercentage = undefined;
         let collateralString = undefined;
+        let marginString = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString(position, 'initialMargin');
-            collateralString = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(initialMarginString, unrealizedPnlString);
+            collateralString = unrealizedPnlString !== undefined ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (marginMode === 'isolated') {
             initialMarginPercentage = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv('1', leverageString);
-            collateralString = this.safeString(position, 'margin');
+            const isolatedMarginString = this.omitZero(this.safeString2(position, 'margin', 'initialMargin'));
+            if (isolatedMarginString !== undefined) {
+                initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
+                collateralString = unrealizedPnlString !== undefined ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
+            }
         }
         const maintenanceMarginString = this.safeString(position, 'maintenanceMargin');
         const maintenanceMargin = this.parseNumber(maintenanceMarginString);
@@ -274770,8 +275092,20 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             initialMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(initialMarginPercentageString, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
-        const maintenanceMarginPercentage = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(maintenanceMarginPercentageString, rounder), '1', 4));
-        const liquidationPrice = this.safeNumber(position, 'liquidationPrice');
+        const maintenanceMarginPercentage = maintenanceMarginPercentageString !== undefined ? this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(maintenanceMarginPercentageString, rounder), '1', 4)) : undefined;
+        let liquidationPriceString = this.omitZero(this.safeString(position, 'liquidationPrice'));
+        if (liquidationPriceString === undefined && marginMode === 'isolated' && initialMarginString !== undefined && entryPriceString !== undefined && contractsAbs !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(contractsAbs, '0') && contractSizeString !== undefined && maintenanceMarginPercentage !== undefined) {
+            const takerFeeRate = this.safeString(marketResolved, 'taker', '0.0006');
+            const mmpWithFee = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(this.numberToString(maintenanceMarginPercentage), takerFeeRate);
+            const totalSize = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(contractsAbs, contractSizeString);
+            const marginPerUnit = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(initialMarginString, totalSize);
+            const num = side === 'long' ? _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(entryPriceString, marginPerUnit) : _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(entryPriceString, marginPerUnit);
+            const denom = side === 'long' ? _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub('1', mmpWithFee) : _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd('1', mmpWithFee);
+            if (denom !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(denom, '0')) {
+                liquidationPriceString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(num, denom);
+            }
+        }
+        const liquidationPrice = liquidationPriceString !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(liquidationPriceString, '0') ? this.parseNumber(liquidationPriceString) : undefined;
         const percentageString = this.safeString(position, 'unrealizedPnlRatio');
         const percentage = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(percentageString, '100'));
         const timestamp = this.safeInteger(position, 'updateTime');
@@ -274799,6 +275133,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'positionMargin': this.parseNumber(marginString),
             'collateral': this.parseNumber(collateralString),
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
@@ -294007,7 +294342,15 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         if (lastUpdateTimestamp === undefined) {
             lastUpdateTimestamp = this.safeInteger2(position, 'updatedTime', 'updatedAt');
         }
-        let collateralString = this.safeString(position, 'positionBalance');
+        // positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
+        let positionMarginString = this.omitZero(this.safeString(position, 'positionBalance'));
+        let collateralString = undefined;
+        if (positionMarginString !== undefined) {
+            collateralString = positionMarginString;
+            if (unrealisedPnl !== undefined) {
+                collateralString = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(positionMarginString, unrealisedPnl);
+            }
+        }
         const entryPrice = this.omitZero(this.safeStringN(position, [
             'entryPrice',
             'avgPrice',
@@ -294025,30 +294368,42 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
                 }
                 const difference = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(_base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(price, liquidationPrice));
                 collateralString = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(_base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
+                positionMarginString = undefined; // derived from collateral by safePosition
             } else {
-                const bustPrice = this.safeString(position, 'bustPrice');
+                const bustPrice = this.omitZero(this.safeString(position, 'bustPrice'));
+                const closingFee = this.omitZero(this.safeString(position, 'occClosingFee'));
                 if (marketResolved['linear'] === true) {
-                    // derived from the following formulas
+                    // derived from the following formula:
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     // Maintenance Margin = (Bust price - Liq price) x Contracts
-                    const maintenanceMarginPriceDifference = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(_base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(liquidationPrice, bustPrice));
-                    maintenanceMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(maintenanceMarginPriceDifference, size);
-                    // Initial Margin = Contracts x Entry Price / Leverage
+                    if (maintenanceMarginString === undefined && bustPrice !== undefined && !_base_Precise_js__rspack_import_3/* .Precise.stringEq */.Y.stringEq(bustPrice, liquidationPrice)) {
+                        const maintenanceMarginPriceDifference = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(_base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(liquidationPrice, bustPrice));
+                        maintenanceMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(maintenanceMarginPriceDifference, size);
+                    }
+                    // Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
                     if (entryPrice !== undefined && initialMarginString === undefined) {
                         initialMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(size, entryPrice), leverage);
+                        if (closingFee !== undefined) {
+                            initialMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(initialMarginString, closingFee);
+                        }
                     }
                 } else {
                     // Contracts * (1 / Entry price - 1 / Bust price) = Collateral
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    const difference = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(_base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(bustPrice, liquidationPrice));
-                    const multiply = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(bustPrice, liquidationPrice);
-                    maintenanceMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(size, difference), multiply);
-                    // Initial Margin = Leverage x Contracts / EntryPrice
+                    if (maintenanceMarginString === undefined && bustPrice !== undefined && !_base_Precise_js__rspack_import_3/* .Precise.stringEq */.Y.stringEq(bustPrice, liquidationPrice)) {
+                        const difference = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(_base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(bustPrice, liquidationPrice));
+                        const multiply = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(bustPrice, liquidationPrice);
+                        maintenanceMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(size, difference), multiply);
+                    }
+                    // Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
                     if (entryPrice !== undefined && initialMarginString === undefined) {
                         initialMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(size, _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(entryPrice, leverage));
+                        if (closingFee !== undefined) {
+                            initialMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(initialMarginString, closingFee);
+                        }
                     }
                 }
             }
@@ -294078,6 +294433,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             'markPrice': this.parseNumber(markPrice),
             'lastPrice': this.safeNumber(position, 'avgExitPrice'),
             'collateral': this.parseNumber(collateralString),
+            'positionMargin': this.parseNumber(positionMarginString),
             'marginMode': undefined,
             'side': side,
             'percentage': undefined,
@@ -299479,6 +299835,11 @@ class bydfi extends _abstract_bydfi_js__rspack_import_0/* ["default"] */.A {
             contracts = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(contracts, contractSize);
         }
         const timestamp = this.safeInteger(position, 'createTime');
+        // raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+        let positionMargin = this.safeString(position, 'positionMargin');
+        if (positionMargin !== undefined && !_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(positionMargin, '0')) {
+            positionMargin = undefined;
+        }
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'id'),
@@ -299487,6 +299848,7 @@ class bydfi extends _abstract_bydfi_js__rspack_import_0/* ["default"] */.A {
             'markPrice': this.parseNumber(this.safeString(position, 'markPrice')),
             'lastPrice': this.parseNumber(this.safeString(position, 'avgClosePositionPrice')),
             'notional': this.parseNumber(this.safeString(position, 'closePositionCost')),
+            'positionMargin': this.parseNumber(positionMargin),
             'collateral': undefined,
             'unrealizedPnl': this.parseNumber(this.safeString(position, 'unPnl')),
             'realizedPnl': this.parseNumber(this.safeString(position, 'positionProfits')),
@@ -328903,6 +329265,13 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
         const marketId = this.safeString(position, 'instId');
         const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(position, 'cTime');
+        const marginMode = this.safeString(position, 'mgnMode');
+        const useMargin = this.safeNumber(position, 'useMargin');
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = useMargin;
+        }
         return this.safePosition({
             'symbol': marketResolved['symbol'],
             'id': this.safeString(position, 'posId'),
@@ -328913,17 +329282,18 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
             'side': this.safeString(position, 'posSide'),
             'notional': undefined,
             'leverage': this.parseNumber(this.omitZero(this.safeString(position, 'lever'))),
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.safeNumber(position, 'unrealizedProfit'),
             'realizedPnl': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
             'entryPrice': this.safeNumber(position, 'avgPx'),
             'markPrice': undefined,
             'liquidationPrice': this.safeNumber(position, 'liqPx'),
-            'marginMode': this.safeString(position, 'mgnMode'),
+            'marginMode': marginMode,
             'hedged': true,
-            'maintenanceMargin': this.safeNumber(position, 'useMargin'),
+            'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'initialMargin': undefined,
+            'initialMargin': useMargin,
             'initialMarginPercentage': undefined,
             'marginRatio': undefined,
             'lastUpdateTimestamp': this.safeInteger(position, 'uTime'),
@@ -331403,9 +331773,9 @@ class delta extends _abstract_delta_js__rspack_import_0/* ["default"] */.A {
         let side = undefined;
         if (sizeString !== undefined) {
             if (_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(sizeString, '0')) {
-                side = 'buy';
+                side = 'long';
             } else if (_base_Precise_js__rspack_import_3/* .Precise.stringLt */.Y.stringLt(sizeString, '0')) {
-                side = 'sell';
+                side = 'short';
             }
         }
         return this.safePosition({
@@ -331413,7 +331783,7 @@ class delta extends _abstract_delta_js__rspack_import_0/* ["default"] */.A {
             'id': undefined,
             'symbol': symbol,
             'notional': undefined,
-            'marginMode': undefined,
+            'marginMode': this.safeString(position, 'margin_mode'),
             'liquidationPrice': this.safeNumber(position, 'liquidation_price'),
             'entryPrice': this.safeNumber(position, 'entry_price'),
             'unrealizedPnl': undefined,
@@ -331427,6 +331797,7 @@ class delta extends _abstract_delta_js__rspack_import_0/* ["default"] */.A {
             'datetime': this.iso8601(timestamp),
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
+            'positionMargin': this.safeNumber(position, 'margin'),
             'collateral': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
@@ -341391,6 +341762,8 @@ class derive extends _abstract_derive_js__rspack_import_0/* ["default"] */.A {
         const markPrice = this.safeString(position, 'mark_price');
         const timestamp = this.safeInteger(position, 'creation_timestamp');
         const unrealisedPnl = this.safeString(position, 'unrealized_pnl');
+        const initialMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(this.safeString(position, 'initial_margin'));
+        const maintenanceMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(this.safeString(position, 'maintenance_margin'));
         size = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(size);
         const notional = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(size, markPrice);
         return this.safePosition({
@@ -341400,11 +341773,11 @@ class derive extends _abstract_derive_js__rspack_import_0/* ["default"] */.A {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': undefined,
-            'initialMargin': this.safeNumber(position, 'initial_margin'),
-            'initialMarginPercentage': undefined,
-            'maintenanceMargin': this.safeNumber(position, 'maintenance_margin'),
-            'maintenanceMarginPercentage': undefined,
-            'entryPrice': undefined,
+            'initialMargin': this.parseNumber(initialMarginString),
+            'initialMarginPercentage': this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(initialMarginString, notional, 8)),
+            'maintenanceMargin': this.parseNumber(maintenanceMarginString),
+            'maintenanceMarginPercentage': this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(maintenanceMarginString, notional, 8)),
+            'entryPrice': this.safeNumber2(position, 'average_price', 'average_price_excl_fees'),
             'notional': this.parseNumber(notional),
             'leverage': this.safeNumber(position, 'leverage'),
             'unrealizedPnl': this.parseNumber(unrealisedPnl),
@@ -346892,7 +347265,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         if (marginMode !== undefined) {
             marginMode = marginMode === 'crossed' ? 'cross' : 'isolated';
         } else {
-            marginMode = 'crossed';
+            marginMode = 'cross';
         }
         const timestamp = this.safeInteger(position, 'timestamp');
         let side = this.safeString(position, 'side');
@@ -346900,6 +347273,22 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
             side = 'long';
         } else if (side === 'go_short') {
             side = 'short';
+        }
+        const positionMargin = this.safeString(position, 'margin');
+        const unrealizedPnl = this.safeString(position, 'unrealized_pnl');
+        let collateralString = undefined;
+        let marginString = undefined;
+        if (marginMode === 'isolated') {
+            const isolatedMargin = this.safeString(position, 'posi_balance');
+            if (isolatedMargin !== undefined) {
+                marginString = isolatedMargin;
+                collateralString = unrealizedPnl !== undefined ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(isolatedMargin, unrealizedPnl) : isolatedMargin;
+            }
+        }
+        let maintenanceMarginString = this.safeString(position, 'maintain_margin');
+        const forceCloseFee = this.omitZero(this.safeString(position, 'force_close_fee'));
+        if (maintenanceMarginString !== undefined && forceCloseFee !== undefined) {
+            maintenanceMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(maintenanceMarginString, forceCloseFee);
         }
         return this.safePosition({
             'info': position,
@@ -346909,18 +347298,19 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
             'marginMode': marginMode,
             'liquidationPrice': this.safeNumber(position, 'liquidation_price'),
             'entryPrice': this.safeNumber2(position, 'avg_cost', 'entry_price'),
-            'unrealizedPnl': this.safeNumber(position, 'unrealized_pnl'),
-            'contracts': this.safeNumber(position, 'avail_position'),
+            'unrealizedPnl': this.parseNumber(unrealizedPnl),
+            'contracts': this.safeNumber2(position, 'position', 'avail_position'),
             'contractSize': this.safeNumber(marketResolved, 'contractSize'),
-            'markPrice': this.safeNumber(position, 'last'),
+            'markPrice': this.safeNumber2(position, 'mark_price', 'last'),
             'side': side,
             'hedged': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'maintenanceMargin': this.safeNumber(position, 'margin'),
+            'maintenanceMargin': this.parseNumber(maintenanceMarginString),
             'maintenanceMarginPercentage': this.safeNumber(position, 'maint_margin_ratio'),
-            'collateral': undefined,
-            'initialMargin': undefined,
+            'positionMargin': this.parseNumber(marginString),
+            'collateral': this.parseNumber(collateralString),
+            'initialMargin': this.parseNumber(positionMargin),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber2(position, 'leverage', 'leverage_ratio'),
             'marginRatio': this.safeNumber(position, 'margin_ratio'),
@@ -363611,10 +364001,22 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         }
         // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
         const marginBalance = this.safeString(position, 'margin');
-        const initialMarginString = this.omitZero(this.safeString(position, 'initial_margin'));
+        let initialMarginString = this.omitZero(this.safeString(position, 'initial_margin'));
         // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
-        const maintenanceMarginString = this.omitZero(this.safeString(position, 'maintenance_margin'));
+        let maintenanceMarginString = this.omitZero(this.safeString(position, 'maintenance_margin'));
+        const marketInfo = this.safeDict(marketResolved, 'info', {});
+        const takerFeeRate = this.safeString(marketInfo, 'taker_fee_rate', '0.00075');
+        const hasPositiveMarginBalance = marginBalance === undefined || _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(marginBalance, '0');
+        if (initialMarginString === undefined && hasPositiveMarginBalance && notional !== undefined && leverage !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(leverage, '0')) {
+            const closeFee = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(notional, takerFeeRate);
+            initialMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(notional, leverage), closeFee);
+        }
+        const liqPriceString = this.omitZero(this.safeString(position, 'liq_price'));
+        const maintenanceRate = this.omitZero(this.safeString(position, 'maintenance_rate'));
+        if (maintenanceMarginString === undefined && liqPriceString === undefined && hasPositiveMarginBalance && notional !== undefined && maintenanceRate !== undefined) {
+            maintenanceMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(notional, _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(maintenanceRate, takerFeeRate));
+        }
         // the margin field is the position margin balance, which excludes the unrealized pnl,
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -363646,9 +364048,10 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             'contracts': this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(size)),
             'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'marginRatio': undefined,
-            'liquidationPrice': this.safeNumber(position, 'liq_price'),
+            'liquidationPrice': this.parseNumber(liqPriceString),
             'markPrice': this.safeNumber(position, 'mark_price'),
             'lastPrice': undefined,
+            'positionMargin': this.parseNumber(marginBalance),
             'collateral': this.parseNumber(collateral),
             'marginMode': marginMode,
             'side': side,
@@ -371175,12 +371578,18 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
         if (isLong) {
             side = 'long';
         }
+        // isolated_balance is the wallet balance reserved for the isolated position
+        const marginMode = this.safeStringLower(position, 'margin_type');
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.safeNumber(position, 'isolated_balance');
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeSymbol(marketId, market),
             'notional': this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(this.safeString(position, 'notional'))),
-            'marginMode': undefined,
+            'marginMode': marginMode,
             'liquidationPrice': this.safeNumber(position, 'est_liquidation_price'),
             'entryPrice': this.safeNumber(position, 'entry_price'),
             'unrealizedPnl': this.safeNumber(position, 'unrealized_pnl'),
@@ -371194,10 +371603,11 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': this.safeInteger(position, 'lastUpdateTime'),
-            'maintenanceMargin': this.safeNumber(position, 'maintenanceMargin'),
+            'maintenanceMargin': this.safeNumber2(position, 'isolated_mm', 'maintenanceMargin'),
             'maintenanceMarginPercentage': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
-            'initialMargin': this.safeNumber(position, 'initialMargin'),
+            'initialMargin': this.safeNumber2(position, 'isolated_im', 'initialMargin'),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber(position, 'leverage'),
             'marginRatio': undefined,
@@ -400731,6 +401141,12 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             initialMargin = marginUsed;
         }
         const percentage = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(absRawUnrealizedPnl, marginUsed), '100');
+        const positionValueString = this.safeString(entry, 'positionValue');
+        const markPriceString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(positionValueString, size);
+        let marginString = undefined;
+        if (isIsolated) {
+            marginString = initialMargin;
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -400743,9 +401159,10 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             'contracts': this.parseNumber(size),
             'contractSize': undefined,
             'entryPrice': this.safeNumber(entry, 'entryPx'),
-            'markPrice': undefined,
-            'notional': this.safeNumber(entry, 'positionValue'),
+            'markPrice': this.parseNumber(markPriceString),
+            'notional': this.parseNumber(positionValueString),
             'leverage': this.safeNumber(leverage, 'value'),
+            'positionMargin': this.parseNumber(marginString),
             'collateral': this.parseNumber(marginUsed),
             'initialMargin': this.parseNumber(initialMargin),
             'maintenanceMargin': undefined,
@@ -400754,6 +401171,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             'unrealizedPnl': this.parseNumber(rawUnrealizedPnl),
             'liquidationPrice': this.safeNumber(entry, 'liquidationPx'),
             'marginMode': marginMode,
+            'marginRatio': undefined,
             'percentage': this.parseNumber(percentage)
         });
     }
@@ -412417,7 +412835,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         }
         const marketId = this.safeString2(position, 'symbol', 'tradeable');
         const marketResolved = this.safeMarket(marketId, market);
-        return {
+        return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'executionUid'),
             'symbol': marketResolved['symbol'],
@@ -412442,7 +412860,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
             'marginMode': marginType,
             'side': side,
             'percentage': undefined
-        };
+        });
     }
     /**
      * @method
@@ -424583,6 +425001,25 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         if (crossMode !== undefined) {
             marginMode = crossMode === true ? 'cross' : 'isolated';
         }
+        let collateralString = this.safeString(position, 'maintMargin');
+        let marginString = undefined;
+        if (collateralString === undefined && marginMode === 'isolated') {
+            let posMargin = this.safeString(position, 'posMargin');
+            if (posMargin === undefined) {
+                const posComm = this.safeString(position, 'posComm');
+                const posCross = this.safeString(position, 'posCross');
+                if (initialMargin !== undefined && posComm !== undefined) {
+                    posMargin = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(initialMargin, posComm);
+                    if (posCross !== undefined) {
+                        posMargin = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(posMargin, posCross);
+                    }
+                }
+            }
+            if (posMargin !== undefined) {
+                marginString = posMargin;
+                collateralString = unrealisedPnl !== undefined ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(posMargin, unrealisedPnl) : posMargin;
+            }
+        }
         let lastUpdateTimestamp = this.safeInteger(position, 'closeTime');
         if (lastUpdateTimestamp === undefined) {
             if ('closingTime' in position) {
@@ -424625,7 +425062,8 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             'liquidationPrice': this.safeNumber(position, 'liquidationPrice'),
             'markPrice': this.safeNumber(position, 'markPrice'),
             'lastPrice': this.safeNumber(position, 'closePrice'),
-            'collateral': this.safeNumber(position, 'maintMargin'),
+            'positionMargin': this.parseNumber(marginString),
+            'collateral': this.parseNumber(collateralString),
             'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
@@ -433426,6 +433864,14 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
                 leverage = 100 / imf;
             }
         }
+        const contractsString = this.safeString(position, 'position');
+        const positionValueString = this.safeString(position, 'position_value');
+        const markPriceString = _base_Precise_js__rspack_import_3/* ["default"].stringDiv */.A.stringDiv(positionValueString, contractsString);
+        // allocated_margin is the isolated collateral balance (0 for cross)
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.safeNumber(position, 'allocated_margin');
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -433435,13 +433881,14 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
             'isolated': marginMode === 'isolated',
             'hedged': undefined,
             'side': side,
-            'contracts': this.safeNumber(position, 'position'),
+            'contracts': this.parseNumber(contractsString),
             'contractSize': undefined,
             'entryPrice': this.safeNumber(position, 'avg_entry_price'),
-            'markPrice': undefined,
-            'notional': this.safeNumber(position, 'position_value'),
+            'markPrice': this.parseNumber(markPriceString),
+            'notional': this.parseNumber(positionValueString),
             'leverage': leverage,
-            'collateral': this.safeNumber(position, 'allocated_margin'),
+            'positionMargin': positionMargin,
+            'collateral': undefined,
             'initialMargin': undefined,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
@@ -443540,24 +443987,36 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         const symbol = marketResolved['symbol'];
         const contracts = this.safeString(position, 'holdVol');
         const entryPrice = this.safeNumber(position, 'openAvgPrice');
-        const initialMargin = this.safeString(position, 'im');
+        const initialMargin = this.omitZero(this.safeString(position, 'im'));
+        const unrealizedPnl = this.safeString(position, 'unRealizedPnl');
         const rawSide = this.safeString(position, 'positionType');
         const side = rawSide === '1' ? 'long' : 'short';
-        const openType = this.safeString(position, 'margin_mode');
+        const openType = this.safeString2(position, 'openType', 'margin_mode');
         const marginType = openType === '1' ? 'isolated' : 'cross';
+        let collateralString = undefined;
+        let marginString = undefined;
+        if (marginType === 'isolated' && initialMargin !== undefined) {
+            // im is the margin mexc holds in the position; funding settles to the available balance
+            collateralString = initialMargin;
+            marginString = collateralString;
+            if (unrealizedPnl !== undefined) {
+                collateralString = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(collateralString, unrealizedPnl);
+            }
+        }
         const leverage = this.safeNumber(position, 'leverage');
-        const liquidationPrice = this.safeNumber(position, 'liquidatePrice');
+        const liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, 'liquidatePrice')));
         const timestamp = this.safeInteger(position, 'updateTime');
         return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
             'contracts': this.parseNumber(contracts),
-            'contractSize': undefined,
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'entryPrice': entryPrice,
-            'collateral': undefined,
+            'positionMargin': this.parseNumber(marginString),
+            'collateral': this.parseNumber(collateralString),
             'side': side,
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.parseNumber(unrealizedPnl),
             'leverage': this.parseNumber(leverage),
             'percentage': undefined,
             'marginMode': marginType,
@@ -449258,6 +449717,7 @@ class mudrex extends _abstract_mudrex_js__rspack_import_0/* ["default"] */.A {
             'lastPrice': this.safeNumber(position, 'closed_price'),
             'notional': notional,
             'leverage': this.safeInteger(position, 'leverage'),
+            'positionMargin': this.parseNumber(initialMargin),
             'collateral': this.parseNumber(initialMargin),
             'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': undefined,
@@ -463328,12 +463788,18 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const leverageString = this.safeString(position, 'lever');
         let initialMarginPercentage = undefined;
         let collateralString = undefined;
+        let marginString = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString(position, 'imr');
-            collateralString = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(initialMarginString, unrealizedPnlString);
+            collateralString = unrealizedPnlString !== undefined ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (marginMode === 'isolated') {
             initialMarginPercentage = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv('1', leverageString);
-            collateralString = this.safeString(position, 'margin');
+            const isolatedMarginString = this.omitZero(this.safeString(position, 'margin'));
+            if (isolatedMarginString !== undefined) {
+                initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
+                collateralString = unrealizedPnlString !== undefined ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
+            }
         }
         const maintenanceMarginString = this.safeString(position, 'mmr');
         const maintenanceMargin = this.parseNumber(maintenanceMarginString);
@@ -463349,8 +463815,29 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             }
         }
         const rounder = '0.00005'; // round to closest 0.01%
-        const maintenanceMarginPercentage = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(maintenanceMarginPercentageString, rounder), '1', 4));
-        const liquidationPrice = this.safeNumber(position, 'liqPx');
+        const maintenanceMarginPercentage = maintenanceMarginPercentageString !== undefined ? this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(maintenanceMarginPercentageString, rounder), '1', 4)) : undefined;
+        let liquidationPriceString = this.omitZero(this.safeString(position, 'liqPx'));
+        if (liquidationPriceString === undefined && marginMode === 'isolated' && initialMarginString !== undefined && entryPriceString !== undefined && contractsAbs !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(contractsAbs, '0') && contractSizeString !== undefined && maintenanceMarginPercentage !== undefined) {
+            const takerFeeRate = this.safeString(marketResolved, 'taker', '0.0005');
+            const mmpWithFee = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(this.numberToString(maintenanceMarginPercentage), takerFeeRate);
+            const totalSize = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(contractsAbs, contractSizeString);
+            if (marketResolved['inverse'] === true) {
+                const invEntry = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(totalSize, entryPriceString);
+                const denom = side === 'long' ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(invEntry, initialMarginString) : _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(invEntry, initialMarginString);
+                const numFactor = side === 'long' ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd('1', mmpWithFee) : _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub('1', mmpWithFee);
+                if (denom !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(denom, '0')) {
+                    liquidationPriceString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(totalSize, numFactor), denom);
+                }
+            } else {
+                const marginPerUnit = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(initialMarginString, totalSize);
+                const num = side === 'long' ? _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(entryPriceString, marginPerUnit) : _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(entryPriceString, marginPerUnit);
+                const denom = side === 'long' ? _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub('1', mmpWithFee) : _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd('1', mmpWithFee);
+                if (denom !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(denom, '0')) {
+                    liquidationPriceString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(num, denom);
+                }
+            }
+        }
+        const liquidationPrice = liquidationPriceString !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(liquidationPriceString, '0') ? this.parseNumber(liquidationPriceString) : undefined;
         const percentageString = this.safeString(position, 'uplRatio');
         const percentage = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(percentageString, '100'));
         const timestamp = this.safeInteger(position, 'cTime');
@@ -463377,6 +463864,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             'lastUpdateTimestamp': this.safeInteger(position, 'uTime'),
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'positionMargin': this.parseNumber(marginString),
             'collateral': this.parseNumber(collateralString),
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
@@ -473010,8 +473498,12 @@ class pacifica extends _abstract_pacifica_js__rspack_import_0/* ["default"] */.A
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = marketResolved['symbol'];
         const margin = this.safeString(position, 'margin');
-        const marginMode = margin !== undefined && margin !== '0' ? 'isolated' : 'cross';
-        const isIsolated = marginMode === 'isolated';
+        const rawIsolated = this.safeBool(position, 'isolated');
+        let isIsolated = margin !== undefined && margin !== '0';
+        if (rawIsolated !== undefined) {
+            isIsolated = rawIsolated;
+        }
+        const marginMode = isIsolated ? 'isolated' : 'cross';
         let side = this.safeString(position, 'side');
         if (side !== undefined) {
             side = side === 'bid' ? 'long' : 'short';
@@ -473032,13 +473524,13 @@ class pacifica extends _abstract_pacifica_js__rspack_import_0/* ["default"] */.A
             'markPrice': undefined,
             'notional': undefined,
             'leverage': undefined,
-            'collateral': margin,
+            'collateral': this.safeNumber(position, 'margin'),
             'initialMargin': undefined,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': undefined,
-            'liquidationPrice': undefined,
+            'liquidationPrice': this.safeNumber(position, 'liquidation_price'),
             'marginMode': marginMode,
             'percentage': undefined
         });
@@ -488719,9 +489211,13 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         const leverage = this.safeString(position, 'lever');
         const initialMargin = this.safeString(position, 'im');
         const notional = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(leverage, initialMargin);
-        const qty = this.safeString(position, 'qty');
-        const avgPrice = this.safeString(position, 'openAvgPx');
-        const collateral = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(qty, avgPrice);
+        let positionMargin = undefined;
+        let collateral = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.omitZero(this.safeString(position, 'mgn'));
+            const upl = this.safeString(position, 'upl');
+            collateral = positionMargin !== undefined && upl !== undefined ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(positionMargin, upl) : undefined;
+        }
         // todo: some more fields
         return this.safePosition({
             'info': position,
@@ -488744,7 +489240,8 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': this.safeNumber(position, 'mm'),
             'maintenanceMarginPercentage': undefined,
-            'collateral': collateral,
+            'collateral': this.parseNumber(collateral),
+            'positionMargin': this.parseNumber(positionMargin),
             'initialMargin': initialMargin,
             'initialMarginPercentage': undefined,
             'leverage': parseInt(leverage),
@@ -621881,7 +622378,7 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
             'unrealizedPnl': this.safeNumber(position, 'unrealizedPnL'),
             'side': side,
             'contracts': this.parseNumber(quantity),
-            'contractSize': undefined,
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'timestamp': undefined,
             'datetime': undefined,
             'hedged': undefined,
@@ -628740,27 +629237,39 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
         const notional = this.safeString(position, 'openValue');
         const size = this.safeString(position, 'size');
         const entryPrice = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(notional, size);
+        const unrealizePnl = this.safeString(position, 'unrealizePnl');
+        const isolatedMargin = this.omitZero(this.safeString2(position, 'isolatedMargin', 'marginSize'));
+        let collateralString = undefined;
+        if (marginMode === 'isolated' && isolatedMargin !== undefined) {
+            collateralString = unrealizePnl !== undefined ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(isolatedMargin, unrealizePnl) : isolatedMargin;
+        }
+        const initialMarginString = this.omitZero(this.safeString2(position, 'marginSize', 'isolatedMargin'));
+        let marginString = undefined;
+        if (marginMode === 'isolated') {
+            marginString = isolatedMargin;
+        }
         return this.safePosition({
             'symbol': marketResolved['symbol'],
             'id': this.safeString2(position, 'id', 'positionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'contracts': this.parseNumber(size),
-            'contractSize': undefined,
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'side': this.safeStringLower(position, 'side'),
             'notional': this.parseNumber(notional),
             'leverage': this.safeNumber(position, 'leverage'),
-            'unrealizedPnl': this.safeNumber(position, 'unrealizePnl'),
+            'unrealizedPnl': this.parseNumber(unrealizePnl),
             'realizedPnl': undefined,
-            'collateral': undefined,
+            'positionMargin': this.parseNumber(marginString),
+            'collateral': this.parseNumber(collateralString),
             'entryPrice': this.parseNumber(entryPrice),
             'markPrice': undefined,
-            'liquidationPrice': this.safeNumber(position, 'liquidatePrice'),
+            'liquidationPrice': this.parseNumber(this.omitZero(this.safeString(position, 'liquidatePrice'))),
             'marginMode': marginMode,
             'hedged': hedged,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'initialMargin': this.safeNumber(position, 'marginSize'),
+            'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': undefined,
             'marginRatio': undefined,
             'lastUpdateTimestamp': this.safeInteger(position, 'updatedTime'),
@@ -638581,6 +639090,11 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
         size = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(size);
         const notional = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(size, markPrice);
         const positionSide = this.safeString(position, 'positionSide'); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        const marginMode = this.safeStringLower2(position, 'marginMode', 'margin_mode');
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.safeNumber2(position, 'isolatedMarginAmount', 'isolated_margin_amount');
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -638602,8 +639116,9 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
             'liquidationPrice': this.safeNumber2(position, 'estLiqPrice', 'est_liq_price'),
             'markPrice': this.parseNumber(markPrice),
             'lastPrice': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
-            'marginMode': this.safeStringLower2(position, 'marginMode', 'margin_mode'),
+            'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
             'hedged': positionSide !== 'BOTH',
@@ -652229,12 +652744,20 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
         const datetime = this.safeString(position, 'datetime');
         const marketId = this.safeString(position, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        return {
+        const marginMode = this.safeStringLower(position, 'marginMode', 'isolated');
+        const initialMargin = this.safeNumber(position, 'initialMargin');
+        // isolated positions hold exactly the initial margin posted for them
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = initialMargin;
+        }
+        return this.safePosition({
             'info': position,
-            'symbol': marketId,
+            'id': this.safeString(position, 'id'),
+            'symbol': marketResolved['symbol'],
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
-            'initialMargin': this.safeNumber(position, 'initialMargin'),
+            'initialMargin': initialMargin,
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
@@ -652247,11 +652770,12 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'liquidationPrice'),
             'markPrice': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
-            'marginMode': 'isolated',
-            'side': this.safeString(position, 'side'),
+            'marginMode': marginMode,
+            'side': this.safeStringLower(position, 'side'),
             'percentage': undefined
-        };
+        });
     }
     parseLeverage(leverage, market = undefined) {
         const marketId = this.safeString(leverage, 'symbol');

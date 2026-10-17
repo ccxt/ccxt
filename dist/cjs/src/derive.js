@@ -3135,6 +3135,8 @@ class derive extends derive$1["default"] {
         const markPrice = this.safeString(position, 'mark_price');
         const timestamp = this.safeInteger(position, 'creation_timestamp');
         const unrealisedPnl = this.safeString(position, 'unrealized_pnl');
+        const initialMarginString = Precise["default"].stringAbs(this.safeString(position, 'initial_margin'));
+        const maintenanceMarginString = Precise["default"].stringAbs(this.safeString(position, 'maintenance_margin'));
         size = Precise["default"].stringAbs(size);
         const notional = Precise["default"].stringMul(size, markPrice);
         return this.safePosition({
@@ -3144,11 +3146,11 @@ class derive extends derive$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': undefined,
-            'initialMargin': this.safeNumber(position, 'initial_margin'),
-            'initialMarginPercentage': undefined,
-            'maintenanceMargin': this.safeNumber(position, 'maintenance_margin'),
-            'maintenanceMarginPercentage': undefined,
-            'entryPrice': undefined,
+            'initialMargin': this.parseNumber(initialMarginString),
+            'initialMarginPercentage': this.parseNumber(Precise["default"].stringDiv(initialMarginString, notional, 8)),
+            'maintenanceMargin': this.parseNumber(maintenanceMarginString),
+            'maintenanceMarginPercentage': this.parseNumber(Precise["default"].stringDiv(maintenanceMarginString, notional, 8)),
+            'entryPrice': this.safeNumber2(position, 'average_price', 'average_price_excl_fees'),
             'notional': this.parseNumber(notional),
             'leverage': this.safeNumber(position, 'leverage'),
             'unrealizedPnl': this.parseNumber(unrealisedPnl),

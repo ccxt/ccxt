@@ -3117,6 +3117,15 @@ export default class bingx extends Exchange {
         if (isolated !== undefined) {
             marginMode = isolated ? 'isolated' : 'cross';
         }
+        const initialMarginString = this.safeString(position, 'initialMargin');
+        const unrealizedPnlString = this.safeString(position, 'unrealizedProfit');
+        let collateralString = undefined;
+        if (marginMode === 'isolated') {
+            collateralString = this.omitZero(this.safeString(position, 'margin'));
+            if ((collateralString === undefined) && (initialMarginString !== undefined)) {
+                collateralString = (unrealizedPnlString !== undefined) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
+            }
+        }
         const timestamp = this.safeInteger(position, 'openTime');
         return this.safePosition({
             'info': position,
@@ -3126,7 +3135,7 @@ export default class bingx extends Exchange {
             'marginMode': marginMode,
             'liquidationPrice': this.safeNumberOmitZero(position, 'liquidationPrice'),
             'entryPrice': this.safeNumber2(position, 'avgPrice', 'entryPrice'),
-            'unrealizedPnl': this.safeNumber(position, 'unrealizedProfit'),
+            'unrealizedPnl': this.parseNumber(unrealizedPnlString),
             'realizedPnl': this.safeNumber(position, 'realisedProfit'),
             'percentage': undefined,
             'contracts': this.safeNumber(position, 'positionAmt'),
@@ -3140,8 +3149,8 @@ export default class bingx extends Exchange {
             'lastUpdateTimestamp': this.safeInteger(position, 'updateTime'),
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'collateral': undefined,
-            'initialMargin': this.safeNumber(position, 'initialMargin'),
+            'collateral': this.parseNumber(collateralString),
+            'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber(position, 'leverage'),
             'marginRatio': undefined,

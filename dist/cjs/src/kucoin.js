@@ -10954,6 +10954,25 @@ class kucoin extends kucoin$1["default"] {
         if (crossMode !== undefined) {
             marginMode = (crossMode === true) ? 'cross' : 'isolated';
         }
+        let collateralString = this.safeString(position, 'maintMargin');
+        let marginString = undefined;
+        if ((collateralString === undefined) && (marginMode === 'isolated')) {
+            let posMargin = this.safeString(position, 'posMargin');
+            if (posMargin === undefined) {
+                const posComm = this.safeString(position, 'posComm');
+                const posCross = this.safeString(position, 'posCross');
+                if ((initialMargin !== undefined) && (posComm !== undefined)) {
+                    posMargin = Precise["default"].stringAdd(initialMargin, posComm);
+                    if (posCross !== undefined) {
+                        posMargin = Precise["default"].stringAdd(posMargin, posCross);
+                    }
+                }
+            }
+            if (posMargin !== undefined) {
+                marginString = posMargin;
+                collateralString = (unrealisedPnl !== undefined) ? Precise["default"].stringAdd(posMargin, unrealisedPnl) : posMargin;
+            }
+        }
         let lastUpdateTimestamp = this.safeInteger(position, 'closeTime');
         if (lastUpdateTimestamp === undefined) {
             if ('closingTime' in position) {
@@ -10985,7 +11004,8 @@ class kucoin extends kucoin$1["default"] {
             'liquidationPrice': this.safeNumber(position, 'liquidationPrice'),
             'markPrice': this.safeNumber(position, 'markPrice'),
             'lastPrice': this.safeNumber(position, 'closePrice'),
-            'collateral': this.safeNumber(position, 'maintMargin'),
+            'positionMargin': this.parseNumber(marginString),
+            'collateral': this.parseNumber(collateralString),
             'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
