@@ -823,7 +823,7 @@ export default class btse extends Exchange {
         const maxLimit = 300;
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit) as OHLCV[];
         }
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
@@ -876,8 +876,7 @@ export default class btse extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const result = this.parseOHLCVs (data, market, timeframe, since, limit);
-        return result;
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1001,10 +1000,10 @@ export default class btse extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const rates = this.parseFundingRateHistories (data, market, since, limit);
         if (until === undefined) {
-            return rates;
+            return this.parseFundingRateHistories (data, market, since, limit);
         }
+        const rates: FundingRateHistory[] = this.parseFundingRateHistories (data, market, since, limit);
         const result: FundingRateHistory[] = [];
         for (let i = 0; i < rates.length; i++) {
             const rate = rates[i];
@@ -1259,7 +1258,8 @@ export default class btse extends Exchange {
             throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
         }
         const result = await this.fetchLeverageTiers ([ symbol ], params);
-        return result[symbol];
+        const tiers = this.safeList (result, symbol);
+        return tiers as LeverageTier[];
     }
 
     /**
@@ -1611,10 +1611,10 @@ export default class btse extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'data', []);
-        const trades = this.parseTrades (data, market, since, limit);
         if (until === undefined) {
-            return trades;
+            return this.parseTrades (data, market, since, limit);
         }
+        const trades: Trade[] = this.parseTrades (data, market, since, limit);
         const result: Trade[] = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];

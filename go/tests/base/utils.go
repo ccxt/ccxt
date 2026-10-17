@@ -465,6 +465,9 @@ func CallExchangeMethodDynamically(exchange any, methodName2 any, args2 any) <-c
 // unified structs a core may return instead of a map (grows with each struct-typed family)
 var detypedStructs = map[reflect.Type]bool{
 	reflect.TypeOf(ccxt.Ticker{}): true,
+	reflect.TypeOf(ccxt.Order{}):  true,
+	reflect.TypeOf(ccxt.Trade{}):  true,
+	reflect.TypeOf(ccxt.Fee{}):    true,
 }
 
 // DetypeForComparison projects unified Go structs (Ticker, ...) and containers of them onto

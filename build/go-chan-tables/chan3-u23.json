@@ -1,0 +1,8 @@
+{
+    "FetchLongShortRatio": "map[string]any",
+    "FetchBorrowRate": "map[string]any",
+    "BorrowMargin": "map[string]any",
+    "FetchSpotTickers": "map[string]any",
+    "FetchOrderWithClientOrderId": "map[string]any",
+    "FetchUnifiedOrder": "map[string]any"
+}

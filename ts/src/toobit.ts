@@ -1541,7 +1541,7 @@ export default class toobit extends Exchange {
             results.push (ticker);
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
     }
 
     parseBidAskCustom (ticker: Dict): Dict {

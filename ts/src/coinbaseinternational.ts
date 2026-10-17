@@ -1193,12 +1193,11 @@ export default class coinbaseinternational extends Exchange {
         //        }
         //    ]
         //
-        const positions = this.parsePositions (response);
         if (this.isEmpty (symbols)) {
-            return positions;
+            return this.parsePositions (response);
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (positions, 'symbol', symbolsNormalized);
+        return this.parsePositions (response, symbolsNormalized);
     }
 
     /**
@@ -1617,7 +1616,7 @@ export default class coinbaseinternational extends Exchange {
             const quote = this.safeDict (instrument, 'quote', {});
             tickers[symbol] = this.parseTicker (quote, this.safeMarket (marketId));
         }
-        return this.filterByArray (tickers, 'symbol', symbolsNormalized, true);
+        return this.filterByArrayTickers (tickers, 'symbol', symbolsNormalized);
     }
 
     /**

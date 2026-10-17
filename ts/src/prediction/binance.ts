@@ -1292,10 +1292,10 @@ export default class binance extends Exchange {
         // }
         //
         const data = this.safeList (response, 'positions', []);
-        const positions = this.parsePredictionPositions (data);
         if (outcomes === undefined) {
-            return positions;
+            return this.parsePredictionPositions (data);
         }
+        const positions = this.parsePredictionPositions (data);
         const filtered: PredictionPosition[] = [];
         const positionsLength = positions.length;
         for (let i = 0; i < positionsLength; i++) {

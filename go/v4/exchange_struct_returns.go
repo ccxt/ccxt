@@ -60,6 +60,202 @@ func OrderToMap(o Order) map[string]any {
 	return StructToMap(o)
 }
 
+// PositionFromMap builds a Position from a unified position map.
+func PositionFromMap(data any) Position {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Position{}
+	}
+	return NewPosition(m)
+}
+
+// PositionToMap is the map shape every untyped caller expects. The Go port holds the Int
+// timestamps as *float64 (build/typeEmitters/go.ts TYPE_OVERRIDES), so they are handed back
+// as the int64 the parsers produced.
+func PositionToMap(p Position) map[string]any {
+	m := StructToMap(p)
+	for _, k := range []string{"timestamp", "lastUpdateTimestamp"} {
+		if f, isFloat := m[k].(float64); isFloat && f == float64(int64(f)) {
+			m[k] = int64(f)
+		}
+	}
+	return m
+}
+
+// TransactionFromMap builds a Transaction from a unified transaction map (a non-dict `fee` reads as absent).
+func TransactionFromMap(data any) Transaction {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Transaction{}
+	}
+	return NewTransaction(m)
+}
+
+// TransactionToMap is the map shape every untyped caller expects (TxId is keyed `txid`).
+func TransactionToMap(t Transaction) map[string]any {
+	m := StructToMap(t)
+	m["txid"] = m["txId"]
+	delete(m, "txId")
+	return m
+}
+
+// LedgerEntryFromMap builds a LedgerEntry from a unified ledger entry map.
+func LedgerEntryFromMap(data any) LedgerEntry {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return LedgerEntry{}
+	}
+	return NewLedgerEntry(withDictFee(m))
+}
+
+// LedgerEntryToMap is the map shape every untyped caller expects.
+func LedgerEntryToMap(l LedgerEntry) map[string]any {
+	return StructToMap(l)
+}
+
+// DepositAddressFromMap builds a DepositAddress from a unified deposit-address map.
+func DepositAddressFromMap(data any) DepositAddress {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return DepositAddress{}
+	}
+	return NewDepositAddress(m)
+}
+
+// DepositAddressToMap is the map shape every untyped caller expects.
+func DepositAddressToMap(d DepositAddress) map[string]any {
+	return StructToMap(d)
+}
+
+// TransferEntryFromMap builds a TransferEntry from a unified transfer map.
+func TransferEntryFromMap(data any) TransferEntry {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return TransferEntry{}
+	}
+	return NewTransferEntry(m)
+}
+
+// TransferEntryToMap is the map shape every untyped caller expects.
+func TransferEntryToMap(t TransferEntry) map[string]any {
+	return StructToMap(t)
+}
+
+// FundingRateFromMap builds a FundingRate from a unified funding-rate map.
+func FundingRateFromMap(data any) FundingRate {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return FundingRate{}
+	}
+	return NewFundingRate(m)
+}
+
+// FundingRateToMap is the map shape every untyped caller expects.
+func FundingRateToMap(f FundingRate) map[string]any {
+	return StructToMap(f)
+}
+
+// OpenInterestFromMap builds an OpenInterest from a unified open-interest map.
+func OpenInterestFromMap(data any) OpenInterest {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return OpenInterest{}
+	}
+	return NewOpenInterest(m)
+}
+
+// OpenInterestToMap is the map shape every untyped caller expects.
+func OpenInterestToMap(o OpenInterest) map[string]any {
+	return StructToMap(o)
+}
+
+// TradingFeeInterfaceFromMap builds a TradingFeeInterface from a unified trading-fee map; Info is
+// the raw response only (NewTradingFeeInterface keeps the whole map there).
+func TradingFeeInterfaceFromMap(data any) TradingFeeInterface {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return TradingFeeInterface{}
+	}
+	f := NewTradingFeeInterface(m)
+	f.Info = GetInfo(m)
+	return f
+}
+
+// TradingFeeInterfaceToMap is the map shape every untyped caller expects.
+func TradingFeeInterfaceToMap(f TradingFeeInterface) map[string]any {
+	return StructToMap(f)
+}
+
+// LeverageFromMap builds a Leverage from a unified leverage map.
+func LeverageFromMap(data any) Leverage {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Leverage{}
+	}
+	return NewLeverage(m)
+}
+
+// LeverageToMap is the map shape every untyped caller expects.
+func LeverageToMap(l Leverage) map[string]any {
+	return StructToMap(l)
+}
+
+// MarginModeFromMap builds a MarginMode from a unified marginMode map.
+func MarginModeFromMap(data any) MarginMode {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return MarginMode{}
+	}
+	return NewMarginMode(m)
+}
+
+// MarginModeToMap is the map shape every untyped caller expects.
+func MarginModeToMap(m MarginMode) map[string]any {
+	return StructToMap(m)
+}
+
+// GreeksFromMap builds a Greeks from a unified greeks map.
+func GreeksFromMap(data any) Greeks {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Greeks{}
+	}
+	return NewGreeks(m)
+}
+
+// GreeksToMap is the map shape every untyped caller expects.
+func GreeksToMap(g Greeks) map[string]any {
+	return StructToMap(g)
+}
+
+// OptionFromMap builds a Option from a unified option map.
+func OptionFromMap(data any) Option {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Option{}
+	}
+	return NewOption(m)
+}
+
+// OptionToMap is the map shape every untyped caller expects.
+func OptionToMap(o Option) map[string]any {
+	return StructToMap(o)
+}
+
+// ConversionFromMap builds a Conversion from a unified conversion map.
+func ConversionFromMap(data any) Conversion {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Conversion{}
+	}
+	return NewConversion(m)
+}
+
+// ConversionToMap is the map shape every untyped caller expects.
+func ConversionToMap(c Conversion) map[string]any {
+	return StructToMap(c)
+}
+
 func copyMap(m map[string]any) map[string]any {
 	out := make(map[string]any, len(m))
 	for k, v := range m {
@@ -183,4 +379,53 @@ func lowerFirst(s string) string {
 		b[0] += 'a' - 'A'
 	}
 	return string(b)
+}
+
+// NewOHLCVForSymbolsMap converts a watchOHLCVForSymbols result (symbol -> timeframe -> candles,
+// built by createOHLCVObject as nested map[string]any) into the typed wrapper shape.
+func NewOHLCVForSymbolsMap(data any) map[string]map[string][]OHLCV {
+	result := map[string]map[string][]OHLCV{}
+	bySymbol, ok := data.(map[string]any)
+	if !ok {
+		return result
+	}
+	for symbol, frames := range bySymbol {
+		byFrame, ok := frames.(map[string]any)
+		if !ok {
+			continue
+		}
+		typed := map[string][]OHLCV{}
+		for timeframe, candles := range byFrame {
+			if candles != nil {
+				typed[timeframe] = NewOHLCVArray(candles)
+			}
+		}
+		result[symbol] = typed
+	}
+	return result
+}
+
+// Struct channels (build/go-chan3.ts goChan3StructPass): a core typed AsyncResult[T] for a unified
+// struct T sends the zero T where the map core sent nil. Readers that hand the value on untyped use
+// these so "absent" keeps reading as untyped nil.
+
+// StructAbsent reports whether v is the zero T (the absent result of a struct channel).
+func StructAbsent[T any](v T) bool {
+	return reflect.ValueOf(&v).Elem().IsZero()
+}
+
+// StructResultMap is the map shape of a struct channel value: nil for the zero T.
+func StructResultMap[T any](v T, toMap func(T) map[string]any) map[string]any {
+	if StructAbsent(v) {
+		return nil
+	}
+	return toMap(v)
+}
+
+// StructBox is the untyped box of a struct channel value: untyped nil for the zero T.
+func StructBox[T any](v T, toMap func(T) map[string]any) any {
+	if StructAbsent(v) {
+		return nil
+	}
+	return toMap(v)
 }

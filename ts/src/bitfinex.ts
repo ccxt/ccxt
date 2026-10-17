@@ -2168,11 +2168,11 @@ export default class bitfinex extends Exchange {
             'id': [ parseInt (id) ],
         };
         const orders = await this.fetchOpenOrders (symbol, undefined, undefined, this.extend (request, params));
-        const order = this.safeValue (orders, 0);
+        const order = this.safeDict (orders, 0);
         if (order === undefined) {
             throw new OrderNotFound (this.id + ' order ' + id + ' not found');
         }
-        return order;
+        return order as Order;
     }
 
     /**
@@ -2191,11 +2191,11 @@ export default class bitfinex extends Exchange {
             'id': [ parseInt (id) ],
         };
         const orders = await this.fetchClosedOrders (symbol, undefined, undefined, this.extend (request, params));
-        const order = this.safeValue (orders, 0);
+        const order = this.safeDict (orders, 0);
         if (order === undefined) {
             throw new OrderNotFound (this.id + ' order ' + id + ' not found');
         }
-        return order;
+        return order as Order;
     }
 
     /**

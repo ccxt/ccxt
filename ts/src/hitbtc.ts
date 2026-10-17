@@ -1666,7 +1666,8 @@ export default class hitbtc extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('DEPOSIT,WITHDRAW', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('DEPOSIT,WITHDRAW', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     /**
@@ -1681,7 +1682,8 @@ export default class hitbtc extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('DEPOSIT', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('DEPOSIT', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     /**
@@ -1696,7 +1698,8 @@ export default class hitbtc extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('WITHDRAW', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('WITHDRAW', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     /**
@@ -2022,7 +2025,14 @@ export default class hitbtc extends Exchange {
             }
         }
         const parsed = this.parseOrders (response, market, since, limit);
-        return this.filterByArray (parsed, 'status', [ 'closed', 'canceled' ], false) as Order[];
+        const result: Order[] = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const status = this.safeString (parsed[i], 'status');
+            if ((status === 'closed') || (status === 'canceled')) {
+                result.push (parsed[i]);
+            }
+        }
+        return result;
     }
 
     /**
@@ -2931,7 +2941,7 @@ export default class hitbtc extends Exchange {
             const fundingRate = this.parseFundingRate (rawFundingRate, marketInner);
             fundingRates[symbol] = fundingRate;
         }
-        return this.filterByArray (fundingRates, 'symbol', symbolsNormalized);
+        return this.indexBy (this.filterByArray (fundingRates, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
     /**
@@ -3322,7 +3332,7 @@ export default class hitbtc extends Exchange {
             const openInterest = this.safeDict (response, marketId, {});
             results.push (this.parseOpenInterest (openInterest, marketInner));
         }
-        return this.filterByArray (results, 'symbol', symbolsNormalized) as OpenInterests;
+        return this.indexBy (this.filterByArray (results, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
     /**

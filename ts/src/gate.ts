@@ -2462,7 +2462,7 @@ export default class gate extends Exchange {
         const chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork (code, paramsNetworkCode);
         const chainsIndexedById: Dict = chainsIndexedByIdRaw;
         const selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks (code, networkCode, chainsIndexedById, true);
-        return chainsIndexedById[selectedNetworkIdOrCode as string];
+        return this.safeDict (chainsIndexedById, selectedNetworkIdOrCode) as DepositAddress;
     }
 
     override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
@@ -3842,8 +3842,7 @@ export default class gate extends Exchange {
         //          }
         //      ]
         //
-        const response = await this.fetchMyTrades (symbol, since, limit, { 'order_id': id });
-        return response;
+        return await this.fetchMyTrades (symbol, since, limit, { 'order_id': id });
     }
 
     /**

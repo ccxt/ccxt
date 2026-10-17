@@ -1,0 +1,10 @@
+{
+    "ApproveBuilderFee": "map[string]any",
+    "CreateSubAccount": "map[string]any",
+    "ModifyLeverageAndMarginMode": "map[string]any",
+    "RevokeApiKey": "map[string]any",
+    "RevokeBuilderCode": "map[string]any",
+    "SetUserAbstraction": "map[string]any",
+    "TransferIn": "map[string]any",
+    "TransferOut": "map[string]any"
+}

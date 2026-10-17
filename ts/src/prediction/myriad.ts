@@ -583,9 +583,12 @@ export default class myriad extends Exchange {
         const data = this.safeList (response, 'data', []);
         const result: PredictionPosition[] = [];
         for (let i = 0; i < data.length; i++) {
-            result.push (this.parsePredictionPosition (data[i]));
+            const position = this.parsePredictionPosition (data[i]);
+            if ((outcomes === undefined) || this.inArray (position['outcome'], outcomes)) {
+                result.push (position);
+            }
         }
-        return this.filterByArray (result, 'outcome', outcomes, false) as PredictionPosition[];
+        return result;
     }
 
     /**

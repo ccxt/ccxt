@@ -1,0 +1,8 @@
+{
+    "FetchOpenInterests": "map[string]any",
+    "FetchOpenInterestHistory": "[]any",
+    "FetchMyLiquidations": "[]any",
+    "FetchLiquidations": "[]any",
+    "FetchPositionsADLRank": "[]any",
+    "FetchADLRank": "map[string]any"
+}

@@ -6457,7 +6457,7 @@ export default class htx extends Exchange {
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkKeyFromNetworks (currency['code'], networkCode, indexedAddresses, true);
-        return this.safeValue (indexedAddresses, selectedNetworkCode);
+        return this.safeDict (indexedAddresses, selectedNetworkCode) as DepositAddress;
     }
 
     async fetchWithdrawAddresses (code: string, note: Str = undefined, networkCode: Str = undefined, params: Dict = {}): Promise<DepositAddress[]> {
@@ -9450,7 +9450,7 @@ export default class htx extends Exchange {
         //
         const chains: Dict[] = this.safeList (fee, 'chains', []);
         const code = this.safeString (currency, 'code');
-        let result = this.depositWithdrawFee (fee);
+        const result = this.depositWithdrawFee (fee);
         for (let j = 0; j < chains.length; j++) {
             const chainEntry = this.safeDict (chains, j);
             const networkId = this.safeString (chainEntry, 'chain');
@@ -9480,7 +9480,7 @@ export default class htx extends Exchange {
                     },
                 };
             }
-            result = this.assignDefaultDepositWithdrawFees (result, currency);
+            this.assignDefaultDepositWithdrawFees (result, currency);
         }
         return result;
     }

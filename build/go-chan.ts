@@ -11,6 +11,36 @@ const GO_CHAN_TABLE_DIR = path.join (path.dirname (fileURLToPath (import.meta.ur
 export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.Extend': 'map[string]any', 'this.DeepExtend': 'map[string]any', 'this.ParseToInt': 'int64', 'this.Json': 'string',
     'this.IndexBy': 'map[string]any',
+    // retyped by goTranspiler.ts#retypeGoProvenParseMethods (base + every override)
+    'this.ParseCurrencies': 'map[string]any', 'this.DerivedExchange.ParseCurrencies': 'map[string]any', 'this.ParseCurrenciesCustom': 'map[string]any', 'this.ArraysConcat': '[]any',
+    'OrderToMap': 'map[string]any', 'TickerToMap': 'map[string]any', 'TradeToMap': 'map[string]any', 'StructToMap': 'map[string]any',
+    'MapTyped': 'map[string]any', 'MarketTyped': 'map[string]any', 'ListTyped': '[]any',
+    // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
+    'this.ApplyEventFetchParams': '[]any',
+    'this.SafeString': '*string', 'this.SafeString2': '*string', 'this.SafeStringN': '*string',
+    'this.SafeInteger': '*int64', 'this.SafeInteger2': '*int64', 'this.SafeIntegerN': '*int64',
+    'this.SafeFloat': '*float64', 'this.SafeFloat2': '*float64', 'this.SafeFloatN': '*float64',
+    'this.SafeNumber': '*float64', 'this.SafeNumber2': '*float64', 'this.SafeNumberN': '*float64',
+    'this.InsertMissingCandles': '[]any', 'this.DerivedExchange.InsertMissingCandles': '[]any', // gochan32-U05
+    'this.ParseTradingViewOHLCV': '[]any', 'this.DerivedExchange.ParseTradingViewOHLCV': '[]any', // gochan32-U05
+    // venue balance parsers retyped by goTranspiler.ts#retypeGoProvenParseMethods (goProvenMapCollectionMethods)
+    ...Object.fromEntries ([ 'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance',
+        'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance' ]
+        .flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])),
+    'this.SafeBool': '*bool', 'this.SafeBool2': '*bool', 'this.SafeBoolN': '*bool',
+    'this.ParseMarginLoan': 'map[string]any', 'this.DerivedExchange.ParseMarginLoan': 'map[string]any', 'this.ParseIsolatedBorrowRates': 'map[string]any', 'this.DerivedExchange.ParseIsolatedBorrowRates': 'map[string]any', 'this.ParseBorrowRateHistory': '[]any', 'this.DerivedExchange.ParseBorrowRateHistory': '[]any', // U15
+    ...Object.fromEntries ([ 'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])), // U06
+    'this.ParseTransactionsByType': '[]any', // U09: retyped by goProvenListMethods (kraken only)
+    ...Object.fromEntries ([ [ 'ParseLeverageTiers', 'map[string]any' ], [ 'ParseLeverages', 'map[string]any' ], [ 'ParseMarginModes', 'map[string]any' ], [ 'ParseMarketLeverageTiers', '[]any' ], [ 'ParseEmulatedLeverageTiers', '[]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])), // U14
+    ...Object.fromEntries ([ [ 'ParseOpenInterestsHistory', '[]any' ], [ 'ParseLiquidations', '[]any' ], [ 'ParseADLRanks', '[]any' ], [ 'FilterByArrayADLRanks', '[]any' ], [ 'ParseOpenInterests', 'map[string]any' ], [ 'ParseADLRank', 'map[string]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])), // U16
+    ...Object.fromEntries ([ [ 'ParseConversions', '[]any' ], [ 'ParseLongShortRatioHistory', '[]any' ], [ 'ParseAccounts', '[]any' ], [ 'ParseAllGreeks', 'map[string]any' ], [ 'ParseOptionChain', 'map[string]any' ], [ 'ParseAccount', 'map[string]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])), // U17
+    'this.ParsePredictionOrders': '[]any', 'this.FilterByOutcomeSinceLimit': '[]any', // U03
+    ...Object.fromEntries ([ 'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories' ].flatMap ((n) => [ [ 'this.' + n, '[]any' ], [ 'this.DerivedExchange.' + n, '[]any' ] ])), // U13
+    'this.ParsePredictionTrades': '[]any', // U04
+    'this.ParseDepositAddressSpecial': 'map[string]any', 'this.DerivedExchange.ParseDepositAddressSpecial': 'map[string]any', // U11
+    ...Object.fromEntries ([ 'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee', 'ParsePublicDepositWithdrawFees' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])), // U12
+    'this.SafePosition': 'map[string]any', 'this.DerivedExchange.SafePosition': 'map[string]any', 'this.ParsePosition': 'map[string]any', 'this.DerivedExchange.ParsePosition': 'map[string]any', 'this.ParseOptionPosition': 'map[string]any', 'this.DerivedExchange.ParseOptionPosition': 'map[string]any', // gochan32-U10
+    'this.ParsePredictionPositions': '[]any', 'this.DerivedExchange.ParsePredictionPositions': '[]any', // U10
 };
 // the Go element type of a table value (`T?` marks cores that may also send a bare nil)
 export function goChanType (value: string | undefined): string | undefined {

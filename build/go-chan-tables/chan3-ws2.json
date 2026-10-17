@@ -1,5 +1,5 @@
 {
-  "WatchTicker": "map[string]any",
+  "WatchTicker": "Ticker",
   "WatchTickers": "map[string]any",
   "WatchBidsAsks": "map[string]any",
   "WatchBalance": "map[string]any",

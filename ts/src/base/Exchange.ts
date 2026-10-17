@@ -7045,7 +7045,7 @@ export class BaseExchange {
             throw new NotSupported (this.id + ' fetchDepositWithdrawFee() is not supported yet');
         }
         const fees = await this.fetchDepositWithdrawFees ([ code ], params);
-        return this.safeValue (fees, code);
+        return this.safeDict (fees, code) as DepositWithdrawFee;
     }
 
     getSupportedMapping (key: Str, mapping: Dict = {}) {
@@ -7549,12 +7549,10 @@ export class BaseExchange {
     async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.has['fetchDepositAddresses'] !== undefined && this.has['fetchDepositAddresses'] !== false) {
             const depositAddresses = await this.fetchDepositAddresses ([ code ], params);
-            const depositAddress = this.safeValue (depositAddresses, code);
-            if (depositAddress === undefined) {
+            if (this.safeDict (depositAddresses, code) === undefined) {
                 throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
-            } else {
-                return depositAddress;
             }
+            return this.safeDict (depositAddresses, code) as DepositAddress;
         } else if (this.has['fetchDepositAddressesByNetwork'] !== undefined && this.has['fetchDepositAddressesByNetwork'] !== false) {
             const network = this.safeString (params, 'network');
             const paramsOmitted: Dict = this.omit (params, 'network');
@@ -7863,7 +7861,8 @@ export class BaseExchange {
                 throw new BadSymbol (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
             const tiers = await this.fetchLeverageTiers ([ symbol ]);
-            return this.safeValue (tiers, symbol);
+            const marketTiers = this.safeList (tiers, symbol);
+            return marketTiers as LeverageTier[];
         } else {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
@@ -7927,7 +7926,7 @@ export class BaseExchange {
             }
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbolsNormalized);
+        return this.indexBy (this.filterByArray (results, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
     parseTickers (tickers: any, symbols: Strings = undefined, params: Dict = {}): Tickers {
@@ -8242,7 +8241,7 @@ export class BaseExchange {
                 result[parsed['symbol']] = parsed;
             }
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.indexBy (this.filterByArray (result, 'symbol', symbols, false), 'symbol');
     }
 
     parseOpenInterestsHistory (response: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
@@ -8615,7 +8614,7 @@ export class BaseExchange {
          * @method
          * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
          */
-        return this.filterByArray (objects, key, values, indexed) as ADL[];
+        return this.toArray (this.filterByArray (objects, key, values, indexed)) as ADL[];
     }
 
     createOHLCVObject (symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>> {
@@ -9092,7 +9091,7 @@ export class BaseExchange {
             }
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArray (results, 'symbol', symbolsNormalized);
+        return this.indexBy (this.filterByArray (results, 'symbol', symbolsNormalized, false), 'symbol') as AllGreeks;
     }
 
     parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
@@ -9572,8 +9571,7 @@ export default class Exchange extends BaseExchange {
          * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
          */
         if (this.has['fetchPositionsHistory'] !== undefined && this.has['fetchPositionsHistory'] !== false) {
-            const positions = await this.fetchPositionsHistory ([ symbol ], since, limit, params);
-            return positions as Position[];
+            return await this.fetchPositionsHistory ([ symbol ], since, limit, params);
         } else {
             throw new NotSupported (this.id + ' fetchPositionHistory () is not supported yet');
         }
@@ -10220,7 +10218,7 @@ export default class Exchange extends BaseExchange {
         // TODO: TypeScript: change method signature by replacing
         // Promise<string> with Promise<Order['status']>.
         const order = await this.fetchOrder (id, symbol, params);
-        return order['status'];
+        return this.safeString (order, 'status');
     }
 
     async fetchUnifiedOrder (order: any, params: Dict = {}): Promise<Order> {
@@ -10483,7 +10481,7 @@ export default class Exchange extends BaseExchange {
     }
 
     async cancelUnifiedOrder (order: Order, params: Dict = {}): Promise<Order> {
-        return this.cancelOrder (this.safeString (order, 'id') as string, this.safeString (order, 'symbol'), params);
+        return await this.cancelOrder (this.safeString (order, 'id') as string, this.safeString (order, 'symbol'), params);
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
