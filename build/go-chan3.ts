@@ -992,6 +992,12 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
                 if (!rebound && !closure && !nilCmp && !nilable) {
                     continue; // scalar T: x is a native typed local
                 }
+                // x only forwarded by a same-T core send (`ch <- AsyncResult[T]{Value: x}`): keep it typed
+                const uses = rest.match (new RegExp ('(?<![\\w.])' + x + '(?![\\w.])', 'g')) || [];
+                const sends = rest.match (new RegExp ('\\n\\t+ch <- (?:ccxt\\.)?AsyncResult\\[[^\\n]*\\]\\{Value: ' + x + '\\}', 'g')) || [];
+                if (!rebound && !closure && !nilCmp && uses.length && (uses.length === sends.length) && (coreSendAt (at) === type)) {
+                    continue;
+                }
                 if (!rebound && !closure && nilable) {
                     // nilable T handed on through any: BoxAbsent keeps absent == nil (typed-nil trap)
                     edits.push ({ 'start': ls, 'end': end, 'text': short[1] + x + ' := ' + q + 'BoxAbsent(' + name + '.Value)' });

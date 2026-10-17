@@ -3881,7 +3881,8 @@ function goProvenMapCollectionMethods (): string[] {
         'ParseCurrenciesCustom', // U08
         'ParseLeverageTiers', 'ParseLeverages', 'ParseMarginModes', // U14
         'ParseOpenInterests', // U16
-        'ParseAllGreeks', 'ParseOptionChain', 'ParseAccount' ]; // U17
+        'ParseAllGreeks', 'ParseOptionChain', 'ParseAccount', // U17
+        'ParseDepositAddressSpecial' ]; // U11
 }
 
 // `X` is a balance local: declared once as a map literal, and every later write keeps the same map
@@ -3898,8 +3899,7 @@ export function goBalanceLocalIsMap (body: string, name: string): boolean {
     }
     const writes = body.match (new RegExp ('(^|[^\\w.])' + name + '\\s*[-+*/:]?=[^=][^\\n]*', 'gm')) || [];
     const keeps = new RegExp ('^[^\\w.]?' + name + ' = this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)$)');
-    return writes.every ((w) => keeps.test (w,
-        'ParseDepositAddressSpecial' ]; // U11
+    return writes.every ((w) => keeps.test (w));
 }
 
 // one family: `names` retype to `type`; returns proven by a `type` literal, a call of `calls`, a typed/proven local,
