@@ -11,6 +11,13 @@ const GO_CHAN_TABLE_DIR = path.join (path.dirname (fileURLToPath (import.meta.ur
 export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.Extend': 'map[string]any', 'this.DeepExtend': 'map[string]any', 'this.ParseToInt': 'int64', 'this.Json': 'string',
     'this.IndexBy': 'map[string]any',
+    'OrderToMap': 'map[string]any', 'TickerToMap': 'map[string]any', 'TradeToMap': 'map[string]any', 'StructToMap': 'map[string]any',
+    'MapTyped': 'map[string]any', 'MarketTyped': 'map[string]any', 'ListTyped': '[]any',
+    'this.SafeString': '*string', 'this.SafeString2': '*string', 'this.SafeStringN': '*string',
+    'this.SafeInteger': '*int64', 'this.SafeInteger2': '*int64', 'this.SafeIntegerN': '*int64',
+    'this.SafeFloat': '*float64', 'this.SafeFloat2': '*float64', 'this.SafeFloatN': '*float64',
+    'this.SafeNumber': '*float64', 'this.SafeNumber2': '*float64', 'this.SafeNumberN': '*float64',
+    'this.SafeBool': '*bool', 'this.SafeBool2': '*bool', 'this.SafeBoolN': '*bool',
 };
 // the Go element type of a table value (`T?` marks cores that may also send a bare nil)
 export function goChanType (value: string | undefined): string | undefined {
