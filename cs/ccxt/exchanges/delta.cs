@@ -2009,10 +2009,10 @@ public partial class delta : Exchange
         {
             if (Precise.stringGt(sizeString, "0"))
             {
-                side = "buy";
+                side = "long";
             } else if (Precise.stringLt(sizeString, "0"))
             {
-                side = "sell";
+                side = "short";
             }
         }
         return this.safePosition(new Dictionary<string, object>() {
@@ -2020,7 +2020,7 @@ public partial class delta : Exchange
             { "id", null },
             { "symbol", symbol },
             { "notional", null },
-            { "marginMode", null },
+            { "marginMode", this.safeString(position, "margin_mode") },
             { "liquidationPrice", this.safeNumber(position, "liquidation_price") },
             { "entryPrice", this.safeNumber(position, "entry_price") },
             { "unrealizedPnl", null },
@@ -2034,6 +2034,7 @@ public partial class delta : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
+            { "positionMargin", this.safeNumber(position, "margin") },
             { "collateral", null },
             { "initialMargin", null },
             { "initialMarginPercentage", null },

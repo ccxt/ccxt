@@ -2839,12 +2839,19 @@ public partial class grvt : Exchange
         {
             side = "long";
         }
+        // isolated_balance is the wallet balance reserved for the isolated position
+        string? marginMode = this.safeStringLower(position, "margin_type");
+        double? positionMargin = null;
+        if (marginMode == "isolated")
+        {
+            positionMargin = this.safeNumber(position, "isolated_balance");
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", this.safeSymbol(marketId, market) },
             { "notional", this.parseNumber(Precise.stringAbs(this.safeString(position, "notional"))) },
-            { "marginMode", null },
+            { "marginMode", marginMode },
             { "liquidationPrice", this.safeNumber(position, "est_liquidation_price") },
             { "entryPrice", this.safeNumber(position, "entry_price") },
             { "unrealizedPnl", this.safeNumber(position, "unrealized_pnl") },
@@ -2858,10 +2865,11 @@ public partial class grvt : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastUpdateTimestamp", this.safeInteger(position, "lastUpdateTime") },
-            { "maintenanceMargin", this.safeNumber(position, "maintenanceMargin") },
+            { "maintenanceMargin", this.safeNumber2(position, "isolated_mm", "maintenanceMargin") },
             { "maintenanceMarginPercentage", null },
+            { "positionMargin", positionMargin },
             { "collateral", null },
-            { "initialMargin", this.safeNumber(position, "initialMargin") },
+            { "initialMargin", this.safeNumber2(position, "isolated_im", "initialMargin") },
             { "initialMarginPercentage", null },
             { "leverage", this.safeNumber(position, "leverage") },
             { "marginRatio", null },

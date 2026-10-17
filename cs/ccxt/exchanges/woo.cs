@@ -4758,6 +4758,12 @@ public partial class woo : Exchange
         size = Precise.stringAbs(size);
         string? notional = Precise.stringMul(size, markPrice);
         string? positionSide = this.safeString(position, "positionSide"); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        string? marginMode = this.safeStringLower2(position, "marginMode", "margin_mode");
+        double? positionMargin = null;
+        if (marginMode == "isolated")
+        {
+            positionMargin = this.safeNumber2(position, "isolatedMarginAmount", "isolated_margin_amount");
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -4779,8 +4785,9 @@ public partial class woo : Exchange
             { "liquidationPrice", this.safeNumber2(position, "estLiqPrice", "est_liq_price") },
             { "markPrice", this.parseNumber(markPrice) },
             { "lastPrice", null },
+            { "positionMargin", positionMargin },
             { "collateral", null },
-            { "marginMode", this.safeStringLower2(position, "marginMode", "margin_mode") },
+            { "marginMode", marginMode },
             { "side", side },
             { "percentage", null },
             { "hedged", positionSide != "BOTH" },

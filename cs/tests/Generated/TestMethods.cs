@@ -2126,6 +2126,97 @@ public partial class testMainClass
         return true;
     }
 
+    public virtual object assertStaticIsolatedPosition(BaseExchange exchange, object entry)
+    {
+        if (!isTrue(exchange.isDictionary(entry)))
+        {
+            return true;
+        }
+        object marginMode = exchange.safeString(entry, "marginMode");
+        if (!isEqual(marginMode, "isolated"))
+        {
+            return true;
+        }
+        object side = exchange.safeString(entry, "side");
+        object entryPrice = exchange.safeNumber(entry, "entryPrice");
+        object liquidationPrice = exchange.safeNumber(entry, "liquidationPrice");
+        object contracts = exchange.safeNumber(entry, "contracts");
+        object contractSize = exchange.safeNumber(entry, "contractSize");
+        object maintenanceMargin = exchange.safeNumber(entry, "maintenanceMargin");
+        object collateral = exchange.safeNumber(entry, "collateral");
+        object initialMargin = exchange.safeNumber(entry, "initialMargin");
+        object unrealizedPnl = exchange.safeNumber(entry, "unrealizedPnl");
+        if (((entryPrice != null)) && ((liquidationPrice != null)) && (isGreaterThan(entryPrice, 0)) && (isGreaterThan(liquidationPrice, 0)))
+        {
+            if (isEqual(side, "long"))
+            {
+                this.assertStaticError(isLessThan(liquidationPrice, entryPrice), "isolated long liquidationPrice should be less than entryPrice", entryPrice, liquidationPrice);
+            } else if (isEqual(side, "short"))
+            {
+                this.assertStaticError(isGreaterThan(liquidationPrice, entryPrice), "isolated short liquidationPrice should be greater than entryPrice", entryPrice, liquidationPrice);
+            }
+        }
+        object entryMargin = null;
+        if ((collateral != null))
+        {
+            if (((unrealizedPnl != null)) && (!isEqual(collateral, initialMargin)))
+            {
+                entryMargin = subtract(collateral, unrealizedPnl);
+            } else
+            {
+                entryMargin = collateral;
+            }
+        } else if ((initialMargin != null))
+        {
+            entryMargin = initialMargin;
+        }
+        if (((entryMargin != null)) && ((entryPrice != null)) && ((liquidationPrice != null)) && ((contracts != null)) && ((contractSize != null)) && ((maintenanceMargin != null)))
+        {
+            if ((isGreaterThan(entryMargin, 0)) && (isGreaterThan(entryPrice, 0)) && (isGreaterThan(liquidationPrice, 0)) && (isGreaterThan(contracts, 0)) && (isGreaterThan(contractSize, 0)) && (isGreaterThan(maintenanceMargin, 0)))
+            {
+                object symbol = exchange.safeString(entry, "symbol");
+                object market = ((symbol != null)) ? exchange.safeDict(exchange.markets, symbol) : null;
+                bool isInverse = ((market != null)) && isTrue(exchange.safeBool(market, "inverse", false));
+                object priceDiff = 0;
+                if (isInverse)
+                {
+                    object invEntry = divide(1, entryPrice);
+                    object invLiq = divide(1, liquidationPrice);
+                    priceDiff = (isGreaterThan(invEntry, invLiq)) ? (subtract(invEntry, invLiq)) : (subtract(invLiq, invEntry));
+                } else
+                {
+                    priceDiff = (isGreaterThan(entryPrice, liquidationPrice)) ? (subtract(entryPrice, liquidationPrice)) : (subtract(liquidationPrice, entryPrice));
+                }
+                object lossFromEntry = multiply(multiply(priceDiff, contracts), contractSize);
+                object calculatedMm = subtract(entryMargin, lossFromEntry);
+                this.assertStaticError(isGreaterThan(calculatedMm, 0), "isolated position remaining collateral at liquidationPrice should be greater than 0", maintenanceMargin, calculatedMm);
+                object mmDiff = (isGreaterThan(calculatedMm, maintenanceMargin)) ? (subtract(calculatedMm, maintenanceMargin)) : (subtract(maintenanceMargin, calculatedMm));
+                object maxTolerance = multiply(entryMargin, 0.05);
+                this.assertStaticError(isLessThanOrEqual(mmDiff, maxTolerance), "isolated position maintenanceMargin does not match remaining collateral at liquidationPrice", maintenanceMargin, calculatedMm);
+            }
+        }
+        return true;
+    }
+
+    public virtual object assertStaticIsolatedPositions(BaseExchange exchange, object method, object output)
+    {
+        if ((isEqual(method, "fetchPosition")) || (isEqual(method, "fetchPositions")) || (isEqual(method, "fetchPositionsForSymbol")) || (isEqual(method, "fetchPositionsRisk")))
+        {
+            if (((output is IList<object>) || (output.GetType().IsGenericType && output.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            {
+                int outputLength = getArrayLength(output);
+                for (int i = 0; i < outputLength; i++)
+                {
+                    this.assertStaticIsolatedPosition(exchange, getValue(output, i));
+                }
+            } else if (isTrue(exchange.isDictionary(output)))
+            {
+                this.assertStaticIsolatedPosition(exchange, output);
+            }
+        }
+        return true;
+    }
+
     public virtual void assertStaticResponseOutput(BaseExchange exchange, object skipKeys, object computedResult, object storedResult)
     {
         this.assertNewAndStoredOutput(exchange, skipKeys, computedResult, storedResult, false);
@@ -2234,10 +2325,12 @@ public partial class testMainClass
             {
                 object unifiedResult = await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
                 this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult);
+                this.assertStaticIsolatedPositions(mockedExchange, method, expectedResult);
             } else
             {
                 object unifiedResultSync = callExchangeMethodDynamicallySync(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
                 this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResultSync, expectedResult);
+                this.assertStaticIsolatedPositions(mockedExchange, method, expectedResult);
             }
         } catch(Exception e)
         {

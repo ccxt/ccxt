@@ -3576,6 +3576,8 @@ public partial class derive : Exchange
         string? markPrice = this.safeString(position, "mark_price");
         Int64? timestamp = this.safeInteger(position, "creation_timestamp");
         string? unrealisedPnl = this.safeString(position, "unrealized_pnl");
+        string? initialMarginString = Precise.stringAbs(this.safeString(position, "initial_margin"));
+        string? maintenanceMarginString = Precise.stringAbs(this.safeString(position, "maintenance_margin"));
         size = Precise.stringAbs(size);
         string? notional = Precise.stringMul(size, markPrice);
         return this.safePosition(new Dictionary<string, object>() {
@@ -3585,11 +3587,11 @@ public partial class derive : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastUpdateTimestamp", null },
-            { "initialMargin", this.safeNumber(position, "initial_margin") },
-            { "initialMarginPercentage", null },
-            { "maintenanceMargin", this.safeNumber(position, "maintenance_margin") },
-            { "maintenanceMarginPercentage", null },
-            { "entryPrice", null },
+            { "initialMargin", this.parseNumber(initialMarginString) },
+            { "initialMarginPercentage", this.parseNumber(Precise.stringDiv(initialMarginString, notional, 8)) },
+            { "maintenanceMargin", this.parseNumber(maintenanceMarginString) },
+            { "maintenanceMarginPercentage", this.parseNumber(Precise.stringDiv(maintenanceMarginString, notional, 8)) },
+            { "entryPrice", this.safeNumber2(position, "average_price", "average_price_excl_fees") },
             { "notional", this.parseNumber(notional) },
             { "leverage", this.safeNumber(position, "leverage") },
             { "unrealizedPnl", this.parseNumber(unrealisedPnl) },

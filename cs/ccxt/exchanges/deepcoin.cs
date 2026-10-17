@@ -3065,6 +3065,14 @@ public partial class deepcoin : Exchange
         string? marketId = this.safeString(position, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(position, "cTime");
+        string? marginMode = this.safeString(position, "mgnMode");
+        double? useMargin = this.safeNumber(position, "useMargin");
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        double? positionMargin = null;
+        if (marginMode == "isolated")
+        {
+            positionMargin = useMargin;
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "id", this.safeString(position, "posId") },
@@ -3075,17 +3083,18 @@ public partial class deepcoin : Exchange
             { "side", this.safeString(position, "posSide") },
             { "notional", null },
             { "leverage", this.parseNumber(this.omitZero(this.safeString(position, "lever"))) },
-            { "unrealizedPnl", null },
+            { "unrealizedPnl", this.safeNumber(position, "unrealizedProfit") },
             { "realizedPnl", null },
+            { "positionMargin", positionMargin },
             { "collateral", null },
             { "entryPrice", this.safeNumber(position, "avgPx") },
             { "markPrice", null },
             { "liquidationPrice", this.safeNumber(position, "liqPx") },
-            { "marginMode", this.safeString(position, "mgnMode") },
+            { "marginMode", marginMode },
             { "hedged", true },
-            { "maintenanceMargin", this.safeNumber(position, "useMargin") },
+            { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
-            { "initialMargin", null },
+            { "initialMargin", useMargin },
             { "initialMarginPercentage", null },
             { "marginRatio", null },
             { "lastUpdateTimestamp", this.safeInteger(position, "uTime") },

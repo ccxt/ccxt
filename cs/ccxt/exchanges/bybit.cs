@@ -8417,7 +8417,17 @@ public partial class bybit : Exchange
         {
             lastUpdateTimestamp = this.safeInteger2(position, "updatedTime", "updatedAt");
         }
-        string? collateralString = this.safeString(position, "positionBalance");
+        // positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
+        string? positionMarginString = ((string)this.omitZero(this.safeString(position, "positionBalance")));
+        string? collateralString = null;
+        if ((positionMarginString != null))
+        {
+            collateralString = positionMarginString;
+            if ((unrealisedPnl != null))
+            {
+                collateralString = Precise.stringAdd(positionMarginString, unrealisedPnl);
+            }
+        }
         string? entryPrice = ((string)this.omitZero(this.safeStringN(position, new List<object>() {"entryPrice", "avgPrice", "avgEntryPrice"})));
         string? liquidationPrice = ((string)this.omitZero(this.safeString(position, "liqPrice")));
         string? leverage = this.safeString(position, "leverage");
@@ -8434,21 +8444,30 @@ public partial class bybit : Exchange
                 }
                 string? difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
+                positionMarginString = null; // derived from collateral by safePosition
             } else
             {
-                string? bustPrice = this.safeString(position, "bustPrice");
+                string? bustPrice = ((string)this.omitZero(this.safeString(position, "bustPrice")));
+                string? closingFee = ((string)this.omitZero(this.safeString(position, "occClosingFee")));
                 if ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))
                 {
-                    // derived from the following formulas
+                    // derived from the following formula:
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     // Maintenance Margin = (Bust price - Liq price) x Contracts
-                    string? maintenanceMarginPriceDifference = Precise.stringAbs(Precise.stringSub(liquidationPrice, bustPrice));
-                    maintenanceMarginString = Precise.stringMul(maintenanceMarginPriceDifference, size);
-                    // Initial Margin = Contracts x Entry Price / Leverage
+                    if (((maintenanceMarginString == null)) && ((bustPrice != null)) && !Precise.stringEq(bustPrice, liquidationPrice))
+                    {
+                        string? maintenanceMarginPriceDifference = Precise.stringAbs(Precise.stringSub(liquidationPrice, bustPrice));
+                        maintenanceMarginString = Precise.stringMul(maintenanceMarginPriceDifference, size);
+                    }
+                    // Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
                     if (((entryPrice != null)) && ((initialMarginString == null)))
                     {
                         initialMarginString = Precise.stringDiv(Precise.stringMul(size, entryPrice), leverage);
+                        if ((closingFee != null))
+                        {
+                            initialMarginString = Precise.stringAdd(initialMarginString, closingFee);
+                        }
                     }
                 } else
                 {
@@ -8456,13 +8475,20 @@ public partial class bybit : Exchange
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    string? difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
-                    string? multiply = Precise.stringMul(bustPrice, liquidationPrice);
-                    maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
-                    // Initial Margin = Leverage x Contracts / EntryPrice
+                    if (((maintenanceMarginString == null)) && ((bustPrice != null)) && !Precise.stringEq(bustPrice, liquidationPrice))
+                    {
+                        string? difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
+                        string? multiply = Precise.stringMul(bustPrice, liquidationPrice);
+                        maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
+                    }
+                    // Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
                     if (((entryPrice != null)) && ((initialMarginString == null)))
                     {
                         initialMarginString = Precise.stringDiv(size, Precise.stringMul(entryPrice, leverage));
+                        if ((closingFee != null))
+                        {
+                            initialMarginString = Precise.stringAdd(initialMarginString, closingFee);
+                        }
                     }
                 }
             }
@@ -8492,6 +8518,7 @@ public partial class bybit : Exchange
             { "markPrice", this.parseNumber(markPrice) },
             { "lastPrice", this.safeNumber(position, "avgExitPrice") },
             { "collateral", this.parseNumber(collateralString) },
+            { "positionMargin", this.parseNumber(positionMarginString) },
             { "marginMode", null },
             { "side", side },
             { "percentage", null },

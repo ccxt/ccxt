@@ -4639,7 +4639,7 @@ public partial class digifinex : Exchange
             marginMode = (marginMode == "crossed") ? "cross" : "isolated";
         } else
         {
-            marginMode = "crossed";
+            marginMode = "cross";
         }
         Int64? timestamp = this.safeInteger(position, "timestamp");
         string? side = this.safeString(position, "side");
@@ -4650,6 +4650,25 @@ public partial class digifinex : Exchange
         {
             side = "short";
         }
+        string? positionMargin = this.safeString(position, "margin");
+        string? unrealizedPnl = this.safeString(position, "unrealized_pnl");
+        string? collateralString = null;
+        string? marginString = null;
+        if (marginMode == "isolated")
+        {
+            string? isolatedMargin = this.safeString(position, "posi_balance");
+            if ((isolatedMargin != null))
+            {
+                marginString = isolatedMargin;
+                collateralString = ((unrealizedPnl != null)) ? Precise.stringAdd(isolatedMargin, unrealizedPnl) : isolatedMargin;
+            }
+        }
+        string? maintenanceMarginString = this.safeString(position, "maintain_margin");
+        string? forceCloseFee = ((string)this.omitZero(this.safeString(position, "force_close_fee")));
+        if (((maintenanceMarginString != null)) && ((forceCloseFee != null)))
+        {
+            maintenanceMarginString = Precise.stringAdd(maintenanceMarginString, forceCloseFee);
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -4658,18 +4677,19 @@ public partial class digifinex : Exchange
             { "marginMode", marginMode },
             { "liquidationPrice", this.safeNumber(position, "liquidation_price") },
             { "entryPrice", this.safeNumber2(position, "avg_cost", "entry_price") },
-            { "unrealizedPnl", this.safeNumber(position, "unrealized_pnl") },
-            { "contracts", this.safeNumber(position, "avail_position") },
+            { "unrealizedPnl", this.parseNumber(unrealizedPnl) },
+            { "contracts", this.safeNumber2(position, "position", "avail_position") },
             { "contractSize", this.safeNumber(marketResolved, "contractSize") },
-            { "markPrice", this.safeNumber(position, "last") },
+            { "markPrice", this.safeNumber2(position, "mark_price", "last") },
             { "side", side },
             { "hedged", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "maintenanceMargin", this.safeNumber(position, "margin") },
+            { "maintenanceMargin", this.parseNumber(maintenanceMarginString) },
             { "maintenanceMarginPercentage", this.safeNumber(position, "maint_margin_ratio") },
-            { "collateral", null },
-            { "initialMargin", null },
+            { "positionMargin", this.parseNumber(marginString) },
+            { "collateral", this.parseNumber(collateralString) },
+            { "initialMargin", this.parseNumber(positionMargin) },
             { "initialMarginPercentage", null },
             { "leverage", this.safeNumber2(position, "leverage", "leverage_ratio") },
             { "marginRatio", this.safeNumber(position, "margin_ratio") },

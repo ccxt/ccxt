@@ -3177,8 +3177,13 @@ public partial class pacifica : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? margin = this.safeString(position, "margin");
-        string marginMode = ((margin != null) && margin != "0") ? "isolated" : "cross";
-        bool isIsolated = (marginMode == "isolated");
+        bool? rawIsolated = this.safeBool(position, "isolated");
+        bool? isIsolated = ((margin != null) && margin != "0");
+        if ((rawIsolated != null))
+        {
+            isIsolated = rawIsolated;
+        }
+        string marginMode = isIsolated == true ? "isolated" : "cross";
         string? side = this.safeString(position, "side");
         if ((side != null))
         {
@@ -3200,13 +3205,13 @@ public partial class pacifica : Exchange
             { "markPrice", null },
             { "notional", null },
             { "leverage", null },
-            { "collateral", margin },
+            { "collateral", this.safeNumber(position, "margin") },
             { "initialMargin", null },
             { "maintenanceMargin", null },
             { "initialMarginPercentage", null },
             { "maintenanceMarginPercentage", null },
             { "unrealizedPnl", null },
-            { "liquidationPrice", null },
+            { "liquidationPrice", this.safeNumber(position, "liquidation_price") },
             { "marginMode", marginMode },
             { "percentage", null },
         });

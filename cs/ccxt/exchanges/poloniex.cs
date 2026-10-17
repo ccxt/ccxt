@@ -4332,9 +4332,14 @@ public partial class poloniex : Exchange
         string? leverage = this.safeString(position, "lever");
         string? initialMargin = this.safeString(position, "im");
         string? notional = Precise.stringMul(leverage, initialMargin);
-        string? qty = this.safeString(position, "qty");
-        string? avgPrice = this.safeString(position, "openAvgPx");
-        string? collateral = Precise.stringMul(qty, avgPrice);
+        object positionMargin = null;
+        string? collateral = null;
+        if (marginMode == "isolated")
+        {
+            positionMargin = this.omitZero(this.safeString(position, "mgn"));
+            string? upl = this.safeString(position, "upl");
+            collateral = (((positionMargin != null)) && ((upl != null))) ? Precise.stringAdd(positionMargin, upl) : null;
+        }
         // todo: some more fields
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
@@ -4357,7 +4362,8 @@ public partial class poloniex : Exchange
             { "lastUpdateTimestamp", null },
             { "maintenanceMargin", this.safeNumber(position, "mm") },
             { "maintenanceMarginPercentage", null },
-            { "collateral", collateral },
+            { "collateral", this.parseNumber(collateral) },
+            { "positionMargin", this.parseNumber(positionMargin) },
             { "initialMargin", initialMargin },
             { "initialMarginPercentage", null },
             { "leverage", parseInt(leverage) },
