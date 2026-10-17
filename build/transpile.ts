@@ -321,7 +321,7 @@ class Transpiler {
             [ /\.fetchOHLCVS/g, '.fetch_ohlcvs'],
             [ /\.fetchOHLCVWs/g, '.fetch_ohlcvws'],
             [ /\.parseOHLCVS/g, '.parse_ohlcvs'],
-            [ /\.buildOHLCVC/g, '.build_ohlcv'],
+            [ /\.buildOHLCVC/g, '.build_ohlcvc'],
             [ /\.intToBase16/g, '.int_to_base16'],
             [ /\.parseDate/g, '.parse_date'],
             [ /\.urlencodeBase64/g, '.urlencode_base64'],
