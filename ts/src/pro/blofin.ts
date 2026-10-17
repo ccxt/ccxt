@@ -73,7 +73,7 @@ export default class blofin extends blofinRest {
         return 'ping';
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: string) {
         //
         //   'pong'
         //
