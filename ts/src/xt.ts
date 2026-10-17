@@ -2056,7 +2056,7 @@ export default class xt extends Exchange {
             'close': this.safeString (ticker, 'c'),
             'last': this.safeString (ticker, 'c'),
             'previousClose': undefined,
-            'change': this.safeNumber (ticker, 'cv'),
+            'change': undefined, // 'cv' can lag 'o' and 'c', safeTicker derives it as last - open
             'percentage': this.parseNumber (percentage),
             'average': undefined,
             'baseVolume': baseVolume,
