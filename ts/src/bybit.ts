@@ -7041,7 +7041,15 @@ export default class bybit extends Exchange {
         if (lastUpdateTimestamp === undefined) {
             lastUpdateTimestamp = this.safeInteger2 (position, 'updatedTime', 'updatedAt');
         }
-        let collateralString = this.safeString (position, 'positionBalance');
+        // positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
+        let positionMarginString = this.omitZero (this.safeString (position, 'positionBalance'));
+        let collateralString: Str = undefined;
+        if (positionMarginString !== undefined) {
+            collateralString = positionMarginString;
+            if (unrealisedPnl !== undefined) {
+                collateralString = Precise.stringAdd (positionMarginString, unrealisedPnl);
+            }
+        }
         const entryPrice = this.omitZero (this.safeStringN (position, [ 'entryPrice', 'avgPrice', 'avgEntryPrice' ]));
         const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));
         const leverage = this.safeString (position, 'leverage');
@@ -7055,6 +7063,7 @@ export default class bybit extends Exchange {
                 }
                 const difference = Precise.stringAbs (Precise.stringSub (price, liquidationPrice));
                 collateralString = Precise.stringAdd (Precise.stringAdd (Precise.stringMul (difference, size), maintenanceMarginString), unrealisedPnl);
+                positionMarginString = undefined; // derived from collateral by safePosition
             } else {
                 const bustPrice = this.omitZero (this.safeString (position, 'bustPrice'));
                 const closingFee = this.omitZero (this.safeString (position, 'occClosingFee'));
@@ -7119,6 +7128,7 @@ export default class bybit extends Exchange {
             'markPrice': this.parseNumber (markPrice),
             'lastPrice': this.safeNumber (position, 'avgExitPrice'),
             'collateral': this.parseNumber (collateralString),
+            'positionMargin': this.parseNumber (positionMarginString),
             'marginMode': undefined, // tradeMode was deprecated
             'side': side,
             'percentage': undefined,

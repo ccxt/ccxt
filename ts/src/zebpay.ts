@@ -1803,6 +1803,11 @@ export default class zebpay extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market);
         const marginMode = this.safeStringLower (position, 'marginMode', 'isolated');
         const initialMargin = this.safeNumber (position, 'initialMargin');
+        // isolated positions hold exactly the initial margin posted for them
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = initialMargin;
+        }
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'id'),
@@ -1822,7 +1827,8 @@ export default class zebpay extends Exchange {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': undefined,
-            'collateral': (marginMode === 'isolated') ? initialMargin : undefined,
+            'positionMargin': positionMargin,
+            'collateral': undefined,
             'marginMode': marginMode,
             'side': this.safeStringLower (position, 'side'),
             'percentage': undefined,

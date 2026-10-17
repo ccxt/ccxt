@@ -2193,6 +2193,11 @@ export default class bydfi extends Exchange {
             contracts = Precise.stringDiv (contracts, contractSize);
         }
         const timestamp = this.safeInteger (position, 'createTime');
+        // raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+        let positionMargin = this.safeString (position, 'positionMargin');
+        if ((positionMargin !== undefined) && !Precise.stringGt (positionMargin, '0')) {
+            positionMargin = undefined;
+        }
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'id'),
@@ -2201,6 +2206,7 @@ export default class bydfi extends Exchange {
             'markPrice': this.parseNumber (this.safeString (position, 'markPrice')),
             'lastPrice': this.parseNumber (this.safeString (position, 'avgClosePositionPrice')),
             'notional': this.parseNumber (this.safeString (position, 'closePositionCost')),
+            'positionMargin': this.parseNumber (positionMargin),
             'collateral': undefined,
             'unrealizedPnl': this.parseNumber (this.safeString (position, 'unPnl')),
             'realizedPnl': this.parseNumber (this.safeString (position, 'positionProfits')),

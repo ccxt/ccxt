@@ -2426,12 +2426,18 @@ export default class grvt extends Exchange {
         if (isLong) {
             side = 'long';
         }
+        // isolated_balance is the wallet balance reserved for the isolated position
+        const marginMode = this.safeStringLower (position, 'margin_type');
+        let positionMargin: Num = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.safeNumber (position, 'isolated_balance');
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': this.safeSymbol (marketId, market),
             'notional': this.parseNumber (Precise.stringAbs (this.safeString (position, 'notional'))),
-            'marginMode': this.safeStringLower (position, 'margin_type'),
+            'marginMode': marginMode,
             'liquidationPrice': this.safeNumber (position, 'est_liquidation_price'),
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
@@ -2447,7 +2453,8 @@ export default class grvt extends Exchange {
             'lastUpdateTimestamp': this.safeInteger (position, 'lastUpdateTime'),
             'maintenanceMargin': this.safeNumber2 (position, 'isolated_mm', 'maintenanceMargin'),
             'maintenanceMarginPercentage': undefined,
-            'collateral': this.safeNumber (position, 'isolated_balance'),
+            'positionMargin': positionMargin,
+            'collateral': undefined,
             'initialMargin': this.safeNumber2 (position, 'isolated_im', 'initialMargin'),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber (position, 'leverage'),
