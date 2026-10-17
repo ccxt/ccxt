@@ -19,6 +19,10 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.SafeNumber': '*float64', 'this.SafeNumber2': '*float64', 'this.SafeNumberN': '*float64',
     'this.InsertMissingCandles': '[]any', 'this.DerivedExchange.InsertMissingCandles': '[]any', // gochan32-U05
     'this.ParseTradingViewOHLCV': '[]any', 'this.DerivedExchange.ParseTradingViewOHLCV': '[]any', // gochan32-U05
+    // venue balance parsers retyped by goTranspiler.ts#retypeGoProvenParseMethods (goProvenMapCollectionMethods)
+    ...Object.fromEntries ([ 'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance',
+        'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance' ]
+        .flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])),
     'this.SafeBool': '*bool', 'this.SafeBool2': '*bool', 'this.SafeBoolN': '*bool',
     'this.ParseMarginLoan': 'map[string]any', 'this.DerivedExchange.ParseMarginLoan': 'map[string]any', 'this.ParseIsolatedBorrowRates': 'map[string]any', 'this.DerivedExchange.ParseIsolatedBorrowRates': 'map[string]any', 'this.ParseBorrowRateHistory': '[]any', 'this.DerivedExchange.ParseBorrowRateHistory': '[]any', // U15
     ...Object.fromEntries ([ 'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])), // U06
