@@ -416,6 +416,15 @@ function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number): {
             declAt = o.index + name.length + 1;
             continue;
         }
+        // `var x any = <one-line call of a GO_CHAN_CALL_TYPES producer>`: the declaration carries the producer's type
+        const callInit = /^ any = ((?:ccxt\.)?this\.\w+\(.*\))\s*$/.exec (after);
+        const callProof = ((callInit === null) || (goChanClose (callInit[1], callInit[1].indexOf ('(')) !== callInit[1].length)) ? undefined : goChanSendType (callInit[1].replace (/^ccxt\./, ''), '', '');
+        if (/^\t+var $/.test (lead) && (callProof !== undefined) && (callProof.type !== undefined) && (callProof.bind === true)) {
+            decls++;
+            types.add (callProof.type);
+            declAt = o.index + name.length + 1;
+            continue;
+        }
         if ((/^\t+$/.test (lead) && /^ = nil\s*$/.test (after)) || /^ [!=]= nil\b/.test (after)) {
             nilable = true;
             continue;

@@ -11,6 +11,8 @@ const GO_CHAN_TABLE_DIR = path.join (path.dirname (fileURLToPath (import.meta.ur
 export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.Extend': 'map[string]any', 'this.DeepExtend': 'map[string]any', 'this.ParseToInt': 'int64', 'this.Json': 'string',
     'this.IndexBy': 'map[string]any',
+    // retyped by goTranspiler.ts#retypeGoProvenParseMethods (base + every override)
+    'this.ParseCurrencies': 'map[string]any', 'this.DerivedExchange.ParseCurrencies': 'map[string]any', 'this.ParseCurrenciesCustom': 'map[string]any', 'this.ArraysConcat': '[]any',
     'OrderToMap': 'map[string]any', 'TickerToMap': 'map[string]any', 'TradeToMap': 'map[string]any', 'StructToMap': 'map[string]any',
     'MapTyped': 'map[string]any', 'MarketTyped': 'map[string]any', 'ListTyped': '[]any',
     'this.SafeString': '*string', 'this.SafeString2': '*string', 'this.SafeStringN': '*string',

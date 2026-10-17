@@ -472,7 +472,7 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		var currencies any = nil
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
-			currencies = (<-this.DerivedExchange.FetchCurrenciesAsync(params)).Value
+			currencies = (<-this.DerivedExchange.FetchCurrenciesAsync(params)).Boxed()
 			// this.cachedCurrenciesMutex.Lock()
 			// this.Options["cachedCurrencies"] = currencies
 			this.Options.Store("cachedCurrencies", currencies)
@@ -483,7 +483,7 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		if fetched.Err != nil {
 			panic(fetched.Err)
 		}
-		markets := fetched.Value
+		markets := fetched.Boxed()
 
 		// this.cachedCurrenciesMutex.Lock()
 		// delete(this.Options, "cachedCurrencies")
@@ -520,24 +520,26 @@ func (this *BaseExchange) Throttle(cost any) <-chan bool {
 	return ch
 }
 
-func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
-	go func() any {
-		// defer close(ch)
-		// markets := <-this.callInternal("fetchMarkets", optionalArgs)
-		// return markets
-		return this.Markets
+// base fetchMarkets (ts/src/base/Exchange.ts): the loaded markets as a list, [] before loadMarkets
+func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
+	go func() {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		if this.Markets == nil {
+			ch <- AsyncResult[[]any]{Value: []any{}}
+			return
+		}
+		ch <- AsyncResult[[]any]{Value: this.ToArray(this.Markets)}
 	}()
 	return ch
 }
 
-func (this *BaseExchange) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
-	go func() any {
+func (this *BaseExchange) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
+	go func() {
 		defer close(ch)
-		// markets := <-this.callInternal("fetchCurrencies", optionalArgs)
-		// return markets
-		return this.Currencies
+		// as before the retype: no value is sent, the receiver reads the zero (nil) result
 	}()
 	return ch
 }

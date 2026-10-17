@@ -220,8 +220,8 @@ type ICoreExchange interface {
 	IncrementingNonce() any
 	Unique(obj any) []any
 	FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64]
-	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
@@ -451,8 +451,8 @@ type IDerivedExchange interface {
 	FetchFundingIntervalsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchDepositsWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	ParseMarginModification(data any, optionalArgs ...any) map[string]any
-	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any]
-	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any]
+	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	SetSandboxMode(enabled any)
 	Market(symbol any) map[string]any

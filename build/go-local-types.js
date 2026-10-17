@@ -153,6 +153,9 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     // never a typed nil — the Go twin returns a nil `[]any` (not an untyped nil) when an
     // operand is not a slice, which reads exactly like the old boxed `nil`.
     'this.ArrayConcat': '[]any',
+    // retyped by goTranspiler.ts#retypeGoProvenParseMethods: every return is the []any{} accumulator / the result map literal
+    'this.ArraysConcat': '[]any',
+    'this.ParseCurrenciesCustom': 'map[string]any',
     // deepExtend2 is Go-only: every return path hands back the `outDict` accumulator (a
     // non-map operand panics on the assertion instead of escaping), so `map[string]any` is exact.
     'this.DeepExtend2': 'map[string]any',
