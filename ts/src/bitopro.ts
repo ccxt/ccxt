@@ -939,17 +939,17 @@ export default class bitopro extends Exchange {
         //     }
         //
         const sparse = this.parseOHLCVs (data, market, timeframe, since, limitResolved);
-        return this.insertMissingCandles (sparse, timeframeInSeconds, alignedSince, limitResolved) as OHLCV[];
+        return this.insertMissingCandles (sparse, timeframeInSeconds, alignedSince, limitResolved);
     }
 
-    insertMissingCandles (candles: any, distance: number, since: Int, limit: number) {
+    insertMissingCandles (candles: any, distance: number, since: Int, limit: number): any[] {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         const length = candles.length;
         if (length === 0) {
             return candles;
         }
-        const result: Dict[] = [];
+        const result: any[] = [];
         let copyFrom = candles[0];
         let timestamp: Int = undefined;
         if (since === undefined) {

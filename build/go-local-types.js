@@ -8161,6 +8161,8 @@ const CCXT_GO_PRODUCER_DECLARATIONS = {
     'this.ParseFundingRate': 'map',
     'this.ParseMarketLeverageTiers': 'list',
     'this.ParseOHLCVs': 'list',
+    'this.InsertMissingCandles': 'list', // gochan32-U05
+    'this.ParseTradingViewOHLCV': 'list', // gochan32-U05
     'this.ParseTrade': 'map',
     'this.ParseOrder': 'map',
     'this.ParseTicker': 'map',

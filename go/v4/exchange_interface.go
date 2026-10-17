@@ -251,7 +251,7 @@ type ICoreExchange interface {
 	ParsePrecision(precision any) any
 	PrecisionFromString(str2 any) int
 	OmitZero(v any) any
-	FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
+	FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any]
 	FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
@@ -446,7 +446,7 @@ type IDerivedExchange interface {
 	ParseBorrowRate(info any, optionalArgs ...any) map[string]any
 	ParseFundingRateHistory(info any, optionalArgs ...any) any
 	ParseFundingRate(contract any, optionalArgs ...any) map[string]any
-	FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any]
+	FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	FetchFundingIntervalsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchDepositsWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any]

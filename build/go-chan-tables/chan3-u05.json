@@ -1,0 +1,6 @@
+{
+    "FetchOHLCV": "[]any",
+    "FetchMarkOHLCV": "[]any",
+    "FetchIndexOHLCV": "[]any",
+    "FetchPremiumIndexOHLCV": "[]any"
+}

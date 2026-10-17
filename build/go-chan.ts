@@ -17,6 +17,8 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.SafeInteger': '*int64', 'this.SafeInteger2': '*int64', 'this.SafeIntegerN': '*int64',
     'this.SafeFloat': '*float64', 'this.SafeFloat2': '*float64', 'this.SafeFloatN': '*float64',
     'this.SafeNumber': '*float64', 'this.SafeNumber2': '*float64', 'this.SafeNumberN': '*float64',
+    'this.InsertMissingCandles': '[]any', 'this.DerivedExchange.InsertMissingCandles': '[]any', // gochan32-U05
+    'this.ParseTradingViewOHLCV': '[]any', 'this.DerivedExchange.ParseTradingViewOHLCV': '[]any', // gochan32-U05
     'this.SafeBool': '*bool', 'this.SafeBool2': '*bool', 'this.SafeBoolN': '*bool',
 };
 // the Go element type of a table value (`T?` marks cores that may also send a bare nil)
