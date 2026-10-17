@@ -3856,7 +3856,8 @@ function goProvenListMethods (): string[] {
         'FilterByValueSinceLimit', 'FilterByCurrencySinceLimit', 'FilterByLimit', 'ParseCancelOrders',
         'ParseBorrowRateHistory', // U15
         'InsertMissingCandles', 'ParseTradingViewOHLCV', // gochan32-U05
- 'ArraysConcat' ];
+ 'ArraysConcat',
+        'ParseTransactionsByType' ]; // U09: kraken, FilterByCurrencySinceLimit on its only path
 }
 
 // dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays

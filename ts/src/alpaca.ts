@@ -1912,7 +1912,8 @@ export default class alpaca extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('BOTH', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('BOTH', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     /**
@@ -1927,7 +1928,8 @@ export default class alpaca extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('INCOMING', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('INCOMING', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     /**
@@ -1942,7 +1944,8 @@ export default class alpaca extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('OUTGOING', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('OUTGOING', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

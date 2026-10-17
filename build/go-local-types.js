@@ -145,6 +145,8 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.SortBy': '[]any',
     'this.SortBy2': '[]any',
     'this.FilterBy': '[]any',
+    // kraken parseTransactionsByType: goTranspiler.ts#goProvenListMethods retypes it to []any
+    'this.ParseTransactionsByType': '[]any',
     // hand-written (exchange.go): a slice on every path, a nil []any when the argument is not one
     'this.ArraySlice': '[]any',
     'this.Sort': '[]any',
