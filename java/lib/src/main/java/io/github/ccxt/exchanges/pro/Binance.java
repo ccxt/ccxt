@@ -1702,7 +1702,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         });
 
     }
-    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters) // a flight is already in progress - wake when the leader
     {
         return this.unWatchTrades(symbol, (Object) (parameters));
     }

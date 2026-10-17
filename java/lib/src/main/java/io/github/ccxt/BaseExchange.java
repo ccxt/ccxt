@@ -4055,7 +4055,7 @@ public Object describe()
                 put( "borrowMargin", null );
                 put( "cancelAllOrders", null );
                 put( "cancelAllOrdersWs", null );
-                put( "cancelOrder", true );
+                put( "cancelOrder", null );
                 put( "cancelOrderWithClientOrderId", null );
                 put( "cancelOrderWs", null );
                 put( "cancelOrders", null );
@@ -4066,7 +4066,7 @@ public Object describe()
                 put( "createDepositAddress", null );
                 put( "createLimitBuyOrder", null );
                 put( "createLimitBuyOrderWs", null );
-                put( "createLimitOrder", true );
+                put( "createLimitOrder", null );
                 put( "createLimitOrderWs", null );
                 put( "createLimitSellOrder", null );
                 put( "createLimitSellOrderWs", null );
@@ -4074,15 +4074,15 @@ public Object describe()
                 put( "createMarketBuyOrderWs", null );
                 put( "createMarketBuyOrderWithCost", null );
                 put( "createMarketBuyOrderWithCostWs", null );
-                put( "createMarketOrder", true );
-                put( "createMarketOrderWs", true );
+                put( "createMarketOrder", null );
+                put( "createMarketOrderWs", null );
                 put( "createMarketOrderWithCost", null );
                 put( "createMarketOrderWithCostWs", null );
                 put( "createMarketSellOrder", null );
                 put( "createMarketSellOrderWs", null );
                 put( "createMarketSellOrderWithCost", null );
                 put( "createMarketSellOrderWithCostWs", null );
-                put( "createOrder", true );
+                put( "createOrder", null );
                 put( "createOrderWs", null );
                 put( "createOrders", null );
                 put( "createOrderWithTakeProfitAndStopLoss", null );
@@ -4114,7 +4114,7 @@ public Object describe()
                 put( "editOrderWs", null );
                 put( "fetchAccounts", null );
                 put( "fetchADLRank", null );
-                put( "fetchBalance", true );
+                put( "fetchBalance", null );
                 put( "fetchBalanceWs", null );
                 put( "fetchBidsAsks", null );
                 put( "fetchBorrowInterest", null );
@@ -4157,7 +4157,7 @@ public Object describe()
                 put( "fetchIsolatedBorrowRates", null );
                 put( "fetchMarginAdjustmentHistory", null );
                 put( "fetchIsolatedPositions", null );
-                put( "fetchL2OrderBook", true );
+                put( "fetchL2OrderBook", null );
                 put( "fetchL3OrderBook", null );
                 put( "fetchLastPrices", null );
                 put( "fetchLedger", null );
@@ -4190,7 +4190,7 @@ public Object describe()
                 put( "fetchOptionChain", null );
                 put( "fetchOrder", null );
                 put( "fetchOrderWithClientOrderId", null );
-                put( "fetchOrderBook", true );
+                put( "fetchOrderBook", null );
                 put( "fetchOrderBooks", null );
                 put( "fetchOrderBookWs", null );
                 put( "fetchOrders", null );
@@ -4213,13 +4213,13 @@ public Object describe()
                 put( "fetchPremiumIndexOHLCV", null );
                 put( "fetchSettlementHistory", null );
                 put( "fetchStatus", null );
-                put( "fetchTicker", true );
+                put( "fetchTicker", "emulated" );
                 put( "fetchTickerWs", null );
                 put( "fetchTickers", null );
                 put( "fetchMarkPrices", null );
                 put( "fetchTickersWs", null );
                 put( "fetchTime", null );
-                put( "fetchTrades", true );
+                put( "fetchTrades", null );
                 put( "fetchTradesWs", null );
                 put( "fetchTradingFee", null );
                 put( "fetchTradingFees", null );
@@ -5762,6 +5762,7 @@ public Object describe()
         Object networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new HashMap<String, Object>() {{}}));
         Helpers.addElementToObject(this.options, "networksById", this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new HashMap<String, Object>() {{}})));
         this.featuresGenerator();
+        this.hasAutocorrect();
         // init predefined markets if any
         if (!java.util.Objects.equals(this.markets, null))
         {
@@ -5779,6 +5780,29 @@ public Object describe()
         if (Helpers.isTrue(Boolean.TRUE.equals((this.safeBool(userConfig, "sandbox", false))) || Boolean.TRUE.equals((this.safeBool(userConfig, "testnet", false)))))
         {
             this.setSandboxMode(true);
+        }
+    }
+
+    public void hasAutocorrect()
+    {
+        Map<String, Object> fallbacks = new HashMap<String, Object>() {{
+            put( "fetchL2OrderBook", "fetchOrderBook" );
+            put( "createLimitOrder", "createOrder" );
+            put( "createMarketOrder", "createOrder" );
+            put( "createLimitOrderWs", "createOrderWs" );
+            put( "createMarketOrderWs", "createOrderWs" );
+        }};
+        List<String> targets = new ArrayList<String>(fallbacks.keySet());
+        for (var i = 0; i < ((List<?>)targets).size(); i++)
+        {
+            String target = (targets == null || i < 0 || i >= targets.size() ? null : targets.get(i));
+            Object source = (fallbacks == null || target == null ? null : fallbacks.get(target));
+            Boolean sourceDefined = ((source != null && ((Map<?, ?>)this.has).containsKey(source))) && (!java.util.Objects.equals(Helpers.GetValue(this.has, source), null));
+            Boolean targetDefined = (((Map<?, ?>)this.has).containsKey(target)) && (!java.util.Objects.equals(Helpers.GetValue(this.has, target), null));
+            if (Boolean.TRUE.equals(sourceDefined) && !Boolean.TRUE.equals(targetDefined))
+            {
+                Helpers.addElementToObject(this.has, target, Helpers.GetValue(this.has, source));
+            }
         }
     }
 
