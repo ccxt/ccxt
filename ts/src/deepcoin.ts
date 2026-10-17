@@ -1238,16 +1238,17 @@ export default class deepcoin extends Exchange {
         const paramsOmitted = (network !== undefined) ? this.omit (params, 'network') : params;
         const addressess = await this.fetchDepositAddresses ([ code ], paramsOmitted);
         const length = addressess.length;
+        let index = 0;
         if ((network !== undefined) && (length > 1)) {
             // the last entry on the requested network wins
-            for (let i = length - 1; i >= 0; i--) {
+            for (let i = 0; i < length; i++) {
                 const entryNetwork = this.safeString (this.safeDict (addressess, i, {}), 'network');
                 if (entryNetwork === network) {
-                    return this.safeDict (addressess, i, {}) as DepositAddress;
+                    index = i;
                 }
             }
         }
-        return this.safeDict (addressess, 0, {}) as DepositAddress;
+        return this.safeDict (addressess, index, {}) as DepositAddress;
     }
 
     override parseDepositAddress (response: Dict, currency: Currency = undefined): DepositAddress {
