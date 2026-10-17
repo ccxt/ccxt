@@ -230,7 +230,7 @@ type ICoreExchange interface {
 	FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	ParseLiquidation(liquidation any, optionalArgs ...any) any
 	FetchGreeksAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	ParseGreeks(greeks any, optionalArgs ...any) map[string]any
+	ParseGreeks(greeks any, optionalArgs ...any) Greeks
 	FetchTradingLimitsAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[any]
@@ -395,11 +395,11 @@ type IDerivedExchange interface {
 	HandleDeltas(bookside any, deltas any)
 	HandleBookDelta(orderbook any, delta any)
 	HandleBookDeltas(orderbook any, deltas any)
-	ParseLeverage(leverage any, optionalArgs ...any) map[string]any
+	ParseLeverage(leverage any, optionalArgs ...any) Leverage
 	ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV
 	ParseTrade(trade any, optionalArgs ...any) Trade
 	ParseTrades(trades any, optionalArgs ...any) []any
-	ParseGreeks(greeks any, optionalArgs ...any) map[string]any
+	ParseGreeks(greeks any, optionalArgs ...any) Greeks
 	ParseMarket(market any) any
 	ParseCurrency(rawCurrency any) map[string]any
 	ParseTransaction(transaction any, optionalArgs ...any) map[string]any
@@ -416,9 +416,9 @@ type IDerivedExchange interface {
 	ParseOpenInterest(interest any, optionalArgs ...any) map[string]any
 	ParseLiquidation(liquidation any, optionalArgs ...any) any
 	ParseIncome(info any, optionalArgs ...any) any
-	ParseMarginMode(marginMode any, optionalArgs ...any) map[string]any
+	ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode
 	ParseBorrowInterest(info any, optionalArgs ...any) any
-	ParseOption(chain any, optionalArgs ...any) map[string]any
+	ParseOption(chain any, optionalArgs ...any) Option
 	ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
 	CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	ParseMarketLeverageTiers(info any, optionalArgs ...any) any
@@ -456,7 +456,7 @@ type IDerivedExchange interface {
 	FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	SetSandboxMode(enabled any)
 	Market(symbol any) map[string]any
-	ParseConversion(conversion any, optionalArgs ...any) map[string]any
+	ParseConversion(conversion any, optionalArgs ...any) Conversion
 	SafeCurrencyCode(currencyId any, optionalArgs ...any) *string
 	HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any
 	HandleMessage(client any, message any)

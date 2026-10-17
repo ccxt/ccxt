@@ -60,6 +60,93 @@ func OrderToMap(o Order) map[string]any {
 	return StructToMap(o)
 }
 
+// TradingFeeInterfaceFromMap builds a TradingFeeInterface from a unified trading-fee map; Info is
+// the raw response only (NewTradingFeeInterface keeps the whole map there).
+func TradingFeeInterfaceFromMap(data any) TradingFeeInterface {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return TradingFeeInterface{}
+	}
+	f := NewTradingFeeInterface(m)
+	f.Info = GetInfo(m)
+	return f
+}
+
+// TradingFeeInterfaceToMap is the map shape every untyped caller expects.
+func TradingFeeInterfaceToMap(f TradingFeeInterface) map[string]any {
+	return StructToMap(f)
+}
+
+// LeverageFromMap builds a Leverage from a unified leverage map.
+func LeverageFromMap(data any) Leverage {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Leverage{}
+	}
+	return NewLeverage(m)
+}
+
+// LeverageToMap is the map shape every untyped caller expects.
+func LeverageToMap(l Leverage) map[string]any {
+	return StructToMap(l)
+}
+
+// MarginModeFromMap builds a MarginMode from a unified marginMode map.
+func MarginModeFromMap(data any) MarginMode {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return MarginMode{}
+	}
+	return NewMarginMode(m)
+}
+
+// MarginModeToMap is the map shape every untyped caller expects.
+func MarginModeToMap(m MarginMode) map[string]any {
+	return StructToMap(m)
+}
+
+// GreeksFromMap builds a Greeks from a unified greeks map.
+func GreeksFromMap(data any) Greeks {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Greeks{}
+	}
+	return NewGreeks(m)
+}
+
+// GreeksToMap is the map shape every untyped caller expects.
+func GreeksToMap(g Greeks) map[string]any {
+	return StructToMap(g)
+}
+
+// OptionFromMap builds a Option from a unified option map.
+func OptionFromMap(data any) Option {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Option{}
+	}
+	return NewOption(m)
+}
+
+// OptionToMap is the map shape every untyped caller expects.
+func OptionToMap(o Option) map[string]any {
+	return StructToMap(o)
+}
+
+// ConversionFromMap builds a Conversion from a unified conversion map.
+func ConversionFromMap(data any) Conversion {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Conversion{}
+	}
+	return NewConversion(m)
+}
+
+// ConversionToMap is the map shape every untyped caller expects.
+func ConversionToMap(c Conversion) map[string]any {
+	return StructToMap(c)
+}
+
 func copyMap(m map[string]any) map[string]any {
 	out := make(map[string]any, len(m))
 	for k, v := range m {

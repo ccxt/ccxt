@@ -19,6 +19,12 @@ export const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: st
     'Trade': { 'names': [ 'ParseTrade', 'SafeTrade' ] },
     'OHLCV': { 'names': [ 'ParseOHLCV' ], 'from': 'OHLCVFromList', 'to': 'OHLCVToList' },
     'Order': { 'names': [ 'ParseOrder', 'SafeOrder' ] },
+    'TradingFeeInterface': { 'names': [ 'ParseTradingFee' ] }, // U32
+    'Leverage': { 'names': [ 'ParseLeverage' ] }, // U32
+    'MarginMode': { 'names': [ 'ParseMarginMode' ] }, // U32
+    'Greeks': { 'names': [ 'ParseGreeks' ] }, // U32
+    'Option': { 'names': [ 'ParseOption' ] }, // U32
+    'Conversion': { 'names': [ 'ParseConversion' ] }, // U32
 };
 
 // what a call of a struct-return name reads as after step 3 boxes it (to-helper result; any for OHLCV)
