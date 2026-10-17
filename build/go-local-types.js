@@ -174,7 +174,8 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
         'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting',
         'ParseMarginLoan', 'ParseIsolatedBorrowRates', // U15
         'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance', 'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance', // U07
-        'ParseADLRank' ] // U16
+        'ParseADLRank', // U16
+        'ParseDepositAddressSpecial' ] // U11
         .flatMap ((name) => [ [ 'this.' + name, 'map[string]any' ], [ 'this.DerivedExchange.' + name, 'map[string]any' ] ])),
     // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
     'this.Outcome': 'map[string]any',

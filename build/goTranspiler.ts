@@ -3898,7 +3898,8 @@ export function goBalanceLocalIsMap (body: string, name: string): boolean {
     }
     const writes = body.match (new RegExp ('(^|[^\\w.])' + name + '\\s*[-+*/:]?=[^=][^\\n]*', 'gm')) || [];
     const keeps = new RegExp ('^[^\\w.]?' + name + ' = this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)$)');
-    return writes.every ((w) => keeps.test (w));
+    return writes.every ((w) => keeps.test (w,
+        'ParseDepositAddressSpecial' ]; // U11
 }
 
 // one family: `names` retype to `type`; returns proven by a `type` literal, a call of `calls`, a typed/proven local,

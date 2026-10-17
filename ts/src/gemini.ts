@@ -2013,7 +2013,7 @@ export default class gemini extends Exchange {
         }
         const indexedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
         const networkCode = this.handleNetworkCodeAndParams (params)[0];
-        return this.safeValue (indexedByNetwork, networkCode) as DepositAddress;
+        return this.safeDict (indexedByNetwork, networkCode) as DepositAddress;
     }
 
     /**
