@@ -317,3 +317,28 @@ func NewOHLCVForSymbolsMap(data any) map[string]map[string][]OHLCV {
 	}
 	return result
 }
+
+// Struct channels (build/go-chan3.ts goChan3StructPass): a core typed AsyncResult[T] for a unified
+// struct T sends the zero T where the map core sent nil. Readers that hand the value on untyped use
+// these so "absent" keeps reading as untyped nil.
+
+// StructAbsent reports whether v is the zero T (the absent result of a struct channel).
+func StructAbsent[T any](v T) bool {
+	return reflect.ValueOf(&v).Elem().IsZero()
+}
+
+// StructResultMap is the map shape of a struct channel value: nil for the zero T.
+func StructResultMap[T any](v T, toMap func(T) map[string]any) map[string]any {
+	if StructAbsent(v) {
+		return nil
+	}
+	return toMap(v)
+}
+
+// StructBox is the untyped box of a struct channel value: untyped nil for the zero T.
+func StructBox[T any](v T, toMap func(T) map[string]any) any {
+	if StructAbsent(v) {
+		return nil
+	}
+	return toMap(v)
+}
