@@ -5302,6 +5302,11 @@ class NewTranspiler {
             return `NewMapArray(res)`; // safe conversion, the runtime value is usually a []any
         }
 
+        if (unwrappedType === 'map[string]map[string][]OHLCV') {
+            // watchOHLCVForSymbols cores send nested map[string]any (createOHLCVObject), never the struct shape
+            return `NewOHLCVForSymbolsMap(res)`;
+        }
+
         if (unwrappedType.startsWith('map[string]')) {
             const mapValueType = unwrappedType.substring('map[string]'.length);
             // struct-valued dictionaries (e.g. Dictionary<DepositWithdrawFee>) hold
