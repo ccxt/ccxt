@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/interactivebrokers.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidOrder, OperationFailed, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, OperationFailed, OrderNotFound, RateLimitExceeded, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import type { Account, Balances, Dict, Endpoint, Int, List, Market, Num, NullableDict, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
@@ -27,8 +27,8 @@ export default class interactivebrokers extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': false,
-                'swap': false,
+                'margin': true,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -339,7 +339,7 @@ export default class interactivebrokers extends Exchange {
                         'gw/api/v1/accounts/:accountId/status': { 'cost': 1 } as Endpoint<Dict>,
                         'gw/api/v1/accounts/:accountId/tasks': { 'cost': 1 } as Endpoint<Dict>,
                         'gw/api/v1/requests/:requestId/status': { 'cost': 1 } as Endpoint<Dict>,
-                    }
+                    },
                 },
                 'private': {
                     'get': {
@@ -500,9 +500,32 @@ export default class interactivebrokers extends Exchange {
                         'STK': [ 'NYSE' ], // "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,REALNYSE,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,PSX,BYX,ITG,PDQ,IBKRATS,NYSEFLOOR,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,WEDBUSH,SUMMER,WINSLOW,FINRA,LIQITG,UBSDARK,BTIG,VIRTU,JEFF,OPCO,COWEN,DBK,JPMC,EDGX,JANE,NEEDHAM,FRACSHARE,RBCALGO,VIRTUDP,BAYCREST,FOXRIVER,MND,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,TPLUS1,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0, SMART;AMEX;BATS;BOX;CBOE;CBOE2;EDGX;EMERALD;…2;NASDAQBX;NASDAQOM; OTC,IDEAL,IBFX,UBSFX,JPMCFX,DBKFX,CITIFX,BARCFX,RBSFX,RBCFX,BOAFX,HSBCFX,GSFX,IDEALFX,NOMFX,MSFX,BARC2FX,ETFFX,NATIXISFX,NOM2FX,CSFX,DBK2FX,RBS2FX,UBS2FX,BOA2FX,GS2FX,JPMC2FX,RBC2FX,SCBFX,CITADELFX,KNIGHTFX,HSBC2FX,CBKFX,SCB2FX,CBK2FX,NOM3FX,BNPFX,BNP2FX,VIRTUFX,ANZFX,ANZ2FX,XTXFX,FXSETTLE,TDFX,WFFX,CITI2FX,IBCMSCFX,WF2FX,BNYFX,BNY2FX,PEARL;PHLX;PSE;SAPPHIRE
                         // 'CRYPTO': [ 'PAXOS', 'ZEROHASH', 'ZEROHASHE' ],
                     },
+                    'types': [ 'crypto', 'forex', 'swap', 'cfd' ], // add 'stock' to also load the stocks of exchanges.STK
                     'stockAmountIncrement': '1',
                     'forexAmountIncrement': '1',
                     'cryptoAmountIncrement': '0.00000001',
+                    'contractAmountIncrement': '1',
+                    // coinbase derivatives perp-style futures (COINDERIV), IBKR symbol -> unified base, resolved via trsrv/futures
+                    'swapSymbols': {
+                        'BIP': 'BTC', // nano bitcoin, 0.01 BTC
+                        'ETP': 'ETH', // nano ether, 0.1 ETH
+                        'SLP': 'SOL',
+                        'XPP': 'XRP',
+                        'DOP': 'DOGE',
+                        'ADP': 'ADA',
+                        'AVP': 'AVAX',
+                        'LCP': 'LTC',
+                        'LNP': 'LINK',
+                        'HEP': 'HBAR',
+                        'SHP': '1000SHIB',
+                        'BCP': 'BCH',
+                        'POP': 'DOT',
+                        'XLP': 'XLM',
+                        'SUP': 'SUI',
+                        'PEP': '1000PEPE',
+                    },
+                    'swapExchange': 'COINDERIV',
+                    'cfdExchanges': [ 'IBUSCFD', 'IBCFD' ], // us and non-us cfds, on duplicate symbols the first exchange wins
                     'cryptoSymbols': [ 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK' ], // resolved via iserver/secdef/search
                     'forexCurrencies': [ 'USD' ], // fx pairs involving these currencies, via iserver/currency/pairs
                     'defaultMinCost': 1,
@@ -614,6 +637,7 @@ export default class interactivebrokers extends Exchange {
                     '503': OperationFailed, // {"error":"Service Unavailable","statusCode":503}
                 },
                 'broad': {
+                    'insufficient funds in your': InsufficientFunds, // {"error":"Order rejected due to insufficient funds in your Crypto Account. As a Crypto Plus customer, you must first have funds in your Crypto account before purchasing cryptocurrency products.  Please <a href=\"sso://action=TransferFunds&service=AM.LOGIN&webaccess=true?&type=INTERNAL?method=CRYPTO_CASH_TRANSFERS\">transfer funds to your Crypto account</a> to trade this product."}'
                 },
             },
             'commonCurrencies': {},
@@ -829,8 +853,9 @@ export default class interactivebrokers extends Exchange {
     /**
      * @method
      * @name interactivebrokers#fetchMarkets
-     * @description retrieves data on the configured markets: stocks of options.fetchMarkets.stockExchanges, crypto of options.fetchMarkets.cryptoSymbols and fx pairs of options.fetchMarkets.forexCurrencies, the market id is the IBKR conid
+     * @description retrieves data on the market types of options.fetchMarkets.types: stocks of options.fetchMarkets.exchanges.STK, crypto of options.fetchMarkets.cryptoSymbols, fx pairs of options.fetchMarkets.forexCurrencies, coinbase derivatives perp-style futures of options.fetchMarkets.swapSymbols (as swap, e.g. BTC/USD:USD) and cfds of options.fetchMarkets.cfdExchanges (as swap, e.g. AAPL/USD:USD), the market id is the IBKR conid
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-all-conids-by-exchange
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-future-by-symbol
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/search-contract-by-symbol
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-currency-pairs
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-security-definition-by-conid
@@ -839,11 +864,66 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         await this.loadServiceAccounts ();
-        const stockMarketsPromise = new Promise<Market[]> ((resolve) => resolve ([]));//this.fetchStockMarkets (params);
-        const cryptoMarketsPromise = this.fetchCryptoMarkets (params);
-        const fxMarketsPromise = this.fetchForexMarkets (params);
-        const [ stockMarkets, cryptoMarkets, fxMarkets ] = await Promise.all ([ stockMarketsPromise, cryptoMarketsPromise, fxMarketsPromise ]);
-        return this.arraysConcat ([ stockMarkets, cryptoMarkets, fxMarkets ]);
+        const options = this.safeDict (this.options, 'fetchMarkets', {});
+        const types = this.safeList (options, 'types', [ 'crypto', 'forex', 'swap', 'cfd' ]);
+        const promises = [];
+        // the order matters, on symbol collisions the earlier contract keeps the plain symbol
+        if (this.inArray ('stock', types)) {
+            promises.push (this.fetchStockMarkets (params));
+        }
+        if (this.inArray ('crypto', types)) {
+            promises.push (this.fetchCryptoMarkets (params));
+        }
+        if (this.inArray ('forex', types)) {
+            promises.push (this.fetchForexMarkets (params));
+        }
+        if (this.inArray ('swap', types)) {
+            promises.push (this.fetchSwapMarkets (params));
+        }
+        if (this.inArray ('cfd', types)) {
+            promises.push (this.fetchCfdMarkets (params));
+        }
+        const results = await Promise.all (promises);
+        const markets = this.arraysConcat (results);
+        return this.ibkrDisambiguateContractSymbols (markets);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrDisambiguateContractSymbols
+     * @description gives a unique symbol to the contract markets that share a symbol with an earlier market, e.g. the GRAYSCALE BITCOIN MINI ETF CFD (ticker BTC) and the BTC perp-style future both map to BTC/USD:USD, the cfd becomes BTC.IBUSCFD/USD:USD
+     * @ignore
+     * @param {object[]} markets parsed markets
+     * @returns {object[]} the markets with unique symbols
+     */
+    ibkrDisambiguateContractSymbols (markets: Market[]): Market[] {
+        const seen: Dict = {};
+        const result: Market[] = [];
+        for (let i = 0; i < markets.length; i++) {
+            let market: Dict = this.extend ({}, markets[i]);
+            const symbol = this.safeString (market, 'symbol') as string;
+            const isContract = this.safeBool (market, 'contract', false);
+            if ((symbol in seen) && isContract) {
+                const info = this.safeDict (market, 'info', {});
+                const listingExchange = this.safeString (info, 'listingExchange');
+                const marketBase = this.safeString (market, 'base');
+                const quoteAndSettle = '/' + this.safeString (market, 'quote') + ':' + this.safeString (market, 'settle');
+                let base = marketBase + '.' + listingExchange;
+                let newSymbol = base + quoteAndSettle;
+                if (newSymbol in seen) {
+                    base = marketBase + '.' + this.safeString (market, 'id');
+                    newSymbol = base + quoteAndSettle;
+                }
+                market = this.extend (market, {
+                    'symbol': newSymbol,
+                    'base': base,
+                });
+            }
+            const finalSymbol = this.safeString (market, 'symbol') as string;
+            seen[finalSymbol] = true;
+            result.push (market as Market);
+        }
+        return result;
     }
 
     async fetchWithDetails (plainEntries: Dict) {
@@ -971,6 +1051,114 @@ export default class interactivebrokers extends Exchange {
         return this.parseMarkets (detailMarkets);
     }
 
+    /**
+     * @method
+     * @name interactivebrokers#fetchSwapMarkets
+     * @description retrieves the coinbase derivatives perp-style futures (COINDERIV) of options.fetchMarkets.swapSymbols
+     * @ignore
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-future-by-symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchSwapMarkets (params: Dict = {}): Promise<Market[]> {
+        const entries: Dict = {};
+        const options = this.safeDict (this.options, 'fetchMarkets', {});
+        const swapSymbols = this.safeDict (options, 'swapSymbols', {});
+        const symbols = Object.keys (swapSymbols);
+        if (symbols.length === 0) {
+            return [];
+        }
+        const request: Dict = {
+            'symbols': symbols.join (','),
+        };
+        const response = await this.privateGetTrsrvFutures (request);
+        //
+        //     {
+        //         "BIP": [
+        //             {
+        //                 "symbol": "BIP",
+        //                 "conid": 805366677,
+        //                 "underlyingConid": 805366629,
+        //                 "expirationDate": 20301220,
+        //                 "ltd": 20301220,
+        //                 "shortFuturesCutOff": 20301220,
+        //                 "longFuturesCutOff": 20301220
+        //             }
+        //         ]
+        //     }
+        //
+        for (let i = 0; i < symbols.length; i++) {
+            const contracts = this.safeList (response, symbols[i], []);
+            for (let j = 0; j < contracts.length; j++) {
+                const contract = contracts[j];
+                const conid = this.safeString (contract, 'conid');
+                if (conid !== undefined) {
+                    entries[conid] = contract;
+                }
+            }
+        }
+        const swapExchange = this.safeString (options, 'swapExchange', 'COINDERIV');
+        const detailMarkets = await this.fetchWithDetails (entries);
+        const result = [];
+        for (let i = 0; i < detailMarkets.length; i++) {
+            const detail = detailMarkets[i];
+            // the symbols can also match unrelated futures on other exchanges
+            if (this.safeString (detail, 'listingExchange') === swapExchange) {
+                result.push (detail);
+            }
+        }
+        return this.parseMarkets (result);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchCfdMarkets
+     * @description retrieves the cfd contracts listed on options.fetchMarkets.cfdExchanges
+     * @ignore
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-all-conids-by-exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchCfdMarkets (params: Dict = {}): Promise<Market[]> {
+        const entries: Dict = {};
+        const options = this.safeDict (this.options, 'fetchMarkets', {});
+        const cfdExchanges = this.safeList (options, 'cfdExchanges', []);
+        const promises = [];
+        for (let i = 0; i < cfdExchanges.length; i++) {
+            const request: Dict = {
+                'exchange': cfdExchanges[i],
+                'assetClass': 'CFD',
+            };
+            promises.push (this.privateGetTrsrvAllConids (request));
+            //
+            //     [ { "ticker": "AAPL", "conid": 120549942, "exchange": null } ]
+            //
+        }
+        const responses = await Promise.all (promises);
+        for (let i = 0; i < responses.length; i++) {
+            const cfds = responses[i];
+            for (let j = 0; j < cfds.length; j++) {
+                const cfd = cfds[j];
+                const conid = this.safeString (cfd, 'conid');
+                if ((conid !== undefined) && !(conid in entries)) {
+                    entries[conid] = cfd;
+                }
+            }
+        }
+        const detailMarkets = await this.fetchWithDetails (entries);
+        // keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
+        const result = [];
+        for (let i = 0; i < cfdExchanges.length; i++) {
+            for (let j = 0; j < detailMarkets.length; j++) {
+                const detail = detailMarkets[j];
+                if (this.safeString (detail, 'listingExchange') === cfdExchanges[i]) {
+                    result.push (detail);
+                }
+            }
+        }
+        return this.parseMarkets (result);
+    }
+
     async fetchStockMarkets (params: Dict = {}): Promise<Market[]> {
         const entries: Dict = {};
         const options = this.safeDict (this.options, 'fetchMarkets', {});
@@ -1056,12 +1244,20 @@ export default class interactivebrokers extends Exchange {
         //        "ccyPair": "EUR",                           // in Forex
         //    }
         //
+        // perp-style future (FUT): "ticker": "BIP", "assetClass": "FUT", "listingExchange": "COINDERIV", "multiplier": 0.01, "expiry": "20301220", "undConid": 805366629
+        // cfd (CFD): "ticker": "AAPL", "assetClass": "CFD", "listingExchange": "IBUSCFD", "multiplier": 0, "undConid": 265598, "fullName": "APPLE INC CFD"
+        //
         const assetClass = this.safeString (market, 'assetClass');
         const isCrypto = (assetClass === 'CRYPTO');
         const isForex = (assetClass === 'CASH');
         const isStock = (assetClass === 'STK');
+        // coinbase derivatives perp-style futures are listed as FUT with a far (2030) nominal expiry, they are rolled with a funding adjustment, so they are unified as swaps
+        // cfds are undated, cash-settled linear contracts on a stock, etf or index, also unified as swaps
+        const isCfd = (assetClass === 'CFD');
+        const isPerp = (assetClass === 'FUT');
+        const isContract = isCfd || isPerp;
         const id = this.safeString (market, 'conid');
-        const baseTickerId = this.safeString (market, 'ticker') as string; 
+        const baseTickerId = this.safeString (market, 'ticker') as string;
         const quoteId = this.safeString (market, 'currency');
         const quote = this.safeCurrencyCode (quoteId);
         const incrementRules = this.safeList (market, 'incrementRules', []);
@@ -1073,17 +1269,35 @@ export default class interactivebrokers extends Exchange {
             amountPrecision = this.safeString (options, 'cryptoAmountIncrement', '0.00000001');
         } else if (isForex) {
             amountPrecision = this.safeString (options, 'forexAmountIncrement', '1');
+        } else if (isContract) {
+            amountPrecision = this.safeString (options, 'contractAmountIncrement', '1');
         } else {
             amountPrecision = this.safeString (options, 'stockAmountIncrement', '1');
         }
         let base: Str = undefined;
-        if (isStock) {
-            // stock tickers are not currencies, skip commonCurrencies remapping, 'BRK B' -> 'BRK.B'
-            base = baseTickerId.split (' ').join ('.');
+        let contractSize: Str = undefined;
+        if (isPerp) {
+            const swapSymbols = this.safeDict (options, 'swapSymbols', {});
+            base = this.safeString (swapSymbols, baseTickerId, baseTickerId);
+            contractSize = this.safeString (market, 'multiplier'); // 0.01 BTC for BIP
+        } else if (isStock || isCfd) {
+            // stock and cfd tickers are not currencies, skip commonCurrencies remapping, 'BRK B' -> 'BRK.B'
+            const tickerParts = baseTickerId.split (' ');
+            base = tickerParts.join ('.');
+            if (isCfd) {
+                contractSize = '1'; // one cfd is one share or index point, the multiplier is reported as 0 or 1
+            }
         } else {
             base = this.safeCurrencyCode (baseTickerId);
         }
-        const symbol = base + '/' + quote;
+        let symbol = base + '/' + quote;
+        let settleId: Str = undefined;
+        let settle: Str = undefined;
+        if (isContract) {
+            settleId = quoteId;
+            settle = quote;
+            symbol = symbol + ':' + settle;
+        }
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -1091,19 +1305,19 @@ export default class interactivebrokers extends Exchange {
             'quoteId': quoteId,
             'base': base,
             'baseId': baseTickerId,
-            'settle': undefined,
-            'settleId': undefined,
-            'type': 'spot',
-            'spot': true,
+            'settle': settle,
+            'settleId': settleId,
+            'type': isContract ? 'swap' : 'spot',
+            'spot': !isContract,
             'margin': false,
-            'swap': false,
+            'swap': isContract,
             'future': false,
             'option': false,
             'active': true,
-            'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
-            'contractSize': undefined,
+            'contract': isContract,
+            'linear': isContract ? true : undefined,
+            'inverse': isContract ? false : undefined,
+            'contractSize': this.parseNumber (contractSize),
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -1234,7 +1448,8 @@ export default class interactivebrokers extends Exchange {
         if ((value === undefined) || (value === '') || (value === 'N/A')) {
             return undefined;
         }
-        let result = value.split (',').join ('');
+        const valueParts = value.split (',');
+        let result = valueParts.join ('');
         if (result.startsWith ('C') || result.startsWith ('H') || result.startsWith ('+')) {
             result = result.slice (1);
         }
@@ -1312,16 +1527,20 @@ export default class interactivebrokers extends Exchange {
         await this.loadServiceAccounts ();
         const market = this.market (symbol);
         const maxLimit = this.safeInteger (this.safeDict (this.options, 'fetchOHLCV', {}), 'limit', 1000);
-        const requestLimit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        let requestLimit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        const duration = this.parseTimeframe (timeframe);
         const request: Dict = {
             'conid': market['id'],
             'bar': this.safeString (this.timeframes, timeframe, timeframe),
-            'period': this.ibkrPeriod (this.parseTimeframe (timeframe), requestLimit),
         };
         if (since !== undefined) {
-            request['startTime'] = this.ibkrFormatTime (since);
+            // startTime is exclusive, the first returned bar opens strictly after it, so the request starts one bar earlier
+            // and the extra leading bar is removed by filterBySinceLimit in parseOHLCVs
+            request['startTime'] = this.ibkrFormatTime (since - duration * 1000);
             request['direction'] = '1'; // forward from startTime, by default startTime is the end of the range
+            requestLimit = Math.min (requestLimit + 1, maxLimit);
         }
+        request['period'] = this.ibkrPeriod (duration, requestLimit);
         const response = await this.privateGetIserverMarketdataHistory (this.extend (request, params));
         //
         //     {
@@ -1349,7 +1568,13 @@ export default class interactivebrokers extends Exchange {
         } else if (duration < 2592000) {
             return this.numberToString (this.parseToInt (total / 604800)) + 'w';
         }
-        return this.numberToString (this.parseToInt (total / 2592000)) + 'm';
+        // monthly bars, long month periods (e.g. "1000m") are rejected with "Chart data unavailable", so they are expressed in years
+        const months = this.parseToInt (total / 2592000);
+        if (months <= 12) {
+            return this.numberToString (months) + 'm';
+        }
+        const years = Math.min (this.parseToInt ((months + 11) / 12), 15); // 15y is the documented maximum period
+        return this.numberToString (years) + 'y';
     }
 
     ibkrFormatTime (timestamp: int): string {
@@ -1641,12 +1866,7 @@ export default class interactivebrokers extends Exchange {
         //
         //     [ { "order_id": "1370093239", "order_status": "PreSubmitted", "encrypt_message": "1" } ]
         //
-        const order = this.parseOrder (result, market);
-        order['type'] = type;
-        order['side'] = side;
-        order['amount'] = amount;
-        order['price'] = price;
-        return order;
+        return this.parseOrder (result, market);
     }
 
     /**
@@ -1668,7 +1888,7 @@ export default class interactivebrokers extends Exchange {
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const trailingAmount = this.safeString (params, 'trailingAmount');
         const trailingPercent = this.safeString (params, 'trailingPercent');
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'cOID');
+        let clientOrderId = this.safeString2 (params, 'clientOrderId', 'cOID');
         const assetClass = this.safeString (market['info'], 'assetClass');
         const request: Dict = {
             'conid': this.parseToInt (market['id']),
@@ -1713,9 +1933,10 @@ export default class interactivebrokers extends Exchange {
         }
         const timeInForce = this.safeStringUpper2 (params, 'timeInForce', 'tif', defaultTimeInForce);
         request['tif'] = timeInForce;
-        if (clientOrderId !== undefined) {
-            request['cOID'] = clientOrderId;
+        if (clientOrderId === undefined) {
+            clientOrderId = 'ccxt' + this.uuid22 ();
         }
+        request['cOID'] = clientOrderId;
         const query = this.omit (params, [ 'triggerPrice', 'stopPrice', 'trailingAmount', 'trailingPercent', 'clientOrderId', 'cOID', 'timeInForce', 'tif' ]);
         return this.extend (request, query);
     }
@@ -1854,23 +2075,39 @@ export default class interactivebrokers extends Exchange {
         const request: Dict = {
             'orderId': id,
         };
-        const response = await this.privateGetIserverAccountOrderStatusOrderId (this.extend (request, params));
-        //
-        //     {
-        //         "order_id": 1799796559,
-        //         "conid": 265598,
-        //         "side": "BUY",
-        //         "order_status": "Filled",
-        //         "order_type": "MARKET",
-        //         "size": "0.0",
-        //         "total_size": "5.0",
-        //         "cum_fill": "5.0",
-        //         "average_price": "192.26",
-        //         "tif": "DAY",
-        //         "order_time": "231211180049",
-        //         ...
-        //     }
-        //
+        let response: Dict | undefined = undefined;
+        try {
+            response = await this.privateGetIserverAccountOrderStatusOrderId (this.extend (request, params));
+            //
+            //     {
+            //         "order_id": 1799796559,
+            //         "conid": 265598,
+            //         "side": "BUY",
+            //         "order_status": "Filled",
+            //         "order_type": "MARKET",
+            //         "size": "0.0",
+            //         "total_size": "5.0",
+            //         "cum_fill": "5.0",
+            //         "average_price": "192.26",
+            //         "tif": "DAY",
+            //         "order_time": "231211180049",
+            //         ...
+            //     }
+            //
+        } catch (ex) {
+            // handle the exception if needed
+            const message = this.exceptionMessage (ex);
+            // eg:  {"error":"Order 54348392 is not found","statusCode":503}
+            if (message.includes ('is not found')) {
+                const newMessage = 'Order with id ' + id + ' is not found, however it might be just because the time threshold has been passed for that order retrieval. Original message: ' + message;
+                throw new OrderNotFound (newMessage);
+            } else {
+                throw new InvalidOrder (message);
+            }
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' fetchOrder() returned empty response');
+        }
         return this.parseOrder (response, market);
     }
 
@@ -2257,7 +2494,7 @@ export default class interactivebrokers extends Exchange {
             'hedged': undefined,
             'side': side,
             'contracts': this.parseNumber (Precise.stringAbs (contracts)),
-            'contractSize': undefined,
+            'contractSize': this.safeNumber (resolved, 'contractSize'),
             'entryPrice': this.safeNumber2 (position, 'avgPrice', 'avgCost'),
             'markPrice': this.safeNumber2 (position, 'marketPrice', 'mktPrice'),
             'notional': this.safeNumber2 (position, 'marketValue', 'mktValue'),
