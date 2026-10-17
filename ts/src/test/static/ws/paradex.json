@@ -1546,6 +1546,7 @@
                             "entryPrice": 83300.5,
                             "markPrice": null,
                             "notional": 166.6202,
+                            "positionMargin": null,
                             "collateral": null,
                             "unrealizedPnl": -1.25,
                             "side": "long",
@@ -1557,13 +1558,13 @@
                             "hedged": null,
                             "maintenanceMargin": null,
                             "maintenanceMarginPercentage": null,
-                            "initialMargin": null,
-                            "initialMarginPercentage": null,
+                            "initialMargin": 33.32404,
+                            "initialMarginPercentage": 0.2,
                             "leverage": 5,
                             "liquidationPrice": 61000.2,
                             "marginRatio": null,
                             "marginMode": null,
-                            "percentage": null
+                            "percentage": -3.75
                         }
                     ],
                     [
@@ -1594,6 +1595,7 @@
                             "entryPrice": 83300.5,
                             "markPrice": null,
                             "notional": 525.9,
+                            "positionMargin": null,
                             "collateral": null,
                             "unrealizedPnl": -1.25,
                             "side": "short",
@@ -1605,13 +1607,13 @@
                             "hedged": null,
                             "maintenanceMargin": null,
                             "maintenanceMarginPercentage": null,
-                            "initialMargin": null,
-                            "initialMarginPercentage": null,
+                            "initialMargin": 105.18,
+                            "initialMarginPercentage": 0.2,
                             "leverage": 5,
                             "liquidationPrice": 61000.2,
                             "marginRatio": null,
                             "marginMode": null,
-                            "percentage": null
+                            "percentage": -1.18
                         }
                     ],
                     [
@@ -1642,6 +1644,7 @@
                             "entryPrice": 83300.5,
                             "markPrice": null,
                             "notional": 166.6202,
+                            "positionMargin": null,
                             "collateral": null,
                             "unrealizedPnl": -1.25,
                             "side": "long",
@@ -1653,13 +1656,13 @@
                             "hedged": null,
                             "maintenanceMargin": null,
                             "maintenanceMarginPercentage": null,
-                            "initialMargin": null,
-                            "initialMarginPercentage": null,
+                            "initialMargin": 33.32404,
+                            "initialMarginPercentage": 0.2,
                             "leverage": 5,
                             "liquidationPrice": 61000.2,
                             "marginRatio": null,
                             "marginMode": null,
-                            "percentage": null
+                            "percentage": -3.75
                         },
                         {
                             "info": {
@@ -1688,6 +1691,7 @@
                             "entryPrice": 83300.5,
                             "markPrice": null,
                             "notional": 249.93,
+                            "positionMargin": null,
                             "collateral": null,
                             "unrealizedPnl": -1.25,
                             "side": "short",
@@ -1699,13 +1703,13 @@
                             "hedged": null,
                             "maintenanceMargin": null,
                             "maintenanceMarginPercentage": null,
-                            "initialMargin": null,
-                            "initialMarginPercentage": null,
+                            "initialMargin": 49.986,
+                            "initialMarginPercentage": 0.2,
                             "leverage": 5,
                             "liquidationPrice": 61000.2,
                             "marginRatio": null,
                             "marginMode": null,
-                            "percentage": null
+                            "percentage": -2.5
                         }
                     ],
                     [
@@ -1736,6 +1740,7 @@
                             "entryPrice": 83300.5,
                             "markPrice": null,
                             "notional": 0,
+                            "positionMargin": null,
                             "collateral": null,
                             "unrealizedPnl": -1.25,
                             "side": "short",
@@ -1893,6 +1898,7 @@
                         "entryPrice": 64839.96053748,
                         "markPrice": null,
                         "notional": 648.529,
+                        "positionMargin": null,
                         "collateral": null,
                         "unrealizedPnl": -2.39677214,
                         "side": "long",
@@ -1904,13 +1910,13 @@
                         "hedged": null,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
-                        "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "initialMargin": 129.7058,
+                        "initialMarginPercentage": 0.2,
                         "leverage": 5,
                         "liquidationPrice": null,
                         "marginRatio": null,
                         "marginMode": null,
-                        "percentage": null
+                        "percentage": -1.84
                     }
                 ]
             }

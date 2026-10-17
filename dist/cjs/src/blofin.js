@@ -2944,6 +2944,9 @@ class blofin extends blofin$1["default"] {
         if (marketResolved['inverse'] === true) {
             notionalString = Precise["default"].stringDiv(Precise["default"].stringMul(contractsAbs, contractSizeString), markPriceString);
         }
+        else if (notionalString === undefined) {
+            notionalString = Precise["default"].stringMul(Precise["default"].stringMul(contractsAbs, contractSizeString), markPriceString);
+        }
         const notional = this.parseNumber(notionalString);
         const marginMode = this.safeString(position, 'marginMode');
         let initialMarginString = undefined;
@@ -2952,13 +2955,19 @@ class blofin extends blofin$1["default"] {
         const leverageString = this.safeString(position, 'leverage');
         let initialMarginPercentage = undefined;
         let collateralString = undefined;
+        let marginString = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString(position, 'initialMargin');
-            collateralString = Precise["default"].stringAdd(initialMarginString, unrealizedPnlString);
+            collateralString = (unrealizedPnlString !== undefined) ? Precise["default"].stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         }
         else if (marginMode === 'isolated') {
             initialMarginPercentage = Precise["default"].stringDiv('1', leverageString);
-            collateralString = this.safeString(position, 'margin');
+            const isolatedMarginString = this.omitZero(this.safeString2(position, 'margin', 'initialMargin'));
+            if (isolatedMarginString !== undefined) {
+                initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
+                collateralString = (unrealizedPnlString !== undefined) ? Precise["default"].stringAdd(isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
+            }
         }
         const maintenanceMarginString = this.safeString(position, 'maintenanceMargin');
         const maintenanceMargin = this.parseNumber(maintenanceMarginString);
@@ -2971,8 +2980,20 @@ class blofin extends blofin$1["default"] {
             initialMarginString = Precise["default"].stringMul(initialMarginPercentageString, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
-        const maintenanceMarginPercentage = this.parseNumber(Precise["default"].stringDiv(Precise["default"].stringAdd(maintenanceMarginPercentageString, rounder), '1', 4));
-        const liquidationPrice = this.safeNumber(position, 'liquidationPrice');
+        const maintenanceMarginPercentage = (maintenanceMarginPercentageString !== undefined) ? this.parseNumber(Precise["default"].stringDiv(Precise["default"].stringAdd(maintenanceMarginPercentageString, rounder), '1', 4)) : undefined;
+        let liquidationPriceString = this.omitZero(this.safeString(position, 'liquidationPrice'));
+        if ((liquidationPriceString === undefined) && (marginMode === 'isolated') && (initialMarginString !== undefined) && (entryPriceString !== undefined) && (contractsAbs !== undefined) && Precise["default"].stringGt(contractsAbs, '0') && (contractSizeString !== undefined) && (maintenanceMarginPercentage !== undefined)) {
+            const takerFeeRate = this.safeString(marketResolved, 'taker', '0.0006');
+            const mmpWithFee = Precise["default"].stringAdd(this.numberToString(maintenanceMarginPercentage), takerFeeRate);
+            const totalSize = Precise["default"].stringMul(contractsAbs, contractSizeString);
+            const marginPerUnit = Precise["default"].stringDiv(initialMarginString, totalSize);
+            const num = (side === 'long') ? Precise["default"].stringSub(entryPriceString, marginPerUnit) : Precise["default"].stringAdd(entryPriceString, marginPerUnit);
+            const denom = (side === 'long') ? Precise["default"].stringSub('1', mmpWithFee) : Precise["default"].stringAdd('1', mmpWithFee);
+            if ((denom !== undefined) && Precise["default"].stringGt(denom, '0')) {
+                liquidationPriceString = Precise["default"].stringDiv(num, denom);
+            }
+        }
+        const liquidationPrice = ((liquidationPriceString !== undefined) && Precise["default"].stringGt(liquidationPriceString, '0')) ? this.parseNumber(liquidationPriceString) : undefined;
         const percentageString = this.safeString(position, 'unrealizedPnlRatio');
         const percentage = this.parseNumber(Precise["default"].stringMul(percentageString, '100'));
         const timestamp = this.safeInteger(position, 'updateTime');
@@ -3000,6 +3021,7 @@ class blofin extends blofin$1["default"] {
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'positionMargin': this.parseNumber(marginString),
             'collateral': this.parseNumber(collateralString),
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),

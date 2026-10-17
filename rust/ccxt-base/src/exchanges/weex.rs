@@ -4909,6 +4909,17 @@ impl WeexCore {
         let mut notional: Value = self.safe_string_k(position.clone(), "openValue", &[]);
         let mut size: Value = self.safe_string_k(position.clone(), "size", &[]);
         let mut entryPrice: Value = crate::precise::Precise::stringDiv(&notional, &size);
+        let mut unrealizePnl: Value = self.safe_string_k(position.clone(), "unrealizePnl", &[]);
+        let mut isolatedMargin: Value = self.omit_zero(self.safe_string2(position.clone(), Value::Str("isolatedMargin".into()), Value::Str("marginSize".into()), &[]));
+        let mut collateralString: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) && (isolatedMargin != Value::Null) {
+            collateralString = (if (unrealizePnl != Value::Null) { crate::precise::Precise::stringAdd(&isolatedMargin, &unrealizePnl) } else { isolatedMargin.clone() });
+        }
+        let mut initialMarginString: Value = self.omit_zero(self.safe_string2(position.clone(), Value::Str("marginSize".into()), Value::Str("isolatedMargin".into()), &[]));
+        let mut marginString: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) {
+            marginString = isolatedMargin;
+        }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -4916,21 +4927,22 @@ impl WeexCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("contracts".to_string(), self.parse_number(size, &[]));
-        m.insert("contractSize".to_string(), Value::Null);
+        m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
         m.insert("side".to_string(), self.safe_string_lower_k(position.clone(), "side", &[]));
         m.insert("notional".to_string(), self.parse_number(notional, &[]));
         m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizePnl", &[]));
+        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizePnl, &[]));
         m.insert("realizedPnl".to_string(), Value::Null);
-        m.insert("collateral".to_string(), Value::Null);
+        m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
+        m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
         m.insert("entryPrice".to_string(), self.parse_number(entryPrice, &[]));
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidatePrice", &[]));
+        m.insert("liquidationPrice".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "liquidatePrice", &[])), &[]));
         m.insert("marginMode".to_string(), marginMode);
         m.insert("hedged".to_string(), hedged);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "marginSize", &[]));
+        m.insert("initialMargin".to_string(), self.parse_number(initialMarginString, &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(position.clone(), "updatedTime", &[]));

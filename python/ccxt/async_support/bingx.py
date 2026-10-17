@@ -2984,6 +2984,13 @@ class bingx(Exchange, ImplicitAPI):
         marginMode = None
         if isolated is not None:
             marginMode = 'isolated' if isolated else 'cross'
+        initialMarginString = self.safe_string(position, 'initialMargin')
+        unrealizedPnlString = self.safe_string(position, 'unrealizedProfit')
+        collateralString = None
+        if marginMode == 'isolated':
+            collateralString = self.omit_zero(self.safe_string(position, 'margin'))
+            if (collateralString is None) and (initialMarginString is not None):
+                collateralString = Precise.string_add(initialMarginString, unrealizedPnlString) if (unrealizedPnlString is not None) else initialMarginString
         timestamp = self.safe_integer(position, 'openTime')
         return self.safe_position({
             'info': position,
@@ -2993,7 +3000,7 @@ class bingx(Exchange, ImplicitAPI):
             'marginMode': marginMode,
             'liquidationPrice': self.safe_number_omit_zero(position, 'liquidationPrice'),
             'entryPrice': self.safe_number_2(position, 'avgPrice', 'entryPrice'),
-            'unrealizedPnl': self.safe_number(position, 'unrealizedProfit'),
+            'unrealizedPnl': self.parse_number(unrealizedPnlString),
             'realizedPnl': self.safe_number(position, 'realisedProfit'),
             'percentage': None,
             'contracts': self.safe_number(position, 'positionAmt'),
@@ -3007,8 +3014,8 @@ class bingx(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': self.safe_integer(position, 'updateTime'),
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'collateral': None,
-            'initialMargin': self.safe_number(position, 'initialMargin'),
+            'collateral': self.parse_number(collateralString),
+            'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': None,
             'leverage': self.safe_number(position, 'leverage'),
             'marginRatio': None,

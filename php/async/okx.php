@@ -6610,12 +6610,18 @@ class okx extends Exchange {
         $leverageString = $this->safe_string($position, 'lever');
         $initialMarginPercentage = null;
         $collateralString = null;
+        $marginString = null;
         if ($marginMode === 'cross') {
             $initialMarginString = $this->safe_string($position, 'imr');
-            $collateralString = Precise::string_add($initialMarginString, $unrealizedPnlString);
+            $collateralString = ($unrealizedPnlString !== null) ? Precise::string_add($initialMarginString, $unrealizedPnlString) : $initialMarginString;
         } elseif ($marginMode === 'isolated') {
             $initialMarginPercentage = Precise::string_div('1', $leverageString);
-            $collateralString = $this->safe_string($position, 'margin');
+            $isolatedMarginString = $this->omit_zero($this->safe_string($position, 'margin'));
+            if ($isolatedMarginString !== null) {
+                $initialMarginString = $isolatedMarginString;
+                $marginString = $isolatedMarginString;
+                $collateralString = ($unrealizedPnlString !== null) ? Precise::string_add($isolatedMarginString, $unrealizedPnlString) : $isolatedMarginString;
+            }
         }
         $maintenanceMarginString = $this->safe_string($position, 'mmr');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
@@ -6631,8 +6637,29 @@ class okx extends Exchange {
             }
         }
         $rounder = '0.00005'; // round to closest 0.01%
-        $maintenanceMarginPercentage = $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentageString, $rounder), '1', 4));
-        $liquidationPrice = $this->safe_number($position, 'liqPx');
+        $maintenanceMarginPercentage = ($maintenanceMarginPercentageString !== null) ? $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentageString, $rounder), '1', 4)) : null;
+        $liquidationPriceString = $this->omit_zero($this->safe_string($position, 'liqPx'));
+        if (($liquidationPriceString === null) && ($marginMode === 'isolated') && ($initialMarginString !== null) && ($entryPriceString !== null) && ($contractsAbs !== null) && Precise::string_gt($contractsAbs, '0') && ($contractSizeString !== null) && ($maintenanceMarginPercentage !== null)) {
+            $takerFeeRate = $this->safe_string($marketResolved, 'taker', '0.0005');
+            $mmpWithFee = Precise::string_add($this->number_to_string($maintenanceMarginPercentage), $takerFeeRate);
+            $totalSize = Precise::string_mul($contractsAbs, $contractSizeString);
+            if ($marketResolved['inverse'] === true) {
+                $invEntry = Precise::string_div($totalSize, $entryPriceString);
+                $denom = ($side === 'long') ? Precise::string_add($invEntry, $initialMarginString) : Precise::string_sub($invEntry, $initialMarginString);
+                $numFactor = ($side === 'long') ? Precise::string_add('1', $mmpWithFee) : Precise::string_sub('1', $mmpWithFee);
+                if (($denom !== null) && Precise::string_gt($denom, '0')) {
+                    $liquidationPriceString = Precise::string_div(Precise::string_mul($totalSize, $numFactor), $denom);
+                }
+            } else {
+                $marginPerUnit = Precise::string_div($initialMarginString, $totalSize);
+                $num = ($side === 'long') ? Precise::string_sub($entryPriceString, $marginPerUnit) : Precise::string_add($entryPriceString, $marginPerUnit);
+                $denom = ($side === 'long') ? Precise::string_sub('1', $mmpWithFee) : Precise::string_add('1', $mmpWithFee);
+                if (($denom !== null) && Precise::string_gt($denom, '0')) {
+                    $liquidationPriceString = Precise::string_div($num, $denom);
+                }
+            }
+        }
+        $liquidationPrice = (($liquidationPriceString !== null) && Precise::string_gt($liquidationPriceString, '0')) ? $this->parse_number($liquidationPriceString) : null;
         $percentageString = $this->safe_string($position, 'uplRatio');
         $percentage = $this->parse_number(Precise::string_mul($percentageString, '100'));
         $timestamp = $this->safe_integer($position, 'cTime');
@@ -6659,6 +6686,7 @@ class okx extends Exchange {
             'lastUpdateTimestamp' => $this->safe_integer($position, 'uTime'),
             'maintenanceMargin' => $maintenanceMargin,
             'maintenanceMarginPercentage' => $maintenanceMarginPercentage,
+            'positionMargin' => $this->parse_number($marginString),
             'collateral' => $this->parse_number($collateralString),
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),

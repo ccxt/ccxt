@@ -2575,14 +2575,22 @@ impl ZebpayCore {
         let mut leverage: Value = self.safe_number_k(position.clone(), "leverage", &[]);
         let mut datetime: Value = self.safe_string_k(position.clone(), "datetime", &[]);
         let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market]);
-        return Value::Map({
+        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut marginMode: Value = self.safe_string_lower_k(position.clone(), "marginMode", &[Value::Str("isolated".into())]);
+        let mut initialMargin: Value = self.safe_number_k(position.clone(), "initialMargin", &[]);
+        // isolated positions hold exactly the initial margin posted for them
+        let mut positionMargin: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) {
+            positionMargin = initialMargin.clone();
+        }
+        return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
-        m.insert("symbol".to_string(), marketId);
+        m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
+        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone()));
         m.insert("datetime".to_string(), datetime);
-        m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "initialMargin", &[]));
+        m.insert("initialMargin".to_string(), initialMargin);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
@@ -2595,12 +2603,13 @@ impl ZebpayCore {
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidationPrice", &[]));
         m.insert("markPrice".to_string(), Value::Null);
+        m.insert("positionMargin".to_string(), positionMargin);
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), Value::Str("isolated".into()));
-        m.insert("side".to_string(), self.safe_string_k(position, "side", &[]));
+        m.insert("marginMode".to_string(), marginMode);
+        m.insert("side".to_string(), self.safe_string_lower_k(position, "side", &[]));
         m.insert("percentage".to_string(), Value::Null);
     m
-});
+}));
 
     Value::Null
 }

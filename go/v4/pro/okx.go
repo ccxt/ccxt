@@ -514,13 +514,20 @@ func (this *Okx) watchFundingRateBody(ch chan ccxt.AsyncResult[any], symbol stri
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
 	var symbolValue any = this.Symbol(symbol)
 
-	r := <-this.WatchFundingRatesAsync([]any{symbolValue}, params)
-	if r.Err != nil {
-		panic(r.Err)
+	r1 := <-this.WatchFundingRatesAsync([]any{symbolValue}, params)
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
-	var fr map[string]any = ccxt.MapTyped(r.Value)
+	var fr map[string]any = ccxt.MapTyped(r1.Value)
 
 	ch <- ccxt.AsyncResult[any]{Value: ccxt.GetValue(fr, symbolValue)}
 	return nil
@@ -648,16 +655,23 @@ func (this *Okx) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], symbo
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchTicker", "channel", "tickers")
 	ccxt.AddElementToObject(paramsChannel, "channel", channel)
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 
-	r := <-this.WatchTickersAsync([]any{symbolValue}, paramsChannel)
-	if r.Err != nil {
-		panic(r.Err)
+	r1 := <-this.WatchTickersAsync([]any{symbolValue}, paramsChannel)
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
-	var ticker map[string]any = r.Value
+	var ticker map[string]any = r1.Value
 
 	var resolved map[string]any
 	switch resolvedBox := this.SafeValue(ticker, symbolValue).(type) {
@@ -789,16 +803,23 @@ func (this *Okx) watchMarkPriceBody(ch chan ccxt.AsyncResult[any], symbol string
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchMarkPrice", "channel", "mark-price")
 	ccxt.AddElementToObject(paramsChannel, "channel", channel)
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 
-	r := <-this.WatchMarkPricesAsync([]any{symbolValue}, paramsChannel)
-	if r.Err != nil {
-		panic(r.Err)
+	r1 := <-this.WatchMarkPricesAsync([]any{symbolValue}, paramsChannel)
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
-	var ticker map[string]any = ccxt.MapTyped(r.Value)
+	var ticker map[string]any = ccxt.MapTyped(r1.Value)
 
 	ch <- ccxt.AsyncResult[any]{Value: ccxt.GetValue(ticker, symbolValue)}
 	return nil

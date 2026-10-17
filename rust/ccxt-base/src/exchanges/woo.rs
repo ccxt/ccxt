@@ -5775,6 +5775,11 @@ impl WooCore {
         size = crate::precise::Precise::stringAbs(&size);
         let mut notional: Value = crate::precise::Precise::stringMul(&size, &markPrice);
         let mut positionSide: Option<String> = self.safe_string_k(position.clone(), "positionSide", &[]).as_str().map(str::to_owned); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        let mut marginMode: Value = self.safe_string_lower2(position.clone(), Value::Str("marginMode".into()), Value::Str("margin_mode".into()), &[]);
+        let mut positionMargin: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) {
+            positionMargin = self.safe_number2(position.clone(), Value::Str("isolatedMarginAmount".into()), Value::Str("isolated_margin_amount".into()), &[]);
+        }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -5794,11 +5799,12 @@ impl WooCore {
         m.insert("contracts".to_string(), self.parse_number(size, &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize, &[]));
         m.insert("marginRatio".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.safe_number2(position.clone(), Value::Str("estLiqPrice".into()), Value::Str("est_liq_price".into()), &[]));
+        m.insert("liquidationPrice".to_string(), self.safe_number2(position, Value::Str("estLiqPrice".into()), Value::Str("est_liq_price".into()), &[]));
         m.insert("markPrice".to_string(), self.parse_number(markPrice, &[]));
         m.insert("lastPrice".to_string(), Value::Null);
+        m.insert("positionMargin".to_string(), positionMargin);
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), self.safe_string_lower2(position, Value::Str("marginMode".into()), Value::Str("margin_mode".into()), &[]));
+        m.insert("marginMode".to_string(), marginMode);
         m.insert("side".to_string(), side);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Bool(positionSide.as_deref() != Some("BOTH")));

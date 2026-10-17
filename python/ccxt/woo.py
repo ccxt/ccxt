@@ -4099,6 +4099,10 @@ class woo(Exchange, ImplicitAPI):
         size = Precise.string_abs(size)
         notional = Precise.string_mul(size, markPrice)
         positionSide = self.safe_string(position, 'positionSide')  # 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        marginMode = self.safe_string_lower_2(position, 'marginMode', 'margin_mode')
+        positionMargin = None
+        if marginMode == 'isolated':
+            positionMargin = self.safe_number_2(position, 'isolatedMarginAmount', 'isolated_margin_amount')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -4120,8 +4124,9 @@ class woo(Exchange, ImplicitAPI):
             'liquidationPrice': self.safe_number_2(position, 'estLiqPrice', 'est_liq_price'),
             'markPrice': self.parse_number(markPrice),
             'lastPrice': None,
+            'positionMargin': positionMargin,
             'collateral': None,
-            'marginMode': self.safe_string_lower_2(position, 'marginMode', 'margin_mode'),
+            'marginMode': marginMode,
             'side': side,
             'percentage': None,
             'hedged': positionSide != 'BOTH',

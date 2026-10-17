@@ -13483,11 +13483,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Value = self.safe_integer_n(position.clone(), Value::from(vec![Value::Str("cTime".into()), Value::Str("ctime".into()), Value::Str("createdTime".into())]), &[]);
         let mut marginMode: Value = self.safe_string_k(position.clone(), "marginMode", &[]);
         let mut collateral: Value = Value::Null;
+        let mut marginString: Value = Value::Null;
         let mut initialMargin: Value = Value::Null;
         let mut unrealizedPnl: Value = self.safe_string2(position.clone(), Value::Str("unrealizedPL".into()), Value::Str("unrealisedPnl".into()), &[]);
-        let mut rawCollateral: Value = self.safe_string2(position.clone(), Value::Str("marginSize".into()), Value::Str("positionBalance".into()), &[]);
+        let mut rawCollateral: Value = self.omit_zero(self.safe_string2(position.clone(), Value::Str("marginSize".into()), Value::Str("positionBalance".into()), &[]));
         if (marginMode.as_str() == Some("isolated")) {
-            collateral = crate::precise::Precise::stringAdd(&rawCollateral, &unrealizedPnl);
+            collateral = (if (unrealizedPnl != Value::Null) { crate::precise::Precise::stringAdd(&rawCollateral, &unrealizedPnl) } else { rawCollateral.clone() });
+            initialMargin = rawCollateral.clone();
+            marginString = rawCollateral.clone();
         }  else if (marginMode.as_str() == Some("crossed")) {
             marginMode = Value::Str("cross".into());
             initialMargin = rawCollateral.clone();
@@ -13501,11 +13504,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut side: Value = self.safe_string2(position.clone(), Value::Str("holdSide".into()), Value::Str("posSide".into()), &[]);
         let mut leverage: Value = self.safe_string_k(position.clone(), "leverage", &[]);
-        let mut contractSizeNumber: Value = self.safe_number_k(marketResolved, "contractSize", &[]);
+        let mut contractSizeNumber: Value = self.safe_number_k(marketResolved.clone(), "contractSize", &[]);
         let mut contractSize: Value = self.number_to_string(contractSizeNumber.clone());
         let mut baseAmount: Value = self.safe_string2(position.clone(), Value::Str("total".into()), Value::Str("openTotalPos".into()), &[]);
         let mut entryPrice: Value = self.safe_string_n(position.clone(), Value::from(vec![Value::Str("openPriceAvg".into()), Value::Str("openAvgPrice".into()), Value::Str("avgPrice".into())]), &[]);
-        let mut maintenanceMarginPercentage: Value = self.safe_string_k(position.clone(), "keepMarginRate", &[]);
+        let mut maintenanceMarginPercentage: Value = self.safe_string2(position.clone(), Value::Str("keepMarginRate".into()), Value::Str("mmr".into()), &[]);
         let mut openNotional: Value = crate::precise::Precise::stringMul(&entryPrice, &baseAmount);
         if (initialMargin == Value::Null) {
             initialMargin = crate::precise::Precise::stringDiv(&openNotional, &leverage);
@@ -13517,9 +13520,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut markPrice: Value = self.safe_string_k(position.clone(), "markPrice", &[]);
         let mut notional: Value = crate::precise::Precise::stringMul(&baseAmount, &markPrice);
         let mut initialMarginPercentage: Value = crate::precise::Precise::stringDiv(&initialMargin, &notional);
-        let mut liquidationPrice: Value = self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "liquidationPrice", &[])), &[]);
-        let mut calcTakerFeeRate: Value = Value::Str("0.0006".into());
-        let mut calcTakerFeeMult: Value = Value::Str("0.9994".into());
+        let mut rawLiquidationPrice: Value = self.omit_zero(self.safe_string_k(position.clone(), "liquidationPrice", &[]));
+        let mut liquidationPrice: Value = (if ((rawLiquidationPrice != Value::Null) && is_true(&crate::precise::Precise::stringGt(&rawLiquidationPrice, &Value::Str("0".into())))) { self.parse_number(rawLiquidationPrice, &[]) } else { Value::Null });
+        let mut calcTakerFeeRate: Value = self.safe_string_k(marketResolved, "taker", &[Value::Str("0.0006".into())]);
+        let mut calcTakerFeeMult: Value = crate::precise::Precise::stringSub(&Value::Str("1".into()), &calcTakerFeeRate);
         if (liquidationPrice == Value::Null) && (marginMode.as_str() == Some("isolated")) && is_true(&crate::precise::Precise::stringGt(&baseAmount, &Value::Str("0".into()))) {
             let mut signedMargin: Value = crate::precise::Precise::stringDiv(&rawCollateral, &baseAmount);
             let mut signedMmp: Value = maintenanceMarginPercentage.clone();
@@ -13534,7 +13538,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 numerator = crate::precise::Precise::stringMul(&numerator, &calcTakerFeeMult);
             }
-            liquidationPrice = self.parse_number(crate::precise::Precise::stringDiv(&numerator, &mmrMinusOne), &[]);
+            let mut derivedLiq: Value = crate::precise::Precise::stringDiv(&numerator, &mmrMinusOne);
+            if (derivedLiq != Value::Null) && is_true(&crate::precise::Precise::stringGt(&derivedLiq, &Value::Str("0".into()))) {
+                liquidationPrice = self.parse_number(derivedLiq, &[]);
+            }
         }
         let mut feeToClose: Value = crate::precise::Precise::stringMul(&notional, &calcTakerFeeRate);
         let mut maintenanceMargin: Value = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&maintenanceMarginPercentage, &notional), &feeToClose);
@@ -13562,11 +13569,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer2(position.clone(), Value::Str("utime".into()), Value::Str("updatedTime".into()), &[]));
         m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMargin, &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(maintenanceMarginPercentage, &[]));
+        m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
         m.insert("collateral".to_string(), self.parse_number(collateral, &[]));
         m.insert("initialMargin".to_string(), self.parse_number(initialMargin, &[]));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentage, &[]));
         m.insert("leverage".to_string(), self.parse_number(leverage, &[]));
-        m.insert("marginRatio".to_string(), self.safe_number2(position, Value::Str("marginRatio".into()), Value::Str("mmr".into()), &[]));
+        m.insert("marginRatio".to_string(), self.safe_number_k(position, "marginRatio", &[]));
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
     m

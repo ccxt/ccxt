@@ -8781,10 +8781,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut notional: Value = self.safe_string_k(position.clone(), "value", &[]);
-        let mut leverage: Option<String> = self.safe_string_k(position.clone(), "leverage", &[]).as_str().map(str::to_owned);
+        let mut leverage: Value = self.safe_string_k(position.clone(), "leverage", &[]);
         let mut marginMode: Value = Value::Null;
-        if (leverage.is_some()) {
-            if (leverage.as_deref() == Some("0")) {
+        if (leverage != Value::Null) {
+            if (leverage.as_str() == Some("0")) {
                 marginMode = Value::Str("cross".into());
             }  else {
                 marginMode = Value::Str("isolated".into());
@@ -8796,6 +8796,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
         let mut maintenanceMarginString: Value = self.omit_zero(self.safe_string_k(position.clone(), "maintenance_margin", &[]));
+        let mut marketInfo: Value = self.safe_dict_k(marketResolved.clone(), "info", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut takerFeeRate: Value = self.safe_string_k(marketInfo, "taker_fee_rate", &[Value::Str("0.00075".into())]);
+        let mut hasPositiveMarginBalance: bool = (marginBalance == Value::Null) || is_true(&crate::precise::Precise::stringGt(&marginBalance, &Value::Str("0".into())));
+        if (initialMarginString == Value::Null) && hasPositiveMarginBalance && (notional != Value::Null) && (leverage != Value::Null) && is_true(&crate::precise::Precise::stringGt(&leverage, &Value::Str("0".into()))) {
+            let mut closeFee: Value = crate::precise::Precise::stringMul(&notional, &takerFeeRate);
+            initialMarginString = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&notional, &leverage), &closeFee);
+        }
+        let mut liqPriceString: Value = self.omit_zero(self.safe_string_k(position.clone(), "liq_price", &[]));
+        let mut maintenanceRate: Value = self.omit_zero(self.safe_string_k(position.clone(), "maintenance_rate", &[]));
+        if (maintenanceMarginString == Value::Null) && (liqPriceString == Value::Null) && hasPositiveMarginBalance && (notional != Value::Null) && (maintenanceRate != Value::Null) {
+            maintenanceMarginString = crate::precise::Precise::stringMul(&notional, &crate::precise::Precise::stringAdd(&maintenanceRate, &takerFeeRate));
+        }
         // the margin field is the position margin balance, which excludes the unrealized pnl,
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -8828,9 +8843,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&size), &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liq_price", &[]));
+        m.insert("liquidationPrice".to_string(), self.parse_number(liqPriceString, &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(position, "mark_price", &[]));
         m.insert("lastPrice".to_string(), Value::Null);
+        m.insert("positionMargin".to_string(), self.parse_number(marginBalance, &[]));
         m.insert("collateral".to_string(), self.parse_number(collateral, &[]));
         m.insert("marginMode".to_string(), marginMode);
         m.insert("side".to_string(), side);

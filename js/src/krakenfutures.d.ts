@@ -360,32 +360,7 @@ export default class krakenfutures extends Exchange {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
-    parsePosition(position: Dict, market?: Market): {
-        info: Dict;
-        id: Str;
-        symbol: string;
-        timestamp: Int;
-        datetime: Str;
-        initialMargin: undefined;
-        initialMarginPercentage: undefined;
-        maintenanceMargin: undefined;
-        maintenanceMarginPercentage: undefined;
-        entryPrice: number;
-        notional: undefined;
-        leverage: Num;
-        unrealizedPnl: Num;
-        realizedPnl: Num;
-        contracts: number;
-        contractSize: Num;
-        marginRatio: undefined;
-        liquidationPrice: undefined;
-        markPrice: undefined;
-        lastPrice: Num;
-        collateral: undefined;
-        marginMode: string;
-        side: Str;
-        percentage: undefined;
-    };
+    parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
      * @name krakenfutures#fetchLeverageTiers

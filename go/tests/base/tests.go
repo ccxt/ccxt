@@ -2536,6 +2536,96 @@ func (this *testMainClass) AssertStaticRequestOutput(exchange ccxt.ICoreExchange
 	this.AssertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput)
 	return true
 }
+func (this *testMainClass) AssertStaticIsolatedPosition(exchange ccxt.ICoreExchange, entry any) any {
+	if !EvalTruthy(exchange.IsDictionary(entry)) {
+		return true
+	}
+	var marginMode any = ccxt.DerefScalar(exchange.SafeString(entry, "marginMode"))
+	if marginMode != "isolated" {
+		return true
+	}
+	var side any = ccxt.DerefScalar(exchange.SafeString(entry, "side"))
+	var entryPrice *float64 = exchange.SafeNumber(entry, "entryPrice")
+	var liquidationPrice *float64 = exchange.SafeNumber(entry, "liquidationPrice")
+	var contracts *float64 = exchange.SafeNumber(entry, "contracts")
+	var contractSize *float64 = exchange.SafeNumber(entry, "contractSize")
+	var maintenanceMargin *float64 = exchange.SafeNumber(entry, "maintenanceMargin")
+	var collateral *float64 = exchange.SafeNumber(entry, "collateral")
+	var initialMargin *float64 = exchange.SafeNumber(entry, "initialMargin")
+	var unrealizedPnl *float64 = exchange.SafeNumber(entry, "unrealizedPnl")
+	if (entryPrice != nil) && (liquidationPrice != nil) && (*entryPrice > 0) && (*liquidationPrice > 0) {
+		if side == "long" {
+			this.AssertStaticError(IsLessThan(liquidationPrice, entryPrice), "isolated long liquidationPrice should be less than entryPrice", entryPrice, liquidationPrice)
+		} else if side == "short" {
+			this.AssertStaticError((*liquidationPrice > *entryPrice), "isolated short liquidationPrice should be greater than entryPrice", entryPrice, liquidationPrice)
+		}
+	}
+	var entryMargin any = nil
+	if collateral != nil {
+		if (unrealizedPnl != nil) && (collateral != initialMargin && (collateral == nil || initialMargin == nil || *collateral != *initialMargin)) {
+			entryMargin = Subtract(collateral, unrealizedPnl)
+		} else {
+			entryMargin = collateral
+		}
+	} else if initialMargin != nil {
+		entryMargin = initialMargin
+	}
+	if (!IsEqual(entryMargin, nil)) && (entryPrice != nil) && (liquidationPrice != nil) && (contracts != nil) && (contractSize != nil) && (maintenanceMargin != nil) {
+		if (IsGreaterThan(entryMargin, 0)) && (*entryPrice > 0) && (*liquidationPrice > 0) && (*contracts > 0) && (*contractSize > 0) && (*maintenanceMargin > 0) {
+			var symbol any = ccxt.DerefScalar(exchange.SafeString(entry, "symbol"))
+			var market any = func() any {
+				if !IsEqual(symbol, nil) {
+					return exchange.SafeDict(exchange.GetMarkets(), symbol)
+				}
+				return nil
+			}()
+			var isInverse bool = (!IsEqual(market, nil)) && EvalTruthy(exchange.SafeBool(market, "inverse", false))
+			var priceDiff any = 0
+			if isInverse {
+				var invEntry any = Divide(1, entryPrice)
+				var invLiq any = Divide(1, liquidationPrice)
+				priceDiff = func() any {
+					if IsGreaterThan(invEntry, invLiq) {
+						return (Subtract(invEntry, invLiq))
+					}
+					return (Subtract(invLiq, invEntry))
+				}()
+			} else {
+				priceDiff = func() any {
+					if *entryPrice > *liquidationPrice {
+						return (Subtract(entryPrice, liquidationPrice))
+					}
+					return (Subtract(liquidationPrice, entryPrice))
+				}()
+			}
+			var lossFromEntry any = Multiply(Multiply(priceDiff, contracts), contractSize)
+			var calculatedMm any = Subtract(entryMargin, lossFromEntry)
+			this.AssertStaticError(IsGreaterThan(calculatedMm, 0), "isolated position remaining collateral at liquidationPrice should be greater than 0", maintenanceMargin, calculatedMm)
+			var mmDiff any = func() any {
+				if IsGreaterThan(calculatedMm, maintenanceMargin) {
+					return (Subtract(calculatedMm, maintenanceMargin))
+				}
+				return (Subtract(maintenanceMargin, calculatedMm))
+			}()
+			var maxTolerance any = Multiply(entryMargin, 0.05)
+			this.AssertStaticError(IsLessThanOrEqual(mmDiff, maxTolerance), "isolated position maintenanceMargin does not match remaining collateral at liquidationPrice", maintenanceMargin, calculatedMm)
+		}
+	}
+	return true
+}
+func (this *testMainClass) AssertStaticIsolatedPositions(exchange ccxt.ICoreExchange, method any, output any) any {
+	if (method == "fetchPosition") || (method == "fetchPositions") || (method == "fetchPositionsForSymbol") || (method == "fetchPositionsRisk") {
+		if IsArray(output) {
+			var outputLength int = GetArrayLength(output)
+			for i := 0; i < outputLength; i++ {
+				this.AssertStaticIsolatedPosition(exchange, GetValue(output, i))
+			}
+		} else if EvalTruthy(exchange.IsDictionary(output)) {
+			this.AssertStaticIsolatedPosition(exchange, output)
+		}
+	}
+	return true
+}
 func (this *testMainClass) AssertStaticResponseOutput(exchange ccxt.ICoreExchange, skipKeys any, computedResult any, storedResult any) {
 	this.AssertNewAndStoredOutput(exchange, skipKeys, computedResult, storedResult, false)
 }
@@ -2697,9 +2787,11 @@ func (this *testMainClass) testResponseStaticallyBody(ch chan ccxt.AsyncResult[a
 				}
 				unifiedResult := r.Value
 				this.AssertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult)
+				this.AssertStaticIsolatedPositions(mockedExchange, method, expectedResult)
 			} else {
 				var unifiedResultSync any = CallExchangeMethodDynamicallySync(exchange, method, this.SanitizeDataInput(GetValue(data, "input")))
 				this.AssertStaticResponseOutput(mockedExchange, skipKeys, unifiedResultSync, expectedResult)
+				this.AssertStaticIsolatedPositions(mockedExchange, method, expectedResult)
 			}
 			return nil
 		}(this)

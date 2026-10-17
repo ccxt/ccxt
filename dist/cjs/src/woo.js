@@ -4319,6 +4319,11 @@ class woo extends woo$1["default"] {
         size = Precise["default"].stringAbs(size);
         const notional = Precise["default"].stringMul(size, markPrice);
         const positionSide = this.safeString(position, 'positionSide'); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        const marginMode = this.safeStringLower2(position, 'marginMode', 'margin_mode');
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.safeNumber2(position, 'isolatedMarginAmount', 'isolated_margin_amount');
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -4340,8 +4345,9 @@ class woo extends woo$1["default"] {
             'liquidationPrice': this.safeNumber2(position, 'estLiqPrice', 'est_liq_price'),
             'markPrice': this.parseNumber(markPrice),
             'lastPrice': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
-            'marginMode': this.safeStringLower2(position, 'marginMode', 'margin_mode'),
+            'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
             'hedged': positionSide !== 'BOTH',

@@ -719,6 +719,7 @@ export interface Position {
     leverage?: Num;
     unrealizedPnl?: Num;
     realizedPnl?: Num;
+    positionMargin?: Num;
     collateral?: Num;
     entryPrice?: Num;
     markPrice?: Num;

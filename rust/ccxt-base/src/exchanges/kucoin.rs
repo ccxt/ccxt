@@ -14136,6 +14136,25 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         if (crossMode != Value::Null) {
             marginMode = (if (crossMode.as_bool() == Some(true)) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
         }
+        let mut collateralString: Value = self.safe_string_k(position.clone(), "maintMargin", &[]);
+        let mut marginString: Value = Value::Null;
+        if (collateralString == Value::Null) && (marginMode.as_str() == Some("isolated")) {
+            let mut posMargin: Value = self.safe_string_k(position.clone(), "posMargin", &[]);
+            if (posMargin == Value::Null) {
+                let mut posComm: Value = self.safe_string_k(position.clone(), "posComm", &[]);
+                let mut posCross: Value = self.safe_string_k(position.clone(), "posCross", &[]);
+                if (initialMargin != Value::Null) && (posComm != Value::Null) {
+                    posMargin = crate::precise::Precise::stringAdd(&initialMargin, &posComm);
+                    if (posCross != Value::Null) {
+                        posMargin = crate::precise::Precise::stringAdd(&posMargin, &posCross);
+                    }
+                }
+            }
+            if (posMargin != Value::Null) {
+                marginString = posMargin.clone();
+                collateralString = (if (unrealisedPnl != Value::Null) { crate::precise::Precise::stringAdd(&posMargin, &unrealisedPnl) } else { posMargin.clone() });
+            }
+        }
         let mut lastUpdateTimestamp: Value = self.safe_integer_k(position.clone(), "closeTime", &[]);
         if (lastUpdateTimestamp == Value::Null) {
             if (matches!(&position, Value::Dict(__d) if __d.contains_key("closingTime"))) {
@@ -14166,8 +14185,9 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidationPrice", &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "markPrice", &[]));
-        m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "closePrice", &[]));
-        m.insert("collateral".to_string(), self.safe_number_k(position, "maintMargin", &[]));
+        m.insert("lastPrice".to_string(), self.safe_number_k(position, "closePrice", &[]));
+        m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
+        m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
         m.insert("marginMode".to_string(), marginMode);
         m.insert("side".to_string(), side);
         m.insert("percentage".to_string(), Value::Null);

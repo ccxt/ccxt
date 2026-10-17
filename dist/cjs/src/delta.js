@@ -1849,10 +1849,10 @@ class delta extends delta$1["default"] {
         let side = undefined;
         if (sizeString !== undefined) {
             if (Precise["default"].stringGt(sizeString, '0')) {
-                side = 'buy';
+                side = 'long';
             }
             else if (Precise["default"].stringLt(sizeString, '0')) {
-                side = 'sell';
+                side = 'short';
             }
         }
         return this.safePosition({
@@ -1860,7 +1860,7 @@ class delta extends delta$1["default"] {
             'id': undefined,
             'symbol': symbol,
             'notional': undefined,
-            'marginMode': undefined,
+            'marginMode': this.safeString(position, 'margin_mode'),
             'liquidationPrice': this.safeNumber(position, 'liquidation_price'),
             'entryPrice': this.safeNumber(position, 'entry_price'),
             'unrealizedPnl': undefined, // todo - realized_pnl ?
@@ -1874,6 +1874,7 @@ class delta extends delta$1["default"] {
             'datetime': this.iso8601(timestamp),
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
+            'positionMargin': this.safeNumber(position, 'margin'),
             'collateral': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,

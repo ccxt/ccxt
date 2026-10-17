@@ -1735,6 +1735,7 @@ impl MudrexCore {
         m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "closed_price", &[]));
         m.insert("notional".to_string(), notional);
         m.insert("leverage".to_string(), self.safe_integer_k(position.clone(), "leverage", &[]));
+        m.insert("positionMargin".to_string(), self.parse_number(initialMargin.clone(), &[]));
         m.insert("collateral".to_string(), self.parse_number(initialMargin.clone(), &[]));
         m.insert("initialMargin".to_string(), self.parse_number(initialMargin, &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);

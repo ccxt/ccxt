@@ -33,7 +33,7 @@ func (this *BaseExchange) Describe() any {
 			"borrowMargin":                           nil,
 			"cancelAllOrders":                        nil,
 			"cancelAllOrdersWs":                      nil,
-			"cancelOrder":                            true,
+			"cancelOrder":                            nil,
 			"cancelOrderWithClientOrderId":           nil,
 			"cancelOrderWs":                          nil,
 			"cancelOrders":                           nil,
@@ -44,7 +44,7 @@ func (this *BaseExchange) Describe() any {
 			"createDepositAddress":                   nil,
 			"createLimitBuyOrder":                    nil,
 			"createLimitBuyOrderWs":                  nil,
-			"createLimitOrder":                       true,
+			"createLimitOrder":                       nil,
 			"createLimitOrderWs":                     nil,
 			"createLimitSellOrder":                   nil,
 			"createLimitSellOrderWs":                 nil,
@@ -52,15 +52,15 @@ func (this *BaseExchange) Describe() any {
 			"createMarketBuyOrderWs":                 nil,
 			"createMarketBuyOrderWithCost":           nil,
 			"createMarketBuyOrderWithCostWs":         nil,
-			"createMarketOrder":                      true,
-			"createMarketOrderWs":                    true,
+			"createMarketOrder":                      nil,
+			"createMarketOrderWs":                    nil,
 			"createMarketOrderWithCost":              nil,
 			"createMarketOrderWithCostWs":            nil,
 			"createMarketSellOrder":                  nil,
 			"createMarketSellOrderWs":                nil,
 			"createMarketSellOrderWithCost":          nil,
 			"createMarketSellOrderWithCostWs":        nil,
-			"createOrder":                            true,
+			"createOrder":                            nil,
 			"createOrderWs":                          nil,
 			"createOrders":                           nil,
 			"createOrderWithTakeProfitAndStopLoss":   nil,
@@ -92,7 +92,7 @@ func (this *BaseExchange) Describe() any {
 			"editOrderWs":                            nil,
 			"fetchAccounts":                          nil,
 			"fetchADLRank":                           nil,
-			"fetchBalance":                           true,
+			"fetchBalance":                           nil,
 			"fetchBalanceWs":                         nil,
 			"fetchBidsAsks":                          nil,
 			"fetchBorrowInterest":                    nil,
@@ -135,7 +135,7 @@ func (this *BaseExchange) Describe() any {
 			"fetchIsolatedBorrowRates":               nil,
 			"fetchMarginAdjustmentHistory":           nil,
 			"fetchIsolatedPositions":                 nil,
-			"fetchL2OrderBook":                       true,
+			"fetchL2OrderBook":                       nil,
 			"fetchL3OrderBook":                       nil,
 			"fetchLastPrices":                        nil,
 			"fetchLedger":                            nil,
@@ -168,7 +168,7 @@ func (this *BaseExchange) Describe() any {
 			"fetchOptionChain":                       nil,
 			"fetchOrder":                             nil,
 			"fetchOrderWithClientOrderId":            nil,
-			"fetchOrderBook":                         true,
+			"fetchOrderBook":                         nil,
 			"fetchOrderBooks":                        nil,
 			"fetchOrderBookWs":                       nil,
 			"fetchOrders":                            nil,
@@ -191,13 +191,13 @@ func (this *BaseExchange) Describe() any {
 			"fetchPremiumIndexOHLCV":                 nil,
 			"fetchSettlementHistory":                 nil,
 			"fetchStatus":                            nil,
-			"fetchTicker":                            true,
+			"fetchTicker":                            "emulated",
 			"fetchTickerWs":                          nil,
 			"fetchTickers":                           nil,
 			"fetchMarkPrices":                        nil,
 			"fetchTickersWs":                         nil,
 			"fetchTime":                              nil,
-			"fetchTrades":                            true,
+			"fetchTrades":                            nil,
 			"fetchTradesWs":                          nil,
 			"fetchTradingFee":                        nil,
 			"fetchTradingFees":                       nil,
@@ -1882,6 +1882,7 @@ func (this *BaseExchange) AfterConstruct(optionalArgs ...any) {
 	var networkIdsToCodesGenerated any = this.InvertFlatStringDictionary(this.SafeValue(this.Options, "networks", map[string]any{}))
 	this.Options.Store("networksById", this.Extend(networkIdsToCodesGenerated, this.SafeValue(this.Options, "networksById", map[string]any{})))
 	this.FeaturesGenerator()
+	this.HasAutocorrect()
 	// init predefined markets if any
 	if this.Markets != nil {
 		this.SetMarkets(this.Markets)
@@ -1896,6 +1897,31 @@ func (this *BaseExchange) AfterConstruct(optionalArgs ...any) {
 	// compatibility for sandbox/testnet options in userConfig
 	if (this.SafeBool(userConfig, "sandbox", false) != nil && *this.SafeBool(userConfig, "sandbox", false)) || (this.SafeBool(userConfig, "testnet", false) != nil && *this.SafeBool(userConfig, "testnet", false)) {
 		this.DerivedExchange.SetSandboxMode(true)
+	}
+}
+func (this *BaseExchange) HasAutocorrect() {
+	var fallbacks map[string]any = map[string]any{
+		"fetchL2OrderBook":    "fetchOrderBook",
+		"createLimitOrder":    "createOrder",
+		"createMarketOrder":   "createOrder",
+		"createLimitOrderWs":  "createOrderWs",
+		"createMarketOrderWs": "createOrderWs",
+	}
+	var targets []string = nil
+	if fallbacks != nil {
+		targets = make([]string, 0, len(fallbacks))
+		for objectKey := range fallbacks {
+			targets = append(targets, objectKey)
+		}
+	}
+	for i := 0; i < len(targets); i++ {
+		var target string = targets[i]
+		var source any = fallbacks[target]
+		var sourceDefined bool = (InOp(this.Has, source)) && (!IsEqual(GetValue(this.Has, source), nil))
+		var targetDefined bool = (InOp(this.Has, target)) && (!IsEqual(this.Has[target], nil))
+		if sourceDefined && !targetDefined {
+			this.Has[target] = GetValue(this.Has, source)
+		}
 	}
 }
 func (this *BaseExchange) InitRestRateLimiter() {
@@ -4308,17 +4334,6 @@ func (this *BaseExchange) loadTradingLimitsBody(ch chan AsyncResult[any], option
 }
 func (this *BaseExchange) SafePosition(position any) any {
 	// simplified version of: /pull/12765/
-	var unrealizedPnlString *string = this.SafeString(position, "unrealizedPnl")
-	var initialMarginString *string = this.SafeString(position, "initialMargin")
-	//
-	// PERCENTAGE
-	//
-	var percentage any = this.SafeValue(position, "percentage")
-	if (IsEqual(percentage, nil)) && (unrealizedPnlString != nil) && (initialMarginString != nil) {
-		// as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
-		var percentageString *string = Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100")
-		AddElementToObject(position, "percentage", this.ParseNumber(percentageString))
-	}
 	// if contractSize is undefined get from market
 	var contractSize *float64 = this.SafeNumber(position, "contractSize")
 	var symbol *string = this.SafeString(position, "symbol")
@@ -4329,6 +4344,339 @@ func (this *BaseExchange) SafePosition(position any) any {
 	if (contractSize == nil) && !IsEqual(market, nil) {
 		contractSize = this.SafeNumber(market, "contractSize")
 		AddElementToObject(position, "contractSize", contractSize)
+	}
+	var isInverse bool = (!IsEqual(market, nil)) && (this.SafeBool(market, "inverse", false) != nil && *this.SafeBool(market, "inverse", false))
+	var side *string = this.SafeString(position, "side")
+	var marginMode *string = this.SafeString(position, "marginMode")
+	var unrealizedPnlString *string = this.SafeString(position, "unrealizedPnl")
+	var initialMarginString *string = this.SafeString(position, "initialMargin")
+	var maintenanceMarginString *string = this.SafeString(position, "maintenanceMargin")
+	var collateralString any = this.SafeString(position, "collateral")
+	var entryPriceString any = this.SafeString(position, "entryPrice")
+	var liquidationPriceString any = this.SafeString(position, "liquidationPrice")
+	var contractsString any = this.SafeString(position, "contracts")
+	var contractSizeString any = this.SafeString(position, "contractSize")
+	// margin is the amount held in the position (excludes unrealized pnl), collateral = margin + unrealizedPnl
+	var marginString any = this.SafeString(position, "positionMargin")
+	if (IsEqual(marginString, nil)) && (marginMode != nil && *marginMode == "isolated") && (!IsEqual(collateralString, nil)) {
+		var derivedMargin any = collateralString
+		if (unrealizedPnlString != nil) && !Precise.StringEq(collateralString, initialMarginString) {
+			derivedMargin = Precise.StringSub(collateralString, unrealizedPnlString)
+		}
+		if Precise.StringGt(derivedMargin, "0") {
+			marginString = derivedMargin
+			AddElementToObject(position, "positionMargin", this.ParseNumber(derivedMargin))
+		}
+	}
+	if IsEqual(marginString, nil) {
+		AddElementToObject(position, "positionMargin", nil) // keep the unified key present across all exchanges
+	}
+	if (IsEqual(collateralString, nil)) && (!IsEqual(marginString, nil)) && (unrealizedPnlString != nil) {
+		collateralString = Precise.StringAdd(marginString, unrealizedPnlString)
+		AddElementToObject(position, "collateral", this.ParseNumber(collateralString))
+	}
+	if marginMode != nil && *marginMode == "isolated" {
+		var entryMarginString any = marginString
+		if (IsEqual(entryMarginString, nil)) && (IsEqual(collateralString, nil)) {
+			entryMarginString = initialMarginString
+		}
+		var hasEntryMargin bool = (!IsEqual(entryMarginString, nil)) && Precise.StringGt(entryMarginString, "0")
+		var hasEntryPrice bool = (!IsEqual(entryPriceString, nil)) && Precise.StringGt(entryPriceString, "0")
+		var hasLiqPrice bool = (!IsEqual(liquidationPriceString, nil)) && Precise.StringGt(liquidationPriceString, "0")
+		var hasContracts bool = (!IsEqual(contractsString, nil)) && Precise.StringGt(contractsString, "0")
+		var hasContractSize bool = (!IsEqual(contractSizeString, nil)) && Precise.StringGt(contractSizeString, "0")
+		var hasMm bool = (maintenanceMarginString != nil) && Precise.StringGt(maintenanceMarginString, "0")
+		var priceDiff *string = nil
+		if hasEntryPrice && hasLiqPrice {
+			if isInverse {
+				var invEntry *string = Precise.StringDiv("1", entryPriceString)
+				var invLiq *string = Precise.StringDiv("1", liquidationPriceString)
+				if side != nil && *side == "long" {
+					priceDiff = Precise.StringSub(invLiq, invEntry)
+				} else if side != nil && *side == "short" {
+					priceDiff = Precise.StringSub(invEntry, invLiq)
+				} else {
+					priceDiff = Precise.StringAbs(Precise.StringSub(invEntry, invLiq))
+				}
+			} else {
+				if side != nil && *side == "long" {
+					priceDiff = Precise.StringSub(entryPriceString, liquidationPriceString)
+				} else if side != nil && *side == "short" {
+					priceDiff = Precise.StringSub(liquidationPriceString, entryPriceString)
+				} else {
+					priceDiff = Precise.StringAbs(Precise.StringSub(entryPriceString, liquidationPriceString))
+				}
+			}
+		}
+		var hasPriceDiff bool = (priceDiff != nil) && Precise.StringGt(priceDiff, "0")
+		if (maintenanceMarginString == nil) && hasEntryMargin && hasPriceDiff && hasContracts && hasContractSize {
+			var lossFromEntry *string = Precise.StringMul(priceDiff, Precise.StringMul(contractsString, contractSizeString))
+			var derivedMm *string = Precise.StringSub(entryMarginString, lossFromEntry)
+			if Precise.StringGt(derivedMm, "0") {
+				maintenanceMarginString = derivedMm
+				AddElementToObject(position, "maintenanceMargin", this.ParseNumber(derivedMm))
+			}
+		} else if (IsEqual(collateralString, nil)) && (initialMarginString == nil) && hasMm && hasPriceDiff && hasContracts && hasContractSize {
+			var lossFromEntry *string = Precise.StringMul(priceDiff, Precise.StringMul(contractsString, contractSizeString))
+			var derivedEntryMargin *string = Precise.StringAdd(maintenanceMarginString, lossFromEntry)
+			if Precise.StringGt(derivedEntryMargin, "0") {
+				initialMarginString = derivedEntryMargin
+				AddElementToObject(position, "initialMargin", this.ParseNumber(derivedEntryMargin))
+				marginString = derivedEntryMargin
+				AddElementToObject(position, "positionMargin", this.ParseNumber(derivedEntryMargin))
+				var derivedCollateral any = func() any {
+					if unrealizedPnlString != nil {
+						return Precise.StringAdd(derivedEntryMargin, unrealizedPnlString)
+					}
+					return derivedEntryMargin
+				}()
+				if Precise.StringGt(derivedCollateral, "0") {
+					collateralString = derivedCollateral
+					AddElementToObject(position, "collateral", this.ParseNumber(derivedCollateral))
+				}
+			}
+		} else if (IsEqual(liquidationPriceString, nil)) && hasEntryMargin && hasMm && hasEntryPrice && hasContracts && hasContractSize && ((side != nil && *side == "long") || (side != nil && *side == "short")) {
+			var marginBuffer *string = Precise.StringSub(entryMarginString, maintenanceMarginString)
+			var totalSize *string = Precise.StringMul(contractsString, contractSizeString)
+			if Precise.StringGt(marginBuffer, "0") && Precise.StringGt(totalSize, "0") {
+				var bufferPerUnit *string = Precise.StringDiv(marginBuffer, totalSize)
+				var derivedLp any = nil
+				if isInverse {
+					var invEntry *string = Precise.StringDiv("1", entryPriceString)
+					var invLp *string = func() *string {
+						if side != nil && *side == "long" {
+							return Precise.StringAdd(invEntry, bufferPerUnit)
+						}
+						return Precise.StringSub(invEntry, bufferPerUnit)
+					}()
+					if Precise.StringGt(invLp, "0") {
+						derivedLp = Precise.StringDiv("1", invLp)
+					}
+				} else {
+					derivedLp = func() any {
+						if side != nil && *side == "long" {
+							return Precise.StringSub(entryPriceString, bufferPerUnit)
+						}
+						return Precise.StringAdd(entryPriceString, bufferPerUnit)
+					}()
+				}
+				if (derivedLp != nil) && Precise.StringGt(derivedLp, "0") {
+					liquidationPriceString = derivedLp
+					AddElementToObject(position, "liquidationPrice", this.ParseNumber(derivedLp))
+				}
+			}
+		} else if (IsEqual(entryPriceString, nil)) && hasEntryMargin && hasMm && hasLiqPrice && hasContracts && hasContractSize && ((side != nil && *side == "long") || (side != nil && *side == "short")) {
+			var marginBuffer *string = Precise.StringSub(entryMarginString, maintenanceMarginString)
+			var totalSize *string = Precise.StringMul(contractsString, contractSizeString)
+			if Precise.StringGt(marginBuffer, "0") && Precise.StringGt(totalSize, "0") {
+				var bufferPerUnit *string = Precise.StringDiv(marginBuffer, totalSize)
+				var derivedEp any = nil
+				if isInverse {
+					var invLp *string = Precise.StringDiv("1", liquidationPriceString)
+					var invEp *string = func() *string {
+						if side != nil && *side == "long" {
+							return Precise.StringSub(invLp, bufferPerUnit)
+						}
+						return Precise.StringAdd(invLp, bufferPerUnit)
+					}()
+					if Precise.StringGt(invEp, "0") {
+						derivedEp = Precise.StringDiv("1", invEp)
+					}
+				} else {
+					derivedEp = func() any {
+						if side != nil && *side == "long" {
+							return Precise.StringAdd(liquidationPriceString, bufferPerUnit)
+						}
+						return Precise.StringSub(liquidationPriceString, bufferPerUnit)
+					}()
+				}
+				if (derivedEp != nil) && Precise.StringGt(derivedEp, "0") {
+					entryPriceString = derivedEp
+					AddElementToObject(position, "entryPrice", this.ParseNumber(derivedEp))
+				}
+			}
+		} else if (IsEqual(contractsString, nil)) && hasEntryMargin && hasMm && hasPriceDiff && hasContractSize {
+			var marginBuffer *string = Precise.StringSub(entryMarginString, maintenanceMarginString)
+			var denom *string = Precise.StringMul(priceDiff, contractSizeString)
+			if Precise.StringGt(marginBuffer, "0") && Precise.StringGt(denom, "0") {
+				var derivedContracts *string = Precise.StringDiv(marginBuffer, denom)
+				if Precise.StringGt(derivedContracts, "0") {
+					contractsString = derivedContracts
+					AddElementToObject(position, "contracts", this.ParseNumber(derivedContracts))
+				}
+			}
+		} else if (IsEqual(contractSizeString, nil)) && hasEntryMargin && hasMm && hasPriceDiff && hasContracts {
+			var marginBuffer *string = Precise.StringSub(entryMarginString, maintenanceMarginString)
+			var denom *string = Precise.StringMul(priceDiff, contractsString)
+			if Precise.StringGt(marginBuffer, "0") && Precise.StringGt(denom, "0") {
+				var derivedContractSize *string = Precise.StringDiv(marginBuffer, denom)
+				if Precise.StringGt(derivedContractSize, "0") {
+					contractSizeString = derivedContractSize
+					AddElementToObject(position, "contractSize", this.ParseNumber(derivedContractSize))
+				}
+			}
+		}
+	}
+	//
+	// POSITION-LOCAL DERIVATIONS (CROSS & ISOLATED)
+	//
+	var isZeroPosition bool = (!IsEqual(contractsString, nil)) && Precise.StringEq(contractsString, "0")
+	if !isZeroPosition {
+		var notionalString any = this.SafeString(position, "notional")
+		var markPriceString any = this.SafeString(position, "markPrice")
+		var lastPriceString *string = this.SafeString(position, "lastPrice")
+		var hasContracts bool = (!IsEqual(contractsString, nil)) && Precise.StringGt(contractsString, "0")
+		var hasContractSize bool = (!IsEqual(contractSizeString, nil)) && Precise.StringGt(contractSizeString, "0")
+		var hasMarkPrice bool = (!IsEqual(markPriceString, nil)) && Precise.StringGt(markPriceString, "0")
+		var hasNotional bool = (!IsEqual(notionalString, nil)) && Precise.StringGt(notionalString, "0")
+		// 1. notional <-> markPrice / contracts / contractSize
+		if (IsEqual(notionalString, nil)) && hasMarkPrice && hasContracts && hasContractSize {
+			var totalSize *string = Precise.StringMul(contractsString, contractSizeString)
+			var derivedNotional any = func() any {
+				if isInverse {
+					return Precise.StringDiv(totalSize, markPriceString)
+				}
+				return Precise.StringMul(totalSize, markPriceString)
+			}()
+			if Precise.StringGt(derivedNotional, "0") {
+				notionalString = derivedNotional
+				AddElementToObject(position, "notional", this.ParseNumber(derivedNotional))
+			}
+		} else if (IsEqual(markPriceString, nil)) && (IsEqual(entryPriceString, nil)) && (lastPriceString == nil) && hasNotional && hasContracts && hasContractSize {
+			var totalSize *string = Precise.StringMul(contractsString, contractSizeString)
+			var derivedMark any = func() any {
+				if isInverse {
+					return Precise.StringDiv(totalSize, notionalString)
+				}
+				return Precise.StringDiv(notionalString, totalSize)
+			}()
+			if Precise.StringGt(derivedMark, "0") {
+				markPriceString = derivedMark
+				AddElementToObject(position, "markPrice", this.ParseNumber(derivedMark))
+			}
+		} else if (IsEqual(contractsString, nil)) && hasNotional && hasMarkPrice && hasContractSize {
+			var derivedContracts any = func() any {
+				if isInverse {
+					return Precise.StringDiv(Precise.StringMul(notionalString, markPriceString), contractSizeString)
+				}
+				return Precise.StringDiv(notionalString, Precise.StringMul(markPriceString, contractSizeString))
+			}()
+			if Precise.StringGt(derivedContracts, "0") {
+				contractsString = derivedContracts
+				AddElementToObject(position, "contracts", this.ParseNumber(derivedContracts))
+			}
+		} else if (IsEqual(contractSizeString, nil)) && hasNotional && hasMarkPrice && hasContracts {
+			var derivedContractSize any = func() any {
+				if isInverse {
+					return Precise.StringDiv(Precise.StringMul(notionalString, markPriceString), contractsString)
+				}
+				return Precise.StringDiv(notionalString, Precise.StringMul(markPriceString, contractsString))
+			}()
+			if Precise.StringGt(derivedContractSize, "0") {
+				contractSizeString = derivedContractSize
+				AddElementToObject(position, "contractSize", this.ParseNumber(derivedContractSize))
+			}
+		}
+		// 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
+		if (unrealizedPnlString == nil) && (!IsEqual(entryPriceString, nil)) && (!IsEqual(markPriceString, nil)) && (!IsEqual(contractsString, nil)) && (!IsEqual(contractSizeString, nil)) {
+			if Precise.StringGt(entryPriceString, "0") && Precise.StringGt(markPriceString, "0") && Precise.StringGt(contractsString, "0") && Precise.StringGt(contractSizeString, "0") {
+				var totalSize *string = Precise.StringMul(contractsString, contractSizeString)
+				var pnlDiff *string = nil
+				if isInverse {
+					var invEntry *string = Precise.StringDiv("1", entryPriceString)
+					var invMark *string = Precise.StringDiv("1", markPriceString)
+					if side != nil && *side == "long" {
+						pnlDiff = Precise.StringSub(invEntry, invMark)
+					} else if side != nil && *side == "short" {
+						pnlDiff = Precise.StringSub(invMark, invEntry)
+					}
+				} else {
+					if side != nil && *side == "long" {
+						pnlDiff = Precise.StringSub(markPriceString, entryPriceString)
+					} else if side != nil && *side == "short" {
+						pnlDiff = Precise.StringSub(entryPriceString, markPriceString)
+					}
+				}
+				if pnlDiff != nil {
+					var candidateUpnl *string = Precise.StringMul(pnlDiff, totalSize)
+					if Precise.StringEq(candidateUpnl, "0") || Precise.StringGe(Precise.StringAbs(candidateUpnl), "0.000001") {
+						unrealizedPnlString = candidateUpnl
+						AddElementToObject(position, "unrealizedPnl", this.ParseNumber(unrealizedPnlString))
+					}
+				}
+			}
+		}
+		// 3. initialMargin <-> initialMarginPercentage <-> leverage / notional
+		var hasValidNotional bool = (!IsEqual(notionalString, nil)) && Precise.StringGt(notionalString, "0")
+		var hasNegativeCollateral bool = (!IsEqual(collateralString, nil)) && Precise.StringLt(collateralString, "0")
+		var initialMarginPercentageString *string = this.SafeString(position, "initialMarginPercentage")
+		var leverageString *string = this.SafeString(position, "leverage")
+		var hasLeverage bool = (leverageString != nil) && Precise.StringGt(leverageString, "0")
+		var hasInitialMargin bool = (initialMarginString != nil) && Precise.StringGt(initialMarginString, "0")
+		var hadInitialMargin bool = (initialMarginString != nil)
+		if (initialMarginPercentageString == nil) && !hasNegativeCollateral && (hasInitialMargin || !hadInitialMargin) {
+			if hasInitialMargin && hasValidNotional {
+				initialMarginPercentageString = Precise.StringDiv(initialMarginString, notionalString)
+			} else if hasLeverage {
+				initialMarginPercentageString = Precise.StringDiv("1", leverageString)
+			}
+			if (initialMarginPercentageString != nil) && Precise.StringGt(initialMarginPercentageString, "0") {
+				AddElementToObject(position, "initialMarginPercentage", this.ParseNumber(initialMarginPercentageString))
+			}
+		}
+		var hasImp bool = (initialMarginPercentageString != nil) && Precise.StringGt(initialMarginPercentageString, "0")
+		if (initialMarginString == nil) && !hasNegativeCollateral && hasValidNotional {
+			if hasLeverage {
+				initialMarginString = Precise.StringDiv(notionalString, leverageString)
+			} else if hasImp {
+				initialMarginString = Precise.StringMul(notionalString, initialMarginPercentageString)
+			}
+			if (initialMarginString != nil) && Precise.StringGt(initialMarginString, "0") {
+				AddElementToObject(position, "initialMargin", this.ParseNumber(initialMarginString))
+			}
+		}
+		if (leverageString == nil) && !hadInitialMargin && hasImp {
+			var derivedLeverage *string = Precise.StringDiv("1", initialMarginPercentageString)
+			if Precise.StringGt(derivedLeverage, "0") && Precise.StringLe(derivedLeverage, "200") {
+				AddElementToObject(position, "leverage", this.ParseNumber(derivedLeverage))
+			}
+		}
+		// 4. maintenanceMargin <-> maintenanceMarginPercentage / notional
+		var maintenanceMarginPercentageString *string = this.SafeString(position, "maintenanceMarginPercentage")
+		var hasValidMm bool = (maintenanceMarginString != nil) && Precise.StringGt(maintenanceMarginString, "0")
+		var hasValidMmp bool = (maintenanceMarginPercentageString != nil) && Precise.StringGt(maintenanceMarginPercentageString, "0")
+		if (maintenanceMarginString == nil) && hasValidNotional && hasValidMmp {
+			var derivedMm *string = Precise.StringMul(notionalString, maintenanceMarginPercentageString)
+			if Precise.StringGt(derivedMm, "0") {
+				maintenanceMarginString = derivedMm
+				AddElementToObject(position, "maintenanceMargin", this.ParseNumber(derivedMm))
+			}
+		} else if (maintenanceMarginPercentageString == nil) && hasValidNotional && hasValidMm {
+			var derivedMmp *string = Precise.StringDiv(maintenanceMarginString, notionalString)
+			if Precise.StringGt(derivedMmp, "0") {
+				maintenanceMarginPercentageString = derivedMmp
+				AddElementToObject(position, "maintenanceMarginPercentage", this.ParseNumber(derivedMmp))
+			}
+		}
+		// 5. marginRatio = maintenanceMargin / collateral
+		var marginRatio any = this.SafeValue(position, "marginRatio")
+		if (IsEqual(marginRatio, nil)) && (maintenanceMarginString != nil) && (!IsEqual(collateralString, nil)) {
+			if Precise.StringGt(maintenanceMarginString, "0") && Precise.StringGt(collateralString, "0") {
+				var derivedMarginRatio *string = Precise.StringDiv(maintenanceMarginString, collateralString, 4)
+				if (derivedMarginRatio != nil) && Precise.StringGt(derivedMarginRatio, "0") {
+					AddElementToObject(position, "marginRatio", this.ParseNumber(derivedMarginRatio))
+				}
+			}
+		}
+	}
+	//
+	// PERCENTAGE
+	//
+	var percentage any = this.SafeValue(position, "percentage")
+	if (IsEqual(percentage, nil)) && (unrealizedPnlString != nil) && (initialMarginString != nil) {
+		// as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+		var percentageString *string = Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100")
+		AddElementToObject(position, "percentage", this.ParseNumber(percentageString))
 	}
 	return position
 }
@@ -5438,11 +5786,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan EndpointResult[map[str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes670415 map[string]any = MapTyped(r.Value)
-	if retRes670415 == nil {
+	var retRes700215 map[string]any = MapTyped(r.Value)
+	if retRes700215 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes670415, Raw: retRes670415}
+		ch <- EndpointResult[map[string]any]{Value: retRes700215, Raw: retRes700215}
 	}
 	return nil
 }
@@ -11467,12 +11815,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan EndpointResult[
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv10988, _ := r.Value.([]any)
-	var retRes1013115 []any = listRecv10988
-	if retRes1013115 == nil {
+	listRecv11336, _ := r.Value.([]any)
+	var retRes1042915 []any = listRecv11336
+	if retRes1042915 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- EndpointResult[[]any]{Value: retRes1013115, Raw: retRes1013115}
+		ch <- EndpointResult[[]any]{Value: retRes1042915, Raw: retRes1042915}
 	}
 	return nil
 }

@@ -3530,13 +3530,19 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if is_true(&isLong) {
             side = Value::Str("long".into());
         }
+        // isolated_balance is the wallet balance reserved for the isolated position
+        let mut marginMode: Value = self.safe_string_lower_k(position.clone(), "margin_type", &[]);
+        let mut positionMargin: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) {
+            positionMargin = self.safe_number_k(position.clone(), "isolated_balance", &[]);
+        }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market]));
         m.insert("notional".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "notional", &[])), &[]));
-        m.insert("marginMode".to_string(), Value::Null);
+        m.insert("marginMode".to_string(), marginMode);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "est_liquidation_price", &[]));
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "entry_price", &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealized_pnl", &[]));
@@ -3550,10 +3556,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(position.clone(), "lastUpdateTime", &[]));
-        m.insert("maintenanceMargin".to_string(), self.safe_number_k(position.clone(), "maintenanceMargin", &[]));
+        m.insert("maintenanceMargin".to_string(), self.safe_number2(position.clone(), Value::Str("isolated_mm".into()), Value::Str("maintenanceMargin".into()), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
+        m.insert("positionMargin".to_string(), positionMargin);
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "initialMargin", &[]));
+        m.insert("initialMargin".to_string(), self.safe_number2(position.clone(), Value::Str("isolated_im".into()), Value::Str("initialMargin".into()), &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.safe_number_k(position, "leverage", &[]));
         m.insert("marginRatio".to_string(), Value::Null);

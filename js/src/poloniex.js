@@ -3813,9 +3813,13 @@ export default class poloniex extends Exchange {
         const leverage = this.safeString(position, 'lever');
         const initialMargin = this.safeString(position, 'im');
         const notional = Precise.stringMul(leverage, initialMargin);
-        const qty = this.safeString(position, 'qty');
-        const avgPrice = this.safeString(position, 'openAvgPx');
-        const collateral = Precise.stringMul(qty, avgPrice);
+        let positionMargin = undefined;
+        let collateral = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.omitZero(this.safeString(position, 'mgn'));
+            const upl = this.safeString(position, 'upl');
+            collateral = ((positionMargin !== undefined) && (upl !== undefined)) ? Precise.stringAdd(positionMargin, upl) : undefined;
+        }
         // todo: some more fields
         return this.safePosition({
             'info': position,
@@ -3838,7 +3842,8 @@ export default class poloniex extends Exchange {
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': this.safeNumber(position, 'mm'),
             'maintenanceMarginPercentage': undefined,
-            'collateral': collateral,
+            'collateral': this.parseNumber(collateral),
+            'positionMargin': this.parseNumber(positionMargin),
             'initialMargin': initialMargin,
             'initialMarginPercentage': undefined,
             'leverage': parseInt(leverage),

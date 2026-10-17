@@ -4702,6 +4702,10 @@ impl AsterCore {
         }
         let mut positionSide: Option<String> = self.safe_string_k(position.clone(), "positionSide", &[]).as_str().map(str::to_owned);
         let mut hedged: Value = Value::Bool(positionSide.as_deref() != Some("BOTH"));
+        let mut isolatedWalletString: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) {
+            isolatedWalletString = self.safe_string_k(position.clone(), "isolatedWallet", &[]);
+        }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position);
@@ -4712,6 +4716,7 @@ impl AsterCore {
         m.insert("unrealizedPnl".to_string(), unrealizedPnl);
         m.insert("leverage".to_string(), self.parse_number(leverageString, &[]));
         m.insert("liquidationPrice".to_string(), liquidationPrice);
+        m.insert("positionMargin".to_string(), self.parse_number(isolatedWalletString, &[]));
         m.insert("collateral".to_string(), collateral);
         m.insert("notional".to_string(), notional);
         m.insert("markPrice".to_string(), markPrice);
@@ -5051,6 +5056,10 @@ impl AsterCore {
         }
         let mut positionSide: Option<String> = self.safe_string_k(position.clone(), "positionSide", &[]).as_str().map(str::to_owned);
         let mut hedged: Value = Value::Bool(positionSide.as_deref() != Some("BOTH"));
+        let mut isolatedWalletString: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) {
+            isolatedWalletString = self.safe_string_k(position.clone(), "isolatedWallet", &[]);
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position);
@@ -5071,6 +5080,7 @@ impl AsterCore {
         m.insert("marginRatio".to_string(), marginRatio);
         m.insert("liquidationPrice".to_string(), liquidationPrice);
         m.insert("markPrice".to_string(), Value::Null);
+        m.insert("positionMargin".to_string(), self.parse_number(isolatedWalletString, &[]));
         m.insert("collateral".to_string(), collateral);
         m.insert("marginMode".to_string(), marginMode);
         m.insert("side".to_string(), side);

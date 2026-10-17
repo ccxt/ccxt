@@ -5028,6 +5028,10 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	}
 	var positionSide *string = this.SafeString(position, "positionSide")
 	var hedged bool = (positionSide == nil || *positionSide != "BOTH")
+	var isolatedWalletString *string = nil
+	if marginMode != nil && *marginMode == "isolated" {
+		isolatedWalletString = this.SafeString(position, "isolatedWallet")
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -5037,6 +5041,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 		"unrealizedPnl":               unrealizedPnl,
 		"leverage":                    this.ParseNumber(leverageString),
 		"liquidationPrice":            liquidationPrice,
+		"positionMargin":              this.ParseNumber(isolatedWalletString),
 		"collateral":                  collateral,
 		"notional":                    notional,
 		"markPrice":                   markPrice,
@@ -5095,11 +5100,11 @@ func (this *Aster) fetchPositionsRiskBody(ch chan AsyncResult[[]any], optionalAr
 	}
 	var request map[string]any = map[string]any{}
 
-	listEp4718 := <-this.FapiPrivateGetV3PositionRisk(this.Extend(request, params))
-	if listEp4718.Err != nil {
-		panic(listEp4718.Err)
+	listEp4723 := <-this.FapiPrivateGetV3PositionRisk(this.Extend(request, params))
+	if listEp4723.Err != nil {
+		panic(listEp4723.Err)
 	}
-	var response []any = listEp4718.Value
+	var response []any = listEp4723.Value
 	//
 	//     [
 	//         {
@@ -5177,11 +5182,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes380119 []any = r.Value
-		if retRes380119 == nil {
+		var retRes380619 []any = r.Value
+		if retRes380619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes380119}
+			ch <- AsyncResult[any]{Value: retRes380619}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
@@ -5190,11 +5195,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes380319 []any = r1.Value
-		if retRes380319 == nil {
+		var retRes380819 []any = r1.Value
+		if retRes380819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes380319}
+			ch <- AsyncResult[any]{Value: retRes380819}
 		}
 		return nil
 	} else {
@@ -5435,6 +5440,10 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	}
 	var positionSide *string = this.SafeString(position, "positionSide")
 	var hedged bool = (positionSide == nil || *positionSide != "BOTH")
+	var isolatedWalletString *string = nil
+	if marginMode == "isolated" {
+		isolatedWalletString = this.SafeString(position, "isolatedWallet")
+	}
 	return map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -5454,6 +5463,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 		"marginRatio":                 marginRatio,
 		"liquidationPrice":            liquidationPrice,
 		"markPrice":                   nil,
+		"positionMargin":              this.ParseNumber(isolatedWalletString),
 		"collateral":                  collateral,
 		"marginMode":                  marginMode,
 		"side":                        side,
@@ -5534,11 +5544,11 @@ func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[any], optionalAr
 	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets")
 	if (leverageBrackets == nil) || (reload == true) {
 
-		listEp5108 := <-this.FapiPrivateGetV3LeverageBracket(params)
-		if listEp5108.Err != nil {
-			panic(listEp5108.Err)
+		listEp5118 := <-this.FapiPrivateGetV3LeverageBracket(params)
+		if listEp5118.Err != nil {
+			panic(listEp5118.Err)
 		}
-		var response []any = listEp5108.Value
+		var response []any = listEp5118.Value
 		//
 		//    [
 		//        {

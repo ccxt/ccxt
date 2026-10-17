@@ -4026,6 +4026,20 @@ func (this *Bingx) ParsePosition(position any, optionalArgs ...any) any {
 			return "cross"
 		}())
 	}
+	var initialMarginString *string = this.SafeString(position, "initialMargin")
+	var unrealizedPnlString *string = this.SafeString(position, "unrealizedProfit")
+	var collateralString any = nil
+	if marginMode != nil && *marginMode == "isolated" {
+		collateralString = this.OmitZero(this.SafeString(position, "margin"))
+		if (IsEqual(collateralString, nil)) && (initialMarginString != nil) {
+			collateralString = func() any {
+				if unrealizedPnlString != nil {
+					return Precise.StringAdd(initialMarginString, unrealizedPnlString)
+				}
+				return initialMarginString
+			}()
+		}
+	}
 	var timestamp *int64 = this.SafeInteger(position, "openTime")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -4035,7 +4049,7 @@ func (this *Bingx) ParsePosition(position any, optionalArgs ...any) any {
 		"marginMode":                  marginMode,
 		"liquidationPrice":            this.SafeNumberOmitZero(position, "liquidationPrice"),
 		"entryPrice":                  this.SafeNumber2(position, "avgPrice", "entryPrice"),
-		"unrealizedPnl":               this.SafeNumber(position, "unrealizedProfit"),
+		"unrealizedPnl":               this.ParseNumber(unrealizedPnlString),
 		"realizedPnl":                 this.SafeNumber(position, "realisedProfit"),
 		"percentage":                  nil,
 		"contracts":                   this.SafeNumber(position, "positionAmt"),
@@ -4049,8 +4063,8 @@ func (this *Bingx) ParsePosition(position any, optionalArgs ...any) any {
 		"lastUpdateTimestamp":         this.SafeInteger(position, "updateTime"),
 		"maintenanceMargin":           nil,
 		"maintenanceMarginPercentage": nil,
-		"collateral":                  nil,
-		"initialMargin":               this.SafeNumber(position, "initialMargin"),
+		"collateral":                  this.ParseNumber(collateralString),
+		"initialMargin":               this.ParseNumber(initialMarginString),
 		"initialMarginPercentage":     nil,
 		"leverage":                    this.SafeNumber(position, "leverage"),
 		"marginRatio":                 nil,
@@ -4085,11 +4099,11 @@ func (this *Bingx) createMarketOrderWithCostBody(ch chan AsyncResult[map[string]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes316715 map[string]any = r.Value
-	if retRes316715 == nil {
+	var retRes317615 map[string]any = r.Value
+	if retRes317615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes316715}
+		ch <- AsyncResult[map[string]any]{Value: retRes317615}
 	}
 	return nil
 }
@@ -4119,11 +4133,11 @@ func (this *Bingx) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes318115 map[string]any = r.Value
-	if retRes318115 == nil {
+	var retRes319015 map[string]any = r.Value
+	if retRes319015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes318115}
+		ch <- AsyncResult[any]{Value: retRes319015}
 	}
 	return nil
 }
@@ -4153,11 +4167,11 @@ func (this *Bingx) createMarketSellOrderWithCostBody(ch chan AsyncResult[any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes319515 map[string]any = r.Value
-	if retRes319515 == nil {
+	var retRes320415 map[string]any = r.Value
+	if retRes320415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes319515}
+		ch <- AsyncResult[any]{Value: retRes320415}
 	}
 	return nil
 }
@@ -6511,11 +6525,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes546619 []any = ListTyped(r1.Value)
-		if retRes546619 == nil {
+		var retRes547519 []any = ListTyped(r1.Value)
+		if retRes547519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes546619}
+			ch <- AsyncResult[any]{Value: retRes547519}
 		}
 		return nil
 	}
@@ -6788,11 +6802,11 @@ func (this *Bingx) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...a
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6325 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
-	if listEp6325.Err != nil {
-		panic(listEp6325.Err)
+	listEp6339 := <-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))
+	if listEp6339.Err != nil {
+		panic(listEp6339.Err)
 	}
-	var response []any = listEp6325.Value
+	var response []any = listEp6339.Value
 
 	//
 	//    [
@@ -6864,11 +6878,11 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs .
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6394 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
-	if listEp6394.Err != nil {
-		panic(listEp6394.Err)
+	listEp6408 := <-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))
+	if listEp6408.Err != nil {
+		panic(listEp6408.Err)
 	}
-	var response []any = listEp6394.Value
+	var response []any = listEp6408.Value
 
 	//
 	//    [
@@ -7127,11 +7141,11 @@ func (this *Bingx) addMarginBody(ch chan AsyncResult[map[string]any], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes592515 map[string]any = MapTyped(r.Value)
-	if retRes592515 == nil {
+	var retRes593415 map[string]any = MapTyped(r.Value)
+	if retRes593415 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes592515}
+		ch <- AsyncResult[map[string]any]{Value: retRes593415}
 	}
 	return nil
 }
@@ -7153,11 +7167,11 @@ func (this *Bingx) reduceMarginBody(ch chan EndpointResult[map[string]any], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes593215 map[string]any = MapTyped(r.Value)
-	if retRes593215 == nil {
+	var retRes594115 map[string]any = MapTyped(r.Value)
+	if retRes594115 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes593215, Raw: retRes593215}
+		ch <- EndpointResult[map[string]any]{Value: retRes594115, Raw: retRes594115}
 	}
 	return nil
 }

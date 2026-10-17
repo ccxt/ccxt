@@ -1047,6 +1047,7 @@ class mudrex(Exchange, ImplicitAPI):
             'lastPrice': self.safe_number(position, 'closed_price'),  # exit price for closed positions
             'notional': notional,
             'leverage': self.safe_integer(position, 'leverage'),
+            'positionMargin': self.parse_number(initialMargin),
             'collateral': self.parse_number(initialMargin),
             'initialMargin': self.parse_number(initialMargin),
             'initialMarginPercentage': None,

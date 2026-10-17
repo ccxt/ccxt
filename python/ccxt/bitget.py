@@ -8683,11 +8683,14 @@ class bitget(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_n(position, ['cTime', 'ctime', 'createdTime'])
         marginMode = self.safe_string(position, 'marginMode')
         collateral = None
+        marginString = None
         initialMargin = None
         unrealizedPnl = self.safe_string_2(position, 'unrealizedPL', 'unrealisedPnl')
-        rawCollateral = self.safe_string_2(position, 'marginSize', 'positionBalance')
+        rawCollateral = self.omit_zero(self.safe_string_2(position, 'marginSize', 'positionBalance'))
         if marginMode == 'isolated':
-            collateral = Precise.string_add(rawCollateral, unrealizedPnl)
+            collateral = Precise.string_add(rawCollateral, unrealizedPnl) if (unrealizedPnl is not None) else rawCollateral
+            initialMargin = rawCollateral
+            marginString = rawCollateral
         elif marginMode == 'crossed':
             marginMode = 'cross'
             initialMargin = rawCollateral
@@ -8703,7 +8706,7 @@ class bitget(Exchange, ImplicitAPI):
         contractSize = self.number_to_string(contractSizeNumber)
         baseAmount = self.safe_string_2(position, 'total', 'openTotalPos')
         entryPrice = self.safe_string_n(position, ['openPriceAvg', 'openAvgPrice', 'avgPrice'])
-        maintenanceMarginPercentage = self.safe_string(position, 'keepMarginRate')
+        maintenanceMarginPercentage = self.safe_string_2(position, 'keepMarginRate', 'mmr')
         openNotional = Precise.string_mul(entryPrice, baseAmount)
         if initialMargin is None:
             initialMargin = Precise.string_div(openNotional, leverage)
@@ -8713,9 +8716,10 @@ class bitget(Exchange, ImplicitAPI):
         markPrice = self.safe_string(position, 'markPrice')
         notional = Precise.string_mul(baseAmount, markPrice)
         initialMarginPercentage = Precise.string_div(initialMargin, notional)
-        liquidationPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'liquidationPrice')))
-        calcTakerFeeRate = '0.0006'
-        calcTakerFeeMult = '0.9994'
+        rawLiquidationPrice = self.omit_zero(self.safe_string(position, 'liquidationPrice'))
+        liquidationPrice = self.parse_number(rawLiquidationPrice) if ((rawLiquidationPrice is not None) and Precise.string_gt(rawLiquidationPrice, '0')) else None
+        calcTakerFeeRate = self.safe_string(marketResolved, 'taker', '0.0006')
+        calcTakerFeeMult = Precise.string_sub('1', calcTakerFeeRate)
         if (liquidationPrice is None) and (marginMode == 'isolated') and Precise.string_gt(baseAmount, '0'):
             signedMargin = Precise.string_div(rawCollateral, baseAmount)
             signedMmp = maintenanceMarginPercentage
@@ -8728,7 +8732,9 @@ class bitget(Exchange, ImplicitAPI):
                 mmrMinusOne = Precise.string_mul(mmrMinusOne, calcTakerFeeMult)
             else:
                 numerator = Precise.string_mul(numerator, calcTakerFeeMult)
-            liquidationPrice = self.parse_number(Precise.string_div(numerator, mmrMinusOne))
+            derivedLiq = Precise.string_div(numerator, mmrMinusOne)
+            if (derivedLiq is not None) and Precise.string_gt(derivedLiq, '0'):
+                liquidationPrice = self.parse_number(derivedLiq)
         feeToClose = Precise.string_mul(notional, calcTakerFeeRate)
         maintenanceMargin = Precise.string_add(Precise.string_mul(maintenanceMarginPercentage, notional), feeToClose)
         percentage = Precise.string_mul(Precise.string_div(unrealizedPnl, initialMargin, 4), '100')
@@ -8754,11 +8760,12 @@ class bitget(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': self.safe_integer_2(position, 'utime', 'updatedTime'),
             'maintenanceMargin': self.parse_number(maintenanceMargin),
             'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentage),
+            'positionMargin': self.parse_number(marginString),
             'collateral': self.parse_number(collateral),
             'initialMargin': self.parse_number(initialMargin),
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
             'leverage': self.parse_number(leverage),
-            'marginRatio': self.safe_number_2(position, 'marginRatio', 'mmr'),
+            'marginRatio': self.safe_number(position, 'marginRatio'),
             'stopLossPrice': None,
             'takeProfitPrice': None,
         })

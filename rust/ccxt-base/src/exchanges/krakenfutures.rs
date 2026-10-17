@@ -4403,7 +4403,7 @@ impl KrakenfuturesCore {
         }
         let mut marketId: Value = self.safe_string2(position.clone(), Value::Str("symbol".into()), Value::Str("tradeable".into()), &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market]);
-        return Value::Map({
+        return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "executionUid", &[]));
@@ -4430,7 +4430,7 @@ impl KrakenfuturesCore {
         m.insert("side".to_string(), side);
         m.insert("percentage".to_string(), Value::Null);
     m
-});
+}));
 
     Value::Null
 }

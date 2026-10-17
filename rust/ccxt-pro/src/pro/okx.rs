@@ -797,6 +797,9 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if (self.markets.clone() == Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut symbolValue: Value = self.symbol(symbol.clone());
         let mut fr: Value = self.watch_funding_rates(&[Value::from(vec![symbolValue.clone()]), params]).await;
         return fr.as_map().and_then(|__m| symbolValue.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
@@ -922,6 +925,9 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if (self.markets.clone() == Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut channelparamsChannelVariable = self.handle_option_string_and_params(params, Value::Str("watchTicker".into()), Value::Str("channel".into()), &[Value::Str("tickers".into())]);
         let mut channel: Value = channelparamsChannelVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = channelparamsChannelVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -1001,6 +1007,9 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if (self.markets.clone() == Value::Null) {
+            self.load_markets(&[]).await;
+        }
         let mut channelparamsChannelVariable = self.handle_option_string_and_params(params, Value::Str("watchMarkPrice".into()), Value::Str("channel".into()), &[Value::Str("mark-price".into())]);
         let mut channel: Value = channelparamsChannelVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = channelparamsChannelVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);

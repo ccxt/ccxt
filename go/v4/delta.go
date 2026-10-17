@@ -2266,9 +2266,9 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) any {
 	var side *string = nil
 	if sizeString != nil {
 		if Precise.StringGt(sizeString, "0") {
-			side = SafeStringPtr("buy")
+			side = SafeStringPtr("long")
 		} else if Precise.StringLt(sizeString, "0") {
-			side = SafeStringPtr("sell")
+			side = SafeStringPtr("short")
 		}
 	}
 	return this.SafePosition(map[string]any{
@@ -2276,7 +2276,7 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) any {
 		"id":                          nil,
 		"symbol":                      symbol,
 		"notional":                    nil,
-		"marginMode":                  nil,
+		"marginMode":                  this.SafeString(position, "margin_mode"),
 		"liquidationPrice":            this.SafeNumber(position, "liquidation_price"),
 		"entryPrice":                  this.SafeNumber(position, "entry_price"),
 		"unrealizedPnl":               nil,
@@ -2290,6 +2290,7 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) any {
 		"datetime":                    this.Iso8601(timestamp),
 		"maintenanceMargin":           nil,
 		"maintenanceMarginPercentage": nil,
+		"positionMargin":              this.SafeNumber(position, "margin"),
 		"collateral":                  nil,
 		"initialMargin":               nil,
 		"initialMarginPercentage":     nil,
@@ -2867,11 +2868,11 @@ func (this *Delta) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes233515 []any = r.Value
-	if retRes233515 == nil {
+	var retRes233615 []any = r.Value
+	if retRes233615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes233515}
+		ch <- AsyncResult[any]{Value: retRes233615}
 	}
 	return nil
 }
@@ -2908,11 +2909,11 @@ func (this *Delta) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes235015 []any = r.Value
-	if retRes235015 == nil {
+	var retRes235115 []any = r.Value
+	if retRes235115 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes235015}
+		ch <- AsyncResult[any]{Value: retRes235115}
 	}
 	return nil
 }
@@ -3613,11 +3614,11 @@ func (this *Delta) addMarginBody(ch chan AsyncResult[map[string]any], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes290515 map[string]any = MapTyped(r.Value)
-	if retRes290515 == nil {
+	var retRes290615 map[string]any = MapTyped(r.Value)
+	if retRes290615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes290515}
+		ch <- AsyncResult[map[string]any]{Value: retRes290615}
 	}
 	return nil
 }
@@ -3647,11 +3648,11 @@ func (this *Delta) reduceMarginBody(ch chan EndpointResult[map[string]any], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes291915 map[string]any = MapTyped(r.Value)
-	if retRes291915 == nil {
+	var retRes292015 map[string]any = MapTyped(r.Value)
+	if retRes292015 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes291915, Raw: retRes291915}
+		ch <- EndpointResult[map[string]any]{Value: retRes292015, Raw: retRes292015}
 	}
 	return nil
 }

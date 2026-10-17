@@ -4145,6 +4145,8 @@ func (this *Derive) ParsePosition(position any, optionalArgs ...any) any {
 	var markPrice *string = this.SafeString(position, "mark_price")
 	var timestamp *int64 = this.SafeInteger(position, "creation_timestamp")
 	var unrealisedPnl *string = this.SafeString(position, "unrealized_pnl")
+	var initialMarginString *string = Precise.StringAbs(this.SafeString(position, "initial_margin"))
+	var maintenanceMarginString *string = Precise.StringAbs(this.SafeString(position, "maintenance_margin"))
 	size = Precise.StringAbs(size)
 	var notional *string = Precise.StringMul(size, markPrice)
 	return this.SafePosition(map[string]any{
@@ -4154,11 +4156,11 @@ func (this *Derive) ParsePosition(position any, optionalArgs ...any) any {
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
 		"lastUpdateTimestamp":         nil,
-		"initialMargin":               this.SafeNumber(position, "initial_margin"),
-		"initialMarginPercentage":     nil,
-		"maintenanceMargin":           this.SafeNumber(position, "maintenance_margin"),
-		"maintenanceMarginPercentage": nil,
-		"entryPrice":                  nil,
+		"initialMargin":               this.ParseNumber(initialMarginString),
+		"initialMarginPercentage":     this.ParseNumber(Precise.StringDiv(initialMarginString, notional, 8)),
+		"maintenanceMargin":           this.ParseNumber(maintenanceMarginString),
+		"maintenanceMarginPercentage": this.ParseNumber(Precise.StringDiv(maintenanceMarginString, notional, 8)),
+		"entryPrice":                  this.SafeNumber2(position, "average_price", "average_price_excl_fees"),
 		"notional":                    this.ParseNumber(notional),
 		"leverage":                    this.SafeNumber(position, "leverage"),
 		"unrealizedPnl":               this.ParseNumber(unrealisedPnl),
@@ -4221,11 +4223,11 @@ func (this *Derive) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322819 []any = ListTyped(r1.Value)
-		if retRes322819 == nil {
+		var retRes323019 []any = ListTyped(r1.Value)
+		if retRes323019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes322819}
+			ch <- AsyncResult[any]{Value: retRes323019}
 		}
 		return nil
 	}

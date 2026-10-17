@@ -6404,10 +6404,22 @@ class gate extends gate$1["default"] {
         }
         // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
         const marginBalance = this.safeString(position, 'margin');
-        const initialMarginString = this.omitZero(this.safeString(position, 'initial_margin'));
+        let initialMarginString = this.omitZero(this.safeString(position, 'initial_margin'));
         // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
-        const maintenanceMarginString = this.omitZero(this.safeString(position, 'maintenance_margin'));
+        let maintenanceMarginString = this.omitZero(this.safeString(position, 'maintenance_margin'));
+        const marketInfo = this.safeDict(marketResolved, 'info', {});
+        const takerFeeRate = this.safeString(marketInfo, 'taker_fee_rate', '0.00075');
+        const hasPositiveMarginBalance = (marginBalance === undefined) || Precise["default"].stringGt(marginBalance, '0');
+        if ((initialMarginString === undefined) && hasPositiveMarginBalance && (notional !== undefined) && (leverage !== undefined) && Precise["default"].stringGt(leverage, '0')) {
+            const closeFee = Precise["default"].stringMul(notional, takerFeeRate);
+            initialMarginString = Precise["default"].stringAdd(Precise["default"].stringDiv(notional, leverage), closeFee);
+        }
+        const liqPriceString = this.omitZero(this.safeString(position, 'liq_price'));
+        const maintenanceRate = this.omitZero(this.safeString(position, 'maintenance_rate'));
+        if ((maintenanceMarginString === undefined) && (liqPriceString === undefined) && hasPositiveMarginBalance && (notional !== undefined) && (maintenanceRate !== undefined)) {
+            maintenanceMarginString = Precise["default"].stringMul(notional, Precise["default"].stringAdd(maintenanceRate, takerFeeRate));
+        }
         // the margin field is the position margin balance, which excludes the unrealized pnl,
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -6439,9 +6451,10 @@ class gate extends gate$1["default"] {
             'contracts': this.parseNumber(Precise["default"].stringAbs(size)),
             'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'marginRatio': undefined,
-            'liquidationPrice': this.safeNumber(position, 'liq_price'),
+            'liquidationPrice': this.parseNumber(liqPriceString),
             'markPrice': this.safeNumber(position, 'mark_price'),
             'lastPrice': undefined,
+            'positionMargin': this.parseNumber(marginBalance),
             'collateral': this.parseNumber(collateral),
             'marginMode': marginMode,
             'side': side,

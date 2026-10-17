@@ -7056,7 +7056,15 @@ class bybit extends bybit$1["default"] {
         if (lastUpdateTimestamp === undefined) {
             lastUpdateTimestamp = this.safeInteger2(position, 'updatedTime', 'updatedAt');
         }
-        let collateralString = this.safeString(position, 'positionBalance');
+        // positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
+        let positionMarginString = this.omitZero(this.safeString(position, 'positionBalance'));
+        let collateralString = undefined;
+        if (positionMarginString !== undefined) {
+            collateralString = positionMarginString;
+            if (unrealisedPnl !== undefined) {
+                collateralString = Precise["default"].stringAdd(positionMarginString, unrealisedPnl);
+            }
+        }
         const entryPrice = this.omitZero(this.safeStringN(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']));
         const liquidationPrice = this.omitZero(this.safeString(position, 'liqPrice'));
         const leverage = this.safeString(position, 'leverage');
@@ -7070,19 +7078,26 @@ class bybit extends bybit$1["default"] {
                 }
                 const difference = Precise["default"].stringAbs(Precise["default"].stringSub(price, liquidationPrice));
                 collateralString = Precise["default"].stringAdd(Precise["default"].stringAdd(Precise["default"].stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
+                positionMarginString = undefined; // derived from collateral by safePosition
             }
             else {
-                const bustPrice = this.safeString(position, 'bustPrice');
+                const bustPrice = this.omitZero(this.safeString(position, 'bustPrice'));
+                const closingFee = this.omitZero(this.safeString(position, 'occClosingFee'));
                 if (marketResolved['linear'] === true) {
-                    // derived from the following formulas
+                    // derived from the following formula:
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     // Maintenance Margin = (Bust price - Liq price) x Contracts
-                    const maintenanceMarginPriceDifference = Precise["default"].stringAbs(Precise["default"].stringSub(liquidationPrice, bustPrice));
-                    maintenanceMarginString = Precise["default"].stringMul(maintenanceMarginPriceDifference, size);
-                    // Initial Margin = Contracts x Entry Price / Leverage
+                    if ((maintenanceMarginString === undefined) && (bustPrice !== undefined) && !Precise["default"].stringEq(bustPrice, liquidationPrice)) {
+                        const maintenanceMarginPriceDifference = Precise["default"].stringAbs(Precise["default"].stringSub(liquidationPrice, bustPrice));
+                        maintenanceMarginString = Precise["default"].stringMul(maintenanceMarginPriceDifference, size);
+                    }
+                    // Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
                     if ((entryPrice !== undefined) && (initialMarginString === undefined)) {
                         initialMarginString = Precise["default"].stringDiv(Precise["default"].stringMul(size, entryPrice), leverage);
+                        if (closingFee !== undefined) {
+                            initialMarginString = Precise["default"].stringAdd(initialMarginString, closingFee);
+                        }
                     }
                 }
                 else {
@@ -7090,12 +7105,17 @@ class bybit extends bybit$1["default"] {
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    const difference = Precise["default"].stringAbs(Precise["default"].stringSub(bustPrice, liquidationPrice));
-                    const multiply = Precise["default"].stringMul(bustPrice, liquidationPrice);
-                    maintenanceMarginString = Precise["default"].stringDiv(Precise["default"].stringMul(size, difference), multiply);
-                    // Initial Margin = Leverage x Contracts / EntryPrice
+                    if ((maintenanceMarginString === undefined) && (bustPrice !== undefined) && !Precise["default"].stringEq(bustPrice, liquidationPrice)) {
+                        const difference = Precise["default"].stringAbs(Precise["default"].stringSub(bustPrice, liquidationPrice));
+                        const multiply = Precise["default"].stringMul(bustPrice, liquidationPrice);
+                        maintenanceMarginString = Precise["default"].stringDiv(Precise["default"].stringMul(size, difference), multiply);
+                    }
+                    // Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
                     if ((entryPrice !== undefined) && (initialMarginString === undefined)) {
                         initialMarginString = Precise["default"].stringDiv(size, Precise["default"].stringMul(entryPrice, leverage));
+                        if (closingFee !== undefined) {
+                            initialMarginString = Precise["default"].stringAdd(initialMarginString, closingFee);
+                        }
                     }
                 }
             }
@@ -7125,6 +7145,7 @@ class bybit extends bybit$1["default"] {
             'markPrice': this.parseNumber(markPrice),
             'lastPrice': this.safeNumber(position, 'avgExitPrice'),
             'collateral': this.parseNumber(collateralString),
+            'positionMargin': this.parseNumber(positionMarginString),
             'marginMode': undefined, // tradeMode was deprecated
             'side': side,
             'percentage': undefined,

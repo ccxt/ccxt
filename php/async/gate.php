@@ -6547,6 +6547,18 @@ class gate extends Exchange {
         // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
         $maintenanceMarginString = $this->omit_zero($this->safe_string($position, 'maintenance_margin'));
+        $marketInfo = $this->safe_dict($marketResolved, 'info', array());
+        $takerFeeRate = $this->safe_string($marketInfo, 'taker_fee_rate', '0.00075');
+        $hasPositiveMarginBalance = ($marginBalance === null) || Precise::string_gt($marginBalance, '0');
+        if (($initialMarginString === null) && $hasPositiveMarginBalance && ($notional !== null) && ($leverage !== null) && Precise::string_gt($leverage, '0')) {
+            $closeFee = Precise::string_mul($notional, $takerFeeRate);
+            $initialMarginString = Precise::string_add(Precise::string_div($notional, $leverage), $closeFee);
+        }
+        $liqPriceString = $this->omit_zero($this->safe_string($position, 'liq_price'));
+        $maintenanceRate = $this->omit_zero($this->safe_string($position, 'maintenance_rate'));
+        if (($maintenanceMarginString === null) && ($liqPriceString === null) && $hasPositiveMarginBalance && ($notional !== null) && ($maintenanceRate !== null)) {
+            $maintenanceMarginString = Precise::string_mul($notional, Precise::string_add($maintenanceRate, $takerFeeRate));
+        }
         // the margin field is the position margin balance, which excludes the unrealized pnl,
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -6578,9 +6590,10 @@ class gate extends Exchange {
             'contracts' => $this->parse_number(Precise::string_abs($size)),
             'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'marginRatio' => null,
-            'liquidationPrice' => $this->safe_number($position, 'liq_price'),
+            'liquidationPrice' => $this->parse_number($liqPriceString),
             'markPrice' => $this->safe_number($position, 'mark_price'),
             'lastPrice' => null,
+            'positionMargin' => $this->parse_number($marginBalance),
             'collateral' => $this->parse_number($collateral),
             'marginMode' => $marginMode,
             'side' => $side,

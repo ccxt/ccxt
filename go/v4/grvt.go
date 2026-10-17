@@ -3307,12 +3307,18 @@ func (this *Grvt) ParsePosition(position any, optionalArgs ...any) any {
 	if isLong {
 		side = "long"
 	}
+	// isolated_balance is the wallet balance reserved for the isolated position
+	var marginMode *string = this.SafeStringLower(position, "margin_type")
+	var positionMargin *float64 = nil
+	if marginMode != nil && *marginMode == "isolated" {
+		positionMargin = this.SafeNumber(position, "isolated_balance")
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      this.SafeSymbol(marketId, market),
 		"notional":                    this.ParseNumber(Precise.StringAbs(this.SafeString(position, "notional"))),
-		"marginMode":                  nil,
+		"marginMode":                  marginMode,
 		"liquidationPrice":            this.SafeNumber(position, "est_liquidation_price"),
 		"entryPrice":                  this.SafeNumber(position, "entry_price"),
 		"unrealizedPnl":               this.SafeNumber(position, "unrealized_pnl"),
@@ -3326,10 +3332,11 @@ func (this *Grvt) ParsePosition(position any, optionalArgs ...any) any {
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
 		"lastUpdateTimestamp":         this.SafeInteger(position, "lastUpdateTime"),
-		"maintenanceMargin":           this.SafeNumber(position, "maintenanceMargin"),
+		"maintenanceMargin":           this.SafeNumber2(position, "isolated_mm", "maintenanceMargin"),
 		"maintenanceMarginPercentage": nil,
+		"positionMargin":              positionMargin,
 		"collateral":                  nil,
-		"initialMargin":               this.SafeNumber(position, "initialMargin"),
+		"initialMargin":               this.SafeNumber2(position, "isolated_im", "initialMargin"),
 		"initialMarginPercentage":     nil,
 		"leverage":                    this.SafeNumber(position, "leverage"),
 		"marginRatio":                 nil,
@@ -3587,11 +3594,11 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes261619 []any = ListTyped(r1.Value)
-		if retRes261619 == nil {
+		var retRes262319 []any = ListTyped(r1.Value)
+		if retRes262319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes261619}
+			ch <- AsyncResult[any]{Value: retRes262319}
 		}
 		return nil
 	}
@@ -3602,11 +3609,11 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArgs
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["base"] = []any{}
-		retRes262512 := request["base"]
-		AppendToArray(&retRes262512, market["baseId"])
+		retRes263212 := request["base"]
+		AppendToArray(&retRes263212, market["baseId"])
 		request["quote"] = []any{}
-		retRes262712 := request["quote"]
-		AppendToArray(&retRes262712, market["quoteId"])
+		retRes263412 := request["quote"]
+		AppendToArray(&retRes263412, market["quoteId"])
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -3712,11 +3719,11 @@ func (this *Grvt) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any)
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["base"] = []any{}
-		retRes270412 := request["base"]
-		AppendToArray(&retRes270412, market["baseId"])
+		retRes271112 := request["base"]
+		AppendToArray(&retRes271112, market["baseId"])
 		request["quote"] = []any{}
-		retRes270612 := request["quote"]
-		AppendToArray(&retRes270612, market["quoteId"])
+		retRes271312 := request["quote"]
+		AppendToArray(&retRes271312, market["quoteId"])
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -4233,11 +4240,11 @@ func (this *Grvt) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		request["base"] = []any{}
-		retRes313412 := request["base"]
-		AppendToArray(&retRes313412, market["baseId"])
+		retRes314112 := request["base"]
+		AppendToArray(&retRes314112, market["baseId"])
 		request["quote"] = []any{}
-		retRes313612 := request["quote"]
-		AppendToArray(&retRes313612, market["quoteId"])
+		retRes314312 := request["quote"]
+		AppendToArray(&retRes314312, market["quoteId"])
 	}
 
 	r1 := <-this.PrivateTradingPostFullV1CancelAllOrders(this.Extend(request, params))

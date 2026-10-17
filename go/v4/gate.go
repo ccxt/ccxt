@@ -8908,6 +8908,18 @@ func (this *Gate) ParsePosition(position any, optionalArgs ...any) any {
 	// gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
 	// it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
 	var maintenanceMarginString any = this.OmitZero(this.SafeString(position, "maintenance_margin"))
+	var marketInfo map[string]any = SafeMapTyped(marketResolved, "info")
+	var takerFeeRate *string = this.SafeString(marketInfo, "taker_fee_rate", "0.00075")
+	var hasPositiveMarginBalance bool = (marginBalance == nil) || Precise.StringGt(marginBalance, "0")
+	if (initialMarginString == nil) && hasPositiveMarginBalance && (notional != nil) && (leverage != nil) && Precise.StringGt(leverage, "0") {
+		var closeFee *string = Precise.StringMul(notional, takerFeeRate)
+		initialMarginString = Precise.StringAdd(Precise.StringDiv(notional, leverage), closeFee)
+	}
+	var liqPriceString any = this.OmitZero(this.SafeString(position, "liq_price"))
+	var maintenanceRate any = this.OmitZero(this.SafeString(position, "maintenance_rate"))
+	if (maintenanceMarginString == nil) && (liqPriceString == nil) && hasPositiveMarginBalance && (notional != nil) && (maintenanceRate != nil) {
+		maintenanceMarginString = Precise.StringMul(notional, Precise.StringAdd(maintenanceRate, takerFeeRate))
+	}
 	// the margin field is the position margin balance, which excludes the unrealized pnl,
 	// the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
 	// so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -8939,9 +8951,10 @@ func (this *Gate) ParsePosition(position any, optionalArgs ...any) any {
 		"contracts":                   this.ParseNumber(Precise.StringAbs(size)),
 		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"marginRatio":                 nil,
-		"liquidationPrice":            this.SafeNumber(position, "liq_price"),
+		"liquidationPrice":            this.ParseNumber(liqPriceString),
 		"markPrice":                   this.SafeNumber(position, "mark_price"),
 		"lastPrice":                   nil,
+		"positionMargin":              this.ParseNumber(marginBalance),
 		"collateral":                  this.ParseNumber(collateral),
 		"marginMode":                  marginMode,
 		"side":                        side,
@@ -9279,18 +9292,18 @@ func (this *Gate) fetchLeverageTiersBody(ch chan AsyncResult[any], optionalArgs 
 		var response []any = nil
 		if typeVar != nil && *typeVar == "swap" {
 
-			listEp8659 := <-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, paramsOmitted))
-			if listEp8659.Err != nil {
-				panic(listEp8659.Err)
+			listEp8672 := <-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, paramsOmitted))
+			if listEp8672.Err != nil {
+				panic(listEp8672.Err)
 			}
-			response = listEp8659.Value
+			response = listEp8672.Value
 		} else {
 
-			listEp8662 := <-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, paramsOmitted))
-			if listEp8662.Err != nil {
-				panic(listEp8662.Err)
+			listEp8675 := <-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, paramsOmitted))
+			if listEp8675.Err != nil {
+				panic(listEp8675.Err)
 			}
-			response = listEp8662.Value
+			response = listEp8675.Value
 		}
 		// Each page contains all tiers for up to limit contracts, not limit rows.
 		var grouped map[string]any = map[string]any{}
@@ -9367,18 +9380,18 @@ func (this *Gate) fetchMarketLeverageTiersBody(ch chan AsyncResult[any], symbol 
 		//     ]
 		//
 
-		listEp8736 := <-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, requestParams))
-		if listEp8736.Err != nil {
-			panic(listEp8736.Err)
+		listEp8749 := <-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, requestParams))
+		if listEp8749.Err != nil {
+			panic(listEp8749.Err)
 		}
-		response = listEp8736.Value
+		response = listEp8749.Value
 	} else {
 
-		listEp8739 := <-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, requestParams))
-		if listEp8739.Err != nil {
-			panic(listEp8739.Err)
+		listEp8752 := <-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, requestParams))
+		if listEp8752.Err != nil {
+			panic(listEp8752.Err)
 		}
-		response = listEp8739.Value
+		response = listEp8752.Value
 	}
 
 	ch <- AsyncResult[any]{Value: this.ParseMarketLeverageTiers(response, market)}
@@ -10128,11 +10141,11 @@ func (this *Gate) reduceMarginBody(ch chan EndpointResult[map[string]any], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes728115 map[string]any = MapTyped(r.Value)
-	if retRes728115 == nil {
+	var retRes729415 map[string]any = MapTyped(r.Value)
+	if retRes729415 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes728115, Raw: retRes728115}
+		ch <- EndpointResult[map[string]any]{Value: retRes729415, Raw: retRes729415}
 	}
 	return nil
 }
@@ -10163,11 +10176,11 @@ func (this *Gate) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes729615 map[string]any = MapTyped(r.Value)
-	if retRes729615 == nil {
+	var retRes730915 map[string]any = MapTyped(r.Value)
+	if retRes730915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes729615}
+		ch <- AsyncResult[map[string]any]{Value: retRes730915}
 	}
 	return nil
 }
@@ -10215,11 +10228,11 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes731819 []any = ListTyped(r1.Value)
-		if retRes731819 == nil {
+		var retRes733119 []any = ListTyped(r1.Value)
+		if retRes733119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes731819}
+			ch <- AsyncResult[any]{Value: retRes733119}
 		}
 		return nil
 	}
@@ -10239,11 +10252,11 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol 
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
-	listEp9525 := <-this.PublicFuturesGetSettleContractStats(this.Extend(request, paramsPaginate))
-	if listEp9525.Err != nil {
-		panic(listEp9525.Err)
+	listEp9538 := <-this.PublicFuturesGetSettleContractStats(this.Extend(request, paramsPaginate))
+	if listEp9538.Err != nil {
+		panic(listEp9538.Err)
 	}
-	var response []any = listEp9525.Value
+	var response []any = listEp9538.Value
 
 	//
 	//    [
@@ -10355,11 +10368,11 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan AsyncResult[[]any], optiona
 		request["limit"] = limit
 	}
 
-	listEp9634 := <-this.PublicOptionsGetSettlements(this.Extend(request, paramsMarketType))
-	if listEp9634.Err != nil {
-		panic(listEp9634.Err)
+	listEp9647 := <-this.PublicOptionsGetSettlements(this.Extend(request, paramsMarketType))
+	if listEp9647.Err != nil {
+		panic(listEp9647.Err)
 	}
-	var response []any = listEp9634.Value
+	var response []any = listEp9647.Value
 	//
 	//     [
 	//         {
@@ -10642,11 +10655,11 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes764119 []any = ListTyped(r1.Value)
-		if retRes764119 == nil {
+		var retRes765419 []any = ListTyped(r1.Value)
+		if retRes765419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes764119}
+			ch <- AsyncResult[any]{Value: retRes765419}
 		}
 		return nil
 	}
@@ -10982,11 +10995,11 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan AsyncResult[any], optionalAr
 		panic(NotSupported(this.Id + " fetchUnderlyingAssets() supports option markets only"))
 	}
 
-	listEp10216 := <-this.PublicOptionsGetUnderlyings(paramsMarketType)
-	if listEp10216.Err != nil {
-		panic(listEp10216.Err)
+	listEp10229 := <-this.PublicOptionsGetUnderlyings(paramsMarketType)
+	if listEp10229.Err != nil {
+		panic(listEp10229.Err)
 	}
-	var response []any = listEp10216.Value
+	var response []any = listEp10229.Value
 	//
 	//    [
 	//        {
@@ -11058,11 +11071,11 @@ func (this *Gate) fetchLiquidationsBody(ch chan AsyncResult[any], symbol string,
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, params)
 
-	listEp10285 := <-this.PublicFuturesGetSettleLiqOrders(this.Extend(requestUntil, paramsUntil))
-	if listEp10285.Err != nil {
-		panic(listEp10285.Err)
+	listEp10298 := <-this.PublicFuturesGetSettleLiqOrders(this.Extend(requestUntil, paramsUntil))
+	if listEp10298.Err != nil {
+		panic(listEp10298.Err)
 	}
-	var response []any = listEp10285.Value
+	var response []any = listEp10298.Value
 
 	//
 	//     [
@@ -11312,11 +11325,11 @@ func (this *Gate) fetchGreeksBody(ch chan AsyncResult[map[string]any], symbol st
 		"underlying": GetValue(market["info"], "underlying"),
 	}
 
-	listEp10520 := <-this.PublicOptionsGetTickers(this.Extend(request, params))
-	if listEp10520.Err != nil {
-		panic(listEp10520.Err)
+	listEp10533 := <-this.PublicOptionsGetTickers(this.Extend(request, params))
+	if listEp10533.Err != nil {
+		panic(listEp10533.Err)
 	}
-	var response []any = listEp10520.Value
+	var response []any = listEp10533.Value
 	//
 	//     [
 	//         {
@@ -11442,11 +11455,11 @@ func (this *Gate) closePositionBody(ch chan AsyncResult[any], symbol string, opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes825815 map[string]any = r.Value
-	if retRes825815 == nil {
+	var retRes827115 map[string]any = r.Value
+	if retRes827115 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes825815}
+		ch <- AsyncResult[any]{Value: retRes827115}
 	}
 	return nil
 }
@@ -11557,18 +11570,18 @@ func (this *Gate) fetchLeveragesBody(ch chan AsyncResult[any], optionalArgs ...a
 	if isUnified != nil && *isUnified == true {
 		marketIdRequest = "currency_pair"
 
-		listEp10742 := <-this.PublicMarginGetUniCurrencyPairs(paramsOmitted)
-		if listEp10742.Err != nil {
-			panic(listEp10742.Err)
+		listEp10755 := <-this.PublicMarginGetUniCurrencyPairs(paramsOmitted)
+		if listEp10755.Err != nil {
+			panic(listEp10755.Err)
 		}
-		response = listEp10742.Value
+		response = listEp10755.Value
 	} else {
 
-		listEp10745 := <-this.PublicMarginGetCurrencyPairs(paramsOmitted)
-		if listEp10745.Err != nil {
-			panic(listEp10745.Err)
+		listEp10758 := <-this.PublicMarginGetCurrencyPairs(paramsOmitted)
+		if listEp10758.Err != nil {
+			panic(listEp10758.Err)
 		}
-		response = listEp10745.Value // deprecated
+		response = listEp10758.Value // deprecated
 	}
 
 	ch <- AsyncResult[any]{Value: this.ParseLeverages(this.ToArray(response), symbolsNormalized, marketIdRequest, "spot")}
@@ -11702,11 +11715,11 @@ func (this *Gate) fetchOptionChainBody(ch chan AsyncResult[any], code string, op
 		"underlying": Add(currency["code"], "_USDT"),
 	}
 
-	listEp10869 := <-this.PublicOptionsGetContracts(this.Extend(request, params))
-	if listEp10869.Err != nil {
-		panic(listEp10869.Err)
+	listEp10882 := <-this.PublicOptionsGetContracts(this.Extend(request, params))
+	if listEp10882.Err != nil {
+		panic(listEp10882.Err)
 	}
-	var response []any = listEp10869.Value
+	var response []any = listEp10882.Value
 
 	//
 	//     [

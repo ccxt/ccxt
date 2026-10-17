@@ -10870,6 +10870,9 @@ class binance(Exchange, ImplicitAPI):
             liquidationPrice = self.parse_number(truncatedLiquidationPrice)
         positionSide = self.safe_string(position, 'positionSide')
         hedged = positionSide != 'BOTH'
+        isolatedWalletString = None
+        if marginMode == 'isolated':
+            isolatedWalletString = self.safe_string(position, 'isolatedWallet')
         return {
             'info': position,
             'id': None,
@@ -10889,6 +10892,7 @@ class binance(Exchange, ImplicitAPI):
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': None,
+            'positionMargin': self.parse_number(isolatedWalletString),
             'collateral': collateral,
             'marginMode': marginMode,
             'side': side,
@@ -11087,6 +11091,9 @@ class binance(Exchange, ImplicitAPI):
             percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
         positionSide = self.safe_string(position, 'positionSide')
         hedged = positionSide != 'BOTH'
+        isolatedWalletString = None
+        if marginMode == 'isolated':
+            isolatedWalletString = self.safe_string(position, 'isolatedWallet')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -11096,6 +11103,7 @@ class binance(Exchange, ImplicitAPI):
             'unrealizedPnl': unrealizedPnl,
             'leverage': self.parse_number(leverageString),
             'liquidationPrice': liquidationPrice,
+            'positionMargin': self.parse_number(isolatedWalletString),
             'collateral': collateral,
             'notional': notional,
             'markPrice': markPrice,

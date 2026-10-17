@@ -5140,9 +5140,18 @@ func (this *Poloniex) ParsePosition(position any, optionalArgs ...any) any {
 	var leverage *string = this.SafeString(position, "lever")
 	var initialMargin *string = this.SafeString(position, "im")
 	var notional *string = Precise.StringMul(leverage, initialMargin)
-	var qty *string = this.SafeString(position, "qty")
-	var avgPrice *string = this.SafeString(position, "openAvgPx")
-	var collateral *string = Precise.StringMul(qty, avgPrice)
+	var positionMargin any = nil
+	var collateral any = nil
+	if marginMode != nil && *marginMode == "isolated" {
+		positionMargin = this.OmitZero(this.SafeString(position, "mgn"))
+		var upl *string = this.SafeString(position, "upl")
+		collateral = func() any {
+			if (positionMargin != nil) && (upl != nil) {
+				return Precise.StringAdd(positionMargin, upl)
+			}
+			return nil
+		}()
+	}
 	// todo: some more fields
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -5165,7 +5174,8 @@ func (this *Poloniex) ParsePosition(position any, optionalArgs ...any) any {
 		"lastUpdateTimestamp":         nil,
 		"maintenanceMargin":           this.SafeNumber(position, "mm"),
 		"maintenanceMarginPercentage": nil,
-		"collateral":                  collateral,
+		"collateral":                  this.ParseNumber(collateral),
+		"positionMargin":              this.ParseNumber(positionMargin),
 		"initialMargin":               initialMargin,
 		"initialMarginPercentage":     nil,
 		"leverage":                    ParseInt(leverage),
@@ -5277,11 +5287,11 @@ func (this *Poloniex) reduceMarginBody(ch chan EndpointResult[map[string]any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes395415 map[string]any = MapTyped(r.Value)
-	if retRes395415 == nil {
+	var retRes395915 map[string]any = MapTyped(r.Value)
+	if retRes395915 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes395415, Raw: retRes395415}
+		ch <- EndpointResult[map[string]any]{Value: retRes395915, Raw: retRes395915}
 	}
 	return nil
 }
@@ -5310,11 +5320,11 @@ func (this *Poloniex) addMarginBody(ch chan AsyncResult[map[string]any], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes396715 map[string]any = MapTyped(r.Value)
-	if retRes396715 == nil {
+	var retRes397215 map[string]any = MapTyped(r.Value)
+	if retRes397215 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes396715}
+		ch <- AsyncResult[map[string]any]{Value: retRes397215}
 	}
 	return nil
 }

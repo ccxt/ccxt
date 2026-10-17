@@ -1810,15 +1810,15 @@ class delta(Exchange, ImplicitAPI):
         side = None
         if sizeString is not None:
             if Precise.string_gt(sizeString, '0'):
-                side = 'buy'
+                side = 'long'
             elif Precise.string_lt(sizeString, '0'):
-                side = 'sell'
+                side = 'short'
         return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
             'notional': None,
-            'marginMode': None,
+            'marginMode': self.safe_string(position, 'margin_mode'),
             'liquidationPrice': self.safe_number(position, 'liquidation_price'),
             'entryPrice': self.safe_number(position, 'entry_price'),
             'unrealizedPnl': None,  # todo - realized_pnl ?
@@ -1832,6 +1832,7 @@ class delta(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
+            'positionMargin': self.safe_number(position, 'margin'),
             'collateral': None,
             'initialMargin': None,
             'initialMarginPercentage': None,

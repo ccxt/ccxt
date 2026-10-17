@@ -1937,6 +1937,7 @@ type Position struct {
 	Leverage                    *float64
 	UnrealizedPnl               *float64
 	RealizedPnl                 *float64
+	PositionMargin              *float64
 	Collateral                  *float64
 	EntryPrice                  *float64
 	MarkPrice                   *float64
@@ -1971,6 +1972,7 @@ func NewPosition(data any) Position {
 		Leverage:                    SafeFloatTyped(data, "leverage"),
 		UnrealizedPnl:               SafeFloatTyped(data, "unrealizedPnl"),
 		RealizedPnl:                 SafeFloatTyped(data, "realizedPnl"),
+		PositionMargin:              SafeFloatTyped(data, "positionMargin"),
 		Collateral:                  SafeFloatTyped(data, "collateral"),
 		EntryPrice:                  SafeFloatTyped(data, "entryPrice"),
 		MarkPrice:                   SafeFloatTyped(data, "markPrice"),

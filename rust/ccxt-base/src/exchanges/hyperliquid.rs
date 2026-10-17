@@ -5316,6 +5316,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             initialMargin = marginUsed.clone();
         }
         let mut percentage: Value = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&absRawUnrealizedPnl, &marginUsed), &Value::Str("100".into()));
+        let mut positionValueString: Value = self.safe_string_k(entry.clone(), "positionValue", &[]);
+        let mut markPriceString: Value = crate::precise::Precise::stringDiv(&positionValueString, &size);
+        let mut marginString: Value = Value::Null;
+        if matches!(&isIsolated, Value::Bool(true)) {
+            marginString = initialMargin.clone();
+        }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position);
@@ -5329,9 +5335,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("contracts".to_string(), self.parse_number(size, &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), self.safe_number_k(entry.clone(), "entryPx", &[]));
-        m.insert("markPrice".to_string(), Value::Null);
-        m.insert("notional".to_string(), self.safe_number_k(entry.clone(), "positionValue", &[]));
+        m.insert("markPrice".to_string(), self.parse_number(markPriceString, &[]));
+        m.insert("notional".to_string(), self.parse_number(positionValueString, &[]));
         m.insert("leverage".to_string(), self.safe_number_k(leverage, "value", &[]));
+        m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
         m.insert("collateral".to_string(), self.parse_number(marginUsed, &[]));
         m.insert("initialMargin".to_string(), self.parse_number(initialMargin, &[]));
         m.insert("maintenanceMargin".to_string(), Value::Null);
@@ -5340,6 +5347,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("unrealizedPnl".to_string(), self.parse_number(rawUnrealizedPnl, &[]));
         m.insert("liquidationPrice".to_string(), self.safe_number_k(entry, "liquidationPx", &[]));
         m.insert("marginMode".to_string(), marginMode);
+        m.insert("marginRatio".to_string(), Value::Null);
         m.insert("percentage".to_string(), self.parse_number(percentage, &[]));
     m
 }));

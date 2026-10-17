@@ -2870,6 +2870,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 leverage = (match ((Value::Int(100)).as_f64(), (imf).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
             }
         }
+        let mut contractsString: Value = self.safe_string_k(position.clone(), "position", &[]);
+        let mut positionValueString: Value = self.safe_string_k(position.clone(), "position_value", &[]);
+        let mut markPriceString: Value = crate::precise::Precise::stringDiv(&positionValueString, &contractsString);
+        // allocated_margin is the isolated collateral balance (0 for cross)
+        let mut positionMargin: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) {
+            positionMargin = self.safe_number_k(position.clone(), "allocated_margin", &[]);
+        }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -2880,13 +2888,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("isolated".to_string(), (Value::Bool(marginMode.as_str() == Some("isolated"))));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("side".to_string(), side);
-        m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "position", &[]));
+        m.insert("contracts".to_string(), self.parse_number(contractsString, &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "avg_entry_price", &[]));
-        m.insert("markPrice".to_string(), Value::Null);
-        m.insert("notional".to_string(), self.safe_number_k(position.clone(), "position_value", &[]));
+        m.insert("markPrice".to_string(), self.parse_number(markPriceString, &[]));
+        m.insert("notional".to_string(), self.parse_number(positionValueString, &[]));
         m.insert("leverage".to_string(), leverage);
-        m.insert("collateral".to_string(), self.safe_number_k(position.clone(), "allocated_margin", &[]));
+        m.insert("positionMargin".to_string(), positionMargin);
+        m.insert("collateral".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);

@@ -7726,6 +7726,20 @@ public partial class gate : Exchange
         // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
         string? maintenanceMarginString = ((string)this.omitZero(this.safeString(position, "maintenance_margin")));
+        IDictionary<string, object> marketInfo = this.safeDict(marketResolved, "info", new Dictionary<string, object>() {});
+        string? takerFeeRate = this.safeString(marketInfo, "taker_fee_rate", "0.00075");
+        bool hasPositiveMarginBalance = ((marginBalance == null)) || Precise.stringGt(marginBalance, "0");
+        if (((initialMarginString == null)) && hasPositiveMarginBalance && ((notional != null)) && ((leverage != null)) && Precise.stringGt(leverage, "0"))
+        {
+            string? closeFee = Precise.stringMul(notional, takerFeeRate);
+            initialMarginString = Precise.stringAdd(Precise.stringDiv(notional, leverage), closeFee);
+        }
+        string? liqPriceString = ((string)this.omitZero(this.safeString(position, "liq_price")));
+        string? maintenanceRate = ((string)this.omitZero(this.safeString(position, "maintenance_rate")));
+        if (((maintenanceMarginString == null)) && ((liqPriceString == null)) && hasPositiveMarginBalance && ((notional != null)) && ((maintenanceRate != null)))
+        {
+            maintenanceMarginString = Precise.stringMul(notional, Precise.stringAdd(maintenanceRate, takerFeeRate));
+        }
         // the margin field is the position margin balance, which excludes the unrealized pnl,
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -7759,9 +7773,10 @@ public partial class gate : Exchange
             { "contracts", this.parseNumber(Precise.stringAbs(size)) },
             { "contractSize", this.safeNumber(marketResolved, "contractSize") },
             { "marginRatio", null },
-            { "liquidationPrice", this.safeNumber(position, "liq_price") },
+            { "liquidationPrice", this.parseNumber(liqPriceString) },
             { "markPrice", this.safeNumber(position, "mark_price") },
             { "lastPrice", null },
+            { "positionMargin", this.parseNumber(marginBalance) },
             { "collateral", this.parseNumber(collateral) },
             { "marginMode", marginMode },
             { "side", side },

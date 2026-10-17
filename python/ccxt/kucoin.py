@@ -10201,6 +10201,20 @@ class kucoin(Exchange, ImplicitAPI):
         marginMode = self.safe_string_lower(position, 'marginMode')
         if crossMode is not None:
             marginMode = 'cross' if (crossMode is True) else 'isolated'
+        collateralString = self.safe_string(position, 'maintMargin')
+        marginString = None
+        if (collateralString is None) and (marginMode == 'isolated'):
+            posMargin = self.safe_string(position, 'posMargin')
+            if posMargin is None:
+                posComm = self.safe_string(position, 'posComm')
+                posCross = self.safe_string(position, 'posCross')
+                if (initialMargin is not None) and (posComm is not None):
+                    posMargin = Precise.string_add(initialMargin, posComm)
+                    if posCross is not None:
+                        posMargin = Precise.string_add(posMargin, posCross)
+            if posMargin is not None:
+                marginString = posMargin
+                collateralString = Precise.string_add(posMargin, unrealisedPnl) if (unrealisedPnl is not None) else posMargin
         lastUpdateTimestamp = self.safe_integer(position, 'closeTime')
         if lastUpdateTimestamp is None:
             if 'closingTime' in position:
@@ -10229,7 +10243,8 @@ class kucoin(Exchange, ImplicitAPI):
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'markPrice': self.safe_number(position, 'markPrice'),
             'lastPrice': self.safe_number(position, 'closePrice'),
-            'collateral': self.safe_number(position, 'maintMargin'),
+            'positionMargin': self.parse_number(marginString),
+            'collateral': self.parse_number(collateralString),
             'marginMode': marginMode,
             'side': side,
             'percentage': None,

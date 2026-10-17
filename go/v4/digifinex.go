@@ -5414,7 +5414,7 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) any {
 			return "isolated"
 		}())
 	} else {
-		marginMode = SafeStringPtr("crossed")
+		marginMode = SafeStringPtr("cross")
 	}
 	var timestamp *int64 = this.SafeInteger(position, "timestamp")
 	var side *string = this.SafeString(position, "side")
@@ -5422,6 +5422,27 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) any {
 		side = SafeStringPtr("long")
 	} else if side != nil && *side == "go_short" {
 		side = SafeStringPtr("short")
+	}
+	var positionMargin *string = this.SafeString(position, "margin")
+	var unrealizedPnl *string = this.SafeString(position, "unrealized_pnl")
+	var collateralString any = nil
+	var marginString *string = nil
+	if marginMode != nil && *marginMode == "isolated" {
+		var isolatedMargin *string = this.SafeString(position, "posi_balance")
+		if isolatedMargin != nil {
+			marginString = isolatedMargin
+			collateralString = func() any {
+				if unrealizedPnl != nil {
+					return Precise.StringAdd(isolatedMargin, unrealizedPnl)
+				}
+				return isolatedMargin
+			}()
+		}
+	}
+	var maintenanceMarginString *string = this.SafeString(position, "maintain_margin")
+	var forceCloseFee any = this.OmitZero(this.SafeString(position, "force_close_fee"))
+	if (maintenanceMarginString != nil) && (forceCloseFee != nil) {
+		maintenanceMarginString = Precise.StringAdd(maintenanceMarginString, forceCloseFee)
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -5431,18 +5452,19 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) any {
 		"marginMode":                  marginMode,
 		"liquidationPrice":            this.SafeNumber(position, "liquidation_price"),
 		"entryPrice":                  this.SafeNumber2(position, "avg_cost", "entry_price"),
-		"unrealizedPnl":               this.SafeNumber(position, "unrealized_pnl"),
-		"contracts":                   this.SafeNumber(position, "avail_position"),
+		"unrealizedPnl":               this.ParseNumber(unrealizedPnl),
+		"contracts":                   this.SafeNumber2(position, "position", "avail_position"),
 		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
-		"markPrice":                   this.SafeNumber(position, "last"),
+		"markPrice":                   this.SafeNumber2(position, "mark_price", "last"),
 		"side":                        side,
 		"hedged":                      nil,
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
-		"maintenanceMargin":           this.SafeNumber(position, "margin"),
+		"maintenanceMargin":           this.ParseNumber(maintenanceMarginString),
 		"maintenanceMarginPercentage": this.SafeNumber(position, "maint_margin_ratio"),
-		"collateral":                  nil,
-		"initialMargin":               nil,
+		"positionMargin":              this.ParseNumber(marginString),
+		"collateral":                  this.ParseNumber(collateralString),
+		"initialMargin":               this.ParseNumber(positionMargin),
 		"initialMarginPercentage":     nil,
 		"leverage":                    this.SafeNumber2(position, "leverage", "leverage_ratio"),
 		"marginRatio":                 this.SafeNumber(position, "margin_ratio"),
@@ -6013,11 +6035,11 @@ func (this *Digifinex) addMarginBody(ch chan AsyncResult[map[string]any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes450315 map[string]any = MapTyped(r.Value)
-	if retRes450315 == nil {
+	var retRes452015 map[string]any = MapTyped(r.Value)
+	if retRes452015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes450315}
+		ch <- AsyncResult[map[string]any]{Value: retRes452015}
 	}
 	return nil
 }
@@ -6050,11 +6072,11 @@ func (this *Digifinex) reduceMarginBody(ch chan EndpointResult[map[string]any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes452015 map[string]any = MapTyped(r.Value)
-	if retRes452015 == nil {
+	var retRes453715 map[string]any = MapTyped(r.Value)
+	if retRes453715 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes452015, Raw: retRes452015}
+		ch <- EndpointResult[map[string]any]{Value: retRes453715, Raw: retRes453715}
 	}
 	return nil
 }

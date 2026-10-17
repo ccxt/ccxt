@@ -6803,13 +6803,24 @@ impl MexcCore {
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut contracts: Value = self.safe_string_k(position.clone(), "holdVol", &[]);
         let mut entryPrice: Value = self.safe_number_k(position.clone(), "openAvgPrice", &[]);
-        let mut initialMargin: Value = self.safe_string_k(position.clone(), "im", &[]);
+        let mut initialMargin: Value = self.omit_zero(self.safe_string_k(position.clone(), "im", &[]));
+        let mut unrealizedPnl: Value = self.safe_string_k(position.clone(), "unRealizedPnl", &[]);
         let mut rawSide: Option<String> = self.safe_string_k(position.clone(), "positionType", &[]).as_str().map(str::to_owned);
         let mut side: Value = (if (rawSide.as_deref() == Some("1")) { Value::Str("long".into()) } else { Value::Str("short".into()) });
-        let mut openType: Option<String> = self.safe_string_k(position.clone(), "margin_mode", &[]).as_str().map(str::to_owned);
+        let mut openType: Option<String> = self.safe_string2(position.clone(), Value::Str("openType".into()), Value::Str("margin_mode".into()), &[]).as_str().map(str::to_owned);
         let mut marginType: Value = (if (openType.as_deref() == Some("1")) { Value::Str("isolated".into()) } else { Value::Str("cross".into()) });
+        let mut collateralString: Value = Value::Null;
+        let mut marginString: Value = Value::Null;
+        if (marginType.as_str() == Some("isolated")) && (initialMargin != Value::Null) {
+            // im is the margin mexc holds in the position; funding settles to the available balance
+            collateralString = initialMargin.clone();
+            marginString = collateralString.clone();
+            if (unrealizedPnl != Value::Null) {
+                collateralString = crate::precise::Precise::stringAdd(&collateralString, &unrealizedPnl);
+            }
+        }
         let mut leverage: Value = self.safe_number_k(position.clone(), "leverage", &[]);
-        let mut liquidationPrice: Value = self.safe_number_k(position.clone(), "liquidatePrice", &[]);
+        let mut liquidationPrice: Value = self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "liquidatePrice", &[])), &[]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "updateTime", &[]);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6817,11 +6828,12 @@ impl MexcCore {
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
         m.insert("contracts".to_string(), self.parse_number(contracts, &[]));
-        m.insert("contractSize".to_string(), Value::Null);
+        m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
         m.insert("entryPrice".to_string(), entryPrice);
-        m.insert("collateral".to_string(), Value::Null);
+        m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
+        m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
         m.insert("side".to_string(), side);
-        m.insert("unrealizedPnl".to_string(), Value::Null);
+        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnl, &[]));
         m.insert("leverage".to_string(), self.parse_number(leverage, &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("marginMode".to_string(), marginType);

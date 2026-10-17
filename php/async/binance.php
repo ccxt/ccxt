@@ -11757,6 +11757,10 @@ class binance extends Exchange {
         }
         $positionSide = $this->safe_string($position, 'positionSide');
         $hedged = $positionSide !== 'BOTH';
+        $isolatedWalletString = null;
+        if ($marginMode === 'isolated') {
+            $isolatedWalletString = $this->safe_string($position, 'isolatedWallet');
+        }
         return array(
             'info' => $position,
             'id' => null,
@@ -11776,6 +11780,7 @@ class binance extends Exchange {
             'marginRatio' => $marginRatio,
             'liquidationPrice' => $liquidationPrice,
             'markPrice' => null,
+            'positionMargin' => $this->parse_number($isolatedWalletString),
             'collateral' => $collateral,
             'marginMode' => $marginMode,
             'side' => $side,
@@ -11989,6 +11994,10 @@ class binance extends Exchange {
         }
         $positionSide = $this->safe_string($position, 'positionSide');
         $hedged = $positionSide !== 'BOTH';
+        $isolatedWalletString = null;
+        if ($marginMode === 'isolated') {
+            $isolatedWalletString = $this->safe_string($position, 'isolatedWallet');
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -11998,6 +12007,7 @@ class binance extends Exchange {
             'unrealizedPnl' => $unrealizedPnl,
             'leverage' => $this->parse_number($leverageString),
             'liquidationPrice' => $liquidationPrice,
+            'positionMargin' => $this->parse_number($isolatedWalletString),
             'collateral' => $collateral,
             'notional' => $notional,
             'markPrice' => $markPrice,

@@ -11778,6 +11778,10 @@ export default class binance extends Exchange {
         }
         const positionSide = this.safeString(position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
+        let isolatedWalletString = undefined;
+        if (marginMode === 'isolated') {
+            isolatedWalletString = this.safeString(position, 'isolatedWallet');
+        }
         return {
             'info': position,
             'id': undefined,
@@ -11797,6 +11801,7 @@ export default class binance extends Exchange {
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': undefined,
+            'positionMargin': this.parseNumber(isolatedWalletString),
             'collateral': collateral,
             'marginMode': marginMode,
             'side': side,
@@ -12015,6 +12020,10 @@ export default class binance extends Exchange {
         }
         const positionSide = this.safeString(position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
+        let isolatedWalletString = undefined;
+        if (marginMode === 'isolated') {
+            isolatedWalletString = this.safeString(position, 'isolatedWallet');
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -12024,6 +12033,7 @@ export default class binance extends Exchange {
             'unrealizedPnl': unrealizedPnl,
             'leverage': this.parseNumber(leverageString),
             'liquidationPrice': liquidationPrice,
+            'positionMargin': this.parseNumber(isolatedWalletString),
             'collateral': collateral,
             'notional': notional,
             'markPrice': markPrice,

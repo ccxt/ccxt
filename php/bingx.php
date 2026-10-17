@@ -3098,6 +3098,15 @@ class bingx extends Exchange {
         if ($isolated !== null) {
             $marginMode = $isolated ? 'isolated' : 'cross';
         }
+        $initialMarginString = $this->safe_string($position, 'initialMargin');
+        $unrealizedPnlString = $this->safe_string($position, 'unrealizedProfit');
+        $collateralString = null;
+        if ($marginMode === 'isolated') {
+            $collateralString = $this->omit_zero($this->safe_string($position, 'margin'));
+            if (($collateralString === null) && ($initialMarginString !== null)) {
+                $collateralString = ($unrealizedPnlString !== null) ? Precise::string_add($initialMarginString, $unrealizedPnlString) : $initialMarginString;
+            }
+        }
         $timestamp = $this->safe_integer($position, 'openTime');
         return $this->safe_position(array(
             'info' => $position,
@@ -3107,7 +3116,7 @@ class bingx extends Exchange {
             'marginMode' => $marginMode,
             'liquidationPrice' => $this->safe_number_omit_zero($position, 'liquidationPrice'),
             'entryPrice' => $this->safe_number_2($position, 'avgPrice', 'entryPrice'),
-            'unrealizedPnl' => $this->safe_number($position, 'unrealizedProfit'),
+            'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
             'realizedPnl' => $this->safe_number($position, 'realisedProfit'),
             'percentage' => null,
             'contracts' => $this->safe_number($position, 'positionAmt'),
@@ -3121,8 +3130,8 @@ class bingx extends Exchange {
             'lastUpdateTimestamp' => $this->safe_integer($position, 'updateTime'),
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
-            'collateral' => null,
-            'initialMargin' => $this->safe_number($position, 'initialMargin'),
+            'collateral' => $this->parse_number($collateralString),
+            'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => null,
             'leverage' => $this->safe_number($position, 'leverage'),
             'marginRatio' => null,

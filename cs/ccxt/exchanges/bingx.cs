@@ -3513,6 +3513,17 @@ public partial class bingx : Exchange
         {
             marginMode = isolated == true ? "isolated" : "cross";
         }
+        string? initialMarginString = this.safeString(position, "initialMargin");
+        string? unrealizedPnlString = this.safeString(position, "unrealizedProfit");
+        object collateralString = null;
+        if (marginMode == "isolated")
+        {
+            collateralString = this.omitZero(this.safeString(position, "margin"));
+            if (((collateralString == null)) && ((initialMarginString != null)))
+            {
+                collateralString = ((unrealizedPnlString != null)) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
+            }
+        }
         Int64? timestamp = this.safeInteger(position, "openTime");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
@@ -3522,7 +3533,7 @@ public partial class bingx : Exchange
             { "marginMode", marginMode },
             { "liquidationPrice", this.safeNumberOmitZero(position, "liquidationPrice") },
             { "entryPrice", this.safeNumber2(position, "avgPrice", "entryPrice") },
-            { "unrealizedPnl", this.safeNumber(position, "unrealizedProfit") },
+            { "unrealizedPnl", this.parseNumber(unrealizedPnlString) },
             { "realizedPnl", this.safeNumber(position, "realisedProfit") },
             { "percentage", null },
             { "contracts", this.safeNumber(position, "positionAmt") },
@@ -3536,8 +3547,8 @@ public partial class bingx : Exchange
             { "lastUpdateTimestamp", this.safeInteger(position, "updateTime") },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
-            { "collateral", null },
-            { "initialMargin", this.safeNumber(position, "initialMargin") },
+            { "collateral", this.parseNumber(collateralString) },
+            { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", null },
             { "leverage", this.safeNumber(position, "leverage") },
             { "marginRatio", null },

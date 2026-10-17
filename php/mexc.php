@@ -5450,24 +5450,36 @@ class mexc extends Exchange {
         $symbol = $marketResolved['symbol'];
         $contracts = $this->safe_string($position, 'holdVol');
         $entryPrice = $this->safe_number($position, 'openAvgPrice');
-        $initialMargin = $this->safe_string($position, 'im');
+        $initialMargin = $this->omit_zero($this->safe_string($position, 'im'));
+        $unrealizedPnl = $this->safe_string($position, 'unRealizedPnl');
         $rawSide = $this->safe_string($position, 'positionType');
         $side = ($rawSide === '1') ? 'long' : 'short';
-        $openType = $this->safe_string($position, 'margin_mode');
+        $openType = $this->safe_string_2($position, 'openType', 'margin_mode');
         $marginType = ($openType === '1') ? 'isolated' : 'cross';
+        $collateralString = null;
+        $marginString = null;
+        if (($marginType === 'isolated') && ($initialMargin !== null)) {
+            // im is the margin mexc holds in the position; funding settles to the available balance
+            $collateralString = $initialMargin;
+            $marginString = $collateralString;
+            if ($unrealizedPnl !== null) {
+                $collateralString = Precise::string_add($collateralString, $unrealizedPnl);
+            }
+        }
         $leverage = $this->safe_number($position, 'leverage');
-        $liquidationPrice = $this->safe_number($position, 'liquidatePrice');
+        $liquidationPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidatePrice')));
         $timestamp = $this->safe_integer($position, 'updateTime');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
-            'contractSize' => null,
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'entryPrice' => $entryPrice,
-            'collateral' => null,
+            'positionMargin' => $this->parse_number($marginString),
+            'collateral' => $this->parse_number($collateralString),
             'side' => $side,
-            'unrealizedPnl' => null,
+            'unrealizedPnl' => $this->parse_number($unrealizedPnl),
             'leverage' => $this->parse_number($leverage),
             'percentage' => null,
             'marginMode' => $marginType,

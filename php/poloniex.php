@@ -3848,9 +3848,13 @@ class poloniex extends Exchange {
         $leverage = $this->safe_string($position, 'lever');
         $initialMargin = $this->safe_string($position, 'im');
         $notional = Precise::string_mul($leverage, $initialMargin);
-        $qty = $this->safe_string($position, 'qty');
-        $avgPrice = $this->safe_string($position, 'openAvgPx');
-        $collateral = Precise::string_mul($qty, $avgPrice);
+        $positionMargin = null;
+        $collateral = null;
+        if ($marginMode === 'isolated') {
+            $positionMargin = $this->omit_zero($this->safe_string($position, 'mgn'));
+            $upl = $this->safe_string($position, 'upl');
+            $collateral = (($positionMargin !== null) && ($upl !== null)) ? Precise::string_add($positionMargin, $upl) : null;
+        }
         // todo: some more fields
         return $this->safe_position(array(
             'info' => $position,
@@ -3873,7 +3877,8 @@ class poloniex extends Exchange {
             'lastUpdateTimestamp' => null,
             'maintenanceMargin' => $this->safe_number($position, 'mm'),
             'maintenanceMarginPercentage' => null,
-            'collateral' => $collateral,
+            'collateral' => $this->parse_number($collateral),
+            'positionMargin' => $this->parse_number($positionMargin),
             'initialMargin' => $initialMargin,
             'initialMarginPercentage' => null,
             'leverage' => intval($leverage),
