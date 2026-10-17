@@ -2169,7 +2169,8 @@ class testMainClass {
         try {
             for (let i = 0; i < expectedResults.length; i++) {
                 // a { "rejectsWith": "<ErrorClass>" } step expects this watch call to be
-                // rejected, with that error class named in the exception message
+                // rejected, with that error class named in the exception message (a substring
+                // match, since every language formats exceptionMessage differently)
                 const expectedError = exchange.safeString (expectedResults[i], 'rejectsWith');
                 if (expectedError !== undefined) {
                     let rejectionMessage: Str = undefined;
@@ -2179,7 +2180,12 @@ class testMainClass {
                         rejectionMessage = exceptionMessage (e);
                     }
                     assert (rejectionMessage !== undefined, method + ' resolved, expected a rejection with ' + expectedError);
-                    assert ((rejectionMessage as string).indexOf (expectedError) >= 0, method + ' rejected without ' + expectedError + ': ' + rejectionMessage);
+                    const rejectionText = rejectionMessage as string;
+                    assert (rejectionText.indexOf (expectedError) >= 0, method + ' rejected without ' + expectedError + ': ' + rejectionText);
+                    // the injector rejects the futures its frames left pending with an ExchangeError of
+                    // its own, which must not pass for the rejection the fixture expects
+                    const rejectedByInjector = rejectionText.indexOf ('the injected messages did not resolve') >= 0;
+                    assert (!rejectedByInjector, method + ' was not rejected by the exchange, the injected messages left it pending');
                 } else {
                     const result = await callExchangeMethodDynamically (exchange, method, input);
                     // ws structures can be live typed objects (e.g. orderbooks) in some
