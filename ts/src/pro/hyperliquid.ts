@@ -1654,6 +1654,16 @@ export default class hyperliquid extends hyperliquidRest {
                 // whole connection, see https://github.com/ccxt/ccxt/issues/28369
                 return true;
             }
+            if (ret_msg.indexOf ('Already unsubscribed') >= 0) {
+                // the requested state is already reached, so the unWatch call resolves through the
+                // regular unsubscription handler, the subscription is echoed only inside the text
+                const subscriptionStart = ret_msg.indexOf ('{');
+                const subscription = this.parseJson (ret_msg.slice (subscriptionStart));
+                if (subscription !== undefined) {
+                    this.handleUnsubscription (client, subscription);
+                    return true;
+                }
+            }
             const error = new ExchangeError (this.id + ' ' + ret_msg);
             client.reject (error);
             return true;
@@ -1889,26 +1899,30 @@ export default class hyperliquid extends hyperliquidRest {
         const method = this.safeString (data, 'method');
         if (method === 'unsubscribe') {
             const subscription = this.safeDict (data, 'subscription', {});
-            const type = this.safeString (subscription, 'type');
-            if (type === 'l2Book') {
-                this.handleOrderBookUnsubscription (client, subscription);
-            } else if (type === 'trades') {
-                this.handleTradesUnsubscription (client, subscription);
-            } else if (type === 'candle') {
-                this.handleOHLCVUnsubscription (client, subscription);
-            } else if (type === 'orderUpdates') {
-                this.handleOrderUnsubscription (client, subscription);
-            } else if (type === 'userFills') {
-                this.handleMyTradesUnsubscription (client, subscription);
-            } else if (type === 'clearinghouseState') {
-                this.handlePositionsUnsubscription (client, subscription);
-            } else if (type === 'spotState') {
-                this.handleSpotBalanceUnsubscription (client, subscription);
-            } else if ((type === 'activeAssetCtx') || (type === 'activeSpotAssetCtx')) {
-                this.handleTickerUnsubscription (client, subscription);
-            } else if (type === 'allMids') {
-                this.handleTickersUnsubscription (client, subscription);
-            }
+            this.handleUnsubscription (client, subscription);
+        }
+    }
+
+    handleUnsubscription (client: Client, subscription: Dict) {
+        const type = this.safeString (subscription, 'type');
+        if (type === 'l2Book') {
+            this.handleOrderBookUnsubscription (client, subscription);
+        } else if (type === 'trades') {
+            this.handleTradesUnsubscription (client, subscription);
+        } else if (type === 'candle') {
+            this.handleOHLCVUnsubscription (client, subscription);
+        } else if (type === 'orderUpdates') {
+            this.handleOrderUnsubscription (client, subscription);
+        } else if (type === 'userFills') {
+            this.handleMyTradesUnsubscription (client, subscription);
+        } else if (type === 'clearinghouseState') {
+            this.handlePositionsUnsubscription (client, subscription);
+        } else if (type === 'spotState') {
+            this.handleSpotBalanceUnsubscription (client, subscription);
+        } else if ((type === 'activeAssetCtx') || (type === 'activeSpotAssetCtx')) {
+            this.handleTickerUnsubscription (client, subscription);
+        } else if (type === 'allMids') {
+            this.handleTickersUnsubscription (client, subscription);
         }
     }
 
