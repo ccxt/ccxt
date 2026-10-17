@@ -343,6 +343,8 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
+        if self.markets is None:
+            await self.load_markets()
         symbolValue = self.symbol(symbol)
         fr = await self.watch_funding_rates([symbolValue], params)
         return fr[symbolValue]
@@ -428,6 +430,8 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
+        if self.markets is None:
+            await self.load_markets()
         channel, paramsChannel = self.handle_option_string_and_params(params, 'watchTicker', 'channel', 'tickers')
         paramsChannel['channel'] = channel
         market = self.market(symbol)
@@ -479,6 +483,8 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
+        if self.markets is None:
+            await self.load_markets()
         channel, paramsChannel = self.handle_option_string_and_params(params, 'watchMarkPrice', 'channel', 'mark-price')
         paramsChannel['channel'] = channel
         market = self.market(symbol)
