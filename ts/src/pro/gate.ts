@@ -2276,8 +2276,10 @@ export default class gate extends gateRest {
     getMarketTypeByUrl (url: string): string {
         const findBy: Dict = {
             'op-': 'option',
+            '/ws/options/': 'option',
             'delivery': 'future',
             'fx': 'swap',
+            '/ws/futures/': 'swap',
         };
         const keys = Object.keys (findBy);
         for (let i = 0; i < keys.length; i++) {
