@@ -8248,6 +8248,7 @@ const CCXT_GO_PRODUCER_DECLARATIONS = {
     'this.SafePredictionTrade': 'map',
     'this.SeparateBidsOrAsks': 'list',
     'this.ParseOpenInterestsHistory': 'list', 'this.ParseLiquidations': 'list', 'this.ParseADLRanks': 'list', 'this.FilterByArrayADLRanks': 'list', 'this.ParseOpenInterests': 'map', // U16
+    'this.ParseConversions': 'list', 'this.ParseLongShortRatioHistory': 'list', 'this.ParseAccounts': 'list', 'this.ParseAllGreeks': 'map', 'this.ParseOptionChain': 'map', 'this.ParseAccount': 'map', // U17
 };
 
 const CCXT_GO_PRODUCER_DICT_TYPE = 'map[string]any';

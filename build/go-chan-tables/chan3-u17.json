@@ -1,0 +1,8 @@
+{
+    "FetchConvertTradeHistory": "[]any",
+    "FetchAllGreeks": "map[string]any",
+    "FetchLongShortRatioHistory": "[]any",
+    "FetchOptionChain": "map[string]any",
+    "FetchAccounts": "[]any",
+    "FetchAccount": "map[string]any"
+}
