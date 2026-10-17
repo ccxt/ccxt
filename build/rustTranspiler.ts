@@ -7129,6 +7129,7 @@ export class RustTranspilerBuilder {
         // `test.fetchHistory` drives `exchange.fetch2(path)`) and whose
         // trailing optional args must be wrapped into the `&[Value]` slice.
         out['fetch2'] = 1;
+        out['build_ohlcvc'] = 1;
         return out;
     }
 
