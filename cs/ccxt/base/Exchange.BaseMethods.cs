@@ -37,7 +37,7 @@ public partial class BaseExchange
                 { "borrowMargin", null },
                 { "cancelAllOrders", null },
                 { "cancelAllOrdersWs", null },
-                { "cancelOrder", true },
+                { "cancelOrder", null },
                 { "cancelOrderWithClientOrderId", null },
                 { "cancelOrderWs", null },
                 { "cancelOrders", null },
@@ -48,7 +48,7 @@ public partial class BaseExchange
                 { "createDepositAddress", null },
                 { "createLimitBuyOrder", null },
                 { "createLimitBuyOrderWs", null },
-                { "createLimitOrder", true },
+                { "createLimitOrder", null },
                 { "createLimitOrderWs", null },
                 { "createLimitSellOrder", null },
                 { "createLimitSellOrderWs", null },
@@ -56,15 +56,15 @@ public partial class BaseExchange
                 { "createMarketBuyOrderWs", null },
                 { "createMarketBuyOrderWithCost", null },
                 { "createMarketBuyOrderWithCostWs", null },
-                { "createMarketOrder", true },
-                { "createMarketOrderWs", true },
+                { "createMarketOrder", null },
+                { "createMarketOrderWs", null },
                 { "createMarketOrderWithCost", null },
                 { "createMarketOrderWithCostWs", null },
                 { "createMarketSellOrder", null },
                 { "createMarketSellOrderWs", null },
                 { "createMarketSellOrderWithCost", null },
                 { "createMarketSellOrderWithCostWs", null },
-                { "createOrder", true },
+                { "createOrder", null },
                 { "createOrderWs", null },
                 { "createOrders", null },
                 { "createOrderWithTakeProfitAndStopLoss", null },
@@ -96,7 +96,7 @@ public partial class BaseExchange
                 { "editOrderWs", null },
                 { "fetchAccounts", null },
                 { "fetchADLRank", null },
-                { "fetchBalance", true },
+                { "fetchBalance", null },
                 { "fetchBalanceWs", null },
                 { "fetchBidsAsks", null },
                 { "fetchBorrowInterest", null },
@@ -139,7 +139,7 @@ public partial class BaseExchange
                 { "fetchIsolatedBorrowRates", null },
                 { "fetchMarginAdjustmentHistory", null },
                 { "fetchIsolatedPositions", null },
-                { "fetchL2OrderBook", true },
+                { "fetchL2OrderBook", null },
                 { "fetchL3OrderBook", null },
                 { "fetchLastPrices", null },
                 { "fetchLedger", null },
@@ -172,7 +172,7 @@ public partial class BaseExchange
                 { "fetchOptionChain", null },
                 { "fetchOrder", null },
                 { "fetchOrderWithClientOrderId", null },
-                { "fetchOrderBook", true },
+                { "fetchOrderBook", null },
                 { "fetchOrderBooks", null },
                 { "fetchOrderBookWs", null },
                 { "fetchOrders", null },
@@ -195,13 +195,13 @@ public partial class BaseExchange
                 { "fetchPremiumIndexOHLCV", null },
                 { "fetchSettlementHistory", null },
                 { "fetchStatus", null },
-                { "fetchTicker", true },
+                { "fetchTicker", "emulated" },
                 { "fetchTickerWs", null },
                 { "fetchTickers", null },
                 { "fetchMarkPrices", null },
                 { "fetchTickersWs", null },
                 { "fetchTime", null },
-                { "fetchTrades", true },
+                { "fetchTrades", null },
                 { "fetchTradesWs", null },
                 { "fetchTradingFee", null },
                 { "fetchTradingFees", null },
@@ -1563,6 +1563,7 @@ public partial class BaseExchange
         Dictionary<string, object> networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new Dictionary<string, object>() {}));
         this.options["networksById"] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new Dictionary<string, object>() {}));
         this.featuresGenerator();
+        this.hasAutocorrect();
         // init predefined markets if any
         if ((this.markets != null))
         {
@@ -1580,6 +1581,29 @@ public partial class BaseExchange
         if ((this.safeBool(userConfig, "sandbox", false) == true) || (this.safeBool(userConfig, "testnet", false) == true))
         {
             this.setSandboxMode(true);
+        }
+    }
+
+    public virtual void hasAutocorrect()
+    {
+        Dictionary<string, object> fallbacks = new Dictionary<string, object>() {
+            { "fetchL2OrderBook", "fetchOrderBook" },
+            { "createLimitOrder", "createOrder" },
+            { "createMarketOrder", "createOrder" },
+            { "createLimitOrderWs", "createOrderWs" },
+            { "createMarketOrderWs", "createOrderWs" },
+        };
+        List<object> targets = new List<object>(fallbacks.Keys);
+        for (int i = 0; i < targets.Count; i++)
+        {
+            string? target = ((string)targets[i]);
+            object source = (target != null && fallbacks.ContainsKey(target) ? fallbacks[target] : null);
+            bool sourceDefined = ((this.has != null && source is string inOpKey0 && this.has.ContainsKey(inOpKey0))) && (!isEqual(getValue(this.has, source), null));
+            bool targetDefined = ((this.has != null && target != null && this.has.ContainsKey(target))) && (!isEqual(getValue(this.has, target), null));
+            if (sourceDefined && !targetDefined)
+            {
+                this.has[(string)target] = getValue(this.has, source);
+            }
         }
     }
 
@@ -4615,7 +4639,7 @@ public partial class BaseExchange
         {
             return ccxt.BaseExchange.ToDict(currency);
         }
-        if (((currencyId != null)) && ((this.currencies_by_id != null)) && ((this.currencies_by_id != null && currencyId is string inOpKey0 && this.currencies_by_id.ContainsKey(inOpKey0))) && (!isEqual(getValue(this.currencies_by_id, currencyId), null)))
+        if (((currencyId != null)) && ((this.currencies_by_id != null)) && ((this.currencies_by_id != null && currencyId is string inOpKey1 && this.currencies_by_id.ContainsKey(inOpKey1))) && (!isEqual(getValue(this.currencies_by_id, currencyId), null)))
         {
             return ccxt.BaseExchange.ToDict(getValue(this.currencies_by_id, currencyId));
         }
@@ -4635,7 +4659,7 @@ public partial class BaseExchange
     {
         if ((marketId != null))
         {
-            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey1 && this.markets_by_id.ContainsKey(inOpKey1))))
+            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey2 && this.markets_by_id.ContainsKey(inOpKey2))))
             {
                 object markets = getValue(this.markets_by_id, marketId);
                 int numMarkets = getArrayLength(markets);
@@ -5608,10 +5632,10 @@ public partial class BaseExchange
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((markets != null && symbol is string inOpKey2 && markets.ContainsKey(inOpKey2)))
+        if ((markets != null && symbol is string inOpKey3 && markets.ContainsKey(inOpKey3)))
         {
             return ccxt.BaseExchange.ToDict(getValue(markets, symbol));
-        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey3 && marketsById.ContainsKey(inOpKey3))))
+        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey4 && marketsById.ContainsKey(inOpKey4))))
         {
             object marketsList = getValue(marketsById, symbol);
             string? defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
@@ -6542,7 +6566,7 @@ public partial class BaseExchange
         }
         IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((((markets != null)) && ((markets != null && account is string inOpKey4 && markets.ContainsKey(inOpKey4)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey5 && marketsById.ContainsKey(inOpKey5)))))
+        if ((((markets != null)) && ((markets != null && account is string inOpKey5 && markets.ContainsKey(inOpKey5)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey6 && marketsById.ContainsKey(inOpKey6)))))
         {
             Dictionary<string, object> market = this.market(account);
             return ((string?)((object)((market.ContainsKey("id") ? market["id"] : null))));
@@ -7300,7 +7324,7 @@ public partial class BaseExchange
                     id = add(id, amount);
                 }
             }
-            if ((id != null) && !((id is string inOpKey6 && uniqueResult.ContainsKey(inOpKey6))))
+            if ((id != null) && !((id is string inOpKey7 && uniqueResult.ContainsKey(inOpKey7))))
             {
                 uniqueResult[(string)id] = entry;
             }
@@ -7725,13 +7749,13 @@ public partial class BaseExchange
     public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, bool? subHashIsPrefix = null)
     {
         subHashIsPrefix ??= false;
-        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey7 && client.subscriptions.ContainsKey(inOpKey7))))
+        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey8 && client.subscriptions.ContainsKey(inOpKey8))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
         if (subHashIsPrefix != true)
         {
-            if (((subHash != null)) && ((client.subscriptions != null && subHash is string inOpKey8 && client.subscriptions.ContainsKey(inOpKey8))))
+            if (((subHash != null)) && ((client.subscriptions != null && subHash is string inOpKey9 && client.subscriptions.ContainsKey(inOpKey9))))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
             }
@@ -7801,25 +7825,25 @@ public partial class BaseExchange
                 object symbol = symbols[i];
                 if (topic == "trades")
                 {
-                    if ((this.trades != null && symbol is string inOpKey10 && this.trades.ContainsKey(inOpKey10)))
+                    if ((this.trades != null && symbol is string inOpKey11 && this.trades.ContainsKey(inOpKey11)))
                     {
                         this.trades.Remove((string)symbol);
                     }
                 } else if (topic == "orderbook")
                 {
-                    if ((this.orderbooks != null && symbol is string inOpKey11 && this.orderbooks.ContainsKey(inOpKey11)))
+                    if ((this.orderbooks != null && symbol is string inOpKey12 && this.orderbooks.ContainsKey(inOpKey12)))
                     {
                         ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                     }
                 } else if (topic == "ticker")
                 {
-                    if ((this.tickers != null && symbol is string inOpKey12 && this.tickers.ContainsKey(inOpKey12)))
+                    if ((this.tickers != null && symbol is string inOpKey13 && this.tickers.ContainsKey(inOpKey13)))
                     {
                         this.tickers.Remove((string)symbol);
                     }
                 } else if (topic == "bidsasks")
                 {
-                    if ((this.bidsasks != null && symbol is string inOpKey13 && this.bidsasks.ContainsKey(inOpKey13)))
+                    if ((this.bidsasks != null && symbol is string inOpKey14 && this.bidsasks.ContainsKey(inOpKey14)))
                     {
                         this.bidsasks.Remove((string)symbol);
                     }
