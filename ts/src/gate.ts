@@ -4638,7 +4638,9 @@ export default class gate extends Exchange {
 
     isGateFuturesContractWithDecimalSize (market: Market): boolean {
         const info = this.safeDict (market, 'info', {});
-        return market['swap'] && this.safeBool (info, 'enable_decimal', false);
+        const isSwap = this.safeBool (market, 'swap', false);
+        const enableDecimal = this.safeBool (info, 'enable_decimal', false);
+        return isSwap && enableDecimal;
     }
 
     getGateFuturesSignedAmount (symbol: Str, side: Str, amount: Num): Str {
