@@ -1577,7 +1577,8 @@ export default class grvt extends Exchange {
         //    }
         //
         const rows: Dict[] = this.safeList (response, 'result', []);
-        return this.parseTransfers (rows, currency, since, limit);
+        const transfers = this.parseTransfers (rows, currency, since, limit);
+        return transfers;
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

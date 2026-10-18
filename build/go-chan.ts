@@ -48,6 +48,7 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.SafePosition': 'map[string]any', 'this.DerivedExchange.SafePosition': 'map[string]any', 'this.ParsePosition': 'map[string]any', 'this.DerivedExchange.ParsePosition': 'map[string]any', 'this.ParseOptionPosition': 'map[string]any', 'this.DerivedExchange.ParseOptionPosition': 'map[string]any', // gochan32-U10
     'this.ParsePredictionPositions': '[]any', 'this.DerivedExchange.ParsePredictionPositions': '[]any', // U10
     'this.ParseDepositAddresses': '[]any', 'this.DerivedExchange.ParseDepositAddresses': '[]any', // W15
+    'this.ParseTransfers': '[]any', 'this.DerivedExchange.ParseTransfers': '[]any', // W16
     'this.ParseEvent': 'map[string]any', 'this.ParseMarketToEvent': 'map[string]any', // W18
     'this.SetApiCredentials': 'map[string]any', 'this.Decode': 'string', // W20
     'this.ParseDepositMethodIds': '[]any', 'this.ParsePortfolioDetails': '[]any', // W23
