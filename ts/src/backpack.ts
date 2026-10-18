@@ -700,7 +700,7 @@ export default class backpack extends Exchange {
             }
             const baseId = this.safeString (rawMarket, 'baseSymbol');
             const security = this.safeDict (securityById, baseId);
-            const market = this.parseMarket ((security === undefined) ? rawMarket : this.extend ({}, rawMarket, { 'security': security }));
+            const market = this.parseMarket ((security === undefined) ? rawMarket : this.extend (rawMarket, { 'security': security }));
             if (market !== undefined) {
                 const marketId = this.safeString (market, 'id');
                 if ((marketId === undefined) || (marketId in marketIds)) {
@@ -927,6 +927,8 @@ export default class backpack extends Exchange {
             return undefined;
         }
         const orderBookState = this.safeString (market, 'orderBookState');
+        // RFQ active means listed, not currently in session; an explicit order book state takes precedence.
+        const active = (rfq && (orderBookState === undefined)) ? ((id !== undefined) || (this.safeString (security, 'asset') !== undefined)) : (orderBookState === 'Open');
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -944,7 +946,7 @@ export default class backpack extends Exchange {
             'swap': type === 'swap',
             'future': false,
             'option': false,
-            'active': (rfq) ? undefined : (orderBookState === 'Open'),
+            'active': active,
             'contract': type !== 'spot',
             'linear': linear,
             'inverse': inverse,
@@ -1220,7 +1222,7 @@ export default class backpack extends Exchange {
         const quoteId = this.safeString (query, 'quoteId');
         if (quoteId !== undefined) {
             const acceptParams = this.omit (query, [ 'quoteId', 'price', 'baseAmount', 'clientOrderId' ]);
-            const accepted = await this.acceptRfqQuote (id, quoteId, market['symbol'], acceptParams);
+            const accepted: Order = await this.acceptRfqQuote (id, quoteId, market['symbol'], acceptParams);
             return this.parseConversion (accepted, this.currency (fromCode), this.currency (toCode));
         }
         if ((amount === undefined) || !Precise.stringGt (this.numberToString (amount), '0')) {
@@ -1288,7 +1290,7 @@ export default class backpack extends Exchange {
         if (clientOrderId !== undefined) {
             orderParams['clientOrderId'] = clientOrderId;
         }
-        const order = await this.createRfqOrder (market['symbol'], 'market', side, this.parseNumber (quantity), price, this.extend (orderParams, { 'stock': true }));
+        const order: Order = await this.createRfqOrder (market['symbol'], 'market', side, this.parseNumber (quantity), price, this.extend (orderParams, { 'stock': true }));
         return this.parseConversion (order, this.currency (fromCode), this.currency (toCode));
     }
 
@@ -1402,7 +1404,11 @@ export default class backpack extends Exchange {
         const stockOnly = this.safeBool (selection, 0, false);
         const query = this.safeDict (selection, 1, {});
         const source = this.safeString (query, 'source', 'Venue');
-        const symbolsNormalized = ((symbols === undefined) || (symbols.length === 0)) ? undefined : this.marketSymbols (symbols, undefined, false);
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        const symbolsNormalized = (symbolsLength === 0) ? undefined : this.marketSymbols (symbols, undefined, false);
         const symbolsResolved: Strings = (symbolsNormalized === undefined) ? Object.keys (this.markets as Dict) : symbolsNormalized;
         let hasRfqSymbol = false;
         let hasStockSymbol = false;
@@ -1419,7 +1425,10 @@ export default class backpack extends Exchange {
         }
         const stockExplicitlyDisabled = this.safeValue2 (params, 'stock', 'defaultStock') === false;
         const needsExternalRfqTickers = (source === 'Venue') && (this.safeString (query, 'source') === undefined) && hasRfqSymbol && !stockExplicitlyDisabled;
-        const requestParams = ((source === 'External') && (stockOnly || hasStockSymbol) && !stockExplicitlyDisabled) ? this.extend ({}, query, { 'stock': true }) : query;
+        let requestParams: Dict = query;
+        if ((source === 'External') && (stockOnly || hasStockSymbol) && !stockExplicitlyDisabled) {
+            requestParams = this.extend (query, { 'stock': true });
+        }
         const request = this.stockDataRequest ('fetchTickers', requestParams);
         const response = await this.publicGetApiV1Tickers (request);
         const tickers = this.parseTickers (response);
@@ -1427,7 +1436,7 @@ export default class backpack extends Exchange {
         let externalResponse: List = [];
         let externalResponseById: Dict = {};
         if (needsExternalRfqTickers || (source === 'External')) {
-            const externalParams = this.extend ({}, query, { 'stock': true, 'source': 'External' });
+            const externalParams = this.extend (query, { 'stock': true, 'source': 'External' });
             externalResponse = await this.publicGetApiV1Tickers (this.stockDataRequest ('fetchTickers', externalParams));
             externalResponseById = this.indexBy (externalResponse, 'symbol');
         }
@@ -1445,7 +1454,8 @@ export default class backpack extends Exchange {
             } else if (marketIsRfq) {
                 const underlyingId = market['baseId'] + '_' + market['quoteId'];
                 const useExternal = (source === 'External') || needsExternalRfqTickers;
-                const underlyingTicker = this.safeDict (useExternal ? externalResponseById : responseById, underlyingId);
+                const tickerSource = (useExternal) ? externalResponseById : responseById;
+                const underlyingTicker = this.safeDict (tickerSource, underlyingId);
                 if (underlyingTicker !== undefined) {
                     result[marketSymbol] = this.parseTicker (underlyingTicker, market);
                 }
@@ -1929,7 +1939,7 @@ export default class backpack extends Exchange {
             const rfqResponse = await this.privateGetWapiV1HistoryRfqFill (this.extend (rfqRequest, rfqParams));
             let rfqTrades = this.parseTrades (rfqResponse, market, since);
             if (aggregate) {
-                const venueParams = this.extend ({}, this.omit (accountParams, [ 'rfqId', 'quoteId', 'deferredSettlement' ]), { 'assetClass': 'STOCK', 'stock': false });
+                const venueParams = this.extend (this.omit (accountParams, [ 'rfqId', 'quoteId', 'deferredSettlement' ]), { 'assetClass': 'STOCK', 'stock': false });
                 const venueTrades = await this.fetchMyTrades (undefined, since, limit, venueParams);
                 rfqTrades = this.arrayConcat (rfqTrades, venueTrades);
             }
@@ -2484,7 +2494,7 @@ export default class backpack extends Exchange {
         const market = this.market (symbol);
         const selection = this.handleStockParams ('createOrder', params, market);
         const query = this.safeDict (selection, 1, {});
-        const orderParams = this.extend ({}, query, { 'stock': this.safeBool (selection, 0, false) });
+        const orderParams = this.extend (query, { 'stock': this.safeBool (selection, 0, false) });
         if (this.safeString (market['info'], 'marketType') === 'RFQ') {
             return await this.createRfqOrder (symbol, type, side, amount, price, orderParams);
         }
@@ -2648,7 +2658,8 @@ export default class backpack extends Exchange {
             if (stock || (stockOption === false)) {
                 baseParams['stock'] = stock;
             }
-            const extendedParams = this.extend (baseParams, query, orderParams);
+            const baseQuery = this.extend (baseParams, query);
+            const extendedParams = this.extend (baseQuery, orderParams);
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
@@ -2895,7 +2906,7 @@ export default class backpack extends Exchange {
                 return order;
             }
         }
-        return await this.fetchOpenOrder (id, symbol, this.extend ({}, query, { 'stock': this.safeBool (selection, 0, false) }));
+        return await this.fetchOpenOrder (id, symbol, this.extend (query, { 'stock': this.safeBool (selection, 0, false) }));
     }
 
     /**

@@ -1998,7 +1998,8 @@ class testMainClass {
         if (responsesByUrl !== undefined) {
             mockedExchange = setFetchResponseByUrl (exchange, responsesByUrl);
         } else {
-            mockedExchange = setFetchResponse (exchange, exchange.safeValue (data, 'httpResponse'));
+            const httpResponse = exchange.safeValue (data, 'httpResponse');
+            mockedExchange = setFetchResponse (exchange, httpResponse);
         }
         if (this.info) {
             dump ('[INFO] STATIC RESPONSE TEST:', method, ':', data['description']);

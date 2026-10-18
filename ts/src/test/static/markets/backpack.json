@@ -418,7 +418,7 @@
         "future": false,
         "option": false,
         "index": false,
-        "active": null,
+        "active": true,
         "contract": false,
         "linear": null,
         "inverse": null,

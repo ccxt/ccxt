@@ -78,7 +78,7 @@ export default class backpack extends backpackRest {
         if (stock === undefined) {
             return query;
         }
-        return this.extend ({}, query, { 'stock': stock });
+        return this.extend (query, { 'stock': stock });
     }
 
     /**
@@ -143,7 +143,7 @@ export default class backpack extends backpackRest {
             if (source === undefined) {
                 source = (isRfq && !bidAsk) ? 'External' : 'Venue';
             }
-            const requestParams = this.extend ({}, marketParams, { 'stock': marketStock, 'source': source });
+            const requestParams: Dict = this.extend (marketParams, { 'stock': marketStock, 'source': source });
             const request = this.stockDataRequest (methodName, requestParams, market);
             let topic = 'ticker.' + this.safeString (request, 'symbol');
             if (channel !== undefined) {
@@ -190,19 +190,23 @@ export default class backpack extends backpackRest {
                 messageHashes.push (messageHash);
             }
             client.subscriptions[subscriptionKey] = subscriptions;
-            if (!unwatch || (Object.keys (subscriptions).length === 0)) {
-                if (topics.indexOf (topic) === -1) {
+            const subscriptionHashes = Object.keys (subscriptions);
+            const subscriptionsLength = subscriptionHashes.length;
+            if (!unwatch || (subscriptionsLength === 0)) {
+                if (!this.inArray (topic, topics)) {
                     topics.push (topic);
                 }
             }
             symbolsResolved.push (symbol);
         }
-        if (symbolsResolved.length === 0) {
+        const symbolsResolvedLength = symbolsResolved.length;
+        if (symbolsResolvedLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires at least one matching market');
         }
         const payload = this.omit (query, [ 'stock', 'source', 'interval', 'channel' ]);
         if (unwatch) {
-            if (topics.length > 0) {
+            const topicsLength = topics.length;
+            if (topicsLength > 0) {
                 const request: Dict = this.extend ({ 'method': 'UNSUBSCRIBE', 'params': topics }, payload);
                 const messageHash = 'unsubscribe:marketData:' + topics.join (',');
                 this.watchMultiple (url, [ messageHash ], request);
@@ -427,7 +431,8 @@ export default class backpack extends backpackRest {
         const stream = this.safeString (message, 'stream', '');
         const subscriptions = this.safeDict (client.subscriptions, 'marketData:' + stream, {});
         const hashes = Object.keys (subscriptions);
-        for (let i = 0; i < hashes.length; i++) {
+        const hashesLength = hashes.length;
+        for (let i = 0; i < hashesLength; i++) {
             const messageHash = hashes[i];
             const subscription = this.safeDict (subscriptions, messageHash, {});
             const symbol = this.safeString (subscription, 'symbol');
@@ -435,13 +440,13 @@ export default class backpack extends backpackRest {
                 continue;
             }
             const market = this.market (symbol);
-            const mappedTicker = this.extend ({}, ticker, { 's': market['id'] });
+            const mappedTicker: Dict = this.extend (ticker, { 's': market['id'] });
             const parsedTicker = this.parseWsTicker (mappedTicker, market);
             parsedTicker['info'] = ticker;
             this.tickers[symbol] = parsedTicker;
             client.resolve (parsedTicker, messageHash);
         }
-        if (hashes.length > 0) {
+        if (hashesLength > 0) {
             return;
         }
         const marketId = this.safeString (ticker, 's');
@@ -513,7 +518,8 @@ export default class backpack extends backpackRest {
         const stream = this.safeString (message, 'stream', '');
         const subscriptions = this.safeDict (client.subscriptions, 'marketData:' + stream, {});
         const hashes = Object.keys (subscriptions);
-        for (let i = 0; i < hashes.length; i++) {
+        const hashesLength = hashes.length;
+        for (let i = 0; i < hashesLength; i++) {
             const messageHash = hashes[i];
             const subscription = this.safeDict (subscriptions, messageHash, {});
             const symbol = this.safeString (subscription, 'symbol');
@@ -537,7 +543,7 @@ export default class backpack extends backpackRest {
             }
             client.resolve (parsed, messageHash);
         }
-        return hashes.length > 0;
+        return hashesLength > 0;
     }
 
     /**
@@ -594,7 +600,8 @@ export default class backpack extends backpackRest {
         const stream = this.safeString (message, 'stream', '');
         const subscriptions = this.safeDict (client.subscriptions, 'marketData:' + stream, {});
         const hashes = Object.keys (subscriptions);
-        for (let i = 0; i < hashes.length; i++) {
+        const hashesLength = hashes.length;
+        for (let i = 0; i < hashesLength; i++) {
             const messageHash = hashes[i];
             const subscription = this.safeDict (subscriptions, messageHash, {});
             const symbol = this.safeString (subscription, 'symbol');
@@ -606,7 +613,7 @@ export default class backpack extends backpackRest {
             this.bidsasks[symbol] = parsedBidAsk;
             client.resolve (parsedBidAsk, messageHash);
         }
-        if (hashes.length > 0) {
+        if (hashesLength > 0) {
             return;
         }
         const marketId = this.safeString (data, 's');
@@ -1164,6 +1171,8 @@ export default class backpack extends backpackRest {
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
+            // cache the triggering delta before a synchronous snapshot can inspect the cache
+            storedOrderBook.cache.push (data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             const market = this.market (symbol);
             const defaultSnapshotDelay = (market['stock'] === true) ? 0 : 10;
@@ -1171,7 +1180,6 @@ export default class backpack extends backpackRest {
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, undefined, {});
             }
-            storedOrderBook.cache.push (data);
             return;
         } else if ((deltaNonce !== undefined) && (nonce > deltaNonce)) {
             return;
@@ -1206,8 +1214,9 @@ export default class backpack extends backpackRest {
         const firstDelta = this.safeDict (cache, 0);
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDeltaStart = this.safeInteger (firstDelta, 'U');
+        const cacheLength = cache.length;
         if (nonce === undefined) {
-            return cache.length;
+            return cacheLength;
         }
         if (firstDeltaStart === undefined) {
             return -1;
@@ -1215,18 +1224,18 @@ export default class backpack extends backpackRest {
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
-        for (let i = 0; i < cache.length; i++) {
+        for (let i = 0; i < cacheLength; i++) {
             const delta = this.safeDict (cache, i);
             const deltaStart = this.safeInteger (delta, 'U');
             const deltaEnd = this.safeInteger (delta, 'u');
             if ((deltaStart === undefined) || (deltaEnd === undefined)) {
-                return cache.length;
+                return cacheLength;
             }
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
         }
-        return cache.length;
+        return cacheLength;
     }
 
     /**
@@ -1393,7 +1402,8 @@ export default class backpack extends backpackRest {
         if (quoteEvent) {
             request['id'] = this.safeString (data, 'u');
         }
-        const parsed = this.parseOrder (request, market);
+        const marketResolved = this.safeMarket (this.safeString (data, 's'), market);
+        const parsed = this.parseOrder (request, marketResolved);
         parsed['info'] = data;
         if (event === 'rfqFilled') {
             parsed['lastTradeTimestamp'] = this.parseToInt (this.safeInteger (data, 'T', 0) / 1000);
@@ -1416,7 +1426,8 @@ export default class backpack extends backpackRest {
         if (stock && (this.safeList (this.options, 'securities') === undefined)) {
             await this.fetchSecurities ();
         }
-        const balances = await this.watchPrivate ([ 'account.balanceUpdate' ], [ 'balance' ], this.omit (query, 'stock'));
+        const response = await this.watchPrivate ([ 'account.balanceUpdate' ], [ 'balance' ], this.omit (query, 'stock'));
+        const balances: Dict = this.safeDict ({ 'balances': response }, 'balances', {});
         if (stock) {
             const securities = this.safeList (this.options, 'securities', []);
             const result: Dict = { 'timestamp': this.safeInteger (balances, 'timestamp'), 'datetime': this.safeString (balances, 'datetime'), 'info': this.safeDict (balances, 'info') };
@@ -1433,7 +1444,7 @@ export default class backpack extends backpackRest {
             }
             return this.safeBalance (result);
         }
-        return balances;
+        return this.safeBalance (balances);
     }
 
     /**
@@ -1468,7 +1479,8 @@ export default class backpack extends backpackRest {
         const assets = this.safeDict (this.options, 'wsBalanceAssets', {});
         assets[assetId] = { 'available': this.safeString (data, 'A'), 'locked': this.safeString (data, 'L'), 'staked': this.safeString (data, 'S') };
         this.options['wsBalanceAssets'] = assets;
-        const parsed = this.parseBalance (assets);
+        const response = this.parseBalance (assets);
+        const parsed: Dict = this.safeDict ({ 'balances': response }, 'balances', {});
         const timestamp = this.parseToInt (this.safeInteger (data, 'E', 0) / 1000);
         parsed['timestamp'] = timestamp;
         parsed['datetime'] = this.iso8601 (timestamp);
