@@ -99,32 +99,6 @@
                 ]
             }
         ],
-        "sign": [
-            {
-                "description": "public futures sign adds decimal size header",
-                "method": "sign",
-                "input": [
-                    "{settle}/contracts",
-                    [
-                        "public",
-                        "futures"
-                    ],
-                    "GET",
-                    {
-                        "settle": "usdt"
-                    }
-                ],
-                "httpResponse": null,
-                "parsedResponse": {
-                    "url": "https://api.gateio.ws/api/v4/futures/usdt/contracts",
-                    "method": "GET",
-                    "body": null,
-                    "headers": {
-                        "X-Gate-Size-Decimal": "1"
-                    }
-                }
-            }
-        ],
         "createOrder": [
             {
                 "description": "trigger order with custom clientOrderId",

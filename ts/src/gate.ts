@@ -4708,8 +4708,10 @@ export default class gate extends Exchange {
             const isClose = this.safeBool (query, 'close');
             if (isClose !== true) {
                 signedAmount = this.getGateFuturesSignedAmount (symbol, side, amount);
-                contractAmount = parseInt (signedAmount as string);
                 useGateFuturesDecimalSize = this.isGateFuturesContractWithDecimalSize (market);
+                if (!useGateFuturesDecimalSize) {
+                    contractAmount = parseInt (signedAmount as string);
+                }
             }
         }
         const amountResolved: Num = (contract === true) ? contractAmount : amount;
