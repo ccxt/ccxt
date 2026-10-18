@@ -1982,8 +1982,7 @@ export default class coinbase extends Exchange {
                 'timestamp': now,
             });
         }
-        const cached = this.safeDict (this.options, 'fetchCurrencies', {});
-        return cached;
+        return this.safeDict (this.options, 'fetchCurrencies', {});
     }
 
     /**
