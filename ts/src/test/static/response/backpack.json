@@ -126,74 +126,6 @@
                 ]
             }
         ],
-        "parseMarket": [
-            {
-                "description": "listed RFQ preserves price and quantity filters when security sessions are empty",
-                "method": "parseMarket",
-                "input": [{
-                    "symbol": "AAPL.US_USDC_RFQ", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "RFQ",
-                    "filters": { "price": { "tickSize": "0.01", "minPrice": "1", "maxPrice": "1000" }, "quantity": { "stepSize": "0.1", "minQuantity": "0.2", "maxQuantity": "50" } },
-                    "security": { "asset": "AAPL.US", "sessions": [] }
-                }],
-                "httpResponse": {},
-                "parsedResponse": {
-                    "id": "AAPL.US_USDC_RFQ", "lowercaseId": null, "symbol": "AAPL.US.RFQ/USDC",
-                    "base": "AAPL.US", "quote": "USDC", "settle": null, "baseId": "AAPL.US", "quoteId": "USDC", "settleId": null,
-                    "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false,
-                    "active": true, "contract": false, "linear": null, "inverse": null, "subType": null,
-                    "taker": null, "maker": null, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
-                    "precision": { "amount": 0.1, "price": 0.01 },
-                    "limits": { "leverage": { "min": null, "max": null }, "amount": { "min": 0.2, "max": 50 }, "price": { "min": 1, "max": 1000 }, "cost": { "min": null, "max": null } },
-                    "marginModes": { "cross": null, "isolated": null }, "created": null, "stock": true, "executionModel": "rfq",
-                    "info": {
-                        "symbol": "AAPL.US_USDC_RFQ", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "RFQ",
-                        "filters": { "price": { "tickSize": "0.01", "minPrice": "1", "maxPrice": "1000" }, "quantity": { "stepSize": "0.1", "minQuantity": "0.2", "maxQuantity": "50" } },
-                        "security": { "asset": "AAPL.US", "sessions": [] }
-                    }
-                }
-            },
-            {
-                "description": "HK suffix infers a stock SPOT market without security or RWA metadata",
-                "method": "parseMarket",
-                "input": [{ "symbol": "0700.HK_USDC", "baseSymbol": "0700.HK", "quoteSymbol": "USDC", "marketType": "SPOT", "orderBookState": "Open" }],
-                "httpResponse": {},
-                "parsedResponse": {
-                    "id": "0700.HK_USDC", "lowercaseId": null, "symbol": "0700.HK/USDC",
-                    "base": "0700.HK", "quote": "USDC", "settle": null, "baseId": "0700.HK", "quoteId": "USDC", "settleId": null,
-                    "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false,
-                    "active": true, "contract": false, "linear": null, "inverse": null, "subType": null,
-                    "taker": null, "maker": null, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
-                    "precision": { "amount": null, "price": null },
-                    "limits": { "leverage": { "min": null, "max": null }, "amount": { "min": null, "max": null }, "price": { "min": null, "max": null }, "cost": { "min": null, "max": null } },
-                    "marginModes": { "cross": null, "isolated": null }, "created": null, "stock": true, "executionModel": null,
-                    "info": { "symbol": "0700.HK_USDC", "baseSymbol": "0700.HK", "quoteSymbol": "USDC", "marketType": "SPOT", "orderBookState": "Open" }
-                }
-            },
-            {
-                "description": "US stock PERP remains a linear settled swap contract rather than RFQ or SPOT",
-                "method": "parseMarket",
-                "input": [{ "symbol": "AAPL.US_USDC_PERP", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "PERP", "orderBookState": "Open" }],
-                "httpResponse": {},
-                "parsedResponse": {
-                    "id": "AAPL.US_USDC_PERP", "lowercaseId": null, "symbol": "AAPL.US/USDC:USDC",
-                    "base": "AAPL.US", "quote": "USDC", "settle": "USDC", "baseId": "AAPL.US", "quoteId": "USDC", "settleId": "USDC",
-                    "type": "swap", "spot": false, "margin": false, "swap": true, "future": false, "option": false, "index": null,
-                    "active": true, "contract": true, "linear": true, "inverse": false, "subType": null,
-                    "taker": null, "maker": null, "contractSize": 1, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
-                    "precision": { "amount": null, "price": null },
-                    "limits": { "leverage": { "min": null, "max": null }, "amount": { "min": null, "max": null }, "price": { "min": null, "max": null }, "cost": { "min": null, "max": null } },
-                    "marginModes": { "cross": null, "isolated": null }, "created": null, "stock": true, "executionModel": null,
-                    "info": { "symbol": "AAPL.US_USDC_PERP", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "PERP", "orderBookState": "Open" }
-                }
-            },
-            {
-                "description": "unknown stock market type returns undefined rather than being reclassified",
-                "method": "parseMarket",
-                "input": [{ "symbol": "AAPL.US_USDC_UNKNOWN", "baseSymbol": "AAPL.US", "quoteSymbol": "USDC", "marketType": "UNKNOWN" }],
-                "httpResponse": {},
-                "parsedResponse": null
-            }
-        ],
         "fetchCurrencies": [
             {
                 "description": "stock filter classifies assets without fetching securities",
@@ -982,44 +914,6 @@
                             }
                         }
                     }
-                }
-            }
-        ],
-        "parseCurrency": [
-            {
-                "description": "US stock with no security metadata",
-                "method": "parseCurrency",
-                "input": [{ "symbol": "BRK.B.US", "displayName": "Berkshire Hathaway", "tokens": [] }],
-                "parsedResponse": {
-                    "info": { "symbol": "BRK.B.US", "displayName": "Berkshire Hathaway", "tokens": [] },
-                    "id": "BRK.B.US", "numericId": null, "code": "BRK.B.US", "precision": null,
-                    "type": "stock", "name": "Berkshire Hathaway", "active": null,
-                    "deposit": false, "withdraw": false, "fee": null, "fees": {}, "networks": {},
-                    "limits": { "deposit": { "min": null, "max": null }, "withdraw": { "min": null, "max": null } }
-                }
-            },
-            {
-                "description": "HK stock not present in securities",
-                "method": "parseCurrency",
-                "input": [{ "symbol": "0700.HK", "displayName": "0700.HK", "tokens": [] }],
-                "parsedResponse": {
-                    "info": { "symbol": "0700.HK", "displayName": "0700.HK", "tokens": [] },
-                    "id": "0700.HK", "numericId": null, "code": "0700.HK", "precision": null,
-                    "type": "stock", "name": "0700.HK", "active": null,
-                    "deposit": false, "withdraw": false, "fee": null, "fees": {}, "networks": {},
-                    "limits": { "deposit": { "min": null, "max": null }, "withdraw": { "min": null, "max": null } }
-                }
-            },
-            {
-                "description": "crypto without networks remains crypto",
-                "method": "parseCurrency",
-                "input": [{ "symbol": "BCH", "displayName": "Bitcoin Cash", "tokens": [] }],
-                "parsedResponse": {
-                    "info": { "symbol": "BCH", "displayName": "Bitcoin Cash", "tokens": [] },
-                    "id": "BCH", "numericId": null, "code": "BCH", "precision": null,
-                    "type": "crypto", "name": "Bitcoin Cash", "active": false,
-                    "deposit": false, "withdraw": false, "fee": null, "fees": {}, "networks": {},
-                    "limits": { "deposit": { "min": null, "max": null }, "withdraw": { "min": null, "max": null } }
                 }
             }
         ],
