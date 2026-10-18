@@ -2394,6 +2394,13 @@
             }
         }
     },
+    "truefinance": {
+        "skipMethods": {
+            "loadMarkets": {
+                "precisionAmountAbnormal": "TRXUSDC and PONSUSDC report a lot size of 9 on the venue"
+            }
+        }
+    },
     "upbit": {
         "skipCSharp": true,
         "skipMethods": {
