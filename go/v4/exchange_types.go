@@ -1758,7 +1758,7 @@ type Leverage struct {
 
 func NewLeverage(data any) Leverage {
 	return Leverage{
-		Info:          SafeValue(data, "info"),
+		Info:          SafeValue(data, "info", nil),
 		Symbol:        SafeStringTyped(data, "symbol"),
 		MarginMode:    SafeStringTyped(data, "marginMode"),
 		LongLeverage:  SafeFloatTyped(data, "longLeverage"),
