@@ -7975,7 +7975,6 @@ export class BaseExchange {
     }
 
     parseDepositAddresses (addresses: any, codes: Strings = undefined, indexed = true, params: Dict = {}): DepositAddress[] {
-        // always a list (the `indexed` argument is kept for signature compatibility); index with indexBy at the caller
         let result: DepositAddress[] = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend (this.parseDepositAddress (addresses[i]), params);
@@ -7983,6 +7982,9 @@ export class BaseExchange {
         }
         if (codes !== undefined) {
             result = this.toArray (this.filterByArray (result, 'currency', codes, false));
+        }
+        if (indexed) {
+            result = this.toArray (this.filterByArray (result, 'currency', undefined, indexed));
         }
         return result;
     }
