@@ -719,13 +719,13 @@ impl IndependentreserveCore {
                 let mut id: Value = add(&add(&baseId, &Value::Str("/".into())), &quoteId);
                 append_to_array(&mut result, Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("id".to_string(), id.clone());
+                        m.insert("id".to_string(), id);
                         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
                         m.insert("base".to_string(), base.clone());
                         m.insert("quote".to_string(), quote);
                         m.insert("settle".to_string(), Value::Null);
                         m.insert("baseId".to_string(), baseId.clone());
-                        m.insert("quoteId".to_string(), quoteId);
+                        m.insert("quoteId".to_string(), quoteId.clone());
                         m.insert("settleId".to_string(), Value::Null);
                         m.insert("type".to_string(), Value::Str("spot".into()));
                         m.insert("spot".to_string(), Value::Bool(true));
@@ -777,7 +777,12 @@ impl IndependentreserveCore {
     m
 }));
                         m.insert("created".to_string(), Value::Null);
-                        m.insert("info".to_string(), id);
+                        m.insert("info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("primaryCurrencyCode".to_string(), baseId.clone());
+        m.insert("secondaryCurrencyCode".to_string(), quoteId);
+    m
+}));
                     m
                 }));
             }
@@ -1758,12 +1763,16 @@ impl IndependentreserveCore {
     m
 });
         }
+        let mut headers: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), Value::Null);
-        m.insert("headers".to_string(), Value::Null);
+        m.insert("headers".to_string(), headers);
     m
 });
 

@@ -3304,7 +3304,12 @@ impl XtCore {
         let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Str("_".into()), marketType]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "t", &[]);
-        let mut percentage: Value = self.safe_string2(ticker.clone(), Value::Str("cr".into()), Value::Str("r".into()), &[]);
+        let mut open: Value = self.safe_string_k(ticker.clone(), "o", &[]);
+        // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
+        let mut percentage: Value = self.safe_string_k(ticker.clone(), "r", &[]);
+        if (open == Value::Null) {
+            percentage = self.safe_string2(ticker.clone(), Value::Str("cr".into()), Value::Str("r".into()), &[]);
+        }
         if (percentage != Value::Null) {
             percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".into()));
         }
@@ -3333,11 +3338,11 @@ impl XtCore {
         m.insert("ask".to_string(), self.safe_number_k(ticker.clone(), "ap", &[]));
         m.insert("askVolume".to_string(), self.safe_number_k(ticker.clone(), "aq", &[]));
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "o", &[]));
+        m.insert("open".to_string(), open);
         m.insert("close".to_string(), self.safe_string_k(ticker.clone(), "c", &[]));
         m.insert("last".to_string(), self.safe_string_k(ticker.clone(), "c", &[]));
         m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), self.safe_number_k(ticker.clone(), "cv", &[]));
+        m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), self.parse_number(percentage, &[]));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume);

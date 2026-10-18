@@ -413,7 +413,7 @@ impl WooCore {
 
     pub async fn watch_public(&mut self, mut messageHash: Value, mut message: Value) -> Value {
         let mut urlUid: Value = Value::Str("".into());
-        if (self.uid.as_str() != Some("")) {
+        if (self.uid.clone() != Value::Null) && (self.uid.as_str() != Some("")) {
             urlUid = Value::Str(format!("{}{}", Value::Str("/".into()), self.uid.clone()).into());
         }
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[]), urlUid).into());
@@ -435,7 +435,7 @@ impl WooCore {
     m
 }));
         let mut urlUid: Value = Value::Str("".into());
-        if (self.uid.as_str() != Some("")) {
+        if (self.uid.clone() != Value::Null) && (self.uid.as_str() != Some("")) {
             urlUid = Value::Str(format!("{}{}", Value::Str("/".into()), self.uid.clone()).into());
         }
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[]), urlUid).into());
@@ -496,7 +496,7 @@ impl WooCore {
         let mut market: Value = self.market(symbol);
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".into())).into()), method).into());
         let mut urlUid: Value = Value::Str("".into());
-        if (self.uid.as_str() != Some("")) {
+        if (self.uid.clone() != Value::Null) && (self.uid.as_str() != Some("")) {
             urlUid = Value::Str(format!("{}{}", Value::Str("/".into()), self.uid.clone()).into());
         }
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[]), urlUid).into());

@@ -2808,7 +2808,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (base == Value::Null) || (quote == Value::Null) {
             return Value::Null;
         }
-        let mut tradingDisabled: Value = self.safe_bool_k(market.clone(), "is_disabled", &[]);
+        let mut isDisabled: Value = self.safe_bool_k(market.clone(), "is_disabled", &[]);
+        let mut tradingDisabled: Value = Value::Bool((isDisabled.as_bool() == Some(true)) || (self.safe_bool_k(market.clone(), "trading_disabled", &[]).as_bool() == Some(true)));
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut type_var: Value = Value::Null;
         if matches!(&isSwap, Value::Bool(true)) {
@@ -2838,7 +2839,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("swap".to_string(), isSwap.clone());
         m.insert("future".to_string(), Value::Bool(!(matches!(&isSwap, Value::Bool(true)))));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), Value::Bool(tradingDisabled.as_bool() != Some(true)));
+        m.insert("active".to_string(), Value::Bool(!matches!(&tradingDisabled, Value::Bool(true))));
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("linear".to_string(), Value::Bool(true));
         m.insert("inverse".to_string(), Value::Bool(false));

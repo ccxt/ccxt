@@ -225,7 +225,6 @@ impl BlofinCore {
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_pong" => { self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -352,13 +351,6 @@ impl BlofinCore {
         return Value::Str("ping".into());
 
     Value::Null
-}
-
-    pub fn handle_pong(&self, mut client: Value, mut message: Value) {
-        //
-        //   'pong'
-        //
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
 }
 
 /*
@@ -1324,7 +1316,6 @@ impl BlofinCore {
         //
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pong".to_string(), Value::Str("handle_pong".into()).clone());
                 m.insert("trades".to_string(), Value::Str("handle_trades".into()).clone());
                 m.insert("books".to_string(), Value::Str("handle_order_book".into()).clone());
                 m.insert("tickers".to_string(), Value::Str("handle_ticker".into()).clone());
@@ -1338,7 +1329,8 @@ impl BlofinCore {
         });
         let mut method: Value = Value::Null;
         if (message.as_str() == Some("pong")) {
-            method = self.safe_value_k(methods.clone(), "pong", &[]);
+            crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
+            return;
         }  else {
             let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
             if (event.as_deref() == Some("subscribe")) {

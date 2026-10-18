@@ -1996,7 +1996,7 @@ impl WeexCore {
         m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "askPrice", &[]));
         m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "askQty", &[]));
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "openPrice", &[]));
+        m.insert("open".to_string(), Value::Null);
         m.insert("close".to_string(), self.safe_string_k(ticker.clone(), "lastPrice", &[]));
         m.insert("last".to_string(), self.safe_string_k(ticker.clone(), "lastPrice", &[]));
         m.insert("previousClose".to_string(), Value::Null);

@@ -2374,6 +2374,14 @@ impl FoxbitCore {
         let mut bestBid: Value = self.safe_dict_k(best, "bid", &[]);
         let mut lastTrade: Value = self.safe_dict_k(ticker.clone(), "last_trade", &[]);
         let mut lastPrice: Value = self.safe_string_k(lastTrade.clone(), "price", &[]);
+        let mut change: Value = self.safe_string_k(rolling_24h.clone(), "price_change", &[]);
+        let mut percentage: Value = self.safe_string_k(rolling_24h.clone(), "price_change_percent", &[]);
+        // never-traded markets report all-zero placeholders instead of omitting the values
+        if is_true(&crate::precise::Precise::stringEq(&lastPrice, &Value::Str("0".into()))) {
+            lastPrice = Value::Null;
+            change = Value::Null;
+            percentage = Value::Null;
+        }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -2390,8 +2398,8 @@ impl FoxbitCore {
         m.insert("close".to_string(), lastPrice.clone());
         m.insert("last".to_string(), lastPrice);
         m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), self.safe_string_k(rolling_24h.clone(), "price_change", &[]));
-        m.insert("percentage".to_string(), self.safe_string_k(rolling_24h.clone(), "price_change_percent", &[]));
+        m.insert("change".to_string(), change);
+        m.insert("percentage".to_string(), percentage);
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string_k(rolling_24h.clone(), "volume", &[]));
         m.insert("quoteVolume".to_string(), self.safe_string_k(rolling_24h, "quote_volume", &[]));
