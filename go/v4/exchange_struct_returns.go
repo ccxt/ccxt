@@ -321,6 +321,118 @@ func MarginModeMapToMap(d map[string]MarginMode) map[string]any {
 	return StructDictToMap(d, MarginModeToMap)
 }
 
+func ADLFromMap(data any) ADL {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return ADL{}
+	}
+	return NewADL(m)
+}
+func ADLToMap(v ADL) map[string]any { return StructToMap(v) }
+
+func CrossBorrowRateFromMap(data any) CrossBorrowRate {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return CrossBorrowRate{}
+	}
+	return NewCrossBorrowRate(m)
+}
+func CrossBorrowRateToMap(v CrossBorrowRate) map[string]any { return StructToMap(v) }
+
+func IsolatedBorrowRateFromMap(data any) IsolatedBorrowRate {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return IsolatedBorrowRate{}
+	}
+	return NewIsolatedBorrowRate(m)
+}
+func IsolatedBorrowRateToMap(v IsolatedBorrowRate) map[string]any { return StructToMap(v) }
+
+func LastPriceFromMap(data any) LastPrice {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return LastPrice{}
+	}
+	return NewLastPrice(m)
+}
+func LastPriceToMap(v LastPrice) map[string]any { return StructToMap(v) }
+
+func LongShortRatioFromMap(data any) LongShortRatio {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return LongShortRatio{}
+	}
+	return NewLongShortRatio(m)
+}
+func LongShortRatioToMap(v LongShortRatio) map[string]any { return StructToMap(v) }
+
+func MarginModificationFromMap(data any) MarginModification {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return MarginModification{}
+	}
+	return NewMarginModification(m)
+}
+func MarginModificationToMap(v MarginModification) map[string]any { return StructToMap(v) }
+
+func LiquidationFromMap(data any) Liquidation {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Liquidation{}
+	}
+	return NewLiquidation(m)
+}
+func LiquidationToMap(v Liquidation) map[string]any { return StructToMap(v) }
+
+func BorrowInterestFromMap(data any) BorrowInterest {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return BorrowInterest{}
+	}
+	return NewBorrowInterest(m)
+}
+func BorrowInterestToMap(v BorrowInterest) map[string]any { return StructToMap(v) }
+
+func FundingHistoryFromMap(data any) FundingHistory {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return FundingHistory{}
+	}
+	return NewFundingHistory(m)
+}
+func FundingHistoryToMap(v FundingHistory) map[string]any { return StructToMap(v) }
+
+func FundingRateHistoryFromMap(data any) FundingRateHistory {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return FundingRateHistory{}
+	}
+	return NewFundingRateHistory(m)
+}
+func FundingRateHistoryToMap(v FundingRateHistory) map[string]any { return StructToMap(v) }
+
+func LeverageTierFromMap(data any) LeverageTier {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return LeverageTier{}
+	}
+	return NewLeverageTier(m)
+}
+func LeverageTierToMap(v LeverageTier) map[string]any { return StructToMap(v) }
+
+func IsolatedBorrowRateMapFromMap(data any) map[string]IsolatedBorrowRate {
+	return StructDictFromMap(data, IsolatedBorrowRateFromMap)
+}
+func IsolatedBorrowRateMapToMap(d map[string]IsolatedBorrowRate) map[string]any {
+	return StructDictToMap(d, IsolatedBorrowRateToMap)
+}
+func LastPriceMapFromMap(data any) map[string]LastPrice {
+	return StructDictFromMap(data, LastPriceFromMap)
+}
+func LastPriceMapToMap(d map[string]LastPrice) map[string]any {
+	return StructDictToMap(d, LastPriceToMap)
+}
+
 func copyMap(m map[string]any) map[string]any {
 	out := make(map[string]any, len(m))
 	for k, v := range m {
@@ -649,14 +761,99 @@ func LedgerEntriesFromList(data any) []LedgerEntry {
 // LedgerEntriesToList is the []any shape every untyped caller expects.
 func LedgerEntriesToList(v []LedgerEntry) []any { return StructListToList(v, LedgerEntryToMap) }
 
+func DepositAddressesFromList(data any) []DepositAddress {
+	return StructListFromList(data, DepositAddressFromMap)
+}
+func DepositAddressesToList(v []DepositAddress) []any {
+	return StructListToList(v, DepositAddressToMap)
+}
+func TransferEntriesFromList(data any) []TransferEntry {
+	return StructListFromList(data, TransferEntryFromMap)
+}
+func TransferEntriesToList(v []TransferEntry) []any {
+	return StructListToList(v, TransferEntryToMap)
+}
+func OpenInterestsFromList(data any) []OpenInterest {
+	return StructListFromList(data, OpenInterestFromMap)
+}
+func OpenInterestsToList(v []OpenInterest) []any {
+	return StructListToList(v, OpenInterestToMap)
+}
+func ConversionsFromList(data any) []Conversion {
+	return StructListFromList(data, ConversionFromMap)
+}
+func ConversionsToList(v []Conversion) []any {
+	return StructListToList(v, ConversionToMap)
+}
+func LiquidationsFromList(data any) []Liquidation {
+	return StructListFromList(data, LiquidationFromMap)
+}
+func LiquidationsToList(v []Liquidation) []any {
+	return StructListToList(v, LiquidationToMap)
+}
+func BorrowInterestsFromList(data any) []BorrowInterest {
+	return StructListFromList(data, BorrowInterestFromMap)
+}
+func BorrowInterestsToList(v []BorrowInterest) []any {
+	return StructListToList(v, BorrowInterestToMap)
+}
+func FundingHistoriesFromList(data any) []FundingHistory {
+	return StructListFromList(data, FundingHistoryFromMap)
+}
+func FundingHistoriesToList(v []FundingHistory) []any {
+	return StructListToList(v, FundingHistoryToMap)
+}
+func FundingRateHistoriesFromList(data any) []FundingRateHistory {
+	return StructListFromList(data, FundingRateHistoryFromMap)
+}
+func FundingRateHistoriesToList(v []FundingRateHistory) []any {
+	return StructListToList(v, FundingRateHistoryToMap)
+}
+func LeverageTiersFromList(data any) []LeverageTier {
+	return StructListFromList(data, LeverageTierFromMap)
+}
+func LeverageTiersToList(v []LeverageTier) []any {
+	return StructListToList(v, LeverageTierToMap)
+}
+func MarginModificationsFromList(data any) []MarginModification {
+	return StructListFromList(data, MarginModificationFromMap)
+}
+func MarginModificationsToList(v []MarginModification) []any {
+	return StructListToList(v, MarginModificationToMap)
+}
+func LongShortRatiosFromList(data any) []LongShortRatio {
+	return StructListFromList(data, LongShortRatioFromMap)
+}
+func LongShortRatiosToList(v []LongShortRatio) []any {
+	return StructListToList(v, LongShortRatioToMap)
+}
+func ADLsFromList(data any) []ADL {
+	return StructListFromList(data, ADLFromMap)
+}
+func ADLsToList(v []ADL) []any {
+	return StructListToList(v, ADLToMap)
+}
+
 // structListBoxers: the reflective box (AsyncResult.Boxed) of every list-of-struct channel element type.
 var structListBoxers = map[reflect.Type]func(any) any{
-	reflect.TypeOf([]Trade(nil)):       func(v any) any { return TradesToList(v.([]Trade)) },
-	reflect.TypeOf([]Order(nil)):       func(v any) any { return OrdersToList(v.([]Order)) },
-	reflect.TypeOf([]OHLCV(nil)):       func(v any) any { return OHLCVsToList(v.([]OHLCV)) },
-	reflect.TypeOf([]Position(nil)):    func(v any) any { return PositionsToList(v.([]Position)) },
-	reflect.TypeOf([]Transaction(nil)): func(v any) any { return TransactionsToList(v.([]Transaction)) },
-	reflect.TypeOf([]LedgerEntry(nil)): func(v any) any { return LedgerEntriesToList(v.([]LedgerEntry)) },
+	reflect.TypeOf([]Trade(nil)):              func(v any) any { return TradesToList(v.([]Trade)) },
+	reflect.TypeOf([]Order(nil)):              func(v any) any { return OrdersToList(v.([]Order)) },
+	reflect.TypeOf([]OHLCV(nil)):              func(v any) any { return OHLCVsToList(v.([]OHLCV)) },
+	reflect.TypeOf([]Position(nil)):           func(v any) any { return PositionsToList(v.([]Position)) },
+	reflect.TypeOf([]Transaction(nil)):        func(v any) any { return TransactionsToList(v.([]Transaction)) },
+	reflect.TypeOf([]LedgerEntry(nil)):        func(v any) any { return LedgerEntriesToList(v.([]LedgerEntry)) },
+	reflect.TypeOf([]DepositAddress(nil)):     func(v any) any { return DepositAddressesToList(v.([]DepositAddress)) },
+	reflect.TypeOf([]TransferEntry(nil)):      func(v any) any { return TransferEntriesToList(v.([]TransferEntry)) },
+	reflect.TypeOf([]OpenInterest(nil)):       func(v any) any { return OpenInterestsToList(v.([]OpenInterest)) },
+	reflect.TypeOf([]Conversion(nil)):         func(v any) any { return ConversionsToList(v.([]Conversion)) },
+	reflect.TypeOf([]Liquidation(nil)):        func(v any) any { return LiquidationsToList(v.([]Liquidation)) },
+	reflect.TypeOf([]BorrowInterest(nil)):     func(v any) any { return BorrowInterestsToList(v.([]BorrowInterest)) },
+	reflect.TypeOf([]FundingHistory(nil)):     func(v any) any { return FundingHistoriesToList(v.([]FundingHistory)) },
+	reflect.TypeOf([]FundingRateHistory(nil)): func(v any) any { return FundingRateHistoriesToList(v.([]FundingRateHistory)) },
+	reflect.TypeOf([]LeverageTier(nil)):       func(v any) any { return LeverageTiersToList(v.([]LeverageTier)) },
+	reflect.TypeOf([]MarginModification(nil)): func(v any) any { return MarginModificationsToList(v.([]MarginModification)) },
+	reflect.TypeOf([]LongShortRatio(nil)):     func(v any) any { return LongShortRatiosToList(v.([]LongShortRatio)) },
+	reflect.TypeOf([]ADL(nil)):                func(v any) any { return ADLsToList(v.([]ADL)) },
 }
 
 // structListBoxed is the reflective box of a list-of-struct value (ok false for any other value).

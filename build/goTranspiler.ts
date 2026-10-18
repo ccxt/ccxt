@@ -6177,6 +6177,7 @@ ${constStatements.join('\n')}
             // type-assert to the per-method interface (I<Method>), which the regular venue satisfies.
             [new RegExp(`this\\.DerivedExchange\\.(CreateOrder|CancelOrder|EditOrder|FetchOrder|FetchTickers|CancelOrderWs|CreateOrderWs|FetchOrdersWs|FetchTickersWs|FetchPositionsHistory)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`],
             [new RegExp(`this\\.DerivedExchange\\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`], // W28
+            [new RegExp(`this\\.DerivedExchange\\.(FetchTradingFee|FetchMyTrades|CreateOrders|CancelOrders|WatchMyTrades|WatchOHLCV|WatchOrders|WatchPositions|WatchTrades)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`], // W3
             // SafeNumber / SafeNumber2 / SafeNumberN / SafeNumberOmitZero are hand-written in
             // go/v4/exchange_safe.go with the honest *float64 return the printer cannot emit (the
             // TS `Num` annotation prints as `any`), so drop the transpiled copies to avoid a
@@ -8047,6 +8048,8 @@ func (this *${className}) Init(userConfig map[string]any) {
             // the has-gated test for the ones it has, and each single-method assertion succeeds.
             [/exchange\.(CreateOrder|CancelOrder|FetchL2OrderBook|FetchPositions|FetchTicker|FetchTickers|WatchTicker|WatchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
             [/exchange\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('], // W28
+                [/exchange\.(FetchTradingFee|FetchMyTrades|CreateOrders|CancelOrders|WatchMyTrades|WatchOHLCV|WatchOrders|WatchPositions|WatchTrades)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('], // W3
+            [/exchange\.(FetchTradingFee|FetchMyTrades|CreateOrders|CancelOrders|WatchMyTrades|WatchOHLCV|WatchOrders|WatchPositions|WatchTrades)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('], // W3
             GO_TEST_ANY_RECEIVE_REGEX,
             // SafeBool* now return `*bool` (the pointer layer): an `any` local that captures
             // the call must keep holding the plain value, exactly as it did before that change,

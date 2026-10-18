@@ -123,6 +123,33 @@ type IFetchPosition interface { // W30
 type IFetchOpenInterest interface { // W30
 	FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OpenInterest]
 }
+type IFetchTradingFee interface { // W3
+	FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+}
+type IFetchMyTrades interface { // W3
+	FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+}
+type ICreateOrders interface { // W3
+	CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]any]
+}
+type ICancelOrders interface { // W3
+	CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]any]
+}
+type IWatchMyTrades interface { // W3
+	WatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+}
+type IWatchOHLCV interface { // W3
+	WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
+}
+type IWatchOrders interface { // W3
+	WatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+}
+type IWatchPositions interface { // W3
+	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+}
+type IWatchTrades interface { // W3
+	WatchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]any]
+}
 type IBaseExchange interface {
 	SetEnableRateLimit(rateLimit bool)
 	ExtendExchangeOptions(options any)
@@ -292,7 +319,6 @@ type ICoreExchange interface {
 	FetchTransactionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
-	FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]TradingFeeInterface]
 	FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[[]LedgerEntry]
 	ArrayConcat(aa, bb any) []any
@@ -301,7 +327,6 @@ type ICoreExchange interface {
 	FetchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchLedgerEntryAsync(id string, optionalArgs ...any) <-chan AsyncResult[LedgerEntry]
 	FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
-	FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchOpenInterestHistoryAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchOpenInterestsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]OpenInterest]
@@ -369,7 +394,6 @@ type ICoreExchange interface {
 	ConvertToSafeDictionary(data any) any
 	CreateSafeDictionary(isWs ...bool) *sync.Map
 	SetOptions(options any)
-	CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]any]
 	WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction]
 	// WS methods
 	FetchBalanceWsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
@@ -398,13 +422,8 @@ type ICoreExchange interface {
 	WatchLiquidationsForSymbolsAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]any]
 	WatchMyLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
 	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]any]
-	WatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
-	WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
 	WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface]
-	WatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
-	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
-	WatchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]any]
 	WithdrawWsAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	Close(cleanInstanceCache ...any) []error
 	CleanWsData()
@@ -454,7 +473,6 @@ type IDerivedExchange interface {
 	SafeMarket(optionalArgs ...any) map[string]any
 	Sign(path string, optionalArgs ...any) any
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	CreateExpiredOptionMarket(symbol any) any
 	FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64]
@@ -485,7 +503,6 @@ type IDerivedExchange interface {
 	OnError(client any, err any)
 	OnClose(client any, err any)
 	OnConnected(client any, err any)
-	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	WatchLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]any]
 	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]any]
 	ParseWsTrade(trade any, optionalArgs ...any) any

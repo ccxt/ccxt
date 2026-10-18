@@ -26,6 +26,17 @@ func init() {
 		reflect.TypeOf(ccxt.Greeks{}),
 		reflect.TypeOf(ccxt.Option{}),
 		reflect.TypeOf(ccxt.Conversion{}),
+		reflect.TypeOf(ccxt.ADL{}),
+		reflect.TypeOf(ccxt.CrossBorrowRate{}),
+		reflect.TypeOf(ccxt.IsolatedBorrowRate{}),
+		reflect.TypeOf(ccxt.LastPrice{}),
+		reflect.TypeOf(ccxt.LongShortRatio{}),
+		reflect.TypeOf(ccxt.MarginModification{}),
+		reflect.TypeOf(ccxt.Liquidation{}),
+		reflect.TypeOf(ccxt.BorrowInterest{}),
+		reflect.TypeOf(ccxt.FundingHistory{}),
+		reflect.TypeOf(ccxt.FundingRateHistory{}),
+		reflect.TypeOf(ccxt.LeverageTier{}),
 	} {
 		detypedStructs[t] = true
 	}

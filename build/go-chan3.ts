@@ -294,11 +294,22 @@ export function goChan3Table (): Map<string, string> {
                 if ((typeof type !== 'string') || /\bany\b(?!\])|^interface/.test (type.replace (/^map\[string\]any$|^\[\]any$/, ''))) {
                     throw new Error ('GOCHAN3: ' + method + ': element type must be concrete (' + f + ')');
                 }
-                if (table.has (method) && (table.get (method) !== type)) {
-                    throw new Error ('GOCHAN3: ' + method + ' tabled twice with different types (' + f + ')');
-                }
                 if (carriers.has (method)) {
                     throw new Error ('GOCHAN3: ' + method + ' is already an EndpointResult carrier (gochan table), ' + f);
+                }
+                const prev = table.get (method);
+                if ((prev !== undefined) && (prev !== type)) {
+                    const structs = goChan3StructTypes ();
+                    const prevBase = prev.replace (/\?$/, '');
+                    const typeBase = type.replace (/\?$/, '');
+                    const prevIsShadowOfType = ((structs.has (type) && (prevBase === 'map[string]any')) || ((goChan3ListElem (type) !== undefined) && (prevBase === '[]any')));
+                    const typeIsShadowOfPrev = ((structs.has (prev) && (typeBase === 'map[string]any')) || ((goChan3ListElem (prev) !== undefined) && (typeBase === '[]any')));
+                    if (typeIsShadowOfPrev) {
+                        continue;
+                    }
+                    if (!prevIsShadowOfType) {
+                        throw new Error ('GOCHAN3: ' + method + ' tabled twice with different types (' + f + ')');
+                    }
                 }
                 table.set (method, type);
             }
@@ -1043,12 +1054,12 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
             const le = masked.indexOf ('\n', at);
             const before = masked.substring (ls, at);
             const after = masked.substring (end, le);
-            // a struct channel read already boxed by goChan3StructPass (replay): idempotent
-            if (/(?:^|[^\w.])(?:ccxt\.)?Struct(?:Box|ResultMap|Absent)\($/.test (before)) {
+            // a struct channel read already boxed or converted by goChan3StructPass (replay): idempotent
+            if (/(?:^|[^\w.])(?:ccxt\.)?(?:Struct(?:Box|ResultMap|Absent)|\w+From(?:Map|List))\($/.test (before)) {
                 continue;
             }
             // W28: a list-of-struct read already boxed / a same-T []T send, emitted by goChan3StructListPass (replay)
-            if (GO_CHAN3_LIST_BOXED.test (before) || goChan3ListSendBefore (before)) {
+            if (goChan3ListBoxed (before) || goChan3ListSendBefore (before)) {
                 continue;
             }
             // W29: a typed map-of-struct wrapper read (`Tickers{Tickers: r.Value}`) emitted by goChan3StructPass (replay)
@@ -1056,8 +1067,8 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
             if ((typedDict !== null) && (after[0] === '}') && Object.values (GO_CHAN3_STRUCT_MAPS).includes (typedDict[1])) {
                 continue;
             }
-            // native absent fold already emitted (`if r.Value == nil {` and its arms): idempotent
-            if ((nilable && /^\s*[!=]= nil\b/.test (after)) || goChan3AbsentGuarded (masked, ls, name + '.Value')) {
+            // native absent fold or comma-ok nil check already emitted: idempotent
+            if ((nilable && /^\s*(?:,\s*\w+\.Value\s*)?[!=]= nil\b/.test (after)) || goChan3AbsentGuarded (masked, ls, name + '.Value')) {
                 continue;
             }
             const assert = /^\.\(([^()]+)\)/.exec (after);
@@ -1114,7 +1125,7 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
                 }
                 // x only forwarded by a same-T core send (`ch <- AsyncResult[T]{Value: x}`): keep it typed
                 const uses = rest.match (new RegExp ('(?<![\\w.])' + x + '(?![\\w.])', 'g')) || [];
-                const sends = rest.match (new RegExp ('\\n\\t+ch <- (?:ccxt\\.)?AsyncResult\\[[^\\n]*\\]\\{Value: ' + x + '\\}', 'g')) || [];
+                const sends = rest.match (new RegExp ('\\n\\t+ch <- (?:ccxt\\.)?AsyncResult\\[[^\\n]*\\]\\{Value: (?:[\\w.]+From(?:Map|List)\\()?' + x + '\\)?\\}', 'g')) || [];
                 if (!rebound && !closure && !nilCmp && uses.length && (uses.length === sends.length) && (coreSendAt (at) === type)) {
                     continue;
                 }
@@ -1127,7 +1138,7 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
                 continue;
             }
             // `ch <- AsyncResult[any]{Value: r.Value}`: a same-T core send is retyped by the core pass
-            const send = /^\t+(\w+) <- (?:ccxt\.)?AsyncResult\[(\w[^\]]*|any|map\[string\]any)\]\{Value: $/.exec (before);
+            const send = /^\t+(\w+) <- (?:ccxt\.)?AsyncResult\[(.+)\]\{Value: $/.exec (before);
             if ((send !== null) && goChan3IsStructType (send[2])) {
                 continue;   // a struct core's same-T send (replay)
             }
@@ -1268,8 +1279,14 @@ function goChan3PromiseAllPass (content: string, table: Map<string, string>): st
 //   interfaces `\tMAsync(..) <-chan AsyncResult[map[string]any]` -> T, except IPrediction* blocks
 // Prediction venues (package ccxtprediction, PredictionExchange) keep the map shadow: their orders/tickers
 // are Prediction* shapes, not T. Same table-driven shape for every struct family (one block, merge point).
+export const GO_CHAN3_EXTRA_STRUCTS: string[] = [
+    'ADL', 'CrossBorrowRate', 'IsolatedBorrowRate', 'LastPrice', 'LongShortRatio',
+    'MarginModification', 'Liquidation', 'BorrowInterest', 'FundingHistory',
+    'FundingRateHistory', 'LeverageTier',
+];
+
 export function goChan3StructTypes (): Set<string> {
-    const base = Object.keys (GO_STRUCT_RETURN_TYPES).filter ((t) => GO_STRUCT_RETURN_TYPES[t].to === undefined);
+    const base = [ ...new Set ([ ...Object.keys (GO_STRUCT_RETURN_TYPES).filter ((t) => GO_STRUCT_RETURN_TYPES[t].to === undefined), ...GO_CHAN3_EXTRA_STRUCTS ]) ];
     // W29 map-of-struct channels: `map[string]T` (a string-keyed dict of T, e.g. fetchTickers) rides the same pass
     return new Set ([ ...base, ...base.filter ((t) => GO_CHAN3_STRUCT_MAPS[t] !== undefined).map ((t) => 'map[string]' + t) ]);
 }
@@ -1278,6 +1295,7 @@ export function goChan3StructTypes (): Set<string> {
 export const GO_CHAN3_STRUCT_MAPS: Record<string, string> = {
     'Ticker': 'Tickers', 'FundingRate': 'FundingRates', 'OpenInterest': 'OpenInterests',
     'TradingFeeInterface': 'TradingFees', 'Leverage': 'Leverages', 'MarginMode': 'MarginModes',
+    'IsolatedBorrowRate': 'IsolatedBorrowRates', 'LastPrice': 'LastPrices',
 };
 
 // W29: `map[string]T` -> T (undefined for a single struct)
@@ -1579,6 +1597,18 @@ export const GO_CHAN3_STRUCT_LISTS: Record<string, { from: string, to: string, r
     'Position': { 'from': 'PositionsFromList', 'to': 'PositionsToList', 'row': 'PositionToMap', 'newArray': 'NewPositionArray' },
     'Transaction': { 'from': 'TransactionsFromList', 'to': 'TransactionsToList', 'row': 'TransactionToMap', 'newArray': 'NewTransactionArray' },
     'LedgerEntry': { 'from': 'LedgerEntriesFromList', 'to': 'LedgerEntriesToList', 'row': 'LedgerEntryToMap', 'newArray': 'NewLedgerEntryArray' },
+    'DepositAddress': { 'from': 'DepositAddressesFromList', 'to': 'DepositAddressesToList', 'row': 'DepositAddressToMap', 'newArray': 'NewDepositAddressArray' },
+    'TransferEntry': { 'from': 'TransferEntriesFromList', 'to': 'TransferEntriesToList', 'row': 'TransferEntryToMap', 'newArray': 'NewTransferEntryArray' },
+    'OpenInterest': { 'from': 'OpenInterestsFromList', 'to': 'OpenInterestsToList', 'row': 'OpenInterestToMap', 'newArray': 'NewOpenInterestArray' },
+    'Conversion': { 'from': 'ConversionsFromList', 'to': 'ConversionsToList', 'row': 'ConversionToMap', 'newArray': 'NewConversionArray' },
+    'Liquidation': { 'from': 'LiquidationsFromList', 'to': 'LiquidationsToList', 'row': 'LiquidationToMap', 'newArray': 'NewLiquidationArray' },
+    'BorrowInterest': { 'from': 'BorrowInterestsFromList', 'to': 'BorrowInterestsToList', 'row': 'BorrowInterestToMap', 'newArray': 'NewBorrowInterestArray' },
+    'FundingHistory': { 'from': 'FundingHistoriesFromList', 'to': 'FundingHistoriesToList', 'row': 'FundingHistoryToMap', 'newArray': 'NewFundingHistoryArray' },
+    'FundingRateHistory': { 'from': 'FundingRateHistoriesFromList', 'to': 'FundingRateHistoriesToList', 'row': 'FundingRateHistoryToMap', 'newArray': 'NewFundingRateHistoryArray' },
+    'LeverageTier': { 'from': 'LeverageTiersFromList', 'to': 'LeverageTiersToList', 'row': 'LeverageTierToMap', 'newArray': 'NewLeverageTierArray' },
+    'MarginModification': { 'from': 'MarginModificationsFromList', 'to': 'MarginModificationsToList', 'row': 'MarginModificationToMap', 'newArray': 'NewMarginModificationArray' },
+    'LongShortRatio': { 'from': 'LongShortRatiosFromList', 'to': 'LongShortRatiosToList', 'row': 'LongShortRatioToMap', 'newArray': 'NewLongShortRatioArray' },
+    'ADL': { 'from': 'ADLsFromList', 'to': 'ADLsToList', 'row': 'ADLToMap', 'newArray': 'NewADLArray' },
 };
 
 // `[]T` (optionally `[]ccxt.T`) of a list-of-struct channel -> T (undefined otherwise)
@@ -1587,8 +1617,11 @@ export function goChan3ListElem (t: string): string | undefined {
     return ((m !== null) && (GO_CHAN3_STRUCT_LISTS[m[1]] !== undefined)) ? m[1] : undefined;
 }
 
-// a read already boxed by goChan3StructListPass (replay): `TsToList(` / `StructListsToLists(` right before it
-const GO_CHAN3_LIST_BOXED = new RegExp ('(?:^|[^\\w.])(?:ccxt\\.)?(?:' + Object.values (GO_CHAN3_STRUCT_LISTS).map ((h) => h.to).join ('|') + '|StructListsToLists|StructListBox)\\($');
+// a read already boxed by goChan3StructListPass (replay): `TsToList(` / `TsFromList(` / `StructListsToLists(` right before it
+function goChan3ListBoxed (before: string): boolean {
+    const names = Object.values (GO_CHAN3_STRUCT_LISTS).flatMap ((h) => [ h.to, h.from ]);
+    return new RegExp ('(?:^|[^\\w.])(?:ccxt\\.)?(?:' + names.join ('|') + '|StructListsToLists|StructListBox)\\($').test (before);
+}
 
 // `ch <- AsyncResult[[]T]{Value: ` of a list-of-struct T right before a read (replay)
 function goChan3ListSendBefore (before: string): boolean {
@@ -1802,7 +1835,7 @@ export function goChan3StructListPass (content: string, table: Map<string, strin
             const uls = masked.lastIndexOf ('\n', at) + 1;
             const before = masked.substring (uls, at);
             const after = masked.substring (end, masked.indexOf ('\n', end));
-            if (GO_CHAN3_LIST_BOXED.test (before) || goChan3ListSendBefore (before)) {
+            if (goChan3ListBoxed (before) || goChan3ListSendBefore (before)) {
                 continue;   // already boxed / a same-T list send (replay)
             }
             const core = inListCore (at);
@@ -1849,10 +1882,13 @@ function goChan3PassMarked (content: string, table: Map<string, string>): string
         }
         // a core already typed on disk (replay): its body head carries T (a struct T reads as its map shadow)
         const t = goChan3CoreTypeAt (masked, at);
-        if ((t !== undefined) && (goChan3ListElem (t) !== undefined)) {
+        if ((t === undefined) || (t === 'any')) {
+            return undefined;
+        }
+        if (goChan3ListElem (t) !== undefined) {
             return '[]any';   // W28: a list-of-struct core reads as its []any shadow
         }
-        return ((t !== undefined) && goChan3IsStructType (t)) ? 'map[string]any' : undefined;
+        return goChan3IsStructType (t) ? 'map[string]any' : t.replace (/^ccxt\./, '');
     };
     const globalKeys = [ ...table.keys () ].filter ((k) => !k.includes ('.'));
     if (globalKeys.length) {
