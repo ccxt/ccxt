@@ -187,6 +187,7 @@ type BaseExchange struct {
 	Pro       bool
 
 	MinFundingAddressLength int
+	NetworkAliases          map[string]any
 	MaxEntriesPerRequest    int
 
 	// tests only
@@ -592,7 +593,7 @@ func (this *BaseExchange) callEndpoint(endpoint2 any, parameters any) <-chan Asy
 					cost = parsed
 				}
 			}
-			ch <- <-this.Fetch2Async(path, api, method, parameters, map[string]any{}, nil, map[string]any{"cost": cost})
+			ch <- <-this.Fetch2Async(path, api, method, parameters, map[string]any{"cost": cost})
 		} else {
 			ch <- AsyncResult[any]{}
 		}

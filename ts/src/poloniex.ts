@@ -318,7 +318,6 @@ export default class poloniex extends Exchange {
                     'ERC20': 'ETH',
                     // v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -2955,7 +2954,7 @@ export default class poloniex extends Exchange {
         if (networkEntry !== undefined) {
             exchangeNetworkId = networkEntry['id'];
         } else {
-            exchangeNetworkId = networkCode;
+            exchangeNetworkId = this.networkCodeToId (networkCode, code);
         }
         const request: Dict = {
             'currency': exchangeNetworkId,
@@ -3855,9 +3854,13 @@ export default class poloniex extends Exchange {
         const leverage = this.safeString (position, 'lever');
         const initialMargin = this.safeString (position, 'im');
         const notional = Precise.stringMul (leverage, initialMargin);
-        const qty = this.safeString (position, 'qty');
-        const avgPrice = this.safeString (position, 'openAvgPx');
-        const collateral = Precise.stringMul (qty, avgPrice);
+        let positionMargin: Str = undefined;
+        let collateral: Str = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.omitZero (this.safeString (position, 'mgn'));
+            const upl = this.safeString (position, 'upl');
+            collateral = ((positionMargin !== undefined) && (upl !== undefined)) ? Precise.stringAdd (positionMargin, upl) : undefined;
+        }
         // todo: some more fields
         return this.safePosition ({
             'info': position,
@@ -3880,7 +3883,8 @@ export default class poloniex extends Exchange {
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': this.safeNumber (position, 'mm'),
             'maintenanceMarginPercentage': undefined,
-            'collateral': collateral,
+            'collateral': this.parseNumber (collateral),
+            'positionMargin': this.parseNumber (positionMargin),
             'initialMargin': initialMargin,
             'initialMarginPercentage': undefined,
             'leverage': parseInt (leverage as string),
@@ -3973,7 +3977,7 @@ export default class poloniex extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const isArray = Array.isArray (params);
         let url: string = this.urls['api']['spot'];
@@ -4021,8 +4025,8 @@ export default class poloniex extends Exchange {
                 'signature': signature,
             };
         }
-        const bodyResolved: Str = (bodyJson === undefined) ? body : bodyJson;
-        const headersResolved: NullableDict = (signedHeaders === undefined) ? headers : signedHeaders;
+        const bodyResolved: Str = bodyJson;
+        const headersResolved: NullableDict = signedHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

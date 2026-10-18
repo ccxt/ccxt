@@ -7,79 +7,79 @@ var Exchange$1 = require('../base/Exchange.js');
 // ----------------------------------------------------------------------------
 class Exchange extends Exchange$1["default"] {
     publicGetTickers(params = {}) {
-        return this.request('tickers', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tickers', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetTickersSymbol(params = {}) {
-        return this.request('tickers/{symbol}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('tickers/{symbol}', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetSymbols(params = {}) {
-        return this.request('symbols', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('symbols', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetSymbolsSymbol(params = {}) {
-        return this.request('symbols/{symbol}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('symbols/{symbol}', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetL2Symbol(params = {}) {
-        return this.request('l2/{symbol}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('l2/{symbol}', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetL3Symbol(params = {}) {
-        return this.request('l3/{symbol}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('l3/{symbol}', ['public'], 'GET', params, { 'cost': 1 });
     }
     privateGetFees(params = {}) {
-        return this.request('fees', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('fees', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetInternalOrders(params = {}) {
-        return this.request('internal/orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('internal/orders', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetOrders(params = {}) {
-        return this.request('orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('orders', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetOrdersOrderId(params = {}) {
-        return this.request('orders/{orderId}', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('orders/{orderId}', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetTrades(params = {}) {
-        return this.request('trades', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('trades', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetFills(params = {}) {
-        return this.request('fills', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('fills', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetDeposits(params = {}) {
-        return this.request('deposits', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('deposits', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetDepositsDepositId(params = {}) {
-        return this.request('deposits/{depositId}', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('deposits/{depositId}', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccounts(params = {}) {
-        return this.request('accounts', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('accounts', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountsAccountCurrency(params = {}) {
-        return this.request('accounts/{account}/{currency}', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('accounts/{account}/{currency}', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetWhitelist(params = {}) {
-        return this.request('whitelist', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('whitelist', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetWhitelistCurrency(params = {}) {
-        return this.request('whitelist/{currency}', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('whitelist/{currency}', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetWithdrawals(params = {}) {
-        return this.request('withdrawals', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('withdrawals', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetWithdrawalsWithdrawalId(params = {}) {
-        return this.request('withdrawals/{withdrawalId}', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('withdrawals/{withdrawalId}', ['private'], 'GET', params, { 'cost': 1 });
     }
     privatePostOrders(params = {}) {
-        return this.request('orders', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('orders', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostDepositsCurrency(params = {}) {
-        return this.request('deposits/{currency}', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('deposits/{currency}', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostWithdrawals(params = {}) {
-        return this.request('withdrawals', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('withdrawals', ['private'], 'POST', params, { 'cost': 1 });
     }
     privateDeleteOrders(params = {}) {
-        return this.request('orders', ['private'], 'DELETE', params, undefined, undefined, { 'cost': 1 });
+        return this.request('orders', ['private'], 'DELETE', params, { 'cost': 1 });
     }
     privateDeleteOrdersOrderId(params = {}) {
-        return this.request('orders/{orderId}', ['private'], 'DELETE', params, undefined, undefined, { 'cost': 1 });
+        return this.request('orders/{orderId}', ['private'], 'DELETE', params, { 'cost': 1 });
     }
 }
 

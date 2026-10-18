@@ -2178,18 +2178,16 @@ export default class opinion extends Exchange {
      * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: string, api: string[] = [ 'opinion' ], method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: string, api: string[] = [ 'opinion' ], method = 'GET', params: Dict = {}) {
         const apiGroup = api[0];
         const access = this.safeString (api, 1, 'public');
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['opinion'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const existingHeaders = (headers !== undefined) ? headers : {};
+        const existingHeaders = {};
         const headersExtended: any = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -2217,7 +2215,7 @@ export default class opinion extends Exchange {
                 headersExtended['apikey'] = apiKey;
             }
         }
-        let bodyValue: any = body;
+        let bodyValue: any = undefined;
         if (method === 'GET') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);

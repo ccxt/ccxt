@@ -3680,7 +3680,7 @@ class woofipro extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array()): array {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
@@ -3749,8 +3749,8 @@ class woofipro extends Exchange {
             $signature = $this->eddsa($this->encode($auth), $this->base58_to_binary($secret), 'ed25519');
             $requestHeaders['orderly-signature'] = $this->urlencode_base64(base64_decode($signature));
         }
-        $bodyResult = ($requestBody === null) ? $body : $requestBody;
-        $headersResult = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResult = $requestBody;
+        $headersResult = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 

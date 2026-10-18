@@ -11,312 +11,312 @@ abstract class bitteam extends \ccxt\Exchange {
      * @return array<string, mixed>
      */
     public function history_get_api_tw_history_pairname_resolution($params = array()) {
-        return $this->request('api/tw/history/{pairName}/{resolution}', array('history'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('api/tw/history/{pairName}/{resolution}', array('history'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_asset($params = array()) {
-        return $this->request('trade/api/asset', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/asset', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_currencies($params = array()) {
-        return $this->request('trade/api/currencies', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/currencies', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_orderbooks_symbol($params = array()) {
-        return $this->request('trade/api/orderbooks/{symbol}', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/orderbooks/{symbol}', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_orders($params = array()) {
-        return $this->request('trade/api/orders', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/orders', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_pair_name($params = array()) {
-        return $this->request('trade/api/pair/{name}', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/pair/{name}', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_pairs($params = array()) {
-        return $this->request('trade/api/pairs', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/pairs', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_pairs_precisions($params = array()) {
-        return $this->request('trade/api/pairs/precisions', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/pairs/precisions', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_rates($params = array()) {
-        return $this->request('trade/api/rates', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/rates', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_stats($params = array()) {
-        return $this->request('trade/api/stats', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/stats', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_trade_id($params = array()) {
-        return $this->request('trade/api/trade/{id}', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/trade/{id}', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_trades($params = array()) {
-        return $this->request('trade/api/trades', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/trades', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_ccxt_pairs($params = array()) {
-        return $this->request('trade/api/ccxt/pairs', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/pairs', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_cmc_assets($params = array()) {
-        return $this->request('trade/api/cmc/assets', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/cmc/assets', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_cmc_orderbook_pair($params = array()) {
-        return $this->request('trade/api/cmc/orderbook/{pair}', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/cmc/orderbook/{pair}', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_trade_api_cmc_summary($params = array()) {
-        return $this->request('trade/api/cmc/summary', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/cmc/summary', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_trade_api_cmc_ticker($params = array()) {
-        return $this->request('trade/api/cmc/ticker', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/cmc/ticker', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function public_get_trade_api_cmc_trades_pair($params = array()) {
-        return $this->request('trade/api/cmc/trades/{pair}', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/cmc/trades/{pair}', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trade_api_ccxt_balance($params = array()) {
-        return $this->request('trade/api/ccxt/balance', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/balance', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trade_api_ccxt_order_id($params = array()) {
-        return $this->request('trade/api/ccxt/order/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/order/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trade_api_ccxt_ordersofuser($params = array()) {
-        return $this->request('trade/api/ccxt/ordersOfUser', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/ordersOfUser', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trade_api_ccxt_tradesofuser($params = array()) {
-        return $this->request('trade/api/ccxt/tradesOfUser', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/tradesOfUser', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_trade_api_transactionsofuser($params = array()) {
-        return $this->request('trade/api/transactionsOfUser', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/transactionsOfUser', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_trade_api_ccxt_cancel_all_order($params = array()) {
-        return $this->request('trade/api/ccxt/cancel-all-order', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/cancel-all-order', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_trade_api_ccxt_cancelorder($params = array()) {
-        return $this->request('trade/api/ccxt/cancelorder', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/cancelorder', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_trade_api_ccxt_ordercreate($params = array()) {
-        return $this->request('trade/api/ccxt/ordercreate', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/ordercreate', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function historyGetApiTwHistoryPairNameResolution($params = array()) {
-        return $this->request('api/tw/history/{pairName}/{resolution}', array('history'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('api/tw/history/{pairName}/{resolution}', array('history'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiAsset($params = array()) {
-        return $this->request('trade/api/asset', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/asset', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiCurrencies($params = array()) {
-        return $this->request('trade/api/currencies', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/currencies', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiOrderbooksSymbol($params = array()) {
-        return $this->request('trade/api/orderbooks/{symbol}', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/orderbooks/{symbol}', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiOrders($params = array()) {
-        return $this->request('trade/api/orders', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/orders', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiPairName($params = array()) {
-        return $this->request('trade/api/pair/{name}', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/pair/{name}', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiPairs($params = array()) {
-        return $this->request('trade/api/pairs', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/pairs', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiPairsPrecisions($params = array()) {
-        return $this->request('trade/api/pairs/precisions', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/pairs/precisions', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiRates($params = array()) {
-        return $this->request('trade/api/rates', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/rates', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiStats($params = array()) {
-        return $this->request('trade/api/stats', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/stats', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiTradeId($params = array()) {
-        return $this->request('trade/api/trade/{id}', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/trade/{id}', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiTrades($params = array()) {
-        return $this->request('trade/api/trades', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/trades', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiCcxtPairs($params = array()) {
-        return $this->request('trade/api/ccxt/pairs', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/pairs', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiCmcAssets($params = array()) {
-        return $this->request('trade/api/cmc/assets', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/cmc/assets', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiCmcOrderbookPair($params = array()) {
-        return $this->request('trade/api/cmc/orderbook/{pair}', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/cmc/orderbook/{pair}', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetTradeApiCmcSummary($params = array()) {
-        return $this->request('trade/api/cmc/summary', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/cmc/summary', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetTradeApiCmcTicker($params = array()) {
-        return $this->request('trade/api/cmc/ticker', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/cmc/ticker', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return list<mixed>
      */
     public function publicGetTradeApiCmcTradesPair($params = array()) {
-        return $this->request('trade/api/cmc/trades/{pair}', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/cmc/trades/{pair}', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradeApiCcxtBalance($params = array()) {
-        return $this->request('trade/api/ccxt/balance', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/balance', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradeApiCcxtOrderId($params = array()) {
-        return $this->request('trade/api/ccxt/order/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/order/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradeApiCcxtOrdersOfUser($params = array()) {
-        return $this->request('trade/api/ccxt/ordersOfUser', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/ordersOfUser', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradeApiCcxtTradesOfUser($params = array()) {
-        return $this->request('trade/api/ccxt/tradesOfUser', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/tradesOfUser', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetTradeApiTransactionsOfUser($params = array()) {
-        return $this->request('trade/api/transactionsOfUser', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/transactionsOfUser', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTradeApiCcxtCancelAllOrder($params = array()) {
-        return $this->request('trade/api/ccxt/cancel-all-order', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/cancel-all-order', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTradeApiCcxtCancelorder($params = array()) {
-        return $this->request('trade/api/ccxt/cancelorder', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/cancelorder', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostTradeApiCcxtOrdercreate($params = array()) {
-        return $this->request('trade/api/ccxt/ordercreate', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade/api/ccxt/ordercreate', array('private'), 'POST', $params, array("cost" => 1));
     }
 }

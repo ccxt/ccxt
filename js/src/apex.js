@@ -1975,7 +1975,7 @@ export default class apex extends Exchange {
             'percentage': undefined,
         });
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
@@ -1988,7 +1988,7 @@ export default class apex extends Exchange {
             'Content-Type': 'application/x-www-form-urlencoded',
         };
         let signPath = '/api/' + path;
-        let signBody = body;
+        let signBody = undefined;
         if (method.toUpperCase() !== 'POST') {
             if (Object.keys(params).length > 0) {
                 signPath += '?' + this.rawencode(params);

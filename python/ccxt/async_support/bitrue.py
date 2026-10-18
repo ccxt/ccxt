@@ -2747,7 +2747,7 @@ class bitrue(Exchange, ImplicitAPI):
             currencyId = self.safe_string(parts, 0)
             networkId = self.safe_string(parts, 1)
             if networkId is not None:
-                network = networkId.upper()
+                network = self.network_id_to_code(networkId.upper())
         code = self.safe_currency_code(currencyId, currency)
         feeCost = self.safe_number(transaction, 'fee')
         fee = None
@@ -3095,7 +3095,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_margin_modification(response, market)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         requestBody = None
         requestHeaders = None
         type = self.safe_string(api, 0)
@@ -3164,8 +3164,8 @@ class bitrue(Exchange, ImplicitAPI):
         else:
             if len(paramsOmitted) > 0:
                 url += '?' + self.urlencode(paramsOmitted)
-        bodyResult = body if (requestBody is None) else requestBody
-        headersResult = headers if (requestHeaders is None) else requestHeaders
+        bodyResult = requestBody
+        headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

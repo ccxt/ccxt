@@ -3310,11 +3310,9 @@ public partial class polymarket : PredictionExchange
      * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -3338,7 +3336,7 @@ public partial class polymarket : PredictionExchange
         {
             query = this.omit(parameters, this.extractParams(path));
         }
-        object bodyValue = body;
+        string? bodyValue = null;
         if ((method == "GET"))
         {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
@@ -3377,7 +3375,7 @@ public partial class polymarket : PredictionExchange
                 bodyValue = this.json(query);
             }
         }
-        object headerDefaults = ((headers != null)) ? headers : new Dictionary<string, object>() {};
+        Dictionary<string, object> headerDefaults = new Dictionary<string, object>() {};
         Dictionary<string, object> headersValue = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },

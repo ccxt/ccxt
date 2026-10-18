@@ -1410,7 +1410,6 @@ class binance extends Exchange {
                     'funding' => 'FUNDING',
                     'margin' => 'MARGIN',
                     'cross' => 'MARGIN',
-                    'future' => 'UMFUTURE', // backwards compatibility
                     'linear' => 'UMFUTURE',
                     'swap' => 'UMFUTURE',
                     'inverse' => 'CMFUTURE',
@@ -1429,11 +1428,8 @@ class binance extends Exchange {
                     'BTCSEGWIT' => 'SEGWITBTC',
                     'BTCLIGHTNING' => 'LIGHTNING',
                     'ERC20' => 'ETH',
-                    'ETH' => 'ETH',
                     'TRC20' => 'TRX',
-                    'TRX' => 'TRX',
                     'BEP2' => 'BNB',
-                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'CHZ2' => 'CHZ2', // Chiliz chain new
                     'XRP' => 'XRP',
@@ -2897,10 +2893,11 @@ class binance extends Exchange {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
-        // defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
+        // defaultType 'swap' resolves spot-style symbols to the perpetual of defaultSubType
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
-        $isLegacy = $defaultType === 'future';
+        $isLegacy = $defaultType === 'swap';
+        $isDerivative = $isLegacy || ($defaultType === 'future');
         $isLegacyInverse = $isLegacy && ($defaultSubType === 'inverse');
         $isLegacyLinear = $isLegacy && !$isLegacyInverse;
         if (gettype($symbol) === 'string') {
@@ -2920,10 +2917,8 @@ class binance extends Exchange {
             } elseif (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($symbol ?? '', $this->markets_by_id))) {
                 $markets = $this->markets_by_id[$symbol];
                 // begin diff
-                if ($isLegacyLinear) {
-                    $defaultType = 'linear';
-                } elseif ($isLegacyInverse) {
-                    $defaultType = 'inverse';
+                if ($isDerivative) {
+                    $defaultType = ($defaultSubType === 'inverse') ? 'inverse' : 'linear';
                 } elseif ($defaultType === null) {
                     $defaultType = $defaultSubType;
                 }
@@ -2936,7 +2931,7 @@ class binance extends Exchange {
                 }
                 return $markets[0];
             } elseif ((mb_strpos($symbol, '/') > -1) && (mb_strpos($symbol, ':') === false)) {
-                if (($defaultType !== null) && ($defaultType !== 'spot')) {
+                if ($isLegacy) {
                     // support legacy symbols
                     list($base, $quote) = explode('/', $symbol);
                     $settle = $quote;
@@ -10254,8 +10249,8 @@ class binance extends Exchange {
         if ($internal !== true) {
             $defaultType = $this->safe_string_2($this->options, 'fetchTransfers', 'defaultType', 'spot');
             $fromAccount = $this->safe_string($paramsOmitted, 'fromAccount', $defaultType);
-            $defaultTo = 'future';
-            if ($fromAccount === 'future') {
+            $defaultTo = 'swap';
+            if (($fromAccount === 'swap') || ($fromAccount === 'linear')) {
                 $defaultTo = 'spot';
             }
             $toAccount = $this->safe_string($paramsOmitted, 'toAccount', $defaultTo);
@@ -10550,7 +10545,7 @@ class binance extends Exchange {
             for ($j = 0; $j < count($networkList); $j++) {
                 $networkEntry = $this->safe_dict($networkList, $j);
                 $networkId = $this->safe_string($networkEntry, 'network');
-                $networkCode = $this->safe_currency_code($networkId);
+                $networkCode = $this->network_id_to_code($networkId, $code);
                 $fee = $this->safe_number($networkEntry, 'withdrawFee');
                 if (($code !== null) && ($networkCode !== null)) {
                     $withdrawFees[$code][$networkCode] = $fee;
@@ -11129,7 +11124,7 @@ class binance extends Exchange {
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate);
         }
-        $defaultType = $this->safe_string_2($this->options, 'fetchFundingRateHistory', 'defaultType', 'future');
+        $defaultType = $this->safe_string_2($this->options, 'fetchFundingRateHistory', 'defaultType', 'swap');
         $type = $this->safe_string($paramsPaginate, 'type', $defaultType);
         $market = null;
         if ($symbol !== null) {
@@ -11202,7 +11197,7 @@ class binance extends Exchange {
             $this->load_markets();
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        $defaultType = $this->safe_string_2($this->options, 'fetchFundingRates', 'defaultType', 'future');
+        $defaultType = $this->safe_string_2($this->options, 'fetchFundingRates', 'defaultType', 'swap');
         $type = $this->safe_string($params, 'type', $defaultType);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchFundingRates', null, $params, 'linear');
         $query = $this->omit($paramsSubType, 'type');
@@ -11545,6 +11540,10 @@ class binance extends Exchange {
         }
         $positionSide = $this->safe_string($position, 'positionSide');
         $hedged = $positionSide !== 'BOTH';
+        $isolatedWalletString = null;
+        if ($marginMode === 'isolated') {
+            $isolatedWalletString = $this->safe_string($position, 'isolatedWallet');
+        }
         return array(
             'info' => $position,
             'id' => null,
@@ -11564,6 +11563,7 @@ class binance extends Exchange {
             'marginRatio' => $marginRatio,
             'liquidationPrice' => $liquidationPrice,
             'markPrice' => null,
+            'positionMargin' => $this->parse_number($isolatedWalletString),
             'collateral' => $collateral,
             'marginMode' => $marginMode,
             'side' => $side,
@@ -11777,6 +11777,10 @@ class binance extends Exchange {
         }
         $positionSide = $this->safe_string($position, 'positionSide');
         $hedged = $positionSide !== 'BOTH';
+        $isolatedWalletString = null;
+        if ($marginMode === 'isolated') {
+            $isolatedWalletString = $this->safe_string($position, 'isolatedWallet');
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -11786,6 +11790,7 @@ class binance extends Exchange {
             'unrealizedPnl' => $unrealizedPnl,
             'leverage' => $this->parse_number($leverageString),
             'liquidationPrice' => $liquidationPrice,
+            'positionMargin' => $this->parse_number($isolatedWalletString),
             'collateral' => $collateral,
             'notional' => $notional,
             'markPrice' => $markPrice,
@@ -11814,7 +11819,7 @@ class binance extends Exchange {
         // it contains useful stuff like the maintenance margin and initial margin for positions
         $leverageBrackets = $this->safe_dict($this->options, 'leverageBrackets');
         if (($leverageBrackets === null) || ($reload)) {
-            $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
+            $defaultType = $this->safe_string($this->options, 'defaultType', 'swap');
             $type = $this->safe_string($params, 'type', $defaultType);
             $query = $this->omit($params, 'type');
             $subType = null;
@@ -12218,7 +12223,7 @@ class binance extends Exchange {
             $this->load_markets();
         }
         $this->load_leverage_brackets(false, $params);
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'swap');
         $type = $this->safe_string($params, 'type', $defaultType);
         $paramsOmitted = $this->omit($params, 'type');
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchAccountPositions', null, $paramsOmitted, 'linear');
@@ -12344,7 +12349,7 @@ class binance extends Exchange {
         }
         $this->load_leverage_brackets(false, $params);
         $request = array();
-        $defaultType = 'future';
+        $defaultType = 'swap';
         $defaultType = $this->safe_string($this->options, 'defaultType', $defaultType);
         $type = $this->safe_string($params, 'type', $defaultType);
         $subType = null;
@@ -12541,7 +12546,7 @@ class binance extends Exchange {
         if ($limit !== null) {
             $requestUntil['limit'] = $limit;
         }
-        $defaultType = $this->safe_string_2($this->options, 'fetchFundingHistory', 'defaultType', 'future');
+        $defaultType = $this->safe_string_2($this->options, 'fetchFundingHistory', 'defaultType', 'swap');
         $type = $this->safe_string($paramsUntil, 'type', $defaultType);
         $paramsOmitted = $this->omit($paramsUntil, 'type');
         $response = null;
@@ -13282,7 +13287,7 @@ class binance extends Exchange {
         return $scheme . '//' . $domain . '/';
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $urls = $this->urls;
         if (!(is_array($urls['api']) && array_key_exists($apiName ?? '', $urls['api']))) {
@@ -13398,8 +13403,8 @@ class binance extends Exchange {
                 $url .= '?' . $this->urlencode($params);
             }
         }
-        $headersResolved = ($signedHeaders !== null) ? $signedHeaders : $headers;
-        $bodyResolved = ($signedBody !== null) ? $signedBody : $body;
+        $headersResolved = $signedHeaders;
+        $bodyResolved = $signedBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
@@ -13536,8 +13541,8 @@ class binance extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function request(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
-        $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
+    public function request(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), array $config = array()) {
+        $response = $this->fetch2($path, $api, $method, $params, $config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if ($api[0] === 'private') {
             $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;
@@ -13547,9 +13552,9 @@ class binance extends Exchange {
 
     public function modify_margin_helper(string $symbol, mixed $amount, mixed $addOrReduce, $params = array()): array {
         // used to modify isolated positions
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'swap');
         if ($defaultType === 'spot') {
-            $defaultType = 'future';
+            $defaultType = 'swap';
         }
         $type = $this->safe_string($params, 'type', $defaultType);
         if (($type === 'margin') || ($type === 'spot')) {

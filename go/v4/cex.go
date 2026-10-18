@@ -321,7 +321,7 @@ func (this *Cex) Describe() any {
 			"networks": map[string]any{
 				"BTC":        "bitcoin",
 				"ERC20":      "ERC20",
-				"BSC20":      "binancesmartchain",
+				"BEP20":      "binancesmartchain",
 				"DOGE":       "dogecoin",
 				"ALGO":       "algorand",
 				"XLM":        "stellar",
@@ -333,7 +333,7 @@ func (this *Cex) Describe() any {
 				"THETA":      "theta",
 				"XTZ":        "tezos",
 				"TIA":        "celestia",
-				"CRONOS":     "cronos",
+				"CRC20":      "cronos",
 				"MATIC":      "polygon",
 				"TON":        "ton",
 				"TRC20":      "tron",
@@ -2461,10 +2461,6 @@ func (this *Cex) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
@@ -2511,8 +2507,8 @@ func (this *Cex) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Cex) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

@@ -759,7 +759,7 @@ function createImplicitMethodsPhp(){
 ${IDEN} * @return \\React\\Promise\\PromiseInterface<${bodyShape}>
 ${IDEN} */
 ${IDEN}public function ${method}($params = array()): \\React\\Promise\\PromiseInterface {
-${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
+${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, ${context.phpConfig});
 ${IDEN}}`
             }
             // Sync REST: shape stays in @return only. A native `: array` TypeErrors when
@@ -769,7 +769,7 @@ ${IDEN}}`
 ${IDEN} * @return ${bodyShape}
 ${IDEN} */
 ${IDEN}public function ${method}($params = array()) {
-${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, null, null, ${context.phpConfig});
+${IDEN}${IDEN}return $this->request('${context.endpoint}', ${context.phpPath}, '${context.method}', $params, ${context.phpConfig});
 ${IDEN}}`
         })
 
@@ -819,7 +819,7 @@ function typescriptInheritedNames (exchange: string): Set<string> {
 // one implicit endpoint as a real method of the abstract class
 function typescriptMethod (exchange: string, method: string, context: Dict, inherited: Set<string>): string {
     const returnType = typescriptReturnType (exchange, method);
-    const call = `return this.request (${tsString (context.endpoint.trim ())}, ${context.tsPath}, '${context.method}', params, undefined, undefined, ${context.tsConfig});`;
+    const call = `return this.request (${tsString (context.endpoint.trim ())}, ${context.tsPath}, '${context.method}', params, ${context.tsConfig});`;
     const name = typescriptMethodName (context);
     return [
         `${IDEN}${inherited.has (name) ? 'override ' : ''}${name} (params = {}): Promise<${returnType}> {`,

@@ -2005,7 +2005,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             normalized = normalized[2:]
         return normalized.lower()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='POST', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['public'], method='POST', params: dict = {}):
         apiGroup = api[0]
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         baseUrl: str
@@ -2016,8 +2016,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             apiUrls = self.safe_dict(self.urls, 'api', {})
             baseUrl = self.safe_string(apiUrls, apiGroup, self.safe_string(apiUrls, 'public', ''))
         url = baseUrl + '/' + path
-        headersValue = headers
-        bodyValue = body
+        headersValue = None
+        bodyValue = None
         if method == 'POST':
             headersValue = {'Content-Type': 'application/json'}
             bodyValue = self.json(params)

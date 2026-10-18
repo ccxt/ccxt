@@ -218,7 +218,7 @@ class revolutx(Exchange, ImplicitAPI):
             },
         })
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
         implodedPath = self.implode_params(path, params)
@@ -246,7 +246,7 @@ class revolutx(Exchange, ImplicitAPI):
             else:
                 requestBody = self.json(query)
             requestPath = '/api/' + implodedPath
-            bodyValue = requestBody if (requestBody is not None) else body
+            bodyValue = requestBody
             bodyString = bodyValue if (bodyValue is not None) else ''
             message = timestamp + method.upper() + requestPath + queryString + bodyString
             signature = self.eddsa(self.encode(message), self.privateKey, 'ed25519')
@@ -265,8 +265,8 @@ class revolutx(Exchange, ImplicitAPI):
             else:
                 requestBody = self.json(query)
                 requestHeaders = {'Content-Type': 'application/json'}
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
-        bodyResult = requestBody if (requestBody is not None) else body
+        headersResult = requestHeaders
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def parse_market(self, market: dict) -> MarketInterface:

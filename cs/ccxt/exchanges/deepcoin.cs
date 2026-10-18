@@ -455,7 +455,7 @@ public partial class deepcoin : Exchange
                     { "ERC20", "ERC20" },
                     { "TRC20", "TRC20" },
                     { "ARBITRUM", "ARBITRUM" },
-                    { "BSC", "BSC(BEP20)" },
+                    { "BEP20", "BSC(BEP20)" },
                     { "SOL", "SOL" },
                     { "BTC", "Bitcoin" },
                     { "ADA", "Cardano" },
@@ -1458,6 +1458,10 @@ public partial class deepcoin : Exchange
         if (((network == null)) || (network == ""))
         {
             network = defaultNetwork;
+        }
+        if ((network != null))
+        {
+            network = this.safeString(this.networkAliases, network, network);
         }
         object paramsOmitted = ((network != null)) ? this.omit(parameters, "network") : parameters;
         List<object> addressess = ccxt.BaseExchange.FromDepositAddressList(await this.FetchDepositAddresses(new List<object>() {code}, paramsOmitted));
@@ -3061,6 +3065,14 @@ public partial class deepcoin : Exchange
         string? marketId = this.safeString(position, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(position, "cTime");
+        string? marginMode = this.safeString(position, "mgnMode");
+        double? useMargin = this.safeNumber(position, "useMargin");
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        double? positionMargin = null;
+        if (marginMode == "isolated")
+        {
+            positionMargin = useMargin;
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "id", this.safeString(position, "posId") },
@@ -3071,17 +3083,18 @@ public partial class deepcoin : Exchange
             { "side", this.safeString(position, "posSide") },
             { "notional", null },
             { "leverage", this.parseNumber(this.omitZero(this.safeString(position, "lever"))) },
-            { "unrealizedPnl", null },
+            { "unrealizedPnl", this.safeNumber(position, "unrealizedProfit") },
             { "realizedPnl", null },
+            { "positionMargin", positionMargin },
             { "collateral", null },
             { "entryPrice", this.safeNumber(position, "avgPx") },
             { "markPrice", null },
             { "liquidationPrice", this.safeNumber(position, "liqPx") },
-            { "marginMode", this.safeString(position, "mgnMode") },
+            { "marginMode", marginMode },
             { "hedged", true },
-            { "maintenanceMargin", this.safeNumber(position, "useMargin") },
+            { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
-            { "initialMargin", null },
+            { "initialMargin", useMargin },
             { "initialMarginPercentage", null },
             { "marginRatio", null },
             { "lastUpdateTimestamp", this.safeInteger(position, "uTime") },
@@ -3548,7 +3561,7 @@ public partial class deepcoin : Exchange
         return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(this.parseOrder(data, market)))));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -3581,7 +3594,7 @@ public partial class deepcoin : Exchange
                 { "DC-ACCESS-PASSPHRASE", this.password },
                 { "appid", "200103" },
             };
-            object requestBody = ((method != "GET")) ? this.json(parameters) : body;
+            string? requestBody = ((method != "GET")) ? this.json(parameters) : null;
             if ((method != "GET"))
             {
                 privateHeaders["Content-Type"] = "application/json";
@@ -3599,8 +3612,8 @@ public partial class deepcoin : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

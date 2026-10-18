@@ -2536,6 +2536,96 @@ func (this *testMainClass) AssertStaticRequestOutput(exchange ccxt.ICoreExchange
 	this.AssertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput)
 	return true
 }
+func (this *testMainClass) AssertStaticIsolatedPosition(exchange ccxt.ICoreExchange, entry any) any {
+	if !EvalTruthy(exchange.IsDictionary(entry)) {
+		return true
+	}
+	var marginMode any = ccxt.DerefScalar(exchange.SafeString(entry, "marginMode"))
+	if marginMode != "isolated" {
+		return true
+	}
+	var side any = ccxt.DerefScalar(exchange.SafeString(entry, "side"))
+	var entryPrice *float64 = exchange.SafeNumber(entry, "entryPrice")
+	var liquidationPrice *float64 = exchange.SafeNumber(entry, "liquidationPrice")
+	var contracts *float64 = exchange.SafeNumber(entry, "contracts")
+	var contractSize *float64 = exchange.SafeNumber(entry, "contractSize")
+	var maintenanceMargin *float64 = exchange.SafeNumber(entry, "maintenanceMargin")
+	var collateral *float64 = exchange.SafeNumber(entry, "collateral")
+	var initialMargin *float64 = exchange.SafeNumber(entry, "initialMargin")
+	var unrealizedPnl *float64 = exchange.SafeNumber(entry, "unrealizedPnl")
+	if (entryPrice != nil) && (liquidationPrice != nil) && (*entryPrice > 0) && (*liquidationPrice > 0) {
+		if side == "long" {
+			this.AssertStaticError(IsLessThan(liquidationPrice, entryPrice), "isolated long liquidationPrice should be less than entryPrice", entryPrice, liquidationPrice)
+		} else if side == "short" {
+			this.AssertStaticError((*liquidationPrice > *entryPrice), "isolated short liquidationPrice should be greater than entryPrice", entryPrice, liquidationPrice)
+		}
+	}
+	var entryMargin any = nil
+	if collateral != nil {
+		if (unrealizedPnl != nil) && (collateral != initialMargin && (collateral == nil || initialMargin == nil || *collateral != *initialMargin)) {
+			entryMargin = Subtract(collateral, unrealizedPnl)
+		} else {
+			entryMargin = collateral
+		}
+	} else if initialMargin != nil {
+		entryMargin = initialMargin
+	}
+	if (!IsEqual(entryMargin, nil)) && (entryPrice != nil) && (liquidationPrice != nil) && (contracts != nil) && (contractSize != nil) && (maintenanceMargin != nil) {
+		if (IsGreaterThan(entryMargin, 0)) && (*entryPrice > 0) && (*liquidationPrice > 0) && (*contracts > 0) && (*contractSize > 0) && (*maintenanceMargin > 0) {
+			var symbol any = ccxt.DerefScalar(exchange.SafeString(entry, "symbol"))
+			var market any = func() any {
+				if !IsEqual(symbol, nil) {
+					return exchange.SafeDict(exchange.GetMarkets(), symbol)
+				}
+				return nil
+			}()
+			var isInverse bool = (!IsEqual(market, nil)) && EvalTruthy(exchange.SafeBool(market, "inverse", false))
+			var priceDiff any = 0
+			if isInverse {
+				var invEntry any = Divide(1, entryPrice)
+				var invLiq any = Divide(1, liquidationPrice)
+				priceDiff = func() any {
+					if IsGreaterThan(invEntry, invLiq) {
+						return (Subtract(invEntry, invLiq))
+					}
+					return (Subtract(invLiq, invEntry))
+				}()
+			} else {
+				priceDiff = func() any {
+					if *entryPrice > *liquidationPrice {
+						return (Subtract(entryPrice, liquidationPrice))
+					}
+					return (Subtract(liquidationPrice, entryPrice))
+				}()
+			}
+			var lossFromEntry any = Multiply(Multiply(priceDiff, contracts), contractSize)
+			var calculatedMm any = Subtract(entryMargin, lossFromEntry)
+			this.AssertStaticError(IsGreaterThan(calculatedMm, 0), "isolated position remaining collateral at liquidationPrice should be greater than 0", maintenanceMargin, calculatedMm)
+			var mmDiff any = func() any {
+				if IsGreaterThan(calculatedMm, maintenanceMargin) {
+					return (Subtract(calculatedMm, maintenanceMargin))
+				}
+				return (Subtract(maintenanceMargin, calculatedMm))
+			}()
+			var maxTolerance any = Multiply(entryMargin, 0.05)
+			this.AssertStaticError(IsLessThanOrEqual(mmDiff, maxTolerance), "isolated position maintenanceMargin does not match remaining collateral at liquidationPrice", maintenanceMargin, calculatedMm)
+		}
+	}
+	return true
+}
+func (this *testMainClass) AssertStaticIsolatedPositions(exchange ccxt.ICoreExchange, method any, output any) any {
+	if (method == "fetchPosition") || (method == "fetchPositions") || (method == "fetchPositionsForSymbol") || (method == "fetchPositionsRisk") {
+		if IsArray(output) {
+			var outputLength int = GetArrayLength(output)
+			for i := 0; i < outputLength; i++ {
+				this.AssertStaticIsolatedPosition(exchange, GetValue(output, i))
+			}
+		} else if EvalTruthy(exchange.IsDictionary(output)) {
+			this.AssertStaticIsolatedPosition(exchange, output)
+		}
+	}
+	return true
+}
 func (this *testMainClass) AssertStaticResponseOutput(exchange ccxt.ICoreExchange, skipKeys any, computedResult any, storedResult any) {
 	this.AssertNewAndStoredOutput(exchange, skipKeys, computedResult, storedResult, false)
 }
@@ -2697,9 +2787,11 @@ func (this *testMainClass) testResponseStaticallyBody(ch chan ccxt.AsyncResult[a
 				}
 				unifiedResult := r.Value
 				this.AssertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult)
+				this.AssertStaticIsolatedPositions(mockedExchange, method, expectedResult)
 			} else {
 				var unifiedResultSync any = CallExchangeMethodDynamicallySync(exchange, method, this.SanitizeDataInput(GetValue(data, "input")))
 				this.AssertStaticResponseOutput(mockedExchange, skipKeys, unifiedResultSync, expectedResult)
+				this.AssertStaticIsolatedPositions(mockedExchange, method, expectedResult)
 			}
 			return nil
 		}(this)
@@ -3686,6 +3778,106 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 	// inverse swap
 	var clientOrderIdInverse any = GetValue(swapInverseOrderRequest, "newClientOrderId")
 	Assert(IsEqual(StartsWith(clientOrderIdInverse, inverseSwapId), true), Add(Add(Add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), inverseSwapId))
+	// defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
+	exchange.ExtendExchangeOptions(map[string]any{
+		"defaultType": "swap",
+	})
+	var swapNoSubTypeRequest any = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						swapNoSubTypeRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r3 := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			if r3.Err != nil {
+				panic(r3.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var swapNoSubTypeId any = GetValue(swapNoSubTypeRequest, "newClientOrderId")
+	Assert(IsEqual(StartsWith(swapNoSubTypeId, swapId), true), Add(Add(Add("binance - defaultType swap without subType clientOrderId: ", swapNoSubTypeId), " does not start with swapId"), swapId))
+	exchange.ExtendExchangeOptions(map[string]any{
+		"defaultSubType": "linear",
+	})
+	var swapLinearRequest any = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						swapLinearRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r4 := <-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000)
+			if r4.Err != nil {
+				panic(r4.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var swapLinearId any = GetValue(swapLinearRequest, "newClientOrderId")
+	Assert(IsEqual(StartsWith(swapLinearId, swapId), true), Add(Add(Add("binance - defaultType swap linear clientOrderId: ", swapLinearId), " does not start with swapId"), swapId))
+	exchange.ExtendExchangeOptions(map[string]any{
+		"defaultSubType": "inverse",
+	})
+	var swapInverseRequest any = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						swapInverseRequest = this.UrlencodedToDict(exchange.GetLast_request_body())
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+
+			r5 := <-exchange.CreateOrderAsync("BTC/USD", "limit", "buy", 1, 20000)
+			if r5.Err != nil {
+				panic(r5.Err)
+			}
+			return nil
+		}(this)
+
+	}
+	var swapInverseId any = GetValue(swapInverseRequest, "newClientOrderId")
+	Assert(IsEqual(StartsWith(swapInverseId, inverseSwapId), true), Add(Add(Add("binance - defaultType swap inverse clientOrderId: ", swapInverseId), " does not start with inverseSwapId"), inverseSwapId))
+	exchange.ExtendExchangeOptions(map[string]any{
+		"defaultType": "spot",
+	})
+	exchange.ExtendExchangeOptions(map[string]any{
+		"defaultSubType": "linear",
+	})
 	// linear swap conditional order
 	var swapAlgoOrderRequest any = map[string]any{}
 
@@ -3705,11 +3897,11 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r3 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, map[string]any{
+			r6 := <-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, map[string]any{
 				"triggerPrice": 101000,
 			})
-			if r3.Err != nil {
-				panic(r3.Err)
+			if r6.Err != nil {
+				panic(r6.Err)
 			}
 			return nil
 		}(this)
@@ -3737,11 +3929,11 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r4 := <-exchange.CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000, map[string]any{
+			r7 := <-exchange.CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000, map[string]any{
 				"triggerPrice": 21000,
 			})
-			if r4.Err != nil {
-				panic(r4.Err)
+			if r7.Err != nil {
+				panic(r7.Err)
 			}
 			return nil
 		}(this)
@@ -3780,9 +3972,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				"amount": 1,
 			}}
 
-			r5 := <-exchange.CreateOrdersAsync(orders)
-			if r5.Err != nil {
-				panic(r5.Err)
+			r8 := <-exchange.CreateOrdersAsync(orders)
+			if r8.Err != nil {
+				panic(r8.Err)
 			}
 			return nil
 		}(this)
@@ -3823,9 +4015,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				},
 			}}
 
-			r6 := <-exchange.CreateOrdersAsync(linearConditionalOrders)
-			if r6.Err != nil {
-				panic(r6.Err)
+			r9 := <-exchange.CreateOrdersAsync(linearConditionalOrders)
+			if r9.Err != nil {
+				panic(r9.Err)
 			}
 			return nil
 		}(this)
@@ -3863,9 +4055,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				},
 			}}
 
-			r7 := <-exchange.CreateOrdersAsync(inverseConditionalOrders)
-			if r7.Err != nil {
-				panic(r7.Err)
+			r10 := <-exchange.CreateOrdersAsync(inverseConditionalOrders)
+			if r10.Err != nil {
+				panic(r10.Err)
 			}
 			return nil
 		}(this)
@@ -3896,9 +4088,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r8 := <-exchange.CreateOrderAsync("ETH/USDT:USDT-261225", "limit", "buy", 1, 2000)
-			if r8.Err != nil {
-				panic(r8.Err)
+			r11 := <-exchange.CreateOrderAsync("ETH/USDT:USDT-261225", "limit", "buy", 1, 2000)
+			if r11.Err != nil {
+				panic(r11.Err)
 			}
 			return nil
 		}(this)
@@ -3924,9 +4116,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r9 := <-exchange.CreateOrderAsync("ETH/USD:ETH-261225", "limit", "buy", 1, 2000)
-			if r9.Err != nil {
-				panic(r9.Err)
+			r12 := <-exchange.CreateOrderAsync("ETH/USD:ETH-261225", "limit", "buy", 1, 2000)
+			if r12.Err != nil {
+				panic(r12.Err)
 			}
 			return nil
 		}(this)
@@ -3953,9 +4145,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 			}()
 			// try block:
 
-			r10 := <-exchange.CreateOrderAsync("ETH/USDT:USDT-231229-800-C", "limit", "buy", 1, 100)
-			if r10.Err != nil {
-				panic(r10.Err)
+			r13 := <-exchange.CreateOrderAsync("ETH/USDT:USDT-231229-800-C", "limit", "buy", 1, 100)
+			if r13.Err != nil {
+				panic(r13.Err)
 			}
 			return nil
 		}(this)
@@ -3985,7 +4177,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r11 := <-CallExchangeMethodDynamically(exchange, "dapiPrivatePostOrder", []any{map[string]any{
+				r14 := <-CallExchangeMethodDynamically(exchange, "dapiPrivatePostOrder", []any{map[string]any{
 					"symbol":      "ETHUSD_PERP",
 					"side":        "SELL",
 					"type":        "LIMIT",
@@ -3993,8 +4185,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"price":       "4100",
 					"timeInForce": "GTC",
 				}})
-				if r11.Err != nil {
-					panic(r11.Err)
+				if r14.Err != nil {
+					panic(r14.Err)
 				}
 				return nil
 			}(this)
@@ -4020,7 +4212,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r12 := <-CallExchangeMethodDynamically(exchange, "dapiPrivatePostBatchOrders", []any{map[string]any{
+				r15 := <-CallExchangeMethodDynamically(exchange, "dapiPrivatePostBatchOrders", []any{map[string]any{
 					"batchOrders": []any{map[string]any{
 						"symbol":      "ETHUSD_PERP",
 						"side":        "SELL",
@@ -4030,8 +4222,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 						"timeInForce": "GTC",
 					}},
 				}})
-				if r12.Err != nil {
-					panic(r12.Err)
+				if r15.Err != nil {
+					panic(r15.Err)
 				}
 				return nil
 			}(this)
@@ -4061,7 +4253,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r13 := <-CallExchangeMethodDynamically(exchange, "fapiPrivatePostAlgoOrder", []any{map[string]any{
+				r16 := <-CallExchangeMethodDynamically(exchange, "fapiPrivatePostAlgoOrder", []any{map[string]any{
 					"symbol":       "ETHUSDT",
 					"side":         "SELL",
 					"type":         "STOP",
@@ -4071,8 +4263,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"triggerPrice": "4200",
 					"timeInForce":  "GTC",
 				}})
-				if r13.Err != nil {
-					panic(r13.Err)
+				if r16.Err != nil {
+					panic(r16.Err)
 				}
 				return nil
 			}(this)
@@ -4100,7 +4292,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r14 := <-CallExchangeMethodDynamically(exchange, "papiPostUmOrder", []any{map[string]any{
+				r17 := <-CallExchangeMethodDynamically(exchange, "papiPostUmOrder", []any{map[string]any{
 					"symbol":      "ETHUSDT",
 					"side":        "SELL",
 					"type":        "LIMIT",
@@ -4108,8 +4300,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"price":       "4100",
 					"timeInForce": "GTC",
 				}})
-				if r14.Err != nil {
-					panic(r14.Err)
+				if r17.Err != nil {
+					panic(r17.Err)
 				}
 				return nil
 			}(this)
@@ -4136,7 +4328,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r15 := <-CallExchangeMethodDynamically(exchange, "papiPostCmOrder", []any{map[string]any{
+				r18 := <-CallExchangeMethodDynamically(exchange, "papiPostCmOrder", []any{map[string]any{
 					"symbol":      "ETHUSD_PERP",
 					"side":        "SELL",
 					"type":        "LIMIT",
@@ -4144,8 +4336,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"price":       "4100",
 					"timeInForce": "GTC",
 				}})
-				if r15.Err != nil {
-					panic(r15.Err)
+				if r18.Err != nil {
+					panic(r18.Err)
 				}
 				return nil
 			}(this)
@@ -4172,7 +4364,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r16 := <-CallExchangeMethodDynamically(exchange, "papiPostMarginOrder", []any{map[string]any{
+				r19 := <-CallExchangeMethodDynamically(exchange, "papiPostMarginOrder", []any{map[string]any{
 					"symbol":      "BTCUSDT",
 					"side":        "BUY",
 					"type":        "LIMIT",
@@ -4180,8 +4372,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"price":       "20000",
 					"timeInForce": "GTC",
 				}})
-				if r16.Err != nil {
-					panic(r16.Err)
+				if r19.Err != nil {
+					panic(r19.Err)
 				}
 				return nil
 			}(this)
@@ -4208,7 +4400,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r17 := <-CallExchangeMethodDynamically(exchange, "sapiPostMarginOrder", []any{map[string]any{
+				r20 := <-CallExchangeMethodDynamically(exchange, "sapiPostMarginOrder", []any{map[string]any{
 					"symbol":      "BTCUSDT",
 					"side":        "BUY",
 					"type":        "LIMIT",
@@ -4216,8 +4408,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"price":       "20000",
 					"timeInForce": "GTC",
 				}})
-				if r17.Err != nil {
-					panic(r17.Err)
+				if r20.Err != nil {
+					panic(r20.Err)
 				}
 				return nil
 			}(this)
@@ -4245,7 +4437,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r18 := <-CallExchangeMethodDynamically(exchange, "papiPostUmAlgoOrder", []any{map[string]any{
+				r21 := <-CallExchangeMethodDynamically(exchange, "papiPostUmAlgoOrder", []any{map[string]any{
 					"symbol":       "ETHUSDT",
 					"side":         "SELL",
 					"algoType":     "CONDITIONAL",
@@ -4255,8 +4447,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"triggerPrice": "4200",
 					"timeInForce":  "GTC",
 				}})
-				if r18.Err != nil {
-					panic(r18.Err)
+				if r21.Err != nil {
+					panic(r21.Err)
 				}
 				return nil
 			}(this)
@@ -4284,7 +4476,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r19 := <-CallExchangeMethodDynamically(exchange, "papiPostCmConditionalOrder", []any{map[string]any{
+				r22 := <-CallExchangeMethodDynamically(exchange, "papiPostCmConditionalOrder", []any{map[string]any{
 					"symbol":       "ETHUSD_PERP",
 					"side":         "SELL",
 					"strategyType": "STOP",
@@ -4293,8 +4485,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"stopPrice":    "4200",
 					"timeInForce":  "GTC",
 				}})
-				if r19.Err != nil {
-					panic(r19.Err)
+				if r22.Err != nil {
+					panic(r22.Err)
 				}
 				return nil
 			}(this)
@@ -4321,7 +4513,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r20 := <-CallExchangeMethodDynamically(exchange, "papiPostUmConditionalOrder", []any{map[string]any{
+				r23 := <-CallExchangeMethodDynamically(exchange, "papiPostUmConditionalOrder", []any{map[string]any{
 					"symbol":       "ETHUSDT",
 					"side":         "SELL",
 					"strategyType": "STOP",
@@ -4330,8 +4522,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"stopPrice":    "4200",
 					"timeInForce":  "GTC",
 				}})
-				if r20.Err != nil {
-					panic(r20.Err)
+				if r23.Err != nil {
+					panic(r23.Err)
 				}
 				return nil
 			}(this)
@@ -4359,15 +4551,15 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r21 := <-CallExchangeMethodDynamically(exchange, "eapiPrivatePostOrder", []any{map[string]any{
+				r24 := <-CallExchangeMethodDynamically(exchange, "eapiPrivatePostOrder", []any{map[string]any{
 					"symbol":   "ETH-231229-800-C",
 					"side":     "BUY",
 					"type":     "LIMIT",
 					"quantity": "1",
 					"price":    "100",
 				}})
-				if r21.Err != nil {
-					panic(r21.Err)
+				if r24.Err != nil {
+					panic(r24.Err)
 				}
 				return nil
 			}(this)
@@ -4394,7 +4586,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r22 := <-CallExchangeMethodDynamically(exchange, "eapiPrivatePostBatchOrders", []any{map[string]any{
+				r25 := <-CallExchangeMethodDynamically(exchange, "eapiPrivatePostBatchOrders", []any{map[string]any{
 					"batchOrders": []any{map[string]any{
 						"symbol":   "ETH-231229-800-C",
 						"side":     "BUY",
@@ -4403,8 +4595,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 						"price":    "100",
 					}},
 				}})
-				if r22.Err != nil {
-					panic(r22.Err)
+				if r25.Err != nil {
+					panic(r25.Err)
 				}
 				return nil
 			}(this)
@@ -4434,7 +4626,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r23 := <-CallExchangeMethodDynamically(exchange, "sapiPostEquityOrderPlace", []any{map[string]any{
+				r26 := <-CallExchangeMethodDynamically(exchange, "sapiPostEquityOrderPlace", []any{map[string]any{
 					"symbol":      "AAPLUSDC",
 					"side":        "BUY",
 					"orderType":   "LIMIT",
@@ -4442,8 +4634,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"price":       "100",
 					"timeInForce": "GTC",
 				}})
-				if r23.Err != nil {
-					panic(r23.Err)
+				if r26.Err != nil {
+					panic(r26.Err)
 				}
 				return nil
 			}(this)
@@ -4471,7 +4663,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r24 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOco", []any{map[string]any{
+				r27 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOco", []any{map[string]any{
 					"symbol":         "BTCUSDT",
 					"side":           "SELL",
 					"quantity":       "0.001",
@@ -4480,8 +4672,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"belowType":      "STOP_LOSS",
 					"belowStopPrice": "95000",
 				}})
-				if r24.Err != nil {
-					panic(r24.Err)
+				if r27.Err != nil {
+					panic(r27.Err)
 				}
 				return nil
 			}(this)
@@ -4512,7 +4704,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r25 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOtoco", []any{map[string]any{
+				r28 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOtoco", []any{map[string]any{
 					"symbol":                "BTCUSDT",
 					"workingType":           "LIMIT",
 					"workingSide":           "BUY",
@@ -4525,8 +4717,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"pendingBelowType":      "STOP_LOSS",
 					"pendingBelowStopPrice": "95000",
 				}})
-				if r25.Err != nil {
-					panic(r25.Err)
+				if r28.Err != nil {
+					panic(r28.Err)
 				}
 				return nil
 			}(this)
@@ -4556,15 +4748,15 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r26 := <-CallExchangeMethodDynamically(exchange, "sapiPostMarginOrderOco", []any{map[string]any{
+				r29 := <-CallExchangeMethodDynamically(exchange, "sapiPostMarginOrderOco", []any{map[string]any{
 					"symbol":    "BTCUSDT",
 					"side":      "SELL",
 					"quantity":  "0.001",
 					"price":     "110000",
 					"stopPrice": "95000",
 				}})
-				if r26.Err != nil {
-					panic(r26.Err)
+				if r29.Err != nil {
+					panic(r29.Err)
 				}
 				return nil
 			}(this)
@@ -4592,15 +4784,15 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r27 := <-CallExchangeMethodDynamically(exchange, "papiPostMarginOrderOco", []any{map[string]any{
+				r30 := <-CallExchangeMethodDynamically(exchange, "papiPostMarginOrderOco", []any{map[string]any{
 					"symbol":    "BTCUSDT",
 					"side":      "SELL",
 					"quantity":  "0.001",
 					"price":     "110000",
 					"stopPrice": "95000",
 				}})
-				if r27.Err != nil {
-					panic(r27.Err)
+				if r30.Err != nil {
+					panic(r30.Err)
 				}
 				return nil
 			}(this)
@@ -4630,15 +4822,15 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r28 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderOco", []any{map[string]any{
+				r31 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderOco", []any{map[string]any{
 					"symbol":    "BTCUSDT",
 					"side":      "SELL",
 					"quantity":  "0.001",
 					"price":     "110000",
 					"stopPrice": "95000",
 				}})
-				if r28.Err != nil {
-					panic(r28.Err)
+				if r31.Err != nil {
+					panic(r31.Err)
 				}
 				return nil
 			}(this)
@@ -4668,7 +4860,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r29 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOto", []any{map[string]any{
+				r32 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOto", []any{map[string]any{
 					"symbol":          "BTCUSDT",
 					"workingType":     "LIMIT",
 					"workingSide":     "BUY",
@@ -4678,8 +4870,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"pendingSide":     "SELL",
 					"pendingQuantity": "0.001",
 				}})
-				if r29.Err != nil {
-					panic(r29.Err)
+				if r32.Err != nil {
+					panic(r32.Err)
 				}
 				return nil
 			}(this)
@@ -4709,7 +4901,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r30 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOpo", []any{map[string]any{
+				r33 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOpo", []any{map[string]any{
 					"symbol":          "BTCUSDT",
 					"workingType":     "LIMIT",
 					"workingSide":     "BUY",
@@ -4719,8 +4911,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"pendingSide":     "SELL",
 					"pendingQuantity": "0.001",
 				}})
-				if r30.Err != nil {
-					panic(r30.Err)
+				if r33.Err != nil {
+					panic(r33.Err)
 				}
 				return nil
 			}(this)
@@ -4750,7 +4942,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r31 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOpoco", []any{map[string]any{
+				r34 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderListOpoco", []any{map[string]any{
 					"symbol":                "BTCUSDT",
 					"workingType":           "LIMIT",
 					"workingSide":           "BUY",
@@ -4763,8 +4955,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"pendingBelowType":      "STOP_LOSS",
 					"pendingBelowStopPrice": "95000",
 				}})
-				if r31.Err != nil {
-					panic(r31.Err)
+				if r34.Err != nil {
+					panic(r34.Err)
 				}
 				return nil
 			}(this)
@@ -4797,7 +4989,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 				}()
 				// try block:
 
-				r32 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderCancelReplace", []any{map[string]any{
+				r35 := <-CallExchangeMethodDynamically(exchange, "privatePostOrderCancelReplace", []any{map[string]any{
 					"symbol":            "BTCUSDT",
 					"side":              "BUY",
 					"type":              "LIMIT",
@@ -4807,8 +4999,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 					"cancelReplaceMode": "STOP_ON_FAILURE",
 					"cancelOrderId":     "12345",
 				}})
-				if r32.Err != nil {
-					panic(r32.Err)
+				if r35.Err != nil {
+					panic(r35.Err)
 				}
 				return nil
 			}(this)

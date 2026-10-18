@@ -962,10 +962,8 @@ func (this *Xt) Describe() any {
 			"networks": map[string]any{
 				"ERC20": "Ethereum",
 				"TRC20": "Tron",
-				"TRX":   "Tron",
 				"BEP20": "BNB Smart Chain",
 				"BEP2":  "BNB-BEP2",
-				"ETH":   "Ethereum",
 				"AVAX":  "AVAX C-Chain",
 				"GAL":   "GAL(FT)",
 				"ALEO":  "ALEO(IOU)",
@@ -1967,11 +1965,11 @@ func (this *Xt) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes149519 []any = ListTyped(r1.Value)
-		if retRes149519 == nil {
+		var retRes149319 []any = ListTyped(r1.Value)
+		if retRes149319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes149519}
+			ch <- AsyncResult[any]{Value: retRes149319}
 		}
 		return nil
 	}
@@ -2683,7 +2681,12 @@ func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_", marketType)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
-	var percentage *string = this.SafeString2(ticker, "cr", "r")
+	var open *string = this.SafeString(ticker, "o")
+	// spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
+	var percentage *string = this.SafeString(ticker, "r")
+	if open == nil {
+		percentage = this.SafeString2(ticker, "cr", "r")
+	}
 	if percentage != nil {
 		percentage = Precise.StringMul(percentage, "100")
 	}
@@ -2711,11 +2714,11 @@ func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"ask":           this.SafeNumber(ticker, "ap"),
 		"askVolume":     this.SafeNumber(ticker, "aq"),
 		"vwap":          nil,
-		"open":          this.SafeString(ticker, "o"),
+		"open":          open,
 		"close":         this.SafeString(ticker, "c"),
 		"last":          this.SafeString(ticker, "c"),
 		"previousClose": nil,
-		"change":        this.SafeNumber(ticker, "cv"),
+		"change":        nil,
 		"percentage":    this.ParseNumber(percentage),
 		"average":       nil,
 		"baseVolume":    baseVolume,
@@ -3376,11 +3379,11 @@ func (this *Xt) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], symbo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes257615 map[string]any = r1.Value
-	if retRes257615 == nil {
+	var retRes257915 map[string]any = r1.Value
+	if retRes257915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes257615}
+		ch <- AsyncResult[any]{Value: retRes257915}
 	}
 	return nil
 }
@@ -3445,11 +3448,11 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[map[string]any], symbol stri
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes262019 map[string]any = r1.Value
-		if retRes262019 == nil {
+		var retRes262319 map[string]any = r1.Value
+		if retRes262319 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes262019}
+			ch <- AsyncResult[map[string]any]{Value: retRes262319}
 		}
 		return nil
 	} else {
@@ -3458,11 +3461,11 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[map[string]any], symbol stri
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes262219 map[string]any = r2.Value
-		if retRes262219 == nil {
+		var retRes262519 map[string]any = r2.Value
+		if retRes262519 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes262219}
+			ch <- AsyncResult[map[string]any]{Value: retRes262519}
 		}
 		return nil
 	}
@@ -4697,11 +4700,11 @@ func (this *Xt) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes353815 []any = r.Value
-	if retRes353815 == nil {
+	var retRes354115 []any = r.Value
+	if retRes354115 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes353815}
+		ch <- AsyncResult[any]{Value: retRes354115}
 	}
 	return nil
 }
@@ -4745,11 +4748,11 @@ func (this *Xt) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes356015 []any = r.Value
-	if retRes356015 == nil {
+	var retRes356315 []any = r.Value
+	if retRes356315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes356015}
+		ch <- AsyncResult[any]{Value: retRes356315}
 	}
 	return nil
 }
@@ -4793,11 +4796,11 @@ func (this *Xt) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes358215 []any = r.Value
-	if retRes358215 == nil {
+	var retRes358515 []any = r.Value
+	if retRes358515 == nil {
 		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]any]{Value: retRes358215}
+		ch <- AsyncResult[[]any]{Value: retRes358515}
 	}
 	return nil
 }
@@ -6088,11 +6091,11 @@ func (this *Xt) addMarginBody(ch chan AsyncResult[map[string]any], symbol string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes452715 map[string]any = MapTyped(r.Value)
-	if retRes452715 == nil {
+	var retRes453015 map[string]any = MapTyped(r.Value)
+	if retRes453015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes452715}
+		ch <- AsyncResult[map[string]any]{Value: retRes453015}
 	}
 	return nil
 }
@@ -6123,11 +6126,11 @@ func (this *Xt) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes454215 map[string]any = MapTyped(r.Value)
-	if retRes454215 == nil {
+	var retRes454515 map[string]any = MapTyped(r.Value)
+	if retRes454515 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes454215, Raw: retRes454215}
+		ch <- EndpointResult[map[string]any]{Value: retRes454515, Raw: retRes454515}
 	}
 	return nil
 }
@@ -6486,11 +6489,11 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes478919 []any = ListTyped(r1.Value)
-		if retRes478919 == nil {
+		var retRes479219 []any = ListTyped(r1.Value)
+		if retRes479219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes478919}
+			ch <- AsyncResult[any]{Value: retRes479219}
 		}
 		return nil
 	}
@@ -6595,11 +6598,11 @@ func (this *Xt) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes486115 map[string]any = r.Value
-	if retRes486115 == nil {
+	var retRes486415 map[string]any = r.Value
+	if retRes486415 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes486115}
+		ch <- AsyncResult[map[string]any]{Value: retRes486415}
 	}
 	return nil
 }
@@ -7916,10 +7919,6 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var signed bool = (GetValue(api, 0) == "private")
 	var endpoint *string = SafeStringPtr(GetValue(api, 1))
 	var request string = "/" + this.ImplodeParams(path, params)
@@ -8010,7 +8009,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 			url = Add(url, "?"+urlencoded)
 		}
 	}
-	var bodyValue any = body
+	var bodyValue any = nil
 	if signed {
 		bodyValue = signedBody
 	}

@@ -302,10 +302,10 @@ public class Bitteam extends BitteamApi
                     put( "ethereum", "ERC20" );
                     put( "Tron", "TRC20" );
                     put( "tron", "TRC20" );
-                    put( "Binance", "BSC" );
-                    put( "binance", "BSC" );
-                    put( "Binance Smart Chain", "BSC" );
-                    put( "bscscan", "BSC" );
+                    put( "Binance", "BEP20" );
+                    put( "binance", "BEP20" );
+                    put( "Binance Smart Chain", "BEP20" );
+                    put( "bscscan", "BEP20" );
                     put( "Bitcoin", "BTC" );
                     put( "bitcoin", "BTC" );
                     put( "Litecoin", "LTC" );
@@ -2668,7 +2668,7 @@ public class Bitteam extends BitteamApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object request = this.omit(parameters, this.extractParams(path));
@@ -2703,8 +2703,8 @@ public class Bitteam extends BitteamApi
         {
             url = (url + ("?" + query));
         }
-        String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResolved = requestBody;
+        Map<String, Object> headersResolved = requestHeaders;
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);

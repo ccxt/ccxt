@@ -2305,7 +2305,7 @@ class hyperliquid extends Exchange {
         return strtolower($normalized);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'POST', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('public'), $method = 'POST', $params = array()) {
         $apiGroup = $api[0];
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         if ($sandboxMode === true) {
@@ -2316,8 +2316,8 @@ class hyperliquid extends Exchange {
             $baseUrl = $this->safe_string($apiUrls, $apiGroup, $this->safe_string($apiUrls, 'public', ''));
         }
         $url = $baseUrl . '/' . $path;
-        $headersValue = $headers;
-        $bodyValue = $body;
+        $headersValue = null;
+        $bodyValue = null;
         if ($method === 'POST') {
             $headersValue = array( 'Content-Type' => 'application/json' );
             $bodyValue = $this->json($params);

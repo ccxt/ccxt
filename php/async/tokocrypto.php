@@ -273,7 +273,7 @@ class tokocrypto extends Exchange {
                 'reverseNetworks' => array(
                     'tronscan.org' => 'TRC20',
                     'etherscan.io' => 'ERC20',
-                    'bscscan.com' => 'BSC',
+                    'bscscan.com' => 'BEP20',
                     'explorer.binance.org' => 'BEP2',
                     'bithomp.com' => 'XRP',
                     'bloks.io' => 'EOS',
@@ -2425,7 +2425,7 @@ class tokocrypto extends Exchange {
         return array(
             'info' => $response,
             'currency' => $code,
-            'network' => $this->safe_string($data, 'network'),
+            'network' => $this->network_id_to_code($this->safe_string($data, 'network'), $code),
             'address' => $address,
             'tag' => $tag,
         );
@@ -2681,7 +2681,7 @@ class tokocrypto extends Exchange {
             'txid' => $txid,
             'type' => $type,
             'currency' => $code,
-            'network' => $this->safe_string($transaction, 'network'),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $code),
             'amount' => $this->safe_number($transaction, 'amount'),
             'status' => $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type),
             'timestamp' => $timestamp,
@@ -2752,7 +2752,7 @@ class tokocrypto extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         if (!(is_array($this->urls['api']['rest']) && array_key_exists($apiName ?? '', $this->urls['api']['rest']))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $apiName . ' endpoints');
@@ -2774,7 +2774,7 @@ class tokocrypto extends Exchange {
                     'X-MBX-APIKEY' => $this->apiKey,
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 );
-                $bodyStream = ($method !== 'GET') ? $this->urlencode($params) : $body;
+                $bodyStream = ($method !== 'GET') ? $this->urlencode($params) : null;
                 return array( 'url' => $url, 'method' => $method, 'body' => $bodyStream, 'headers' => $headersStream );
             } else {
                 throw new AuthenticationError($this->id . ' userDataStream endpoint requires `apiKey` credential');
@@ -2808,7 +2808,7 @@ class tokocrypto extends Exchange {
             $queryInUrl = ($method === 'GET') || ($method === 'DELETE') || ($apiName === 'wapi');
             $bodySigned = $query;
             if ($queryInUrl) {
-                $bodySigned = $body;
+                $bodySigned = null;
             }
             if ($queryInUrl) {
                 $url .= '?' . $query;
@@ -2821,7 +2821,7 @@ class tokocrypto extends Exchange {
                 $url .= '?' . $this->urlencode($params);
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

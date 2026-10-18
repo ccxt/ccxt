@@ -455,7 +455,7 @@ public partial class blockchaincom : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchL3OrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchL2OrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -468,7 +468,7 @@ public partial class blockchaincom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchL3OrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBookL3> FetchL3OrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -484,7 +484,7 @@ public partial class blockchaincom : Exchange
             request["depth"] = limit;
         }
         Dictionary<string, object> response = await this.publicGetL3Symbol(this.extend(request, parameters));
-        return this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "px", "qty");
+        return ccxt.BaseExchange.ToOrderBookL3(this.parseOrderBookL3(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "px", "qty", "num"));
     }
 
     public async override Task<ccxt.OrderBook> FetchL2OrderBook(string symbol, Int64? limit = null, object parameters = null)
@@ -1365,7 +1365,7 @@ public partial class blockchaincom : Exchange
         return this.parseOrder(response);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -1383,13 +1383,13 @@ public partial class blockchaincom : Exchange
         Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {
             { "X-API-Token", this.secret },
         };
-        object requestHeaders = headers;
+        Dictionary<string, object> requestHeaders = null;
         if (isPrivate)
         {
             requestHeaders = privateHeaders;
         }
         bool isPrivatePost = isPrivate && ((method != "GET"));
-        object requestBody = body;
+        string? requestBody = null;
         if (isPrivatePost)
         {
             requestBody = this.json(query);

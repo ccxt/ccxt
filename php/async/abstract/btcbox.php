@@ -11,144 +11,144 @@ abstract class btcbox extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_depth($params = array()) {
-        return $this->request('depth', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('depth', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function public_get_orders($params = array()) {
-        return $this->request('orders', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('orders', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_ticker($params = array()) {
-        return $this->request('ticker', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('ticker', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_tickers($params = array()) {
-        return $this->request('tickers', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('tickers', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_balance($params = array()) {
-        return $this->request('balance', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('balance', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_post_order_history($params = array()) {
-        return $this->request('order_history', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('order_history', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_trade_add($params = array()) {
-        return $this->request('trade_add', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade_add', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_trade_cancel($params = array()) {
-        return $this->request('trade_cancel', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade_cancel', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_post_trade_list($params = array()) {
-        return $this->request('trade_list', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade_list', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_trade_view($params = array()) {
-        return $this->request('trade_view', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade_view', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_wallet($params = array()) {
-        return $this->request('wallet', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('wallet', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function webapi_get_ajax_coin_coininfo($params = array()) {
-        return $this->request('ajax/coin/coinInfo', array('webApi'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('ajax/coin/coinInfo', array('webApi'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGetDepth($params = array()) {
-        return $this->request('depth', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('depth', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function publicGetOrders($params = array()) {
-        return $this->request('orders', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('orders', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGetTicker($params = array()) {
-        return $this->request('ticker', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('ticker', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGetTickers($params = array()) {
-        return $this->request('tickers', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('tickers', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostBalance($params = array()) {
-        return $this->request('balance', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('balance', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privatePostOrderHistory($params = array()) {
-        return $this->request('order_history', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('order_history', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostTradeAdd($params = array()) {
-        return $this->request('trade_add', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade_add', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostTradeCancel($params = array()) {
-        return $this->request('trade_cancel', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade_cancel', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privatePostTradeList($params = array()) {
-        return $this->request('trade_list', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade_list', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostTradeView($params = array()) {
-        return $this->request('trade_view', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('trade_view', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostWallet($params = array()) {
-        return $this->request('wallet', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('wallet', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function webApiGetAjaxCoinCoinInfo($params = array()) {
-        return $this->request('ajax/coin/coinInfo', array('webApi'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('ajax/coin/coinInfo', array('webApi'), 'GET', $params, array("cost" => 1));
     }
 }

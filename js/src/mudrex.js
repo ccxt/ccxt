@@ -178,7 +178,7 @@ export default class mudrex extends Exchange {
             },
         });
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const apiUrls = this.safeDict(this.urls, 'api', {});
         const base = this.safeString(apiUrls, apiName);
@@ -187,10 +187,7 @@ export default class mudrex extends Exchange {
         }
         let url = base + '/' + this.implodeParams(path, params);
         let query = this.omit(params, this.extractParams(path));
-        let requestHeaders = {};
-        if (headers !== undefined) {
-            requestHeaders = this.extend({}, headers);
-        }
+        const requestHeaders = {};
         const brokerId = this.safeString(this.options, 'broker');
         if (brokerId !== undefined) {
             requestHeaders['Partner-Id'] = brokerId;
@@ -1134,6 +1131,7 @@ export default class mudrex extends Exchange {
             'lastPrice': this.safeNumber(position, 'closed_price'), // exit price for closed positions
             'notional': notional,
             'leverage': this.safeInteger(position, 'leverage'),
+            'positionMargin': this.parseNumber(initialMargin),
             'collateral': this.parseNumber(initialMargin),
             'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': undefined,

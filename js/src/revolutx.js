@@ -213,7 +213,7 @@ export default class revolutx extends Exchange {
             },
         });
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
         const implodedPath = this.implodeParams(path, params);
@@ -247,7 +247,7 @@ export default class revolutx extends Exchange {
                 requestBody = this.json(query);
             }
             const requestPath = '/api/' + implodedPath;
-            const bodyValue = (requestBody !== undefined) ? requestBody : body;
+            const bodyValue = requestBody;
             const bodyString = (bodyValue !== undefined) ? bodyValue : '';
             const message = timestamp + method.toUpperCase() + requestPath + queryString + bodyString;
             const signature = eddsa(this.encode(message), this.privateKey, ed25519);
@@ -272,8 +272,8 @@ export default class revolutx extends Exchange {
                 requestHeaders = { 'Content-Type': 'application/json' };
             }
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     /**

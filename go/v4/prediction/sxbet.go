@@ -3941,8 +3941,6 @@ func (this *Sxbet) HandleErrors(code any, reason any, url any, method any, heade
  * @param {string[]} api the api group and access level
  * @param {string} method the http method
  * @param {object} params the request parameters
- * @param {object} [headers] request headers
- * @param {string} [body] the request body
  * @returns {object} a dict with url, method, body and headers
  */
 func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
@@ -3952,10 +3950,6 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := ccxt.GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := ccxt.GetArg(optionalArgs, 4, nil)
-	_ = body
 	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
 	var accessLevel *string = this.SafeString(api, 1, "public")
 	if (accessLevel != nil && *accessLevel == "private") && (ccxt.IsEqual(this.ApiKey, nil)) {
@@ -3965,12 +3959,7 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "sxbet"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var existingHeaders any = func() any {
-		if !ccxt.IsEqual(headers, nil) {
-			return headers
-		}
-		return map[string]any{}
-	}()
+	var existingHeaders map[string]any = map[string]any{}
 	var headersExtended map[string]any = this.Extend(map[string]any{
 		"Accept":       "application/json",
 		"Content-Type": "application/json",
@@ -3985,7 +3974,7 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
 		var hasOrdersList bool = (ccxt.InOp(query, "orders"))
 		sendAsQuery = !hasOrdersList
 	}
-	var bodyValue any = body
+	var bodyValue *string = nil
 	if sendAsQuery {
 		var querystring string = this.Urlencode(query)
 		if querystring != "" {
@@ -3995,7 +3984,7 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
 		var queryKeys []string = ccxt.ObjectKeys(query)
 		var queryKeysLength int = len(queryKeys)
 		if queryKeysLength > 0 {
-			bodyValue = this.Json(query)
+			bodyValue = ccxt.SafeStringPtr(this.Json(query))
 		}
 	}
 	return map[string]any{

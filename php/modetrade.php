@@ -520,6 +520,7 @@ class modetrade extends Exchange {
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
+        //     "status": "ACTIVE",
         //     "quote_min": 123,
         //     "quote_max": 100000,
         //     "quote_tick": 0.1,
@@ -545,6 +546,11 @@ class modetrade extends Exchange {
         //   }
         //
         $marketId = $this->safe_string($market, 'symbol', '');
+        $status = $this->safe_string($market, 'status');
+        $active = null;
+        if ($status !== null) {
+            $active = ($status === 'ACTIVE');
+        }
         $parts = explode('_', $marketId);
         $marketType = 'swap';
         $baseId = $this->safe_string($parts, 1);
@@ -572,7 +578,7 @@ class modetrade extends Exchange {
             'swap' => true,
             'future' => false,
             'option' => false,
-            'active' => null,
+            'active' => $active,
             'contract' => true,
             'linear' => true,
             'inverse' => false,
@@ -626,6 +632,7 @@ class modetrade extends Exchange {
         //       "rows": [
         //         {
         //           "symbol": "PERP_BTC_USDC",
+        //           "status": "ACTIVE",
         //           "quote_min": 123,
         //           "quote_max": 100000,
         //           "quote_tick": 0.1,
@@ -3057,7 +3064,7 @@ class modetrade extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array()): array {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
@@ -3118,7 +3125,7 @@ class modetrade extends Exchange {
                     $auth .= '?' . $this->rawencode($paramsSigned);
                 }
                 $signedHeaders['content-type'] = 'application/x-www-form-urlencoded';
-                $signedBody = ($method === 'DELETE') ? '' : $body;
+                $signedBody = ($method === 'DELETE') ? '' : null;
             }
             $secret = $this->secret;
             if (mb_strpos($secret, 'ed25519:') !== false) {
@@ -3129,7 +3136,7 @@ class modetrade extends Exchange {
             $signedHeaders['orderly-signature'] = $this->urlencode_base64(base64_decode($signature));
             return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $signedHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

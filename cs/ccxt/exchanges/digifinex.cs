@@ -584,16 +584,13 @@ public partial class digifinex : Exchange
                     { "AVALANCEC", "AVAX-CCHAIN" },
                     { "AVALANCEX", "AVAX-XCHAIN" },
                     { "BEP20", "BEP20" },
-                    { "BSC", "BEP20" },
                     { "CARDANO", "Cardano" },
                     { "CELO", "Celo" },
                     { "CHILIZ", "Chiliz" },
                     { "COSMOS", "COSMOS" },
                     { "CRC20", "Crypto.com" },
-                    { "CRONOS", "Crypto.com" },
                     { "DOGECOIN", "DogeChain" },
                     { "ERC20", "ERC20" },
-                    { "ETH", "ERC20" },
                     { "ETHW", "ETHW" },
                     { "IOTA", "MIOTA" },
                     { "KLAYTN", "KLAY" },
@@ -610,7 +607,6 @@ public partial class digifinex : Exchange
                     { "TERRA", "Terra" },
                     { "TON", "Ton" },
                     { "TRC20", "TRC20" },
-                    { "TRX", "TRC20" },
                     { "VECHAIN", "Vechain" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
@@ -621,7 +617,7 @@ public partial class digifinex : Exchange
                     { "ERC20", "ERC20" },
                     { "ETH", "ERC20" },
                     { "Polygon", "POLYGON" },
-                    { "Crypto.com", "CRONOS" },
+                    { "Crypto.com", "CRC20" },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -3689,7 +3685,7 @@ public partial class digifinex : Exchange
                 { "cost", feeCost },
             };
         }
-        string? network = this.safeString(transaction, "chain");
+        string? network = this.networkIdToCode(this.safeString(transaction, "chain"), code);
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
@@ -4643,7 +4639,7 @@ public partial class digifinex : Exchange
             marginMode = (marginMode == "crossed") ? "cross" : "isolated";
         } else
         {
-            marginMode = "crossed";
+            marginMode = "cross";
         }
         Int64? timestamp = this.safeInteger(position, "timestamp");
         string? side = this.safeString(position, "side");
@@ -4654,6 +4650,25 @@ public partial class digifinex : Exchange
         {
             side = "short";
         }
+        string? positionMargin = this.safeString(position, "margin");
+        string? unrealizedPnl = this.safeString(position, "unrealized_pnl");
+        string? collateralString = null;
+        string? marginString = null;
+        if (marginMode == "isolated")
+        {
+            string? isolatedMargin = this.safeString(position, "posi_balance");
+            if ((isolatedMargin != null))
+            {
+                marginString = isolatedMargin;
+                collateralString = ((unrealizedPnl != null)) ? Precise.stringAdd(isolatedMargin, unrealizedPnl) : isolatedMargin;
+            }
+        }
+        string? maintenanceMarginString = this.safeString(position, "maintain_margin");
+        string? forceCloseFee = ((string)this.omitZero(this.safeString(position, "force_close_fee")));
+        if (((maintenanceMarginString != null)) && ((forceCloseFee != null)))
+        {
+            maintenanceMarginString = Precise.stringAdd(maintenanceMarginString, forceCloseFee);
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -4662,18 +4677,19 @@ public partial class digifinex : Exchange
             { "marginMode", marginMode },
             { "liquidationPrice", this.safeNumber(position, "liquidation_price") },
             { "entryPrice", this.safeNumber2(position, "avg_cost", "entry_price") },
-            { "unrealizedPnl", this.safeNumber(position, "unrealized_pnl") },
-            { "contracts", this.safeNumber(position, "avail_position") },
+            { "unrealizedPnl", this.parseNumber(unrealizedPnl) },
+            { "contracts", this.safeNumber2(position, "position", "avail_position") },
             { "contractSize", this.safeNumber(marketResolved, "contractSize") },
-            { "markPrice", this.safeNumber(position, "last") },
+            { "markPrice", this.safeNumber2(position, "mark_price", "last") },
             { "side", side },
             { "hedged", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "maintenanceMargin", this.safeNumber(position, "margin") },
+            { "maintenanceMargin", this.parseNumber(maintenanceMarginString) },
             { "maintenanceMarginPercentage", this.safeNumber(position, "maint_margin_ratio") },
-            { "collateral", null },
-            { "initialMargin", null },
+            { "positionMargin", this.parseNumber(marginString) },
+            { "collateral", this.parseNumber(collateralString) },
+            { "initialMargin", this.parseNumber(positionMargin) },
             { "initialMarginPercentage", null },
             { "leverage", this.safeNumber2(position, "leverage", "leverage_ratio") },
             { "marginRatio", this.safeNumber(position, "margin_ratio") },
@@ -5336,7 +5352,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToDict(await this.privateSwapPostAccountPositionMode(this.extend(request, parameters)));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -5397,7 +5413,7 @@ public partial class digifinex : Exchange
                 }
             }
             bool hasPostBody = ((method == "POST")) && ((urlencoded != null)) && (urlencoded != "");
-            object requestBody = body;
+            string? requestBody = null;
             if (hasPostBody)
             {
                 requestBody = urlencoded;
@@ -5423,8 +5439,8 @@ public partial class digifinex : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

@@ -414,7 +414,7 @@ public class Independentreserve extends IndependentreserveApi
                 }} );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "Bitcoin" );
-                    put( "ETH", "Ethereum" );
+                    put( "ERC20", "Ethereum" );
                     put( "BCH", "BitcoinCash" );
                     put( "LTC", "Litecoin" );
                     put( "XRP", "XrpLedger" );
@@ -426,7 +426,7 @@ public class Independentreserve extends IndependentreserveApi
                     put( "DOT", "Polkadot" );
                     put( "ADA", "Cardano" );
                     put( "SOL", "Solana" );
-                    put( "TRX", "Tron" );
+                    put( "TRC20", "Tron" );
                 }} );
             }} );
         }});
@@ -525,7 +525,10 @@ public class Independentreserve extends IndependentreserveApi
                             }} );
                         }},
                         "created", null,
-                        "info", id
+                        "info", Helpers.newMap(
+                            "primaryCurrencyCode", baseId,
+                            "secondaryCurrencyCode", quoteId
+                        )
                     ));
                 }
             }
@@ -1418,7 +1421,7 @@ public class Independentreserve extends IndependentreserveApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -1470,11 +1473,12 @@ public class Independentreserve extends IndependentreserveApi
                 return h2kMap0;
             }
         }
+        Map<String, Object> headers = new HashMap<String, Object>() {{}};
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap1.put("body", body);
+            h2kMap1.put("body", null);
             h2kMap1.put("headers", headers);
             return h2kMap1;
         }

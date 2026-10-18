@@ -2608,6 +2608,12 @@ public class Bydfi extends BydfiApi
             contracts = Precise.stringDiv(contracts, contractSize);
         }
         Long timestamp = this.safeInteger(position, "createTime");
+        // raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+        String positionMargin = this.safeString(position, "positionMargin");
+        if ((!java.util.Objects.equals(positionMargin, null)) && !Precise.stringGt(positionMargin, "0"))
+        {
+            positionMargin = null;
+        }
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("info", position);
         mapLiteral4.put("id", this.safeString(position, "id"));
@@ -2616,6 +2622,7 @@ public class Bydfi extends BydfiApi
         mapLiteral4.put("markPrice", this.parseNumber(this.safeString(position, "markPrice")));
         mapLiteral4.put("lastPrice", this.parseNumber(this.safeString(position, "avgClosePositionPrice")));
         mapLiteral4.put("notional", this.parseNumber(this.safeString(position, "closePositionCost")));
+        mapLiteral4.put("positionMargin", this.parseNumber(positionMargin));
         mapLiteral4.put("collateral", null);
         mapLiteral4.put("unrealizedPnl", this.parseNumber(this.safeString(position, "unPnl")));
         mapLiteral4.put("realizedPnl", this.parseNumber(this.safeString(position, "positionProfits")));
@@ -3537,7 +3544,7 @@ public class Bydfi extends BydfiApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -3586,8 +3593,8 @@ public class Bydfi extends BydfiApi
             }
         }
         url = (url + endpoint);
-        String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResolved = requestBody;
+        Map<String, Object> headersResolved = requestHeaders;
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);

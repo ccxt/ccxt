@@ -1188,7 +1188,7 @@ public partial class btcturk : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -1212,10 +1212,10 @@ public partial class btcturk : Exchange
                 url = url + ("?" + this.urlencode(parameters));
             }
         }
-        object requestBody = null;
+        string? requestBody = null;
         if (isQueryMethod)
         {
-            requestBody = body;
+            requestBody = null;
         } else
         {
             requestBody = this.json(parameters);
@@ -1234,7 +1234,7 @@ public partial class btcturk : Exchange
                 { "Content-Type", "application/json" },
             };
         }
-        object requestHeaders = ((privateHeaders != null)) ? privateHeaders : headers;
+        Dictionary<string, object> requestHeaders = privateHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

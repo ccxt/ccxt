@@ -4040,7 +4040,7 @@ class myriad extends Exchange {
         throw new ExchangeError($feedback);
     }
 
-    public function sign(string $path, array $api = array('myriad'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('myriad'), $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request $url and attaches the apiKey header for private endpoints
@@ -4048,9 +4048,7 @@ class myriad extends Exchange {
          * @param {string|string[]} $api the $api group and access level
          * @param {string} $method the http $method
          * @param {array} $params the request parameters
-         * @param {array} [$headers] request $headers
-         * @param {string} [$body] the request $body
-         * @return {array} a dict with $url, $method, $body and $headers
+         * @return {array} a dict with $url, $method, body and headers
          */
         $apiGroup = $api[0];
         $baseUrls = $this->urls['api'];
@@ -4063,14 +4061,14 @@ class myriad extends Exchange {
                 $url .= '?' . $querystring;
             }
         }
-        $existingHeaders = ($headers !== null) ? $headers : array();
+        $existingHeaders = array();
         $headersValue = $this->extend(array(
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ), $existingHeaders);
         // non-GET requests carry the params as a JSON body (public POSTs like markets/quote
         // included — the previous logic only sent a body for authenticated requests)
-        $bodyValue = $body;
+        $bodyValue = null;
         if ($method !== 'GET') {
             $queryKeys = is_array($query) ? array_keys($query) : array();
             $queryKeysLength = count($queryKeys);

@@ -2537,7 +2537,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String url = ("/" + this.implodeParams(path, parameters));
@@ -2580,8 +2580,8 @@ public class Gemini extends GeminiApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String fullUrl = (apiUrl + url);
-        Object headersResolved = (((java.util.Objects.equals(apiName, "private")))) ? headersSigned : headers;
-        String bodyResolved = body;
+        Map<String, Object> headersResolved = (((java.util.Objects.equals(apiName, "private")))) ? headersSigned : null;
+        String bodyResolved = null;
         if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
         {
             bodyResolved = this.json(query);

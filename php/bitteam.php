@@ -227,10 +227,10 @@ class bitteam extends Exchange {
                     'ethereum' => 'ERC20',
                     'Tron' => 'TRC20',
                     'tron' => 'TRC20',
-                    'Binance' => 'BSC',
-                    'binance' => 'BSC',
-                    'Binance Smart Chain' => 'BSC',
-                    'bscscan' => 'BSC',
+                    'Binance' => 'BEP20',
+                    'binance' => 'BEP20',
+                    'Binance Smart Chain' => 'BEP20',
+                    'bscscan' => 'BEP20',
                     'Bitcoin' => 'BTC',
                     'bitcoin' => 'BTC',
                     'Litecoin' => 'LTC',
@@ -2426,7 +2426,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
@@ -2455,8 +2455,8 @@ class bitteam extends Exchange {
         } elseif (strlen($query) !== 0) {
             $url .= '?' . $query;
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

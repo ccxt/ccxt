@@ -1704,7 +1704,7 @@ public partial class lighter : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = Math.Min(limit.Value, 100);
+            request["limit"] = Math.Min(limit.Value, 250);
         }
         Dictionary<string, object> response = await this.publicGetOrderBookOrders(this.extend(request, parameters));
         //
@@ -2388,6 +2388,15 @@ public partial class lighter : Exchange
                 leverage = ((double)100 / imf);
             }
         }
+        string? contractsString = this.safeString(position, "position");
+        string? positionValueString = this.safeString(position, "position_value");
+        string? markPriceString = Precise.stringDiv(positionValueString, contractsString);
+        // allocated_margin is the isolated collateral balance (0 for cross)
+        double? positionMargin = null;
+        if (marginMode == "isolated")
+        {
+            positionMargin = this.safeNumber(position, "allocated_margin");
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -2397,13 +2406,14 @@ public partial class lighter : Exchange
             { "isolated", (marginMode == "isolated") },
             { "hedged", null },
             { "side", side },
-            { "contracts", this.safeNumber(position, "position") },
+            { "contracts", this.parseNumber(contractsString) },
             { "contractSize", null },
             { "entryPrice", this.safeNumber(position, "avg_entry_price") },
-            { "markPrice", null },
-            { "notional", this.safeNumber(position, "position_value") },
+            { "markPrice", this.parseNumber(markPriceString) },
+            { "notional", this.parseNumber(positionValueString) },
             { "leverage", leverage },
-            { "collateral", this.safeNumber(position, "allocated_margin") },
+            { "positionMargin", positionMargin },
+            { "collateral", null },
             { "initialMargin", null },
             { "maintenanceMargin", null },
             { "initialMarginPercentage", null },
@@ -3939,7 +3949,7 @@ public partial class lighter : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -3991,15 +4001,15 @@ public partial class lighter : Exchange
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
-                { "body", body },
+                { "body", null },
                 { "headers", authHeaders },
             };
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

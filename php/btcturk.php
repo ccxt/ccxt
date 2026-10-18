@@ -1084,7 +1084,7 @@ class btcturk extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         if ($this->id === 'btctrader') {
             throw new ExchangeError($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
@@ -1102,7 +1102,7 @@ class btcturk extends Exchange {
         }
         $requestBody = null;
         if ($isQueryMethod) {
-            $requestBody = $body;
+            $requestBody = null;
         } else {
             $requestBody = $this->json($params);
         }
@@ -1119,7 +1119,7 @@ class btcturk extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        $requestHeaders = ($privateHeaders !== null) ? $privateHeaders : $headers;
+        $requestHeaders = $privateHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 

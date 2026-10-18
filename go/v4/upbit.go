@@ -3256,10 +3256,6 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
@@ -3276,9 +3272,9 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 		}
 	}
 	var hasBody bool = (apiName != nil && *apiName == "private") && (method != "GET") && (method != "DELETE")
-	var requestBody any = body
+	var requestBody *string = nil
 	if hasBody {
-		requestBody = this.Json(params)
+		requestBody = SafeStringPtr(this.Json(params))
 	}
 	var privateHeaders any = nil
 	if apiName != nil && *apiName == "private" {
@@ -3309,7 +3305,7 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 		if apiName != nil && *apiName == "private" {
 			return privateHeaders
 		}
-		return headers
+		return nil
 	}()
 	return map[string]any{
 		"url":     url,

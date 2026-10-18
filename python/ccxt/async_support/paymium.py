@@ -603,7 +603,7 @@ class paymium(Exchange, ImplicitAPI):
         # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         baseApiUrl = self.safe_string(self.urls['api'], 'rest')
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
@@ -623,7 +623,7 @@ class paymium(Exchange, ImplicitAPI):
                 'Api-Nonce': nonce,
             }
             hasQuery = len(query) > 0
-            signedBody = body
+            signedBody = None
             if method == 'POST' and hasQuery:
                 signedBody = self.json(query)
             if method == 'POST':
@@ -637,7 +637,7 @@ class paymium(Exchange, ImplicitAPI):
                     url += '?' + queryString
             signedHeaders['Api-Signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

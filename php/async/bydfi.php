@@ -2278,6 +2278,11 @@ class bydfi extends Exchange {
             $contracts = Precise::string_div($contracts, $contractSize);
         }
         $timestamp = $this->safe_integer($position, 'createTime');
+        // raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+        $positionMargin = $this->safe_string($position, 'positionMargin');
+        if (($positionMargin !== null) && !Precise::string_gt($positionMargin, '0')) {
+            $positionMargin = null;
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
@@ -2286,6 +2291,7 @@ class bydfi extends Exchange {
             'markPrice' => $this->parse_number($this->safe_string($position, 'markPrice')),
             'lastPrice' => $this->parse_number($this->safe_string($position, 'avgClosePositionPrice')),
             'notional' => $this->parse_number($this->safe_string($position, 'closePositionCost')),
+            'positionMargin' => $this->parse_number($positionMargin),
             'collateral' => null,
             'unrealizedPnl' => $this->parse_number($this->safe_string($position, 'unPnl')),
             'realizedPnl' => $this->parse_number($this->safe_string($position, 'positionProfits')),
@@ -3101,7 +3107,7 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
@@ -3143,8 +3149,8 @@ class bydfi extends Exchange {
             }
         }
         $url .= $endpoint;
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

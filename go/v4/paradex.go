@@ -5012,10 +5012,6 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var version any = this.Version
 	var pathValue string = path
@@ -5040,7 +5036,7 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) any {
 			"Accept":          "application/json",
 			"PARADEX-PARTNER": this.SafeString(this.Options, "broker", "CCXT"),
 		}
-		var privateBody any = nil
+		var privateBody *string = nil
 		// TODO: optimize
 		if pathValue == "auth" {
 			privateHeaders["PARADEX-STARKNET-ACCOUNT"] = GetValue(query, "account")
@@ -5053,9 +5049,9 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) any {
 			privateHeaders["PARADEX-STARKNET-SIGNATURE"] = GetValue(query, "signature")
 			privateHeaders["PARADEX-TIMESTAMP"] = ToString(this.Nonce())
 			privateHeaders["Content-Type"] = "application/json"
-			privateBody = this.Json(map[string]any{
+			privateBody = SafeStringPtr(this.Json(map[string]any{
 				"public_key": GetValue(query, "public_key"),
-			})
+			}))
 		} else {
 			var token *string = this.SafeString(this.Options, "authToken")
 			if token == nil {
@@ -5064,7 +5060,7 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) any {
 			privateHeaders["Authorization"] = "Bearer " + *token
 			if (method == "POST") || (method == "PUT") || ((method == "DELETE") && (pathValue == "orders/batch")) {
 				privateHeaders["Content-Type"] = "application/json"
-				privateBody = this.Json(query)
+				privateBody = SafeStringPtr(this.Json(query))
 			} else {
 				url = url + "?" + this.Urlencode(query)
 			}
@@ -5081,12 +5077,7 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) any {
 		//         url += '?' + this.urlencode (query);
 		//     }
 		// }
-		var bodyResolved any = func() any {
-			if privateBody != nil {
-				return privateBody
-			}
-			return body
-		}()
+		var bodyResolved *string = privateBody
 		return map[string]any{
 			"url":     url,
 			"method":  method,
@@ -5097,8 +5088,8 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Paradex) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

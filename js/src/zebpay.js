@@ -1786,12 +1786,20 @@ export default class zebpay extends Exchange {
         const datetime = this.safeString(position, 'datetime');
         const marketId = this.safeString(position, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        return {
+        const marginMode = this.safeStringLower(position, 'marginMode', 'isolated');
+        const initialMargin = this.safeNumber(position, 'initialMargin');
+        // isolated positions hold exactly the initial margin posted for them
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = initialMargin;
+        }
+        return this.safePosition({
             'info': position,
-            'symbol': marketId,
+            'id': this.safeString(position, 'id'),
+            'symbol': marketResolved['symbol'],
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
-            'initialMargin': this.safeNumber(position, 'initialMargin'),
+            'initialMargin': initialMargin,
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
@@ -1804,11 +1812,12 @@ export default class zebpay extends Exchange {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'liquidationPrice'),
             'markPrice': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
-            'marginMode': 'isolated',
-            'side': this.safeString(position, 'side'),
+            'marginMode': marginMode,
+            'side': this.safeStringLower(position, 'side'),
             'percentage': undefined,
-        };
+        });
     }
     parseLeverage(leverage, market = undefined) {
         const marketId = this.safeString(leverage, 'symbol');
@@ -1910,7 +1919,7 @@ export default class zebpay extends Exchange {
             'datetime': undefined,
         };
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let bodySigned = undefined;
         let headersSigned = undefined;
         const paramsOmitted = this.omit(params, 'defaultType');
@@ -1972,8 +1981,8 @@ export default class zebpay extends Exchange {
             };
             headersSigned['Content-Type'] = 'application/json';
         }
-        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

@@ -225,7 +225,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         data = self.safe_list(message, 1, [])
         ohlcvs = []
         first = self.safe_list(data, 0)
-        if isinstance(first, list):
+        if first is not None:
             # snapshot
             ohlcvs = data
         else:
@@ -342,7 +342,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #
         name = 'myTrade'
         data = self.safe_list(message, 2)
-        trade = self.parse_ws_trade(data)
+        trade = self.parse_ws_trade({'result': data})
         symbol = trade['symbol']
         market = self.market(symbol)
         messageHash = name + ':' + market['id']
@@ -405,7 +405,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             length = len(trades)
             for i in range(0, length):
                 index = length - i - 1
-                parsed = self.parse_ws_trade(trades[index], market)
+                parsed = self.parse_ws_trade({'result': trades[index]}, market)
                 stored.append(parsed)
         else:
             # update
@@ -415,13 +415,13 @@ class bitfinex(ccxt.async_support.bitfinex):
                 # since te and tu updates are duplicated on the public stream
                 return
             trade = self.safe_list(message, 2, [])
-            parsed = self.parse_ws_trade(trade, market)
+            parsed = self.parse_ws_trade({'result': trade}, market)
             stored.append(parsed)
         if channel is not None:
             messageHash = channel + ':' + marketId
             client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade: object, market: Market = None) -> Trade:
+    def parse_ws_trade(self, tradeResult: dict, market: Market = None) -> Trade:
         #
         #    [
         #        1128060969, // id
@@ -464,6 +464,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #       1655110144596
         #    ]
         #
+        trade = self.safe_list(tradeResult, 'result', [])
         numFields = len(trade)
         isPublic = numFields <= 8
         marketId = None

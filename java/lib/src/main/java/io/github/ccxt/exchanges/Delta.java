@@ -2107,10 +2107,10 @@ public class Delta extends DeltaApi
         {
             if (Precise.stringGt(sizeString, "0"))
             {
-                side = "buy";
+                side = "long";
             } else if (Precise.stringLt(sizeString, "0"))
             {
-                side = "sell";
+                side = "short";
             }
         }
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
@@ -2118,7 +2118,7 @@ public class Delta extends DeltaApi
         mapLiteral4.put("id", null);
         mapLiteral4.put("symbol", symbol);
         mapLiteral4.put("notional", null);
-        mapLiteral4.put("marginMode", null);
+        mapLiteral4.put("marginMode", this.safeString(position, "margin_mode"));
         mapLiteral4.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
         mapLiteral4.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
         mapLiteral4.put("unrealizedPnl", null);
@@ -2132,6 +2132,7 @@ public class Delta extends DeltaApi
         mapLiteral4.put("datetime", this.iso8601(timestamp));
         mapLiteral4.put("maintenanceMargin", null);
         mapLiteral4.put("maintenanceMarginPercentage", null);
+        mapLiteral4.put("positionMargin", this.safeNumber(position, "margin", (Object) null));
         mapLiteral4.put("collateral", null);
         mapLiteral4.put("initialMargin", null);
         mapLiteral4.put("initialMarginPercentage", null);
@@ -4597,7 +4598,7 @@ public class Delta extends DeltaApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
@@ -4642,8 +4643,8 @@ public class Delta extends DeltaApi
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             requestHeaders.put("signature", signature);
         }
-        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResult = requestBody;
+        Map<String, Object> headersResult = requestHeaders;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);

@@ -1929,7 +1929,7 @@ class gemini(Exchange, ImplicitAPI):
         # single network, so the last address the venue lists for it wins — same as before)
         return self.index_by(results, 'network')
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -1962,8 +1962,8 @@ class gemini(Exchange, ImplicitAPI):
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         fullUrl = apiUrl + url
-        headersResolved = headersSigned if (apiName == 'private') else headers
-        bodyResolved = body
+        headersResolved = headersSigned if (apiName == 'private') else None
+        bodyResolved = None
         if (method == 'POST') or (method == 'DELETE'):
             bodyResolved = self.json(query)
         return {'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersResolved}

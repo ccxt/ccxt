@@ -4248,8 +4248,6 @@ func (this *Limitless) Nonce() any {
  * @param {string[]} [api] the api group and access level
  * @param {string} [method] HTTP method
  * @param {object} [params] request parameters
- * @param {object} [headers] request headers
- * @param {object} [body] request body
  * @returns {object} a dictionary with url, method, body and headers
  */
 func (this *Limitless) Sign(path string, optionalArgs ...any) any {
@@ -4259,10 +4257,6 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := ccxt.GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := ccxt.GetArg(optionalArgs, 4, nil)
-	_ = body
 	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
 	var apiLength int = ccxt.GetArrayLength(api)
 	var access any = func() any {
@@ -4279,8 +4273,8 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) any {
 	if (method == "GET") && (querystring != "") {
 		url += "?" + querystring
 	}
-	var headersValue any = headers
-	var bodyValue any = body
+	var headersValue any = nil
+	var bodyValue *string = nil
 	if ccxt.IsEqual(access, "private") {
 		var bodyString string = ""
 		if ccxt.IsEqual(headersValue, nil) {
@@ -4288,7 +4282,7 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) any {
 		}
 		if (method == "POST") && (querystring != "") {
 			bodyString = this.Json(query)
-			bodyValue = bodyString
+			bodyValue = ccxt.SafeStringPtr(bodyString)
 			var headerDefaults any = func() any {
 				if !ccxt.IsEqual(headersValue, nil) {
 					return headersValue

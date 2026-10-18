@@ -529,7 +529,7 @@
                 "input": [
                     "ETH",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -540,7 +540,7 @@
                         "ETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
                     },
                     "currency": "ETH",
-                    "network": "ETH",
+                    "network": "ERC20",
                     "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
                     "tag": null
                 }
@@ -595,7 +595,7 @@
                 "input": [
                     "USDT",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -641,7 +641,7 @@
                 "input": [
                     "ETH",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -652,7 +652,7 @@
                         "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
                     },
                     "currency": "ETH",
-                    "network": "ETH",
+                    "network": "ERC20",
                     "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
                     "tag": null
                 }
@@ -685,7 +685,7 @@
                 "input": [
                     "USDT",
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
@@ -1117,10 +1117,11 @@
                         "datetime": "2025-03-02T21:19:04.402Z",
                         "lastUpdateTimestamp": null,
                         "maintenanceMargin": 1.5882408,
-                        "maintenanceMarginPercentage": null,
-                        "collateral": "264559.759999999999999998",
+                        "maintenanceMarginPercentage": 0.006,
+                        "positionMargin": null,
+                        "collateral": null,
                         "initialMargin": "3.529424",
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.013333333333333332,
                         "leverage": 75,
                         "marginRatio": 0.22,
                         "stopLossPrice": null,

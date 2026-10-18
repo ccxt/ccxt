@@ -429,7 +429,7 @@ class backpack extends Exchange {
                     'BERA' => 'Berachain',
                     'BTC' => 'Bitcoin',
                     'BCH' => 'BitcoinCash',
-                    'BSC' => 'Bsc',
+                    'BEP20' => 'Bsc',
                     'ADA' => 'Cardano',
                     'DOGE' => 'Dogecoin',
                     'ECLIPSE' => 'Eclipse',
@@ -454,7 +454,7 @@ class backpack extends Exchange {
                     'berachain' => 'BERA',
                     'bitcoin' => 'BTC',
                     'bitcoincash' => 'BCH',
-                    'bsc' => 'BSC',
+                    'bsc' => 'BEP20',
                     'cardano' => 'ADA',
                     'dogecoin' => 'DOGE',
                     'eclipse' => 'ECLIPSE',
@@ -2481,7 +2481,7 @@ class backpack extends Exchange {
         return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $endpoint = '/' . $path;
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
@@ -2531,8 +2531,8 @@ class backpack extends Exchange {
             }
         }
         $url .= $endpoint;
-        $headersResolved = ($apiName === 'private') ? $headersSigned : $headers;
-        $bodyResolved = $body;
+        $headersResolved = ($apiName === 'private') ? $headersSigned : null;
+        $bodyResolved = null;
         if (($apiName === 'private') && ($method !== 'GET')) {
             $bodyResolved = $bodySigned;
         }

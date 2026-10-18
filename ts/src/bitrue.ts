@@ -2875,7 +2875,7 @@ export default class bitrue extends Exchange {
             currencyId = this.safeString (parts, 0);
             const networkId = this.safeString (parts, 1);
             if (networkId !== undefined) {
-                network = networkId.toUpperCase ();
+                network = this.networkIdToCode (networkId.toUpperCase ());
             }
         }
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -3259,7 +3259,7 @@ export default class bitrue extends Exchange {
         return this.parseMarginModification (response, market);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
         const type = this.safeString (api, 0);
@@ -3337,8 +3337,8 @@ export default class bitrue extends Exchange {
                 url += '?' + this.urlencode (paramsOmitted);
             }
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 

@@ -1139,9 +1139,7 @@ class kucoin extends Exchange {
                     'BTC' => 'btc',
                     'BRC20' => 'btc',
                     'BTCNATIVESEGWIT' => 'bech32',
-                    'ETH' => 'eth',
                     'ERC20' => 'eth',
-                    'TRX' => 'trx',
                     'TRC20' => 'trx',
                     'HECO' => 'heco',
                     'HRC20' => 'heco',
@@ -3800,7 +3798,7 @@ class kucoin extends Exchange {
         return array(
             'info' => $response,
             'currency' => $currencyId,
-            'network' => $this->safe_string($data, 'chain'),
+            'network' => $this->network_id_to_code($this->safe_string($data, 'chain'), $code),
             'address' => $address,
             'tag' => $this->safe_string($data, 'memo'),
         );
@@ -11234,6 +11232,25 @@ class kucoin extends Exchange {
         if ($crossMode !== null) {
             $marginMode = ($crossMode === true) ? 'cross' : 'isolated';
         }
+        $collateralString = $this->safe_string($position, 'maintMargin');
+        $marginString = null;
+        if (($collateralString === null) && ($marginMode === 'isolated')) {
+            $posMargin = $this->safe_string($position, 'posMargin');
+            if ($posMargin === null) {
+                $posComm = $this->safe_string($position, 'posComm');
+                $posCross = $this->safe_string($position, 'posCross');
+                if (($initialMargin !== null) && ($posComm !== null)) {
+                    $posMargin = Precise::string_add($initialMargin, $posComm);
+                    if ($posCross !== null) {
+                        $posMargin = Precise::string_add($posMargin, $posCross);
+                    }
+                }
+            }
+            if ($posMargin !== null) {
+                $marginString = $posMargin;
+                $collateralString = ($unrealisedPnl !== null) ? Precise::string_add($posMargin, $unrealisedPnl) : $posMargin;
+            }
+        }
         $lastUpdateTimestamp = $this->safe_integer($position, 'closeTime');
         if ($lastUpdateTimestamp === null) {
             if (is_array($position) && array_key_exists('closingTime' ?? '', $position)) {
@@ -11264,7 +11281,8 @@ class kucoin extends Exchange {
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'lastPrice' => $this->safe_number($position, 'closePrice'),
-            'collateral' => $this->safe_number($position, 'maintMargin'),
+            'positionMargin' => $this->parse_number($marginString),
+            'collateral' => $this->parse_number($collateralString),
             'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => null,
@@ -12104,7 +12122,7 @@ class kucoin extends Exchange {
         return $uta;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
@@ -12137,10 +12155,7 @@ class kucoin extends Exchange {
         $query = $this->omit($paramsOmitted, $this->extract_params($path));
         $endpart = '';
         $headersBase = array();
-        if ($headers !== null) {
-            $headersBase = $headers;
-        }
-        $bodyJson = $body;
+        $bodyJson = null;
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');

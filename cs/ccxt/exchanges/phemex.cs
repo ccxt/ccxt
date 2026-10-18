@@ -837,8 +837,8 @@ public partial class phemex : Exchange
                     { "BEP20", "BNB" },
                 } },
                 { "defaultNetworks", new Dictionary<string, object>() {
-                    { "USDT", "ETH" },
-                    { "MKR", "ETH" },
+                    { "USDT", "ERC20" },
+                    { "MKR", "ERC20" },
                 } },
                 { "defaultSubType", "linear" },
                 { "accountsByType", new Dictionary<string, object>() {
@@ -4094,7 +4094,10 @@ public partial class phemex : Exchange
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         string? network = this.safeStringUpper2(parameters, "network", "chainName", defaultNetwork);
         object paramsOmitted = this.omit(parameters, "network");
-        network = this.safeString(networks, network, network);
+        if ((network != null))
+        {
+            network = this.safeString(networks, this.safeString(this.networkAliases, network, network), network);
+        }
         if ((network == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddress() requires a network parameter")) ;
@@ -5311,7 +5314,7 @@ public partial class phemex : Exchange
         return tiers;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -5368,12 +5371,12 @@ public partial class phemex : Exchange
         }
         url = (this.implodeHostname(baseApiUrl) + url);
         bool isPrivatePost = ((apiName is "private")) && ((method == "POST"));
-        object bodyResolved = body;
+        string? bodyResolved = null;
         if (isPrivatePost)
         {
             bodyResolved = requestBody;
         }
-        object requestHeaders = ((apiName is "private")) ? privateHeaders : headers;
+        Dictionary<string, object> requestHeaders = ((apiName is "private")) ? privateHeaders : null;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

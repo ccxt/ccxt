@@ -4457,6 +4457,13 @@ public partial class hyperliquid : Exchange
             initialMargin = marginUsed;
         }
         string? percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, marginUsed), "100");
+        string? positionValueString = this.safeString(entry, "positionValue");
+        string? markPriceString = Precise.stringDiv(positionValueString, size);
+        string? marginString = null;
+        if (isIsolated)
+        {
+            marginString = initialMargin;
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -4469,9 +4476,10 @@ public partial class hyperliquid : Exchange
             { "contracts", this.parseNumber(size) },
             { "contractSize", null },
             { "entryPrice", this.safeNumber(entry, "entryPx") },
-            { "markPrice", null },
-            { "notional", this.safeNumber(entry, "positionValue") },
+            { "markPrice", this.parseNumber(markPriceString) },
+            { "notional", this.parseNumber(positionValueString) },
             { "leverage", this.safeNumber(leverage, "value") },
+            { "positionMargin", this.parseNumber(marginString) },
             { "collateral", this.parseNumber(marginUsed) },
             { "initialMargin", this.parseNumber(initialMargin) },
             { "maintenanceMargin", null },
@@ -4480,6 +4488,7 @@ public partial class hyperliquid : Exchange
             { "unrealizedPnl", this.parseNumber(rawUnrealizedPnl) },
             { "liquidationPrice", this.safeNumber(entry, "liquidationPx") },
             { "marginMode", marginMode },
+            { "marginRatio", null },
             { "percentage", this.parseNumber(percentage) },
         });
     }
@@ -5787,7 +5796,7 @@ public partial class hyperliquid : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -5803,12 +5812,12 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> postHeaders = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },
         };
-        object requestHeaders = headers;
+        Dictionary<string, object> requestHeaders = null;
         if (isPost)
         {
             requestHeaders = postHeaders;
         }
-        object requestBody = body;
+        string? requestBody = null;
         if (isPost)
         {
             requestBody = this.json(parameters);

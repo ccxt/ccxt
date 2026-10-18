@@ -161,6 +161,9 @@ impl crate::exchange::DerivedExchange for BitfinexCore {
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
@@ -553,7 +556,7 @@ impl BitfinexCore {
         let mut data: Value = self.safe_list(message, Value::Int(1), &[Value::from(vec![])]);
         let mut ohlcvs: Value = Value::from(vec![]);
         let mut first: Value = self.safe_list(data.clone(), Value::Int(0), &[]);
-        if (matches!(&first, Value::Arr(_))) {
+        if (first != Value::Null) {
             // snapshot
             ohlcvs = data.clone();
         }  else {
@@ -739,7 +742,11 @@ impl BitfinexCore {
         //
         let mut name: Value = Value::Str("myTrade".into());
         let mut data: Value = self.safe_list(message, Value::Int(2), &[]);
-        let mut trade: Value = self.parse_ws_trade(data, &[]);
+        let mut trade: Value = self.parse_ws_trade(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("result".to_string(), data);
+    m
+}), &[]);
         let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.market(symbol);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
@@ -808,7 +815,11 @@ impl BitfinexCore {
                 let mut __for_first_102: bool = true;
                 while { if !__for_first_102 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_102 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
                 let mut index: Value = (match (&((match (&(length), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-                let mut parsed: Value = self.parse_ws_trade(get_value(&trades, &index), &[market.clone()]);
+                let mut parsed: Value = self.parse_ws_trade(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("result".to_string(), get_value(&trades, &index));
+    m
+}), &[market.clone()]);
                 stored.append(parsed.clone());
             }
             }
@@ -819,7 +830,11 @@ impl BitfinexCore {
                 return;
             }
             let mut trade: Value = self.safe_list(message, Value::Int(2), &[Value::from(vec![])]);
-            let mut parsed: Value = self.parse_ws_trade(trade, &[market]);
+            let mut parsed: Value = self.parse_ws_trade(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("result".to_string(), trade);
+    m
+}), &[market]);
             stored.append(parsed);
         }
         if (channel != Value::Null) {
@@ -828,8 +843,10 @@ impl BitfinexCore {
         }
 }
 
-    pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_trade(&self, mut tradeResult: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
+        let __tradeResult_empty = indexmap::IndexMap::new();
+        let tradeResult = tradeResult.as_map().unwrap_or(&__tradeResult_empty);
         //
         //    [
         //        1128060969, // id
@@ -872,8 +889,9 @@ impl BitfinexCore {
         //       1655110144596
         //    ]
         //
-        let mut numFields: Value = get_array_length(&trade);
-        let mut isPublic: bool = numFields.as_f64().unwrap_or(f64::NAN) <= ((8i64) as f64);
+        let mut trade: Value = (match tradeResult.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut numFields: f64 = ((trade.len() as i64) as f64);
+        let mut isPublic: bool = numFields <= ((8i64) as f64);
         let mut marketId: Value = Value::Null;
         if !isPublic {
             marketId = self.safe_string(trade.clone(), Value::Int(1), &[]);

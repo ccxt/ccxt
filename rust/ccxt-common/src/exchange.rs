@@ -139,6 +139,7 @@ pub trait DerivedExchange {
     fn parse_market_leverage_tiers(&self, _info: Value, _market: Value) -> Value { Value::Null }
     fn parse_deposit_withdraw_fee(&self, _fee: Value, _currency: Value) -> Value { Value::Null }
     fn create_expired_option_market(&self, _symbol: Value) -> Value { Value::Null }
+    fn market(&self, _symbol: Value) -> Value { Value::Null }
     // ── prediction-tier parsers (overridden by prediction venues) ────────
     fn parse_prediction_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
     fn parse_prediction_order(&self, _order: Value, _market: Value) -> Value { Value::Null }
@@ -333,6 +334,7 @@ pub struct Exchange {
     pub substituteCommonCurrencyCodes: Value,
     pub reduceFees:                Value,
     pub minFundingAddressLength:   Value,
+    pub networkAliases:            Value,
     pub MAX_VALUE:                 Value,
     pub returnResponseHeaders:     Value,
     pub httpExceptions:            Value,
@@ -613,6 +615,7 @@ impl Exchange {
             substituteCommonCurrencyCodes:     Value::Bool(true),
             reduceFees:                        Value::Bool(true),
             minFundingAddressLength:           Value::Int(1),
+                        networkAliases:                    Value::Dict(std::sync::Arc::new([("ETH".to_string(), Value::Str("ERC20".into())), ("TRX".to_string(), Value::Str("TRC20".into())), ("BSC".to_string(), Value::Str("BEP20".into())), ("BSC20".to_string(), Value::Str("BEP20".into())), ("CRONOS".to_string(), Value::Str("CRC20".into())), ("ARB".to_string(), Value::Str("ARBITRUM".into())), ("ARBONE".to_string(), Value::Str("ARBITRUM".into())), ("ARBNOVA".to_string(), Value::Str("ARBITRUM_NOVA".into()))].into_iter().collect())),
             MAX_VALUE:                         Value::Float(f64::MAX),
             returnResponseHeaders:             Value::Bool(false),
             httpExceptions:                    base_http_exceptions(),
@@ -1719,7 +1722,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         <Self as crate::exchange_generated::ExchangeBase>::handle_market_type_and_params(self, method_name, &[market, params, default_value])
     }
     fn super_market(&self, symbol: Value) -> Value {
-        <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol)
+        <Self as crate::exchange_generated::ExchangeBase>::market_non_virtual(self, symbol)
     }
     fn super_amount_to_precision(&self, symbol: Value, amount: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::amount_to_precision(self, symbol, amount)

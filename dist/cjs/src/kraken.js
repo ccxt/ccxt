@@ -272,10 +272,7 @@ class kraken extends kraken$1["default"] {
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
-                'networks': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
-                },
+                'networks': {},
                 'depositMethods': {
                     '1INCH': '1inch' + ' ' + '(1INCH)',
                     'AAVE': 'Aave',
@@ -3332,8 +3329,9 @@ class kraken extends kraken$1["default"] {
         }
         const currency = this.currency(code);
         let network = this.safeStringUpper(params, 'network');
-        const networks = this.safeDict(this.options, 'networks', {});
-        network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
+        }
         const paramsOmitted = this.omit(params, 'network');
         let codeResolved = code;
         if ((code === 'USDT') && (network === 'TRC20')) {
@@ -3659,7 +3657,7 @@ class kraken extends kraken$1["default"] {
             'status': 'sucess',
         };
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         let url = '/' + this.version + '/' + apiName + '/' + path;
         if (apiName === 'public') {
@@ -3718,7 +3716,7 @@ class kraken extends kraken$1["default"] {
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        return { 'url': apiUrl + url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': apiUrl + url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);

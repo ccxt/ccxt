@@ -11,828 +11,828 @@ abstract class deepcoin extends \ccxt\Exchange {
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_market_books($params = array()) {
-        return $this->request('deepcoin/market/books', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/books', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_market_candles($params = array()) {
-        return $this->request('deepcoin/market/candles', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/candles', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_market_instruments($params = array()) {
-        return $this->request('deepcoin/market/instruments', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/instruments', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_market_tickers($params = array()) {
-        return $this->request('deepcoin/market/tickers', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/tickers', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_market_index_candles($params = array()) {
-        return $this->request('deepcoin/market/index-candles', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/index-candles', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_market_trades($params = array()) {
-        return $this->request('deepcoin/market/trades', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/trades', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_market_mark_price_candles($params = array()) {
-        return $this->request('deepcoin/market/mark-price-candles', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/mark-price-candles', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_market_mark_price($params = array()) {
-        return $this->request('deepcoin/market/mark-price', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/mark-price', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_market_open_interest_volume($params = array()) {
-        return $this->request('deepcoin/market/open-interest-volume', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/open-interest-volume', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_market_long_short_ratio($params = array()) {
-        return $this->request('deepcoin/market/long-short-ratio', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/long-short-ratio', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_market_taker_volume($params = array()) {
-        return $this->request('deepcoin/market/taker-volume', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/taker-volume', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_market_step_margin($params = array()) {
-        return $this->request('deepcoin/market/step-margin', array('public'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/market/step-margin', array('public'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_trade_funding_rate($params = array()) {
-        return $this->request('deepcoin/trade/funding-rate', array('public'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/funding-rate', array('public'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_trade_fund_rate_current_funding_rate($params = array()) {
-        return $this->request('deepcoin/trade/fund-rate/current-funding-rate', array('public'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/fund-rate/current-funding-rate', array('public'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function public_get_deepcoin_trade_fund_rate_history($params = array()) {
-        return $this->request('deepcoin/trade/fund-rate/history', array('public'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/fund-rate/history', array('public'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_account_balances($params = array()) {
-        return $this->request('deepcoin/account/balances', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/balances', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_account_all_balances($params = array()) {
-        return $this->request('deepcoin/account/all-balances', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/all-balances', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_account_bills($params = array()) {
-        return $this->request('deepcoin/account/bills', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/bills', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_account_positions($params = array()) {
-        return $this->request('deepcoin/account/positions', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/positions', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_account_trade_fee($params = array()) {
-        return $this->request('deepcoin/account/trade-fee', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/trade-fee', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_account_leverage_info($params = array()) {
-        return $this->request('deepcoin/account/leverage-info', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/leverage-info', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_account_positions_history($params = array()) {
-        return $this->request('deepcoin/account/positions-history', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/positions-history', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_trade_fills($params = array()) {
-        return $this->request('deepcoin/trade/fills', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/fills', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_trade_orderbyid($params = array()) {
-        return $this->request('deepcoin/trade/orderByID', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/orderByID', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_trade_order($params = array()) {
-        return $this->request('deepcoin/trade/order', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/order', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_trade_finishorderbyid($params = array()) {
-        return $this->request('deepcoin/trade/finishOrderByID', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/finishOrderByID', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_trade_orders_history($params = array()) {
-        return $this->request('deepcoin/trade/orders-history', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/orders-history', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_trade_v2_orders_pending($params = array()) {
-        return $this->request('deepcoin/trade/v2/orders-pending', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/v2/orders-pending', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_trade_trigger_orders_pending($params = array()) {
-        return $this->request('deepcoin/trade/trigger-orders-pending', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/trigger-orders-pending', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_trade_trigger_orders_history($params = array()) {
-        return $this->request('deepcoin/trade/trigger-orders-history', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/trigger-orders-history', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_copytrading_support_contracts($params = array()) {
-        return $this->request('deepcoin/copytrading/support-contracts', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/copytrading/support-contracts', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_copytrading_leader_position($params = array()) {
-        return $this->request('deepcoin/copytrading/leader-position', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/copytrading/leader-position', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_copytrading_estimate_profit($params = array()) {
-        return $this->request('deepcoin/copytrading/estimate-profit', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/copytrading/estimate-profit', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_copytrading_history_profit($params = array()) {
-        return $this->request('deepcoin/copytrading/history-profit', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/copytrading/history-profit', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_copytrading_follower_rank($params = array()) {
-        return $this->request('deepcoin/copytrading/follower-rank', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/copytrading/follower-rank', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_internal_transfer_support($params = array()) {
-        return $this->request('deepcoin/internal-transfer/support', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/internal-transfer/support', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_internal_transfer_history_order($params = array()) {
-        return $this->request('deepcoin/internal-transfer/history-order', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/internal-transfer/history-order', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_rebate_config($params = array()) {
-        return $this->request('deepcoin/rebate/config', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/rebate/config', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_agents_users($params = array()) {
-        return $this->request('deepcoin/agents/users', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/agents/users', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_agents_users_rebate_list($params = array()) {
-        return $this->request('deepcoin/agents/users/rebate-list', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/agents/users/rebate-list', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_agents_users_rebates($params = array()) {
-        return $this->request('deepcoin/agents/users/rebates', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/agents/users/rebates', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_asset_deposit_list($params = array()) {
-        return $this->request('deepcoin/asset/deposit-list', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/asset/deposit-list', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_asset_withdraw_list($params = array()) {
-        return $this->request('deepcoin/asset/withdraw-list', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/asset/withdraw-list', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_asset_recharge_chain_list($params = array()) {
-        return $this->request('deepcoin/asset/recharge-chain-list', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/asset/recharge-chain-list', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_listenkey_acquire($params = array()) {
-        return $this->request('deepcoin/listenkey/acquire', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/listenkey/acquire', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_listenkey_extend($params = array()) {
-        return $this->request('deepcoin/listenkey/extend', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/listenkey/extend', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_get_deepcoin_sub_account_sub_account_apikey($params = array()) {
-        return $this->request('deepcoin/sub-account/sub-account-apikey', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/sub-account/sub-account-apikey', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_account_set_leverage($params = array()) {
-        return $this->request('deepcoin/account/set-leverage', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/set-leverage', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_trade_order($params = array()) {
-        return $this->request('deepcoin/trade/order', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/order', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_trade_replace_order($params = array()) {
-        return $this->request('deepcoin/trade/replace-order', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/replace-order', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_trade_cancel_order($params = array()) {
-        return $this->request('deepcoin/trade/cancel-order', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/cancel-order', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_trade_batch_cancel_order($params = array()) {
-        return $this->request('deepcoin/trade/batch-cancel-order', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/batch-cancel-order', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_trade_cancel_trigger_order($params = array()) {
-        return $this->request('deepcoin/trade/cancel-trigger-order', array('private'), 'POST', $params, null, null, array("cost" => 0.16666666666666666));
+        return $this->request('deepcoin/trade/cancel-trigger-order', array('private'), 'POST', $params, array("cost" => 0.16666666666666666));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_trade_swap_cancel_all($params = array()) {
-        return $this->request('deepcoin/trade/swap/cancel-all', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/swap/cancel-all', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_trade_trigger_order($params = array()) {
-        return $this->request('deepcoin/trade/trigger-order', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/trigger-order', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_trade_amend_trigger_order($params = array()) {
-        return $this->request('deepcoin/trade/amend-trigger-order', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/amend-trigger-order', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_trade_batch_close_position($params = array()) {
-        return $this->request('deepcoin/trade/batch-close-position', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/batch-close-position', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_trade_replace_order_sltp($params = array()) {
-        return $this->request('deepcoin/trade/replace-order-sltp', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/replace-order-sltp', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_trade_close_position_by_ids($params = array()) {
-        return $this->request('deepcoin/trade/close-position-by-ids', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/close-position-by-ids', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_trade_increase_position($params = array()) {
-        return $this->request('deepcoin/trade/increase-position', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/increase-position', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_trade_merge_positions($params = array()) {
-        return $this->request('deepcoin/trade/merge-positions', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/merge-positions', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_copytrading_leader_settings($params = array()) {
-        return $this->request('deepcoin/copytrading/leader-settings', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/copytrading/leader-settings', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_copytrading_set_contracts($params = array()) {
-        return $this->request('deepcoin/copytrading/set-contracts', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/copytrading/set-contracts', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_internal_transfer($params = array()) {
-        return $this->request('deepcoin/internal-transfer', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/internal-transfer', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_rebate_config($params = array()) {
-        return $this->request('deepcoin/rebate/config', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/rebate/config', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_asset_transfer($params = array()) {
-        return $this->request('deepcoin/asset/transfer', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/asset/transfer', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_sub_account_create_sub_account($params = array()) {
-        return $this->request('deepcoin/sub-account/create-sub-account', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/sub-account/create-sub-account', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_sub_account_sub_account_apikey($params = array()) {
-        return $this->request('deepcoin/sub-account/sub-account-apikey', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/sub-account/sub-account-apikey', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function private_post_deepcoin_sub_account_delete_sub_account_apikey($params = array()) {
-        return $this->request('deepcoin/sub-account/delete-sub-account-apikey', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/sub-account/delete-sub-account-apikey', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinMarketBooks($params = array()) {
-        return $this->request('deepcoin/market/books', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/books', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinMarketCandles($params = array()) {
-        return $this->request('deepcoin/market/candles', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/candles', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinMarketInstruments($params = array()) {
-        return $this->request('deepcoin/market/instruments', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/instruments', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinMarketTickers($params = array()) {
-        return $this->request('deepcoin/market/tickers', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/tickers', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinMarketIndexCandles($params = array()) {
-        return $this->request('deepcoin/market/index-candles', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/index-candles', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinMarketTrades($params = array()) {
-        return $this->request('deepcoin/market/trades', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/trades', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinMarketMarkPriceCandles($params = array()) {
-        return $this->request('deepcoin/market/mark-price-candles', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/mark-price-candles', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinMarketMarkPrice($params = array()) {
-        return $this->request('deepcoin/market/mark-price', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/mark-price', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinMarketOpenInterestVolume($params = array()) {
-        return $this->request('deepcoin/market/open-interest-volume', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/open-interest-volume', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinMarketLongShortRatio($params = array()) {
-        return $this->request('deepcoin/market/long-short-ratio', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/long-short-ratio', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinMarketTakerVolume($params = array()) {
-        return $this->request('deepcoin/market/taker-volume', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('deepcoin/market/taker-volume', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinMarketStepMargin($params = array()) {
-        return $this->request('deepcoin/market/step-margin', array('public'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/market/step-margin', array('public'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinTradeFundingRate($params = array()) {
-        return $this->request('deepcoin/trade/funding-rate', array('public'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/funding-rate', array('public'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinTradeFundRateCurrentFundingRate($params = array()) {
-        return $this->request('deepcoin/trade/fund-rate/current-funding-rate', array('public'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/fund-rate/current-funding-rate', array('public'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function publicGetDeepcoinTradeFundRateHistory($params = array()) {
-        return $this->request('deepcoin/trade/fund-rate/history', array('public'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/fund-rate/history', array('public'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinAccountBalances($params = array()) {
-        return $this->request('deepcoin/account/balances', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/balances', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinAccountAllBalances($params = array()) {
-        return $this->request('deepcoin/account/all-balances', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/all-balances', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinAccountBills($params = array()) {
-        return $this->request('deepcoin/account/bills', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/bills', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinAccountPositions($params = array()) {
-        return $this->request('deepcoin/account/positions', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/positions', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinAccountTradeFee($params = array()) {
-        return $this->request('deepcoin/account/trade-fee', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/trade-fee', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinAccountLeverageInfo($params = array()) {
-        return $this->request('deepcoin/account/leverage-info', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/leverage-info', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinAccountPositionsHistory($params = array()) {
-        return $this->request('deepcoin/account/positions-history', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/positions-history', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinTradeFills($params = array()) {
-        return $this->request('deepcoin/trade/fills', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/fills', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinTradeOrderByID($params = array()) {
-        return $this->request('deepcoin/trade/orderByID', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/orderByID', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinTradeOrder($params = array()) {
-        return $this->request('deepcoin/trade/order', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/order', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinTradeFinishOrderByID($params = array()) {
-        return $this->request('deepcoin/trade/finishOrderByID', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/finishOrderByID', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinTradeOrdersHistory($params = array()) {
-        return $this->request('deepcoin/trade/orders-history', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/orders-history', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinTradeV2OrdersPending($params = array()) {
-        return $this->request('deepcoin/trade/v2/orders-pending', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/v2/orders-pending', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinTradeTriggerOrdersPending($params = array()) {
-        return $this->request('deepcoin/trade/trigger-orders-pending', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/trigger-orders-pending', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinTradeTriggerOrdersHistory($params = array()) {
-        return $this->request('deepcoin/trade/trigger-orders-history', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/trigger-orders-history', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinCopytradingSupportContracts($params = array()) {
-        return $this->request('deepcoin/copytrading/support-contracts', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/copytrading/support-contracts', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinCopytradingLeaderPosition($params = array()) {
-        return $this->request('deepcoin/copytrading/leader-position', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/copytrading/leader-position', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinCopytradingEstimateProfit($params = array()) {
-        return $this->request('deepcoin/copytrading/estimate-profit', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/copytrading/estimate-profit', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinCopytradingHistoryProfit($params = array()) {
-        return $this->request('deepcoin/copytrading/history-profit', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/copytrading/history-profit', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinCopytradingFollowerRank($params = array()) {
-        return $this->request('deepcoin/copytrading/follower-rank', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/copytrading/follower-rank', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinInternalTransferSupport($params = array()) {
-        return $this->request('deepcoin/internal-transfer/support', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/internal-transfer/support', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinInternalTransferHistoryOrder($params = array()) {
-        return $this->request('deepcoin/internal-transfer/history-order', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/internal-transfer/history-order', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinRebateConfig($params = array()) {
-        return $this->request('deepcoin/rebate/config', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/rebate/config', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinAgentsUsers($params = array()) {
-        return $this->request('deepcoin/agents/users', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/agents/users', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinAgentsUsersRebateList($params = array()) {
-        return $this->request('deepcoin/agents/users/rebate-list', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/agents/users/rebate-list', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinAgentsUsersRebates($params = array()) {
-        return $this->request('deepcoin/agents/users/rebates', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/agents/users/rebates', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinAssetDepositList($params = array()) {
-        return $this->request('deepcoin/asset/deposit-list', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/asset/deposit-list', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinAssetWithdrawList($params = array()) {
-        return $this->request('deepcoin/asset/withdraw-list', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/asset/withdraw-list', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinAssetRechargeChainList($params = array()) {
-        return $this->request('deepcoin/asset/recharge-chain-list', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/asset/recharge-chain-list', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinListenkeyAcquire($params = array()) {
-        return $this->request('deepcoin/listenkey/acquire', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/listenkey/acquire', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinListenkeyExtend($params = array()) {
-        return $this->request('deepcoin/listenkey/extend', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/listenkey/extend', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privateGetDeepcoinSubAccountSubAccountApikey($params = array()) {
-        return $this->request('deepcoin/sub-account/sub-account-apikey', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/sub-account/sub-account-apikey', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinAccountSetLeverage($params = array()) {
-        return $this->request('deepcoin/account/set-leverage', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/account/set-leverage', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinTradeOrder($params = array()) {
-        return $this->request('deepcoin/trade/order', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/order', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinTradeReplaceOrder($params = array()) {
-        return $this->request('deepcoin/trade/replace-order', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/replace-order', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinTradeCancelOrder($params = array()) {
-        return $this->request('deepcoin/trade/cancel-order', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/cancel-order', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinTradeBatchCancelOrder($params = array()) {
-        return $this->request('deepcoin/trade/batch-cancel-order', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/batch-cancel-order', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinTradeCancelTriggerOrder($params = array()) {
-        return $this->request('deepcoin/trade/cancel-trigger-order', array('private'), 'POST', $params, null, null, array("cost" => 0.16666666666666666));
+        return $this->request('deepcoin/trade/cancel-trigger-order', array('private'), 'POST', $params, array("cost" => 0.16666666666666666));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinTradeSwapCancelAll($params = array()) {
-        return $this->request('deepcoin/trade/swap/cancel-all', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/swap/cancel-all', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinTradeTriggerOrder($params = array()) {
-        return $this->request('deepcoin/trade/trigger-order', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/trigger-order', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinTradeAmendTriggerOrder($params = array()) {
-        return $this->request('deepcoin/trade/amend-trigger-order', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/amend-trigger-order', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinTradeBatchClosePosition($params = array()) {
-        return $this->request('deepcoin/trade/batch-close-position', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/batch-close-position', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinTradeReplaceOrderSltp($params = array()) {
-        return $this->request('deepcoin/trade/replace-order-sltp', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/replace-order-sltp', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinTradeClosePositionByIds($params = array()) {
-        return $this->request('deepcoin/trade/close-position-by-ids', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/close-position-by-ids', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinTradeIncreasePosition($params = array()) {
-        return $this->request('deepcoin/trade/increase-position', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/increase-position', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinTradeMergePositions($params = array()) {
-        return $this->request('deepcoin/trade/merge-positions', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/trade/merge-positions', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinCopytradingLeaderSettings($params = array()) {
-        return $this->request('deepcoin/copytrading/leader-settings', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/copytrading/leader-settings', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinCopytradingSetContracts($params = array()) {
-        return $this->request('deepcoin/copytrading/set-contracts', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/copytrading/set-contracts', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinInternalTransfer($params = array()) {
-        return $this->request('deepcoin/internal-transfer', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/internal-transfer', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinRebateConfig($params = array()) {
-        return $this->request('deepcoin/rebate/config', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/rebate/config', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinAssetTransfer($params = array()) {
-        return $this->request('deepcoin/asset/transfer', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/asset/transfer', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinSubAccountCreateSubAccount($params = array()) {
-        return $this->request('deepcoin/sub-account/create-sub-account', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/sub-account/create-sub-account', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinSubAccountSubAccountApikey($params = array()) {
-        return $this->request('deepcoin/sub-account/sub-account-apikey', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/sub-account/sub-account-apikey', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
     public function privatePostDeepcoinSubAccountDeleteSubAccountApikey($params = array()) {
-        return $this->request('deepcoin/sub-account/delete-sub-account-apikey', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('deepcoin/sub-account/delete-sub-account-apikey', array('private'), 'POST', $params, array("cost" => 5));
     }
 }

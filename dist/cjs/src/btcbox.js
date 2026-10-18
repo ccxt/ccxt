@@ -797,7 +797,7 @@ class btcbox extends btcbox$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const apiUrl = this.safeString(this.urls['api'], 'rest');
         if (apiUrl === undefined) {
@@ -828,7 +828,7 @@ class btcbox extends btcbox$1["default"] {
             };
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
@@ -847,8 +847,8 @@ class btcbox extends btcbox$1["default"] {
         this.throwExactlyMatchedException(this.exceptions, code, feedback);
         throw new errors.ExchangeError(feedback); // unknown message
     }
-    async request(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
-        let response = await this.fetch2(path, api, method, params, headers, body, config);
+    async request(path, api = ['public'], method = 'GET', params = {}, config = {}) {
+        let response = await this.fetch2(path, api, method, params, config);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json
             response = this.strip(response);

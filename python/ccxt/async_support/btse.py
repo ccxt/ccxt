@@ -3534,7 +3534,7 @@ class btse(Exchange, ImplicitAPI):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params={}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params={}):
         apiName = api[0]
         requestBody = None
         requestHeaders = None
@@ -3580,8 +3580,8 @@ class btse(Exchange, ImplicitAPI):
                 'Content-Type': 'application/json',
                 'BROKER-ID': 'ccxt',
             }
-        bodyResolved = body if (requestBody is None) else requestBody
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        bodyResolved = requestBody
+        headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def futures_request_id(self, market: object):

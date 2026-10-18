@@ -2858,6 +2858,11 @@ func (this *Bydfi) ParsePosition(position any, optionalArgs ...any) any {
 		contracts = Precise.StringDiv(contracts, contractSize)
 	}
 	var timestamp *int64 = this.SafeInteger(position, "createTime")
+	// raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+	var positionMargin *string = this.SafeString(position, "positionMargin")
+	if (positionMargin != nil) && !Precise.StringGt(positionMargin, "0") {
+		positionMargin = nil
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),
@@ -2866,6 +2871,7 @@ func (this *Bydfi) ParsePosition(position any, optionalArgs ...any) any {
 		"markPrice":                   this.ParseNumber(this.SafeString(position, "markPrice")),
 		"lastPrice":                   this.ParseNumber(this.SafeString(position, "avgClosePositionPrice")),
 		"notional":                    this.ParseNumber(this.SafeString(position, "closePositionCost")),
+		"positionMargin":              this.ParseNumber(positionMargin),
 		"collateral":                  nil,
 		"unrealizedPnl":               this.ParseNumber(this.SafeString(position, "unPnl")),
 		"realizedPnl":                 this.ParseNumber(this.SafeString(position, "positionProfits")),
@@ -3944,10 +3950,6 @@ func (this *Bydfi) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
@@ -3963,7 +3965,7 @@ func (this *Bydfi) Sign(path string, optionalArgs ...any) any {
 			endpoint += "?" + query
 		}
 	}
-	var requestBody any = nil
+	var requestBody *string = nil
 	var requestHeaders any = nil
 	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
@@ -3977,7 +3979,7 @@ func (this *Bydfi) Sign(path string, optionalArgs ...any) any {
 				"X-API-SIGNATURE": signature,
 			}
 		} else {
-			requestBody = this.Json(sortedParams)
+			requestBody = SafeStringPtr(this.Json(sortedParams))
 			var payload any = Add(Add(this.ApiKey, timestamp), requestBody)
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 			requestHeaders = map[string]any{
@@ -3989,18 +3991,8 @@ func (this *Bydfi) Sign(path string, optionalArgs ...any) any {
 		}
 	}
 	url = Add(url, endpoint)
-	var bodyResolved any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResolved any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResolved *string = requestBody
+	var headersResolved any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

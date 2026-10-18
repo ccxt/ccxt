@@ -1913,7 +1913,7 @@ class onetrading extends onetrading$1["default"] {
         const tradeHistory = this.safeList(response, 'trade_history', []);
         return this.parseTrades(tradeHistory, market, since, limit);
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
@@ -1932,7 +1932,7 @@ class onetrading extends onetrading$1["default"] {
                 'Accept': 'application/json',
                 'Authorization': 'Bearer ' + this.apiKey,
             };
-            const bodyJson = (method === 'POST') ? this.json(query) : body;
+            const bodyJson = (method === 'POST') ? this.json(query) : undefined;
             if (method === 'POST') {
                 headersSigned['Content-Type'] = 'application/json';
             }
@@ -1943,7 +1943,7 @@ class onetrading extends onetrading$1["default"] {
             }
             return { 'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

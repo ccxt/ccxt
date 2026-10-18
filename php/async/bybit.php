@@ -1226,11 +1226,8 @@ class bybit extends Exchange {
                 'networks' => array(
                     'BTC' => 'BTC',
                     'BRC20' => 'BTC',
-                    'ETH' => 'ETH',
                     'ERC20' => 'ETH',
-                    'TRX' => 'TRX',
                     'TRC20' => 'TRX',
-                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'SOL' => 'SOL',
                     'ACA' => 'ACA',
@@ -1297,6 +1294,7 @@ class bybit extends Exchange {
                     // 'LUNA1': 'LUNA' (Terra)
                 ),
                 'networksById' => array(
+                    'BTC' => 'BTC', // BTC and BRC20 share the id 'BTC', the native chain wins
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
                     'BSC' => 'BEP20',
@@ -6237,7 +6235,7 @@ class bybit extends Exchange {
         $currency = $this->currency($code);
         list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
         $indexedAddresses = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsOmited));
-        $selectedNetworkCode = $this->select_network_code_from_unified_networks($currency['code'], $networkCode, $indexedAddresses);
+        $selectedNetworkCode = $this->select_network_key_from_networks($currency['code'], $networkCode, $indexedAddresses, true);
         return $this->safe_value($indexedAddresses, $selectedNetworkCode);
     }
 
@@ -7232,7 +7230,15 @@ class bybit extends Exchange {
         if ($lastUpdateTimestamp === null) {
             $lastUpdateTimestamp = $this->safe_integer_2($position, 'updatedTime', 'updatedAt');
         }
-        $collateralString = $this->safe_string($position, 'positionBalance');
+        // positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
+        $positionMarginString = $this->omit_zero($this->safe_string($position, 'positionBalance'));
+        $collateralString = null;
+        if ($positionMarginString !== null) {
+            $collateralString = $positionMarginString;
+            if ($unrealisedPnl !== null) {
+                $collateralString = Precise::string_add($positionMarginString, $unrealisedPnl);
+            }
+        }
         $entryPrice = $this->omit_zero($this->safe_string_n($position, array( 'entryPrice', 'avgPrice', 'avgEntryPrice' )));
         $liquidationPrice = $this->omit_zero($this->safe_string($position, 'liqPrice'));
         $leverage = $this->safe_string($position, 'leverage');
@@ -7246,30 +7252,42 @@ class bybit extends Exchange {
                 }
                 $difference = Precise::string_abs(Precise::string_sub($price, $liquidationPrice));
                 $collateralString = Precise::string_add(Precise::string_add(Precise::string_mul($difference, $size), $maintenanceMarginString), $unrealisedPnl);
+                $positionMarginString = null; // derived from collateral by safePosition
             } else {
-                $bustPrice = $this->safe_string($position, 'bustPrice');
+                $bustPrice = $this->omit_zero($this->safe_string($position, 'bustPrice'));
+                $closingFee = $this->omit_zero($this->safe_string($position, 'occClosingFee'));
                 if ($marketResolved['linear'] === true) {
-                    // derived from the following formulas
+                    // derived from the following formula:
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     // Maintenance Margin = (Bust price - Liq price) x Contracts
-                    $maintenanceMarginPriceDifference = Precise::string_abs(Precise::string_sub($liquidationPrice, $bustPrice));
-                    $maintenanceMarginString = Precise::string_mul($maintenanceMarginPriceDifference, $size);
-                    // Initial Margin = Contracts x Entry Price / Leverage
+                    if (($maintenanceMarginString === null) && ($bustPrice !== null) && !Precise::string_eq($bustPrice, $liquidationPrice)) {
+                        $maintenanceMarginPriceDifference = Precise::string_abs(Precise::string_sub($liquidationPrice, $bustPrice));
+                        $maintenanceMarginString = Precise::string_mul($maintenanceMarginPriceDifference, $size);
+                    }
+                    // Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
                     if (($entryPrice !== null) && ($initialMarginString === null)) {
                         $initialMarginString = Precise::string_div(Precise::string_mul($size, $entryPrice), $leverage);
+                        if ($closingFee !== null) {
+                            $initialMarginString = Precise::string_add($initialMarginString, $closingFee);
+                        }
                     }
                 } else {
                     // Contracts * (1 / Entry price - 1 / Bust price) = Collateral
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    $difference = Precise::string_abs(Precise::string_sub($bustPrice, $liquidationPrice));
-                    $multiply = Precise::string_mul($bustPrice, $liquidationPrice);
-                    $maintenanceMarginString = Precise::string_div(Precise::string_mul($size, $difference), $multiply);
-                    // Initial Margin = Leverage x Contracts / EntryPrice
+                    if (($maintenanceMarginString === null) && ($bustPrice !== null) && !Precise::string_eq($bustPrice, $liquidationPrice)) {
+                        $difference = Precise::string_abs(Precise::string_sub($bustPrice, $liquidationPrice));
+                        $multiply = Precise::string_mul($bustPrice, $liquidationPrice);
+                        $maintenanceMarginString = Precise::string_div(Precise::string_mul($size, $difference), $multiply);
+                    }
+                    // Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
                     if (($entryPrice !== null) && ($initialMarginString === null)) {
                         $initialMarginString = Precise::string_div($size, Precise::string_mul($entryPrice, $leverage));
+                        if ($closingFee !== null) {
+                            $initialMarginString = Precise::string_add($initialMarginString, $closingFee);
+                        }
                     }
                 }
             }
@@ -7299,6 +7317,7 @@ class bybit extends Exchange {
             'markPrice' => $this->parse_number($markPrice),
             'lastPrice' => $this->safe_number($position, 'avgExitPrice'),
             'collateral' => $this->parse_number($collateralString),
+            'positionMargin' => $this->parse_number($positionMarginString),
             'marginMode' => null, // tradeMode was deprecated
             'side' => $side,
             'percentage' => null,
@@ -9293,8 +9312,8 @@ class bybit extends Exchange {
         $tiers = array();
         for ($i = 0; $i < count($info); $i++) {
             $tier = $this->safe_dict($info, $i);
-            $marketId = $this->safe_string($info, 'symbol');
-            $marketResolved = $this->safe_market($marketId);
+            $marketId = $this->safe_string($tier, 'symbol');
+            $marketResolved = $this->safe_market($marketId, $market, null, 'contract');
             $minNotional = $this->parse_number('0');
             if ($i !== 0) {
                 $minNotional = $this->safe_number($info[$i - 1], 'riskLimitValue');
@@ -10373,7 +10392,7 @@ class bybit extends Exchange {
         return $this->safe_string($marginModes, $marginMode, $marginMode);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $requestBody = null;
         $requestHeaders = null;
@@ -10475,12 +10494,12 @@ class bybit extends Exchange {
         }
         if ($method === 'POST') {
             $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
-            $headersBase = ($requestHeaders === null) ? $headers : $requestHeaders;
+            $headersBase = $requestHeaders;
             $requestHeaders = ($headersBase === null) ? array() : $headersBase;
             $requestHeaders['Referer'] = $brokerId;
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

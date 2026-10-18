@@ -455,7 +455,6 @@ class toobit extends Exchange {
                 'networks' => array(
                     'BTC' => 'BTC',
                     'ERC20' => 'ETH',
-                    'ETH' => 'ETH',
                     'BEP20' => 'BSC',
                     'TRC20' => 'TRX',
                     'SOL' => 'SOL',
@@ -1532,7 +1531,7 @@ class toobit extends Exchange {
             'symbol' => $marketResolved['symbol'],
             'timestamp' => null,
             'datetime' => null,
-            'price' => $this->safe_number_omit_zero($entry, 'price'),
+            'price' => $this->safe_number_omit_zero($entry, 'p'),
             'side' => null,
             'info' => $entry,
         );
@@ -3389,7 +3388,7 @@ class toobit extends Exchange {
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnL'),
             'side' => $side,
             'contracts' => $this->parse_number($quantity),
-            'contractSize' => null,
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'timestamp' => null,
             'datetime' => null,
             'hedged' => null,
@@ -3405,7 +3404,7 @@ class toobit extends Exchange {
         ));
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
@@ -3444,7 +3443,7 @@ class toobit extends Exchange {
             } else {
                 $queryString = $this->urlencode($queryExtended);
             }
-            $payloadBody = $body;
+            $payloadBody = null;
             if ($isPost || $isDelete) {
                 $payloadBody = $privateBody;
             }
@@ -3465,13 +3464,13 @@ class toobit extends Exchange {
                 'X-BB-API-PLATFORM' => $this->safe_string($this->options, 'brokerId', '177321641268789'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
-            $requestBody = $body;
+            $requestBody = null;
             if ($isPost || $isDelete) {
                 $requestBody = $privateBody;
             }
             return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

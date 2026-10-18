@@ -326,7 +326,7 @@ public partial class tokocrypto : Exchange
                 { "reverseNetworks", new Dictionary<string, object>() {
                     { "tronscan.org", "TRC20" },
                     { "etherscan.io", "ERC20" },
-                    { "bscscan.com", "BSC" },
+                    { "bscscan.com", "BEP20" },
                     { "explorer.binance.org", "BEP2" },
                     { "bithomp.com", "XRP" },
                     { "bloks.io", "EOS" },
@@ -2550,7 +2550,7 @@ public partial class tokocrypto : Exchange
             tag = null;
         }
         this.checkAddress(address);
-        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", this.safeString(data, "network") },             { "address", address },             { "tag", tag },         });
+        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", this.networkIdToCode(this.safeString(data, "network"), code) },             { "address", address },             { "tag", tag },         });
     }
 
     /**
@@ -2819,7 +2819,7 @@ public partial class tokocrypto : Exchange
             { "txid", txid },
             { "type", type },
             { "currency", code },
-            { "network", this.safeString(transaction, "network") },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network"), code) },
             { "amount", this.safeNumber(transaction, "amount") },
             { "status", this.parseTransactionStatusByType(this.safeString(transaction, "status"), type) },
             { "timestamp", timestamp },
@@ -2892,7 +2892,7 @@ public partial class tokocrypto : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2923,7 +2923,7 @@ public partial class tokocrypto : Exchange
                     { "X-MBX-APIKEY", this.apiKey },
                     { "Content-Type", "application/x-www-form-urlencoded" },
                 };
-                object bodyStream = ((method != "GET")) ? this.urlencode(parameters) : body;
+                string? bodyStream = ((method != "GET")) ? this.urlencode(parameters) : null;
                 return new Dictionary<string, object>() {
                     { "url", url },
                     { "method", method },
@@ -2967,10 +2967,10 @@ public partial class tokocrypto : Exchange
                 { "X-MBX-APIKEY", this.apiKey },
             };
             bool queryInUrl = ((method == "GET")) || ((method == "DELETE")) || ((apiName is "wapi"));
-            object bodySigned = query;
+            string? bodySigned = query;
             if (queryInUrl)
             {
-                bodySigned = body;
+                bodySigned = null;
             }
             if (queryInUrl)
             {
@@ -2995,8 +2995,8 @@ public partial class tokocrypto : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

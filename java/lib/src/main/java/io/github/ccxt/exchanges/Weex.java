@@ -694,9 +694,7 @@ public class Weex extends WeexApi
                 }} );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BEP20", "BEP20(BSC)" );
-                    put( "BSC", "BEP20(BSC)" );
                     put( "ERC20", "ERC20" );
-                    put( "ETH", "ERC20" );
                     put( "POLYGON", "POLYGON(MATIC)" );
                     put( "MATIC", "POLYGON(MATIC)" );
                     put( "ARBITRUM", "ARBITRUM(ARB)" );
@@ -1572,7 +1570,7 @@ public class Weex extends WeexApi
         mapLiteral4.put("ask", this.safeString(ticker, "askPrice"));
         mapLiteral4.put("askVolume", this.safeString(ticker, "askQty"));
         mapLiteral4.put("vwap", null);
-        mapLiteral4.put("open", this.safeString(ticker, "openPrice"));
+        mapLiteral4.put("open", null);
         mapLiteral4.put("close", this.safeString(ticker, "lastPrice"));
         mapLiteral4.put("last", this.safeString(ticker, "lastPrice"));
         mapLiteral4.put("previousClose", null);
@@ -4588,27 +4586,41 @@ public class Weex extends WeexApi
         String notional = this.safeString(position, "openValue");
         String size = this.safeString(position, "size");
         String entryPrice = Precise.stringDiv(notional, size);
+        String unrealizePnl = this.safeString(position, "unrealizePnl");
+        String isolatedMargin = this.omitZero(this.safeString2(position, "isolatedMargin", "marginSize"));
+        String collateralString = null;
+        if ((java.util.Objects.equals(marginMode, "isolated")) && (!java.util.Objects.equals(isolatedMargin, null)))
+        {
+            collateralString = (((!java.util.Objects.equals(unrealizePnl, null)))) ? Precise.stringAdd(isolatedMargin, unrealizePnl) : isolatedMargin;
+        }
+        String initialMarginString = this.omitZero(this.safeString2(position, "marginSize", "isolatedMargin"));
+        String marginString = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            marginString = isolatedMargin;
+        }
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("symbol", marketResolved.get("symbol"));
         mapLiteral8.put("id", this.safeString2(position, "id", "positionId"));
         mapLiteral8.put("timestamp", timestamp);
         mapLiteral8.put("datetime", this.iso8601(timestamp));
         mapLiteral8.put("contracts", this.parseNumber(size));
-        mapLiteral8.put("contractSize", null);
+        mapLiteral8.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
         mapLiteral8.put("side", this.safeStringLower(position, "side"));
         mapLiteral8.put("notional", this.parseNumber(notional));
         mapLiteral8.put("leverage", this.safeNumber(position, "leverage", (Object) null));
-        mapLiteral8.put("unrealizedPnl", this.safeNumber(position, "unrealizePnl", (Object) null));
+        mapLiteral8.put("unrealizedPnl", this.parseNumber(unrealizePnl));
         mapLiteral8.put("realizedPnl", null);
-        mapLiteral8.put("collateral", null);
+        mapLiteral8.put("positionMargin", this.parseNumber(marginString));
+        mapLiteral8.put("collateral", this.parseNumber(collateralString));
         mapLiteral8.put("entryPrice", this.parseNumber(entryPrice));
         mapLiteral8.put("markPrice", null);
-        mapLiteral8.put("liquidationPrice", this.safeNumber(position, "liquidatePrice", (Object) null));
+        mapLiteral8.put("liquidationPrice", this.parseNumber(this.omitZero(this.safeString(position, "liquidatePrice"))));
         mapLiteral8.put("marginMode", marginMode);
         mapLiteral8.put("hedged", hedged);
         mapLiteral8.put("maintenanceMargin", null);
         mapLiteral8.put("maintenanceMarginPercentage", null);
-        mapLiteral8.put("initialMargin", this.safeNumber(position, "marginSize", (Object) null));
+        mapLiteral8.put("initialMargin", this.parseNumber(initialMarginString));
         mapLiteral8.put("initialMarginPercentage", null);
         mapLiteral8.put("marginRatio", null);
         mapLiteral8.put("lastUpdateTimestamp", this.safeInteger(position, "updatedTime"));
@@ -5258,7 +5270,7 @@ public class Weex extends WeexApi
         Helpers.addElementToObject(this.options, "sandboxMode", enable);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = (String) this.implodeParams(path, parameters);
@@ -5273,7 +5285,7 @@ public class Weex extends WeexApi
         }
         Boolean isPrivate = (java.util.Objects.equals(apiName, "private")) || (java.util.Objects.equals(apiName, "contractPrivate"));
         Boolean hasJsonBody = Boolean.TRUE.equals(isPrivate) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || Boolean.TRUE.equals(isBatch));
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(hasJsonBody))
         {
             requestBody = this.json(query);

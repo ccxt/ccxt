@@ -2106,7 +2106,7 @@ public class Hibachi extends HibachiApi
         }});
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = ("/" + this.implodeParams(path, parameters));
@@ -2133,7 +2133,7 @@ public class Hibachi extends HibachiApi
         {
             headersValue.put("Content-Type", "application/json");
         }
-        String bodyResult = body;
+        String bodyResult = null;
         if (Boolean.TRUE.equals(hasJsonBody))
         {
             bodyResult = this.json(parameters);

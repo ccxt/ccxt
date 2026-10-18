@@ -1527,7 +1527,7 @@ public class Bitbns extends BitbnsApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object urls = this.urls;
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
@@ -1542,7 +1542,7 @@ public class Bitbns extends BitbnsApi
         Map<String, Object> apiKeyHeaders = new HashMap<String, Object>() {{
             put( "X-BITBNS-APIKEY", Bitbns.this.apiKey );
         }};
-        Object requestHeaders = (((!java.util.Objects.equals(apiName, "www")))) ? apiKeyHeaders : headers;
+        Object requestHeaders = (((!java.util.Objects.equals(apiName, "www")))) ? apiKeyHeaders : null;
         String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
@@ -1558,7 +1558,7 @@ public class Bitbns extends BitbnsApi
         {
             postBody = this.json(query);
         }
-        String requestBody = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? postBody : body;
+        String requestBody = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? postBody : null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             if ((queryLength != null && queryLength > 0))

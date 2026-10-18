@@ -437,7 +437,7 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        return await this.fetchL3OrderBook(symbol, limit, params);
+        return await this.fetchL2OrderBook(symbol, limit, params);
     }
     /**
      * @method
@@ -461,7 +461,7 @@ class blockchaincom extends blockchaincom$1["default"] {
             request['depth'] = limit;
         }
         const response = await this.publicGetL3Symbol(this.extend(request, params));
-        return this.parseOrderBook(response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty');
+        return this.parseOrderBookL3(response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty', 'num');
     }
     async fetchL2OrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1248,7 +1248,7 @@ class blockchaincom extends blockchaincom$1["default"] {
         //
         return this.parseOrder(response);
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const requestPath = '/' + this.implodeParams(path, params);
         const apiName = api[0];
         const apiUrl = this.safeString(this.urls['api'], apiName);
@@ -1261,12 +1261,12 @@ class blockchaincom extends blockchaincom$1["default"] {
         const privateHeaders = {
             'X-API-Token': this.secret,
         };
-        let requestHeaders = headers;
+        let requestHeaders = undefined;
         if (isPrivate) {
             requestHeaders = privateHeaders;
         }
         const isPrivatePost = isPrivate && (method !== 'GET');
-        let requestBody = body;
+        let requestBody = undefined;
         if (isPrivatePost) {
             requestBody = this.json(query);
         }

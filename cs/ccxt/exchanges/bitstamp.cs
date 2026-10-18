@@ -3501,7 +3501,7 @@ public partial class bitstamp : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -3527,7 +3527,7 @@ public partial class bitstamp : Exchange
         {
             postBody = this.urlencode(query);
         }
-        object requestBody = body;
+        string? requestBody = null;
         if (isPrivatePost)
         {
             requestBody = postBody;
@@ -3558,8 +3558,8 @@ public partial class bitstamp : Exchange
                 contentType = "application/x-www-form-urlencoded";
                 privateHeaders["Content-Type"] = contentType;
             }
-            object authBody = "";
-            if ((requestBody != null) && !(requestBody is ""))
+            string? authBody = "";
+            if ((requestBody != null) && requestBody != "")
             {
                 authBody = requestBody;
             }
@@ -3567,7 +3567,7 @@ public partial class bitstamp : Exchange
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             privateHeaders["X-Auth-Signature"] = signature;
         }
-        object requestHeaders = ((apiName is "public")) ? headers : privateHeaders;
+        Dictionary<string, object> requestHeaders = ((apiName is "public")) ? null : privateHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

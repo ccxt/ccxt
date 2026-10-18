@@ -2266,9 +2266,9 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) any {
 	var side *string = nil
 	if sizeString != nil {
 		if Precise.StringGt(sizeString, "0") {
-			side = SafeStringPtr("buy")
+			side = SafeStringPtr("long")
 		} else if Precise.StringLt(sizeString, "0") {
-			side = SafeStringPtr("sell")
+			side = SafeStringPtr("short")
 		}
 	}
 	return this.SafePosition(map[string]any{
@@ -2276,7 +2276,7 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) any {
 		"id":                          nil,
 		"symbol":                      symbol,
 		"notional":                    nil,
-		"marginMode":                  nil,
+		"marginMode":                  this.SafeString(position, "margin_mode"),
 		"liquidationPrice":            this.SafeNumber(position, "liquidation_price"),
 		"entryPrice":                  this.SafeNumber(position, "entry_price"),
 		"unrealizedPnl":               nil,
@@ -2290,6 +2290,7 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) any {
 		"datetime":                    this.Iso8601(timestamp),
 		"maintenanceMargin":           nil,
 		"maintenanceMarginPercentage": nil,
+		"positionMargin":              this.SafeNumber(position, "margin"),
 		"collateral":                  nil,
 		"initialMargin":               nil,
 		"initialMarginPercentage":     nil,
@@ -2867,11 +2868,11 @@ func (this *Delta) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes233515 []any = r.Value
-	if retRes233515 == nil {
+	var retRes233615 []any = r.Value
+	if retRes233615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes233515}
+		ch <- AsyncResult[any]{Value: retRes233615}
 	}
 	return nil
 }
@@ -2908,11 +2909,11 @@ func (this *Delta) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes235015 []any = r.Value
-	if retRes235015 == nil {
+	var retRes235115 []any = r.Value
+	if retRes235115 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes235015}
+		ch <- AsyncResult[any]{Value: retRes235115}
 	}
 	return nil
 }
@@ -3613,11 +3614,11 @@ func (this *Delta) addMarginBody(ch chan AsyncResult[map[string]any], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes290515 map[string]any = MapTyped(r.Value)
-	if retRes290515 == nil {
+	var retRes290615 map[string]any = MapTyped(r.Value)
+	if retRes290615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes290515}
+		ch <- AsyncResult[map[string]any]{Value: retRes290615}
 	}
 	return nil
 }
@@ -3647,11 +3648,11 @@ func (this *Delta) reduceMarginBody(ch chan EndpointResult[map[string]any], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes291915 map[string]any = MapTyped(r.Value)
-	if retRes291915 == nil {
+	var retRes292015 map[string]any = MapTyped(r.Value)
+	if retRes292015 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes291915, Raw: retRes291915}
+		ch <- EndpointResult[map[string]any]{Value: retRes292015, Raw: retRes292015}
 	}
 	return nil
 }
@@ -5160,10 +5161,6 @@ func (this *Delta) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestPath string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
@@ -5200,18 +5197,8 @@ func (this *Delta) Sign(path string, optionalArgs ...any) any {
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(requestHeaders, "signature", signature)
 	}
-	var bodyResult any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResult any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResult any = requestBody
+	var headersResult any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

@@ -2054,15 +2054,11 @@ public partial class okx : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "Bitcoin" },
                     { "BTCLIGHTNING", "Lightning" },
-                    { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "BRC20", "BRC20" },
-                    { "ETH", "ERC20" },
                     { "ERC20", "ERC20" },
-                    { "TRX", "TRC20" },
                     { "TRC20", "TRC20" },
                     { "CRC20", "Crypto" },
-                    { "CRONOS", "Crypto" },
                     { "ACA", "Acala" },
                     { "ALGO", "Algorand" },
                     { "APT", "Aptos" },
@@ -6915,7 +6911,9 @@ public partial class okx : Exchange
         if ((network != null))
         {
             IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-            network = this.safeString(networks, network.ToUpper(), network); // handle ETH>ERC20 alias
+            string networkUpper = network.ToUpper();
+            string? networkKey = this.safeString(this.networkAliases, networkUpper, networkUpper);
+            network = this.safeString(networks, networkKey, network); // resolve aliases to the unified key
             request["chain"] = add(add((currency.ContainsKey("id") ? currency["id"] : null), "-"), network);
         }
         List<object> omitKeys = new List<object>() {"fee"};
@@ -7786,14 +7784,21 @@ public partial class okx : Exchange
         string? leverageString = this.safeString(position, "lever");
         object initialMarginPercentage = null;
         string? collateralString = null;
+        string? marginString = null;
         if (marginMode == "cross")
         {
             initialMarginString = this.safeString(position, "imr");
-            collateralString = Precise.stringAdd(initialMarginString, unrealizedPnlString);
+            collateralString = ((unrealizedPnlString != null)) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (marginMode == "isolated")
         {
             initialMarginPercentage = Precise.stringDiv("1", leverageString);
-            collateralString = this.safeString(position, "margin");
+            string? isolatedMarginString = ((string)this.omitZero(this.safeString(position, "margin")));
+            if ((isolatedMarginString != null))
+            {
+                initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
+                collateralString = ((unrealizedPnlString != null)) ? Precise.stringAdd(isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
+            }
         }
         string? maintenanceMarginString = this.safeString(position, "mmr");
         double? maintenanceMargin = this.parseNumber(maintenanceMarginString);
@@ -7813,8 +7818,34 @@ public partial class okx : Exchange
             }
         }
         string rounder = "0.00005"; // round to closest 0.01%
-        double? maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
-        double? liquidationPrice = this.safeNumber(position, "liqPx");
+        double? maintenanceMarginPercentage = ((maintenanceMarginPercentageString != null)) ? this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4)) : null;
+        string? liquidationPriceString = ((string)this.omitZero(this.safeString(position, "liqPx")));
+        if (((liquidationPriceString == null)) && (marginMode == "isolated") && ((initialMarginString != null)) && ((entryPriceString != null)) && ((contractsAbs != null)) && Precise.stringGt(contractsAbs, "0") && ((contractSizeString != null)) && ((maintenanceMarginPercentage != null)))
+        {
+            string? takerFeeRate = this.safeString(marketResolved, "taker", "0.0005");
+            string? mmpWithFee = Precise.stringAdd(this.numberToString(maintenanceMarginPercentage), takerFeeRate);
+            string? totalSize = Precise.stringMul(contractsAbs, contractSizeString);
+            if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
+            {
+                string? invEntry = Precise.stringDiv(totalSize, entryPriceString);
+                string? denom = (side == "long") ? Precise.stringAdd(invEntry, initialMarginString) : Precise.stringSub(invEntry, initialMarginString);
+                string? numFactor = (side == "long") ? Precise.stringAdd("1", mmpWithFee) : Precise.stringSub("1", mmpWithFee);
+                if (((denom != null)) && Precise.stringGt(denom, "0"))
+                {
+                    liquidationPriceString = Precise.stringDiv(Precise.stringMul(totalSize, numFactor), denom);
+                }
+            } else
+            {
+                string? marginPerUnit = Precise.stringDiv(initialMarginString, totalSize);
+                string? num = (side == "long") ? Precise.stringSub(entryPriceString, marginPerUnit) : Precise.stringAdd(entryPriceString, marginPerUnit);
+                string? denom = (side == "long") ? Precise.stringSub("1", mmpWithFee) : Precise.stringAdd("1", mmpWithFee);
+                if (((denom != null)) && Precise.stringGt(denom, "0"))
+                {
+                    liquidationPriceString = Precise.stringDiv(num, denom);
+                }
+            }
+        }
+        double? liquidationPrice = (((liquidationPriceString != null)) && Precise.stringGt(liquidationPriceString, "0")) ? this.parseNumber(liquidationPriceString) : null;
         string? percentageString = this.safeString(position, "uplRatio");
         double? percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Int64? timestamp = this.safeInteger(position, "cTime");
@@ -7841,6 +7872,7 @@ public partial class okx : Exchange
             { "lastUpdateTimestamp", this.safeInteger(position, "uTime") },
             { "maintenanceMargin", maintenanceMargin },
             { "maintenanceMarginPercentage", maintenanceMarginPercentage },
+            { "positionMargin", this.parseNumber(marginString) },
             { "collateral", this.parseNumber(collateralString) },
             { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },
@@ -8125,7 +8157,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(transfers, currency, since, limit, parameters));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -8208,12 +8240,12 @@ public partial class okx : Exchange
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
             privateHeaders["OK-ACCESS-SIGN"] = signature;
         }
-        object requestBody = body;
+        string? requestBody = null;
         if (hasJsonBody)
         {
             requestBody = jsonBody;
         }
-        object requestHeaders = ((apiName is "private")) ? privateHeaders : headers;
+        Dictionary<string, object> requestHeaders = ((apiName is "private")) ? privateHeaders : null;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -9141,8 +9173,8 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? type = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? "MARGIN" : this.convertToInstrumentType((market.ContainsKey("type") ? market["type"] : null));
-        string? uly = this.safeString((market.ContainsKey("info") ? market["info"] : null), "uly");
-        if (((uly == null)) || (uly == ""))
+        string? instFamily = this.safeString((market.ContainsKey("info") ? market["info"] : null), "instFamily");
+        if (((instFamily == null)) || (instFamily == ""))
         {
             if (type != "MARGIN")
             {
@@ -9157,7 +9189,7 @@ public partial class okx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", type },
             { "tdMode", marginMode },
-            { "uly", uly },
+            { "instFamily", instFamily },
         };
         if (type == "MARGIN")
         {

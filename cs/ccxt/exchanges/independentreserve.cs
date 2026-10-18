@@ -386,7 +386,7 @@ public partial class independentreserve : Exchange
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "Bitcoin" },
-                    { "ETH", "Ethereum" },
+                    { "ERC20", "Ethereum" },
                     { "BCH", "BitcoinCash" },
                     { "LTC", "Litecoin" },
                     { "XRP", "XrpLedger" },
@@ -398,7 +398,7 @@ public partial class independentreserve : Exchange
                     { "DOT", "Polkadot" },
                     { "ADA", "Cardano" },
                     { "SOL", "Solana" },
-                    { "TRX", "Tron" },
+                    { "TRC20", "Tron" },
                 } },
             } },
         });
@@ -495,7 +495,10 @@ public partial class independentreserve : Exchange
                         } },
                     } },
                     { "created", null },
-                    { "info", id },
+                    { "info", new Dictionary<string, object>() {
+                        { "primaryCurrencyCode", baseId },
+                        { "secondaryCurrencyCode", quoteId },
+                    } },
                 });
             }
         }
@@ -1335,7 +1338,7 @@ public partial class independentreserve : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -1388,10 +1391,11 @@ public partial class independentreserve : Exchange
                 { "headers", signedHeaders },
             };
         }
+        Dictionary<string, object> headers = new Dictionary<string, object>() {};
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
+            { "body", null },
             { "headers", headers },
         };
     }

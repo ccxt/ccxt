@@ -610,8 +610,8 @@ class phemex extends Exchange {
                     'BEP20' => 'BNB',
                 ),
                 'defaultNetworks' => array(
-                    'USDT' => 'ETH',
-                    'MKR' => 'ETH',
+                    'USDT' => 'ERC20',
+                    'MKR' => 'ERC20',
                 ),
                 'defaultSubType' => 'linear',
                 'accountsByType' => array(
@@ -3582,7 +3582,9 @@ class phemex extends Exchange {
         $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_upper_2($params, 'network', 'chainName', $defaultNetwork);
         $paramsOmitted = $this->omit($params, 'network');
-        $network = $this->safe_string($networks, $network, $network);
+        if ($network !== null) {
+            $network = $this->safe_string($networks, $this->safe_string($this->networkAliases, $network, $network), $network);
+        }
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a network parameter');
         } else {
@@ -4706,7 +4708,7 @@ class phemex extends Exchange {
         return $tiers;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $query = $this->omit($params, $this->extract_params($path));
         $requestPath = '/' . $this->implode_params($path, $params);
@@ -4752,11 +4754,11 @@ class phemex extends Exchange {
         }
         $url = $this->implode_hostname($baseApiUrl) . $url;
         $isPrivatePost = ($apiName === 'private') && ($method === 'POST');
-        $bodyResolved = $body;
+        $bodyResolved = null;
         if ($isPrivatePost) {
             $bodyResolved = $requestBody;
         }
-        $requestHeaders = ($apiName === 'private') ? $privateHeaders : $headers;
+        $requestHeaders = ($apiName === 'private') ? $privateHeaders : null;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $requestHeaders );
     }
 

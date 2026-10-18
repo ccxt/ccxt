@@ -215,7 +215,7 @@ class indodax extends Exchange {
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'networks' => array(
                     'XLM' => 'Stellar Token',
-                    'BSC' => 'bep20',
+                    'BEP20' => 'bep20',
                     'TRC20' => 'trc20',
                     'MATIC' => 'polygon',
                     // 'BEP2': 'bep2',
@@ -1513,7 +1513,7 @@ class indodax extends Exchange {
         return $result;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
@@ -1545,11 +1545,11 @@ class indodax extends Exchange {
         }
         $requestBody = $privateBody;
         if ($isPublic) {
-            $requestBody = $body;
+            $requestBody = null;
         }
         $requestHeaders = $privateHeaders;
         if ($isPublic) {
-            $requestHeaders = $headers;
+            $requestHeaders = null;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }

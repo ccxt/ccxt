@@ -1258,7 +1258,7 @@ public class Btcturk extends BtcturkApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         if (java.util.Objects.equals(this.id, "btctrader"))
@@ -1282,7 +1282,7 @@ public class Btcturk extends BtcturkApi
         String requestBody = null;
         if (Boolean.TRUE.equals(isQueryMethod))
         {
-            requestBody = body;
+            requestBody = null;
         } else
         {
             requestBody = this.json(parameters);
@@ -1301,7 +1301,7 @@ public class Btcturk extends BtcturkApi
                 put( "Content-Type", "application/json" );
             }};
         }
-        Object requestHeaders = (((!java.util.Objects.equals(privateHeaders, null)))) ? privateHeaders : headers;
+        Map<String, Object> requestHeaders = privateHeaders;
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("url", url);

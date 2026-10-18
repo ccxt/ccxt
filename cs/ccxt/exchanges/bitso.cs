@@ -2163,13 +2163,13 @@ public partial class bitso : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         string endpoint = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if ((method == "GET") || (method == "DELETE"))
@@ -2192,13 +2192,13 @@ public partial class bitso : Exchange
             string nonce = ((object)this.incrementingNonce()).ToString();
             endpoint = ("/api" + endpoint);
             List<object> content = new List<object>() {nonce, method, endpoint};
-            object request = String.Join("", content.ToArray());
+            string request = String.Join("", content.ToArray());
             if ((method != "GET") && (method != "DELETE"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     requestBody = this.json(query);
-                    request = add(request, requestBody);
+                    request = request + requestBody;
                 }
             }
             string signature = this.hmac(this.encode(request), this.encode(this.secret), sha256);

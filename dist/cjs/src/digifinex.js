@@ -419,16 +419,13 @@ class digifinex extends digifinex$1["default"] {
                     'AVALANCEC': 'AVAX-CCHAIN',
                     'AVALANCEX': 'AVAX-XCHAIN',
                     'BEP20': 'BEP20',
-                    'BSC': 'BEP20',
                     'CARDANO': 'Cardano',
                     'CELO': 'Celo',
                     'CHILIZ': 'Chiliz',
                     'COSMOS': 'COSMOS',
                     'CRC20': 'Crypto.com',
-                    'CRONOS': 'Crypto.com',
                     'DOGECOIN': 'DogeChain',
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
                     'ETHW': 'ETHW',
                     'IOTA': 'MIOTA',
                     'KLAYTN': 'KLAY',
@@ -445,7 +442,6 @@ class digifinex extends digifinex$1["default"] {
                     'TERRA': 'Terra',
                     'TON': 'Ton',
                     'TRC20': 'TRC20',
-                    'TRX': 'TRC20',
                     'VECHAIN': 'Vechain', // VET
                 },
                 'networksById': {
@@ -456,7 +452,7 @@ class digifinex extends digifinex$1["default"] {
                     'ERC20': 'ERC20',
                     'ETH': 'ERC20',
                     'Polygon': 'POLYGON',
-                    'Crypto.com': 'CRONOS',
+                    'Crypto.com': 'CRC20',
                 },
             },
             'commonCurrencies': {
@@ -3218,7 +3214,7 @@ class digifinex extends digifinex$1["default"] {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const network = this.safeString(transaction, 'chain');
+        const network = this.networkIdToCode(this.safeString(transaction, 'chain'), code);
         return {
             'info': transaction,
             'id': id,
@@ -4070,7 +4066,7 @@ class digifinex extends digifinex$1["default"] {
             marginMode = (marginMode === 'crossed') ? 'cross' : 'isolated';
         }
         else {
-            marginMode = 'crossed';
+            marginMode = 'cross';
         }
         const timestamp = this.safeInteger(position, 'timestamp');
         let side = this.safeString(position, 'side');
@@ -4080,6 +4076,22 @@ class digifinex extends digifinex$1["default"] {
         else if (side === 'go_short') {
             side = 'short';
         }
+        const positionMargin = this.safeString(position, 'margin');
+        const unrealizedPnl = this.safeString(position, 'unrealized_pnl');
+        let collateralString = undefined;
+        let marginString = undefined;
+        if (marginMode === 'isolated') {
+            const isolatedMargin = this.safeString(position, 'posi_balance');
+            if (isolatedMargin !== undefined) {
+                marginString = isolatedMargin;
+                collateralString = (unrealizedPnl !== undefined) ? Precise["default"].stringAdd(isolatedMargin, unrealizedPnl) : isolatedMargin;
+            }
+        }
+        let maintenanceMarginString = this.safeString(position, 'maintain_margin');
+        const forceCloseFee = this.omitZero(this.safeString(position, 'force_close_fee'));
+        if ((maintenanceMarginString !== undefined) && (forceCloseFee !== undefined)) {
+            maintenanceMarginString = Precise["default"].stringAdd(maintenanceMarginString, forceCloseFee);
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -4088,18 +4100,19 @@ class digifinex extends digifinex$1["default"] {
             'marginMode': marginMode,
             'liquidationPrice': this.safeNumber(position, 'liquidation_price'),
             'entryPrice': this.safeNumber2(position, 'avg_cost', 'entry_price'),
-            'unrealizedPnl': this.safeNumber(position, 'unrealized_pnl'),
-            'contracts': this.safeNumber(position, 'avail_position'),
+            'unrealizedPnl': this.parseNumber(unrealizedPnl),
+            'contracts': this.safeNumber2(position, 'position', 'avail_position'),
             'contractSize': this.safeNumber(marketResolved, 'contractSize'),
-            'markPrice': this.safeNumber(position, 'last'),
+            'markPrice': this.safeNumber2(position, 'mark_price', 'last'),
             'side': side,
             'hedged': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'maintenanceMargin': this.safeNumber(position, 'margin'),
+            'maintenanceMargin': this.parseNumber(maintenanceMarginString),
             'maintenanceMarginPercentage': this.safeNumber(position, 'maint_margin_ratio'),
-            'collateral': undefined,
-            'initialMargin': undefined,
+            'positionMargin': this.parseNumber(marginString),
+            'collateral': this.parseNumber(collateralString),
+            'initialMargin': this.parseNumber(positionMargin),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber2(position, 'leverage', 'leverage_ratio'),
             'marginRatio': this.safeNumber(position, 'margin_ratio'),
@@ -4692,7 +4705,7 @@ class digifinex extends digifinex$1["default"] {
         };
         return await this.privateSwapPostAccountPositionMode(this.extend(request, params));
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const signed = this.safeString(api, 0) === 'private';
         const endpoint = this.safeString(api, 1);
         let pathPart = '/swap/v2';
@@ -4740,7 +4753,7 @@ class digifinex extends digifinex$1["default"] {
                 }
             }
             const hasPostBody = (method === 'POST') && (urlencoded !== undefined) && (urlencoded !== '');
-            let requestBody = body;
+            let requestBody = undefined;
             if (hasPostBody) {
                 requestBody = urlencoded;
             }
@@ -4756,7 +4769,7 @@ class digifinex extends digifinex$1["default"] {
                 url += '?' + urlencoded;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         if (response === undefined) {

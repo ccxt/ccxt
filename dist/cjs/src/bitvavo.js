@@ -2642,10 +2642,10 @@ class bitvavo extends bitvavo$1["default"] {
         //
         return this.parseDepositWithdrawFees(response, codes, 'symbol');
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
-        let requestHeaders = headers;
-        let requestBody = body;
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const query = this.omit(params, this.extractParams(path));
         let url = '/' + this.version + '/' + this.implodeParams(path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');

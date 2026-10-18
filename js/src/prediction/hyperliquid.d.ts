@@ -382,7 +382,7 @@ export default class hyperliquid extends Exchange {
     initializeClient(): Promise<any>;
     handlePublicAddress(methodName: string, params: Dict): [Str, Dict];
     formatVaultAddress(address?: Str): Str;
-    sign(path: string, api?: string[], method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
         body: any;

@@ -3267,7 +3267,7 @@ class paradex(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         version = self.version
         pathValue = path
@@ -3326,9 +3326,9 @@ class paradex(Exchange, ImplicitAPI):
             #         url += '?' + this.urlencode (query);
             #     }
             # }
-            bodyResolved = privateBody if (privateBody is not None) else body
+            bodyResolved = privateBody
             return {'url': url, 'method': method, 'body': bodyResolved, 'headers': privateHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

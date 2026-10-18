@@ -395,20 +395,20 @@ func (this *Independentreserve) Describe() any {
 				"PEPE":   "Ethereum",
 			},
 			"networks": map[string]any{
-				"BTC":  "Bitcoin",
-				"ETH":  "Ethereum",
-				"BCH":  "BitcoinCash",
-				"LTC":  "Litecoin",
-				"XRP":  "XrpLedger",
-				"EOS":  "EosIo",
-				"XLM":  "Stellar",
-				"ETC":  "EthereumClassic",
-				"BSV":  "BitcoinSV",
-				"DOGE": "Dogecoin",
-				"DOT":  "Polkadot",
-				"ADA":  "Cardano",
-				"SOL":  "Solana",
-				"TRX":  "Tron",
+				"BTC":   "Bitcoin",
+				"ERC20": "Ethereum",
+				"BCH":   "BitcoinCash",
+				"LTC":   "Litecoin",
+				"XRP":   "XrpLedger",
+				"EOS":   "EosIo",
+				"XLM":   "Stellar",
+				"ETC":   "EthereumClassic",
+				"BSV":   "BitcoinSV",
+				"DOGE":  "Dogecoin",
+				"DOT":   "Polkadot",
+				"ADA":   "Cardano",
+				"SOL":   "Solana",
+				"TRC20": "Tron",
 			},
 		},
 	})
@@ -523,7 +523,10 @@ func (this *Independentreserve) fetchMarketsBody(ch chan AsyncResult[any], optio
 					},
 				},
 				"created": nil,
-				"info":    id,
+				"info": map[string]any{
+					"primaryCurrencyCode":   baseId,
+					"secondaryCurrencyCode": quoteId,
+				},
 			})
 		}
 	}
@@ -1249,11 +1252,11 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan AsyncResult[any], o
 		}
 	}
 
-	listEp1175 := <-this.PrivatePostGetBrokerageFees(params)
-	if listEp1175.Err != nil {
-		panic(listEp1175.Err)
+	listEp1178 := <-this.PrivatePostGetBrokerageFees(params)
+	if listEp1178.Err != nil {
+		panic(listEp1178.Err)
 	}
-	var response []any = listEp1175.Value
+	var response []any = listEp1178.Value
 	//
 	//     [
 	//         {
@@ -1644,10 +1647,6 @@ func (this *Independentreserve) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
@@ -1690,10 +1689,11 @@ func (this *Independentreserve) Sign(path string, optionalArgs ...any) any {
 			"headers": signedHeaders,
 		}
 	}
+	var headers map[string]any = map[string]any{}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
+		"body":    nil,
 		"headers": headers,
 	}
 }

@@ -1781,7 +1781,7 @@ class hibachi extends hibachi$1["default"] {
             'percentage': undefined,
         });
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const endpoint = '/' + this.implodeParams(path, params);
         const apiUrl = this.safeString(this.urls['api'], apiName);
@@ -1801,7 +1801,7 @@ class hibachi extends hibachi$1["default"] {
         if (hasJsonBody) {
             headersValue['Content-Type'] = 'application/json';
         }
-        let bodyResult = body;
+        let bodyResult = undefined;
         if (hasJsonBody) {
             bodyResult = this.json(params);
         }

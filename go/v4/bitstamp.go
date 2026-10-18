@@ -4119,10 +4119,6 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
@@ -4142,7 +4138,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 	if len(ObjectKeys(query)) > 0 {
 		postBody = this.Urlencode(query)
 	}
-	var requestBody any = body
+	var requestBody any = nil
 	if isPrivatePost {
 		requestBody = postBody
 	}
@@ -4178,7 +4174,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 	}
 	var requestHeaders any = func() any {
 		if apiName != nil && *apiName == "public" {
-			return headers
+			return nil
 		}
 		return privateHeaders
 	}()

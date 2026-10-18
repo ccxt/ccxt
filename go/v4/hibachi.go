@@ -2395,10 +2395,6 @@ func (this *Hibachi) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
@@ -2420,9 +2416,9 @@ func (this *Hibachi) Sign(path string, optionalArgs ...any) any {
 	if hasJsonBody {
 		headersValue["Content-Type"] = "application/json"
 	}
-	var bodyResult any = body
+	var bodyResult *string = nil
 	if hasJsonBody {
-		bodyResult = this.Json(params)
+		bodyResult = SafeStringPtr(this.Json(params))
 	}
 	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()

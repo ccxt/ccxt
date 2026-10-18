@@ -136,7 +136,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     put( "private", "https://futures.kraken.com/derivatives/api/" );
                 }} );
                 put( "www", "https://futures.kraken.com/" );
-                put( "doc", new ArrayList<Object>(Arrays.asList("https://docs.kraken.com/api/docs/futures-api/trading/market-data/")) );
+                put( "doc", new ArrayList<Object>(Arrays.asList("https://docs.kraken.com/exchange/guides/futures/rest")) );
                 put( "fees", "https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures" );
                 put( "referral", null );
             }} );
@@ -954,8 +954,8 @@ public class Krakenfutures extends KrakenfuturesApi
      * @method
      * @name krakenfutures#fetchTradingFees
      * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+     * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedules
+     * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedule-volumes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
@@ -1073,7 +1073,7 @@ public class Krakenfutures extends KrakenfuturesApi
     /**
      * @method
      * @name krakenfutures#fetchOHLCV
-     * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
+     * @see https://docs.kraken.com/api-reference/candles/market-candles
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1173,8 +1173,8 @@ public class Krakenfutures extends KrakenfuturesApi
     /**
      * @method
      * @name krakenfutures#fetchTrades
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-history
-     * @see https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+     * @see https://docs.kraken.com/api-reference/market-data/get-trade-history
+     * @see https://docs.kraken.com/api-reference/market-history/get-public-execution-events
      * @description Fetch a history of filled trades that this account has made
      * @param {string} symbol Unified CCXT market symbol
      * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -1980,7 +1980,7 @@ public class Krakenfutures extends KrakenfuturesApi
      * @method
      * @name krakenfutures#cancelAllOrdersAfter
      * @description dead man's switch, cancel all orders after the given timeout
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
+     * @see https://docs.kraken.com/api-reference/order-management/dead-mans-switch
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
@@ -3239,7 +3239,7 @@ public class Krakenfutures extends KrakenfuturesApi
     /**
      * @method
      * @name krakenfutures#fetchBalance
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
+     * @see https://docs.kraken.com/api-reference/account-information/get-wallets
      * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
      * @param {object} [params] Exchange specific parameters
      * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
@@ -3934,34 +3934,32 @@ public class Krakenfutures extends KrakenfuturesApi
         }
         String marketId = this.safeString2(position, "symbol", "tradeable");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        {
-            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("info", position);
-            h2kMap2.put("id", this.safeString(position, "executionUid"));
-            h2kMap2.put("symbol", marketResolved.get("symbol"));
-            h2kMap2.put("timestamp", timestamp);
-            h2kMap2.put("datetime", datetime);
-            h2kMap2.put("initialMargin", null);
-            h2kMap2.put("initialMarginPercentage", null);
-            h2kMap2.put("maintenanceMargin", null);
-            h2kMap2.put("maintenanceMarginPercentage", null);
-            h2kMap2.put("entryPrice", this.parseNumber(entryPrice));
-            h2kMap2.put("notional", null);
-            h2kMap2.put("leverage", leverage);
-            h2kMap2.put("unrealizedPnl", this.safeNumber(position, "unrealizedPnl", (Object) null));
-            h2kMap2.put("realizedPnl", this.safeNumber(position, "realizedPnL", (Object) null));
-            h2kMap2.put("contracts", this.parseNumber(contracts));
-            h2kMap2.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
-            h2kMap2.put("marginRatio", null);
-            h2kMap2.put("liquidationPrice", null);
-            h2kMap2.put("markPrice", null);
-            h2kMap2.put("lastPrice", this.safeNumber(position, "executionPrice", (Object) null));
-            h2kMap2.put("collateral", null);
-            h2kMap2.put("marginMode", marginType);
-            h2kMap2.put("side", side);
-            h2kMap2.put("percentage", null);
-            return h2kMap2;
-        }
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", position);
+        mapLiteral7.put("id", this.safeString(position, "executionUid"));
+        mapLiteral7.put("symbol", marketResolved.get("symbol"));
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", datetime);
+        mapLiteral7.put("initialMargin", null);
+        mapLiteral7.put("initialMarginPercentage", null);
+        mapLiteral7.put("maintenanceMargin", null);
+        mapLiteral7.put("maintenanceMarginPercentage", null);
+        mapLiteral7.put("entryPrice", this.parseNumber(entryPrice));
+        mapLiteral7.put("notional", null);
+        mapLiteral7.put("leverage", leverage);
+        mapLiteral7.put("unrealizedPnl", this.safeNumber(position, "unrealizedPnl", (Object) null));
+        mapLiteral7.put("realizedPnl", this.safeNumber(position, "realizedPnL", (Object) null));
+        mapLiteral7.put("contracts", this.parseNumber(contracts));
+        mapLiteral7.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral7.put("marginRatio", null);
+        mapLiteral7.put("liquidationPrice", null);
+        mapLiteral7.put("markPrice", null);
+        mapLiteral7.put("lastPrice", this.safeNumber(position, "executionPrice", (Object) null));
+        mapLiteral7.put("collateral", null);
+        mapLiteral7.put("marginMode", marginType);
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("percentage", null);
+        return this.safePosition(mapLiteral7);
     }
 
     /**
@@ -4236,11 +4234,11 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             Object transfer = this.parseTransfer(response, currency);
-            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-            mapLiteral7.put("amount", amount);
-            mapLiteral7.put("fromAccount", fromAccount);
-            mapLiteral7.put("toAccount", toAccount);
-            return this.extend(transfer, mapLiteral7);
+            HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+            mapLiteral8.put("amount", amount);
+            mapLiteral8.put("fromAccount", fromAccount);
+            mapLiteral8.put("toAccount", toAccount);
+            return this.extend(transfer, mapLiteral8);
         }).thenApply(TransferEntry::new);
 
     }
@@ -4407,7 +4405,7 @@ public class Krakenfutures extends KrakenfuturesApi
         throw new ExchangeError(feedback) ;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> apiVersions = (Map<String, Object>) this.safeDict(this.options.get("versions"), apiName, new HashMap<String, Object>() {{}});
@@ -4442,7 +4440,7 @@ public class Krakenfutures extends KrakenfuturesApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + query);
-        String requestBody = (((java.util.Objects.equals(path, "batchorder")))) ? postData : body;
+        String requestBody = (((java.util.Objects.equals(path, "batchorder")))) ? postData : null;
         Map<String, Object> privateHeaders = null;
         if (java.util.Objects.equals(apiName, "private") || java.util.Objects.equals(access, "private"))
         {
@@ -4463,7 +4461,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 put( "Authent", signature );
             }};
         }
-        Object requestHeaders = (((!java.util.Objects.equals(privateHeaders, null)))) ? privateHeaders : headers;
+        Map<String, Object> requestHeaders = privateHeaders;
         return new HashMap<String, Object>() {{
             put( "url", url );
             put( "method", java.util.Objects.requireNonNullElse(method, "GET") );

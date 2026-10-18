@@ -616,8 +616,8 @@ class phemex extends phemex$1["default"] {
                     'BEP20': 'BNB',
                 },
                 'defaultNetworks': {
-                    'USDT': 'ETH',
-                    'MKR': 'ETH',
+                    'USDT': 'ERC20',
+                    'MKR': 'ERC20',
                 },
                 'defaultSubType': 'linear',
                 'accountsByType': {
@@ -3643,7 +3643,9 @@ class phemex extends phemex$1["default"] {
         const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeStringUpper2(params, 'network', 'chainName', defaultNetwork);
         const paramsOmitted = this.omit(params, 'network');
-        network = this.safeString(networks, network, network);
+        if (network !== undefined) {
+            network = this.safeString(networks, this.safeString(this.networkAliases, network, network), network);
+        }
         if (network === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddress() requires a network parameter');
         }
@@ -4770,7 +4772,7 @@ class phemex extends phemex$1["default"] {
         }
         return tiers;
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const query = this.omit(params, this.extractParams(path));
         const requestPath = '/' + this.implodeParams(path, params);
@@ -4816,11 +4818,11 @@ class phemex extends phemex$1["default"] {
         }
         url = this.implodeHostname(baseApiUrl) + url;
         const isPrivatePost = (apiName === 'private') && (method === 'POST');
-        let bodyResolved = body;
+        let bodyResolved = undefined;
         if (isPrivatePost) {
             bodyResolved = requestBody;
         }
-        const requestHeaders = (apiName === 'private') ? privateHeaders : headers;
+        const requestHeaders = (apiName === 'private') ? privateHeaders : undefined;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': requestHeaders };
     }
     /**

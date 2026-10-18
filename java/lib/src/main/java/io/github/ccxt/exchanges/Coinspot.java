@@ -1163,10 +1163,10 @@ public class Coinspot extends CoinspotApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
         Integer apiLength = ((List<?>)api).size();
         Boolean isVersionedApi = (apiLength != null && apiLength > 1);
         Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)) : null;

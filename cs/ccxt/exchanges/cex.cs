@@ -310,7 +310,7 @@ public partial class cex : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "bitcoin" },
                     { "ERC20", "ERC20" },
-                    { "BSC20", "binancesmartchain" },
+                    { "BEP20", "binancesmartchain" },
                     { "DOGE", "dogecoin" },
                     { "ALGO", "algorand" },
                     { "XLM", "stellar" },
@@ -322,7 +322,7 @@ public partial class cex : Exchange
                     { "THETA", "theta" },
                     { "XTZ", "tezos" },
                     { "TIA", "celestia" },
-                    { "CRONOS", "cronos" },
+                    { "CRC20", "cronos" },
                     { "MATIC", "polygon" },
                     { "TON", "ton" },
                     { "TRC20", "tron" },
@@ -2021,7 +2021,7 @@ public partial class cex : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2078,8 +2078,8 @@ public partial class cex : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

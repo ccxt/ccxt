@@ -258,7 +258,7 @@ class cex extends Exchange {
                 'networks' => array(
                     'BTC' => 'bitcoin',
                     'ERC20' => 'ERC20',
-                    'BSC20' => 'binancesmartchain',
+                    'BEP20' => 'binancesmartchain',
                     'DOGE' => 'dogecoin',
                     'ALGO' => 'algorand',
                     'XLM' => 'stellar',
@@ -270,7 +270,7 @@ class cex extends Exchange {
                     'THETA' => 'theta',
                     'XTZ' => 'tezos',
                     'TIA' => 'celestia',
-                    'CRONOS' => 'cronos', // CRC20
+                    'CRC20' => 'cronos',
                     'MATIC' => 'polygon',
                     'TON' => 'ton',
                     'TRC20' => 'tron',
@@ -1811,7 +1811,7 @@ class cex extends Exchange {
         );
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
@@ -1845,7 +1845,7 @@ class cex extends Exchange {
             );
             return array( 'url' => $url, 'method' => $method, 'body' => $bodySigned, 'headers' => $headersSigned );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

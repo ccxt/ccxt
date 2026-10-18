@@ -1151,9 +1151,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'BTC': 'btc',
                     'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'HECO': 'heco',
                     'HRC20': 'heco',
@@ -3601,7 +3599,7 @@ class kucoin(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': currencyId,
-            'network': self.safe_string(data, 'chain'),
+            'network': self.network_id_to_code(self.safe_string(data, 'chain'), code),
             'address': address,
             'tag': self.safe_string(data, 'memo'),
         }
@@ -10204,6 +10202,20 @@ class kucoin(Exchange, ImplicitAPI):
         marginMode = self.safe_string_lower(position, 'marginMode')
         if crossMode is not None:
             marginMode = 'cross' if (crossMode is True) else 'isolated'
+        collateralString = self.safe_string(position, 'maintMargin')
+        marginString = None
+        if (collateralString is None) and (marginMode == 'isolated'):
+            posMargin = self.safe_string(position, 'posMargin')
+            if posMargin is None:
+                posComm = self.safe_string(position, 'posComm')
+                posCross = self.safe_string(position, 'posCross')
+                if (initialMargin is not None) and (posComm is not None):
+                    posMargin = Precise.string_add(initialMargin, posComm)
+                    if posCross is not None:
+                        posMargin = Precise.string_add(posMargin, posCross)
+            if posMargin is not None:
+                marginString = posMargin
+                collateralString = Precise.string_add(posMargin, unrealisedPnl) if (unrealisedPnl is not None) else posMargin
         lastUpdateTimestamp = self.safe_integer(position, 'closeTime')
         if lastUpdateTimestamp is None:
             if 'closingTime' in position:
@@ -10232,7 +10244,8 @@ class kucoin(Exchange, ImplicitAPI):
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'markPrice': self.safe_number(position, 'markPrice'),
             'lastPrice': self.safe_number(position, 'closePrice'),
-            'collateral': self.safe_number(position, 'maintMargin'),
+            'positionMargin': self.parse_number(marginString),
+            'collateral': self.parse_number(collateralString),
             'marginMode': marginMode,
             'side': side,
             'percentage': None,
@@ -10964,7 +10977,7 @@ class kucoin(Exchange, ImplicitAPI):
             self.options['uta'] = uta
         return uta
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         #
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
@@ -10992,9 +11005,7 @@ class kucoin(Exchange, ImplicitAPI):
         query = self.omit(paramsOmitted, self.extract_params(path))
         endpart = ''
         headersBase = {}
-        if headers is not None:
-            headersBase = headers
-        bodyJson = body
+        bodyJson = None
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')

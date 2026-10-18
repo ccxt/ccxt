@@ -1762,9 +1762,7 @@ public class Kucoin extends KucoinApi
                     put( "BTC", "btc" );
                     put( "BRC20", "btc" );
                     put( "BTCNATIVESEGWIT", "bech32" );
-                    put( "ETH", "eth" );
                     put( "ERC20", "eth" );
-                    put( "TRX", "trx" );
                     put( "TRC20", "trx" );
                     put( "HECO", "heco" );
                     put( "HRC20", "heco" );
@@ -4419,7 +4417,7 @@ public class Kucoin extends KucoinApi
                 HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
                 h2kMap1.put("info", response);
                 h2kMap1.put("currency", currencyId);
-                h2kMap1.put("network", this.safeString(data, "chain"));
+                h2kMap1.put("network", this.networkIdToCode(this.safeString(data, "chain"), code));
                 h2kMap1.put("address", address);
                 h2kMap1.put("tag", this.safeString(data, "memo"));
                 return h2kMap1;
@@ -12775,6 +12773,30 @@ public class Kucoin extends KucoinApi
         {
             marginMode = (((java.util.Objects.equals(crossMode, true)))) ? "cross" : "isolated";
         }
+        String collateralString = this.safeString(position, "maintMargin");
+        String marginString = null;
+        if ((java.util.Objects.equals(collateralString, null)) && (java.util.Objects.equals(marginMode, "isolated")))
+        {
+            String posMargin = this.safeString(position, "posMargin");
+            if (java.util.Objects.equals(posMargin, null))
+            {
+                String posComm = this.safeString(position, "posComm");
+                String posCross = this.safeString(position, "posCross");
+                if ((!java.util.Objects.equals(initialMargin, null)) && (!java.util.Objects.equals(posComm, null)))
+                {
+                    posMargin = Precise.stringAdd(initialMargin, posComm);
+                    if (!java.util.Objects.equals(posCross, null))
+                    {
+                        posMargin = Precise.stringAdd(posMargin, posCross);
+                    }
+                }
+            }
+            if (!java.util.Objects.equals(posMargin, null))
+            {
+                marginString = posMargin;
+                collateralString = (((!java.util.Objects.equals(unrealisedPnl, null)))) ? Precise.stringAdd(posMargin, unrealisedPnl) : posMargin;
+            }
+        }
         Long lastUpdateTimestamp = this.safeInteger(position, "closeTime");
         if (java.util.Objects.equals(lastUpdateTimestamp, null))
         {
@@ -12808,7 +12830,8 @@ public class Kucoin extends KucoinApi
         mapLiteral16.put("liquidationPrice", this.safeNumber(position, "liquidationPrice", (Object) null));
         mapLiteral16.put("markPrice", this.safeNumber(position, "markPrice", (Object) null));
         mapLiteral16.put("lastPrice", this.safeNumber(position, "closePrice", (Object) null));
-        mapLiteral16.put("collateral", this.safeNumber(position, "maintMargin", (Object) null));
+        mapLiteral16.put("positionMargin", this.parseNumber(marginString));
+        mapLiteral16.put("collateral", this.parseNumber(collateralString));
         mapLiteral16.put("marginMode", marginMode);
         mapLiteral16.put("side", side);
         mapLiteral16.put("percentage", null);
@@ -13740,7 +13763,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         //
@@ -13778,12 +13801,8 @@ public class Kucoin extends KucoinApi
         }
         Object query = this.omit(paramsOmitted, this.extractParams(path));
         String endpart = "";
-        Object headersBase = new HashMap<String, Object>() {{}};
-        if (!java.util.Objects.equals(headers, null))
-        {
-            headersBase = headers;
-        }
-        String bodyJson = body;
+        Map<String, Object> headersBase = new HashMap<String, Object>() {{}};
+        String bodyJson = null;
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -13803,7 +13822,7 @@ public class Kucoin extends KucoinApi
                 }
                 bodyJson = this.json(query);
                 endpart = bodyJson;
-                ((Map<String, Object>)headersBase).put("Content-Type", "application/json");
+                headersBase.put("Content-Type", "application/json");
             }
         }
         Object headersResult = headersBase;

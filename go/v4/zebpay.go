@@ -2588,12 +2588,20 @@ func (this *Zebpay) ParsePosition(position any, optionalArgs ...any) any {
 	var datetime *string = this.SafeString(position, "datetime")
 	var marketId *string = this.SafeString(position, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	return map[string]any{
+	var marginMode *string = this.SafeStringLower(position, "marginMode", "isolated")
+	var initialMargin *float64 = this.SafeNumber(position, "initialMargin")
+	// isolated positions hold exactly the initial margin posted for them
+	var positionMargin *float64 = nil
+	if marginMode != nil && *marginMode == "isolated" {
+		positionMargin = initialMargin
+	}
+	return this.SafePosition(map[string]any{
 		"info":                        position,
-		"symbol":                      marketId,
+		"id":                          this.SafeString(position, "id"),
+		"symbol":                      marketResolved["symbol"],
 		"timestamp":                   this.Parse8601(datetime),
 		"datetime":                    datetime,
-		"initialMargin":               this.SafeNumber(position, "initialMargin"),
+		"initialMargin":               initialMargin,
 		"initialMarginPercentage":     nil,
 		"maintenanceMargin":           nil,
 		"maintenanceMarginPercentage": nil,
@@ -2606,11 +2614,12 @@ func (this *Zebpay) ParsePosition(position any, optionalArgs ...any) any {
 		"marginRatio":                 nil,
 		"liquidationPrice":            this.SafeNumber(position, "liquidationPrice"),
 		"markPrice":                   nil,
+		"positionMargin":              positionMargin,
 		"collateral":                  nil,
-		"marginMode":                  "isolated",
-		"side":                        this.SafeString(position, "side"),
+		"marginMode":                  marginMode,
+		"side":                        this.SafeStringLower(position, "side"),
 		"percentage":                  nil,
-	}
+	})
 }
 func (this *Zebpay) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
@@ -2727,10 +2736,6 @@ func (this *Zebpay) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var bodySigned any = nil
 	var headersSigned any = nil
 	var paramsOmitted any = this.Omit(params, "defaultType")
@@ -2791,18 +2796,8 @@ func (this *Zebpay) Sign(path string, optionalArgs ...any) any {
 		}
 		AddElementToObject(headersSigned, "Content-Type", "application/json")
 	}
-	var headersResolved any = func() any {
-		if headersSigned == nil {
-			return headers
-		}
-		return headersSigned
-	}()
-	var bodyResolved any = func() any {
-		if bodySigned == nil {
-			return body
-		}
-		return bodySigned
-	}()
+	var headersResolved any = headersSigned
+	var bodyResolved any = bodySigned
 	return map[string]any{
 		"url":     url,
 		"method":  method,

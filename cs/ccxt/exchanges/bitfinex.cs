@@ -1167,7 +1167,7 @@ public partial class bitfinex : Exchange
                 networks[(string)network] = new Dictionary<string, object>() {
                     { "info", networkId },
                     { "id", networkId.ToLower() },
-                    { "network", networkId },
+                    { "network", network },
                     { "active", null },
                     { "deposit", (this.safeInteger(dwStatuses, 1) == 1) },
                     { "withdraw", (this.safeInteger(dwStatuses, 2) == 1) },
@@ -1573,9 +1573,7 @@ public partial class bitfinex : Exchange
             bid = this.safeString(ticker, (2 - minusIndex));
             ask = this.safeString(ticker, (5 - minusIndex));
             change = this.safeString(ticker, (8 - minusIndex));
-            // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
-            // branch reads at index 6 and scales
-            percentage = Precise.stringMul(this.safeString(ticker, (9 - minusIndex)), "100");
+            // funding DAILY_CHANGE_RELATIVE is not change / (last - change), let safeTicker derive percentage
             volume = this.safeString(ticker, (11 - minusIndex));
             high = this.safeString(ticker, (12 - minusIndex));
             low = this.safeString(ticker, (13 - minusIndex));
@@ -2881,7 +2879,8 @@ public partial class bitfinex : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
-        string? network = this.safeString(parameters, "network", code);
+        string? networkParam = this.safeString(parameters, "network", code);
+        string? network = this.safeString(this.networkAliases, networkParam, networkParam);
         IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         IDictionary<string, object> currencyNetwork = this.safeDict(currencyNetworks, network);
         string? networkId = this.safeString(currencyNetwork, "id");
@@ -3312,7 +3311,8 @@ public partial class bitfinex : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
-        string? network = this.safeString(paramsWithdrawTag, "network", code);
+        string? networkParam = this.safeString(paramsWithdrawTag, "network", code);
+        string? network = this.safeString(this.networkAliases, networkParam, networkParam);
         Dictionary<string, object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
         IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         IDictionary<string, object> currencyNetwork = this.safeDict(currencyNetworks, network);
@@ -3528,7 +3528,7 @@ public partial class bitfinex : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -3573,8 +3573,8 @@ public partial class bitfinex : Exchange
                 { "Content-Type", "application/json" },
             };
         }
-        object bodyResolved = ((requestBody == null)) ? body : requestBody;
-        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResolved = requestBody;
+        Dictionary<string, object> headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

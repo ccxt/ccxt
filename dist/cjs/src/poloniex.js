@@ -89,8 +89,8 @@ class poloniex extends poloniex$1["default"] {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': 'emulated',
-                'fetchTransfer': false,
-                'fetchTransfers': false,
+                'fetchTransfer': true,
+                'fetchTransfers': true,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
@@ -318,7 +318,6 @@ class poloniex extends poloniex$1["default"] {
                     'ERC20': 'ETH',
                     // v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -348,6 +347,8 @@ class poloniex extends poloniex$1["default"] {
                 'accountsById': {
                     'exchange': 'spot',
                     'futures': 'future',
+                    'SPOT': 'spot',
+                    'FUTURES': 'future',
                 },
             },
             'features': {
@@ -2932,7 +2933,7 @@ class poloniex extends poloniex$1["default"] {
             exchangeNetworkId = networkEntry['id'];
         }
         else {
-            exchangeNetworkId = networkCode;
+            exchangeNetworkId = this.networkCodeToId(networkCode, code);
         }
         const request = {
             'currency': exchangeNetworkId,
@@ -2978,9 +2979,10 @@ class poloniex extends poloniex$1["default"] {
         const currency = this.currency(code);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString(accountsByType, toAccount, fromAccount);
+        const toId = this.safeString(accountsByType, toAccount, toAccount);
+        const amountToPrecision = this.currencyToPrecision(code, amount);
         const request = {
-            'amount': this.currencyToPrecision(code, amount),
+            'amount': amountToPrecision,
             'currency': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,
@@ -2991,24 +2993,127 @@ class poloniex extends poloniex$1["default"] {
         //        "transferId" : "168041074"
         //    }
         //
-        return this.parseTransfer(response, currency);
+        return this.extend(this.parseTransfer(response, currency), {
+            'amount': this.parseNumber(amountToPrecision),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        });
+    }
+    /**
+     * @method
+     * @name poloniex#fetchTransfer
+     * @description fetch a transfer
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-record
+     * @param {string} id transfer id
+     * @param {string} [code] not used by poloniex fetchTransfer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async fetchTransfer(id, code = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {
+            'id': id,
+        };
+        const response = await this.privateGetAccountsTransferId(this.extend(request, params));
+        //
+        //     {
+        //         "id": "342284495",
+        //         "fromAccount": "FUTURES",
+        //         "toAccount": "SPOT",
+        //         "currency": "USDT",
+        //         "amount": "6",
+        //         "state": "SUCCESS",
+        //         "createTime": 1787154736417
+        //     }
+        //
+        return this.parseTransfer(response);
+    }
+    /**
+     * @method
+     * @name poloniex#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-records
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve, default 100, max 1000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
+        const response = await this.privateGetAccountsTransfer(this.extend(requestUntil, paramsUntil));
+        //
+        //     [
+        //         {
+        //             "id": "342284495",
+        //             "fromAccount": "FUTURES",
+        //             "toAccount": "SPOT",
+        //             "currency": "USDT",
+        //             "amount": "6",
+        //             "state": "SUCCESS",
+        //             "createTime": 1787154736417
+        //         }
+        //     ]
+        //
+        return this.parseTransfers(response, currency, since, limit);
+    }
+    parseTransferStatus(status) {
+        const statuses = {
+            'SUCCESS': 'ok',
+            'PROCESSING': 'pending',
+            'PROCESSSING': 'pending',
+            'FAILED': 'failed',
+        };
+        return this.safeString(statuses, status, status);
     }
     parseTransfer(transfer, currency = undefined) {
         //
-        //    {
-        //        "transferId" : "168041074"
-        //    }
+        // transfer
         //
+        //     {
+        //         "transferId" : "168041074"
+        //     }
+        //
+        // fetchTransfer, fetchTransfers
+        //
+        //     {
+        //         "id": "342284495",
+        //         "fromAccount": "FUTURES",
+        //         "toAccount": "SPOT",
+        //         "currency": "USDT",
+        //         "amount": "6",
+        //         "state": "SUCCESS",
+        //         "createTime": 1787154736417
+        //     }
+        //
+        const timestamp = this.safeInteger(transfer, 'createTime');
+        const fromAccountId = this.safeString(transfer, 'fromAccount');
+        const toAccountId = this.safeString(transfer, 'toAccount');
+        const accountIds = this.safeDict(this.options, 'accountsById', {});
         return {
             'info': transfer,
-            'id': this.safeString(transfer, 'transferId'),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'currency': this.safeString(currency, 'id'),
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
-            'status': undefined,
+            'id': this.safeString2(transfer, 'id', 'transferId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'currency': this.safeCurrencyCode(this.safeString(transfer, 'currency'), currency),
+            'amount': this.safeNumber(transfer, 'amount'),
+            'fromAccount': this.safeString(accountIds, fromAccountId, fromAccountId),
+            'toAccount': this.safeString(accountIds, toAccountId, toAccountId),
+            'status': this.parseTransferStatus(this.safeString(transfer, 'state')),
         };
     }
     /**
@@ -3707,9 +3812,13 @@ class poloniex extends poloniex$1["default"] {
         const leverage = this.safeString(position, 'lever');
         const initialMargin = this.safeString(position, 'im');
         const notional = Precise["default"].stringMul(leverage, initialMargin);
-        const qty = this.safeString(position, 'qty');
-        const avgPrice = this.safeString(position, 'openAvgPx');
-        const collateral = Precise["default"].stringMul(qty, avgPrice);
+        let positionMargin = undefined;
+        let collateral = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.omitZero(this.safeString(position, 'mgn'));
+            const upl = this.safeString(position, 'upl');
+            collateral = ((positionMargin !== undefined) && (upl !== undefined)) ? Precise["default"].stringAdd(positionMargin, upl) : undefined;
+        }
         // todo: some more fields
         return this.safePosition({
             'info': position,
@@ -3732,7 +3841,8 @@ class poloniex extends poloniex$1["default"] {
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': this.safeNumber(position, 'mm'),
             'maintenanceMarginPercentage': undefined,
-            'collateral': collateral,
+            'collateral': this.parseNumber(collateral),
+            'positionMargin': this.parseNumber(positionMargin),
             'initialMargin': initialMargin,
             'initialMarginPercentage': undefined,
             'leverage': parseInt(leverage),
@@ -3819,7 +3929,7 @@ class poloniex extends poloniex$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const isArray = Array.isArray(params);
         let url = this.urls['api']['spot'];
@@ -3869,8 +3979,8 @@ class poloniex extends poloniex$1["default"] {
                 'signature': signature,
             };
         }
-        const bodyResolved = (bodyJson === undefined) ? body : bodyJson;
-        const headersResolved = (signedHeaders === undefined) ? headers : signedHeaders;
+        const bodyResolved = bodyJson;
+        const headersResolved = signedHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

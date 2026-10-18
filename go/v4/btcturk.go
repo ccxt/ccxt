@@ -1416,10 +1416,6 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	if this.Id == "btctrader" {
 		panic(ExchangeError(this.Id + " is an abstract base API for BTCExchange, BTCTurk"))
@@ -1437,7 +1433,7 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
 	}
 	var requestBody any = nil
 	if isQueryMethod {
-		requestBody = body
+		requestBody = nil
 	} else {
 		requestBody = this.Json(params)
 	}
@@ -1454,12 +1450,7 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
 			"Content-Type": "application/json",
 		}
 	}
-	var requestHeaders any = func() any {
-		if privateHeaders != nil {
-			return privateHeaders
-		}
-		return headers
-	}()
+	var requestHeaders any = privateHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,

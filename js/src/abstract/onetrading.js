@@ -8,94 +8,94 @@
 import { Exchange as _Exchange } from '../base/Exchange.js';
 class Exchange extends _Exchange {
     publicGetCurrencies(params = {}) {
-        return this.request('currencies', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('currencies', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetCandlesticksInstrumentCode(params = {}) {
-        return this.request('candlesticks/{instrument_code}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('candlesticks/{instrument_code}', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetFees(params = {}) {
-        return this.request('fees', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('fees', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetInstruments(params = {}) {
-        return this.request('instruments', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('instruments', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetOrderBookInstrumentCode(params = {}) {
-        return this.request('order-book/{instrument_code}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('order-book/{instrument_code}', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketTicker(params = {}) {
-        return this.request('market-ticker', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market-ticker', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetMarketTickerInstrumentCode(params = {}) {
-        return this.request('market-ticker/{instrument_code}', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('market-ticker/{instrument_code}', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetTime(params = {}) {
-        return this.request('time', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('time', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetFundingRate(params = {}) {
-        return this.request('funding-rate', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('funding-rate', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetFundingRateHistory(params = {}) {
-        return this.request('funding-rate/history', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('funding-rate/history', ['public'], 'GET', params, { 'cost': 1 });
     }
     publicGetFundingRateSettings(params = {}) {
-        return this.request('funding-rate/settings', ['public'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('funding-rate/settings', ['public'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountBalances(params = {}) {
-        return this.request('account/balances', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/balances', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountFees(params = {}) {
-        return this.request('account/fees', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/fees', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountOrders(params = {}) {
-        return this.request('account/orders', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/orders', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountOrdersOrderId(params = {}) {
-        return this.request('account/orders/{order_id}', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/orders/{order_id}', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountOrdersClientClientId(params = {}) {
-        return this.request('account/orders/client/{client_id}', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/orders/client/{client_id}', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountOrdersOrderIdTrades(params = {}) {
-        return this.request('account/orders/{order_id}/trades', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/orders/{order_id}/trades', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountTrades(params = {}) {
-        return this.request('account/trades', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/trades', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountTradeTradeId(params = {}) {
-        return this.request('account/trade/{trade_id}', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/trade/{trade_id}', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountFuturesSummary(params = {}) {
-        return this.request('account/futures/summary', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/futures/summary', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountFuturesPositions(params = {}) {
-        return this.request('account/futures/positions', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/futures/positions', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountFuturesPositionsHistory(params = {}) {
-        return this.request('account/futures/positions-history', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/futures/positions-history', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountFuturesPositionsPositionIdTrades(params = {}) {
-        return this.request('account/futures/positions/{position_id}/trades', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/futures/positions/{position_id}/trades', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountFuturesPositionsPositionIdFundingPayments(params = {}) {
-        return this.request('account/futures/positions/{position_id}/funding-payments', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/futures/positions/{position_id}/funding-payments', ['private'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccountFuturesFundingPayments(params = {}) {
-        return this.request('account/futures/funding-payments', ['private'], 'GET', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/futures/funding-payments', ['private'], 'GET', params, { 'cost': 1 });
     }
     privatePostAccountOrders(params = {}) {
-        return this.request('account/orders', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/orders', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostSubaccountsTransfers(params = {}) {
-        return this.request('subaccounts/transfers', ['private'], 'POST', params, undefined, undefined, { 'cost': 1 });
+        return this.request('subaccounts/transfers', ['private'], 'POST', params, { 'cost': 1 });
     }
     privateDeleteAccountOrders(params = {}) {
-        return this.request('account/orders', ['private'], 'DELETE', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/orders', ['private'], 'DELETE', params, { 'cost': 1 });
     }
     privateDeleteAccountOrdersOrderId(params = {}) {
-        return this.request('account/orders/{order_id}', ['private'], 'DELETE', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/orders/{order_id}', ['private'], 'DELETE', params, { 'cost': 1 });
     }
     privateDeleteAccountOrdersClientClientId(params = {}) {
-        return this.request('account/orders/client/{client_id}', ['private'], 'DELETE', params, undefined, undefined, { 'cost': 1 });
+        return this.request('account/orders/client/{client_id}', ['private'], 'DELETE', params, { 'cost': 1 });
     }
 }
 export default Exchange;

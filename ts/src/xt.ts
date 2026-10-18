@@ -618,10 +618,8 @@ export default class xt extends Exchange {
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
-                    'TRX': 'Tron',
                     'BEP20': 'BNB Smart Chain',
                     'BEP2': 'BNB-BEP2',
-                    'ETH': 'Ethereum',
                     'AVAX': 'AVAX C-Chain',
                     'GAL': 'GAL(FT)',
                     'ALEO': 'ALEO(IOU)',
@@ -2026,7 +2024,12 @@ export default class xt extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market, '_', marketType);
         const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (ticker, 't');
-        let percentage = this.safeString2 (ticker, 'cr', 'r');
+        const open = this.safeString (ticker, 'o');
+        // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
+        let percentage = this.safeString (ticker, 'r');
+        if (open === undefined) {
+            percentage = this.safeString2 (ticker, 'cr', 'r');
+        }
         if (percentage !== undefined) {
             percentage = Precise.stringMul (percentage, '100');
         }
@@ -2054,11 +2057,11 @@ export default class xt extends Exchange {
             'ask': this.safeNumber (ticker, 'ap'),
             'askVolume': this.safeNumber (ticker, 'aq'),
             'vwap': undefined,
-            'open': this.safeString (ticker, 'o'),
+            'open': open,
             'close': this.safeString (ticker, 'c'),
             'last': this.safeString (ticker, 'c'),
             'previousClose': undefined,
-            'change': this.safeNumber (ticker, 'cv'),
+            'change': undefined,
             'percentage': this.parseNumber (percentage),
             'average': undefined,
             'baseVolume': baseVolume,
@@ -5856,7 +5859,7 @@ export default class xt extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api: string[] = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: string, api: string[] = [], method = 'GET', params = {}) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams (path, params);
@@ -5942,7 +5945,7 @@ export default class xt extends Exchange {
                 url += '?' + urlencoded;
             }
         }
-        let bodyValue = body;
+        let bodyValue = undefined;
         if (signed) {
             bodyValue = signedBody;
         }

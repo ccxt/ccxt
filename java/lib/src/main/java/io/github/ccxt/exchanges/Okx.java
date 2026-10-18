@@ -2112,15 +2112,11 @@ public class Okx extends OkxApi
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "Bitcoin" );
                     put( "BTCLIGHTNING", "Lightning" );
-                    put( "BSC", "BSC" );
                     put( "BEP20", "BSC" );
                     put( "BRC20", "BRC20" );
-                    put( "ETH", "ERC20" );
                     put( "ERC20", "ERC20" );
-                    put( "TRX", "TRC20" );
                     put( "TRC20", "TRC20" );
                     put( "CRC20", "Crypto" );
-                    put( "CRONOS", "Crypto" );
                     put( "ACA", "Acala" );
                     put( "ALGO", "Algorand" );
                     put( "APT", "Aptos" );
@@ -7100,7 +7096,9 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(network, null))
             {
                 Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-                network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
+                String networkUpper = network.toUpperCase();
+                String networkKey = this.safeString(this.networkAliases, networkUpper, networkUpper);
+                network = this.safeString(networks, networkKey, network); // resolve aliases to the unified key
                 request.put("chain", ((currency.get("id") + "-") + network));
             }
             List<Object> omitKeys = new ArrayList<Object>(Arrays.asList("fee"));
@@ -8008,14 +8006,21 @@ public class Okx extends OkxApi
         String leverageString = this.safeString(position, "lever");
         Object initialMarginPercentage = null;
         String collateralString = null;
+        String marginString = null;
         if (java.util.Objects.equals(marginMode, "cross"))
         {
             initialMarginString = this.safeString(position, "imr");
-            collateralString = Precise.stringAdd(initialMarginString, unrealizedPnlString);
+            collateralString = (((!java.util.Objects.equals(unrealizedPnlString, null)))) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (java.util.Objects.equals(marginMode, "isolated"))
         {
             initialMarginPercentage = Precise.stringDiv("1", leverageString);
-            collateralString = this.safeString(position, "margin");
+            String isolatedMarginString = this.omitZero(this.safeString(position, "margin"));
+            if (!java.util.Objects.equals(isolatedMarginString, null))
+            {
+                initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
+                collateralString = (((!java.util.Objects.equals(unrealizedPnlString, null)))) ? Precise.stringAdd(isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
+            }
         }
         String maintenanceMarginString = this.safeString(position, "mmr");
         Double maintenanceMargin = this.parseNumber(maintenanceMarginString);
@@ -8035,8 +8040,34 @@ public class Okx extends OkxApi
             }
         }
         String rounder = "0.00005"; // round to closest 0.01%
-        Double maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
-        Double liquidationPrice = this.safeNumber(position, "liqPx", (Object) null);
+        Double maintenanceMarginPercentage = (((!java.util.Objects.equals(maintenanceMarginPercentageString, null)))) ? this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4)) : null;
+        Object liquidationPriceString = this.omitZero(this.safeString(position, "liqPx"));
+        if ((java.util.Objects.equals(liquidationPriceString, null)) && (java.util.Objects.equals(marginMode, "isolated")) && (!java.util.Objects.equals(initialMarginString, null)) && (!java.util.Objects.equals(entryPriceString, null)) && (!java.util.Objects.equals(contractsAbs, null)) && Precise.stringGt(contractsAbs, "0") && (!java.util.Objects.equals(contractSizeString, null)) && (!java.util.Objects.equals(maintenanceMarginPercentage, null)))
+        {
+            String takerFeeRate = this.safeString(marketResolved, "taker", "0.0005");
+            String mmpWithFee = Precise.stringAdd(this.numberToString(maintenanceMarginPercentage), takerFeeRate);
+            String totalSize = Precise.stringMul(contractsAbs, contractSizeString);
+            if (java.util.Objects.equals(marketResolved.get("inverse"), true))
+            {
+                String invEntry = Precise.stringDiv(totalSize, entryPriceString);
+                String denom = (((java.util.Objects.equals(side, "long")))) ? Precise.stringAdd(invEntry, initialMarginString) : Precise.stringSub(invEntry, initialMarginString);
+                String numFactor = (((java.util.Objects.equals(side, "long")))) ? Precise.stringAdd("1", mmpWithFee) : Precise.stringSub("1", mmpWithFee);
+                if ((!java.util.Objects.equals(denom, null)) && Precise.stringGt(denom, "0"))
+                {
+                    liquidationPriceString = Precise.stringDiv(Precise.stringMul(totalSize, numFactor), denom);
+                }
+            } else
+            {
+                String marginPerUnit = Precise.stringDiv(initialMarginString, totalSize);
+                String num = (((java.util.Objects.equals(side, "long")))) ? Precise.stringSub(entryPriceString, marginPerUnit) : Precise.stringAdd(entryPriceString, marginPerUnit);
+                String denom = (((java.util.Objects.equals(side, "long")))) ? Precise.stringSub("1", mmpWithFee) : Precise.stringAdd("1", mmpWithFee);
+                if ((!java.util.Objects.equals(denom, null)) && Precise.stringGt(denom, "0"))
+                {
+                    liquidationPriceString = Precise.stringDiv(num, denom);
+                }
+            }
+        }
+        Double liquidationPrice = ((((!java.util.Objects.equals(liquidationPriceString, null)) && Precise.stringGt(liquidationPriceString, "0")))) ? this.parseNumber(liquidationPriceString) : null;
         String percentageString = this.safeString(position, "uplRatio");
         Double percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Long timestamp = this.safeInteger(position, "cTime");
@@ -8063,6 +8094,7 @@ public class Okx extends OkxApi
         mapLiteral8.put("lastUpdateTimestamp", this.safeInteger(position, "uTime"));
         mapLiteral8.put("maintenanceMargin", maintenanceMargin);
         mapLiteral8.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
+        mapLiteral8.put("positionMargin", this.parseNumber(marginString));
         mapLiteral8.put("collateral", this.parseNumber(collateralString));
         mapLiteral8.put("initialMargin", this.parseNumber(initialMarginString));
         mapLiteral8.put("initialMarginPercentage", this.parseNumber(initialMarginPercentage));
@@ -8360,7 +8392,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Boolean isArray = (parameters instanceof List);
@@ -8440,12 +8472,12 @@ public class Okx extends OkxApi
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             privateHeaders.put("OK-ACCESS-SIGN", signature);
         }
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(hasJsonBody))
         {
             requestBody = jsonBody;
         }
-        Object requestHeaders = (((java.util.Objects.equals(apiName, "private")))) ? privateHeaders : headers;
+        Map<String, Object> requestHeaders = (((java.util.Objects.equals(apiName, "private")))) ? privateHeaders : null;
         {
             HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
             h2kMap4.put("url", url);
@@ -9439,8 +9471,8 @@ public class Okx extends OkxApi
             }
             Map<String, Object> market = this.market(symbol);
             String type = (((java.util.Objects.equals(market.get("spot"), true)))) ? "MARGIN" : this.convertToInstrumentType(market.get("type"));
-            String uly = this.safeString(market.get("info"), "uly");
-            if ((java.util.Objects.equals(uly, null)) || (java.util.Objects.equals(uly, "")))
+            String instFamily = this.safeString(market.get("info"), "instFamily");
+            if ((java.util.Objects.equals(instFamily, null)) || (java.util.Objects.equals(instFamily, "")))
             {
                 if (!java.util.Objects.equals(type, "MARGIN"))
                 {
@@ -9455,7 +9487,7 @@ public class Okx extends OkxApi
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("instType", type);
             request.put("tdMode", marginMode);
-            request.put("uly", uly);
+            request.put("instFamily", instFamily);
             if (java.util.Objects.equals(type, "MARGIN"))
             {
                 request.put("instId", market.get("id"));

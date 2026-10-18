@@ -2898,7 +2898,7 @@ public class Upbit extends UpbitApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -2919,7 +2919,7 @@ public class Upbit extends UpbitApi
             }
         }
         Boolean hasBody = (java.util.Objects.equals(apiName, "private")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(hasBody))
         {
             requestBody = this.json(parameters);
@@ -2953,7 +2953,7 @@ public class Upbit extends UpbitApi
             String token = jwt(request, this.encode(this.secret), sha256());
             privateHeaders.put("Authorization", ("Bearer " + token));
         }
-        Object requestHeaders = (((java.util.Objects.equals(apiName, "private")))) ? privateHeaders : headers;
+        Map<String, Object> requestHeaders = (((java.util.Objects.equals(apiName, "private")))) ? privateHeaders : null;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);

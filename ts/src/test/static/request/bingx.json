@@ -8,6 +8,34 @@
     ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchBidsAsks": [
+            {
+                "description": "spot bids and asks for all symbols",
+                "method": "fetchBidsAsks",
+                "url": "https://open-api.bingx.com/openApi/spot/v2/quote/bookTicker?timestamp=1792134369464",
+                "input": []
+            },
+            {
+                "description": "linear swap bids and asks for one symbol",
+                "method": "fetchBidsAsks",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/quote/bookTicker?symbol=BTC-USDT&timestamp=1792134368328",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "spot bids and asks for one symbol",
+                "method": "fetchBidsAsks",
+                "url": "https://open-api.bingx.com/openApi/spot/v2/quote/bookTicker?symbol=BTC-USDT&timestamp=1792134367084",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ]
+            }
+        ],
         "accountV1PrivateGetAccountApiRestrictions": [
             {
                 "description": "fetch API key restrictions",

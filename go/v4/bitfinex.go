@@ -1264,7 +1264,7 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
 			networks[*network] = map[string]any{
 				"info":      networkId,
 				"id":        strings.ToLower(*networkId),
-				"network":   networkId,
+				"network":   network,
 				"active":    nil,
 				"deposit":   IsEqual(this.SafeInteger(dwStatuses, 1), 1),
 				"withdraw":  IsEqual(this.SafeInteger(dwStatuses, 2), 1),
@@ -1739,9 +1739,7 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		bid = this.SafeString(ticker, 2-minusIndex)
 		ask = this.SafeString(ticker, 5-minusIndex)
 		change = this.SafeString(ticker, 8-minusIndex)
-		// DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
-		// branch reads at index 6 and scales
-		percentage = Precise.StringMul(this.SafeString(ticker, 9-minusIndex), "100")
+		// funding DAILY_CHANGE_RELATIVE is not change / (last - change), let safeTicker derive percentage
 		volume = this.SafeString(ticker, 11-minusIndex)
 		high = this.SafeString(ticker, 12-minusIndex)
 		low = this.SafeString(ticker, 13-minusIndex)
@@ -2064,11 +2062,11 @@ func (this *Bitfinex) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes153719 []any = ListTyped(r1.Value)
-		if retRes153719 == nil {
+		var retRes153519 []any = ListTyped(r1.Value)
+		if retRes153519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes153719}
+			ch <- AsyncResult[any]{Value: retRes153519}
 		}
 		return nil
 	}
@@ -2164,11 +2162,11 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes159319 []any = ListTyped(r1.Value)
-		if retRes159319 == nil {
+		var retRes159119 []any = ListTyped(r1.Value)
+		if retRes159119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes159319}
+			ch <- AsyncResult[any]{Value: retRes159119}
 		}
 		return nil
 	}
@@ -3111,11 +3109,11 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes229219 []any = ListTyped(r1.Value)
-		if retRes229219 == nil {
+		var retRes229019 []any = ListTyped(r1.Value)
+		if retRes229019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes229219}
+			ch <- AsyncResult[any]{Value: retRes229019}
 		}
 		return nil
 	}
@@ -3371,11 +3369,11 @@ func (this *Bitfinex) createDepositAddressBody(ch chan AsyncResult[any], code st
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes244815 map[string]any = MapTyped(r1.Value)
-	if retRes244815 == nil {
+	var retRes244615 map[string]any = MapTyped(r1.Value)
+	if retRes244615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes244815}
+		ch <- AsyncResult[any]{Value: retRes244615}
 	}
 	return nil
 }
@@ -3408,7 +3406,8 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan AsyncResult[any], code str
 	}
 	var currency map[string]any = this.Currency(code)
 	// if not provided explicitly we will try to match using the currency name
-	var network *string = this.SafeString(params, "network", code)
+	var networkParam *string = this.SafeString(params, "network", code)
+	var network *string = this.SafeString(this.NetworkAliases, networkParam, networkParam)
 	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
 	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
 	var networkId *string = this.SafeString(currencyNetwork, "id")
@@ -3915,7 +3914,8 @@ func (this *Bitfinex) withdrawBody(ch chan EndpointResult[map[string]any], code 
 	}
 	var currency map[string]any = this.Currency(code)
 	// if not provided explicitly we will try to match using the currency name
-	var network *string = this.SafeString(paramsWithdrawTag, "network", code)
+	var networkParam *string = this.SafeString(paramsWithdrawTag, "network", code)
+	var network *string = this.SafeString(this.NetworkAliases, networkParam, networkParam)
 	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "network")
 	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
 	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
@@ -4166,10 +4166,6 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var request string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -4183,7 +4179,7 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + request
-	var requestBody any = nil
+	var requestBody *string = nil
 	var requestHeaders any = nil
 	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(query)) > 0 {
@@ -4194,8 +4190,8 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		// bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
 		var nonce string = ToString(this.IncrementingNonce())
-		requestBody = this.Json(query)
-		var auth *string = SafeStringPtr(Add("/api/"+request+nonce, requestBody))
+		requestBody = SafeStringPtr(this.Json(query))
+		var auth string = "/api/" + request + nonce + *requestBody
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha384)
 		requestHeaders = map[string]any{
 			"bfx-nonce":     nonce,
@@ -4204,18 +4200,8 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 			"Content-Type":  "application/json",
 		}
 	}
-	var bodyResolved any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResolved any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResolved *string = requestBody
+	var headersResolved any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -5155,11 +5141,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[any], symbol str
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp4895 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
-	if listEp4895.Err != nil {
-		panic(listEp4895.Err)
+	listEp4881 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
+	if listEp4881.Err != nil {
+		panic(listEp4881.Err)
 	}
-	var response []any = listEp4895.Value
+	var response []any = listEp4881.Value
 
 	//
 	//     [

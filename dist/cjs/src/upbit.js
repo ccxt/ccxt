@@ -2415,7 +2415,7 @@ class upbit extends upbit$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
@@ -2432,7 +2432,7 @@ class upbit extends upbit$1["default"] {
             }
         }
         const hasBody = (apiName === 'private') && (method !== 'GET') && (method !== 'DELETE');
-        let requestBody = body;
+        let requestBody = undefined;
         if (hasBody) {
             requestBody = this.json(params);
         }
@@ -2461,7 +2461,7 @@ class upbit extends upbit$1["default"] {
             const token = rsa.jwt(request, this.encode(this.secret), sha2_js.sha256);
             privateHeaders['Authorization'] = 'Bearer ' + token;
         }
-        const requestHeaders = (apiName === 'private') ? privateHeaders : headers;
+        const requestHeaders = (apiName === 'private') ? privateHeaders : undefined;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

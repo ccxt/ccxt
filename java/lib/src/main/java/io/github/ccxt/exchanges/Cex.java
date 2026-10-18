@@ -345,7 +345,7 @@ public class Cex extends CexApi
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "bitcoin" );
                     put( "ERC20", "ERC20" );
-                    put( "BSC20", "binancesmartchain" );
+                    put( "BEP20", "binancesmartchain" );
                     put( "DOGE", "dogecoin" );
                     put( "ALGO", "algorand" );
                     put( "XLM", "stellar" );
@@ -357,7 +357,7 @@ public class Cex extends CexApi
                     put( "THETA", "theta" );
                     put( "XTZ", "tezos" );
                     put( "TIA", "celestia" );
-                    put( "CRONOS", "cronos" );
+                    put( "CRC20", "cronos" );
                     put( "MATIC", "polygon" );
                     put( "TON", "ton" );
                     put( "TRC20", "tron" );
@@ -2151,7 +2151,7 @@ public class Cex extends CexApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -2210,8 +2210,8 @@ public class Cex extends CexApi
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("url", url);
             h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap3.put("body", body);
-            h2kMap3.put("headers", headers);
+            h2kMap3.put("body", null);
+            h2kMap3.put("headers", null);
             return h2kMap3;
         }
     }

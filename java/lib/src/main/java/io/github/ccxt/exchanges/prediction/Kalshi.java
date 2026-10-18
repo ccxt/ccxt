@@ -3285,11 +3285,9 @@ public class Kalshi extends KalshiApi
      * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String access = this.safeString(api, 1, "public");
@@ -3303,12 +3301,12 @@ public class Kalshi extends KalshiApi
         {
             url = (url + ("?" + querystring));
         }
-        Object existingHeaders = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
+        Map<String, Object> existingHeaders = new HashMap<String, Object>() {{}};
         Map<String, Object> headersValue = this.extend(new HashMap<String, Object>() {{
             put( "Accept", "application/json" );
             put( "Content-Type", "application/json" );
         }}, existingHeaders);
-        Object bodyValue = body;
+        String bodyValue = null;
         if (java.util.Objects.equals(access, "private"))
         {
             this.checkRequiredCredentials(true);
@@ -3343,9 +3341,5 @@ public class Kalshi extends KalshiApi
             h2kMap3.put("headers", headersValue);
             return h2kMap3;
         }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 }

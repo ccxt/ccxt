@@ -2009,10 +2009,10 @@ public partial class delta : Exchange
         {
             if (Precise.stringGt(sizeString, "0"))
             {
-                side = "buy";
+                side = "long";
             } else if (Precise.stringLt(sizeString, "0"))
             {
-                side = "sell";
+                side = "short";
             }
         }
         return this.safePosition(new Dictionary<string, object>() {
@@ -2020,7 +2020,7 @@ public partial class delta : Exchange
             { "id", null },
             { "symbol", symbol },
             { "notional", null },
-            { "marginMode", null },
+            { "marginMode", this.safeString(position, "margin_mode") },
             { "liquidationPrice", this.safeNumber(position, "liquidation_price") },
             { "entryPrice", this.safeNumber(position, "entry_price") },
             { "unrealizedPnl", null },
@@ -2034,6 +2034,7 @@ public partial class delta : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
+            { "positionMargin", this.safeNumber(position, "margin") },
             { "collateral", null },
             { "initialMargin", null },
             { "initialMarginPercentage", null },
@@ -4391,12 +4392,11 @@ public partial class delta : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        headers ??= new Dictionary<string, object>();
         object apiName = getValue(api, 0);
         string requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
@@ -4440,8 +4440,8 @@ public partial class delta : Exchange
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             requestHeaders["signature"] = signature;
         }
-        object bodyResult = ((requestBody == null)) ? body : requestBody;
-        object headersResult = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResult = requestBody;
+        Dictionary<string, object> headersResult = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

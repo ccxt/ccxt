@@ -1716,7 +1716,7 @@ class hibachi(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         endpoint = '/' + self.implode_params(path, params)
         apiUrl = self.safe_string(self.urls['api'], apiName)
@@ -1732,7 +1732,7 @@ class hibachi(Exchange, ImplicitAPI):
         hasJsonBody = (method == 'POST' or method == 'PUT' or method == 'DELETE')
         if hasJsonBody:
             headersValue['Content-Type'] = 'application/json'
-        bodyResult = body
+        bodyResult = None
         if hasJsonBody:
             bodyResult = self.json(params)
         if apiName == 'private':

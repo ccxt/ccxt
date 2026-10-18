@@ -2201,29 +2201,39 @@ public class Zebpay extends ZebpayApi
         String datetime = this.safeString(position, "datetime");
         String marketId = this.safeString(position, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        return new HashMap<String, Object>() {{
-            put( "info", position );
-            put( "symbol", marketId );
-            put( "timestamp", Zebpay.this.parse8601(datetime) );
-            put( "datetime", datetime );
-            put( "initialMargin", Zebpay.this.safeNumber(position, "initialMargin", (Object) null) );
-            put( "initialMarginPercentage", null );
-            put( "maintenanceMargin", null );
-            put( "maintenanceMarginPercentage", null );
-            put( "entryPrice", Zebpay.this.safeNumber(position, "entryPrice", (Object) null) );
-            put( "notional", Zebpay.this.safeNumber(position, "notional", (Object) null) );
-            put( "leverage", leverage );
-            put( "unrealizedPnl", null );
-            put( "contracts", Zebpay.this.safeNumber(position, "contracts", (Object) null) );
-            put( "contractSize", Zebpay.this.safeNumber(marketResolved, "contractSize", (Object) null) );
-            put( "marginRatio", null );
-            put( "liquidationPrice", Zebpay.this.safeNumber(position, "liquidationPrice", (Object) null) );
-            put( "markPrice", null );
-            put( "collateral", null );
-            put( "marginMode", "isolated" );
-            put( "side", Zebpay.this.safeString(position, "side") );
-            put( "percentage", null );
-        }};
+        String marginMode = this.safeStringLower(position, "marginMode", "isolated");
+        Double initialMargin = this.safeNumber(position, "initialMargin", (Object) null);
+        // isolated positions hold exactly the initial margin posted for them
+        Double positionMargin = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            positionMargin = initialMargin;
+        }
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("info", position);
+        mapLiteral9.put("id", this.safeString(position, "id"));
+        mapLiteral9.put("symbol", marketResolved.get("symbol"));
+        mapLiteral9.put("timestamp", this.parse8601(datetime));
+        mapLiteral9.put("datetime", datetime);
+        mapLiteral9.put("initialMargin", initialMargin);
+        mapLiteral9.put("initialMarginPercentage", null);
+        mapLiteral9.put("maintenanceMargin", null);
+        mapLiteral9.put("maintenanceMarginPercentage", null);
+        mapLiteral9.put("entryPrice", this.safeNumber(position, "entryPrice", (Object) null));
+        mapLiteral9.put("notional", this.safeNumber(position, "notional", (Object) null));
+        mapLiteral9.put("leverage", leverage);
+        mapLiteral9.put("unrealizedPnl", null);
+        mapLiteral9.put("contracts", this.safeNumber(position, "contracts", (Object) null));
+        mapLiteral9.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral9.put("marginRatio", null);
+        mapLiteral9.put("liquidationPrice", this.safeNumber(position, "liquidationPrice", (Object) null));
+        mapLiteral9.put("markPrice", null);
+        mapLiteral9.put("positionMargin", positionMargin);
+        mapLiteral9.put("collateral", null);
+        mapLiteral9.put("marginMode", marginMode);
+        mapLiteral9.put("side", this.safeStringLower(position, "side"));
+        mapLiteral9.put("percentage", null);
+        return this.safePosition(mapLiteral9);
     }
 
     public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
@@ -2334,7 +2344,7 @@ public class Zebpay extends ZebpayApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object bodySigned = null;
         Map<String, Object> headersSigned = null;
@@ -2372,9 +2382,9 @@ public class Zebpay extends ZebpayApi
                 Object paramsBody = this.omit(paramsOmitted, "priceType");
                 if (!java.util.Objects.equals(priceType, null))
                 {
-                    HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-                    mapLiteral9.put("priceType", priceType);
-                    url = (url + ("?" + this.urlencode(mapLiteral9)));
+                    HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+                    mapLiteral10.put("priceType", priceType);
+                    url = (url + ("?" + this.urlencode(mapLiteral10)));
                 }
                 bodySigned = Helpers.json(paramsBody);
                 headersSigned = new HashMap<String, Object>() {{
@@ -2406,8 +2416,8 @@ public class Zebpay extends ZebpayApi
             );
             headersSigned.put("Content-Type", "application/json");
         }
-        Object headersResolved = (((java.util.Objects.equals(headersSigned, null)))) ? headers : headersSigned;
-        Object bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
+        Map<String, Object> headersResolved = headersSigned;
+        Object bodyResolved = bodySigned;
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);

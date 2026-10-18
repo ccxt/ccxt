@@ -751,9 +751,9 @@ class coinspot extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $apiLength = count($api);
         $isVersionedApi = $apiLength > 1;
         $version = $isVersionedApi ? $api[0] : null;

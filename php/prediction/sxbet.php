@@ -2836,7 +2836,7 @@ class sxbet extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('sxbet'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('sxbet'), $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request $url and attaches the x-sx-$api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
@@ -2844,9 +2844,7 @@ class sxbet extends Exchange {
          * @param {string[]} $api the $api group and access level
          * @param {string} $method the http $method
          * @param {array} $params the request parameters
-         * @param {array} [$headers] request $headers
-         * @param {string} [$body] the request $body
-         * @return {array} a dict with $url, $method, $body and $headers
+         * @return {array} a dict with $url, $method, body and headers
          */
         $apiGroup = $api[0];
         $accessLevel = $this->safe_string($api, 1, 'public');
@@ -2857,7 +2855,7 @@ class sxbet extends Exchange {
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['sxbet']);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $existingHeaders = ($headers !== null) ? $headers : array();
+        $existingHeaders = array();
         $headersExtended = $this->extend(array(
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
@@ -2872,7 +2870,7 @@ class sxbet extends Exchange {
             $hasOrdersList = (is_array($query) && array_key_exists('orders' ?? '', $query));
             $sendAsQuery = !$hasOrdersList;
         }
-        $bodyValue = $body;
+        $bodyValue = null;
         if ($sendAsQuery) {
             $querystring = $this->urlencode($query);
             if ($querystring !== '') {

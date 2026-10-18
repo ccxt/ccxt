@@ -3496,7 +3496,7 @@ public class Bitstamp extends BitstampApi
             String name = this.getCurrencyName(code);
             // the per-currency implicit methods (privatePostBtcAddress etc.) all route
             // through request(), called here directly to avoid dynamic dispatch
-            Object response = (this.request((name + "_address/"), new ArrayList<Object>(Arrays.asList("private")), "POST", parameters, (Object) null, (Object) null, new HashMap<String, Object>() {{}})).join();
+            Object response = (this.request((name + "_address/"), new ArrayList<Object>(Arrays.asList("private")), "POST", parameters, new HashMap<String, Object>() {{}})).join();
             String address = this.safeString(response, "address");
             String tag = this.safeString2(response, "memo_id", "destination_tag");
             this.checkAddress(address, (String) null, (String) null);
@@ -3563,7 +3563,7 @@ public class Bitstamp extends BitstampApi
                 request.put("address", address);
                 // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
                 // route through request(), called here directly to avoid dynamic dispatch
-                response = (this.request((name + "_withdrawal/"), new ArrayList<Object>(Arrays.asList("private")), "POST", this.extend(request, paramsWithdrawTag), (Object) null, (Object) null, new HashMap<String, Object>() {{}})).join();
+                response = (this.request((name + "_withdrawal/"), new ArrayList<Object>(Arrays.asList("private")), "POST", this.extend(request, paramsWithdrawTag), new HashMap<String, Object>() {{}})).join();
             } else
             {
                 currency = this.currency((String) (code));
@@ -3665,7 +3665,7 @@ public class Bitstamp extends BitstampApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -3688,7 +3688,7 @@ public class Bitstamp extends BitstampApi
         {
             postBody = this.urlencode(query);
         }
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(isPrivatePost))
         {
             requestBody = postBody;
@@ -3728,7 +3728,7 @@ public class Bitstamp extends BitstampApi
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             privateHeaders.put("X-Auth-Signature", signature);
         }
-        Object requestHeaders = (((java.util.Objects.equals(apiName, "public")))) ? headers : privateHeaders;
+        Map<String, Object> requestHeaders = (((java.util.Objects.equals(apiName, "public")))) ? null : privateHeaders;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);

@@ -320,7 +320,7 @@ class deepcoin extends Exchange {
                     'ERC20' => 'ERC20',
                     'TRC20' => 'TRC20',
                     'ARBITRUM' => 'ARBITRUM',
-                    'BSC' => 'BSC(BEP20)',
+                    'BEP20' => 'BSC(BEP20)',
                     'SOL' => 'SOL',
                     'BTC' => 'Bitcoin',
                     'ADA' => 'Cardano',
@@ -1225,6 +1225,9 @@ class deepcoin extends Exchange {
         $defaultNetwork = $this->safe_string($defaultNetworks, $code);
         if (($network === null) || ($network === '')) {
             $network = $defaultNetwork;
+        }
+        if ($network !== null) {
+            $network = $this->safe_string($this->networkAliases, $network, $network);
         }
         $paramsOmitted = ($network !== null) ? $this->omit($params, 'network') : $params;
         $addressess = $this->fetch_deposit_addresses(array( $code ), $paramsOmitted);
@@ -2634,6 +2637,13 @@ class deepcoin extends Exchange {
         $marketId = $this->safe_string($position, 'instId');
         $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($position, 'cTime');
+        $marginMode = $this->safe_string($position, 'mgnMode');
+        $useMargin = $this->safe_number($position, 'useMargin');
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        $positionMargin = null;
+        if ($marginMode === 'isolated') {
+            $positionMargin = $useMargin;
+        }
         return $this->safe_position(array(
             'symbol' => $marketResolved['symbol'],
             'id' => $this->safe_string($position, 'posId'),
@@ -2644,17 +2654,18 @@ class deepcoin extends Exchange {
             'side' => $this->safe_string($position, 'posSide'),
             'notional' => null,
             'leverage' => $this->parse_number($this->omit_zero($this->safe_string($position, 'lever'))),
-            'unrealizedPnl' => null,
+            'unrealizedPnl' => $this->safe_number($position, 'unrealizedProfit'),
             'realizedPnl' => null,
+            'positionMargin' => $positionMargin,
             'collateral' => null,
             'entryPrice' => $this->safe_number($position, 'avgPx'),
             'markPrice' => null,
             'liquidationPrice' => $this->safe_number($position, 'liqPx'),
-            'marginMode' => $this->safe_string($position, 'mgnMode'),
+            'marginMode' => $marginMode,
             'hedged' => true,
-            'maintenanceMargin' => $this->safe_number($position, 'useMargin'),
+            'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
-            'initialMargin' => null,
+            'initialMargin' => $useMargin,
             'initialMarginPercentage' => null,
             'marginRatio' => null,
             'lastUpdateTimestamp' => $this->safe_integer($position, 'uTime'),
@@ -3066,7 +3077,7 @@ class deepcoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $requestPath = $path;
         if ($method === 'GET') {
@@ -3091,7 +3102,7 @@ class deepcoin extends Exchange {
                 'DC-ACCESS-PASSPHRASE' => $this->password,
                 'appid' => '200103',
             );
-            $requestBody = ($method !== 'GET') ? $this->json($params) : $body;
+            $requestBody = ($method !== 'GET') ? $this->json($params) : null;
             if ($method !== 'GET') {
                 $privateHeaders['Content-Type'] = 'application/json';
                 $payload .= $requestBody;
@@ -3100,7 +3111,7 @@ class deepcoin extends Exchange {
             $privateHeaders['DC-ACCESS-SIGN'] = $signature;
             return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

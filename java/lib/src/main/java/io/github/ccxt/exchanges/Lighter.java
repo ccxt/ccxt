@@ -1815,7 +1815,7 @@ public class Lighter extends LighterApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Math.min(limit, 100));
+                request.put("limit", Math.min(limit, 250));
             }
             Map<String, Object> response = (this.publicGetOrderBookOrders(this.extend(request, parameters))).join();
             //
@@ -2526,6 +2526,15 @@ public class Lighter extends LighterApi
                 leverage = (((double) 100) / ((double) imf));
             }
         }
+        String contractsString = this.safeString(position, "position");
+        String positionValueString = this.safeString(position, "position_value");
+        String markPriceString = Precise.stringDiv(positionValueString, contractsString);
+        // allocated_margin is the isolated collateral balance (0 for cross)
+        Double positionMargin = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            positionMargin = this.safeNumber(position, "allocated_margin", (Object) null);
+        }
         HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
         mapLiteral7.put("info", position);
         mapLiteral7.put("id", null);
@@ -2535,13 +2544,14 @@ public class Lighter extends LighterApi
         mapLiteral7.put("isolated", (java.util.Objects.equals(marginMode, "isolated")));
         mapLiteral7.put("hedged", null);
         mapLiteral7.put("side", side);
-        mapLiteral7.put("contracts", this.safeNumber(position, "position", (Object) null));
+        mapLiteral7.put("contracts", this.parseNumber(contractsString));
         mapLiteral7.put("contractSize", null);
         mapLiteral7.put("entryPrice", this.safeNumber(position, "avg_entry_price", (Object) null));
-        mapLiteral7.put("markPrice", null);
-        mapLiteral7.put("notional", this.safeNumber(position, "position_value", (Object) null));
+        mapLiteral7.put("markPrice", this.parseNumber(markPriceString));
+        mapLiteral7.put("notional", this.parseNumber(positionValueString));
         mapLiteral7.put("leverage", leverage);
-        mapLiteral7.put("collateral", this.safeNumber(position, "allocated_margin", (Object) null));
+        mapLiteral7.put("positionMargin", positionMargin);
+        mapLiteral7.put("collateral", null);
         mapLiteral7.put("initialMargin", null);
         mapLiteral7.put("maintenanceMargin", null);
         mapLiteral7.put("initialMarginPercentage", null);
@@ -4157,7 +4167,7 @@ public class Lighter extends LighterApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object url = null;
@@ -4209,7 +4219,7 @@ public class Lighter extends LighterApi
                 HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
                 h2kMap4.put("url", url);
                 h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-                h2kMap4.put("body", body);
+                h2kMap4.put("body", null);
                 h2kMap4.put("headers", authHeaders);
                 return h2kMap4;
             }
@@ -4218,14 +4228,10 @@ public class Lighter extends LighterApi
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);
             h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", body);
-            h2kMap5.put("headers", headers);
+            h2kMap5.put("body", null);
+            h2kMap5.put("headers", null);
             return h2kMap5;
         }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

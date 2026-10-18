@@ -2264,17 +2264,15 @@ class opinion extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('opinion'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('opinion'), $method = 'GET', $params = array()) {
         /**
          * @ignore
-         * builds the request $url and attaches the apikey/EIP-712 authentication $headers for private endpoints
+         * builds the request $url and attaches the apikey/EIP-712 authentication headers for private endpoints
          * @param {string} $path the endpoint $path
          * @param {string[]} $api the $api group and $access level
          * @param {string} $method the http $method
          * @param {array} $params the request parameters
-         * @param {array} [$headers] request $headers
-         * @param {string} [$body] the request $body
-         * @return {array} a dict with $url, $method, $body and $headers
+         * @return {array} a dict with $url, $method, body and headers
          */
         $apiGroup = $api[0];
         $access = $this->safe_string($api, 1, 'public');
@@ -2282,7 +2280,7 @@ class opinion extends Exchange {
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['opinion']);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $existingHeaders = ($headers !== null) ? $headers : array();
+        $existingHeaders = array();
         $headersExtended = $this->extend(array(
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
@@ -2310,7 +2308,7 @@ class opinion extends Exchange {
                 $headersExtended['apikey'] = $apiKey;
             }
         }
-        $bodyValue = $body;
+        $bodyValue = null;
         if ($method === 'GET') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);

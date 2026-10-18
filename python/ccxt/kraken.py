@@ -288,10 +288,7 @@ class kraken(Exchange, ImplicitAPI):
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
-                'networks': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
-                },
+                'networks': {},
                 'depositMethods': {
                     '1INCH': '1inch' + ' ' + '(1INCH)',
                     'AAVE': 'Aave',
@@ -3140,8 +3137,8 @@ class kraken(Exchange, ImplicitAPI):
             self.load_markets()
         currency = self.currency(code)
         network = self.safe_string_upper(params, 'network')
-        networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string(networks, network, network)  # support ETH > ERC20 aliases
+        if network is not None:
+            network = self.safe_string(self.networkAliases, network, network)
         paramsOmitted = self.omit(params, 'network')
         codeResolved = code
         if (code == 'USDT') and (network == 'TRC20'):
@@ -3453,7 +3450,7 @@ class kraken(Exchange, ImplicitAPI):
             'status': 'sucess',
         }
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         url = '/' + self.version + '/' + apiName + '/' + path
         if apiName == 'public':
@@ -3501,7 +3498,7 @@ class kraken(Exchange, ImplicitAPI):
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        return {'url': apiUrl + url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': apiUrl + url, 'method': method, 'body': None, 'headers': None}
 
     def nonce(self) -> float:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)

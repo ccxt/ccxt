@@ -55,6 +55,9 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any
 	var networks any = exchange.SafeDict(entry, "networks", map[string]any{})
 	var networkKeys []string = ObjectKeys(networks)
 	var networkKeysLength int = len(networkKeys)
+	for i := 0; i < networkKeysLength; i++ {
+		AssertUnifiedNetworkCode(exchange, skippedProperties, method, entry, networkKeys[i])
+	}
 	if (networkKeysLength == 0) && (InOp(skippedProperties, "skipCurrenciesWithoutNetworks")) {
 		return
 	}

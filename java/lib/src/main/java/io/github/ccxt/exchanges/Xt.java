@@ -995,10 +995,8 @@ public class Xt extends XtApi
                 put( "networks", new HashMap<String, Object>() {{
                     put( "ERC20", "Ethereum" );
                     put( "TRC20", "Tron" );
-                    put( "TRX", "Tron" );
                     put( "BEP20", "BNB Smart Chain" );
                     put( "BEP2", "BNB-BEP2" );
-                    put( "ETH", "Ethereum" );
                     put( "AVAX", "AVAX C-Chain" );
                     put( "GAL", "GAL(FT)" );
                     put( "ALEO", "ALEO(IOU)" );
@@ -2532,7 +2530,13 @@ public class Xt extends XtApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", marketType);
         String symbol = (String) marketResolved.get("symbol");
         Long timestamp = this.safeInteger(ticker, "t");
-        String percentage = this.safeString2(ticker, "cr", "r");
+        String open = this.safeString(ticker, "o");
+        // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
+        String percentage = this.safeString(ticker, "r");
+        if (java.util.Objects.equals(open, null))
+        {
+            percentage = this.safeString2(ticker, "cr", "r");
+        }
         if (!java.util.Objects.equals(percentage, null))
         {
             percentage = Precise.stringMul(percentage, "100");
@@ -2564,11 +2568,11 @@ public class Xt extends XtApi
         mapLiteral9.put("ask", this.safeNumber(ticker, "ap", (Object) null));
         mapLiteral9.put("askVolume", this.safeNumber(ticker, "aq", (Object) null));
         mapLiteral9.put("vwap", null);
-        mapLiteral9.put("open", this.safeString(ticker, "o"));
+        mapLiteral9.put("open", open);
         mapLiteral9.put("close", this.safeString(ticker, "c"));
         mapLiteral9.put("last", this.safeString(ticker, "c"));
         mapLiteral9.put("previousClose", null);
-        mapLiteral9.put("change", this.safeNumber(ticker, "cv", (Object) null));
+        mapLiteral9.put("change", null);
         mapLiteral9.put("percentage", this.parseNumber(percentage));
         mapLiteral9.put("average", null);
         mapLiteral9.put("baseVolume", baseVolume);
@@ -7017,7 +7021,7 @@ public class Xt extends XtApi
         return null;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Boolean signed = java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private");
         Object endpoint = (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
@@ -7128,7 +7132,7 @@ public class Xt extends XtApi
                 url = (url + ("?" + urlencoded));
             }
         }
-        Object bodyValue = body;
+        String bodyValue = null;
         if (Boolean.TRUE.equals(signed))
         {
             bodyValue = signedBody;
@@ -7141,9 +7145,5 @@ public class Xt extends XtApi
             h2kMap2.put("headers", headersValue);
             return h2kMap2;
         }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 }

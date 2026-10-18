@@ -3211,17 +3211,15 @@ class limitless extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('limitless'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('limitless'), $method = 'GET', $params = array()) {
         /**
          * @ignore
-         * builds the request URL and attaches the lmts authentication $headers for private endpoints
+         * builds the request URL and attaches the lmts authentication headers for private endpoints
          * @param {string} $path the endpoint $path
          * @param {string[]} [$api] the $api group and $access level
          * @param {string} [$method] HTTP $method
          * @param {array} [$params] request parameters
-         * @param {array} [$headers] request $headers
-         * @param {array} [$body] request $body
-         * @return {array} a dictionary with $url, $method, $body and $headers
+         * @return {array} a dictionary with $url, $method, body and headers
          */
         $apiGroup = $api[0];
         $apiLength = count($api);
@@ -3234,8 +3232,8 @@ class limitless extends Exchange {
         if ($method === 'GET' && ($querystring !== '')) {
             $url .= '?' . $querystring;
         }
-        $headersValue = $headers;
-        $bodyValue = $body;
+        $headersValue = null;
+        $bodyValue = null;
         if ($access === 'private') {
             $bodyString = '';
             if ($headersValue === null) {

@@ -1070,7 +1070,7 @@ class btcturk extends btcturk$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         if (this.id === 'btctrader') {
             throw new errors.ExchangeError(this.id + ' is an abstract base API for BTCExchange, BTCTurk');
@@ -1088,7 +1088,7 @@ class btcturk extends btcturk$1["default"] {
         }
         let requestBody = undefined;
         if (isQueryMethod) {
-            requestBody = body;
+            requestBody = undefined;
         }
         else {
             requestBody = this.json(params);
@@ -1106,7 +1106,7 @@ class btcturk extends btcturk$1["default"] {
                 'Content-Type': 'application/json',
             };
         }
-        const requestHeaders = (privateHeaders !== undefined) ? privateHeaders : headers;
+        const requestHeaders = privateHeaders;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

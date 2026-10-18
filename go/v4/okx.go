@@ -2064,15 +2064,11 @@ func (this *Okx) Describe() any {
 			"networks": map[string]any{
 				"BTC":          "Bitcoin",
 				"BTCLIGHTNING": "Lightning",
-				"BSC":          "BSC",
 				"BEP20":        "BSC",
 				"BRC20":        "BRC20",
-				"ETH":          "ERC20",
 				"ERC20":        "ERC20",
-				"TRX":          "TRC20",
 				"TRC20":        "TRC20",
 				"CRC20":        "Crypto",
-				"CRONOS":       "Crypto",
 				"ACA":          "Acala",
 				"ALGO":         "Algorand",
 				"APT":          "Aptos",
@@ -3838,11 +3834,11 @@ func (this *Okx) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes261019 []any = ListTyped(r1.Value)
-		if retRes261019 == nil {
+		var retRes260619 []any = ListTyped(r1.Value)
+		if retRes260619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes261019}
+			ch <- AsyncResult[any]{Value: retRes260619}
 		}
 		return nil
 	}
@@ -3997,11 +3993,11 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes272319 []any = ListTyped(r1.Value)
-		if retRes272319 == nil {
+		var retRes271919 []any = ListTyped(r1.Value)
+		if retRes271919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes272319}
+			ch <- AsyncResult[any]{Value: retRes271919}
 		}
 		return nil
 	}
@@ -4184,11 +4180,11 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes283519 []any = ListTyped(r1.Value)
-		if retRes283519 == nil {
+		var retRes283119 []any = ListTyped(r1.Value)
+		if retRes283119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes283519}
+			ch <- AsyncResult[any]{Value: retRes283119}
 		}
 		return nil
 	}
@@ -4597,11 +4593,11 @@ func (this *Okx) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], symb
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes317115 map[string]any = r1.Value
-	if retRes317115 == nil {
+	var retRes316715 map[string]any = r1.Value
+	if retRes316715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes317115}
+		ch <- AsyncResult[any]{Value: retRes316715}
 	}
 	return nil
 }
@@ -4646,11 +4642,11 @@ func (this *Okx) createMarketSellOrderWithCostBody(ch chan AsyncResult[any], sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes319615 map[string]any = r1.Value
-	if retRes319615 == nil {
+	var retRes319215 map[string]any = r1.Value
+	if retRes319215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes319615}
+		ch <- AsyncResult[any]{Value: retRes319215}
 	}
 	return nil
 }
@@ -6380,11 +6376,11 @@ func (this *Okx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes461119 []any = ListTyped(r1.Value)
-		if retRes461119 == nil {
+		var retRes460719 []any = ListTyped(r1.Value)
+		if retRes460719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes461119}
+			ch <- AsyncResult[any]{Value: retRes460719}
 		}
 		return nil
 	}
@@ -6802,11 +6798,11 @@ func (this *Okx) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes496719 []any = ListTyped(r1.Value)
-		if retRes496719 == nil {
+		var retRes496319 []any = ListTyped(r1.Value)
+		if retRes496319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes496719}
+			ch <- AsyncResult[any]{Value: retRes496319}
 		}
 		return nil
 	}
@@ -7025,11 +7021,11 @@ func (this *Okx) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes514719 []any = ListTyped(r1.Value)
-		if retRes514719 == nil {
+		var retRes514319 []any = ListTyped(r1.Value)
+		if retRes514319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes514719}
+			ch <- AsyncResult[any]{Value: retRes514319}
 		}
 		return nil
 	}
@@ -7121,11 +7117,11 @@ func (this *Okx) fetchOrderTradesBody(ch chan AsyncResult[any], id string, optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes522215 []any = ListTyped(r.Value)
-	if retRes522215 == nil {
+	var retRes521815 []any = ListTyped(r.Value)
+	if retRes521815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes522215}
+		ch <- AsyncResult[any]{Value: retRes521815}
 	}
 	return nil
 }
@@ -7176,11 +7172,11 @@ func (this *Okx) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes524719 []any = ListTyped(r1.Value)
-		if retRes524719 == nil {
+		var retRes524319 []any = ListTyped(r1.Value)
+		if retRes524319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes524719}
+			ch <- AsyncResult[any]{Value: retRes524319}
 		}
 		return nil
 	}
@@ -7657,7 +7653,9 @@ func (this *Okx) withdrawBody(ch chan EndpointResult[map[string]any], code strin
 	var network *string = this.SafeString(paramsWithdrawTag, "network") // this line allows the user to specify either ERC20 or ETH
 	if network != nil {
 		var networks map[string]any = SafeMapTyped(this.Options, "networks")
-		network = this.SafeString(networks, strings.ToUpper(*network), network) // handle ETH>ERC20 alias
+		var networkUpper string = strings.ToUpper(*network)
+		var networkKey *string = this.SafeString(this.NetworkAliases, networkUpper, networkUpper)
+		network = this.SafeString(networks, networkKey, network) // resolve aliases to the unified key
 		request["chain"] = Add(Add(currency["id"], "-"), network)
 	}
 	var omitKeys []any = []any{"fee"}
@@ -7757,11 +7755,11 @@ func (this *Okx) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...any
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes570419 []any = ListTyped(r1.Value)
-		if retRes570419 == nil {
+		var retRes570219 []any = ListTyped(r1.Value)
+		if retRes570219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes570419}
+			ch <- AsyncResult[any]{Value: retRes570219}
 		}
 		return nil
 	}
@@ -7921,11 +7919,11 @@ func (this *Okx) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes581519 []any = ListTyped(r1.Value)
-		if retRes581519 == nil {
+		var retRes581319 []any = ListTyped(r1.Value)
+		if retRes581319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes581519}
+			ch <- AsyncResult[any]{Value: retRes581319}
 		}
 		return nil
 	}
@@ -8557,11 +8555,11 @@ func (this *Okx) fetchPositionsForSymbolBody(ch chan AsyncResult[[]any], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes633315 []any = ListTyped(r.Value)
-	if retRes633315 == nil {
+	var retRes633115 []any = ListTyped(r.Value)
+	if retRes633115 == nil {
 		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]any]{Value: retRes633315}
+		ch <- AsyncResult[[]any]{Value: retRes633115}
 	}
 	return nil
 }
@@ -8687,18 +8685,38 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 		notional = &derefNum
 	}
 	var marginMode *string = this.SafeString(position, "mgnMode")
-	var initialMarginString *string = nil
+	var initialMarginString any = nil
 	var entryPriceString *string = this.SafeString2(position, "avgPx", "openAvgPx")
 	var unrealizedPnlString *string = this.SafeString(position, "upl")
 	var leverageString *string = this.SafeString(position, "lever")
 	var initialMarginPercentage any = nil
-	var collateralString *string = nil
+	var collateralString any = nil
+	var marginString any = nil
 	if marginMode != nil && *marginMode == "cross" {
-		initialMarginString = this.SafeString(position, "imr")
-		collateralString = Precise.StringAdd(initialMarginString, unrealizedPnlString)
+		if derefPtr := this.SafeString(position, "imr"); derefPtr != nil {
+			initialMarginString = *derefPtr
+		} else {
+			initialMarginString = nil
+		}
+		collateralString = func() any {
+			if unrealizedPnlString != nil {
+				return Precise.StringAdd(initialMarginString, unrealizedPnlString)
+			}
+			return initialMarginString
+		}()
 	} else if marginMode != nil && *marginMode == "isolated" {
 		initialMarginPercentage = Precise.StringDiv("1", leverageString)
-		collateralString = this.SafeString(position, "margin")
+		var isolatedMarginString any = this.OmitZero(this.SafeString(position, "margin"))
+		if isolatedMarginString != nil {
+			initialMarginString = isolatedMarginString
+			marginString = isolatedMarginString
+			collateralString = func() any {
+				if unrealizedPnlString != nil {
+					return Precise.StringAdd(isolatedMarginString, unrealizedPnlString)
+				}
+				return isolatedMarginString
+			}()
+		}
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "mmr")
 	var maintenanceMargin *float64
@@ -8708,7 +8726,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if initialMarginPercentage == nil {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
-	} else if initialMarginString == nil {
+	} else if IsEqual(initialMarginString, nil) {
 		if marketResolved["linear"] == true {
 			var initialMarginPercentageString *string = this.NumberToString(initialMarginPercentage)
 			initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
@@ -8717,11 +8735,65 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 		}
 	}
 	var rounder string = "0.00005" // round to closest 0.01%
-	var maintenanceMarginPercentage *float64
-	if derefNum, isNum := this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4)).(float64); isNum {
-		maintenanceMarginPercentage = &derefNum
+	var maintenanceMarginPercentage *float64 = func() *float64 {
+		if maintenanceMarginPercentageString != nil {
+			if derefNum, isNum := this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4)).(float64); isNum {
+				return &derefNum
+			}
+			return nil
+		}
+		return nil
+	}()
+	var liquidationPriceString any = this.OmitZero(this.SafeString(position, "liqPx"))
+	if (liquidationPriceString == nil) && (marginMode != nil && *marginMode == "isolated") && (!IsEqual(initialMarginString, nil)) && (entryPriceString != nil) && (contractsAbs != nil) && Precise.StringGt(contractsAbs, "0") && (contractSizeString != nil) && (maintenanceMarginPercentage != nil) {
+		var takerFeeRate *string = this.SafeString(marketResolved, "taker", "0.0005")
+		var mmpWithFee *string = Precise.StringAdd(this.NumberToString(maintenanceMarginPercentage), takerFeeRate)
+		var totalSize *string = Precise.StringMul(contractsAbs, contractSizeString)
+		if marketResolved["inverse"] == true {
+			var invEntry *string = Precise.StringDiv(totalSize, entryPriceString)
+			var denom any = func() any {
+				if side != nil && *side == "long" {
+					return Precise.StringAdd(invEntry, initialMarginString)
+				}
+				return Precise.StringSub(invEntry, initialMarginString)
+			}()
+			var numFactor *string = func() *string {
+				if side != nil && *side == "long" {
+					return Precise.StringAdd("1", mmpWithFee)
+				}
+				return Precise.StringSub("1", mmpWithFee)
+			}()
+			if (denom != nil) && Precise.StringGt(denom, "0") {
+				liquidationPriceString = Precise.StringDiv(Precise.StringMul(totalSize, numFactor), denom)
+			}
+		} else {
+			var marginPerUnit *string = Precise.StringDiv(initialMarginString, totalSize)
+			var num *string = func() *string {
+				if side != nil && *side == "long" {
+					return Precise.StringSub(entryPriceString, marginPerUnit)
+				}
+				return Precise.StringAdd(entryPriceString, marginPerUnit)
+			}()
+			var denom any = func() any {
+				if side != nil && *side == "long" {
+					return Precise.StringSub("1", mmpWithFee)
+				}
+				return Precise.StringAdd("1", mmpWithFee)
+			}()
+			if (denom != nil) && Precise.StringGt(denom, "0") {
+				liquidationPriceString = Precise.StringDiv(num, denom)
+			}
+		}
 	}
-	var liquidationPrice *float64 = this.SafeNumber(position, "liqPx")
+	var liquidationPrice *float64 = func() *float64 {
+		if (liquidationPriceString != nil) && Precise.StringGt(liquidationPriceString, "0") {
+			if derefNum, isNum := this.ParseNumber(liquidationPriceString).(float64); isNum {
+				return &derefNum
+			}
+			return nil
+		}
+		return nil
+	}()
 	var percentageString *string = this.SafeString(position, "uplRatio")
 	var percentage *float64
 	if derefNum, isNum := this.ParseNumber(Precise.StringMul(percentageString, "100")).(float64); isNum {
@@ -8754,6 +8826,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 		"lastUpdateTimestamp":         this.SafeInteger(position, "uTime"),
 		"maintenanceMargin":           maintenanceMargin,
 		"maintenanceMarginPercentage": maintenanceMarginPercentage,
+		"positionMargin":              this.ParseNumber(marginString),
 		"collateral":                  this.ParseNumber(collateralString),
 		"initialMargin":               this.ParseNumber(initialMarginString),
 		"initialMarginPercentage":     this.ParseNumber(initialMarginPercentage),
@@ -9108,10 +9181,6 @@ func (this *Okx) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var isArray bool = IsArray(params)
 	var request string = "/api/" + this.Version + "/" + this.ImplodeParams(path, params)
@@ -9181,7 +9250,7 @@ func (this *Okx) Sign(path string, optionalArgs ...any) any {
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")
 		AddElementToObject(privateHeaders, "OK-ACCESS-SIGN", signature)
 	}
-	var requestBody any = body
+	var requestBody any = nil
 	if hasJsonBody {
 		requestBody = jsonBody
 	}
@@ -9189,7 +9258,7 @@ func (this *Okx) Sign(path string, optionalArgs ...any) any {
 		if apiName != nil && *apiName == "private" {
 			return privateHeaders
 		}
-		return headers
+		return nil
 	}()
 	return map[string]any{
 		"url":     url,
@@ -9296,11 +9365,11 @@ func (this *Okx) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes693015 map[string]any = r.Value
-	if retRes693015 == nil {
+	var retRes695615 map[string]any = r.Value
+	if retRes695615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes693015}
+		ch <- AsyncResult[map[string]any]{Value: retRes695615}
 	}
 	return nil
 }
@@ -10338,11 +10407,11 @@ func (this *Okx) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes772515 map[string]any = MapTyped(r.Value)
-	if retRes772515 == nil {
+	var retRes775115 map[string]any = MapTyped(r.Value)
+	if retRes775115 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes772515, Raw: retRes772515}
+		ch <- EndpointResult[map[string]any]{Value: retRes775115, Raw: retRes775115}
 	}
 	return nil
 }
@@ -10372,11 +10441,11 @@ func (this *Okx) addMarginBody(ch chan AsyncResult[map[string]any], symbol strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes773915 map[string]any = MapTyped(r.Value)
-	if retRes773915 == nil {
+	var retRes776515 map[string]any = MapTyped(r.Value)
+	if retRes776515 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes773915}
+		ch <- AsyncResult[map[string]any]{Value: retRes776515}
 	}
 	return nil
 }
@@ -10415,8 +10484,8 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan AsyncResult[any], symbol s
 		}
 		return this.ConvertToInstrumentType(market["type"])
 	}()
-	var uly *string = this.SafeString(market["info"], "uly")
-	if (uly == nil) || (uly != nil && *uly == "") {
+	var instFamily *string = this.SafeString(market["info"], "instFamily")
+	if (instFamily == nil) || (instFamily != nil && *instFamily == "") {
 		if !IsEqual(typeVar, "MARGIN") {
 			panic(BadRequest(this.Id + " fetchMarketLeverageTiers() cannot fetch leverage tiers for " + symbol))
 		}
@@ -10425,9 +10494,9 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan AsyncResult[any], symbol s
 	var defaultMarginMode *string = this.SafeString(params, "tdMode", "cross")
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params, defaultMarginMode)
 	var request map[string]any = map[string]any{
-		"instType": typeVar,
-		"tdMode":   marginMode,
-		"uly":      uly,
+		"instType":   typeVar,
+		"tdMode":     marginMode,
+		"instFamily": instFamily,
 	}
 	if IsEqual(typeVar, "MARGIN") {
 		request["instId"] = market["id"]

@@ -1846,7 +1846,7 @@ public partial class luno : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFee(this.assignDefaultDepositWithdrawFees(result, currency));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -1872,11 +1872,11 @@ public partial class luno : Exchange
                 { "Authorization", ("Basic " + auth) },
             };
         }
-        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
+        Dictionary<string, object> headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
+            { "body", null },
             { "headers", headersResolved },
         };
     }

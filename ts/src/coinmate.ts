@@ -729,7 +729,7 @@ export default class coinmate extends Exchange {
             'txid': this.safeString (transaction, 'txid'),
             'type': this.safeStringLower (transaction, 'transferType'),
             'currency': code,
-            'network': this.safeString (transaction, 'walletType'),
+            'network': this.networkIdToCode (this.safeString (transaction, 'walletType'), code),
             'amount': this.safeNumber (transaction, 'amount'),
             'status': this.parseTransactionStatus (this.safeString (transaction, 'transferStatus')),
             'timestamp': timestamp,
@@ -1281,7 +1281,7 @@ export default class coinmate extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let bodySigned: Str = undefined;
         let headersSigned: NullableDict = undefined;
@@ -1310,8 +1310,8 @@ export default class coinmate extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        const headersResolved: NullableDict = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved: NullableDict = headersSigned;
+        const bodyResolved: Str = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 

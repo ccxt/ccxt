@@ -2021,7 +2021,7 @@ class onetrading extends Exchange {
         return $this->parse_trades($tradeHistory, $market, $since, $limit);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
@@ -2039,7 +2039,7 @@ class onetrading extends Exchange {
                 'Accept' => 'application/json',
                 'Authorization' => 'Bearer ' . $this->apiKey,
             );
-            $bodyJson = ($method === 'POST') ? $this->json($query) : $body;
+            $bodyJson = ($method === 'POST') ? $this->json($query) : null;
             if ($method === 'POST') {
                 $headersSigned['Content-Type'] = 'application/json';
             } else {
@@ -2049,7 +2049,7 @@ class onetrading extends Exchange {
             }
             return array( 'url' => $url, 'method' => $method, 'body' => $bodyJson, 'headers' => $headersSigned );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

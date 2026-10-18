@@ -11,324 +11,324 @@ abstract class mudrex extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function market_get_price_kline($params = array()) {
-        return $this->request('price/kline', array('market'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('price/kline', array('market'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function market_get_price_mark_kline($params = array()) {
-        return $this->request('price/mark-kline', array('market'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('price/mark-kline', array('market'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_futures($params = array()) {
-        return $this->request('futures', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_futures_asset_id($params = array()) {
-        return $this->request('futures/{asset_id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/{asset_id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_wallet_funds($params = array()) {
-        return $this->request('wallet/funds', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('wallet/funds', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_futures_funds($params = array()) {
-        return $this->request('futures/funds', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('futures/funds', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_futures_transactions($params = array()) {
-        return $this->request('futures/transactions', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/transactions', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_futures_orders($params = array()) {
-        return $this->request('futures/orders', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/orders', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_futures_orders_history($params = array()) {
-        return $this->request('futures/orders/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/orders/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_futures_orders_order_id($params = array()) {
-        return $this->request('futures/orders/{order_id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/orders/{order_id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_futures_positions($params = array()) {
-        return $this->request('futures/positions', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/positions', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_futures_positions_history($params = array()) {
-        return $this->request('futures/positions/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/positions/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_futures_fee_history($params = array()) {
-        return $this->request('futures/fee/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/fee/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_futures_asset_id_leverage($params = array()) {
-        return $this->request('futures/{asset_id}/leverage', array('private'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('futures/{asset_id}/leverage', array('private'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_futures_positions_position_id_liq_price($params = array()) {
-        return $this->request('futures/positions/{position_id}/liq-price', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/positions/{position_id}/liq-price', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_wallet_futures_transfer($params = array()) {
-        return $this->request('wallet/futures/transfer', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('wallet/futures/transfer', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_futures_transfers_inr($params = array()) {
-        return $this->request('futures/transfers/inr', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('futures/transfers/inr', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_futures_asset_id_order($params = array()) {
-        return $this->request('futures/{asset_id}/order', array('private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('futures/{asset_id}/order', array('private'), 'POST', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_futures_positions_position_id_close($params = array()) {
-        return $this->request('futures/positions/{position_id}/close', array('private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('futures/positions/{position_id}/close', array('private'), 'POST', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_futures_positions_position_id_close_partial($params = array()) {
-        return $this->request('futures/positions/{position_id}/close/partial', array('private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('futures/positions/{position_id}/close/partial', array('private'), 'POST', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_futures_positions_position_id_reverse($params = array()) {
-        return $this->request('futures/positions/{position_id}/reverse', array('private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('futures/positions/{position_id}/reverse', array('private'), 'POST', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_futures_positions_position_id_add_margin($params = array()) {
-        return $this->request('futures/positions/{position_id}/add-margin', array('private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('futures/positions/{position_id}/add-margin', array('private'), 'POST', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_futures_positions_position_id_riskorder($params = array()) {
-        return $this->request('futures/positions/{position_id}/riskorder', array('private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('futures/positions/{position_id}/riskorder', array('private'), 'POST', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_futures_asset_id_leverage($params = array()) {
-        return $this->request('futures/{asset_id}/leverage', array('private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('futures/{asset_id}/leverage', array('private'), 'POST', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_patch_futures_orders_order_id($params = array()) {
-        return $this->request('futures/orders/{order_id}', array('private'), 'PATCH', $params, null, null, array("cost" => 1));
+        return $this->request('futures/orders/{order_id}', array('private'), 'PATCH', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_patch_futures_positions_position_id_riskorder($params = array()) {
-        return $this->request('futures/positions/{position_id}/riskorder', array('private'), 'PATCH', $params, null, null, array("cost" => 2));
+        return $this->request('futures/positions/{position_id}/riskorder', array('private'), 'PATCH', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_delete_futures_orders_order_id($params = array()) {
-        return $this->request('futures/orders/{order_id}', array('private'), 'DELETE', $params, null, null, array("cost" => 2));
+        return $this->request('futures/orders/{order_id}', array('private'), 'DELETE', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function marketGetPriceKline($params = array()) {
-        return $this->request('price/kline', array('market'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('price/kline', array('market'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function marketGetPriceMarkKline($params = array()) {
-        return $this->request('price/mark-kline', array('market'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('price/mark-kline', array('market'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetFutures($params = array()) {
-        return $this->request('futures', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetFuturesAssetId($params = array()) {
-        return $this->request('futures/{asset_id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/{asset_id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetWalletFunds($params = array()) {
-        return $this->request('wallet/funds', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('wallet/funds', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetFuturesFunds($params = array()) {
-        return $this->request('futures/funds', array('private'), 'GET', $params, null, null, array("cost" => 5));
+        return $this->request('futures/funds', array('private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetFuturesTransactions($params = array()) {
-        return $this->request('futures/transactions', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/transactions', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetFuturesOrders($params = array()) {
-        return $this->request('futures/orders', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/orders', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetFuturesOrdersHistory($params = array()) {
-        return $this->request('futures/orders/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/orders/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetFuturesOrdersOrderId($params = array()) {
-        return $this->request('futures/orders/{order_id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/orders/{order_id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetFuturesPositions($params = array()) {
-        return $this->request('futures/positions', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/positions', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetFuturesPositionsHistory($params = array()) {
-        return $this->request('futures/positions/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/positions/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetFuturesFeeHistory($params = array()) {
-        return $this->request('futures/fee/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/fee/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetFuturesAssetIdLeverage($params = array()) {
-        return $this->request('futures/{asset_id}/leverage', array('private'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('futures/{asset_id}/leverage', array('private'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetFuturesPositionsPositionIdLiqPrice($params = array()) {
-        return $this->request('futures/positions/{position_id}/liq-price', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('futures/positions/{position_id}/liq-price', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostWalletFuturesTransfer($params = array()) {
-        return $this->request('wallet/futures/transfer', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('wallet/futures/transfer', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostFuturesTransfersInr($params = array()) {
-        return $this->request('futures/transfers/inr', array('private'), 'POST', $params, null, null, array("cost" => 5));
+        return $this->request('futures/transfers/inr', array('private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostFuturesAssetIdOrder($params = array()) {
-        return $this->request('futures/{asset_id}/order', array('private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('futures/{asset_id}/order', array('private'), 'POST', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostFuturesPositionsPositionIdClose($params = array()) {
-        return $this->request('futures/positions/{position_id}/close', array('private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('futures/positions/{position_id}/close', array('private'), 'POST', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostFuturesPositionsPositionIdClosePartial($params = array()) {
-        return $this->request('futures/positions/{position_id}/close/partial', array('private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('futures/positions/{position_id}/close/partial', array('private'), 'POST', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostFuturesPositionsPositionIdReverse($params = array()) {
-        return $this->request('futures/positions/{position_id}/reverse', array('private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('futures/positions/{position_id}/reverse', array('private'), 'POST', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostFuturesPositionsPositionIdAddMargin($params = array()) {
-        return $this->request('futures/positions/{position_id}/add-margin', array('private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('futures/positions/{position_id}/add-margin', array('private'), 'POST', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostFuturesPositionsPositionIdRiskorder($params = array()) {
-        return $this->request('futures/positions/{position_id}/riskorder', array('private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('futures/positions/{position_id}/riskorder', array('private'), 'POST', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostFuturesAssetIdLeverage($params = array()) {
-        return $this->request('futures/{asset_id}/leverage', array('private'), 'POST', $params, null, null, array("cost" => 2));
+        return $this->request('futures/{asset_id}/leverage', array('private'), 'POST', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePatchFuturesOrdersOrderId($params = array()) {
-        return $this->request('futures/orders/{order_id}', array('private'), 'PATCH', $params, null, null, array("cost" => 1));
+        return $this->request('futures/orders/{order_id}', array('private'), 'PATCH', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePatchFuturesPositionsPositionIdRiskorder($params = array()) {
-        return $this->request('futures/positions/{position_id}/riskorder', array('private'), 'PATCH', $params, null, null, array("cost" => 2));
+        return $this->request('futures/positions/{position_id}/riskorder', array('private'), 'PATCH', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateDeleteFuturesOrdersOrderId($params = array()) {
-        return $this->request('futures/orders/{order_id}', array('private'), 'DELETE', $params, null, null, array("cost" => 2));
+        return $this->request('futures/orders/{order_id}', array('private'), 'DELETE', $params, array("cost" => 2));
     }
 }

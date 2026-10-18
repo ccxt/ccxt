@@ -2903,8 +2903,12 @@ class pacifica extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market);
         $symbol = $marketResolved['symbol'];
         $margin = $this->safe_string($position, 'margin');
-        $marginMode = ($margin !== null && $margin !== '0') ? 'isolated' : 'cross';
-        $isIsolated = ($marginMode === 'isolated');
+        $rawIsolated = $this->safe_bool($position, 'isolated');
+        $isIsolated = ($margin !== null && $margin !== '0');
+        if ($rawIsolated !== null) {
+            $isIsolated = $rawIsolated;
+        }
+        $marginMode = $isIsolated ? 'isolated' : 'cross';
         $side = $this->safe_string($position, 'side');
         if ($side !== null) {
             $side = ($side === 'bid') ? 'long' : 'short';
@@ -2925,13 +2929,13 @@ class pacifica extends Exchange {
             'markPrice' => null,
             'notional' => null,
             'leverage' => null,
-            'collateral' => $margin,
+            'collateral' => $this->safe_number($position, 'margin'),
             'initialMargin' => null,
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,
             'maintenanceMarginPercentage' => null,
             'unrealizedPnl' => null,
-            'liquidationPrice' => null,
+            'liquidationPrice' => $this->safe_number($position, 'liquidation_price'),
             'marginMode' => $marginMode,
             'percentage' => null,
         ));
@@ -3885,8 +3889,8 @@ class pacifica extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $requestBody = null;
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = 'api';
         if ($isTestnet) {

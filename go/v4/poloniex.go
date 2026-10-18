@@ -89,8 +89,8 @@ func (this *Poloniex) Describe() any {
 			"fetchTradingFee":                false,
 			"fetchTradingFees":               true,
 			"fetchTransactions":              "emulated",
-			"fetchTransfer":                  false,
-			"fetchTransfers":                 false,
+			"fetchTransfer":                  true,
+			"fetchTransfers":                 true,
 			"fetchVolatilityHistory":         false,
 			"fetchWithdrawals":               true,
 			"reduceMargin":                   true,
@@ -516,7 +516,6 @@ func (this *Poloniex) Describe() any {
 				"BEP20": "BSC",
 				"ERC20": "ETH",
 				"TRC20": "TRX",
-				"TRX":   "TRX",
 			},
 			"networksById": map[string]any{
 				"TRX":  "TRC20",
@@ -546,6 +545,8 @@ func (this *Poloniex) Describe() any {
 			"accountsById": map[string]any{
 				"exchange": "spot",
 				"futures":  "future",
+				"SPOT":     "spot",
+				"FUTURES":  "future",
 			},
 		},
 		"features": map[string]any{
@@ -890,11 +891,11 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes69119 []any = ListTyped(r1.Value)
-		if retRes69119 == nil {
+		var retRes69219 []any = ListTyped(r1.Value)
+		if retRes69219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes69119}
+			ch <- AsyncResult[any]{Value: retRes69219}
 		}
 		return nil
 	}
@@ -1050,11 +1051,11 @@ func (this *Poloniex) fetchSpotMarketsBody(ch chan AsyncResult[[]any], optionalA
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp1031 := <-this.PublicGetMarkets(params)
-	if listEp1031.Err != nil {
-		panic(listEp1031.Err)
+	listEp1032 := <-this.PublicGetMarkets(params)
+	if listEp1032.Err != nil {
+		panic(listEp1032.Err)
 	}
-	var markets []any = listEp1031.Value
+	var markets []any = listEp1032.Value
 
 	//
 	//     [
@@ -1522,11 +1523,11 @@ func (this *Poloniex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 		return nil
 	}
 
-	listEp1486 := <-this.PublicGetMarketsTicker24h(paramsMarketType)
-	if listEp1486.Err != nil {
-		panic(listEp1486.Err)
+	listEp1487 := <-this.PublicGetMarketsTicker24h(paramsMarketType)
+	if listEp1487.Err != nil {
+		panic(listEp1487.Err)
 	}
-	var response []any = listEp1486.Value
+	var response []any = listEp1487.Value
 
 	//
 	//     [
@@ -1575,11 +1576,11 @@ func (this *Poloniex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp1535 := <-this.PublicGetV2Currencies(params)
-	if listEp1535.Err != nil {
-		panic(listEp1535.Err)
+	listEp1536 := <-this.PublicGetV2Currencies(params)
+	if listEp1536.Err != nil {
+		panic(listEp1536.Err)
 	}
-	var response []any = listEp1535.Value
+	var response []any = listEp1536.Value
 
 	//
 	//    [
@@ -1939,11 +1940,11 @@ func (this *Poloniex) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
 		return nil
 	}
 
-	listEp1878 := <-this.PublicGetMarketsSymbolTrades(this.Extend(request, params))
-	if listEp1878.Err != nil {
-		panic(listEp1878.Err)
+	listEp1879 := <-this.PublicGetMarketsSymbolTrades(this.Extend(request, params))
+	if listEp1879.Err != nil {
+		panic(listEp1879.Err)
 	}
-	var trades []any = listEp1878.Value
+	var trades []any = listEp1879.Value
 
 	//
 	//     [
@@ -2004,11 +2005,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes157619 []any = ListTyped(r1.Value)
-		if retRes157619 == nil {
+		var retRes157719 []any = ListTyped(r1.Value)
+		if retRes157719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes157619}
+			ch <- AsyncResult[any]{Value: retRes157719}
 		}
 		return nil
 	}
@@ -2081,11 +2082,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		return nil
 	}
 
-	listEp2005 := <-this.PrivateGetTrades(this.Extend(requestUntil, paramsUntil))
-	if listEp2005.Err != nil {
-		panic(listEp2005.Err)
+	listEp2006 := <-this.PrivateGetTrades(this.Extend(requestUntil, paramsUntil))
+	if listEp2006.Err != nil {
+		panic(listEp2006.Err)
 	}
-	var response []any = listEp2005.Value
+	var response []any = listEp2006.Value
 	//
 	//     [
 	//         {
@@ -3146,11 +3147,11 @@ func (this *Poloniex) cancelOrdersBody(ch chan AsyncResult[any], ids any, option
 		request["clientOrderIds"] = clientOrderIds
 	}
 
-	listEp2990 := <-this.PrivateDeleteOrdersCancelByIds(this.Extend(request, query))
-	if listEp2990.Err != nil {
-		panic(listEp2990.Err)
+	listEp2991 := <-this.PrivateDeleteOrdersCancelByIds(this.Extend(request, query))
+	if listEp2991.Err != nil {
+		panic(listEp2991.Err)
 	}
-	var response []any = listEp2990.Value
+	var response []any = listEp2991.Value
 
 	//
 	//     [
@@ -3424,11 +3425,11 @@ func (this *Poloniex) fetchOrderTradesBody(ch chan AsyncResult[any], id string, 
 		"id": id,
 	}
 
-	listEp3233 := <-this.PrivateGetOrdersIdTrades(this.Extend(request, params))
-	if listEp3233.Err != nil {
-		panic(listEp3233.Err)
+	listEp3234 := <-this.PrivateGetOrdersIdTrades(this.Extend(request, params))
+	if listEp3234.Err != nil {
+		panic(listEp3234.Err)
 	}
-	var trades []any = listEp3233.Value
+	var trades []any = listEp3234.Value
 
 	//
 	//     [
@@ -3894,7 +3895,7 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs 
 	if networkEntry != nil {
 		exchangeNetworkId = GetValue(networkEntry, "id")
 	} else {
-		exchangeNetworkId = networkCode
+		exchangeNetworkId = this.NetworkCodeToId(networkCode, code)
 	}
 	var request map[string]any = map[string]any{
 		"currency": exchangeNetworkId,
@@ -3954,9 +3955,10 @@ func (this *Poloniex) transferBody(ch chan AsyncResult[map[string]any], code str
 	var currency map[string]any = this.Currency(code)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
-	var toId *string = this.SafeString(accountsByType, toAccount, fromAccount)
+	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
+	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
-		"amount":      this.CurrencyToPrecision(code, amount),
+		"amount":      amountToPrecision,
 		"currency":    currency["id"],
 		"fromAccount": fromId,
 		"toAccount":   toId,
@@ -3973,27 +3975,181 @@ func (this *Poloniex) transferBody(ch chan AsyncResult[map[string]any], code str
 	//        "transferId" : "168041074"
 	//    }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(response, currency)}
+	ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseTransfer(response, currency), map[string]any{
+		"amount":      this.ParseNumber(amountToPrecision),
+		"fromAccount": fromAccount,
+		"toAccount":   toAccount,
+	})}
 	return nil
+}
+
+/**
+ * @method
+ * @name poloniex#fetchTransfer
+ * @description fetch a transfer
+ * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-record
+ * @param {string} id transfer id
+ * @param {string} [code] not used by poloniex fetchTransfer
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *Poloniex) FetchTransferAsync(id string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
+	go this.fetchTransferBody(ch, id, optionalArgs...)
+	return ch
+}
+func (this *Poloniex) fetchTransferBody(ch chan EndpointResult[map[string]any], id string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicErrorT(ch)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = code
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var request map[string]any = map[string]any{
+		"id": id,
+	}
+
+	r1 := <-this.PrivateGetAccountsTransferId(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+
+	//
+	//     {
+	//         "id": "342284495",
+	//         "fromAccount": "FUTURES",
+	//         "toAccount": "SPOT",
+	//         "currency": "USDT",
+	//         "amount": "6",
+	//         "state": "SUCCESS",
+	//         "createTime": 1787154736417
+	//     }
+	//
+	chValue := this.ParseTransfer(response)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	return nil
+}
+
+/**
+ * @method
+ * @name poloniex#fetchTransfers
+ * @description fetch a history of internal transfers made on an account
+ * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-records
+ * @param {string} [code] unified currency code of the currency transferred
+ * @param {int} [since] the earliest time in ms to fetch transfers for
+ * @param {int} [limit] the maximum number of transfer structures to retrieve, default 100, max 1000
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *Poloniex) FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchTransfersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Poloniex) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = code
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var currency map[string]any = nil
+	var request map[string]any = map[string]any{}
+	if code != nil {
+		currency = this.Currency(code)
+		request["currency"] = GetValue(currency, "id")
+	}
+	if since != nil {
+		request["startTime"] = since
+	}
+	if limit != nil {
+		request["limit"] = limit
+	}
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
+
+	listEp3829 := <-this.PrivateGetAccountsTransfer(this.Extend(requestUntil, paramsUntil))
+	if listEp3829.Err != nil {
+		panic(listEp3829.Err)
+	}
+	var response []any = listEp3829.Value
+
+	//
+	//     [
+	//         {
+	//             "id": "342284495",
+	//             "fromAccount": "FUTURES",
+	//             "toAccount": "SPOT",
+	//             "currency": "USDT",
+	//             "amount": "6",
+	//             "state": "SUCCESS",
+	//             "createTime": 1787154736417
+	//         }
+	//     ]
+	//
+	ch <- AsyncResult[any]{Value: this.ParseTransfers(response, currency, since, limit)}
+	return nil
+}
+func (this *Poloniex) ParseTransferStatus(status *string) *string {
+	var statuses map[string]any = map[string]any{
+		"SUCCESS":     "ok",
+		"PROCESSING":  "pending",
+		"PROCESSSING": "pending",
+		"FAILED":      "failed",
+	}
+	return this.SafeString(statuses, status, status)
 }
 func (this *Poloniex) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
-	//    {
-	//        "transferId" : "168041074"
-	//    }
+	// transfer
+	//
+	//     {
+	//         "transferId" : "168041074"
+	//     }
+	//
+	// fetchTransfer, fetchTransfers
+	//
+	//     {
+	//         "id": "342284495",
+	//         "fromAccount": "FUTURES",
+	//         "toAccount": "SPOT",
+	//         "currency": "USDT",
+	//         "amount": "6",
+	//         "state": "SUCCESS",
+	//         "createTime": 1787154736417
+	//     }
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
+	var timestamp *int64 = this.SafeInteger(transfer, "createTime")
+	var fromAccountId *string = this.SafeString(transfer, "fromAccount")
+	var toAccountId *string = this.SafeString(transfer, "toAccount")
+	var accountIds map[string]any = SafeMapTyped(this.Options, "accountsById")
 	return map[string]any{
 		"info":        transfer,
-		"id":          this.SafeString(transfer, "transferId"),
-		"timestamp":   nil,
-		"datetime":    nil,
-		"currency":    this.SafeString(currency, "id"),
-		"amount":      nil,
-		"fromAccount": nil,
-		"toAccount":   nil,
-		"status":      nil,
+		"id":          this.SafeString2(transfer, "id", "transferId"),
+		"timestamp":   timestamp,
+		"datetime":    this.Iso8601(timestamp),
+		"currency":    this.SafeCurrencyCode(this.SafeString(transfer, "currency"), currency),
+		"amount":      this.SafeNumber(transfer, "amount"),
+		"fromAccount": this.SafeString(accountIds, fromAccountId, fromAccountId),
+		"toAccount":   this.SafeString(accountIds, toAccountId, toAccountId),
+		"status":      this.ParseTransferStatus(this.SafeString(transfer, "state")),
 	}
 }
 
@@ -4984,9 +5140,18 @@ func (this *Poloniex) ParsePosition(position any, optionalArgs ...any) any {
 	var leverage *string = this.SafeString(position, "lever")
 	var initialMargin *string = this.SafeString(position, "im")
 	var notional *string = Precise.StringMul(leverage, initialMargin)
-	var qty *string = this.SafeString(position, "qty")
-	var avgPrice *string = this.SafeString(position, "openAvgPx")
-	var collateral *string = Precise.StringMul(qty, avgPrice)
+	var positionMargin any = nil
+	var collateral any = nil
+	if marginMode != nil && *marginMode == "isolated" {
+		positionMargin = this.OmitZero(this.SafeString(position, "mgn"))
+		var upl *string = this.SafeString(position, "upl")
+		collateral = func() any {
+			if (positionMargin != nil) && (upl != nil) {
+				return Precise.StringAdd(positionMargin, upl)
+			}
+			return nil
+		}()
+	}
 	// todo: some more fields
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -5009,7 +5174,8 @@ func (this *Poloniex) ParsePosition(position any, optionalArgs ...any) any {
 		"lastUpdateTimestamp":         nil,
 		"maintenanceMargin":           this.SafeNumber(position, "mm"),
 		"maintenanceMarginPercentage": nil,
-		"collateral":                  collateral,
+		"collateral":                  this.ParseNumber(collateral),
+		"positionMargin":              this.ParseNumber(positionMargin),
 		"initialMargin":               initialMargin,
 		"initialMarginPercentage":     nil,
 		"leverage":                    ParseInt(leverage),
@@ -5121,11 +5287,11 @@ func (this *Poloniex) reduceMarginBody(ch chan EndpointResult[map[string]any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes384615 map[string]any = MapTyped(r.Value)
-	if retRes384615 == nil {
+	var retRes395915 map[string]any = MapTyped(r.Value)
+	if retRes395915 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes384615, Raw: retRes384615}
+		ch <- EndpointResult[map[string]any]{Value: retRes395915, Raw: retRes395915}
 	}
 	return nil
 }
@@ -5154,11 +5320,11 @@ func (this *Poloniex) addMarginBody(ch chan AsyncResult[map[string]any], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes385915 map[string]any = MapTyped(r.Value)
-	if retRes385915 == nil {
+	var retRes397215 map[string]any = MapTyped(r.Value)
+	if retRes397215 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes385915}
+		ch <- AsyncResult[map[string]any]{Value: retRes397215}
 	}
 	return nil
 }
@@ -5172,10 +5338,6 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var isArray bool = IsArray(params)
 	var url any = GetValue(this.Urls["api"], "spot")
@@ -5187,7 +5349,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var implodedPath string = this.ImplodeParams(path, params)
-	var bodyJson any = nil
+	var bodyJson *string = nil
 	var signedHeaders any = nil
 	if (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "swapPublic") {
 		url = Add(url, "/"+implodedPath)
@@ -5197,22 +5359,22 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())
-		var auth any = method + "\n" // eslint-disable-line quotes
+		var auth string = method + "\n" // eslint-disable-line quotes
 		url = Add(url, "/"+implodedPath)
-		auth = Add(auth, "/"+implodedPath)
+		auth += "/" + implodedPath
 		if (method == "POST") || (method == "PUT") || (method == "DELETE") {
-			auth = Add(auth, "\n") // eslint-disable-line quotes
+			auth += "\n" // eslint-disable-line quotes
 			if isArray || (len(ObjectKeys(query)) > 0) {
-				bodyJson = this.Json(query)
-				auth = Add(auth, Add(Add("requestBody=", bodyJson), "&"))
+				bodyJson = SafeStringPtr(this.Json(query))
+				auth += "requestBody=" + *bodyJson + "&"
 			}
-			auth = Add(auth, "signTimestamp="+timestamp)
+			auth += "signTimestamp=" + timestamp
 		} else {
 			var sortedQuery map[string]any = this.Extend(map[string]any{
 				"signTimestamp": timestamp,
 			}, query)
 			sortedQuery = this.Keysort(sortedQuery)
-			auth = Add(auth, "\n"+this.Urlencode(sortedQuery)) // eslint-disable-line quotes
+			auth += "\n" + this.Urlencode(sortedQuery) // eslint-disable-line quotes
 			if len(ObjectKeys(query)) > 0 {
 				url = Add(url, "?"+this.Urlencode(query))
 			}
@@ -5225,18 +5387,8 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 			"signature":     signature,
 		}
 	}
-	var bodyResolved any = func() any {
-		if bodyJson == nil {
-			return body
-		}
-		return bodyJson
-	}()
-	var headersResolved any = func() any {
-		if signedHeaders == nil {
-			return headers
-		}
-		return signedHeaders
-	}()
+	var bodyResolved *string = bodyJson
+	var headersResolved any = signedHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -5907,6 +6059,58 @@ func (this *Poloniex) Transfer(code string, amount float64, fromAccount string, 
 
 /**
  * @method
+ * @name poloniex#fetchTransfer
+ * @description fetch a transfer
+ * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-record
+ * @param {string} id transfer id
+ * @param {string} [code] not used by poloniex fetchTransfer
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *Poloniex) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
+
+	opts := FetchTransferOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchTransferAsync(id, opts.Code, opts.Params)
+	if r.Err != nil {
+		return TransferEntry{}, r.Err
+	}
+	var res TransferEntry = NewTransferEntry(r.Raw)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name poloniex#fetchTransfers
+ * @description fetch a history of internal transfers made on an account
+ * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-records
+ * @param {string} [code] unified currency code of the currency transferred
+ * @param {int} [since] the earliest time in ms to fetch transfers for
+ * @param {int} [limit] the maximum number of transfer structures to retrieve, default 100, max 1000
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *Poloniex) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
+
+	opts := FetchTransfersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchTransfersAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []TransferEntry = NewTransferEntryArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
  * @name poloniex#withdraw
  * @description make a withdrawal
  * @see https://api-docs.poloniex.com/spot/api/private/wallet#withdraw-currency
@@ -6455,12 +6659,6 @@ func (this *Poloniex) FetchTransactionFees(options ...FetchTransactionFeesOption
 }
 func (this *Poloniex) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchTransactions(options...)
-}
-func (this *Poloniex) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Poloniex) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfers(options...)
 }
 func (this *Poloniex) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)

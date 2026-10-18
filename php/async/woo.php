@@ -351,7 +351,6 @@ class woo extends Exchange {
                 'sandboxMode' => false,
                 'createMarketBuyOrderRequiresPrice' => true,
                 'networks' => array(
-                    'TRX' => 'TRX', // WOO X renamed the network id from TRON to TRX
                     'TRC20' => 'TRX',
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
@@ -3584,7 +3583,7 @@ class woo extends Exchange {
             'amount' => $amount,
             'addressTo' => $address,
             'tag' => $tagWithdrawTag,
-            'network' => $network,
+            'network' => $this->safe_string($this->networkAliases, $network, $network),
             'type' => 'withdrawal',
             'status' => 'pending',
         ));
@@ -3650,7 +3649,7 @@ class woo extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
         $version = $this->safe_string($section, 0);
@@ -3723,8 +3722,8 @@ class woo extends Exchange {
             }
             $requestHeaders['x-api-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         }
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        $headersResult = $requestHeaders;
+        $bodyResult = $requestBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
@@ -4564,6 +4563,11 @@ class woo extends Exchange {
         $size = Precise::string_abs($size);
         $notional = Precise::string_mul($size, $markPrice);
         $positionSide = $this->safe_string($position, 'positionSide'); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        $marginMode = $this->safe_string_lower_2($position, 'marginMode', 'margin_mode');
+        $positionMargin = null;
+        if ($marginMode === 'isolated') {
+            $positionMargin = $this->safe_number_2($position, 'isolatedMarginAmount', 'isolated_margin_amount');
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -4585,8 +4589,9 @@ class woo extends Exchange {
             'liquidationPrice' => $this->safe_number_2($position, 'estLiqPrice', 'est_liq_price'),
             'markPrice' => $this->parse_number($markPrice),
             'lastPrice' => null,
+            'positionMargin' => $positionMargin,
             'collateral' => null,
-            'marginMode' => $this->safe_string_lower_2($position, 'marginMode', 'margin_mode'),
+            'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => null,
             'hedged' => $positionSide !== 'BOTH',
@@ -5019,7 +5024,7 @@ class woo extends Exchange {
         $networkKeys = is_array($networks) ? array_keys($networks) : array();
         for ($i = 0; $i < count($networkKeys); $i++) {
             $network = $networkKeys[$i];
-            if ($network === 'ETH') {
+            if ($network === 'ERC20') {
                 return $network;
             }
         }

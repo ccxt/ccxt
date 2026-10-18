@@ -1892,7 +1892,7 @@ class apex(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
@@ -1904,7 +1904,7 @@ class apex(Exchange, ImplicitAPI):
             'Content-Type': 'application/x-www-form-urlencoded',
         }
         signPath = '/api/' + path
-        signBody = body
+        signBody = None
         if method.upper() != 'POST':
             if len(params) > 0:
                 signPath += '?' + self.rawencode(params)

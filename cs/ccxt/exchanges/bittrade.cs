@@ -547,6 +547,7 @@ public partial class bittrade : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "contract is restricted of closing positions on API.  Please contact customer service", typeof(OnMaintenance) },
                     { "maintain", typeof(OnMaintenance) },
+                    { "trade not open now", typeof(BadSymbol) },
                 } },
                 { "exact", new Dictionary<string, object>() {
                     { "bad-request", typeof(BadRequest) },
@@ -583,8 +584,8 @@ public partial class bittrade : Exchange
             { "options", new Dictionary<string, object>() {
                 { "defaultNetwork", "ERC20" },
                 { "networks", new Dictionary<string, object>() {
-                    { "ETH", "erc20" },
-                    { "TRX", "trc20" },
+                    { "ERC20", "erc20" },
+                    { "TRC20", "trc20" },
                     { "HRC20", "hrc20" },
                     { "HECO", "hrc20" },
                     { "HT", "hrc20" },
@@ -2354,7 +2355,7 @@ public partial class bittrade : Exchange
             { "txid", this.safeString(transaction, "tx-hash") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.safeStringUpper(transaction, "chain") },
+            { "network", this.networkIdToCode(this.safeStringUpper(transaction, "chain"), code) },
             { "address", this.safeString(transaction, "address") },
             { "addressTo", null },
             { "addressFrom", null },
@@ -2431,7 +2432,11 @@ public partial class bittrade : Exchange
             request["addr-tag"] = tagWithdrawTag; // only for XRP?
         }
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-        object network = this.safeStringUpper(paramsWithdrawTag, "network"); // this line allows the user to specify either ERC20 or ETH
+        object network = this.safeStringUpper(paramsWithdrawTag, "network");
+        if ((network != null))
+        {
+            network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+        }
         network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
         if ((network != null))
         {
@@ -2455,7 +2460,7 @@ public partial class bittrade : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2528,8 +2533,8 @@ public partial class bittrade : Exchange
         url = (this.implodeParams(baseApiUrl, new Dictionary<string, object>() {
     { "hostname", this.hostname },
 }) + url);
-        object headersResult = ((requestHeaders != null)) ? requestHeaders : headers;
-        object bodyResult = ((requestBody != null)) ? requestBody : body;
+        Dictionary<string, object> headersResult = requestHeaders;
+        string? bodyResult = requestBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

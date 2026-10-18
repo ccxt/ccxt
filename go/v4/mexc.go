@@ -999,9 +999,9 @@ func (this *Mexc) Describe() any {
 				},
 			},
 			"defaultType":    "spot",
-			"defaultNetwork": "ETH",
+			"defaultNetwork": "ERC20",
 			"defaultNetworks": map[string]any{
-				"ETH":  "ETH",
+				"ETH":  "ERC20",
 				"USDT": "ERC20",
 				"USDC": "ERC20",
 				"BTC":  "BTC",
@@ -1033,9 +1033,9 @@ func (this *Mexc) Describe() any {
 				"RSK":      "RBTC",
 			},
 			"networksById": map[string]any{
-				"BNB Smart Chain(BEP20-RACAV1)": "BSC",
-				"BNB Smart Chain(BEP20-RACAV2)": "BSC",
-				"BNB Smart Chain(BEP20)":        "BSC",
+				"BNB Smart Chain(BEP20-RACAV1)": "BEP20",
+				"BNB Smart Chain(BEP20-RACAV2)": "BEP20",
+				"BNB Smart Chain(BEP20)":        "BEP20",
 				"Ethereum(ERC20)":               "ERC20",
 			},
 			"recvWindow":     5 * 1000,
@@ -3941,7 +3941,7 @@ func (this *Mexc) fetchOrdersByIdsBody(ch chan AsyncResult[any], ids any, option
 	}
 	marketType, query := this.HandleMarketTypeAndParams("fetchOrdersByIds", market, params)
 	if marketType != nil && *marketType == "spot" {
-		panic(BadRequest(this.Id + " fetchOrdersByIds() is not supported for " + *marketType))
+		panic(NotSupported(this.Id + " fetchOrdersByIds() is not supported for " + *marketType))
 	} else {
 		request["order_ids"] = Join(ids, ",")
 
@@ -4452,7 +4452,7 @@ func (this *Mexc) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalAr
 	}()
 	marketType, _ := this.HandleMarketTypeAndParams("cancelOrders", market, params)
 	if marketType != nil && *marketType == "spot" {
-		panic(BadRequest(this.Id + " cancelOrders() is not supported for " + *marketType))
+		panic(NotSupported(this.Id + " cancelOrders() is not supported for " + *marketType))
 	} else {
 
 		r1 := <-this.ContractPrivatePostOrderCancel(ids)
@@ -5017,7 +5017,7 @@ func (this *Mexc) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string, o
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["spot"] != true {
-		panic(BadRequest(this.Id + " fetchTradingFee() supports spot markets only"))
+		panic(NotSupported(this.Id + " fetchTradingFee() supports spot markets only"))
 	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -7045,7 +7045,8 @@ func (this *Mexc) ParsePosition(position any, optionalArgs ...any) any {
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var contracts *string = this.SafeString(position, "holdVol")
 	var entryPrice *float64 = this.SafeNumber(position, "openAvgPrice")
-	var initialMargin *string = this.SafeString(position, "im")
+	var initialMargin any = this.OmitZero(this.SafeString(position, "im"))
+	var unrealizedPnl *string = this.SafeString(position, "unRealizedPnl")
 	var rawSide *string = this.SafeString(position, "positionType")
 	var side string = func() string {
 		if rawSide != nil && *rawSide == "1" {
@@ -7053,26 +7054,40 @@ func (this *Mexc) ParsePosition(position any, optionalArgs ...any) any {
 		}
 		return "short"
 	}()
-	var openType *string = this.SafeString(position, "margin_mode")
+	var openType *string = this.SafeString2(position, "openType", "margin_mode")
 	var marginType string = func() string {
 		if openType != nil && *openType == "1" {
 			return "isolated"
 		}
 		return "cross"
 	}()
+	var collateralString any = nil
+	var marginString any = nil
+	if (marginType == "isolated") && (initialMargin != nil) {
+		// im is the margin mexc holds in the position; funding settles to the available balance
+		collateralString = initialMargin
+		marginString = collateralString
+		if unrealizedPnl != nil {
+			collateralString = Precise.StringAdd(collateralString, unrealizedPnl)
+		}
+	}
 	var leverage *float64 = this.SafeNumber(position, "leverage")
-	var liquidationPrice *float64 = this.SafeNumber(position, "liquidatePrice")
+	var liquidationPrice *float64
+	if derefNum, isNum := this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidatePrice"))).(float64); isNum {
+		liquidationPrice = &derefNum
+	}
 	var timestamp *int64 = this.SafeInteger(position, "updateTime")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      symbol,
 		"contracts":                   this.ParseNumber(contracts),
-		"contractSize":                nil,
+		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"entryPrice":                  entryPrice,
-		"collateral":                  nil,
+		"positionMargin":              this.ParseNumber(marginString),
+		"collateral":                  this.ParseNumber(collateralString),
 		"side":                        side,
-		"unrealizedPnl":               nil,
+		"unrealizedPnl":               this.ParseNumber(unrealizedPnl),
 		"leverage":                    this.ParseNumber(leverage),
 		"percentage":                  nil,
 		"marginMode":                  marginType,
@@ -7152,10 +7167,8 @@ func (this *Mexc) fetchTransferBody(ch chan EndpointResult[map[string]any], id s
 		chValue := this.ParseTransfer(data)
 		ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 		return nil
-	} else if marketType != nil && *marketType == "swap" {
-		panic(BadRequest(this.Id + " fetchTransfer() is not supported for " + *marketType))
 	}
-	panic(BadRequest(this.Id + " fetchTransfer() is not supported for " + *marketType))
+	panic(NotSupported(this.Id + " fetchTransfer() is not supported for " + *marketType))
 }
 
 /**
@@ -7711,11 +7724,11 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan AsyncResult[any], optionalArg
 		}
 	}
 
-	listEp7195 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7195.Err != nil {
-		panic(listEp7195.Err)
+	listEp7205 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7205.Err != nil {
+		panic(listEp7205.Err)
 	}
-	var response []any = listEp7195.Value
+	var response []any = listEp7205.Value
 
 	//
 	//    [
@@ -7838,11 +7851,11 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], optiona
 		}
 	}
 
-	listEp7315 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7315.Err != nil {
-		panic(listEp7315.Err)
+	listEp7325 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7325.Err != nil {
+		panic(listEp7325.Err)
 	}
-	var response []any = listEp7315.Value
+	var response []any = listEp7325.Value
 
 	//
 	//    [
@@ -8190,7 +8203,7 @@ func (this *Mexc) setMarginModeBody(ch chan AsyncResult[any], marginMode string,
 	}
 	var market map[string]any = this.Market(symbol)
 	if market["spot"] == true {
-		panic(BadSymbol(this.Id + " setMarginMode() supports contract markets only"))
+		panic(NotSupported(this.Id + " setMarginMode() supports contract markets only"))
 	}
 	var marginModeLower string = strings.ToLower(marginMode)
 	if (marginModeLower != "isolated") && (marginModeLower != "cross") {
@@ -8245,12 +8258,8 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
+	var requestHeaders any = nil
+	var requestBody any = nil
 	var section *string = this.SafeString(api, 0)
 	var access *string = this.SafeString(api, 1)
 	var pathValue string = this.ImplodeParams(path, params)

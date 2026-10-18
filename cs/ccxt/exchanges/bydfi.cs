@@ -2494,6 +2494,12 @@ public partial class bydfi : Exchange
             contracts = Precise.stringDiv(contracts, contractSize);
         }
         Int64? timestamp = this.safeInteger(position, "createTime");
+        // raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+        string? positionMargin = this.safeString(position, "positionMargin");
+        if (((positionMargin != null)) && !Precise.stringGt(positionMargin, "0"))
+        {
+            positionMargin = null;
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "id") },
@@ -2502,6 +2508,7 @@ public partial class bydfi : Exchange
             { "markPrice", this.parseNumber(this.safeString(position, "markPrice")) },
             { "lastPrice", this.parseNumber(this.safeString(position, "avgClosePositionPrice")) },
             { "notional", this.parseNumber(this.safeString(position, "closePositionCost")) },
+            { "positionMargin", this.parseNumber(positionMargin) },
             { "collateral", null },
             { "unrealizedPnl", this.parseNumber(this.safeString(position, "unPnl")) },
             { "realizedPnl", this.parseNumber(this.safeString(position, "positionProfits")) },
@@ -3373,7 +3380,7 @@ public partial class bydfi : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -3425,8 +3432,8 @@ public partial class bydfi : Exchange
             }
         }
         url = url + endpoint;
-        object bodyResolved = ((requestBody == null)) ? body : requestBody;
-        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResolved = requestBody;
+        Dictionary<string, object> headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

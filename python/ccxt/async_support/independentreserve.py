@@ -304,7 +304,7 @@ class independentreserve(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'ETH': 'Ethereum',
+                    'ERC20': 'Ethereum',
                     'BCH': 'BitcoinCash',
                     'LTC': 'Litecoin',
                     'XRP': 'XrpLedger',
@@ -316,7 +316,7 @@ class independentreserve(Exchange, ImplicitAPI):
                     'DOT': 'Polkadot',
                     'ADA': 'Cardano',
                     'SOL': 'Solana',
-                    'TRX': 'Tron',
+                    'TRC20': 'Tron',
                 },
             },
         })
@@ -401,7 +401,7 @@ class independentreserve(Exchange, ImplicitAPI):
                         },
                     },
                     'created': None,
-                    'info': id,
+                    'info': {'primaryCurrencyCode': baseId, 'secondaryCurrencyCode': quoteId},
                 })
         return result
 
@@ -1075,7 +1075,7 @@ class independentreserve(Exchange, ImplicitAPI):
         # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
@@ -1110,4 +1110,5 @@ class independentreserve(Exchange, ImplicitAPI):
             signedBody = self.json(query)
             signedHeaders = {'Content-Type': 'application/json'}
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        headers = {}
+        return {'url': url, 'method': method, 'body': None, 'headers': headers}

@@ -833,7 +833,7 @@ export default class zaif extends Exchange {
         const nonce = parseFloat(num);
         return nonce.toFixed(8);
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const baseApiUrl = this.safeString(this.urls['api'], 'rest');
         if (baseApiUrl === undefined) {
@@ -870,7 +870,7 @@ export default class zaif extends Exchange {
             };
             return { 'url': url, 'method': method, 'body': bodyEncoded, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

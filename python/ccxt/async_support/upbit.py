@@ -2277,7 +2277,7 @@ class upbit(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
@@ -2291,7 +2291,7 @@ class upbit(Exchange, ImplicitAPI):
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
         hasBody = (apiName == 'private') and (method != 'GET') and (method != 'DELETE')
-        requestBody = body
+        requestBody = None
         if hasBody:
             requestBody = self.json(params)
         privateHeaders = None
@@ -2315,7 +2315,7 @@ class upbit(Exchange, ImplicitAPI):
                 request['query_hash_alg'] = 'SHA512'
             token = self.jwt(request, self.encode(self.secret), 'sha256')
             privateHeaders['Authorization'] = 'Bearer ' + token
-        requestHeaders = privateHeaders if (apiName == 'private') else headers
+        requestHeaders = privateHeaders if (apiName == 'private') else None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

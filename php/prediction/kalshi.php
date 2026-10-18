@@ -2732,17 +2732,15 @@ class kalshi extends Exchange {
         ));
     }
 
-    public function sign(string $path, array $api = array('kalshi'), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('kalshi'), $method = 'GET', $params = array()) {
         /**
          * @ignore
-         * builds the request URL and attaches RSA-PSS SHA-256 authentication $headers for private endpoints
+         * builds the request URL and attaches RSA-PSS SHA-256 authentication headers for private endpoints
          * @param {string} $path the endpoint $path
          * @param {string|string[]} [$api] the $api group and $access level
          * @param {string} [$method] HTTP $method
          * @param {array} [$params] request parameters
-         * @param {array} [$headers] request $headers
-         * @param {array} [$body] request $body
-         * @return {array} a dictionary with $url, $method, $body and $headers
+         * @return {array} a dictionary with $url, $method, body and headers
          */
         $apiGroup = $api[0];
         $access = $this->safe_string($api, 1, 'public');
@@ -2755,12 +2753,12 @@ class kalshi extends Exchange {
         if ($method === 'GET' && ($querystring !== '')) {
             $url .= '?' . $querystring;
         }
-        $existingHeaders = ($headers !== null) ? $headers : array();
+        $existingHeaders = array();
         $headersValue = $this->extend(array(
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ), $existingHeaders);
-        $bodyValue = $body;
+        $bodyValue = null;
         if ($access === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();

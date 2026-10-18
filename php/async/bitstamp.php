@@ -2883,7 +2883,7 @@ class bitstamp extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
@@ -2901,7 +2901,7 @@ class bitstamp extends Exchange {
         if (count($query) > 0) {
             $postBody = $this->urlencode($query);
         }
-        $requestBody = $body;
+        $requestBody = null;
         if ($isPrivatePost) {
             $requestBody = $postBody;
         }
@@ -2935,7 +2935,7 @@ class bitstamp extends Exchange {
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $privateHeaders['X-Auth-Signature'] = $signature;
         }
-        $requestHeaders = ($apiName === 'public') ? $headers : $privateHeaders;
+        $requestHeaders = ($apiName === 'public') ? null : $privateHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 

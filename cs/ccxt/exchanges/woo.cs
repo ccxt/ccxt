@@ -608,7 +608,6 @@ public partial class woo : Exchange
                 { "sandboxMode", false },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "networks", new Dictionary<string, object>() {
-                    { "TRX", "TRX" },
                     { "TRC20", "TRX" },
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
@@ -3789,7 +3788,7 @@ public partial class woo : Exchange
             { "amount", amount },
             { "addressTo", address },
             { "tag", tagWithdrawTag },
-            { "network", network },
+            { "network", this.safeString(this.networkAliases, network, network) },
             { "type", "withdrawal" },
             { "status", "pending" },
         });
@@ -3856,7 +3855,7 @@ public partial class woo : Exchange
         return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null)
     {
         section ??= new List<object>();
         method ??= "GET";
@@ -3951,8 +3950,8 @@ public partial class woo : Exchange
             }
             requestHeaders["x-api-signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         }
-        object headersResult = ((requestHeaders != null)) ? requestHeaders : headers;
-        object bodyResult = ((requestBody != null)) ? requestBody : body;
+        Dictionary<string, object> headersResult = requestHeaders;
+        object bodyResult = requestBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -4759,6 +4758,12 @@ public partial class woo : Exchange
         size = Precise.stringAbs(size);
         string? notional = Precise.stringMul(size, markPrice);
         string? positionSide = this.safeString(position, "positionSide"); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        string? marginMode = this.safeStringLower2(position, "marginMode", "margin_mode");
+        double? positionMargin = null;
+        if (marginMode == "isolated")
+        {
+            positionMargin = this.safeNumber2(position, "isolatedMarginAmount", "isolated_margin_amount");
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -4780,8 +4785,9 @@ public partial class woo : Exchange
             { "liquidationPrice", this.safeNumber2(position, "estLiqPrice", "est_liq_price") },
             { "markPrice", this.parseNumber(markPrice) },
             { "lastPrice", null },
+            { "positionMargin", positionMargin },
             { "collateral", null },
-            { "marginMode", this.safeStringLower2(position, "marginMode", "margin_mode") },
+            { "marginMode", marginMode },
             { "side", side },
             { "percentage", null },
             { "hedged", positionSide != "BOTH" },
@@ -5222,7 +5228,7 @@ public partial class woo : Exchange
         for (int i = 0; i < networkKeys.Count; i++)
         {
             object network = networkKeys[i];
-            if ((network is "ETH"))
+            if (isEqual(network, "ERC20"))
             {
                 return network;
             }

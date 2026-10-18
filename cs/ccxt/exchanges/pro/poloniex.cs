@@ -1328,15 +1328,16 @@ public partial class poloniex : ccxt.poloniex
             List<object> bids = this.safeList(item, "bids");
             if (snapshot || update)
             {
-                if (snapshot && !((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+                ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
+                if (snapshot && ((orderbook == null)))
                 {
-                    ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+                    orderbook = this.orderBook(new Dictionary<string, object>() {}, limit);
+                    ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
                 }
-                if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+                if ((orderbook == null))
                 {
                     continue;
                 }
-                ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
                 if (snapshot)
                 {
                     // reset the existing orderbook in place instead of

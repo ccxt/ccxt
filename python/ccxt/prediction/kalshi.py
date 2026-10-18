@@ -2372,7 +2372,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'info': rawEvent,
         })
 
-    def sign(self, path: str, api: list[str] = ['kalshi'], method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['kalshi'], method='GET', params: dict = {}):
         """
  @ignore
         builds the request URL and attaches RSA-PSS SHA-256 authentication headers for private endpoints
@@ -2380,8 +2380,6 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param string|str[] [api]: the api group and access level
         :param str [method]: HTTP method
         :param dict [params]: request parameters
-        :param dict [headers]: request headers
-        :param dict [body]: request body
         :returns dict: a dictionary with url, method, body and headers
         """
         apiGroup = api[0]
@@ -2394,12 +2392,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
         querystring = self.urlencode(query)
         if method == 'GET' and (querystring != ''):
             url += '?' + querystring
-        existingHeaders = headers if (headers is not None) else {}
+        existingHeaders = {}
         headersValue = self.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders)
-        bodyValue = body
+        bodyValue = None
         if access == 'private':
             self.check_required_credentials()
             timestamp = str(self.milliseconds())

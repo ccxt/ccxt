@@ -11,6 +11,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.OrderBookL3;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -490,7 +491,7 @@ public class Blockchaincom extends BlockchaincomApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchL3OrderBook(symbol, limit, parameters)).join();
+            return (this.fetchL2OrderBook(((String)symbol), limit, parameters)).join();
         }).thenApply(OrderBook::new);
 
     }
@@ -505,7 +506,7 @@ public class Blockchaincom extends BlockchaincomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchL3OrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBookL3> fetchL3OrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -523,8 +524,8 @@ public class Blockchaincom extends BlockchaincomApi
                 request.put("depth", limit);
             }
             Map<String, Object> response = (this.publicGetL3Symbol(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, market.get("symbol"), (Long) null, "bids", "asks", "px", "qty", 2);
-        }).thenApply(OrderBook::new);
+            return this.parseOrderBookL3(response, (String) (market.get("symbol")), (Long) null, "bids", "asks", "px", "qty", "num");
+        }).thenApply(OrderBookL3::new);
 
     }
 
@@ -1500,7 +1501,7 @@ public class Blockchaincom extends BlockchaincomApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String requestPath = ("/" + this.implodeParams(path, parameters));
         Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
@@ -1515,13 +1516,13 @@ public class Blockchaincom extends BlockchaincomApi
         Map<String, Object> privateHeaders = new HashMap<String, Object>() {{
             put( "X-API-Token", Blockchaincom.this.secret );
         }};
-        Object requestHeaders = headers;
+        Map<String, Object> requestHeaders = null;
         if (Boolean.TRUE.equals(isPrivate))
         {
             requestHeaders = privateHeaders;
         }
         Boolean isPrivatePost = Boolean.TRUE.equals(isPrivate) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"));
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(isPrivatePost))
         {
             requestBody = this.json(query);

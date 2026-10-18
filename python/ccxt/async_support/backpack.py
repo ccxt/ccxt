@@ -437,7 +437,7 @@ class backpack(Exchange, ImplicitAPI):
                     'BERA': 'Berachain',
                     'BTC': 'Bitcoin',
                     'BCH': 'BitcoinCash',
-                    'BSC': 'Bsc',
+                    'BEP20': 'Bsc',
                     'ADA': 'Cardano',
                     'DOGE': 'Dogecoin',
                     'ECLIPSE': 'Eclipse',
@@ -462,7 +462,7 @@ class backpack(Exchange, ImplicitAPI):
                     'berachain': 'BERA',
                     'bitcoin': 'BTC',
                     'bitcoincash': 'BCH',
-                    'bsc': 'BSC',
+                    'bsc': 'BEP20',
                     'cardano': 'ADA',
                     'dogecoin': 'DOGE',
                     'eclipse': 'ECLIPSE',
@@ -2237,7 +2237,7 @@ class backpack(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         endpoint = '/' + path
         apiUrl = self.safe_string(self.urls['api'], apiName)
@@ -2280,8 +2280,8 @@ class backpack(Exchange, ImplicitAPI):
             if len(query) != 0:
                 endpoint += '?' + query
         url += endpoint
-        headersResolved = headersSigned if (apiName == 'private') else headers
-        bodyResolved = body
+        headersResolved = headersSigned if (apiName == 'private') else None
+        bodyResolved = None
         if (apiName == 'private') and (method != 'GET'):
             bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}

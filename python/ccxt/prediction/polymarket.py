@@ -2483,7 +2483,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # unique when two identical orders are signed within the same millisecond
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['gamma'], method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['gamma'], method='GET', params: dict = {}):
         """
  @ignore
         builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints
@@ -2491,8 +2491,6 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :param str[] api: the api group and access level
         :param str method: the http method
         :param dict params: the request parameters
-        :param dict [headers]: request headers
-        :param str [body]: the request body
         :returns dict: a dict with url, method, body and headers
         """
         apiGroup = api[0]
@@ -2510,7 +2508,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         query = {}
         if not isArrayBody:
             query = self.omit(params, self.extract_params(path))
-        bodyValue = body
+        bodyValue = None
         if method == 'GET':
             # array-valued params must repeat the key (gamma's clob_token_ids rejects
             # comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -2534,7 +2532,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             queryKeysLength = len(queryKeys)
             if queryKeysLength > 0:
                 bodyValue = self.json(query)
-        headerDefaults = headers if (headers is not None) else {}
+        headerDefaults = {}
         headersValue = self.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',

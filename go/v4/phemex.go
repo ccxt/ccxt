@@ -850,8 +850,8 @@ func (this *Phemex) Describe() any {
 				"BEP20": "BNB",
 			},
 			"defaultNetworks": map[string]any{
-				"USDT": "ETH",
-				"MKR":  "ETH",
+				"USDT": "ERC20",
+				"MKR":  "ERC20",
 			},
 			"defaultSubType": "linear",
 			"accountsByType": map[string]any{
@@ -4518,7 +4518,9 @@ func (this *Phemex) fetchDepositAddressBody(ch chan AsyncResult[any], code strin
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper2(params, "network", "chainName", defaultNetwork)
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
-	network = this.SafeString(networks, network, network)
+	if network != nil {
+		network = this.SafeString(networks, this.SafeString(this.NetworkAliases, network, network), network)
+	}
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a network parameter"))
 	} else {
@@ -5964,10 +5966,6 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestPath string = "/" + this.ImplodeParams(path, params)
@@ -6013,7 +6011,7 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 	}
 	url = this.ImplodeHostname(baseApiUrl) + url
 	var isPrivatePost bool = (apiName != nil && *apiName == "private") && (method == "POST")
-	var bodyResolved *string = body
+	var bodyResolved *string = nil
 	if isPrivatePost {
 		bodyResolved = requestBody
 	}
@@ -6021,7 +6019,7 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 		if apiName != nil && *apiName == "private" {
 			return privateHeaders
 		}
-		return headers
+		return nil
 	}()
 	return map[string]any{
 		"url":     url,
@@ -6430,11 +6428,11 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes508819 []any = ListTyped(r1.Value)
-		if retRes508819 == nil {
+		var retRes509019 []any = ListTyped(r1.Value)
+		if retRes509019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes508819}
+			ch <- AsyncResult[any]{Value: retRes509019}
 		}
 		return nil
 	}

@@ -1134,9 +1134,7 @@ export default class kucoin extends Exchange {
                     'BTC': 'btc',
                     'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'HECO': 'heco',
                     'HRC20': 'heco',
@@ -3708,7 +3706,7 @@ export default class kucoin extends Exchange {
         return {
             'info': response,
             'currency': currencyId,
-            'network': this.safeString(data, 'chain'),
+            'network': this.networkIdToCode(this.safeString(data, 'chain'), code),
             'address': address,
             'tag': this.safeString(data, 'memo'),
         };
@@ -10957,6 +10955,25 @@ export default class kucoin extends Exchange {
         if (crossMode !== undefined) {
             marginMode = (crossMode === true) ? 'cross' : 'isolated';
         }
+        let collateralString = this.safeString(position, 'maintMargin');
+        let marginString = undefined;
+        if ((collateralString === undefined) && (marginMode === 'isolated')) {
+            let posMargin = this.safeString(position, 'posMargin');
+            if (posMargin === undefined) {
+                const posComm = this.safeString(position, 'posComm');
+                const posCross = this.safeString(position, 'posCross');
+                if ((initialMargin !== undefined) && (posComm !== undefined)) {
+                    posMargin = Precise.stringAdd(initialMargin, posComm);
+                    if (posCross !== undefined) {
+                        posMargin = Precise.stringAdd(posMargin, posCross);
+                    }
+                }
+            }
+            if (posMargin !== undefined) {
+                marginString = posMargin;
+                collateralString = (unrealisedPnl !== undefined) ? Precise.stringAdd(posMargin, unrealisedPnl) : posMargin;
+            }
+        }
         let lastUpdateTimestamp = this.safeInteger(position, 'closeTime');
         if (lastUpdateTimestamp === undefined) {
             if ('closingTime' in position) {
@@ -10988,7 +11005,8 @@ export default class kucoin extends Exchange {
             'liquidationPrice': this.safeNumber(position, 'liquidationPrice'),
             'markPrice': this.safeNumber(position, 'markPrice'),
             'lastPrice': this.safeNumber(position, 'closePrice'),
-            'collateral': this.safeNumber(position, 'maintMargin'),
+            'positionMargin': this.parseNumber(marginString),
+            'collateral': this.parseNumber(collateralString),
             'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
@@ -11765,7 +11783,7 @@ export default class kucoin extends Exchange {
         }
         return uta;
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
@@ -11797,11 +11815,8 @@ export default class kucoin extends Exchange {
         }
         const query = this.omit(paramsOmitted, this.extractParams(path));
         let endpart = '';
-        let headersBase = {};
-        if (headers !== undefined) {
-            headersBase = headers;
-        }
-        let bodyJson = body;
+        const headersBase = {};
+        let bodyJson = undefined;
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');

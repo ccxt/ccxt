@@ -1130,7 +1130,7 @@ class cryptomus(Exchange, ImplicitAPI):
             'taker': takerFees,
         }
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         endpoint = self.implode_params(path, params)
         paramsOmitted = self.omit(params, self.extract_params(path))
         apiName = api[0]
@@ -1155,13 +1155,13 @@ class cryptomus(Exchange, ImplicitAPI):
             stringToSign = jsonParamsBase64 + self.secret
             signature = self.hash(self.encode(stringToSign), 'md5')
             privateHeaders['sign'] = signature
-            privateBody = jsonParams if (method != 'GET') else body
+            privateBody = jsonParams if (method != 'GET') else None
             return {'url': url, 'method': method, 'body': privateBody, 'headers': privateHeaders}
         else:
             query = self.urlencode(paramsOmitted)
             if len(query) != 0:
                 url += '?' + query
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

@@ -2170,6 +2170,11 @@ export default class bydfi extends Exchange {
             contracts = Precise.stringDiv(contracts, contractSize);
         }
         const timestamp = this.safeInteger(position, 'createTime');
+        // raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+        let positionMargin = this.safeString(position, 'positionMargin');
+        if ((positionMargin !== undefined) && !Precise.stringGt(positionMargin, '0')) {
+            positionMargin = undefined;
+        }
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'id'),
@@ -2178,6 +2183,7 @@ export default class bydfi extends Exchange {
             'markPrice': this.parseNumber(this.safeString(position, 'markPrice')),
             'lastPrice': this.parseNumber(this.safeString(position, 'avgClosePositionPrice')),
             'notional': this.parseNumber(this.safeString(position, 'closePositionCost')),
+            'positionMargin': this.parseNumber(positionMargin),
             'collateral': undefined,
             'unrealizedPnl': this.parseNumber(this.safeString(position, 'unPnl')),
             'realizedPnl': this.parseNumber(this.safeString(position, 'positionProfits')),
@@ -2933,7 +2939,7 @@ export default class bydfi extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
-    sign(path, api = ['public'], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
@@ -2976,8 +2982,8 @@ export default class bydfi extends Exchange {
             }
         }
         url += endpoint;
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

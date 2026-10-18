@@ -337,6 +337,7 @@ export default class bittrade extends Exchange {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': OnMaintenance,
                     'maintain': OnMaintenance,
+                    'trade not open now': BadSymbol, // {"status":"error","err-code":"bad-request","err-msg":"symbol:maticjpy trade not open now "}
                 },
                 'exact': {
                     // err-code
@@ -375,8 +376,8 @@ export default class bittrade extends Exchange {
             'options': {
                 'defaultNetwork': 'ERC20',
                 'networks': {
-                    'ETH': 'erc20',
-                    'TRX': 'trc20',
+                    'ERC20': 'erc20',
+                    'TRC20': 'trc20',
                     'HRC20': 'hrc20',
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
@@ -2013,7 +2014,7 @@ export default class bittrade extends Exchange {
             'txid': this.safeString (transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.safeStringUpper (transaction, 'chain'),
+            'network': this.networkIdToCode (this.safeStringUpper (transaction, 'chain'), code),
             'address': this.safeString (transaction, 'address'),
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -2086,7 +2087,10 @@ export default class bittrade extends Exchange {
             request['addr-tag'] = tagWithdrawTag; // only for XRP?
         }
         const networks = this.safeDict (this.options, 'networks', {});
-        let network = this.safeStringUpper (paramsWithdrawTag, 'network'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeStringUpper (paramsWithdrawTag, 'network');
+        if (network !== undefined) {
+            network = this.safeString (this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+        }
         network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
@@ -2107,7 +2111,7 @@ export default class bittrade extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
@@ -2164,8 +2168,8 @@ export default class bittrade extends Exchange {
         url = this.implodeParams (baseApiUrl, {
             'hostname': this.hostname,
         }) + url;
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 

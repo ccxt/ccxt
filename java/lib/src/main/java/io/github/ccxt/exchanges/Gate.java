@@ -1640,13 +1640,10 @@ public class Gate extends GateApi
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "BTC" );
                     put( "BRC20", "BTCBRC" );
-                    put( "ETH", "ETH" );
                     put( "ERC20", "ETH" );
-                    put( "TRX", "TRX" );
                     put( "TRC20", "TRX" );
                     put( "HECO", "HT" );
                     put( "HRC20", "HT" );
-                    put( "BSC", "BSC" );
                     put( "BEP20", "BSC" );
                     put( "SOL", "SOL" );
                     put( "MATIC", "MATIC" );
@@ -1658,7 +1655,7 @@ public class Gate extends GateApi
                     put( "ARBITRUM_NOVA", "ARBNOVA" );
                     put( "BASE", "BASEEVM" );
                     put( "SUI", "SUI" );
-                    put( "CRONOS", "CRO" );
+                    put( "CRC20", "CRO" );
                     put( "CRO", "CRO" );
                     put( "APT", "APT" );
                     put( "SCROLL", "SCROLLETH" );
@@ -3397,7 +3394,7 @@ public class Gate extends GateApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             Object chainsIndexedByIdRaw = (this.fetchDepositAddressesByNetwork(code, paramsNetworkCode)).join();
             Object chainsIndexedById = chainsIndexedByIdRaw;
-            Object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
+            Object selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
             return Helpers.GetValue(chainsIndexedById, ((String)selectedNetworkIdOrCode));
         }).thenApply(DepositAddress::new);
 
@@ -7959,10 +7956,24 @@ public class Gate extends GateApi
         }
         // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
         String marginBalance = this.safeString(position, "margin");
-        String initialMarginString = this.omitZero(this.safeString(position, "initial_margin"));
+        Object initialMarginString = this.omitZero(this.safeString(position, "initial_margin"));
         // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
-        String maintenanceMarginString = this.omitZero(this.safeString(position, "maintenance_margin"));
+        Object maintenanceMarginString = this.omitZero(this.safeString(position, "maintenance_margin"));
+        Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(marketResolved, "info", new HashMap<String, Object>() {{}});
+        String takerFeeRate = this.safeString(marketInfo, "taker_fee_rate", "0.00075");
+        Boolean hasPositiveMarginBalance = (java.util.Objects.equals(marginBalance, null)) || Precise.stringGt(marginBalance, "0");
+        if ((java.util.Objects.equals(initialMarginString, null)) && Boolean.TRUE.equals(hasPositiveMarginBalance) && (!java.util.Objects.equals(notional, null)) && (!java.util.Objects.equals(leverage, null)) && Precise.stringGt(leverage, "0"))
+        {
+            String closeFee = Precise.stringMul(notional, takerFeeRate);
+            initialMarginString = Precise.stringAdd(Precise.stringDiv(notional, leverage), closeFee);
+        }
+        String liqPriceString = this.omitZero(this.safeString(position, "liq_price"));
+        String maintenanceRate = this.omitZero(this.safeString(position, "maintenance_rate"));
+        if ((java.util.Objects.equals(maintenanceMarginString, null)) && (java.util.Objects.equals(liqPriceString, null)) && Boolean.TRUE.equals(hasPositiveMarginBalance) && (!java.util.Objects.equals(notional, null)) && (!java.util.Objects.equals(maintenanceRate, null)))
+        {
+            maintenanceMarginString = Precise.stringMul(notional, Precise.stringAdd(maintenanceRate, takerFeeRate));
+        }
         // the margin field is the position margin balance, which excludes the unrealized pnl,
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -7996,9 +8007,10 @@ public class Gate extends GateApi
         mapLiteral16.put("contracts", this.parseNumber(Precise.stringAbs(size)));
         mapLiteral16.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
         mapLiteral16.put("marginRatio", null);
-        mapLiteral16.put("liquidationPrice", this.safeNumber(position, "liq_price", (Object) null));
+        mapLiteral16.put("liquidationPrice", this.parseNumber(liqPriceString));
         mapLiteral16.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
         mapLiteral16.put("lastPrice", null);
+        mapLiteral16.put("positionMargin", this.parseNumber(marginBalance));
         mapLiteral16.put("collateral", this.parseNumber(collateral));
         mapLiteral16.put("marginMode", marginMode);
         mapLiteral16.put("side", side);
@@ -8250,11 +8262,16 @@ public class Gate extends GateApi
     /**
      * @method
      * @name gate#fetchLeverageTiers
-     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-     * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
-     * @see https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, automatically paginating through all contracts
+     * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers
+     * @see https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'swap' or 'future'
+     * @param {string} [params.settle] settlement currency, default 'usdt' for swaps and 'btc' for futures
+     * @param {int} [params.limit] number of contracts per request, between 1 and 100, default 100
+     * @param {int} [params.offset] starting contract offset, default 0
+     * @param {string} [params.contract] exchange-specific contract id to fetch tiers for a single contract
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     public CompletableFuture<LeverageTiers> fetchLeverageTiers(List<String> symbols, Map<String, Object> parameters)
@@ -8276,110 +8293,42 @@ public class Gate extends GateApi
             {
                 throw new BadRequest((this.id + " fetchLeverageTiers only supports swap and future")) ;
             }
-            List<Object> response = null;
-            if (java.util.Objects.equals(type, "swap"))
+            Object limit = Helpers.mathMax(1, Helpers.mathMin(this.safeInteger(requestParams, "limit", 100), 100));
+            Object offset = this.safeInteger(requestParams, "offset", 0);
+            String contract = this.safeString(requestParams, "contract", "");
+            Object paramsOmitted = this.omit(requestParams, new ArrayList<Object>(Arrays.asList("limit", "offset")));
+            ((Map<String, Object>)request).put("limit", limit);
+            Map<String, Object> tiers = new HashMap<String, Object>() {{}};
+            while (true)
             {
-                response = (this.publicFuturesGetSettleContracts(this.extend(request, requestParams))).join();
-            } else if (java.util.Objects.equals(type, "future"))
-            {
-                response = (this.publicDeliveryGetSettleContracts(this.extend(request, requestParams))).join();
-            } else
-            {
-                throw new NotSupported((this.id + " fetchLeverageTiers() not support this market type")) ;
+                ((Map<String, Object>)request).put("offset", offset);
+                List<Object> response = null;
+                if (java.util.Objects.equals(type, "swap"))
+                {
+                    response = (this.publicFuturesGetSettleRiskLimitTiers(this.extend(request, paramsOmitted))).join();
+                } else
+                {
+                    response = (this.publicDeliveryGetSettleRiskLimitTiers(this.extend(request, paramsOmitted))).join();
+                }
+                // Each page contains all tiers for up to limit contracts, not limit rows.
+                Map<String, Object> grouped = new HashMap<String, Object>() {{}};
+                if (!java.util.Objects.equals(contract, ""))
+                {
+                    grouped.put(contract, response);
+                } else
+                {
+                    grouped = this.groupBy(response, "contract");
+                }
+                tiers = this.extend(tiers, grouped);
+                List<String> contracts = new ArrayList<String>(grouped.keySet());
+                Integer numContracts = ((List<?>)contracts).size();
+                if ((!java.util.Objects.equals(contract, "")) || (Helpers.isLessThan(numContracts, limit)))
+                {
+                    break;
+                }
+                offset = this.sum(offset, limit);
             }
-            //
-            // Perpetual swap
-            //
-            //    [
-            //        {
-            //            "name": "BTC_USDT",
-            //            "type": "direct",
-            //            "quanto_multiplier": "0.0001",
-            //            "ref_discount_rate": "0",
-            //            "order_price_deviate": "0.5",
-            //            "maintenance_rate": "0.005",
-            //            "mark_type": "index",
-            //            "last_price": "38026",
-            //            "mark_price": "37985.6",
-            //            "index_price": "37954.92",
-            //            "funding_rate_indicative": "0.000219",
-            //            "mark_price_round": "0.01",
-            //            "funding_offset": 0,
-            //            "in_delisting": false,
-            //            "risk_limit_base": "1000000",
-            //            "interest_rate": "0.0003",
-            //            "order_price_round": "0.1",
-            //            "order_size_min": 1,
-            //            "ref_rebate_rate": "0.2",
-            //            "funding_interval": 28800,
-            //            "risk_limit_step": "1000000",
-            //            "leverage_min": "1",
-            //            "leverage_max": "100",
-            //            "risk_limit_max": "8000000",
-            //            "maker_fee_rate": "-0.00025",
-            //            "taker_fee_rate": "0.00075",
-            //            "funding_rate": "0.002053",
-            //            "order_size_max": 1000000,
-            //            "funding_next_apply": 1610035200,
-            //            "short_users": 977,
-            //            "config_change_time": 1609899548,
-            //            "trade_size": 28530850594,
-            //            "position_size": 5223816,
-            //            "long_users": 455,
-            //            "funding_impact_value": "60000",
-            //            "orders_limit": 50,
-            //            "trade_id": 10851092,
-            //            "orderbook_id": 2129638396
-            //        }
-            //    ]
-            //
-            // Delivery Futures
-            //
-            //    [
-            //        {
-            //            "name": "BTC_USDT_20200814",
-            //            "underlying": "BTC_USDT",
-            //            "cycle": "WEEKLY",
-            //            "type": "direct",
-            //            "quanto_multiplier": "0.0001",
-            //            "mark_type": "index",
-            //            "last_price": "9017",
-            //            "mark_price": "9019",
-            //            "index_price": "9005.3",
-            //            "basis_rate": "0.185095",
-            //            "basis_value": "13.7",
-            //            "basis_impact_value": "100000",
-            //            "settle_price": "0",
-            //            "settle_price_interval": 60,
-            //            "settle_price_duration": 1800,
-            //            "settle_fee_rate": "0.0015",
-            //            "expire_time": 1593763200,
-            //            "order_price_round": "0.1",
-            //            "mark_price_round": "0.1",
-            //            "leverage_min": "1",
-            //            "leverage_max": "100",
-            //            "maintenance_rate": "1000000",
-            //            "risk_limit_base": "140.726652109199",
-            //            "risk_limit_step": "1000000",
-            //            "risk_limit_max": "8000000",
-            //            "maker_fee_rate": "-0.00025",
-            //            "taker_fee_rate": "0.00075",
-            //            "ref_discount_rate": "0",
-            //            "ref_rebate_rate": "0.2",
-            //            "order_price_deviate": "0.5",
-            //            "order_size_min": 1,
-            //            "order_size_max": 1000000,
-            //            "orders_limit": 50,
-            //            "orderbook_id": 63,
-            //            "trade_id": 26,
-            //            "trade_size": 435,
-            //            "position_size": 130,
-            //            "config_change_time": 1593158867,
-            //            "in_delisting": false
-            //        }
-            //    ]
-            //
-            return this.parseLeverageTiers(response, symbols, "name");
+            return this.parseLeverageTiers(tiers, symbols, (String) null);
         }).thenApply(LeverageTiers::new);
 
     }
@@ -8496,7 +8445,7 @@ public class Gate extends GateApi
             ((List<Object>)tiers).add(Helpers.newMap(
                 "tier", this.sum(i, 1),
                 "symbol", this.safeString(market, "symbol"),
-                "currency", this.safeString(market, "base"),
+                "currency", this.safeString(market, "settle"),
                 "minNotional", minNotional,
                 "maxNotional", maxNotional,
                 "maintenanceMarginRate", this.safeNumber(item, "maintenance_rate", (Object) null),
@@ -8863,7 +8812,7 @@ public class Gate extends GateApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object authentication = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)); // public, private
         Object type = (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)); // spot, margin, future, delivery
@@ -8965,7 +8914,7 @@ public class Gate extends GateApi
                 query = this.omit(query, "query");
                 bodyJson = this.json(query);
             }
-            String bodySigned = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
+            String bodySigned = bodyJson;
             String bodyPayload = (((java.util.Objects.equals(bodySigned, null)))) ? "" : bodySigned;
             Object bodySignature = this.hash(this.encode(bodyPayload), sha512());
             Long nonce = this.nonce();
@@ -8983,8 +8932,8 @@ public class Gate extends GateApi
                 put( "Content-Type", "application/json" );
             }};
         }
-        String bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
-        Object headersResolved = (((java.util.Objects.equals(signedHeaders, null)))) ? headers : signedHeaders;
+        String bodyResolved = bodyJson;
+        Map<String, Object> headersResolved = signedHeaders;
         {
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);

@@ -1303,7 +1303,7 @@ public partial class cryptomus : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -1340,7 +1340,7 @@ public partial class cryptomus : Exchange
             string stringToSign = (jsonParamsBase64 + this.secret);
             string signature = ((string)this.hash(this.encode(stringToSign), md5));
             privateHeaders["sign"] = signature;
-            object privateBody = ((method != "GET")) ? jsonParams : body;
+            string? privateBody = ((method != "GET")) ? jsonParams : null;
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
@@ -1358,8 +1358,8 @@ public partial class cryptomus : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

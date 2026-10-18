@@ -11,960 +11,960 @@ abstract class coinsph extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_openapi_v1_ping($params = array()) {
-        return $this->request('openapi/v1/ping', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/ping', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_openapi_v1_time($params = array()) {
-        return $this->request('openapi/v1/time', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/time', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_openapi_v1_user_ip($params = array()) {
-        return $this->request('openapi/v1/user/ip', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/user/ip', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function public_get_openapi_quote_v1_ticker_24hr($params = array()) {
-        return $this->request('openapi/quote/v1/ticker/24hr', array('public'), 'GET', $params, null, null, array("cost" => 1, "noSymbolAndNoSymbols" => 40, "byNumberOfSymbols" => [[101, 40], [21, 20], [0, 1]]));
+        return $this->request('openapi/quote/v1/ticker/24hr', array('public'), 'GET', $params, array("cost" => 1, "noSymbolAndNoSymbols" => 40, "byNumberOfSymbols" => [[101, 40], [21, 20], [0, 1]]));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_openapi_quote_v1_ticker_price($params = array()) {
-        return $this->request('openapi/quote/v1/ticker/price', array('public'), 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
+        return $this->request('openapi/quote/v1/ticker/price', array('public'), 'GET', $params, array("cost" => 1, "noSymbol" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function public_get_openapi_quote_v1_ticker_bookticker($params = array()) {
-        return $this->request('openapi/quote/v1/ticker/bookTicker', array('public'), 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
+        return $this->request('openapi/quote/v1/ticker/bookTicker', array('public'), 'GET', $params, array("cost" => 1, "noSymbol" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_openapi_v1_exchangeinfo($params = array()) {
-        return $this->request('openapi/v1/exchangeInfo', array('public'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/exchangeInfo', array('public'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_openapi_quote_v1_depth($params = array()) {
-        return $this->request('openapi/quote/v1/depth', array('public'), 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[101, 5], [0, 1]]));
+        return $this->request('openapi/quote/v1/depth', array('public'), 'GET', $params, array("cost" => 1, "byLimit" => [[101, 5], [0, 1]]));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function public_get_openapi_quote_v1_klines($params = array()) {
-        return $this->request('openapi/quote/v1/klines', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/quote/v1/klines', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function public_get_openapi_quote_v1_trades($params = array()) {
-        return $this->request('openapi/quote/v1/trades', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/quote/v1/trades', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function public_get_openapi_v1_pairs($params = array()) {
-        return $this->request('openapi/v1/pairs', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/pairs', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function public_get_openapi_quote_v1_avgprice($params = array()) {
-        return $this->request('openapi/quote/v1/avgPrice', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/quote/v1/avgPrice', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_openapi_v1_check_sys_status($params = array()) {
-        return $this->request('openapi/v1/check-sys-status', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/check-sys-status', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_openapi_wallet_v1_config_getall($params = array()) {
-        return $this->request('openapi/wallet/v1/config/getall', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/wallet/v1/config/getall', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_openapi_wallet_v1_deposit_address($params = array()) {
-        return $this->request('openapi/wallet/v1/deposit/address', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/wallet/v1/deposit/address', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_openapi_wallet_v1_deposit_history($params = array()) {
-        return $this->request('openapi/wallet/v1/deposit/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/wallet/v1/deposit/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_openapi_wallet_v1_withdraw_history($params = array()) {
-        return $this->request('openapi/wallet/v1/withdraw/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/wallet/v1/withdraw/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_openapi_wallet_v1_withdraw_address_whitelist($params = array()) {
-        return $this->request('openapi/wallet/v1/withdraw/address-whitelist', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/wallet/v1/withdraw/address-whitelist', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_openapi_v1_account($params = array()) {
-        return $this->request('openapi/v1/account', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/account', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_openapi_v1_api_keys($params = array()) {
-        return $this->request('openapi/v1/api-keys', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/api-keys', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_openapi_v1_openorders($params = array()) {
-        return $this->request('openapi/v1/openOrders', array('private'), 'GET', $params, null, null, array("cost" => 3, "noSymbol" => 40));
+        return $this->request('openapi/v1/openOrders', array('private'), 'GET', $params, array("cost" => 3, "noSymbol" => 40));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_openapi_v1_asset_tradefee($params = array()) {
-        return $this->request('openapi/v1/asset/tradeFee', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/asset/tradeFee', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_openapi_v1_order($params = array()) {
-        return $this->request('openapi/v1/order', array('private'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('openapi/v1/order', array('private'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_openapi_v1_historyorders($params = array()) {
-        return $this->request('openapi/v1/historyOrders', array('private'), 'GET', $params, null, null, array("cost" => 10, "noSymbol" => 40));
+        return $this->request('openapi/v1/historyOrders', array('private'), 'GET', $params, array("cost" => 10, "noSymbol" => 40));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_openapi_v1_mytrades($params = array()) {
-        return $this->request('openapi/v1/myTrades', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/myTrades', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_openapi_v1_capital_deposit_history($params = array()) {
-        return $this->request('openapi/v1/capital/deposit/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/capital/deposit/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_openapi_v1_capital_withdraw_history($params = array()) {
-        return $this->request('openapi/v1/capital/withdraw/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/capital/withdraw/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_openapi_v3_payment_request_get_payment_request($params = array()) {
-        return $this->request('openapi/v3/payment-request/get-payment-request', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v3/payment-request/get-payment-request', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_merchant_api_v1_get_invoices($params = array()) {
-        return $this->request('merchant-api/v1/get-invoices', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('merchant-api/v1/get-invoices', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_openapi_account_v3_crypto_accounts($params = array()) {
-        return $this->request('openapi/account/v3/crypto-accounts', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/account/v3/crypto-accounts', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_openapi_transfer_v3_transfers_id($params = array()) {
-        return $this->request('openapi/transfer/v3/transfers/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/transfer/v3/transfers/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_openapi_v1_sub_account_list($params = array()) {
-        return $this->request('openapi/v1/sub-account/list', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/sub-account/list', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_openapi_v1_sub_account_asset($params = array()) {
-        return $this->request('openapi/v1/sub-account/asset', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/sub-account/asset', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_openapi_v1_sub_account_transfer_universal_transfer_history($params = array()) {
-        return $this->request('openapi/v1/sub-account/transfer/universal-transfer-history', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/sub-account/transfer/universal-transfer-history', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_openapi_v1_sub_account_transfer_sub_history($params = array()) {
-        return $this->request('openapi/v1/sub-account/transfer/sub-history', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/sub-account/transfer/sub-history', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_openapi_v1_sub_account_apikey_ip_restriction($params = array()) {
-        return $this->request('openapi/v1/sub-account/apikey/ip-restriction', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/sub-account/apikey/ip-restriction', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_openapi_v1_sub_account_wallet_deposit_address($params = array()) {
-        return $this->request('openapi/v1/sub-account/wallet/deposit/address', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/sub-account/wallet/deposit/address', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_openapi_v1_sub_account_wallet_deposit_history($params = array()) {
-        return $this->request('openapi/v1/sub-account/wallet/deposit/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/sub-account/wallet/deposit/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_openapi_v1_fund_collect_get_fund_record($params = array()) {
-        return $this->request('openapi/v1/fund-collect/get-fund-record', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/fund-collect/get-fund-record', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_openapi_v1_asset_transaction_history($params = array()) {
-        return $this->request('openapi/v1/asset/transaction/history', array('private'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('openapi/v1/asset/transaction/history', array('private'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_wallet_v1_withdraw_apply($params = array()) {
-        return $this->request('openapi/wallet/v1/withdraw/apply', array('private'), 'POST', $params, null, null, array("cost" => 600));
+        return $this->request('openapi/wallet/v1/withdraw/apply', array('private'), 'POST', $params, array("cost" => 600));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_v1_order_test($params = array()) {
-        return $this->request('openapi/v1/order/test', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/order/test', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_v1_order($params = array()) {
-        return $this->request('openapi/v1/order', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/order', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_v1_order_cancelreplace($params = array()) {
-        return $this->request('openapi/v1/order/cancelReplace', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/order/cancelReplace', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_v1_capital_withdraw_apply($params = array()) {
-        return $this->request('openapi/v1/capital/withdraw/apply', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/capital/withdraw/apply', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_v1_capital_deposit_apply($params = array()) {
-        return $this->request('openapi/v1/capital/deposit/apply', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/capital/deposit/apply', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_v3_payment_request_payment_requests($params = array()) {
-        return $this->request('openapi/v3/payment-request/payment-requests', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v3/payment-request/payment-requests', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_v3_payment_request_delete_payment_request($params = array()) {
-        return $this->request('openapi/v3/payment-request/delete-payment-request', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v3/payment-request/delete-payment-request', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<string>
      */
     public function private_post_openapi_v3_payment_request_payment_request_reminder($params = array()) {
-        return $this->request('openapi/v3/payment-request/payment-request-reminder', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v3/payment-request/payment-request-reminder', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_v1_userdatastream($params = array()) {
-        return $this->request('openapi/v1/userDataStream', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/userDataStream', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_merchant_api_v1_invoices($params = array()) {
-        return $this->request('merchant-api/v1/invoices', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('merchant-api/v1/invoices', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_merchant_api_v1_invoices_cancel($params = array()) {
-        return $this->request('merchant-api/v1/invoices-cancel', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('merchant-api/v1/invoices-cancel', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_convert_v1_get_supported_trading_pairs($params = array()) {
-        return $this->request('openapi/convert/v1/get-supported-trading-pairs', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/convert/v1/get-supported-trading-pairs', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_convert_v1_get_quote($params = array()) {
-        return $this->request('openapi/convert/v1/get-quote', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/convert/v1/get-quote', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_convert_v1_accept_quote($params = array()) {
-        return $this->request('openapi/convert/v1/accept-quote', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/convert/v1/accept-quote', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_convert_v1_query_order_history($params = array()) {
-        return $this->request('openapi/convert/v1/query-order-history', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/convert/v1/query-order-history', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_otc_trade_v1_get_supported_trading_pairs($params = array()) {
-        return $this->request('openapi/otc-trade/v1/get-supported-trading-pairs', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/otc-trade/v1/get-supported-trading-pairs', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_otc_trade_v1_create_rfq($params = array()) {
-        return $this->request('openapi/otc-trade/v1/create-rfq', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/otc-trade/v1/create-rfq', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_otc_trade_v1_accept_rfq($params = array()) {
-        return $this->request('openapi/otc-trade/v1/accept-rfq', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/otc-trade/v1/accept-rfq', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_otc_trade_v1_manual_settle($params = array()) {
-        return $this->request('openapi/otc-trade/v1/manual-settle', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/otc-trade/v1/manual-settle', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_otc_trade_v1_query_order_history($params = array()) {
-        return $this->request('openapi/otc-trade/v1/query-order-history', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/otc-trade/v1/query-order-history', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_fiat_v1_support_channel($params = array()) {
-        return $this->request('openapi/fiat/v1/support-channel', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/fiat/v1/support-channel', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_fiat_v1_cash_out($params = array()) {
-        return $this->request('openapi/fiat/v1/cash-out', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/fiat/v1/cash-out', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_fiat_v1_history($params = array()) {
-        return $this->request('openapi/fiat/v1/history', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/fiat/v1/history', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_fiat_v2_history($params = array()) {
-        return $this->request('openapi/fiat/v2/history', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/fiat/v2/history', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_fiat_v1_cancel_qr_code($params = array()) {
-        return $this->request('openapi/fiat/v1/cancel_qr_code', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/fiat/v1/cancel_qr_code', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_migration_v4_sellorder($params = array()) {
-        return $this->request('openapi/migration/v4/sellorder', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/migration/v4/sellorder', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_migration_v4_validate_field($params = array()) {
-        return $this->request('openapi/migration/v4/validate-field', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/migration/v4/validate-field', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_transfer_v3_transfers($params = array()) {
-        return $this->request('openapi/transfer/v3/transfers', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/transfer/v3/transfers', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_transfer_v4_transfers($params = array()) {
-        return $this->request('openapi/transfer/v4/transfers', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/transfer/v4/transfers', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_v1_sub_account_create($params = array()) {
-        return $this->request('openapi/v1/sub-account/create', array('private'), 'POST', $params, null, null, array("cost" => 30));
+        return $this->request('openapi/v1/sub-account/create', array('private'), 'POST', $params, array("cost" => 30));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_v1_sub_account_transfer_universal_transfer($params = array()) {
-        return $this->request('openapi/v1/sub-account/transfer/universal-transfer', array('private'), 'POST', $params, null, null, array("cost" => 100));
+        return $this->request('openapi/v1/sub-account/transfer/universal-transfer', array('private'), 'POST', $params, array("cost" => 100));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_v1_sub_account_transfer_sub_to_master($params = array()) {
-        return $this->request('openapi/v1/sub-account/transfer/sub-to-master', array('private'), 'POST', $params, null, null, array("cost" => 100));
+        return $this->request('openapi/v1/sub-account/transfer/sub-to-master', array('private'), 'POST', $params, array("cost" => 100));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_v1_sub_account_apikey_add_ip_restriction($params = array()) {
-        return $this->request('openapi/v1/sub-account/apikey/add-ip-restriction', array('private'), 'POST', $params, null, null, array("cost" => 30));
+        return $this->request('openapi/v1/sub-account/apikey/add-ip-restriction', array('private'), 'POST', $params, array("cost" => 30));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_v1_sub_account_apikey_delete_ip_restriction($params = array()) {
-        return $this->request('openapi/v1/sub-account/apikey/delete-ip-restriction', array('private'), 'POST', $params, null, null, array("cost" => 30));
+        return $this->request('openapi/v1/sub-account/apikey/delete-ip-restriction', array('private'), 'POST', $params, array("cost" => 30));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_openapi_v1_fund_collect_collect_from_sub_account($params = array()) {
-        return $this->request('openapi/v1/fund-collect/collect-from-sub-account', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/fund-collect/collect-from-sub-account', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_put_openapi_v1_userdatastream($params = array()) {
-        return $this->request('openapi/v1/userDataStream', array('private'), 'PUT', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/userDataStream', array('private'), 'PUT', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_delete_openapi_v1_order($params = array()) {
-        return $this->request('openapi/v1/order', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/order', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_delete_openapi_v1_openorders($params = array()) {
-        return $this->request('openapi/v1/openOrders', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/openOrders', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_delete_openapi_v1_userdatastream($params = array()) {
-        return $this->request('openapi/v1/userDataStream', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/userDataStream', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGetOpenapiV1Ping($params = array()) {
-        return $this->request('openapi/v1/ping', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/ping', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGetOpenapiV1Time($params = array()) {
-        return $this->request('openapi/v1/time', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/time', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGetOpenapiV1UserIp($params = array()) {
-        return $this->request('openapi/v1/user/ip', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/user/ip', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function publicGetOpenapiQuoteV1Ticker24hr($params = array()) {
-        return $this->request('openapi/quote/v1/ticker/24hr', array('public'), 'GET', $params, null, null, array("cost" => 1, "noSymbolAndNoSymbols" => 40, "byNumberOfSymbols" => [[101, 40], [21, 20], [0, 1]]));
+        return $this->request('openapi/quote/v1/ticker/24hr', array('public'), 'GET', $params, array("cost" => 1, "noSymbolAndNoSymbols" => 40, "byNumberOfSymbols" => [[101, 40], [21, 20], [0, 1]]));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGetOpenapiQuoteV1TickerPrice($params = array()) {
-        return $this->request('openapi/quote/v1/ticker/price', array('public'), 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
+        return $this->request('openapi/quote/v1/ticker/price', array('public'), 'GET', $params, array("cost" => 1, "noSymbol" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function publicGetOpenapiQuoteV1TickerBookTicker($params = array()) {
-        return $this->request('openapi/quote/v1/ticker/bookTicker', array('public'), 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
+        return $this->request('openapi/quote/v1/ticker/bookTicker', array('public'), 'GET', $params, array("cost" => 1, "noSymbol" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGetOpenapiV1ExchangeInfo($params = array()) {
-        return $this->request('openapi/v1/exchangeInfo', array('public'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/exchangeInfo', array('public'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGetOpenapiQuoteV1Depth($params = array()) {
-        return $this->request('openapi/quote/v1/depth', array('public'), 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[101, 5], [0, 1]]));
+        return $this->request('openapi/quote/v1/depth', array('public'), 'GET', $params, array("cost" => 1, "byLimit" => [[101, 5], [0, 1]]));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function publicGetOpenapiQuoteV1Klines($params = array()) {
-        return $this->request('openapi/quote/v1/klines', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/quote/v1/klines', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function publicGetOpenapiQuoteV1Trades($params = array()) {
-        return $this->request('openapi/quote/v1/trades', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/quote/v1/trades', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function publicGetOpenapiV1Pairs($params = array()) {
-        return $this->request('openapi/v1/pairs', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/pairs', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function publicGetOpenapiQuoteV1AvgPrice($params = array()) {
-        return $this->request('openapi/quote/v1/avgPrice', array('public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/quote/v1/avgPrice', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetOpenapiV1CheckSysStatus($params = array()) {
-        return $this->request('openapi/v1/check-sys-status', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/check-sys-status', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetOpenapiWalletV1ConfigGetall($params = array()) {
-        return $this->request('openapi/wallet/v1/config/getall', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/wallet/v1/config/getall', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOpenapiWalletV1DepositAddress($params = array()) {
-        return $this->request('openapi/wallet/v1/deposit/address', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/wallet/v1/deposit/address', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetOpenapiWalletV1DepositHistory($params = array()) {
-        return $this->request('openapi/wallet/v1/deposit/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/wallet/v1/deposit/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetOpenapiWalletV1WithdrawHistory($params = array()) {
-        return $this->request('openapi/wallet/v1/withdraw/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/wallet/v1/withdraw/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetOpenapiWalletV1WithdrawAddressWhitelist($params = array()) {
-        return $this->request('openapi/wallet/v1/withdraw/address-whitelist', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/wallet/v1/withdraw/address-whitelist', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOpenapiV1Account($params = array()) {
-        return $this->request('openapi/v1/account', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/account', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetOpenapiV1ApiKeys($params = array()) {
-        return $this->request('openapi/v1/api-keys', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/api-keys', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetOpenapiV1OpenOrders($params = array()) {
-        return $this->request('openapi/v1/openOrders', array('private'), 'GET', $params, null, null, array("cost" => 3, "noSymbol" => 40));
+        return $this->request('openapi/v1/openOrders', array('private'), 'GET', $params, array("cost" => 3, "noSymbol" => 40));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetOpenapiV1AssetTradeFee($params = array()) {
-        return $this->request('openapi/v1/asset/tradeFee', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/asset/tradeFee', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOpenapiV1Order($params = array()) {
-        return $this->request('openapi/v1/order', array('private'), 'GET', $params, null, null, array("cost" => 2));
+        return $this->request('openapi/v1/order', array('private'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetOpenapiV1HistoryOrders($params = array()) {
-        return $this->request('openapi/v1/historyOrders', array('private'), 'GET', $params, null, null, array("cost" => 10, "noSymbol" => 40));
+        return $this->request('openapi/v1/historyOrders', array('private'), 'GET', $params, array("cost" => 10, "noSymbol" => 40));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetOpenapiV1MyTrades($params = array()) {
-        return $this->request('openapi/v1/myTrades', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/myTrades', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetOpenapiV1CapitalDepositHistory($params = array()) {
-        return $this->request('openapi/v1/capital/deposit/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/capital/deposit/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetOpenapiV1CapitalWithdrawHistory($params = array()) {
-        return $this->request('openapi/v1/capital/withdraw/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/capital/withdraw/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOpenapiV3PaymentRequestGetPaymentRequest($params = array()) {
-        return $this->request('openapi/v3/payment-request/get-payment-request', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v3/payment-request/get-payment-request', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetMerchantApiV1GetInvoices($params = array()) {
-        return $this->request('merchant-api/v1/get-invoices', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('merchant-api/v1/get-invoices', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOpenapiAccountV3CryptoAccounts($params = array()) {
-        return $this->request('openapi/account/v3/crypto-accounts', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/account/v3/crypto-accounts', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOpenapiTransferV3TransfersId($params = array()) {
-        return $this->request('openapi/transfer/v3/transfers/{id}', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/transfer/v3/transfers/{id}', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOpenapiV1SubAccountList($params = array()) {
-        return $this->request('openapi/v1/sub-account/list', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/sub-account/list', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOpenapiV1SubAccountAsset($params = array()) {
-        return $this->request('openapi/v1/sub-account/asset', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/sub-account/asset', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOpenapiV1SubAccountTransferUniversalTransferHistory($params = array()) {
-        return $this->request('openapi/v1/sub-account/transfer/universal-transfer-history', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/sub-account/transfer/universal-transfer-history', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetOpenapiV1SubAccountTransferSubHistory($params = array()) {
-        return $this->request('openapi/v1/sub-account/transfer/sub-history', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/sub-account/transfer/sub-history', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOpenapiV1SubAccountApikeyIpRestriction($params = array()) {
-        return $this->request('openapi/v1/sub-account/apikey/ip-restriction', array('private'), 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('openapi/v1/sub-account/apikey/ip-restriction', array('private'), 'GET', $params, array("cost" => 10));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOpenapiV1SubAccountWalletDepositAddress($params = array()) {
-        return $this->request('openapi/v1/sub-account/wallet/deposit/address', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/sub-account/wallet/deposit/address', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOpenapiV1SubAccountWalletDepositHistory($params = array()) {
-        return $this->request('openapi/v1/sub-account/wallet/deposit/history', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/sub-account/wallet/deposit/history', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetOpenapiV1FundCollectGetFundRecord($params = array()) {
-        return $this->request('openapi/v1/fund-collect/get-fund-record', array('private'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/fund-collect/get-fund-record', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetOpenapiV1AssetTransactionHistory($params = array()) {
-        return $this->request('openapi/v1/asset/transaction/history', array('private'), 'GET', $params, null, null, array("cost" => 20));
+        return $this->request('openapi/v1/asset/transaction/history', array('private'), 'GET', $params, array("cost" => 20));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiWalletV1WithdrawApply($params = array()) {
-        return $this->request('openapi/wallet/v1/withdraw/apply', array('private'), 'POST', $params, null, null, array("cost" => 600));
+        return $this->request('openapi/wallet/v1/withdraw/apply', array('private'), 'POST', $params, array("cost" => 600));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiV1OrderTest($params = array()) {
-        return $this->request('openapi/v1/order/test', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/order/test', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiV1Order($params = array()) {
-        return $this->request('openapi/v1/order', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/order', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiV1OrderCancelReplace($params = array()) {
-        return $this->request('openapi/v1/order/cancelReplace', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/order/cancelReplace', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiV1CapitalWithdrawApply($params = array()) {
-        return $this->request('openapi/v1/capital/withdraw/apply', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/capital/withdraw/apply', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiV1CapitalDepositApply($params = array()) {
-        return $this->request('openapi/v1/capital/deposit/apply', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/capital/deposit/apply', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiV3PaymentRequestPaymentRequests($params = array()) {
-        return $this->request('openapi/v3/payment-request/payment-requests', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v3/payment-request/payment-requests', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiV3PaymentRequestDeletePaymentRequest($params = array()) {
-        return $this->request('openapi/v3/payment-request/delete-payment-request', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v3/payment-request/delete-payment-request', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<string>
      */
     public function privatePostOpenapiV3PaymentRequestPaymentRequestReminder($params = array()) {
-        return $this->request('openapi/v3/payment-request/payment-request-reminder', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v3/payment-request/payment-request-reminder', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiV1UserDataStream($params = array()) {
-        return $this->request('openapi/v1/userDataStream', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/userDataStream', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostMerchantApiV1Invoices($params = array()) {
-        return $this->request('merchant-api/v1/invoices', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('merchant-api/v1/invoices', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostMerchantApiV1InvoicesCancel($params = array()) {
-        return $this->request('merchant-api/v1/invoices-cancel', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('merchant-api/v1/invoices-cancel', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiConvertV1GetSupportedTradingPairs($params = array()) {
-        return $this->request('openapi/convert/v1/get-supported-trading-pairs', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/convert/v1/get-supported-trading-pairs', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiConvertV1GetQuote($params = array()) {
-        return $this->request('openapi/convert/v1/get-quote', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/convert/v1/get-quote', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiConvertV1AcceptQuote($params = array()) {
-        return $this->request('openapi/convert/v1/accept-quote', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/convert/v1/accept-quote', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiConvertV1QueryOrderHistory($params = array()) {
-        return $this->request('openapi/convert/v1/query-order-history', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/convert/v1/query-order-history', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiOtcTradeV1GetSupportedTradingPairs($params = array()) {
-        return $this->request('openapi/otc-trade/v1/get-supported-trading-pairs', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/otc-trade/v1/get-supported-trading-pairs', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiOtcTradeV1CreateRfq($params = array()) {
-        return $this->request('openapi/otc-trade/v1/create-rfq', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/otc-trade/v1/create-rfq', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiOtcTradeV1AcceptRfq($params = array()) {
-        return $this->request('openapi/otc-trade/v1/accept-rfq', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/otc-trade/v1/accept-rfq', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiOtcTradeV1ManualSettle($params = array()) {
-        return $this->request('openapi/otc-trade/v1/manual-settle', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/otc-trade/v1/manual-settle', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiOtcTradeV1QueryOrderHistory($params = array()) {
-        return $this->request('openapi/otc-trade/v1/query-order-history', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/otc-trade/v1/query-order-history', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiFiatV1SupportChannel($params = array()) {
-        return $this->request('openapi/fiat/v1/support-channel', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/fiat/v1/support-channel', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiFiatV1CashOut($params = array()) {
-        return $this->request('openapi/fiat/v1/cash-out', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/fiat/v1/cash-out', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiFiatV1History($params = array()) {
-        return $this->request('openapi/fiat/v1/history', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/fiat/v1/history', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiFiatV2History($params = array()) {
-        return $this->request('openapi/fiat/v2/history', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/fiat/v2/history', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiFiatV1CancelQrCode($params = array()) {
-        return $this->request('openapi/fiat/v1/cancel_qr_code', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/fiat/v1/cancel_qr_code', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiMigrationV4Sellorder($params = array()) {
-        return $this->request('openapi/migration/v4/sellorder', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/migration/v4/sellorder', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiMigrationV4ValidateField($params = array()) {
-        return $this->request('openapi/migration/v4/validate-field', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/migration/v4/validate-field', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiTransferV3Transfers($params = array()) {
-        return $this->request('openapi/transfer/v3/transfers', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/transfer/v3/transfers', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiTransferV4Transfers($params = array()) {
-        return $this->request('openapi/transfer/v4/transfers', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/transfer/v4/transfers', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiV1SubAccountCreate($params = array()) {
-        return $this->request('openapi/v1/sub-account/create', array('private'), 'POST', $params, null, null, array("cost" => 30));
+        return $this->request('openapi/v1/sub-account/create', array('private'), 'POST', $params, array("cost" => 30));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiV1SubAccountTransferUniversalTransfer($params = array()) {
-        return $this->request('openapi/v1/sub-account/transfer/universal-transfer', array('private'), 'POST', $params, null, null, array("cost" => 100));
+        return $this->request('openapi/v1/sub-account/transfer/universal-transfer', array('private'), 'POST', $params, array("cost" => 100));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiV1SubAccountTransferSubToMaster($params = array()) {
-        return $this->request('openapi/v1/sub-account/transfer/sub-to-master', array('private'), 'POST', $params, null, null, array("cost" => 100));
+        return $this->request('openapi/v1/sub-account/transfer/sub-to-master', array('private'), 'POST', $params, array("cost" => 100));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiV1SubAccountApikeyAddIpRestriction($params = array()) {
-        return $this->request('openapi/v1/sub-account/apikey/add-ip-restriction', array('private'), 'POST', $params, null, null, array("cost" => 30));
+        return $this->request('openapi/v1/sub-account/apikey/add-ip-restriction', array('private'), 'POST', $params, array("cost" => 30));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiV1SubAccountApikeyDeleteIpRestriction($params = array()) {
-        return $this->request('openapi/v1/sub-account/apikey/delete-ip-restriction', array('private'), 'POST', $params, null, null, array("cost" => 30));
+        return $this->request('openapi/v1/sub-account/apikey/delete-ip-restriction', array('private'), 'POST', $params, array("cost" => 30));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostOpenapiV1FundCollectCollectFromSubAccount($params = array()) {
-        return $this->request('openapi/v1/fund-collect/collect-from-sub-account', array('private'), 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/fund-collect/collect-from-sub-account', array('private'), 'POST', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePutOpenapiV1UserDataStream($params = array()) {
-        return $this->request('openapi/v1/userDataStream', array('private'), 'PUT', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/userDataStream', array('private'), 'PUT', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateDeleteOpenapiV1Order($params = array()) {
-        return $this->request('openapi/v1/order', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/order', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateDeleteOpenapiV1OpenOrders($params = array()) {
-        return $this->request('openapi/v1/openOrders', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/openOrders', array('private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateDeleteOpenapiV1UserDataStream($params = array()) {
-        return $this->request('openapi/v1/userDataStream', array('private'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('openapi/v1/userDataStream', array('private'), 'DELETE', $params, array("cost" => 1));
     }
 }

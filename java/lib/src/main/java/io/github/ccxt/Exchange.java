@@ -20,6 +20,7 @@ import io.github.ccxt.types.TradingFeeInterface;
 import java.util.stream.Collectors;
 import io.github.ccxt.types.OpenInterests;
 import io.github.ccxt.types.TradingFees;
+import io.github.ccxt.types.OrderBookL3;
 
 // ----------------------------------------------------------------------------
 // Exchange is the thin concrete tier over BaseExchange (which holds all shared
@@ -321,13 +322,13 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<OrderBook> fetchL3OrderBook(Object symbol, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<OrderBookL3> fetchL3OrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             throw new BadRequest((this.id + " fetchL3OrderBook() is not supported yet")) ;
-        }).thenApply(OrderBook::new);
+        }).thenApply(OrderBookL3::new);
 
     }
 

@@ -273,10 +273,10 @@ public partial class bitteam : Exchange
                     { "ethereum", "ERC20" },
                     { "Tron", "TRC20" },
                     { "tron", "TRC20" },
-                    { "Binance", "BSC" },
-                    { "binance", "BSC" },
-                    { "Binance Smart Chain", "BSC" },
-                    { "bscscan", "BSC" },
+                    { "Binance", "BEP20" },
+                    { "binance", "BEP20" },
+                    { "Binance Smart Chain", "BEP20" },
+                    { "bscscan", "BEP20" },
                     { "Bitcoin", "BTC" },
                     { "bitcoin", "BTC" },
                     { "Litecoin", "LTC" },
@@ -2568,7 +2568,7 @@ public partial class bitteam : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2606,8 +2606,8 @@ public partial class bitteam : Exchange
         {
             url = url + ("?" + query);
         }
-        object bodyResolved = ((requestBody == null)) ? body : requestBody;
-        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResolved = requestBody;
+        Dictionary<string, object> headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

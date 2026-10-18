@@ -3871,8 +3871,6 @@ func (this *Kalshi) ParseEvent(rawEvent any) any {
  * @param {string|string[]} [api] the api group and access level
  * @param {string} [method] HTTP method
  * @param {object} [params] request parameters
- * @param {object} [headers] request headers
- * @param {object} [body] request body
  * @returns {object} a dictionary with url, method, body and headers
  */
 func (this *Kalshi) Sign(path string, optionalArgs ...any) any {
@@ -3882,10 +3880,6 @@ func (this *Kalshi) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := ccxt.GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := ccxt.GetArg(optionalArgs, 4, nil)
-	_ = body
 	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
 	var access *string = this.SafeString(api, 1, "public")
 	var baseUrls any = this.Urls["api"]
@@ -3897,17 +3891,12 @@ func (this *Kalshi) Sign(path string, optionalArgs ...any) any {
 	if (method == "GET") && (querystring != "") {
 		url += "?" + querystring
 	}
-	var existingHeaders any = func() any {
-		if !ccxt.IsEqual(headers, nil) {
-			return headers
-		}
-		return map[string]any{}
-	}()
+	var existingHeaders map[string]any = map[string]any{}
 	var headersValue map[string]any = this.Extend(map[string]any{
 		"Accept":       "application/json",
 		"Content-Type": "application/json",
 	}, existingHeaders)
-	var bodyValue any = body
+	var bodyValue *string = nil
 	if access != nil && *access == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
@@ -3934,7 +3923,7 @@ func (this *Kalshi) Sign(path string, optionalArgs ...any) any {
 		})
 		if (method != "GET") && (querystring != "") {
 			// kalshi expects a JSON body; the signature covers only timestamp+method+path
-			bodyValue = this.Json(query)
+			bodyValue = ccxt.SafeStringPtr(this.Json(query))
 		}
 	}
 	return map[string]any{

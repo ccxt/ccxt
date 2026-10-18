@@ -276,7 +276,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                     'method': 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
                 },
                 'networksById': {
-                    'ethereum': 'ETH',
+                    'ethereum': 'ERC20',
                     'arbitrum': 'ARBITRUM',
                     'avacchain': 'AVAX',
                     'optimism': 'OPTIMISM',
@@ -2342,7 +2342,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         //
         return this.parseTransaction(response, currency);
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const version = this.safeString(api, 0);
         const signed = this.safeString(api, 1) === 'private';
         let fullPath = '/' + version + '/' + this.implodeParams(path, params);
@@ -2363,7 +2363,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         if (hasSignedBody) {
             signedBody = this.json(query);
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (hasSignedBody) {
             requestBody = signedBody;
         }
@@ -2381,7 +2381,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 'CB-ACCESS-KEY': this.apiKey,
             };
         }
-        let requestHeaders = headers;
+        let requestHeaders = undefined;
         if (signed) {
             requestHeaders = signedHeaders;
         }

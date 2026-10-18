@@ -2007,7 +2007,7 @@ export default class apex extends Exchange {
         });
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const baseApiUrl = this.safeString (this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
@@ -2020,7 +2020,7 @@ export default class apex extends Exchange {
             'Content-Type': 'application/x-www-form-urlencoded',
         };
         let signPath = '/api/' + path;
-        let signBody = body;
+        let signBody = undefined;
         if (method.toUpperCase () !== 'POST') {
             if (Object.keys (params).length > 0) {
                 signPath += '?' + this.rawencode (params);

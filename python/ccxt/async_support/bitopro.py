@@ -238,11 +238,8 @@ class bitopro(Exchange, ImplicitAPI):
             'options': {
                 'networks': {
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'BEP20': 'BSC',
-                    'BSC': 'BSC',
                 },
                 'fetchCurrencies': {
                     'fiatCurrencies': ['TWD'],  # the only fiat currency for exchange
@@ -1731,7 +1728,7 @@ class bitopro(Exchange, ImplicitAPI):
         if hasNetwork:
             networks = self.safe_dict(self.options, 'networks', {})
             requestedNetwork = self.safe_string_upper(paramsWithdrawTag, 'network')
-            networkId = None if (requestedNetwork is None) else self.safe_string(networks, requestedNetwork)
+            networkId = None if (requestedNetwork is None) else self.safe_string(networks, self.safe_string(self.networkAliases, requestedNetwork, requestedNetwork))
             if networkId is None:
                 raise ExchangeError(self.id + ' invalid network ' + requestedNetwork)
             request['protocol'] = networkId
@@ -1810,14 +1807,14 @@ class bitopro(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        requestHeaders = {} if (headers is None) else headers
+        requestHeaders = {}
         isSignedBody = (apiName == 'private') and ((method == 'POST') or (method == 'PUT'))
         signedBody = self.json(params)
-        requestBody = body
+        requestBody = None
         if isSignedBody:
             requestBody = signedBody
         requestHeaders['X-BITOPRO-API'] = 'ccxt'

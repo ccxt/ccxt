@@ -627,7 +627,6 @@ public partial class toobit : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "BTC" },
                     { "ERC20", "ETH" },
-                    { "ETH", "ETH" },
                     { "BEP20", "BSC" },
                     { "TRC20", "TRX" },
                     { "SOL", "SOL" },
@@ -1666,7 +1665,7 @@ public partial class toobit : Exchange
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", null },
             { "datetime", null },
-            { "price", this.safeNumberOmitZero(entry, "price") },
+            { "price", this.safeNumberOmitZero(entry, "p") },
             { "side", null },
             { "info", entry },
         };
@@ -3445,7 +3444,7 @@ public partial class toobit : Exchange
             { "unrealizedPnl", this.safeNumber(position, "unrealizedPnL") },
             { "side", side },
             { "contracts", this.parseNumber(quantity) },
-            { "contractSize", null },
+            { "contractSize", this.safeNumber(marketResolved, "contractSize") },
             { "timestamp", null },
             { "datetime", null },
             { "hedged", null },
@@ -3461,7 +3460,7 @@ public partial class toobit : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -3513,7 +3512,7 @@ public partial class toobit : Exchange
             {
                 queryString = this.urlencode(queryExtended);
             }
-            object payloadBody = body;
+            object payloadBody = null;
             if (isPost || isDelete)
             {
                 payloadBody = privateBody;
@@ -3538,7 +3537,7 @@ public partial class toobit : Exchange
                 { "X-BB-API-PLATFORM", this.safeString(this.options, "brokerId", "177321641268789") },
                 { "Content-Type", "application/x-www-form-urlencoded" },
             };
-            object requestBody = body;
+            object requestBody = null;
             if (isPost || isDelete)
             {
                 requestBody = privateBody;
@@ -3553,8 +3552,8 @@ public partial class toobit : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

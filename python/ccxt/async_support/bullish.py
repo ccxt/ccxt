@@ -2330,7 +2330,7 @@ class bullish(Exchange, ImplicitAPI):
             # some currencies have multiple networks
             if network is None:
                 # use default network if not specified and multiple are available
-                network = self.default_network_code(code)
+                network = self.safe_string(self.safe_dict(self.options, 'defaultNetworks', {}), code, self.safe_string(self.options, 'defaultNetwork'))
             if network is not None:
                 # find the entry that matches the network or return first entry if not found and user did not specify a network
                 for i in range(0, len(safeResponse)):
@@ -2850,10 +2850,10 @@ class bullish(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }, market)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         apiName = api[0]
-        requestHeaders = headers
-        requestBody = body
+        requestHeaders = None
+        requestBody = None
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         apiUrl = self.safe_string(self.urls['api'], apiName)
