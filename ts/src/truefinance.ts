@@ -559,7 +559,13 @@ export default class truefinance extends Exchange {
             'bids': this.parseLevels (this.safeValue (data, 'bids')),
             'asks': this.parseLevels (this.safeValue (data, 'asks')),
         };
-        return this.parseOrderBook (book, market['symbol'], this.milliseconds (), 'bids', 'asks', 0, 1);
+        const orderbook = this.parseOrderBook (book, market['symbol'], this.milliseconds (), 'bids', 'asks', 0, 1);
+        if (limit !== undefined) {
+            // the venue ignores depth and answers the whole book
+            orderbook['bids'] = this.arraySlice (orderbook['bids'], 0, limit);
+            orderbook['asks'] = this.arraySlice (orderbook['asks'], 0, limit);
+        }
+        return orderbook;
     }
 
     parseLevels (raw: any): any[] {
@@ -1237,8 +1243,10 @@ export default class truefinance extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterByArray (orders, 'status', [ 'closed', 'canceled', 'expired', 'rejected' ], false);
+        // the history mixes open and closed orders, so the limit is applied after the status filter
+        const orders = await this.fetchOrders (symbol, since, undefined, params);
+        const closed = this.filterByArray (orders, 'status', [ 'closed', 'canceled', 'expired', 'rejected' ], false);
+        return this.filterBySinceLimit (closed, since, limit);
     }
 
     /**
@@ -1462,7 +1470,7 @@ export default class truefinance extends Exchange {
         return await this.privatePostLeverage (this.extend (request, params));
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
