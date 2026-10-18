@@ -90,7 +90,7 @@ class woo(ccxt.async_support.woo):
 
     async def watch_public(self, messageHash: str, message: dict):
         urlUid = ''
-        if self.uid != '':
+        if (self.uid is not None) and (self.uid != ''):
             urlUid = '/' + self.uid
         url = self.safe_string(self.urls['api']['ws'], 'public') + urlUid
         requestId = self.request_id(url)
@@ -102,7 +102,7 @@ class woo(ccxt.async_support.woo):
 
     async def unwatch_public(self, subHash: str, symbol: Str, topic: str, params={}) -> object:
         urlUid = ''
-        if self.uid != '':
+        if (self.uid is not None) and (self.uid != ''):
             urlUid = '/' + self.uid
         url = self.safe_string(self.urls['api']['ws'], 'public') + urlUid
         requestId = self.request_id(url)
@@ -145,7 +145,7 @@ class woo(ccxt.async_support.woo):
         market = self.market(symbol)
         topic = market['id'] + '@' + method
         urlUid = ''
-        if self.uid != '':
+        if (self.uid is not None) and (self.uid != ''):
             urlUid = '/' + self.uid
         url = self.safe_string(self.urls['api']['ws'], 'public') + urlUid
         requestId = self.request_id(url)
