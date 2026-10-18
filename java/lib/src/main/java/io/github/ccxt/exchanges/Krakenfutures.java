@@ -3934,34 +3934,32 @@ public class Krakenfutures extends KrakenfuturesApi
         }
         String marketId = this.safeString2(position, "symbol", "tradeable");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        {
-            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("info", position);
-            h2kMap2.put("id", this.safeString(position, "executionUid"));
-            h2kMap2.put("symbol", marketResolved.get("symbol"));
-            h2kMap2.put("timestamp", timestamp);
-            h2kMap2.put("datetime", datetime);
-            h2kMap2.put("initialMargin", null);
-            h2kMap2.put("initialMarginPercentage", null);
-            h2kMap2.put("maintenanceMargin", null);
-            h2kMap2.put("maintenanceMarginPercentage", null);
-            h2kMap2.put("entryPrice", this.parseNumber(entryPrice));
-            h2kMap2.put("notional", null);
-            h2kMap2.put("leverage", leverage);
-            h2kMap2.put("unrealizedPnl", this.safeNumber(position, "unrealizedPnl", (Object) null));
-            h2kMap2.put("realizedPnl", this.safeNumber(position, "realizedPnL", (Object) null));
-            h2kMap2.put("contracts", this.parseNumber(contracts));
-            h2kMap2.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
-            h2kMap2.put("marginRatio", null);
-            h2kMap2.put("liquidationPrice", null);
-            h2kMap2.put("markPrice", null);
-            h2kMap2.put("lastPrice", this.safeNumber(position, "executionPrice", (Object) null));
-            h2kMap2.put("collateral", null);
-            h2kMap2.put("marginMode", marginType);
-            h2kMap2.put("side", side);
-            h2kMap2.put("percentage", null);
-            return h2kMap2;
-        }
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", position);
+        mapLiteral7.put("id", this.safeString(position, "executionUid"));
+        mapLiteral7.put("symbol", marketResolved.get("symbol"));
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", datetime);
+        mapLiteral7.put("initialMargin", null);
+        mapLiteral7.put("initialMarginPercentage", null);
+        mapLiteral7.put("maintenanceMargin", null);
+        mapLiteral7.put("maintenanceMarginPercentage", null);
+        mapLiteral7.put("entryPrice", this.parseNumber(entryPrice));
+        mapLiteral7.put("notional", null);
+        mapLiteral7.put("leverage", leverage);
+        mapLiteral7.put("unrealizedPnl", this.safeNumber(position, "unrealizedPnl", (Object) null));
+        mapLiteral7.put("realizedPnl", this.safeNumber(position, "realizedPnL", (Object) null));
+        mapLiteral7.put("contracts", this.parseNumber(contracts));
+        mapLiteral7.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral7.put("marginRatio", null);
+        mapLiteral7.put("liquidationPrice", null);
+        mapLiteral7.put("markPrice", null);
+        mapLiteral7.put("lastPrice", this.safeNumber(position, "executionPrice", (Object) null));
+        mapLiteral7.put("collateral", null);
+        mapLiteral7.put("marginMode", marginType);
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("percentage", null);
+        return this.safePosition(mapLiteral7);
     }
 
     /**
@@ -4236,11 +4234,11 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             Object transfer = this.parseTransfer(response, currency);
-            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-            mapLiteral7.put("amount", amount);
-            mapLiteral7.put("fromAccount", fromAccount);
-            mapLiteral7.put("toAccount", toAccount);
-            return this.extend(transfer, mapLiteral7);
+            HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+            mapLiteral8.put("amount", amount);
+            mapLiteral8.put("fromAccount", fromAccount);
+            mapLiteral8.put("toAccount", toAccount);
+            return this.extend(transfer, mapLiteral8);
         }).thenApply(TransferEntry::new);
 
     }

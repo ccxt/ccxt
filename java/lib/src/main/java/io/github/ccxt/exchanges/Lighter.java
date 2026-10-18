@@ -2526,6 +2526,15 @@ public class Lighter extends LighterApi
                 leverage = (((double) 100) / ((double) imf));
             }
         }
+        String contractsString = this.safeString(position, "position");
+        String positionValueString = this.safeString(position, "position_value");
+        String markPriceString = Precise.stringDiv(positionValueString, contractsString);
+        // allocated_margin is the isolated collateral balance (0 for cross)
+        Double positionMargin = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            positionMargin = this.safeNumber(position, "allocated_margin", (Object) null);
+        }
         HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
         mapLiteral7.put("info", position);
         mapLiteral7.put("id", null);
@@ -2535,13 +2544,14 @@ public class Lighter extends LighterApi
         mapLiteral7.put("isolated", (java.util.Objects.equals(marginMode, "isolated")));
         mapLiteral7.put("hedged", null);
         mapLiteral7.put("side", side);
-        mapLiteral7.put("contracts", this.safeNumber(position, "position", (Object) null));
+        mapLiteral7.put("contracts", this.parseNumber(contractsString));
         mapLiteral7.put("contractSize", null);
         mapLiteral7.put("entryPrice", this.safeNumber(position, "avg_entry_price", (Object) null));
-        mapLiteral7.put("markPrice", null);
-        mapLiteral7.put("notional", this.safeNumber(position, "position_value", (Object) null));
+        mapLiteral7.put("markPrice", this.parseNumber(markPriceString));
+        mapLiteral7.put("notional", this.parseNumber(positionValueString));
         mapLiteral7.put("leverage", leverage);
-        mapLiteral7.put("collateral", this.safeNumber(position, "allocated_margin", (Object) null));
+        mapLiteral7.put("positionMargin", positionMargin);
+        mapLiteral7.put("collateral", null);
         mapLiteral7.put("initialMargin", null);
         mapLiteral7.put("maintenanceMargin", null);
         mapLiteral7.put("initialMarginPercentage", null);

@@ -12773,6 +12773,30 @@ public class Kucoin extends KucoinApi
         {
             marginMode = (((java.util.Objects.equals(crossMode, true)))) ? "cross" : "isolated";
         }
+        String collateralString = this.safeString(position, "maintMargin");
+        String marginString = null;
+        if ((java.util.Objects.equals(collateralString, null)) && (java.util.Objects.equals(marginMode, "isolated")))
+        {
+            String posMargin = this.safeString(position, "posMargin");
+            if (java.util.Objects.equals(posMargin, null))
+            {
+                String posComm = this.safeString(position, "posComm");
+                String posCross = this.safeString(position, "posCross");
+                if ((!java.util.Objects.equals(initialMargin, null)) && (!java.util.Objects.equals(posComm, null)))
+                {
+                    posMargin = Precise.stringAdd(initialMargin, posComm);
+                    if (!java.util.Objects.equals(posCross, null))
+                    {
+                        posMargin = Precise.stringAdd(posMargin, posCross);
+                    }
+                }
+            }
+            if (!java.util.Objects.equals(posMargin, null))
+            {
+                marginString = posMargin;
+                collateralString = (((!java.util.Objects.equals(unrealisedPnl, null)))) ? Precise.stringAdd(posMargin, unrealisedPnl) : posMargin;
+            }
+        }
         Long lastUpdateTimestamp = this.safeInteger(position, "closeTime");
         if (java.util.Objects.equals(lastUpdateTimestamp, null))
         {
@@ -12806,7 +12830,8 @@ public class Kucoin extends KucoinApi
         mapLiteral16.put("liquidationPrice", this.safeNumber(position, "liquidationPrice", (Object) null));
         mapLiteral16.put("markPrice", this.safeNumber(position, "markPrice", (Object) null));
         mapLiteral16.put("lastPrice", this.safeNumber(position, "closePrice", (Object) null));
-        mapLiteral16.put("collateral", this.safeNumber(position, "maintMargin", (Object) null));
+        mapLiteral16.put("positionMargin", this.parseNumber(marginString));
+        mapLiteral16.put("collateral", this.parseNumber(collateralString));
         mapLiteral16.put("marginMode", marginMode);
         mapLiteral16.put("side", side);
         mapLiteral16.put("percentage", null);

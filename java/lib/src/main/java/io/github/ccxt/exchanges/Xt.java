@@ -2530,7 +2530,13 @@ public class Xt extends XtApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", marketType);
         String symbol = (String) marketResolved.get("symbol");
         Long timestamp = this.safeInteger(ticker, "t");
-        String percentage = this.safeString2(ticker, "cr", "r");
+        String open = this.safeString(ticker, "o");
+        // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
+        String percentage = this.safeString(ticker, "r");
+        if (java.util.Objects.equals(open, null))
+        {
+            percentage = this.safeString2(ticker, "cr", "r");
+        }
         if (!java.util.Objects.equals(percentage, null))
         {
             percentage = Precise.stringMul(percentage, "100");
@@ -2562,11 +2568,11 @@ public class Xt extends XtApi
         mapLiteral9.put("ask", this.safeNumber(ticker, "ap", (Object) null));
         mapLiteral9.put("askVolume", this.safeNumber(ticker, "aq", (Object) null));
         mapLiteral9.put("vwap", null);
-        mapLiteral9.put("open", this.safeString(ticker, "o"));
+        mapLiteral9.put("open", open);
         mapLiteral9.put("close", this.safeString(ticker, "c"));
         mapLiteral9.put("last", this.safeString(ticker, "c"));
         mapLiteral9.put("previousClose", null);
-        mapLiteral9.put("change", this.safeNumber(ticker, "cv", (Object) null));
+        mapLiteral9.put("change", null);
         mapLiteral9.put("percentage", this.parseNumber(percentage));
         mapLiteral9.put("average", null);
         mapLiteral9.put("baseVolume", baseVolume);

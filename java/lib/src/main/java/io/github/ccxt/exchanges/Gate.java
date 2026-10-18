@@ -7956,10 +7956,24 @@ public class Gate extends GateApi
         }
         // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
         String marginBalance = this.safeString(position, "margin");
-        String initialMarginString = this.omitZero(this.safeString(position, "initial_margin"));
+        Object initialMarginString = this.omitZero(this.safeString(position, "initial_margin"));
         // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
-        String maintenanceMarginString = this.omitZero(this.safeString(position, "maintenance_margin"));
+        Object maintenanceMarginString = this.omitZero(this.safeString(position, "maintenance_margin"));
+        Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(marketResolved, "info", new HashMap<String, Object>() {{}});
+        String takerFeeRate = this.safeString(marketInfo, "taker_fee_rate", "0.00075");
+        Boolean hasPositiveMarginBalance = (java.util.Objects.equals(marginBalance, null)) || Precise.stringGt(marginBalance, "0");
+        if ((java.util.Objects.equals(initialMarginString, null)) && Boolean.TRUE.equals(hasPositiveMarginBalance) && (!java.util.Objects.equals(notional, null)) && (!java.util.Objects.equals(leverage, null)) && Precise.stringGt(leverage, "0"))
+        {
+            String closeFee = Precise.stringMul(notional, takerFeeRate);
+            initialMarginString = Precise.stringAdd(Precise.stringDiv(notional, leverage), closeFee);
+        }
+        String liqPriceString = this.omitZero(this.safeString(position, "liq_price"));
+        String maintenanceRate = this.omitZero(this.safeString(position, "maintenance_rate"));
+        if ((java.util.Objects.equals(maintenanceMarginString, null)) && (java.util.Objects.equals(liqPriceString, null)) && Boolean.TRUE.equals(hasPositiveMarginBalance) && (!java.util.Objects.equals(notional, null)) && (!java.util.Objects.equals(maintenanceRate, null)))
+        {
+            maintenanceMarginString = Precise.stringMul(notional, Precise.stringAdd(maintenanceRate, takerFeeRate));
+        }
         // the margin field is the position margin balance, which excludes the unrealized pnl,
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -7993,9 +8007,10 @@ public class Gate extends GateApi
         mapLiteral16.put("contracts", this.parseNumber(Precise.stringAbs(size)));
         mapLiteral16.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
         mapLiteral16.put("marginRatio", null);
-        mapLiteral16.put("liquidationPrice", this.safeNumber(position, "liq_price", (Object) null));
+        mapLiteral16.put("liquidationPrice", this.parseNumber(liqPriceString));
         mapLiteral16.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
         mapLiteral16.put("lastPrice", null);
+        mapLiteral16.put("positionMargin", this.parseNumber(marginBalance));
         mapLiteral16.put("collateral", this.parseNumber(collateral));
         mapLiteral16.put("marginMode", marginMode);
         mapLiteral16.put("side", side);

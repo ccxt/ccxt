@@ -4433,6 +4433,11 @@ public class Aster extends AsterApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
+        String isolatedWalletString = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            isolatedWalletString = this.safeString(position, "isolatedWallet");
+        }
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("info", position);
         mapLiteral8.put("id", null);
@@ -4442,6 +4447,7 @@ public class Aster extends AsterApi
         mapLiteral8.put("unrealizedPnl", unrealizedPnl);
         mapLiteral8.put("leverage", this.parseNumber(leverageString));
         mapLiteral8.put("liquidationPrice", liquidationPrice);
+        mapLiteral8.put("positionMargin", this.parseNumber(isolatedWalletString));
         mapLiteral8.put("collateral", collateral);
         mapLiteral8.put("notional", notional);
         mapLiteral8.put("markPrice", markPrice);
@@ -4776,6 +4782,11 @@ public class Aster extends AsterApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
+        String isolatedWalletString = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            isolatedWalletString = this.safeString(position, "isolatedWallet");
+        }
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("info", position);
@@ -4796,6 +4807,7 @@ public class Aster extends AsterApi
             h2kMap3.put("marginRatio", marginRatio);
             h2kMap3.put("liquidationPrice", liquidationPrice);
             h2kMap3.put("markPrice", null);
+            h2kMap3.put("positionMargin", this.parseNumber(isolatedWalletString));
             h2kMap3.put("collateral", collateral);
             h2kMap3.put("marginMode", marginMode);
             h2kMap3.put("side", side);

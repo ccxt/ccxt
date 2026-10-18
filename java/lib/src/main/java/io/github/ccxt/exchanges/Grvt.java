@@ -2962,12 +2962,19 @@ public class Grvt extends GrvtApi
         {
             side = "long";
         }
+        // isolated_balance is the wallet balance reserved for the isolated position
+        String marginMode = this.safeStringLower(position, "margin_type");
+        Double positionMargin = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            positionMargin = this.safeNumber(position, "isolated_balance", (Object) null);
+        }
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("info", position);
         mapLiteral4.put("id", null);
         mapLiteral4.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
         mapLiteral4.put("notional", this.parseNumber(Precise.stringAbs(this.safeString(position, "notional"))));
-        mapLiteral4.put("marginMode", null);
+        mapLiteral4.put("marginMode", marginMode);
         mapLiteral4.put("liquidationPrice", this.safeNumber(position, "est_liquidation_price", (Object) null));
         mapLiteral4.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
         mapLiteral4.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
@@ -2981,10 +2988,11 @@ public class Grvt extends GrvtApi
         mapLiteral4.put("timestamp", timestamp);
         mapLiteral4.put("datetime", this.iso8601(timestamp));
         mapLiteral4.put("lastUpdateTimestamp", this.safeInteger(position, "lastUpdateTime"));
-        mapLiteral4.put("maintenanceMargin", this.safeNumber(position, "maintenanceMargin", (Object) null));
+        mapLiteral4.put("maintenanceMargin", this.safeNumber2(position, "isolated_mm", "maintenanceMargin", (Object) null));
         mapLiteral4.put("maintenanceMarginPercentage", null);
+        mapLiteral4.put("positionMargin", positionMargin);
         mapLiteral4.put("collateral", null);
-        mapLiteral4.put("initialMargin", this.safeNumber(position, "initialMargin", (Object) null));
+        mapLiteral4.put("initialMargin", this.safeNumber2(position, "isolated_im", "initialMargin", (Object) null));
         mapLiteral4.put("initialMarginPercentage", null);
         mapLiteral4.put("leverage", this.safeNumber(position, "leverage", (Object) null));
         mapLiteral4.put("marginRatio", null);

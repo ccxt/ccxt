@@ -4551,39 +4551,45 @@ public class Poloniex extends PoloniexApi
         String leverage = this.safeString(position, "lever");
         String initialMargin = this.safeString(position, "im");
         String notional = Precise.stringMul(leverage, initialMargin);
-        String qty = this.safeString(position, "qty");
-        String avgPrice = this.safeString(position, "openAvgPx");
-        String collateral = Precise.stringMul(qty, avgPrice);
+        Object positionMargin = null;
+        String collateral = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            positionMargin = this.omitZero(this.safeString(position, "mgn"));
+            String upl = this.safeString(position, "upl");
+            collateral = ((((!java.util.Objects.equals(positionMargin, null)) && (!java.util.Objects.equals(upl, null))))) ? Precise.stringAdd(positionMargin, upl) : null;
+        }
         // todo: some more fields
-        return this.safePosition(new HashMap<String, Object>() {{
-            put( "info", position );
-            put( "id", null );
-            put( "symbol", marketResolved.get("symbol") );
-            put( "notional", notional );
-            put( "marginMode", marginMode );
-            put( "liquidationPrice", Poloniex.this.safeNumber(position, "liqPx", (Object) null) );
-            put( "entryPrice", Poloniex.this.safeNumber(position, "openAvgPx", (Object) null) );
-            put( "unrealizedPnl", Poloniex.this.safeNumber(position, "upl", (Object) null) );
-            put( "percentage", null );
-            put( "contracts", Poloniex.this.safeNumber(position, "qty", (Object) null) );
-            put( "contractSize", null );
-            put( "markPrice", Poloniex.this.safeNumber(position, "markPx", (Object) null) );
-            put( "lastPrice", null );
-            put( "side", Poloniex.this.safeStringLower(position, "posSide") );
-            put( "hedged", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Poloniex.this.iso8601(timestamp) );
-            put( "lastUpdateTimestamp", null );
-            put( "maintenanceMargin", Poloniex.this.safeNumber(position, "mm", (Object) null) );
-            put( "maintenanceMarginPercentage", null );
-            put( "collateral", collateral );
-            put( "initialMargin", initialMargin );
-            put( "initialMarginPercentage", null );
-            put( "leverage", Helpers.parseInt(leverage) );
-            put( "marginRatio", Poloniex.this.safeNumber(position, "mgnRatio", (Object) null) );
-            put( "stopLossPrice", Poloniex.this.safeNumber(position, "slTrgPx", (Object) null) );
-            put( "takeProfitPrice", Poloniex.this.safeNumber(position, "tpTrgPx", (Object) null) );
-        }});
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("info", position);
+        mapLiteral9.put("id", null);
+        mapLiteral9.put("symbol", marketResolved.get("symbol"));
+        mapLiteral9.put("notional", notional);
+        mapLiteral9.put("marginMode", marginMode);
+        mapLiteral9.put("liquidationPrice", this.safeNumber(position, "liqPx", (Object) null));
+        mapLiteral9.put("entryPrice", this.safeNumber(position, "openAvgPx", (Object) null));
+        mapLiteral9.put("unrealizedPnl", this.safeNumber(position, "upl", (Object) null));
+        mapLiteral9.put("percentage", null);
+        mapLiteral9.put("contracts", this.safeNumber(position, "qty", (Object) null));
+        mapLiteral9.put("contractSize", null);
+        mapLiteral9.put("markPrice", this.safeNumber(position, "markPx", (Object) null));
+        mapLiteral9.put("lastPrice", null);
+        mapLiteral9.put("side", this.safeStringLower(position, "posSide"));
+        mapLiteral9.put("hedged", null);
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("lastUpdateTimestamp", null);
+        mapLiteral9.put("maintenanceMargin", this.safeNumber(position, "mm", (Object) null));
+        mapLiteral9.put("maintenanceMarginPercentage", null);
+        mapLiteral9.put("collateral", this.parseNumber(collateral));
+        mapLiteral9.put("positionMargin", this.parseNumber(positionMargin));
+        mapLiteral9.put("initialMargin", initialMargin);
+        mapLiteral9.put("initialMarginPercentage", null);
+        mapLiteral9.put("leverage", Helpers.parseInt(leverage));
+        mapLiteral9.put("marginRatio", this.safeNumber(position, "mgnRatio", (Object) null));
+        mapLiteral9.put("stopLossPrice", this.safeNumber(position, "slTrgPx", (Object) null));
+        mapLiteral9.put("takeProfitPrice", this.safeNumber(position, "tpTrgPx", (Object) null));
+        return this.safePosition(mapLiteral9);
     }
 
     public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Map<String, Object> parameters)

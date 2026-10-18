@@ -8190,18 +8190,6 @@ public Object describe()
     public Object safePosition(Map<String, Object> position)
     {
         // simplified version of: /pull/12765/
-        String unrealizedPnlString = this.safeString(position, "unrealizedPnl");
-        String initialMarginString = this.safeString(position, "initialMargin");
-        //
-        // PERCENTAGE
-        //
-        Object percentage = this.safeValue(position, "percentage");
-        if ((java.util.Objects.equals(percentage, null)) && (!java.util.Objects.equals(unrealizedPnlString, null)) && (!java.util.Objects.equals(initialMarginString, null)))
-        {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
-            String percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
-            position.put("percentage", BaseExchange.this.parseNumber(percentageString));
-        }
         // if contractSize is undefined get from market
         Double contractSize = this.safeNumber(position, "contractSize", (Object) null);
         String symbol = this.safeString(position, "symbol");
@@ -8214,6 +8202,370 @@ public Object describe()
         {
             contractSize = this.safeNumber(market, "contractSize", (Object) null);
             Helpers.addElementToObject(position, "contractSize", contractSize);
+        }
+        Boolean isInverse = (!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals(this.safeBool(market, "inverse", false));
+        String side = this.safeString(position, "side");
+        String marginMode = this.safeString(position, "marginMode");
+        String unrealizedPnlString = this.safeString(position, "unrealizedPnl");
+        String initialMarginString = this.safeString(position, "initialMargin");
+        Object maintenanceMarginString = this.safeString(position, "maintenanceMargin");
+        String collateralString = this.safeString(position, "collateral");
+        String entryPriceString = this.safeString(position, "entryPrice");
+        String liquidationPriceString = this.safeString(position, "liquidationPrice");
+        Object contractsString = this.safeString(position, "contracts");
+        Object contractSizeString = this.safeString(position, "contractSize");
+        // margin is the amount held in the position (excludes unrealized pnl), collateral = margin + unrealizedPnl
+        String marginString = this.safeString(position, "positionMargin");
+        if ((java.util.Objects.equals(marginString, null)) && (java.util.Objects.equals(marginMode, "isolated")) && (!java.util.Objects.equals(collateralString, null)))
+        {
+            String derivedMargin = collateralString;
+            if ((!java.util.Objects.equals(unrealizedPnlString, null)) && !Precise.stringEq(collateralString, initialMarginString))
+            {
+                derivedMargin = Precise.stringSub(collateralString, unrealizedPnlString);
+            }
+            if (Precise.stringGt(derivedMargin, "0"))
+            {
+                marginString = derivedMargin;
+                position.put("positionMargin", BaseExchange.this.parseNumber(derivedMargin));
+            }
+        }
+        if (java.util.Objects.equals(marginString, null))
+        {
+            Helpers.addElementToObject(position, "positionMargin", null); // keep the unified key present across all exchanges
+        }
+        if ((java.util.Objects.equals(collateralString, null)) && (!java.util.Objects.equals(marginString, null)) && (!java.util.Objects.equals(unrealizedPnlString, null)))
+        {
+            collateralString = Precise.stringAdd(marginString, unrealizedPnlString);
+            position.put("collateral", BaseExchange.this.parseNumber(collateralString));
+        }
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            String entryMarginString = marginString;
+            if ((java.util.Objects.equals(entryMarginString, null)) && (java.util.Objects.equals(collateralString, null)))
+            {
+                entryMarginString = initialMarginString;
+            }
+            Boolean hasEntryMargin = (!java.util.Objects.equals(entryMarginString, null)) && Precise.stringGt(entryMarginString, "0");
+            Boolean hasEntryPrice = (!java.util.Objects.equals(entryPriceString, null)) && Precise.stringGt(entryPriceString, "0");
+            Boolean hasLiqPrice = (!java.util.Objects.equals(liquidationPriceString, null)) && Precise.stringGt(liquidationPriceString, "0");
+            Boolean hasContracts = (!java.util.Objects.equals(contractsString, null)) && Precise.stringGt(contractsString, "0");
+            Boolean hasContractSize = (!java.util.Objects.equals(contractSizeString, null)) && Precise.stringGt(contractSizeString, "0");
+            Boolean hasMm = (!java.util.Objects.equals(maintenanceMarginString, null)) && Precise.stringGt(maintenanceMarginString, "0");
+            String priceDiff = null;
+            if (Boolean.TRUE.equals(hasEntryPrice) && Boolean.TRUE.equals(hasLiqPrice))
+            {
+                if (Boolean.TRUE.equals(isInverse))
+                {
+                    Object invEntry = Precise.stringDiv("1", entryPriceString);
+                    String invLiq = Precise.stringDiv("1", liquidationPriceString);
+                    if (java.util.Objects.equals(side, "long"))
+                    {
+                        priceDiff = Precise.stringSub(invLiq, invEntry);
+                    } else if (java.util.Objects.equals(side, "short"))
+                    {
+                        priceDiff = Precise.stringSub(invEntry, invLiq);
+                    } else
+                    {
+                        priceDiff = Precise.stringAbs(Precise.stringSub(invEntry, invLiq));
+                    }
+                } else
+                {
+                    if (java.util.Objects.equals(side, "long"))
+                    {
+                        priceDiff = Precise.stringSub(entryPriceString, liquidationPriceString);
+                    } else if (java.util.Objects.equals(side, "short"))
+                    {
+                        priceDiff = Precise.stringSub(liquidationPriceString, entryPriceString);
+                    } else
+                    {
+                        priceDiff = Precise.stringAbs(Precise.stringSub(entryPriceString, liquidationPriceString));
+                    }
+                }
+            }
+            Boolean hasPriceDiff = (!java.util.Objects.equals(priceDiff, null)) && Precise.stringGt(priceDiff, "0");
+            if ((java.util.Objects.equals(maintenanceMarginString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
+            {
+                Object lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
+                Object derivedMm = Precise.stringSub(entryMarginString, lossFromEntry);
+                if (Precise.stringGt(derivedMm, "0"))
+                {
+                    maintenanceMarginString = derivedMm;
+                    position.put("maintenanceMargin", BaseExchange.this.parseNumber(derivedMm));
+                }
+            } else if ((java.util.Objects.equals(collateralString, null)) && (java.util.Objects.equals(initialMarginString, null)) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
+            {
+                Object lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
+                String derivedEntryMargin = Precise.stringAdd(maintenanceMarginString, lossFromEntry);
+                if (Precise.stringGt(derivedEntryMargin, "0"))
+                {
+                    initialMarginString = derivedEntryMargin;
+                    position.put("initialMargin", BaseExchange.this.parseNumber(derivedEntryMargin));
+                    marginString = derivedEntryMargin;
+                    position.put("positionMargin", BaseExchange.this.parseNumber(derivedEntryMargin));
+                    String derivedCollateral = (((!java.util.Objects.equals(unrealizedPnlString, null)))) ? Precise.stringAdd(derivedEntryMargin, unrealizedPnlString) : derivedEntryMargin;
+                    if (Precise.stringGt(derivedCollateral, "0"))
+                    {
+                        collateralString = derivedCollateral;
+                        position.put("collateral", BaseExchange.this.parseNumber(derivedCollateral));
+                    }
+                }
+            } else if ((java.util.Objects.equals(liquidationPriceString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasEntryPrice) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize) && ((java.util.Objects.equals(side, "long")) || (java.util.Objects.equals(side, "short"))))
+            {
+                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(totalSize, "0"))
+                {
+                    Object bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
+                    String derivedLp = null;
+                    if (Boolean.TRUE.equals(isInverse))
+                    {
+                        Object invEntry = Precise.stringDiv("1", entryPriceString);
+                        String invLp = (((java.util.Objects.equals(side, "long")))) ? Precise.stringAdd(invEntry, bufferPerUnit) : Precise.stringSub(invEntry, bufferPerUnit);
+                        if (Precise.stringGt(invLp, "0"))
+                        {
+                            derivedLp = Precise.stringDiv("1", invLp);
+                        }
+                    } else
+                    {
+                        derivedLp = (((java.util.Objects.equals(side, "long")))) ? Precise.stringSub(entryPriceString, bufferPerUnit) : Precise.stringAdd(entryPriceString, bufferPerUnit);
+                    }
+                    if ((!java.util.Objects.equals(derivedLp, null)) && Precise.stringGt(derivedLp, "0"))
+                    {
+                        liquidationPriceString = derivedLp;
+                        position.put("liquidationPrice", BaseExchange.this.parseNumber(derivedLp));
+                    }
+                }
+            } else if ((java.util.Objects.equals(entryPriceString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasLiqPrice) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize) && ((java.util.Objects.equals(side, "long")) || (java.util.Objects.equals(side, "short"))))
+            {
+                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(totalSize, "0"))
+                {
+                    Object bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
+                    String derivedEp = null;
+                    if (Boolean.TRUE.equals(isInverse))
+                    {
+                        Object invLp = Precise.stringDiv("1", liquidationPriceString);
+                        String invEp = (((java.util.Objects.equals(side, "long")))) ? Precise.stringSub(invLp, bufferPerUnit) : Precise.stringAdd(invLp, bufferPerUnit);
+                        if (Precise.stringGt(invEp, "0"))
+                        {
+                            derivedEp = Precise.stringDiv("1", invEp);
+                        }
+                    } else
+                    {
+                        derivedEp = (((java.util.Objects.equals(side, "long")))) ? Precise.stringAdd(liquidationPriceString, bufferPerUnit) : Precise.stringSub(liquidationPriceString, bufferPerUnit);
+                    }
+                    if ((!java.util.Objects.equals(derivedEp, null)) && Precise.stringGt(derivedEp, "0"))
+                    {
+                        entryPriceString = derivedEp;
+                        position.put("entryPrice", BaseExchange.this.parseNumber(derivedEp));
+                    }
+                }
+            } else if ((java.util.Objects.equals(contractsString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContractSize))
+            {
+                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                Object denom = Precise.stringMul(priceDiff, contractSizeString);
+                if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(denom, "0"))
+                {
+                    Object derivedContracts = Precise.stringDiv(marginBuffer, denom);
+                    if (Precise.stringGt(derivedContracts, "0"))
+                    {
+                        contractsString = derivedContracts;
+                        position.put("contracts", BaseExchange.this.parseNumber(derivedContracts));
+                    }
+                }
+            } else if ((java.util.Objects.equals(contractSizeString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContracts))
+            {
+                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                Object denom = Precise.stringMul(priceDiff, contractsString);
+                if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(denom, "0"))
+                {
+                    Object derivedContractSize = Precise.stringDiv(marginBuffer, denom);
+                    if (Precise.stringGt(derivedContractSize, "0"))
+                    {
+                        contractSizeString = derivedContractSize;
+                        position.put("contractSize", BaseExchange.this.parseNumber(derivedContractSize));
+                    }
+                }
+            }
+        }
+        //
+        // POSITION-LOCAL DERIVATIONS (CROSS & ISOLATED)
+        //
+        Boolean isZeroPosition = (!java.util.Objects.equals(contractsString, null)) && Precise.stringEq(contractsString, "0");
+        if (!Boolean.TRUE.equals(isZeroPosition))
+        {
+            String notionalString = this.safeString(position, "notional");
+            String markPriceString = this.safeString(position, "markPrice");
+            String lastPriceString = this.safeString(position, "lastPrice");
+            Boolean hasContracts = (!java.util.Objects.equals(contractsString, null)) && Precise.stringGt(contractsString, "0");
+            Boolean hasContractSize = (!java.util.Objects.equals(contractSizeString, null)) && Precise.stringGt(contractSizeString, "0");
+            Boolean hasMarkPrice = (!java.util.Objects.equals(markPriceString, null)) && Precise.stringGt(markPriceString, "0");
+            Boolean hasNotional = (!java.util.Objects.equals(notionalString, null)) && Precise.stringGt(notionalString, "0");
+            // 1. notional <-> markPrice / contracts / contractSize
+            if ((java.util.Objects.equals(notionalString, null)) && Boolean.TRUE.equals(hasMarkPrice) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
+            {
+                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                String derivedNotional = ((Boolean.TRUE.equals(isInverse))) ? Precise.stringDiv(totalSize, markPriceString) : Precise.stringMul(totalSize, markPriceString);
+                if (Precise.stringGt(derivedNotional, "0"))
+                {
+                    notionalString = derivedNotional;
+                    position.put("notional", BaseExchange.this.parseNumber(derivedNotional));
+                }
+            } else if ((java.util.Objects.equals(markPriceString, null)) && (java.util.Objects.equals(entryPriceString, null)) && (java.util.Objects.equals(lastPriceString, null)) && Boolean.TRUE.equals(hasNotional) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
+            {
+                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                String derivedMark = ((Boolean.TRUE.equals(isInverse))) ? Precise.stringDiv(totalSize, notionalString) : Precise.stringDiv(notionalString, totalSize);
+                if (Precise.stringGt(derivedMark, "0"))
+                {
+                    markPriceString = derivedMark;
+                    position.put("markPrice", BaseExchange.this.parseNumber(derivedMark));
+                }
+            } else if ((java.util.Objects.equals(contractsString, null)) && Boolean.TRUE.equals(hasNotional) && Boolean.TRUE.equals(hasMarkPrice) && Boolean.TRUE.equals(hasContractSize))
+            {
+                String derivedContracts = ((Boolean.TRUE.equals(isInverse))) ? Precise.stringDiv(Precise.stringMul(notionalString, markPriceString), contractSizeString) : Precise.stringDiv(notionalString, Precise.stringMul(markPriceString, contractSizeString));
+                if (Precise.stringGt(derivedContracts, "0"))
+                {
+                    contractsString = derivedContracts;
+                    position.put("contracts", BaseExchange.this.parseNumber(derivedContracts));
+                }
+            } else if ((java.util.Objects.equals(contractSizeString, null)) && Boolean.TRUE.equals(hasNotional) && Boolean.TRUE.equals(hasMarkPrice) && Boolean.TRUE.equals(hasContracts))
+            {
+                String derivedContractSize = ((Boolean.TRUE.equals(isInverse))) ? Precise.stringDiv(Precise.stringMul(notionalString, markPriceString), contractsString) : Precise.stringDiv(notionalString, Precise.stringMul(markPriceString, contractsString));
+                if (Precise.stringGt(derivedContractSize, "0"))
+                {
+                    contractSizeString = derivedContractSize;
+                    position.put("contractSize", BaseExchange.this.parseNumber(derivedContractSize));
+                }
+            }
+            // 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
+            if ((java.util.Objects.equals(unrealizedPnlString, null)) && (!java.util.Objects.equals(entryPriceString, null)) && (!java.util.Objects.equals(markPriceString, null)) && (!java.util.Objects.equals(contractsString, null)) && (!java.util.Objects.equals(contractSizeString, null)))
+            {
+                if (Precise.stringGt(entryPriceString, "0") && Precise.stringGt(markPriceString, "0") && Precise.stringGt(contractsString, "0") && Precise.stringGt(contractSizeString, "0"))
+                {
+                    Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                    String pnlDiff = null;
+                    if (Boolean.TRUE.equals(isInverse))
+                    {
+                        Object invEntry = Precise.stringDiv("1", entryPriceString);
+                        String invMark = Precise.stringDiv("1", markPriceString);
+                        if (java.util.Objects.equals(side, "long"))
+                        {
+                            pnlDiff = Precise.stringSub(invEntry, invMark);
+                        } else if (java.util.Objects.equals(side, "short"))
+                        {
+                            pnlDiff = Precise.stringSub(invMark, invEntry);
+                        }
+                    } else
+                    {
+                        if (java.util.Objects.equals(side, "long"))
+                        {
+                            pnlDiff = Precise.stringSub(markPriceString, entryPriceString);
+                        } else if (java.util.Objects.equals(side, "short"))
+                        {
+                            pnlDiff = Precise.stringSub(entryPriceString, markPriceString);
+                        }
+                    }
+                    if (!java.util.Objects.equals(pnlDiff, null))
+                    {
+                        String candidateUpnl = Precise.stringMul(pnlDiff, totalSize);
+                        if (Precise.stringEq(candidateUpnl, "0") || Precise.stringGe(Precise.stringAbs(candidateUpnl), "0.000001"))
+                        {
+                            unrealizedPnlString = candidateUpnl;
+                            position.put("unrealizedPnl", BaseExchange.this.parseNumber(unrealizedPnlString));
+                        }
+                    }
+                }
+            }
+            // 3. initialMargin <-> initialMarginPercentage <-> leverage / notional
+            Boolean hasValidNotional = (!java.util.Objects.equals(notionalString, null)) && Precise.stringGt(notionalString, "0");
+            Boolean hasNegativeCollateral = (!java.util.Objects.equals(collateralString, null)) && Precise.stringLt(collateralString, "0");
+            String initialMarginPercentageString = this.safeString(position, "initialMarginPercentage");
+            String leverageString = this.safeString(position, "leverage");
+            Boolean hasLeverage = (!java.util.Objects.equals(leverageString, null)) && Precise.stringGt(leverageString, "0");
+            Boolean hasInitialMargin = (!java.util.Objects.equals(initialMarginString, null)) && Precise.stringGt(initialMarginString, "0");
+            Boolean hadInitialMargin = (!java.util.Objects.equals(initialMarginString, null));
+            if ((java.util.Objects.equals(initialMarginPercentageString, null)) && !Boolean.TRUE.equals(hasNegativeCollateral) && (Boolean.TRUE.equals(hasInitialMargin) || !Boolean.TRUE.equals(hadInitialMargin)))
+            {
+                if (Boolean.TRUE.equals(hasInitialMargin) && Boolean.TRUE.equals(hasValidNotional))
+                {
+                    initialMarginPercentageString = Precise.stringDiv(initialMarginString, notionalString);
+                } else if (Boolean.TRUE.equals(hasLeverage))
+                {
+                    initialMarginPercentageString = Precise.stringDiv("1", leverageString);
+                }
+                if ((!java.util.Objects.equals(initialMarginPercentageString, null)) && Precise.stringGt(initialMarginPercentageString, "0"))
+                {
+                    position.put("initialMarginPercentage", BaseExchange.this.parseNumber(initialMarginPercentageString));
+                }
+            }
+            Boolean hasImp = (!java.util.Objects.equals(initialMarginPercentageString, null)) && Precise.stringGt(initialMarginPercentageString, "0");
+            if ((java.util.Objects.equals(initialMarginString, null)) && !Boolean.TRUE.equals(hasNegativeCollateral) && Boolean.TRUE.equals(hasValidNotional))
+            {
+                if (Boolean.TRUE.equals(hasLeverage))
+                {
+                    initialMarginString = Precise.stringDiv(notionalString, leverageString);
+                } else if (Boolean.TRUE.equals(hasImp))
+                {
+                    initialMarginString = Precise.stringMul(notionalString, initialMarginPercentageString);
+                }
+                if ((!java.util.Objects.equals(initialMarginString, null)) && Precise.stringGt(initialMarginString, "0"))
+                {
+                    position.put("initialMargin", BaseExchange.this.parseNumber(initialMarginString));
+                }
+            }
+            if ((java.util.Objects.equals(leverageString, null)) && !Boolean.TRUE.equals(hadInitialMargin) && Boolean.TRUE.equals(hasImp))
+            {
+                String derivedLeverage = Precise.stringDiv("1", initialMarginPercentageString);
+                if (Precise.stringGt(derivedLeverage, "0") && Precise.stringLe(derivedLeverage, "200"))
+                {
+                    position.put("leverage", BaseExchange.this.parseNumber(derivedLeverage));
+                }
+            }
+            // 4. maintenanceMargin <-> maintenanceMarginPercentage / notional
+            String maintenanceMarginPercentageString = this.safeString(position, "maintenanceMarginPercentage");
+            Boolean hasValidMm = (!java.util.Objects.equals(maintenanceMarginString, null)) && Precise.stringGt(maintenanceMarginString, "0");
+            Boolean hasValidMmp = (!java.util.Objects.equals(maintenanceMarginPercentageString, null)) && Precise.stringGt(maintenanceMarginPercentageString, "0");
+            if ((java.util.Objects.equals(maintenanceMarginString, null)) && Boolean.TRUE.equals(hasValidNotional) && Boolean.TRUE.equals(hasValidMmp))
+            {
+                Object derivedMm = Precise.stringMul(notionalString, maintenanceMarginPercentageString);
+                if (Precise.stringGt(derivedMm, "0"))
+                {
+                    maintenanceMarginString = derivedMm;
+                    position.put("maintenanceMargin", BaseExchange.this.parseNumber(derivedMm));
+                }
+            } else if ((java.util.Objects.equals(maintenanceMarginPercentageString, null)) && Boolean.TRUE.equals(hasValidNotional) && Boolean.TRUE.equals(hasValidMm))
+            {
+                String derivedMmp = Precise.stringDiv(maintenanceMarginString, notionalString);
+                if (Precise.stringGt(derivedMmp, "0"))
+                {
+                    maintenanceMarginPercentageString = derivedMmp;
+                    position.put("maintenanceMarginPercentage", BaseExchange.this.parseNumber(derivedMmp));
+                }
+            }
+            // 5. marginRatio = maintenanceMargin / collateral
+            Object marginRatio = this.safeValue(position, "marginRatio");
+            if ((java.util.Objects.equals(marginRatio, null)) && (!java.util.Objects.equals(maintenanceMarginString, null)) && (!java.util.Objects.equals(collateralString, null)))
+            {
+                if (Precise.stringGt(maintenanceMarginString, "0") && Precise.stringGt(collateralString, "0"))
+                {
+                    String derivedMarginRatio = Precise.stringDiv(maintenanceMarginString, collateralString, 4);
+                    if ((!java.util.Objects.equals(derivedMarginRatio, null)) && Precise.stringGt(derivedMarginRatio, "0"))
+                    {
+                        position.put("marginRatio", BaseExchange.this.parseNumber(derivedMarginRatio));
+                    }
+                }
+            }
+        }
+        //
+        // PERCENTAGE
+        //
+        Object percentage = this.safeValue(position, "percentage");
+        if ((java.util.Objects.equals(percentage, null)) && (!java.util.Objects.equals(unrealizedPnlString, null)) && (!java.util.Objects.equals(initialMarginString, null)))
+        {
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+            String percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
+            position.put("percentage", BaseExchange.this.parseNumber(percentageString));
         }
         return position;
     }

@@ -4675,6 +4675,13 @@ public class Hyperliquid extends HyperliquidApi
             initialMargin = marginUsed;
         }
         String percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, marginUsed), "100");
+        String positionValueString = this.safeString(entry, "positionValue");
+        String markPriceString = Precise.stringDiv(positionValueString, size);
+        String marginString = null;
+        if (Boolean.TRUE.equals(isIsolated))
+        {
+            marginString = initialMargin;
+        }
         HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
         mapLiteral14.put("info", position);
         mapLiteral14.put("id", null);
@@ -4687,9 +4694,10 @@ public class Hyperliquid extends HyperliquidApi
         mapLiteral14.put("contracts", this.parseNumber(size));
         mapLiteral14.put("contractSize", null);
         mapLiteral14.put("entryPrice", this.safeNumber(entry, "entryPx", (Object) null));
-        mapLiteral14.put("markPrice", null);
-        mapLiteral14.put("notional", this.safeNumber(entry, "positionValue", (Object) null));
+        mapLiteral14.put("markPrice", this.parseNumber(markPriceString));
+        mapLiteral14.put("notional", this.parseNumber(positionValueString));
         mapLiteral14.put("leverage", this.safeNumber(leverage, "value", (Object) null));
+        mapLiteral14.put("positionMargin", this.parseNumber(marginString));
         mapLiteral14.put("collateral", this.parseNumber(marginUsed));
         mapLiteral14.put("initialMargin", this.parseNumber(initialMargin));
         mapLiteral14.put("maintenanceMargin", null);
@@ -4698,6 +4706,7 @@ public class Hyperliquid extends HyperliquidApi
         mapLiteral14.put("unrealizedPnl", this.parseNumber(rawUnrealizedPnl));
         mapLiteral14.put("liquidationPrice", this.safeNumber(entry, "liquidationPx", (Object) null));
         mapLiteral14.put("marginMode", marginMode);
+        mapLiteral14.put("marginRatio", null);
         mapLiteral14.put("percentage", this.parseNumber(percentage));
         return this.safePosition(mapLiteral14);
     }

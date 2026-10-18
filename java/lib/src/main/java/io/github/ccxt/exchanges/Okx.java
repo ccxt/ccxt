@@ -8006,14 +8006,21 @@ public class Okx extends OkxApi
         String leverageString = this.safeString(position, "lever");
         Object initialMarginPercentage = null;
         String collateralString = null;
+        String marginString = null;
         if (java.util.Objects.equals(marginMode, "cross"))
         {
             initialMarginString = this.safeString(position, "imr");
-            collateralString = Precise.stringAdd(initialMarginString, unrealizedPnlString);
+            collateralString = (((!java.util.Objects.equals(unrealizedPnlString, null)))) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (java.util.Objects.equals(marginMode, "isolated"))
         {
             initialMarginPercentage = Precise.stringDiv("1", leverageString);
-            collateralString = this.safeString(position, "margin");
+            String isolatedMarginString = this.omitZero(this.safeString(position, "margin"));
+            if (!java.util.Objects.equals(isolatedMarginString, null))
+            {
+                initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
+                collateralString = (((!java.util.Objects.equals(unrealizedPnlString, null)))) ? Precise.stringAdd(isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
+            }
         }
         String maintenanceMarginString = this.safeString(position, "mmr");
         Double maintenanceMargin = this.parseNumber(maintenanceMarginString);
@@ -8033,8 +8040,34 @@ public class Okx extends OkxApi
             }
         }
         String rounder = "0.00005"; // round to closest 0.01%
-        Double maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
-        Double liquidationPrice = this.safeNumber(position, "liqPx", (Object) null);
+        Double maintenanceMarginPercentage = (((!java.util.Objects.equals(maintenanceMarginPercentageString, null)))) ? this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4)) : null;
+        Object liquidationPriceString = this.omitZero(this.safeString(position, "liqPx"));
+        if ((java.util.Objects.equals(liquidationPriceString, null)) && (java.util.Objects.equals(marginMode, "isolated")) && (!java.util.Objects.equals(initialMarginString, null)) && (!java.util.Objects.equals(entryPriceString, null)) && (!java.util.Objects.equals(contractsAbs, null)) && Precise.stringGt(contractsAbs, "0") && (!java.util.Objects.equals(contractSizeString, null)) && (!java.util.Objects.equals(maintenanceMarginPercentage, null)))
+        {
+            String takerFeeRate = this.safeString(marketResolved, "taker", "0.0005");
+            String mmpWithFee = Precise.stringAdd(this.numberToString(maintenanceMarginPercentage), takerFeeRate);
+            String totalSize = Precise.stringMul(contractsAbs, contractSizeString);
+            if (java.util.Objects.equals(marketResolved.get("inverse"), true))
+            {
+                String invEntry = Precise.stringDiv(totalSize, entryPriceString);
+                String denom = (((java.util.Objects.equals(side, "long")))) ? Precise.stringAdd(invEntry, initialMarginString) : Precise.stringSub(invEntry, initialMarginString);
+                String numFactor = (((java.util.Objects.equals(side, "long")))) ? Precise.stringAdd("1", mmpWithFee) : Precise.stringSub("1", mmpWithFee);
+                if ((!java.util.Objects.equals(denom, null)) && Precise.stringGt(denom, "0"))
+                {
+                    liquidationPriceString = Precise.stringDiv(Precise.stringMul(totalSize, numFactor), denom);
+                }
+            } else
+            {
+                String marginPerUnit = Precise.stringDiv(initialMarginString, totalSize);
+                String num = (((java.util.Objects.equals(side, "long")))) ? Precise.stringSub(entryPriceString, marginPerUnit) : Precise.stringAdd(entryPriceString, marginPerUnit);
+                String denom = (((java.util.Objects.equals(side, "long")))) ? Precise.stringSub("1", mmpWithFee) : Precise.stringAdd("1", mmpWithFee);
+                if ((!java.util.Objects.equals(denom, null)) && Precise.stringGt(denom, "0"))
+                {
+                    liquidationPriceString = Precise.stringDiv(num, denom);
+                }
+            }
+        }
+        Double liquidationPrice = ((((!java.util.Objects.equals(liquidationPriceString, null)) && Precise.stringGt(liquidationPriceString, "0")))) ? this.parseNumber(liquidationPriceString) : null;
         String percentageString = this.safeString(position, "uplRatio");
         Double percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Long timestamp = this.safeInteger(position, "cTime");
@@ -8061,6 +8094,7 @@ public class Okx extends OkxApi
         mapLiteral8.put("lastUpdateTimestamp", this.safeInteger(position, "uTime"));
         mapLiteral8.put("maintenanceMargin", maintenanceMargin);
         mapLiteral8.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
+        mapLiteral8.put("positionMargin", this.parseNumber(marginString));
         mapLiteral8.put("collateral", this.parseNumber(collateralString));
         mapLiteral8.put("initialMargin", this.parseNumber(initialMarginString));
         mapLiteral8.put("initialMarginPercentage", this.parseNumber(initialMarginPercentage));

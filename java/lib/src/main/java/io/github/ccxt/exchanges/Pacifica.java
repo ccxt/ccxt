@@ -3349,8 +3349,13 @@ public class Pacifica extends PacificaApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
         String margin = this.safeString(position, "margin");
-        String marginMode = (((!java.util.Objects.equals(margin, null) && !java.util.Objects.equals(margin, "0")))) ? "isolated" : "cross";
-        Boolean isIsolated = (java.util.Objects.equals(marginMode, "isolated"));
+        Boolean rawIsolated = (Boolean) this.safeBool(position, "isolated", (Object) null);
+        Object isIsolated = (!java.util.Objects.equals(margin, null) && !java.util.Objects.equals(margin, "0"));
+        if (!java.util.Objects.equals(rawIsolated, null))
+        {
+            isIsolated = rawIsolated;
+        }
+        String marginMode = ((Helpers.isTrue(isIsolated))) ? "isolated" : "cross";
         String side = this.safeString(position, "side");
         if (!java.util.Objects.equals(side, null))
         {
@@ -3372,13 +3377,13 @@ public class Pacifica extends PacificaApi
         mapLiteral11.put("markPrice", null);
         mapLiteral11.put("notional", null);
         mapLiteral11.put("leverage", null);
-        mapLiteral11.put("collateral", margin);
+        mapLiteral11.put("collateral", this.safeNumber(position, "margin", (Object) null));
         mapLiteral11.put("initialMargin", null);
         mapLiteral11.put("maintenanceMargin", null);
         mapLiteral11.put("initialMarginPercentage", null);
         mapLiteral11.put("maintenanceMarginPercentage", null);
         mapLiteral11.put("unrealizedPnl", null);
-        mapLiteral11.put("liquidationPrice", null);
+        mapLiteral11.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
         mapLiteral11.put("marginMode", marginMode);
         mapLiteral11.put("percentage", null);
         return this.safePosition(mapLiteral11);

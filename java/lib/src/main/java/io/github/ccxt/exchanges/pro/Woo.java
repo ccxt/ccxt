@@ -117,7 +117,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         return BaseExchange.supplyAsync(() -> {
 
             String urlUid = "";
-            if (!java.util.Objects.equals(this.uid, ""))
+            if ((!java.util.Objects.equals(this.uid, null)) && (!java.util.Objects.equals(this.uid, "")))
             {
                 urlUid = ("/" + this.uid);
             }
@@ -138,7 +138,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         return BaseExchange.supplyAsync(() -> {
 
             String urlUid = "";
-            if (!java.util.Objects.equals(this.uid, ""))
+            if ((!java.util.Objects.equals(this.uid, null)) && (!java.util.Objects.equals(this.uid, "")))
             {
                 urlUid = ("/" + this.uid);
             }
@@ -196,7 +196,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Map<String, Object> market = this.market(symbol);
             String topic = ((market.get("id") + "@") + method);
             String urlUid = "";
-            if (!java.util.Objects.equals(this.uid, ""))
+            if ((!java.util.Objects.equals(this.uid, null)) && (!java.util.Objects.equals(this.uid, "")))
             {
                 urlUid = ("/" + this.uid);
             }
