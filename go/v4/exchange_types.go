@@ -1749,7 +1749,7 @@ func (m *MarginModes) Set(key string, mode MarginMode) {
 }
 
 type Leverage struct {
-	Info          map[string]any
+	Info          any
 	Symbol        *string
 	MarginMode    *string
 	LongLeverage  *float64
@@ -1758,7 +1758,7 @@ type Leverage struct {
 
 func NewLeverage(data any) Leverage {
 	return Leverage{
-		Info:          GetInfo(data),
+		Info:          SafeValue(data, "info"),
 		Symbol:        SafeStringTyped(data, "symbol"),
 		MarginMode:    SafeStringTyped(data, "marginMode"),
 		LongLeverage:  SafeFloatTyped(data, "longLeverage"),
