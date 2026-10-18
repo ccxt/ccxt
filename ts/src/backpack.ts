@@ -2496,7 +2496,9 @@ export default class backpack extends Exchange {
         const query = this.safeDict (selection, 1, {});
         const orderParams = this.extend (query, { 'stock': this.safeBool (selection, 0, false) });
         if (this.safeString (market['info'], 'marketType') === 'RFQ') {
-            return await this.createRfqOrder (symbol, type, side, amount, price, orderParams);
+            const rfqResponse = await this.createRfqOrder (symbol, type, side, amount, price, orderParams);
+            const rfqOrder = this.safeDict ({ 'order': rfqResponse }, 'order');
+            return rfqOrder as Order;
         }
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
         const response = await this.privatePostApiV1Order (orderRequest);
@@ -2906,7 +2908,9 @@ export default class backpack extends Exchange {
                 return order;
             }
         }
-        return await this.fetchOpenOrder (id, symbol, this.extend (query, { 'stock': this.safeBool (selection, 0, false) }));
+        const orderId: string = id;
+        const openOrderParams: Dict = this.extend (query, { 'stock': this.safeBool (selection, 0, false) });
+        return await this.fetchOpenOrder (orderId, symbol, openOrderParams);
     }
 
     /**

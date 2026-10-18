@@ -109,7 +109,7 @@ export default class backpack extends backpackRest {
     /**
      * @ignore
      * @method
-     * @name backpack#watchWsTickers
+     * @name backpack#subscribeWsTickers
      * @description subscribes to venue statistics or stock provider streams with explicit symbol routing
      * @param {string} methodName calling method
      * @param {string[]} [symbols] unified symbols
@@ -118,7 +118,7 @@ export default class backpack extends backpackRest {
      * @param {boolean} [unwatch] whether to unsubscribe
      * @returns {object} unified tickers
      */
-    async watchWsTickers (methodName: string, symbols: Strings = undefined, params: Dict = {}, bidAsk = false, unwatch = false): Promise<Tickers> {
+    async subscribeWsTickers (methodName: string, symbols: Strings = undefined, params: Dict = {}, bidAsk = false, unwatch = false): Promise<Tickers> {
         const query = await this.prepareWsStockParams (methodName, params);
         const stock = this.safeBool (query, 'stock', false);
         const explicitSource = this.safeString (query, 'source');
@@ -352,7 +352,7 @@ export default class backpack extends backpackRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
-        const tickers = await this.watchWsTickers ('watchTicker', [ symbol ], params);
+        const tickers = await this.subscribeWsTickers ('watchTicker', [ symbol ], params);
         return tickers[this.symbol (symbol)];
     }
 
@@ -370,7 +370,7 @@ export default class backpack extends backpackRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async unWatchTicker (symbol: string, params = {}): Promise<any> {
-        await this.watchWsTickers ('watchTicker', [ symbol ], params, false, true);
+        await this.subscribeWsTickers ('watchTicker', [ symbol ], params, false, true);
         return undefined;
     }
 
@@ -388,7 +388,7 @@ export default class backpack extends backpackRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
-        return await this.watchWsTickers ('watchTickers', symbols, params);
+        return await this.subscribeWsTickers ('watchTickers', symbols, params);
     }
 
     /**
@@ -405,7 +405,7 @@ export default class backpack extends backpackRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
-        await this.watchWsTickers ('watchTickers', symbols, params, false, true);
+        await this.subscribeWsTickers ('watchTickers', symbols, params, false, true);
         return undefined;
     }
 
@@ -560,7 +560,7 @@ export default class backpack extends backpackRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
-        return await this.watchWsTickers ('watchBidsAsks', symbols, params, true);
+        return await this.subscribeWsTickers ('watchBidsAsks', symbols, params, true);
     }
 
     /**
@@ -576,7 +576,7 @@ export default class backpack extends backpackRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
-        await this.watchWsTickers ('watchBidsAsks', symbols, params, true, true);
+        await this.subscribeWsTickers ('watchBidsAsks', symbols, params, true, true);
         return undefined;
     }
 
