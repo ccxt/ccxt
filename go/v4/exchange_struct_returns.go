@@ -1,8 +1,11 @@
 package ccxt
 
-import "reflect"
+import (
+	"reflect"
+	"sync"
+)
 
-// Boundaries of the struct-typed row builders (build/go-struct-returns.ts): the generated
+// Runtime side of the struct-typed row builders (build/go-struct-returns.ts): the generated
 // ParseTicker/SafeTicker/... return a struct, every untyped caller boxes it back with <T>ToMap.
 // The structs carry exactly the keys declared in ts/src/base/types.ts; Info is the raw response.
 
@@ -428,4 +431,64 @@ func StructBox[T any](v T, toMap func(T) map[string]any) any {
 		return nil
 	}
 	return toMap(v)
+}
+
+// WatchResolved converts an untyped Future-resolved value (from Watch/WatchMultiple/client.Future)
+// to the target channel element type T.
+func WatchResolved[T any](v any) T {
+	var zero T
+	if v == nil {
+		return zero
+	}
+	if typed, ok := v.(T); ok {
+		return typed
+	}
+	switch any(zero).(type) {
+	case []any:
+		if c, ok := v.(IArrayCache); ok {
+			return any(c.ToArray()).(T)
+		}
+	case map[string]any:
+		if m, ok := v.(*sync.Map); ok {
+			return any(SafeMapToMap(m)).(T)
+		}
+	case bool:
+		return any(IsTrue(v)).(T)
+	case *string:
+		if s, ok := v.(string); ok {
+			return any(&s).(T)
+		}
+		return zero
+	}
+	panic(ExchangeError("resolved value does not match target channel type"))
+}
+
+// Watch wraps a core's Watch call and resolves its channel element to T.
+func Watch[T any](ex interface{ Watch(args ...any) <-chan AsyncResult[any] }, args ...any) <-chan AsyncResult[T] {
+	ch := make(chan AsyncResult[T], 1)
+	go func() {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		r := <-ex.Watch(args...)
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		ch <- AsyncResult[T]{Value: WatchResolved[T](r.Value)}
+	}()
+	return ch
+}
+
+// WatchMultiple wraps a core's WatchMultiple call and resolves its channel element to T.
+func WatchMultiple[T any](ex interface{ WatchMultiple(args ...any) <-chan AsyncResult[any] }, args ...any) <-chan AsyncResult[T] {
+	ch := make(chan AsyncResult[T], 1)
+	go func() {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		r := <-ex.WatchMultiple(args...)
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		ch <- AsyncResult[T]{Value: WatchResolved[T](r.Value)}
+	}()
+	return ch
 }

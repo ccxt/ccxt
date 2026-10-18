@@ -14,6 +14,10 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     // retyped by goTranspiler.ts#retypeGoProvenParseMethods (base + every override)
     'this.ParseCurrencies': 'map[string]any', 'this.DerivedExchange.ParseCurrencies': 'map[string]any', 'this.ParseCurrenciesCustom': 'map[string]any', 'this.ArraysConcat': '[]any',
     'OrderToMap': 'map[string]any', 'TickerToMap': 'map[string]any', 'TradeToMap': 'map[string]any', 'StructToMap': 'map[string]any',
+    'PositionToMap': 'map[string]any', 'TransactionToMap': 'map[string]any', 'LedgerEntryToMap': 'map[string]any', 'DepositAddressToMap': 'map[string]any',
+    'TransferEntryToMap': 'map[string]any', 'FundingRateToMap': 'map[string]any', 'OpenInterestToMap': 'map[string]any', 'TradingFeeInterfaceToMap': 'map[string]any',
+    'LeverageToMap': 'map[string]any', 'MarginModeToMap': 'map[string]any', 'GreeksToMap': 'map[string]any', 'OptionToMap': 'map[string]any', 'ConversionToMap': 'map[string]any',
+    'OHLCVToList': '[]any',
     'MapTyped': 'map[string]any', 'MarketTyped': 'map[string]any', 'ListTyped': '[]any',
     // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
     'this.ApplyEventFetchParams': '[]any',
