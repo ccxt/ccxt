@@ -944,7 +944,7 @@
             {
                 "description": "Fetch Leverage Tiers - swap",
                 "method": "fetchLeverageTiers",
-                "url": "https://api.gateio.ws/api/v4/futures/usdt/contracts",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/risk_limit_tiers?limit=100&offset=0",
                 "input": [
                     null,
                     {
@@ -955,11 +955,24 @@
             {
                 "description": "Fetch Leverage Tiers - future",
                 "method": "fetchLeverageTiers",
-                "url": "https://api.gateio.ws/api/v4/delivery/btc/contracts",
+                "url": "https://api.gateio.ws/api/v4/delivery/btc/risk_limit_tiers?limit=100&offset=0",
                 "input": [
                     null,
                     {
                         "type": "future"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch leverage tiers with a contract page size and offset",
+                "method": "fetchLeverageTiers",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/risk_limit_tiers?limit=2&offset=4",
+                "input": [
+                    null,
+                    {
+                        "type": "swap",
+                        "limit": 2,
+                        "offset": 4
                     }
                 ]
             }

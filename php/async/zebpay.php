@@ -1917,12 +1917,20 @@ class zebpay extends Exchange {
         $datetime = $this->safe_string($position, 'datetime');
         $marketId = $this->safe_string($position, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        return array(
+        $marginMode = $this->safe_string_lower($position, 'marginMode', 'isolated');
+        $initialMargin = $this->safe_number($position, 'initialMargin');
+        // isolated positions hold exactly the initial margin posted for them
+        $positionMargin = null;
+        if ($marginMode === 'isolated') {
+            $positionMargin = $initialMargin;
+        }
+        return $this->safe_position(array(
             'info' => $position,
-            'symbol' => $marketId,
+            'id' => $this->safe_string($position, 'id'),
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
-            'initialMargin' => $this->safe_number($position, 'initialMargin'),
+            'initialMargin' => $initialMargin,
             'initialMarginPercentage' => null,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
@@ -1935,11 +1943,12 @@ class zebpay extends Exchange {
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'markPrice' => null,
+            'positionMargin' => $positionMargin,
             'collateral' => null,
-            'marginMode' => 'isolated',
-            'side' => $this->safe_string($position, 'side'),
+            'marginMode' => $marginMode,
+            'side' => $this->safe_string_lower($position, 'side'),
             'percentage' => null,
-        );
+        ));
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {

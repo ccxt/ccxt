@@ -3821,27 +3821,39 @@ export default class weex extends Exchange {
         const notional = this.safeString (position, 'openValue');
         const size = this.safeString (position, 'size');
         const entryPrice = Precise.stringDiv (notional, size);
+        const unrealizePnl = this.safeString (position, 'unrealizePnl');
+        const isolatedMargin = this.omitZero (this.safeString2 (position, 'isolatedMargin', 'marginSize'));
+        let collateralString: Str = undefined;
+        if ((marginMode === 'isolated') && (isolatedMargin !== undefined)) {
+            collateralString = (unrealizePnl !== undefined) ? Precise.stringAdd (isolatedMargin, unrealizePnl) : isolatedMargin;
+        }
+        const initialMarginString = this.omitZero (this.safeString2 (position, 'marginSize', 'isolatedMargin'));
+        let marginString: Str = undefined;
+        if (marginMode === 'isolated') {
+            marginString = isolatedMargin;
+        }
         return this.safePosition ({
             'symbol': marketResolved['symbol'],
             'id': this.safeString2 (position, 'id', 'positionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'contracts': this.parseNumber (size),
-            'contractSize': undefined,
+            'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'side': this.safeStringLower (position, 'side'),
             'notional': this.parseNumber (notional),
             'leverage': this.safeNumber (position, 'leverage'),
-            'unrealizedPnl': this.safeNumber (position, 'unrealizePnl'),
+            'unrealizedPnl': this.parseNumber (unrealizePnl),
             'realizedPnl': undefined,
-            'collateral': undefined,
+            'positionMargin': this.parseNumber (marginString),
+            'collateral': this.parseNumber (collateralString),
             'entryPrice': this.parseNumber (entryPrice),
             'markPrice': undefined,
-            'liquidationPrice': this.safeNumber (position, 'liquidatePrice'),
+            'liquidationPrice': this.parseNumber (this.omitZero (this.safeString (position, 'liquidatePrice'))),
             'marginMode': marginMode,
             'hedged': hedged,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'initialMargin': this.safeNumber (position, 'marginSize'),
+            'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': undefined,
             'marginRatio': undefined,
             'lastUpdateTimestamp': this.safeInteger (position, 'updatedTime'),

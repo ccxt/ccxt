@@ -2463,6 +2463,12 @@ class deepcoin(Exchange, ImplicitAPI):
         marketId = self.safe_string(position, 'instId')
         marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_integer(position, 'cTime')
+        marginMode = self.safe_string(position, 'mgnMode')
+        useMargin = self.safe_number(position, 'useMargin')
+        # useMargin is the margin held in the position (excludes unrealized pnl)
+        positionMargin = None
+        if marginMode == 'isolated':
+            positionMargin = useMargin
         return self.safe_position({
             'symbol': marketResolved['symbol'],
             'id': self.safe_string(position, 'posId'),
@@ -2473,17 +2479,18 @@ class deepcoin(Exchange, ImplicitAPI):
             'side': self.safe_string(position, 'posSide'),
             'notional': None,
             'leverage': self.parse_number(self.omit_zero(self.safe_string(position, 'lever'))),
-            'unrealizedPnl': None,
+            'unrealizedPnl': self.safe_number(position, 'unrealizedProfit'),
             'realizedPnl': None,
+            'positionMargin': positionMargin,
             'collateral': None,
             'entryPrice': self.safe_number(position, 'avgPx'),
             'markPrice': None,
             'liquidationPrice': self.safe_number(position, 'liqPx'),
-            'marginMode': self.safe_string(position, 'mgnMode'),
+            'marginMode': marginMode,
             'hedged': True,
-            'maintenanceMargin': self.safe_number(position, 'useMargin'),
+            'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'initialMargin': None,
+            'initialMargin': useMargin,
             'initialMarginPercentage': None,
             'marginRatio': None,
             'lastUpdateTimestamp': self.safe_integer(position, 'uTime'),

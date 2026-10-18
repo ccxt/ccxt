@@ -7784,14 +7784,21 @@ public partial class okx : Exchange
         string? leverageString = this.safeString(position, "lever");
         object initialMarginPercentage = null;
         string? collateralString = null;
+        string? marginString = null;
         if (marginMode == "cross")
         {
             initialMarginString = this.safeString(position, "imr");
-            collateralString = Precise.stringAdd(initialMarginString, unrealizedPnlString);
+            collateralString = ((unrealizedPnlString != null)) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (marginMode == "isolated")
         {
             initialMarginPercentage = Precise.stringDiv("1", leverageString);
-            collateralString = this.safeString(position, "margin");
+            string? isolatedMarginString = ((string)this.omitZero(this.safeString(position, "margin")));
+            if ((isolatedMarginString != null))
+            {
+                initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
+                collateralString = ((unrealizedPnlString != null)) ? Precise.stringAdd(isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
+            }
         }
         string? maintenanceMarginString = this.safeString(position, "mmr");
         double? maintenanceMargin = this.parseNumber(maintenanceMarginString);
@@ -7811,8 +7818,34 @@ public partial class okx : Exchange
             }
         }
         string rounder = "0.00005"; // round to closest 0.01%
-        double? maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
-        double? liquidationPrice = this.safeNumber(position, "liqPx");
+        double? maintenanceMarginPercentage = ((maintenanceMarginPercentageString != null)) ? this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4)) : null;
+        string? liquidationPriceString = ((string)this.omitZero(this.safeString(position, "liqPx")));
+        if (((liquidationPriceString == null)) && (marginMode == "isolated") && ((initialMarginString != null)) && ((entryPriceString != null)) && ((contractsAbs != null)) && Precise.stringGt(contractsAbs, "0") && ((contractSizeString != null)) && ((maintenanceMarginPercentage != null)))
+        {
+            string? takerFeeRate = this.safeString(marketResolved, "taker", "0.0005");
+            string? mmpWithFee = Precise.stringAdd(this.numberToString(maintenanceMarginPercentage), takerFeeRate);
+            string? totalSize = Precise.stringMul(contractsAbs, contractSizeString);
+            if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
+            {
+                string? invEntry = Precise.stringDiv(totalSize, entryPriceString);
+                string? denom = (side == "long") ? Precise.stringAdd(invEntry, initialMarginString) : Precise.stringSub(invEntry, initialMarginString);
+                string? numFactor = (side == "long") ? Precise.stringAdd("1", mmpWithFee) : Precise.stringSub("1", mmpWithFee);
+                if (((denom != null)) && Precise.stringGt(denom, "0"))
+                {
+                    liquidationPriceString = Precise.stringDiv(Precise.stringMul(totalSize, numFactor), denom);
+                }
+            } else
+            {
+                string? marginPerUnit = Precise.stringDiv(initialMarginString, totalSize);
+                string? num = (side == "long") ? Precise.stringSub(entryPriceString, marginPerUnit) : Precise.stringAdd(entryPriceString, marginPerUnit);
+                string? denom = (side == "long") ? Precise.stringSub("1", mmpWithFee) : Precise.stringAdd("1", mmpWithFee);
+                if (((denom != null)) && Precise.stringGt(denom, "0"))
+                {
+                    liquidationPriceString = Precise.stringDiv(num, denom);
+                }
+            }
+        }
+        double? liquidationPrice = (((liquidationPriceString != null)) && Precise.stringGt(liquidationPriceString, "0")) ? this.parseNumber(liquidationPriceString) : null;
         string? percentageString = this.safeString(position, "uplRatio");
         double? percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Int64? timestamp = this.safeInteger(position, "cTime");
@@ -7839,6 +7872,7 @@ public partial class okx : Exchange
             { "lastUpdateTimestamp", this.safeInteger(position, "uTime") },
             { "maintenanceMargin", maintenanceMargin },
             { "maintenanceMarginPercentage", maintenanceMarginPercentage },
+            { "positionMargin", this.parseNumber(marginString) },
             { "collateral", this.parseNumber(collateralString) },
             { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },

@@ -2012,7 +2012,7 @@ func (this *ExchangeTyped) WatchMarkPrices(options ...WatchMarkPricesOptions) (T
 	var res Tickers = NewTickers(r.Value)
 	return res, nil
 }
-func (this *ExchangeTyped) FetchL3OrderBook(symbol string, options ...FetchL3OrderBookOptions) (OrderBook, error) {
+func (this *ExchangeTyped) FetchL3OrderBook(symbol string, options ...FetchL3OrderBookOptions) (OrderBookL3, error) {
 
 	opts := FetchL3OrderBookOptionsStruct{}
 
@@ -2021,9 +2021,9 @@ func (this *ExchangeTyped) FetchL3OrderBook(symbol string, options ...FetchL3Ord
 	}
 	r := <-this.Exchange.FetchL3OrderBookAsync(symbol, opts.Limit, opts.Params)
 	if r.Err != nil {
-		return OrderBook{}, r.Err
+		return OrderBookL3{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Raw)
+	var res OrderBookL3 = NewOrderBookL3(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {

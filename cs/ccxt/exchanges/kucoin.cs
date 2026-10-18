@@ -12308,6 +12308,30 @@ public partial class kucoin : Exchange
         {
             marginMode = ((crossMode == true)) ? "cross" : "isolated";
         }
+        string? collateralString = this.safeString(position, "maintMargin");
+        string? marginString = null;
+        if (((collateralString == null)) && (marginMode == "isolated"))
+        {
+            string? posMargin = this.safeString(position, "posMargin");
+            if ((posMargin == null))
+            {
+                string? posComm = this.safeString(position, "posComm");
+                string? posCross = this.safeString(position, "posCross");
+                if (((initialMargin != null)) && ((posComm != null)))
+                {
+                    posMargin = Precise.stringAdd(initialMargin, posComm);
+                    if ((posCross != null))
+                    {
+                        posMargin = Precise.stringAdd(posMargin, posCross);
+                    }
+                }
+            }
+            if ((posMargin != null))
+            {
+                marginString = posMargin;
+                collateralString = ((unrealisedPnl != null)) ? Precise.stringAdd(posMargin, unrealisedPnl) : posMargin;
+            }
+        }
         Int64? lastUpdateTimestamp = this.safeInteger(position, "closeTime");
         if ((lastUpdateTimestamp == null))
         {
@@ -12341,7 +12365,8 @@ public partial class kucoin : Exchange
             { "liquidationPrice", this.safeNumber(position, "liquidationPrice") },
             { "markPrice", this.safeNumber(position, "markPrice") },
             { "lastPrice", this.safeNumber(position, "closePrice") },
-            { "collateral", this.safeNumber(position, "maintMargin") },
+            { "positionMargin", this.parseNumber(marginString) },
+            { "collateral", this.parseNumber(collateralString) },
             { "marginMode", marginMode },
             { "side", side },
             { "percentage", null },

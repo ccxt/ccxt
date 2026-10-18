@@ -3479,7 +3479,7 @@ public partial class mexc : Exchange
         IDictionary<string, object> query = ((IDictionary<string, object>)marketTypequeryVariable[1]);
         if ((marketType == "spot"))
         {
-            throw new BadRequest (((this.id + " fetchOrdersByIds() is not supported for ") + marketType)) ;
+            throw new NotSupported (((this.id + " fetchOrdersByIds() is not supported for ") + marketType)) ;
         } else
         {
             request["order_ids"] = String.Join(",", ids.ToArray());
@@ -3851,7 +3851,7 @@ public partial class mexc : Exchange
         string? marketType = (string)marketTypeVariable[0];
         if ((marketType == "spot"))
         {
-            throw new BadRequest (((this.id + " cancelOrders() is not supported for ") + marketType)) ;
+            throw new NotSupported (((this.id + " cancelOrders() is not supported for ") + marketType)) ;
         } else
         {
             Dictionary<string, object> response = await this.contractPrivatePostOrderCancel(ids); // the request cannot be changed or extended. The only way to send.
@@ -4348,7 +4348,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
         {
-            throw new BadRequest ((this.id + " fetchTradingFee() supports spot markets only")) ;
+            throw new NotSupported ((this.id + " fetchTradingFee() supports spot markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -5970,24 +5970,38 @@ public partial class mexc : Exchange
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? contracts = this.safeString(position, "holdVol");
         double? entryPrice = this.safeNumber(position, "openAvgPrice");
-        string? initialMargin = this.safeString(position, "im");
+        string? initialMargin = ((string)this.omitZero(this.safeString(position, "im")));
+        string? unrealizedPnl = this.safeString(position, "unRealizedPnl");
         string? rawSide = this.safeString(position, "positionType");
         string side = (rawSide == "1") ? "long" : "short";
-        string? openType = this.safeString(position, "margin_mode");
+        string? openType = this.safeString2(position, "openType", "margin_mode");
         string marginType = (openType == "1") ? "isolated" : "cross";
+        string? collateralString = null;
+        string? marginString = null;
+        if ((marginType == "isolated") && ((initialMargin != null)))
+        {
+            // im is the margin mexc holds in the position; funding settles to the available balance
+            collateralString = initialMargin;
+            marginString = collateralString;
+            if ((unrealizedPnl != null))
+            {
+                collateralString = Precise.stringAdd(collateralString, unrealizedPnl);
+            }
+        }
         double? leverage = this.safeNumber(position, "leverage");
-        double? liquidationPrice = this.safeNumber(position, "liquidatePrice");
+        double? liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidatePrice")));
         Int64? timestamp = this.safeInteger(position, "updateTime");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", symbol },
             { "contracts", this.parseNumber(contracts) },
-            { "contractSize", null },
+            { "contractSize", this.safeNumber(marketResolved, "contractSize") },
             { "entryPrice", entryPrice },
-            { "collateral", null },
+            { "positionMargin", this.parseNumber(marginString) },
+            { "collateral", this.parseNumber(collateralString) },
             { "side", side },
-            { "unrealizedPnl", null },
+            { "unrealizedPnl", this.parseNumber(unrealizedPnl) },
             { "leverage", this.parseNumber(leverage) },
             { "percentage", null },
             { "marginMode", marginType },
@@ -6050,11 +6064,8 @@ public partial class mexc : Exchange
             //
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data));
-        } else if ((marketType == "swap"))
-        {
-            throw new BadRequest (((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
         }
-        throw new BadRequest (((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
+        throw new NotSupported (((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
     }
 
     /**
@@ -6880,7 +6891,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            throw new BadSymbol ((this.id + " setMarginMode() supports contract markets only")) ;
+            throw new NotSupported ((this.id + " setMarginMode() supports contract markets only")) ;
         }
         string marginModeLower = marginMode.ToLower();
         if (marginModeLower != "isolated" && marginModeLower != "cross")

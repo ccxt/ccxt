@@ -4034,7 +4034,7 @@ class digifinex extends Exchange {
         if ($marginMode !== null) {
             $marginMode = ($marginMode === 'crossed') ? 'cross' : 'isolated';
         } else {
-            $marginMode = 'crossed';
+            $marginMode = 'cross';
         }
         $timestamp = $this->safe_integer($position, 'timestamp');
         $side = $this->safe_string($position, 'side');
@@ -4042,6 +4042,22 @@ class digifinex extends Exchange {
             $side = 'long';
         } elseif ($side === 'go_short') {
             $side = 'short';
+        }
+        $positionMargin = $this->safe_string($position, 'margin');
+        $unrealizedPnl = $this->safe_string($position, 'unrealized_pnl');
+        $collateralString = null;
+        $marginString = null;
+        if ($marginMode === 'isolated') {
+            $isolatedMargin = $this->safe_string($position, 'posi_balance');
+            if ($isolatedMargin !== null) {
+                $marginString = $isolatedMargin;
+                $collateralString = ($unrealizedPnl !== null) ? Precise::string_add($isolatedMargin, $unrealizedPnl) : $isolatedMargin;
+            }
+        }
+        $maintenanceMarginString = $this->safe_string($position, 'maintain_margin');
+        $forceCloseFee = $this->omit_zero($this->safe_string($position, 'force_close_fee'));
+        if (($maintenanceMarginString !== null) && ($forceCloseFee !== null)) {
+            $maintenanceMarginString = Precise::string_add($maintenanceMarginString, $forceCloseFee);
         }
         return $this->safe_position(array(
             'info' => $position,
@@ -4051,18 +4067,19 @@ class digifinex extends Exchange {
             'marginMode' => $marginMode,
             'liquidationPrice' => $this->safe_number($position, 'liquidation_price'),
             'entryPrice' => $this->safe_number_2($position, 'avg_cost', 'entry_price'),
-            'unrealizedPnl' => $this->safe_number($position, 'unrealized_pnl'),
-            'contracts' => $this->safe_number($position, 'avail_position'),
+            'unrealizedPnl' => $this->parse_number($unrealizedPnl),
+            'contracts' => $this->safe_number_2($position, 'position', 'avail_position'),
             'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
-            'markPrice' => $this->safe_number($position, 'last'),
+            'markPrice' => $this->safe_number_2($position, 'mark_price', 'last'),
             'side' => $side,
             'hedged' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'maintenanceMargin' => $this->safe_number($position, 'margin'),
+            'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
             'maintenanceMarginPercentage' => $this->safe_number($position, 'maint_margin_ratio'),
-            'collateral' => null,
-            'initialMargin' => null,
+            'positionMargin' => $this->parse_number($marginString),
+            'collateral' => $this->parse_number($collateralString),
+            'initialMargin' => $this->parse_number($positionMargin),
             'initialMarginPercentage' => null,
             'leverage' => $this->safe_number_2($position, 'leverage', 'leverage_ratio'),
             'marginRatio' => $this->safe_number($position, 'margin_ratio'),

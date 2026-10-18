@@ -232,6 +232,16 @@
         ],
         "fetchOrderBook": [
             {
+                "description": "limit above the old 100 cap",
+                "method": "fetchOrderBook",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookOrders?market_id=0&limit=200",
+                "input": [
+                    "ETH/USDC:USDC",
+                    200
+                ],
+                "output": null
+            },
+            {
                 "description": "spot ob",
                 "method": "fetchOrderBook",
                 "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookOrders?market_id=2049&limit=100",

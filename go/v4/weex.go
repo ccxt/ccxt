@@ -5176,27 +5176,44 @@ func (this *Weex) ParsePosition(position any, optionalArgs ...any) any {
 	var notional *string = this.SafeString(position, "openValue")
 	var size *string = this.SafeString(position, "size")
 	var entryPrice *string = Precise.StringDiv(notional, size)
+	var unrealizePnl *string = this.SafeString(position, "unrealizePnl")
+	var isolatedMargin any = this.OmitZero(this.SafeString2(position, "isolatedMargin", "marginSize"))
+	var collateralString any = nil
+	if (marginMode == "isolated") && (isolatedMargin != nil) {
+		collateralString = func() any {
+			if unrealizePnl != nil {
+				return Precise.StringAdd(isolatedMargin, unrealizePnl)
+			}
+			return isolatedMargin
+		}()
+	}
+	var initialMarginString any = this.OmitZero(this.SafeString2(position, "marginSize", "isolatedMargin"))
+	var marginString any = nil
+	if marginMode == "isolated" {
+		marginString = isolatedMargin
+	}
 	return this.SafePosition(map[string]any{
 		"symbol":                      marketResolved["symbol"],
 		"id":                          this.SafeString2(position, "id", "positionId"),
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
 		"contracts":                   this.ParseNumber(size),
-		"contractSize":                nil,
+		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"side":                        this.SafeStringLower(position, "side"),
 		"notional":                    this.ParseNumber(notional),
 		"leverage":                    this.SafeNumber(position, "leverage"),
-		"unrealizedPnl":               this.SafeNumber(position, "unrealizePnl"),
+		"unrealizedPnl":               this.ParseNumber(unrealizePnl),
 		"realizedPnl":                 nil,
-		"collateral":                  nil,
+		"positionMargin":              this.ParseNumber(marginString),
+		"collateral":                  this.ParseNumber(collateralString),
 		"entryPrice":                  this.ParseNumber(entryPrice),
 		"markPrice":                   nil,
-		"liquidationPrice":            this.SafeNumber(position, "liquidatePrice"),
+		"liquidationPrice":            this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidatePrice"))),
 		"marginMode":                  marginMode,
 		"hedged":                      hedged,
 		"maintenanceMargin":           nil,
 		"maintenanceMarginPercentage": nil,
-		"initialMargin":               this.SafeNumber(position, "marginSize"),
+		"initialMargin":               this.ParseNumber(initialMarginString),
 		"initialMarginPercentage":     nil,
 		"marginRatio":                 nil,
 		"lastUpdateTimestamp":         this.SafeInteger(position, "updatedTime"),
@@ -5234,11 +5251,11 @@ func (this *Weex) closeAllPositionsBody(ch chan AsyncResult[[]any], optionalArgs
 		}
 	}
 
-	listEp4818 := <-this.ContractPrivatePostCapiV3ClosePositions(params)
-	if listEp4818.Err != nil {
-		panic(listEp4818.Err)
+	listEp4835 := <-this.ContractPrivatePostCapiV3ClosePositions(params)
+	if listEp4835.Err != nil {
+		panic(listEp4835.Err)
 	}
-	var response []any = listEp4818.Value
+	var response []any = listEp4835.Value
 
 	//
 	//     [
@@ -5288,11 +5305,11 @@ func (this *Weex) closePositionBody(ch chan AsyncResult[any], symbol string, opt
 		"symbol": market["id"],
 	}
 
-	listEp4865 := <-this.ContractPrivatePostCapiV3ClosePositions(this.Extend(request, params))
-	if listEp4865.Err != nil {
-		panic(listEp4865.Err)
+	listEp4882 := <-this.ContractPrivatePostCapiV3ClosePositions(this.Extend(request, params))
+	if listEp4882.Err != nil {
+		panic(listEp4882.Err)
 	}
-	var response []any = listEp4865.Value
+	var response []any = listEp4882.Value
 	var orders []any = ArrayTyped(this.ParseOrders(response, market))
 
 	ch <- AsyncResult[any]{Value: this.SafeDict(orders, 0)}
@@ -5402,11 +5419,11 @@ func (this *Weex) fetchMarginModeBody(ch chan AsyncResult[any], symbol any, opti
 		"symbol": market["id"],
 	}
 
-	listEp4965 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params))
-	if listEp4965.Err != nil {
-		panic(listEp4965.Err)
+	listEp4982 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params))
+	if listEp4982.Err != nil {
+		panic(listEp4982.Err)
 	}
-	var response []any = listEp4965.Value
+	var response []any = listEp4982.Value
 	//
 	//     [
 	//         {
@@ -5455,11 +5472,11 @@ func (this *Weex) fetchMarginModesBody(ch chan AsyncResult[any], optionalArgs ..
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp5011 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(params)
-	if listEp5011.Err != nil {
-		panic(listEp5011.Err)
+	listEp5028 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(params)
+	if listEp5028.Err != nil {
+		panic(listEp5028.Err)
 	}
-	var response []any = listEp5011.Value
+	var response []any = listEp5028.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseMarginModes(this.ToArray(response), symbolsNormalized, "symbol", "swap")}
 	return nil
@@ -5571,11 +5588,11 @@ func (this *Weex) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol 
 		"symbol": market["id"],
 	}
 
-	listEp5113 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params))
-	if listEp5113.Err != nil {
-		panic(listEp5113.Err)
+	listEp5130 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params))
+	if listEp5130.Err != nil {
+		panic(listEp5130.Err)
 	}
-	var response []any = listEp5113.Value
+	var response []any = listEp5130.Value
 	var marginMode map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(marginMode, market)}
@@ -5612,11 +5629,11 @@ func (this *Weex) fetchLeveragesBody(ch chan AsyncResult[any], optionalArgs ...a
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp5147 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(params)
-	if listEp5147.Err != nil {
-		panic(listEp5147.Err)
+	listEp5164 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(params)
+	if listEp5164.Err != nil {
+		panic(listEp5164.Err)
 	}
-	var response []any = listEp5147.Value
+	var response []any = listEp5164.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseLeverages(this.ToArray(response), symbolsNormalized, "symbol", "swap")}
 	return nil
@@ -5917,11 +5934,11 @@ func (this *Weex) reduceMarginBody(ch chan EndpointResult[map[string]any], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes429815 map[string]any = MapTyped(r.Value)
-	if retRes429815 == nil {
+	var retRes431015 map[string]any = MapTyped(r.Value)
+	if retRes431015 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes429815, Raw: retRes429815}
+		ch <- EndpointResult[map[string]any]{Value: retRes431015, Raw: retRes431015}
 	}
 	return nil
 }
@@ -5952,11 +5969,11 @@ func (this *Weex) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes431315 map[string]any = MapTyped(r.Value)
-	if retRes431315 == nil {
+	var retRes432515 map[string]any = MapTyped(r.Value)
+	if retRes432515 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes431315}
+		ch <- AsyncResult[map[string]any]{Value: retRes432515}
 	}
 	return nil
 }

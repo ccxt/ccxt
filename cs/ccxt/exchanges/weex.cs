@@ -4392,27 +4392,41 @@ public partial class weex : Exchange
         string? notional = this.safeString(position, "openValue");
         string? size = this.safeString(position, "size");
         string? entryPrice = Precise.stringDiv(notional, size);
+        string? unrealizePnl = this.safeString(position, "unrealizePnl");
+        string? isolatedMargin = ((string)this.omitZero(this.safeString2(position, "isolatedMargin", "marginSize")));
+        string? collateralString = null;
+        if ((marginMode == "isolated") && ((isolatedMargin != null)))
+        {
+            collateralString = ((unrealizePnl != null)) ? Precise.stringAdd(isolatedMargin, unrealizePnl) : isolatedMargin;
+        }
+        string? initialMarginString = ((string)this.omitZero(this.safeString2(position, "marginSize", "isolatedMargin")));
+        string? marginString = null;
+        if (marginMode == "isolated")
+        {
+            marginString = isolatedMargin;
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "id", this.safeString2(position, "id", "positionId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "contracts", this.parseNumber(size) },
-            { "contractSize", null },
+            { "contractSize", this.safeNumber(marketResolved, "contractSize") },
             { "side", this.safeStringLower(position, "side") },
             { "notional", this.parseNumber(notional) },
             { "leverage", this.safeNumber(position, "leverage") },
-            { "unrealizedPnl", this.safeNumber(position, "unrealizePnl") },
+            { "unrealizedPnl", this.parseNumber(unrealizePnl) },
             { "realizedPnl", null },
-            { "collateral", null },
+            { "positionMargin", this.parseNumber(marginString) },
+            { "collateral", this.parseNumber(collateralString) },
             { "entryPrice", this.parseNumber(entryPrice) },
             { "markPrice", null },
-            { "liquidationPrice", this.safeNumber(position, "liquidatePrice") },
+            { "liquidationPrice", this.parseNumber(this.omitZero(this.safeString(position, "liquidatePrice"))) },
             { "marginMode", marginMode },
             { "hedged", hedged },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
-            { "initialMargin", this.safeNumber(position, "marginSize") },
+            { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", null },
             { "marginRatio", null },
             { "lastUpdateTimestamp", this.safeInteger(position, "updatedTime") },

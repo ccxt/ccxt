@@ -206,7 +206,91 @@ func (this *Nado) Describe() any {
 			"1w":  604800,
 			"4w":  2419200,
 		},
-		"features": map[string]any{},
+		"features": map[string]any{
+			"default": map[string]any{
+				"sandbox": true,
+				"createOrder": map[string]any{
+					"marginMode":                 false,
+					"triggerPrice":               true,
+					"triggerPriceType":           nil,
+					"triggerDirection":           true,
+					"stopLossPrice":              true,
+					"takeProfitPrice":            true,
+					"attachedStopLossTakeProfit": nil,
+					"timeInForce": map[string]any{
+						"IOC": true,
+						"FOK": true,
+						"PO":  true,
+						"GTD": false,
+					},
+					"hedged":                 false,
+					"trailing":               false,
+					"leverage":               false,
+					"marketBuyByCost":        false,
+					"marketBuyRequiresPrice": false,
+					"selfTradePrevention":    false,
+					"iceberg":                false,
+				},
+				"createOrders": nil,
+				"fetchMyTrades": map[string]any{
+					"marginMode":     false,
+					"limit":          500,
+					"daysBack":       nil,
+					"untilDays":      nil,
+					"symbolRequired": false,
+				},
+				"fetchOrder": map[string]any{
+					"marginMode":     false,
+					"trigger":        false,
+					"trailing":       false,
+					"symbolRequired": true,
+				},
+				"fetchOpenOrders": map[string]any{
+					"marginMode":     false,
+					"limit":          nil,
+					"trigger":        true,
+					"trailing":       false,
+					"symbolRequired": true,
+				},
+				"fetchOrders": map[string]any{
+					"marginMode":     false,
+					"limit":          500,
+					"daysBack":       nil,
+					"untilDays":      nil,
+					"trigger":        true,
+					"trailing":       false,
+					"symbolRequired": false,
+				},
+				"fetchClosedOrders": map[string]any{
+					"marginMode":       false,
+					"limit":            500,
+					"daysBack":         nil,
+					"daysBackCanceled": nil,
+					"untilDays":        nil,
+					"trigger":          true,
+					"trailing":         false,
+					"symbolRequired":   false,
+				},
+				"fetchOHLCV": map[string]any{
+					"limit": 500,
+				},
+			},
+			"spot": map[string]any{
+				"extends": "default",
+				"createOrder": map[string]any{
+					"triggerPrice":     false,
+					"triggerDirection": false,
+					"stopLossPrice":    false,
+					"takeProfitPrice":  false,
+				},
+			},
+			"swap": map[string]any{
+				"linear": map[string]any{
+					"extends": "default",
+				},
+				"inverse": nil,
+			},
+		},
 		"exceptions": map[string]any{
 			"exact": map[string]any{
 				"1000": RateLimitExceeded,
@@ -814,8 +898,8 @@ func (this *Nado) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv779, _ := r.Value.([]any)
-	var orders []any = listRecv779
+	listRecv863, _ := r.Value.([]any)
+	var orders []any = listRecv863
 	var canceled map[string]any = SafeMapTyped(orders, 0)
 
 	ch <- AsyncResult[map[string]any]{Value: canceled}
@@ -1344,11 +1428,11 @@ func (this *Nado) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes104919 []any = ListTyped(r1.Value)
-		if retRes104919 == nil {
+		var retRes113519 []any = ListTyped(r1.Value)
+		if retRes113519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes104919}
+			ch <- AsyncResult[any]{Value: retRes113519}
 		}
 		return nil
 	}
@@ -1457,11 +1541,11 @@ func (this *Nado) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes112519 []any = ListTyped(r1.Value)
-		if retRes112519 == nil {
+		var retRes121119 []any = ListTyped(r1.Value)
+		if retRes121119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes112519}
+			ch <- AsyncResult[any]{Value: retRes121119}
 		}
 		return nil
 	}
@@ -1558,11 +1642,11 @@ func (this *Nado) fetchCanceledOrdersBody(ch chan AsyncResult[[]any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes118915 []any = ListTyped(r.Value)
-	if retRes118915 == nil {
+	var retRes127515 []any = ListTyped(r.Value)
+	if retRes127515 == nil {
 		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]any]{Value: retRes118915}
+		ch <- AsyncResult[[]any]{Value: retRes127515}
 	}
 	return nil
 }
@@ -1602,11 +1686,11 @@ func (this *Nado) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes120915 []any = ListTyped(r.Value)
-	if retRes120915 == nil {
+	var retRes129515 []any = ListTyped(r.Value)
+	if retRes129515 == nil {
 		ch <- AsyncResult[[]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]any]{Value: retRes120915}
+		ch <- AsyncResult[[]any]{Value: retRes129515}
 	}
 	return nil
 }
@@ -1817,11 +1901,11 @@ func (this *Nado) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes135415 []any = r.Value
-	if retRes135415 == nil {
+	var retRes144015 []any = r.Value
+	if retRes144015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes135415}
+		ch <- AsyncResult[any]{Value: retRes144015}
 	}
 	return nil
 }
@@ -1860,11 +1944,11 @@ func (this *Nado) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ..
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes137115 []any = r.Value
-	if retRes137115 == nil {
+	var retRes145715 []any = r.Value
+	if retRes145715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes137115}
+		ch <- AsyncResult[any]{Value: retRes145715}
 	}
 	return nil
 }
@@ -2426,11 +2510,11 @@ func (this *Nado) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp2256 := <-this.GatewayV2PublicGetAssets(params)
-	if listEp2256.Err != nil {
-		panic(listEp2256.Err)
+	listEp2340 := <-this.GatewayV2PublicGetAssets(params)
+	if listEp2340.Err != nil {
+		panic(listEp2340.Err)
 	}
-	var response []any = listEp2256.Value
+	var response []any = listEp2340.Value
 	var result map[string]any = map[string]any{}
 	var assets []any = this.ToArray(response)
 	for i := 0; i < len(assets); i++ {
@@ -3035,11 +3119,11 @@ func (this *Nado) fetchTradesBody(ch chan AsyncResult[any], symbol any, optional
 		request["limit"] = mathMin(limit, 500)
 	}
 
-	listEp2802 := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
-	if listEp2802.Err != nil {
-		panic(listEp2802.Err)
+	listEp2886 := <-this.ArchiveV2PublicGetTrades(this.Extend(request, params))
+	if listEp2886.Err != nil {
+		panic(listEp2886.Err)
 	}
-	var response []any = listEp2802.Value
+	var response []any = listEp2886.Value
 
 	//
 	//     [

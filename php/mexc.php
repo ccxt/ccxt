@@ -3071,7 +3071,7 @@ class mexc extends Exchange {
         }
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrdersByIds', $market, $params);
         if ($marketType === 'spot') {
-            throw new BadRequest($this->id . ' fetchOrdersByIds() is not supported for ' . $marketType);
+            throw new NotSupported($this->id . ' fetchOrdersByIds() is not supported for ' . $marketType);
         } else {
             $request['order_ids'] = implode(',', $ids);
             $response = $this->contractPrivateGetOrderBatchQuery($this->extend($request, $query));
@@ -3414,7 +3414,7 @@ class mexc extends Exchange {
         $market = ($symbol !== null) ? $this->market($symbol) : null;
         list($marketType) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
         if ($marketType === 'spot') {
-            throw new BadRequest($this->id . ' cancelOrders() is not supported for ' . $marketType);
+            throw new NotSupported($this->id . ' cancelOrders() is not supported for ' . $marketType);
         } else {
             $response = $this->contractPrivatePostOrderCancel($ids); // the request cannot be changed or extended. The only way to send.
             //
@@ -3908,7 +3908,7 @@ class mexc extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['spot'] !== true) {
-            throw new BadRequest($this->id . ' fetchTradingFee() supports spot markets only');
+            throw new NotSupported($this->id . ' fetchTradingFee() supports spot markets only');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -5450,24 +5450,36 @@ class mexc extends Exchange {
         $symbol = $marketResolved['symbol'];
         $contracts = $this->safe_string($position, 'holdVol');
         $entryPrice = $this->safe_number($position, 'openAvgPrice');
-        $initialMargin = $this->safe_string($position, 'im');
+        $initialMargin = $this->omit_zero($this->safe_string($position, 'im'));
+        $unrealizedPnl = $this->safe_string($position, 'unRealizedPnl');
         $rawSide = $this->safe_string($position, 'positionType');
         $side = ($rawSide === '1') ? 'long' : 'short';
-        $openType = $this->safe_string($position, 'margin_mode');
+        $openType = $this->safe_string_2($position, 'openType', 'margin_mode');
         $marginType = ($openType === '1') ? 'isolated' : 'cross';
+        $collateralString = null;
+        $marginString = null;
+        if (($marginType === 'isolated') && ($initialMargin !== null)) {
+            // im is the margin mexc holds in the position; funding settles to the available balance
+            $collateralString = $initialMargin;
+            $marginString = $collateralString;
+            if ($unrealizedPnl !== null) {
+                $collateralString = Precise::string_add($collateralString, $unrealizedPnl);
+            }
+        }
         $leverage = $this->safe_number($position, 'leverage');
-        $liquidationPrice = $this->safe_number($position, 'liquidatePrice');
+        $liquidationPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidatePrice')));
         $timestamp = $this->safe_integer($position, 'updateTime');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
-            'contractSize' => null,
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'entryPrice' => $entryPrice,
-            'collateral' => null,
+            'positionMargin' => $this->parse_number($marginString),
+            'collateral' => $this->parse_number($collateralString),
             'side' => $side,
-            'unrealizedPnl' => null,
+            'unrealizedPnl' => $this->parse_number($unrealizedPnl),
             'leverage' => $this->parse_number($leverage),
             'percentage' => null,
             'marginMode' => $marginType,
@@ -5524,10 +5536,8 @@ class mexc extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_transfer($data);
-        } elseif ($marketType === 'swap') {
-            throw new BadRequest($this->id . ' fetchTransfer() is not supported for ' . $marketType);
         }
-        throw new BadRequest($this->id . ' fetchTransfer() is not supported for ' . $marketType);
+        throw new NotSupported($this->id . ' fetchTransfer() is not supported for ' . $marketType);
     }
 
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -6300,7 +6310,7 @@ class mexc extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['spot'] === true) {
-            throw new BadSymbol($this->id . ' setMarginMode() supports contract markets only');
+            throw new NotSupported($this->id . ' setMarginMode() supports contract markets only');
         }
         $marginModeLower = strtolower($marginMode);
         if ($marginModeLower !== 'isolated' && $marginModeLower !== 'cross') {

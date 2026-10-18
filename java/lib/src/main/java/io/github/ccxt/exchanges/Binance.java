@@ -3052,7 +3052,6 @@ public class Binance extends BinanceApi
                     put( "funding", "FUNDING" );
                     put( "margin", "MARGIN" );
                     put( "cross", "MARGIN" );
-                    put( "future", "UMFUTURE" );
                     put( "linear", "UMFUTURE" );
                     put( "swap", "UMFUTURE" );
                     put( "inverse", "CMFUTURE" );
@@ -4419,10 +4418,11 @@ public class Binance extends BinanceApi
         {
             throw new ExchangeError((this.id + " markets not loaded")) ;
         }
-        // defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
+        // defaultType 'swap' resolves spot-style symbols to the perpetual of defaultSubType
         String defaultType = this.safeString(this.options, "defaultType");
         String defaultSubType = this.safeString(this.options, "defaultSubType");
-        Boolean isLegacy = java.util.Objects.equals(defaultType, "future");
+        Boolean isLegacy = java.util.Objects.equals(defaultType, "swap");
+        Boolean isDerivative = Boolean.TRUE.equals(isLegacy) || (java.util.Objects.equals(defaultType, "future"));
         Boolean isLegacyInverse = Boolean.TRUE.equals(isLegacy) && (java.util.Objects.equals(defaultSubType, "inverse"));
         Boolean isLegacyLinear = Boolean.TRUE.equals(isLegacy) && !Boolean.TRUE.equals(isLegacyInverse);
         if ((symbol instanceof String))
@@ -4447,12 +4447,9 @@ public class Binance extends BinanceApi
             {
                 Object markets = Helpers.GetValue(this.markets_by_id, symbol);
                 // begin diff
-                if (Boolean.TRUE.equals(isLegacyLinear))
+                if (Boolean.TRUE.equals(isDerivative))
                 {
-                    defaultType = "linear";
-                } else if (Boolean.TRUE.equals(isLegacyInverse))
-                {
-                    defaultType = "inverse";
+                    defaultType = (((java.util.Objects.equals(defaultSubType, "inverse")))) ? "inverse" : "linear";
                 } else if (java.util.Objects.equals(defaultType, null))
                 {
                     defaultType = defaultSubType;
@@ -4469,7 +4466,7 @@ public class Binance extends BinanceApi
                 return (Map<String, Object>) (Helpers.GetValue(markets, 0));
             } else if ((((String)symbol).indexOf("/") > -1) && (((String)symbol).indexOf(":") < 0))
             {
-                if ((!java.util.Objects.equals(defaultType, null)) && (!java.util.Objects.equals(defaultType, "spot")))
+                if (Boolean.TRUE.equals(isLegacy))
                 {
                     // support legacy symbols
                     var basequoteVariable = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
@@ -12746,8 +12743,8 @@ public class Binance extends BinanceApi
             {
                 String defaultType = this.safeString2(this.options, "fetchTransfers", "defaultType", "spot");
                 String fromAccount = this.safeString(paramsOmitted, "fromAccount", defaultType);
-                String defaultTo = "future";
-                if (java.util.Objects.equals(fromAccount, "future"))
+                String defaultTo = "swap";
+                if ((java.util.Objects.equals(fromAccount, "swap")) || (java.util.Objects.equals(fromAccount, "linear")))
                 {
                     defaultTo = "spot";
                 }
@@ -13683,7 +13680,7 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, (Long) null)).join();
             }
-            String defaultType = this.safeString2(this.options, "fetchFundingRateHistory", "defaultType", "future");
+            String defaultType = this.safeString2(this.options, "fetchFundingRateHistory", "defaultType", "swap");
             String type = this.safeString(paramsPaginate, "type", defaultType);
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -13773,7 +13770,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            String defaultType = this.safeString2(this.options, "fetchFundingRates", "defaultType", "future");
+            String defaultType = this.safeString2(this.options, "fetchFundingRates", "defaultType", "swap");
             String type = this.safeString(parameters, "type", defaultType);
             Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingRates", (Map<String, Object>) null, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
@@ -14451,7 +14448,7 @@ public class Binance extends BinanceApi
             Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", (Object) null);
             if ((java.util.Objects.equals(leverageBrackets, null)) || java.util.Objects.requireNonNullElse(reload, false))
             {
-                String defaultType = this.safeString(this.options, "defaultType", "future");
+                String defaultType = this.safeString(this.options, "defaultType", "swap");
                 String type = this.safeString(parameters, "type", defaultType);
                 Map<String, Object> query = this.omit(parameters, "type");
                 String subType = null;
@@ -14938,7 +14935,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadLeverageBrackets(false, parameters)).join();
-            String defaultType = this.safeString(this.options, "defaultType", "future");
+            String defaultType = this.safeString(this.options, "defaultType", "swap");
             String type = this.safeString(parameters, "type", defaultType);
             Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchAccountPositions", (Map<String, Object>) null, paramsOmitted, "linear");
@@ -15022,7 +15019,7 @@ public class Binance extends BinanceApi
             }
             (this.loadLeverageBrackets(false, parameters)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            String defaultType = "future";
+            String defaultType = "swap";
             defaultType = this.safeString(this.options, "defaultType", defaultType);
             String type = this.safeString(parameters, "type", defaultType);
             String subType = null;
@@ -15228,7 +15225,7 @@ public class Binance extends BinanceApi
             {
                 ((Map<String, Object>)requestUntil).put("limit", limit);
             }
-            String defaultType = this.safeString2(this.options, "fetchFundingHistory", "defaultType", "future");
+            String defaultType = this.safeString2(this.options, "fetchFundingHistory", "defaultType", "swap");
             String type = this.safeString(paramsUntil, "type", defaultType);
             Map<String, Object> paramsOmitted = this.omit(paramsUntil, "type");
             List<Object> response = null;
@@ -16494,10 +16491,10 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             // used to modify isolated positions
-            String defaultType = this.safeString(this.options, "defaultType", "future");
+            String defaultType = this.safeString(this.options, "defaultType", "swap");
             if (java.util.Objects.equals(defaultType, "spot"))
             {
-                defaultType = "future";
+                defaultType = "swap";
             }
             String type = this.safeString(parameters, "type", defaultType);
             if ((java.util.Objects.equals(type, "margin")) || (java.util.Objects.equals(type, "spot")))

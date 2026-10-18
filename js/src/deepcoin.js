@@ -2626,6 +2626,13 @@ export default class deepcoin extends Exchange {
         const marketId = this.safeString(position, 'instId');
         const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(position, 'cTime');
+        const marginMode = this.safeString(position, 'mgnMode');
+        const useMargin = this.safeNumber(position, 'useMargin');
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = useMargin;
+        }
         return this.safePosition({
             'symbol': marketResolved['symbol'],
             'id': this.safeString(position, 'posId'),
@@ -2636,17 +2643,18 @@ export default class deepcoin extends Exchange {
             'side': this.safeString(position, 'posSide'),
             'notional': undefined,
             'leverage': this.parseNumber(this.omitZero(this.safeString(position, 'lever'))),
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.safeNumber(position, 'unrealizedProfit'),
             'realizedPnl': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
             'entryPrice': this.safeNumber(position, 'avgPx'),
             'markPrice': undefined,
             'liquidationPrice': this.safeNumber(position, 'liqPx'),
-            'marginMode': this.safeString(position, 'mgnMode'),
+            'marginMode': marginMode,
             'hedged': true,
-            'maintenanceMargin': this.safeNumber(position, 'useMargin'),
+            'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'initialMargin': undefined,
+            'initialMargin': useMargin,
             'initialMarginPercentage': undefined,
             'marginRatio': undefined,
             'lastUpdateTimestamp': this.safeInteger(position, 'uTime'),

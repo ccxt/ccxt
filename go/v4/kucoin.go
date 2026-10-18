@@ -14748,6 +14748,33 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) any {
 			return "isolated"
 		}())
 	}
+	var collateralString any
+	if derefPtr := this.SafeString(position, "maintMargin"); derefPtr != nil {
+		collateralString = *derefPtr
+	}
+	var marginString *string = nil
+	if (IsEqual(collateralString, nil)) && (marginMode != nil && *marginMode == "isolated") {
+		var posMargin *string = this.SafeString(position, "posMargin")
+		if posMargin == nil {
+			var posComm *string = this.SafeString(position, "posComm")
+			var posCross *string = this.SafeString(position, "posCross")
+			if (initialMargin != nil) && (posComm != nil) {
+				posMargin = Precise.StringAdd(initialMargin, posComm)
+				if posCross != nil {
+					posMargin = Precise.StringAdd(posMargin, posCross)
+				}
+			}
+		}
+		if posMargin != nil {
+			marginString = posMargin
+			collateralString = func() any {
+				if unrealisedPnl != nil {
+					return Precise.StringAdd(posMargin, unrealisedPnl)
+				}
+				return posMargin
+			}()
+		}
+	}
 	var lastUpdateTimestamp *int64 = this.SafeInteger(position, "closeTime")
 	if lastUpdateTimestamp == nil {
 		if InOp(position, "closingTime") {
@@ -14778,7 +14805,8 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) any {
 		"liquidationPrice":            this.SafeNumber(position, "liquidationPrice"),
 		"markPrice":                   this.SafeNumber(position, "markPrice"),
 		"lastPrice":                   this.SafeNumber(position, "closePrice"),
-		"collateral":                  this.SafeNumber(position, "maintMargin"),
+		"positionMargin":              this.ParseNumber(marginString),
+		"collateral":                  this.ParseNumber(collateralString),
 		"marginMode":                  marginMode,
 		"side":                        side,
 		"percentage":                  nil,
@@ -15686,13 +15714,13 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan AsyncResult[any], optionalArg
 			}()) {
 				AddElementToObject(result, symbol, []any{})
 			}
-			retRes1157116 := func() any {
+			retRes1159116 := func() any {
 				if symbol == nil {
 					return nil
 				}
 				return result[*symbol]
 			}()
-			AppendToArray(&retRes1157116, tier)
+			AppendToArray(&retRes1159116, tier)
 		}
 	}
 
@@ -15852,11 +15880,11 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbo
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1168019 []any = ListTyped(r1.Value)
-		if retRes1168019 == nil {
+		var retRes1170019 []any = ListTyped(r1.Value)
+		if retRes1170019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1168019}
+			ch <- AsyncResult[any]{Value: retRes1170019}
 		}
 		return nil
 	}
@@ -16097,11 +16125,11 @@ func (this *Kucoin) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1185819 []any = ListTyped(r1.Value)
-		if retRes1185819 == nil {
+		var retRes1187819 []any = ListTyped(r1.Value)
+		if retRes1187819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes1185819}
+			ch <- AsyncResult[any]{Value: retRes1187819}
 		}
 		return nil
 	}

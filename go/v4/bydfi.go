@@ -2858,6 +2858,11 @@ func (this *Bydfi) ParsePosition(position any, optionalArgs ...any) any {
 		contracts = Precise.StringDiv(contracts, contractSize)
 	}
 	var timestamp *int64 = this.SafeInteger(position, "createTime")
+	// raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+	var positionMargin *string = this.SafeString(position, "positionMargin")
+	if (positionMargin != nil) && !Precise.StringGt(positionMargin, "0") {
+		positionMargin = nil
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),
@@ -2866,6 +2871,7 @@ func (this *Bydfi) ParsePosition(position any, optionalArgs ...any) any {
 		"markPrice":                   this.ParseNumber(this.SafeString(position, "markPrice")),
 		"lastPrice":                   this.ParseNumber(this.SafeString(position, "avgClosePositionPrice")),
 		"notional":                    this.ParseNumber(this.SafeString(position, "closePositionCost")),
+		"positionMargin":              this.ParseNumber(positionMargin),
 		"collateral":                  nil,
 		"unrealizedPnl":               this.ParseNumber(this.SafeString(position, "unPnl")),
 		"realizedPnl":                 this.ParseNumber(this.SafeString(position, "positionProfits")),

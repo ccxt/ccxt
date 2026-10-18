@@ -801,6 +801,7 @@ public partial class modetrade : Exchange
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
+        //     "status": "ACTIVE",
         //     "quote_min": 123,
         //     "quote_max": 100000,
         //     "quote_tick": 0.1,
@@ -826,6 +827,12 @@ public partial class modetrade : Exchange
         //   }
         //
         string? marketId = this.safeString(market, "symbol", "");
+        string? status = this.safeString(market, "status");
+        bool? active = null;
+        if ((status != null))
+        {
+            active = (status == "ACTIVE");
+        }
         List<object> parts = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string marketType = "swap";
         string? baseId = this.safeString(parts, 1);
@@ -854,7 +861,7 @@ public partial class modetrade : Exchange
             { "swap", true },
             { "future", false },
             { "option", false },
-            { "active", null },
+            { "active", active },
             { "contract", true },
             { "linear", true },
             { "inverse", false },
@@ -910,6 +917,7 @@ public partial class modetrade : Exchange
         //       "rows": [
         //         {
         //           "symbol": "PERP_BTC_USDC",
+        //           "status": "ACTIVE",
         //           "quote_min": 123,
         //           "quote_max": 100000,
         //           "quote_tick": 0.1,

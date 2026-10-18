@@ -8685,18 +8685,38 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 		notional = &derefNum
 	}
 	var marginMode *string = this.SafeString(position, "mgnMode")
-	var initialMarginString *string = nil
+	var initialMarginString any = nil
 	var entryPriceString *string = this.SafeString2(position, "avgPx", "openAvgPx")
 	var unrealizedPnlString *string = this.SafeString(position, "upl")
 	var leverageString *string = this.SafeString(position, "lever")
 	var initialMarginPercentage any = nil
-	var collateralString *string = nil
+	var collateralString any = nil
+	var marginString any = nil
 	if marginMode != nil && *marginMode == "cross" {
-		initialMarginString = this.SafeString(position, "imr")
-		collateralString = Precise.StringAdd(initialMarginString, unrealizedPnlString)
+		if derefPtr := this.SafeString(position, "imr"); derefPtr != nil {
+			initialMarginString = *derefPtr
+		} else {
+			initialMarginString = nil
+		}
+		collateralString = func() any {
+			if unrealizedPnlString != nil {
+				return Precise.StringAdd(initialMarginString, unrealizedPnlString)
+			}
+			return initialMarginString
+		}()
 	} else if marginMode != nil && *marginMode == "isolated" {
 		initialMarginPercentage = Precise.StringDiv("1", leverageString)
-		collateralString = this.SafeString(position, "margin")
+		var isolatedMarginString any = this.OmitZero(this.SafeString(position, "margin"))
+		if isolatedMarginString != nil {
+			initialMarginString = isolatedMarginString
+			marginString = isolatedMarginString
+			collateralString = func() any {
+				if unrealizedPnlString != nil {
+					return Precise.StringAdd(isolatedMarginString, unrealizedPnlString)
+				}
+				return isolatedMarginString
+			}()
+		}
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "mmr")
 	var maintenanceMargin *float64
@@ -8706,7 +8726,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if initialMarginPercentage == nil {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
-	} else if initialMarginString == nil {
+	} else if IsEqual(initialMarginString, nil) {
 		if marketResolved["linear"] == true {
 			var initialMarginPercentageString *string = this.NumberToString(initialMarginPercentage)
 			initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
@@ -8715,11 +8735,65 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 		}
 	}
 	var rounder string = "0.00005" // round to closest 0.01%
-	var maintenanceMarginPercentage *float64
-	if derefNum, isNum := this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4)).(float64); isNum {
-		maintenanceMarginPercentage = &derefNum
+	var maintenanceMarginPercentage *float64 = func() *float64 {
+		if maintenanceMarginPercentageString != nil {
+			if derefNum, isNum := this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4)).(float64); isNum {
+				return &derefNum
+			}
+			return nil
+		}
+		return nil
+	}()
+	var liquidationPriceString any = this.OmitZero(this.SafeString(position, "liqPx"))
+	if (liquidationPriceString == nil) && (marginMode != nil && *marginMode == "isolated") && (!IsEqual(initialMarginString, nil)) && (entryPriceString != nil) && (contractsAbs != nil) && Precise.StringGt(contractsAbs, "0") && (contractSizeString != nil) && (maintenanceMarginPercentage != nil) {
+		var takerFeeRate *string = this.SafeString(marketResolved, "taker", "0.0005")
+		var mmpWithFee *string = Precise.StringAdd(this.NumberToString(maintenanceMarginPercentage), takerFeeRate)
+		var totalSize *string = Precise.StringMul(contractsAbs, contractSizeString)
+		if marketResolved["inverse"] == true {
+			var invEntry *string = Precise.StringDiv(totalSize, entryPriceString)
+			var denom any = func() any {
+				if side != nil && *side == "long" {
+					return Precise.StringAdd(invEntry, initialMarginString)
+				}
+				return Precise.StringSub(invEntry, initialMarginString)
+			}()
+			var numFactor *string = func() *string {
+				if side != nil && *side == "long" {
+					return Precise.StringAdd("1", mmpWithFee)
+				}
+				return Precise.StringSub("1", mmpWithFee)
+			}()
+			if (denom != nil) && Precise.StringGt(denom, "0") {
+				liquidationPriceString = Precise.StringDiv(Precise.StringMul(totalSize, numFactor), denom)
+			}
+		} else {
+			var marginPerUnit *string = Precise.StringDiv(initialMarginString, totalSize)
+			var num *string = func() *string {
+				if side != nil && *side == "long" {
+					return Precise.StringSub(entryPriceString, marginPerUnit)
+				}
+				return Precise.StringAdd(entryPriceString, marginPerUnit)
+			}()
+			var denom any = func() any {
+				if side != nil && *side == "long" {
+					return Precise.StringSub("1", mmpWithFee)
+				}
+				return Precise.StringAdd("1", mmpWithFee)
+			}()
+			if (denom != nil) && Precise.StringGt(denom, "0") {
+				liquidationPriceString = Precise.StringDiv(num, denom)
+			}
+		}
 	}
-	var liquidationPrice *float64 = this.SafeNumber(position, "liqPx")
+	var liquidationPrice *float64 = func() *float64 {
+		if (liquidationPriceString != nil) && Precise.StringGt(liquidationPriceString, "0") {
+			if derefNum, isNum := this.ParseNumber(liquidationPriceString).(float64); isNum {
+				return &derefNum
+			}
+			return nil
+		}
+		return nil
+	}()
 	var percentageString *string = this.SafeString(position, "uplRatio")
 	var percentage *float64
 	if derefNum, isNum := this.ParseNumber(Precise.StringMul(percentageString, "100")).(float64); isNum {
@@ -8752,6 +8826,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 		"lastUpdateTimestamp":         this.SafeInteger(position, "uTime"),
 		"maintenanceMargin":           maintenanceMargin,
 		"maintenanceMarginPercentage": maintenanceMarginPercentage,
+		"positionMargin":              this.ParseNumber(marginString),
 		"collateral":                  this.ParseNumber(collateralString),
 		"initialMargin":               this.ParseNumber(initialMarginString),
 		"initialMarginPercentage":     this.ParseNumber(initialMarginPercentage),
@@ -9290,11 +9365,11 @@ func (this *Okx) fetchFundingIntervalBody(ch chan AsyncResult[map[string]any], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes692815 map[string]any = r.Value
-	if retRes692815 == nil {
+	var retRes695615 map[string]any = r.Value
+	if retRes695615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes692815}
+		ch <- AsyncResult[map[string]any]{Value: retRes695615}
 	}
 	return nil
 }
@@ -10332,11 +10407,11 @@ func (this *Okx) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes772315 map[string]any = MapTyped(r.Value)
-	if retRes772315 == nil {
+	var retRes775115 map[string]any = MapTyped(r.Value)
+	if retRes775115 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes772315, Raw: retRes772315}
+		ch <- EndpointResult[map[string]any]{Value: retRes775115, Raw: retRes775115}
 	}
 	return nil
 }
@@ -10366,11 +10441,11 @@ func (this *Okx) addMarginBody(ch chan AsyncResult[map[string]any], symbol strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes773715 map[string]any = MapTyped(r.Value)
-	if retRes773715 == nil {
+	var retRes776515 map[string]any = MapTyped(r.Value)
+	if retRes776515 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes773715}
+		ch <- AsyncResult[map[string]any]{Value: retRes776515}
 	}
 	return nil
 }

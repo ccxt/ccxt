@@ -3788,7 +3788,7 @@ public partial class krakenfutures : Exchange
         }
         string? marketId = this.safeString2(position, "symbol", "tradeable");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        return new Dictionary<string, object>() {
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "executionUid") },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
@@ -3813,7 +3813,7 @@ public partial class krakenfutures : Exchange
             { "marginMode", marginType },
             { "side", side },
             { "percentage", null },
-        };
+        });
     }
 
     /**

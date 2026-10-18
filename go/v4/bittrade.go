@@ -556,7 +556,8 @@ func (this *Bittrade) Describe() any {
 		"exceptions": map[string]any{
 			"broad": map[string]any{
 				"contract is restricted of closing positions on API.  Please contact customer service": OnMaintenance,
-				"maintain": OnMaintenance,
+				"maintain":           OnMaintenance,
+				"trade not open now": BadSymbol,
 			},
 			"exact": map[string]any{
 				"bad-request":                               BadRequest,
@@ -1998,11 +1999,11 @@ func (this *Bittrade) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes135815 []any = r.Value
-	if retRes135815 == nil {
+	var retRes135915 []any = r.Value
+	if retRes135915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes135815}
+		ch <- AsyncResult[any]{Value: retRes135915}
 	}
 	return nil
 }
@@ -2040,11 +2041,11 @@ func (this *Bittrade) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes137419 []any = r.Value
-		if retRes137419 == nil {
+		var retRes137519 []any = r.Value
+		if retRes137519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes137419}
+			ch <- AsyncResult[any]{Value: retRes137519}
 		}
 		return nil
 	}
@@ -2053,12 +2054,12 @@ func (this *Bittrade) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv1931 := r1.Value
-	var retRes137615 []any = listRecv1931
-	if retRes137615 == nil {
+	listRecv1932 := r1.Value
+	var retRes137715 []any = listRecv1932
+	if retRes137715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes137615}
+		ch <- AsyncResult[any]{Value: retRes137715}
 	}
 	return nil
 }
@@ -2086,11 +2087,11 @@ func (this *Bittrade) fetchOpenOrdersV1Body(ch chan EndpointResult[[]any], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes138315 []any = r.Value
-	if retRes138315 == nil {
+	var retRes138415 []any = r.Value
+	if retRes138415 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- EndpointResult[[]any]{Value: retRes138315, Raw: retRes138315}
+		ch <- EndpointResult[[]any]{Value: retRes138415, Raw: retRes138415}
 	}
 	return nil
 }
@@ -2126,11 +2127,11 @@ func (this *Bittrade) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes139715 []any = r.Value
-	if retRes139715 == nil {
+	var retRes139815 []any = r.Value
+	if retRes139815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes139715}
+		ch <- AsyncResult[any]{Value: retRes139815}
 	}
 	return nil
 }
@@ -2365,11 +2366,11 @@ func (this *Bittrade) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes157315 map[string]any = r1.Value
-	if retRes157315 == nil {
+	var retRes157415 map[string]any = r1.Value
+	if retRes157415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes157315}
+		ch <- AsyncResult[any]{Value: retRes157415}
 	}
 	return nil
 }

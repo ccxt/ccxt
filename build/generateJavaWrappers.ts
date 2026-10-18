@@ -24,7 +24,7 @@ const BASE_PKG = './java/lib/src/main/java/io/github/ccxt/';
 
 // Known CCXT types that have Java equivalents in io.github.ccxt.types
 const KNOWN_TYPES = new Set([
-    'Ticker', 'Tickers', 'Trade', 'Order', 'OrderBook', 'OHLCV',
+    'Ticker', 'Tickers', 'Trade', 'Order', 'OrderBook', 'OrderBookL3', 'OHLCV',
     'MarketInterface', 'Currencies', 'CurrencyInterface', 'Account', 'Balance', 'BalanceAccount', 'Balances',
     'ADL',
     'Position', 'FundingRate', 'FundingRates', 'FundingRateHistory',

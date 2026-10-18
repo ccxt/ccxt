@@ -1126,14 +1126,14 @@ abstract class bingx extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function api_asset_v1_private_post_transfer($params = array()) {
-        return $this->request('transfer', array('api', 'asset', 'v1', 'private'), 'POST', $params, array("cost" => 5));
+    public function api_asset_v1_private_get_transfer_supportcoins($params = array()) {
+        return $this->request('transfer/supportCoins', array('api', 'asset', 'v1', 'private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
-    public function api_asset_v1_public_get_transfer_supportcoins($params = array()) {
-        return $this->request('transfer/supportCoins', array('api', 'asset', 'v1', 'public'), 'GET', $params, array("cost" => 5));
+    public function api_asset_v1_private_post_transfer($params = array()) {
+        return $this->request('transfer', array('api', 'asset', 'v1', 'private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
@@ -2332,14 +2332,14 @@ abstract class bingx extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function apiAssetV1PrivatePostTransfer($params = array()) {
-        return $this->request('transfer', array('api', 'asset', 'v1', 'private'), 'POST', $params, array("cost" => 5));
+    public function apiAssetV1PrivateGetTransferSupportCoins($params = array()) {
+        return $this->request('transfer/supportCoins', array('api', 'asset', 'v1', 'private'), 'GET', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>
      */
-    public function apiAssetV1PublicGetTransferSupportCoins($params = array()) {
-        return $this->request('transfer/supportCoins', array('api', 'asset', 'v1', 'public'), 'GET', $params, array("cost" => 5));
+    public function apiAssetV1PrivatePostTransfer($params = array()) {
+        return $this->request('transfer', array('api', 'asset', 'v1', 'private'), 'POST', $params, array("cost" => 5));
     }
     /**
      * @return array<string, mixed>

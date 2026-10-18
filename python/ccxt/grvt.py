@@ -2308,12 +2308,17 @@ class grvt(Exchange, ImplicitAPI):
         side = 'short'
         if isLong:
             side = 'long'
+        # isolated_balance is the wallet balance reserved for the isolated position
+        marginMode = self.safe_string_lower(position, 'margin_type')
+        positionMargin = None
+        if marginMode == 'isolated':
+            positionMargin = self.safe_number(position, 'isolated_balance')
         return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_symbol(marketId, market),
             'notional': self.parse_number(Precise.string_abs(self.safe_string(position, 'notional'))),
-            'marginMode': None,
+            'marginMode': marginMode,
             'liquidationPrice': self.safe_number(position, 'est_liquidation_price'),
             'entryPrice': self.safe_number(position, 'entry_price'),
             'unrealizedPnl': self.safe_number(position, 'unrealized_pnl'),
@@ -2327,10 +2332,11 @@ class grvt(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastUpdateTimestamp': self.safe_integer(position, 'lastUpdateTime'),
-            'maintenanceMargin': self.safe_number(position, 'maintenanceMargin'),
+            'maintenanceMargin': self.safe_number_2(position, 'isolated_mm', 'maintenanceMargin'),
             'maintenanceMarginPercentage': None,
+            'positionMargin': positionMargin,
             'collateral': None,
-            'initialMargin': self.safe_number(position, 'initialMargin'),
+            'initialMargin': self.safe_number_2(position, 'isolated_im', 'initialMargin'),
             'initialMarginPercentage': None,
             'leverage': self.safe_number(position, 'leverage'),
             'marginRatio': None,

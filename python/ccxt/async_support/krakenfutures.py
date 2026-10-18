@@ -3218,7 +3218,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 side = 'short'
         marketId = self.safe_string_2(position, 'symbol', 'tradeable')
         marketResolved = self.safe_market(marketId, market)
-        return {
+        return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'executionUid'),
             'symbol': marketResolved['symbol'],
@@ -3243,7 +3243,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'marginMode': marginType,
             'side': side,
             'percentage': None,
-        }
+        })
 
     async def fetch_leverage_tiers(self, symbols: Strings = None, params: dict = {}) -> LeverageTiers:
         """

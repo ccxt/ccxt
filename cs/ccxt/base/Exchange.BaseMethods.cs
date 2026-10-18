@@ -37,7 +37,7 @@ public partial class BaseExchange
                 { "borrowMargin", null },
                 { "cancelAllOrders", null },
                 { "cancelAllOrdersWs", null },
-                { "cancelOrder", true },
+                { "cancelOrder", null },
                 { "cancelOrderWithClientOrderId", null },
                 { "cancelOrderWs", null },
                 { "cancelOrders", null },
@@ -48,7 +48,7 @@ public partial class BaseExchange
                 { "createDepositAddress", null },
                 { "createLimitBuyOrder", null },
                 { "createLimitBuyOrderWs", null },
-                { "createLimitOrder", true },
+                { "createLimitOrder", null },
                 { "createLimitOrderWs", null },
                 { "createLimitSellOrder", null },
                 { "createLimitSellOrderWs", null },
@@ -56,15 +56,15 @@ public partial class BaseExchange
                 { "createMarketBuyOrderWs", null },
                 { "createMarketBuyOrderWithCost", null },
                 { "createMarketBuyOrderWithCostWs", null },
-                { "createMarketOrder", true },
-                { "createMarketOrderWs", true },
+                { "createMarketOrder", null },
+                { "createMarketOrderWs", null },
                 { "createMarketOrderWithCost", null },
                 { "createMarketOrderWithCostWs", null },
                 { "createMarketSellOrder", null },
                 { "createMarketSellOrderWs", null },
                 { "createMarketSellOrderWithCost", null },
                 { "createMarketSellOrderWithCostWs", null },
-                { "createOrder", true },
+                { "createOrder", null },
                 { "createOrderWs", null },
                 { "createOrders", null },
                 { "createOrderWithTakeProfitAndStopLoss", null },
@@ -96,7 +96,7 @@ public partial class BaseExchange
                 { "editOrderWs", null },
                 { "fetchAccounts", null },
                 { "fetchADLRank", null },
-                { "fetchBalance", true },
+                { "fetchBalance", null },
                 { "fetchBalanceWs", null },
                 { "fetchBidsAsks", null },
                 { "fetchBorrowInterest", null },
@@ -139,7 +139,7 @@ public partial class BaseExchange
                 { "fetchIsolatedBorrowRates", null },
                 { "fetchMarginAdjustmentHistory", null },
                 { "fetchIsolatedPositions", null },
-                { "fetchL2OrderBook", true },
+                { "fetchL2OrderBook", null },
                 { "fetchL3OrderBook", null },
                 { "fetchLastPrices", null },
                 { "fetchLedger", null },
@@ -172,7 +172,7 @@ public partial class BaseExchange
                 { "fetchOptionChain", null },
                 { "fetchOrder", null },
                 { "fetchOrderWithClientOrderId", null },
-                { "fetchOrderBook", true },
+                { "fetchOrderBook", null },
                 { "fetchOrderBooks", null },
                 { "fetchOrderBookWs", null },
                 { "fetchOrders", null },
@@ -195,13 +195,13 @@ public partial class BaseExchange
                 { "fetchPremiumIndexOHLCV", null },
                 { "fetchSettlementHistory", null },
                 { "fetchStatus", null },
-                { "fetchTicker", true },
+                { "fetchTicker", "emulated" },
                 { "fetchTickerWs", null },
                 { "fetchTickers", null },
                 { "fetchMarkPrices", null },
                 { "fetchTickersWs", null },
                 { "fetchTime", null },
-                { "fetchTrades", true },
+                { "fetchTrades", null },
                 { "fetchTradesWs", null },
                 { "fetchTradingFee", null },
                 { "fetchTradingFees", null },
@@ -1563,6 +1563,7 @@ public partial class BaseExchange
         Dictionary<string, object> networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new Dictionary<string, object>() {}));
         this.options["networksById"] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new Dictionary<string, object>() {}));
         this.featuresGenerator();
+        this.hasAutocorrect();
         // init predefined markets if any
         if ((this.markets != null))
         {
@@ -1580,6 +1581,29 @@ public partial class BaseExchange
         if ((this.safeBool(userConfig, "sandbox", false) == true) || (this.safeBool(userConfig, "testnet", false) == true))
         {
             this.setSandboxMode(true);
+        }
+    }
+
+    public virtual void hasAutocorrect()
+    {
+        Dictionary<string, object> fallbacks = new Dictionary<string, object>() {
+            { "fetchL2OrderBook", "fetchOrderBook" },
+            { "createLimitOrder", "createOrder" },
+            { "createMarketOrder", "createOrder" },
+            { "createLimitOrderWs", "createOrderWs" },
+            { "createMarketOrderWs", "createOrderWs" },
+        };
+        List<object> targets = new List<object>(fallbacks.Keys);
+        for (int i = 0; i < targets.Count; i++)
+        {
+            string? target = ((string)targets[i]);
+            object source = (target != null && fallbacks.ContainsKey(target) ? fallbacks[target] : null);
+            bool sourceDefined = ((this.has != null && source is string inOpKey0 && this.has.ContainsKey(inOpKey0))) && (!isEqual(getValue(this.has, source), null));
+            bool targetDefined = ((this.has != null && target != null && this.has.ContainsKey(target))) && (!isEqual(getValue(this.has, target), null));
+            if (sourceDefined && !targetDefined)
+            {
+                this.has[(string)target] = getValue(this.has, source);
+            }
         }
     }
 
@@ -3613,6 +3637,20 @@ public partial class BaseExchange
         return result;
     }
 
+    public virtual object parseOrderBookBidsAsksL3(object bidasks, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    {
+        priceKey ??= 0;
+        amountKey ??= 1;
+        countOrIdKey ??= 2;
+        IList<object> bidasksValue = this.toArray(bidasks);
+        List<object> result = new List<object>() {};
+        for (int i = 0; i < (bidasksValue?.Count ?? 0); i++)
+        {
+            result.Add(this.parseOrderBookBidAskL3(bidasksValue[i], priceKey, amountKey, countOrIdKey));
+        }
+        return result;
+    }
+
     public virtual IList<object> filterByKey(object objects, object key, object value = null)
     {
         if ((value == null))
@@ -3839,6 +3877,25 @@ public partial class BaseExchange
         }));
     }
 
+    public virtual object parseOrderBookL3(object orderbook, object symbol, object timestamp = null, object bidsKey = null, object asksKey = null, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    {
+        bidsKey ??= "bids";
+        asksKey ??= "asks";
+        priceKey ??= 0;
+        amountKey ??= 1;
+        countOrIdKey ??= 2;
+        List<object> bids = ((List<object>)this.parseOrderBookBidsAsksL3(this.safeValue(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey));
+        List<object> asks = ((List<object>)this.parseOrderBookBidsAsksL3(this.safeValue(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey));
+        return ((object)new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "bids", this.sortBy(bids, 0, true) },
+            { "asks", this.sortBy(asks, 0) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "nonce", null },
+        });
+    }
+
     public virtual IList<object> parseOHLCVs(object ohlcvs, object market = null, string timeframe = null, object since = null, object limit = null, bool? tail = null)
     {
         object timeframeVar = timeframe;
@@ -3930,18 +3987,6 @@ public partial class BaseExchange
     public virtual Dictionary<string, object> safePosition(object position)
     {
         // simplified version of: /pull/12765/
-        string? unrealizedPnlString = this.safeString(position, "unrealizedPnl");
-        string? initialMarginString = this.safeString(position, "initialMargin");
-        //
-        // PERCENTAGE
-        //
-        object percentage = this.safeValue(position, "percentage");
-        if (((percentage == null)) && ((unrealizedPnlString != null)) && ((initialMarginString != null)))
-        {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
-            string? percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
-            ((IDictionary<string,object>)position)["percentage"] = this.parseNumber(percentageString);
-        }
         // if contractSize is undefined get from market
         double? contractSize = this.safeNumber(position, "contractSize");
         string? symbol = this.safeString(position, "symbol");
@@ -3954,6 +3999,370 @@ public partial class BaseExchange
         {
             contractSize = this.safeNumber(market, "contractSize");
             ((IDictionary<string,object>)position)["contractSize"] = contractSize;
+        }
+        bool isInverse = ((market != null)) && (this.safeBool(market, "inverse", false) == true);
+        string? side = this.safeString(position, "side");
+        string? marginMode = this.safeString(position, "marginMode");
+        string? unrealizedPnlString = this.safeString(position, "unrealizedPnl");
+        string? initialMarginString = this.safeString(position, "initialMargin");
+        string? maintenanceMarginString = this.safeString(position, "maintenanceMargin");
+        string? collateralString = this.safeString(position, "collateral");
+        string? entryPriceString = this.safeString(position, "entryPrice");
+        string? liquidationPriceString = this.safeString(position, "liquidationPrice");
+        string? contractsString = this.safeString(position, "contracts");
+        string? contractSizeString = this.safeString(position, "contractSize");
+        // margin is the amount held in the position (excludes unrealized pnl), collateral = margin + unrealizedPnl
+        string? marginString = this.safeString(position, "positionMargin");
+        if (((marginString == null)) && (marginMode == "isolated") && ((collateralString != null)))
+        {
+            string? derivedMargin = collateralString;
+            if (((unrealizedPnlString != null)) && !Precise.stringEq(collateralString, initialMarginString))
+            {
+                derivedMargin = Precise.stringSub(collateralString, unrealizedPnlString);
+            }
+            if (Precise.stringGt(derivedMargin, "0"))
+            {
+                marginString = derivedMargin;
+                ((IDictionary<string,object>)position)["positionMargin"] = this.parseNumber(derivedMargin);
+            }
+        }
+        if ((marginString == null))
+        {
+            ((IDictionary<string,object>)position)["positionMargin"] = null; // keep the unified key present across all exchanges
+        }
+        if (((collateralString == null)) && ((marginString != null)) && ((unrealizedPnlString != null)))
+        {
+            collateralString = Precise.stringAdd(marginString, unrealizedPnlString);
+            ((IDictionary<string,object>)position)["collateral"] = this.parseNumber(collateralString);
+        }
+        if (marginMode == "isolated")
+        {
+            string? entryMarginString = marginString;
+            if (((entryMarginString == null)) && ((collateralString == null)))
+            {
+                entryMarginString = initialMarginString;
+            }
+            bool hasEntryMargin = ((entryMarginString != null)) && Precise.stringGt(entryMarginString, "0");
+            bool hasEntryPrice = ((entryPriceString != null)) && Precise.stringGt(entryPriceString, "0");
+            bool hasLiqPrice = ((liquidationPriceString != null)) && Precise.stringGt(liquidationPriceString, "0");
+            bool hasContracts = ((contractsString != null)) && Precise.stringGt(contractsString, "0");
+            bool hasContractSize = ((contractSizeString != null)) && Precise.stringGt(contractSizeString, "0");
+            bool hasMm = ((maintenanceMarginString != null)) && Precise.stringGt(maintenanceMarginString, "0");
+            string? priceDiff = null;
+            if (hasEntryPrice && hasLiqPrice)
+            {
+                if (isInverse)
+                {
+                    string? invEntry = Precise.stringDiv("1", entryPriceString);
+                    string? invLiq = Precise.stringDiv("1", liquidationPriceString);
+                    if (side == "long")
+                    {
+                        priceDiff = Precise.stringSub(invLiq, invEntry);
+                    } else if (side == "short")
+                    {
+                        priceDiff = Precise.stringSub(invEntry, invLiq);
+                    } else
+                    {
+                        priceDiff = Precise.stringAbs(Precise.stringSub(invEntry, invLiq));
+                    }
+                } else
+                {
+                    if (side == "long")
+                    {
+                        priceDiff = Precise.stringSub(entryPriceString, liquidationPriceString);
+                    } else if (side == "short")
+                    {
+                        priceDiff = Precise.stringSub(liquidationPriceString, entryPriceString);
+                    } else
+                    {
+                        priceDiff = Precise.stringAbs(Precise.stringSub(entryPriceString, liquidationPriceString));
+                    }
+                }
+            }
+            bool hasPriceDiff = ((priceDiff != null)) && Precise.stringGt(priceDiff, "0");
+            if (((maintenanceMarginString == null)) && hasEntryMargin && hasPriceDiff && hasContracts && hasContractSize)
+            {
+                string? lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
+                string? derivedMm = Precise.stringSub(entryMarginString, lossFromEntry);
+                if (Precise.stringGt(derivedMm, "0"))
+                {
+                    maintenanceMarginString = derivedMm;
+                    ((IDictionary<string,object>)position)["maintenanceMargin"] = this.parseNumber(derivedMm);
+                }
+            } else if (((collateralString == null)) && ((initialMarginString == null)) && hasMm && hasPriceDiff && hasContracts && hasContractSize)
+            {
+                string? lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
+                string? derivedEntryMargin = Precise.stringAdd(maintenanceMarginString, lossFromEntry);
+                if (Precise.stringGt(derivedEntryMargin, "0"))
+                {
+                    initialMarginString = derivedEntryMargin;
+                    ((IDictionary<string,object>)position)["initialMargin"] = this.parseNumber(derivedEntryMargin);
+                    marginString = derivedEntryMargin;
+                    ((IDictionary<string,object>)position)["positionMargin"] = this.parseNumber(derivedEntryMargin);
+                    string? derivedCollateral = ((unrealizedPnlString != null)) ? Precise.stringAdd(derivedEntryMargin, unrealizedPnlString) : derivedEntryMargin;
+                    if (Precise.stringGt(derivedCollateral, "0"))
+                    {
+                        collateralString = derivedCollateral;
+                        ((IDictionary<string,object>)position)["collateral"] = this.parseNumber(derivedCollateral);
+                    }
+                }
+            } else if (((liquidationPriceString == null)) && hasEntryMargin && hasMm && hasEntryPrice && hasContracts && hasContractSize && ((side == "long") || (side == "short")))
+            {
+                string? marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                string? totalSize = Precise.stringMul(contractsString, contractSizeString);
+                if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(totalSize, "0"))
+                {
+                    string? bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
+                    string? derivedLp = null;
+                    if (isInverse)
+                    {
+                        string? invEntry = Precise.stringDiv("1", entryPriceString);
+                        string? invLp = (side == "long") ? Precise.stringAdd(invEntry, bufferPerUnit) : Precise.stringSub(invEntry, bufferPerUnit);
+                        if (Precise.stringGt(invLp, "0"))
+                        {
+                            derivedLp = Precise.stringDiv("1", invLp);
+                        }
+                    } else
+                    {
+                        derivedLp = (side == "long") ? Precise.stringSub(entryPriceString, bufferPerUnit) : Precise.stringAdd(entryPriceString, bufferPerUnit);
+                    }
+                    if (((derivedLp != null)) && Precise.stringGt(derivedLp, "0"))
+                    {
+                        liquidationPriceString = derivedLp;
+                        ((IDictionary<string,object>)position)["liquidationPrice"] = this.parseNumber(derivedLp);
+                    }
+                }
+            } else if (((entryPriceString == null)) && hasEntryMargin && hasMm && hasLiqPrice && hasContracts && hasContractSize && ((side == "long") || (side == "short")))
+            {
+                string? marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                string? totalSize = Precise.stringMul(contractsString, contractSizeString);
+                if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(totalSize, "0"))
+                {
+                    string? bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
+                    string? derivedEp = null;
+                    if (isInverse)
+                    {
+                        string? invLp = Precise.stringDiv("1", liquidationPriceString);
+                        string? invEp = (side == "long") ? Precise.stringSub(invLp, bufferPerUnit) : Precise.stringAdd(invLp, bufferPerUnit);
+                        if (Precise.stringGt(invEp, "0"))
+                        {
+                            derivedEp = Precise.stringDiv("1", invEp);
+                        }
+                    } else
+                    {
+                        derivedEp = (side == "long") ? Precise.stringAdd(liquidationPriceString, bufferPerUnit) : Precise.stringSub(liquidationPriceString, bufferPerUnit);
+                    }
+                    if (((derivedEp != null)) && Precise.stringGt(derivedEp, "0"))
+                    {
+                        entryPriceString = derivedEp;
+                        ((IDictionary<string,object>)position)["entryPrice"] = this.parseNumber(derivedEp);
+                    }
+                }
+            } else if (((contractsString == null)) && hasEntryMargin && hasMm && hasPriceDiff && hasContractSize)
+            {
+                string? marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                string? denom = Precise.stringMul(priceDiff, contractSizeString);
+                if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(denom, "0"))
+                {
+                    string? derivedContracts = Precise.stringDiv(marginBuffer, denom);
+                    if (Precise.stringGt(derivedContracts, "0"))
+                    {
+                        contractsString = derivedContracts;
+                        ((IDictionary<string,object>)position)["contracts"] = this.parseNumber(derivedContracts);
+                    }
+                }
+            } else if (((contractSizeString == null)) && hasEntryMargin && hasMm && hasPriceDiff && hasContracts)
+            {
+                string? marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                string? denom = Precise.stringMul(priceDiff, contractsString);
+                if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(denom, "0"))
+                {
+                    string? derivedContractSize = Precise.stringDiv(marginBuffer, denom);
+                    if (Precise.stringGt(derivedContractSize, "0"))
+                    {
+                        contractSizeString = derivedContractSize;
+                        ((IDictionary<string,object>)position)["contractSize"] = this.parseNumber(derivedContractSize);
+                    }
+                }
+            }
+        }
+        //
+        // POSITION-LOCAL DERIVATIONS (CROSS & ISOLATED)
+        //
+        bool isZeroPosition = ((contractsString != null)) && Precise.stringEq(contractsString, "0");
+        if (!isZeroPosition)
+        {
+            string? notionalString = this.safeString(position, "notional");
+            string? markPriceString = this.safeString(position, "markPrice");
+            string? lastPriceString = this.safeString(position, "lastPrice");
+            bool hasContracts = ((contractsString != null)) && Precise.stringGt(contractsString, "0");
+            bool hasContractSize = ((contractSizeString != null)) && Precise.stringGt(contractSizeString, "0");
+            bool hasMarkPrice = ((markPriceString != null)) && Precise.stringGt(markPriceString, "0");
+            bool hasNotional = ((notionalString != null)) && Precise.stringGt(notionalString, "0");
+            // 1. notional <-> markPrice / contracts / contractSize
+            if (((notionalString == null)) && hasMarkPrice && hasContracts && hasContractSize)
+            {
+                string? totalSize = Precise.stringMul(contractsString, contractSizeString);
+                string? derivedNotional = isInverse ? Precise.stringDiv(totalSize, markPriceString) : Precise.stringMul(totalSize, markPriceString);
+                if (Precise.stringGt(derivedNotional, "0"))
+                {
+                    notionalString = derivedNotional;
+                    ((IDictionary<string,object>)position)["notional"] = this.parseNumber(derivedNotional);
+                }
+            } else if (((markPriceString == null)) && ((entryPriceString == null)) && ((lastPriceString == null)) && hasNotional && hasContracts && hasContractSize)
+            {
+                string? totalSize = Precise.stringMul(contractsString, contractSizeString);
+                string? derivedMark = isInverse ? Precise.stringDiv(totalSize, notionalString) : Precise.stringDiv(notionalString, totalSize);
+                if (Precise.stringGt(derivedMark, "0"))
+                {
+                    markPriceString = derivedMark;
+                    ((IDictionary<string,object>)position)["markPrice"] = this.parseNumber(derivedMark);
+                }
+            } else if (((contractsString == null)) && hasNotional && hasMarkPrice && hasContractSize)
+            {
+                string? derivedContracts = isInverse ? Precise.stringDiv(Precise.stringMul(notionalString, markPriceString), contractSizeString) : Precise.stringDiv(notionalString, Precise.stringMul(markPriceString, contractSizeString));
+                if (Precise.stringGt(derivedContracts, "0"))
+                {
+                    contractsString = derivedContracts;
+                    ((IDictionary<string,object>)position)["contracts"] = this.parseNumber(derivedContracts);
+                }
+            } else if (((contractSizeString == null)) && hasNotional && hasMarkPrice && hasContracts)
+            {
+                string? derivedContractSize = isInverse ? Precise.stringDiv(Precise.stringMul(notionalString, markPriceString), contractsString) : Precise.stringDiv(notionalString, Precise.stringMul(markPriceString, contractsString));
+                if (Precise.stringGt(derivedContractSize, "0"))
+                {
+                    contractSizeString = derivedContractSize;
+                    ((IDictionary<string,object>)position)["contractSize"] = this.parseNumber(derivedContractSize);
+                }
+            }
+            // 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
+            if (((unrealizedPnlString == null)) && ((entryPriceString != null)) && ((markPriceString != null)) && ((contractsString != null)) && ((contractSizeString != null)))
+            {
+                if (Precise.stringGt(entryPriceString, "0") && Precise.stringGt(markPriceString, "0") && Precise.stringGt(contractsString, "0") && Precise.stringGt(contractSizeString, "0"))
+                {
+                    string? totalSize = Precise.stringMul(contractsString, contractSizeString);
+                    string? pnlDiff = null;
+                    if (isInverse)
+                    {
+                        string? invEntry = Precise.stringDiv("1", entryPriceString);
+                        string? invMark = Precise.stringDiv("1", markPriceString);
+                        if (side == "long")
+                        {
+                            pnlDiff = Precise.stringSub(invEntry, invMark);
+                        } else if (side == "short")
+                        {
+                            pnlDiff = Precise.stringSub(invMark, invEntry);
+                        }
+                    } else
+                    {
+                        if (side == "long")
+                        {
+                            pnlDiff = Precise.stringSub(markPriceString, entryPriceString);
+                        } else if (side == "short")
+                        {
+                            pnlDiff = Precise.stringSub(entryPriceString, markPriceString);
+                        }
+                    }
+                    if ((pnlDiff != null))
+                    {
+                        string? candidateUpnl = Precise.stringMul(pnlDiff, totalSize);
+                        if (Precise.stringEq(candidateUpnl, "0") || Precise.stringGe(Precise.stringAbs(candidateUpnl), "0.000001"))
+                        {
+                            unrealizedPnlString = candidateUpnl;
+                            ((IDictionary<string,object>)position)["unrealizedPnl"] = this.parseNumber(unrealizedPnlString);
+                        }
+                    }
+                }
+            }
+            // 3. initialMargin <-> initialMarginPercentage <-> leverage / notional
+            bool hasValidNotional = ((notionalString != null)) && Precise.stringGt(notionalString, "0");
+            bool hasNegativeCollateral = ((collateralString != null)) && Precise.stringLt(collateralString, "0");
+            string? initialMarginPercentageString = this.safeString(position, "initialMarginPercentage");
+            string? leverageString = this.safeString(position, "leverage");
+            bool hasLeverage = ((leverageString != null)) && Precise.stringGt(leverageString, "0");
+            bool hasInitialMargin = ((initialMarginString != null)) && Precise.stringGt(initialMarginString, "0");
+            bool hadInitialMargin = ((initialMarginString != null));
+            if (((initialMarginPercentageString == null)) && !hasNegativeCollateral && (hasInitialMargin || !hadInitialMargin))
+            {
+                if (hasInitialMargin && hasValidNotional)
+                {
+                    initialMarginPercentageString = Precise.stringDiv(initialMarginString, notionalString);
+                } else if (hasLeverage)
+                {
+                    initialMarginPercentageString = Precise.stringDiv("1", leverageString);
+                }
+                if (((initialMarginPercentageString != null)) && Precise.stringGt(initialMarginPercentageString, "0"))
+                {
+                    ((IDictionary<string,object>)position)["initialMarginPercentage"] = this.parseNumber(initialMarginPercentageString);
+                }
+            }
+            bool hasImp = ((initialMarginPercentageString != null)) && Precise.stringGt(initialMarginPercentageString, "0");
+            if (((initialMarginString == null)) && !hasNegativeCollateral && hasValidNotional)
+            {
+                if (hasLeverage)
+                {
+                    initialMarginString = Precise.stringDiv(notionalString, leverageString);
+                } else if (hasImp)
+                {
+                    initialMarginString = Precise.stringMul(notionalString, initialMarginPercentageString);
+                }
+                if (((initialMarginString != null)) && Precise.stringGt(initialMarginString, "0"))
+                {
+                    ((IDictionary<string,object>)position)["initialMargin"] = this.parseNumber(initialMarginString);
+                }
+            }
+            if (((leverageString == null)) && !hadInitialMargin && hasImp)
+            {
+                string? derivedLeverage = Precise.stringDiv("1", initialMarginPercentageString);
+                if (Precise.stringGt(derivedLeverage, "0") && Precise.stringLe(derivedLeverage, "200"))
+                {
+                    ((IDictionary<string,object>)position)["leverage"] = this.parseNumber(derivedLeverage);
+                }
+            }
+            // 4. maintenanceMargin <-> maintenanceMarginPercentage / notional
+            string? maintenanceMarginPercentageString = this.safeString(position, "maintenanceMarginPercentage");
+            bool hasValidMm = ((maintenanceMarginString != null)) && Precise.stringGt(maintenanceMarginString, "0");
+            bool hasValidMmp = ((maintenanceMarginPercentageString != null)) && Precise.stringGt(maintenanceMarginPercentageString, "0");
+            if (((maintenanceMarginString == null)) && hasValidNotional && hasValidMmp)
+            {
+                string? derivedMm = Precise.stringMul(notionalString, maintenanceMarginPercentageString);
+                if (Precise.stringGt(derivedMm, "0"))
+                {
+                    maintenanceMarginString = derivedMm;
+                    ((IDictionary<string,object>)position)["maintenanceMargin"] = this.parseNumber(derivedMm);
+                }
+            } else if (((maintenanceMarginPercentageString == null)) && hasValidNotional && hasValidMm)
+            {
+                string? derivedMmp = Precise.stringDiv(maintenanceMarginString, notionalString);
+                if (Precise.stringGt(derivedMmp, "0"))
+                {
+                    maintenanceMarginPercentageString = derivedMmp;
+                    ((IDictionary<string,object>)position)["maintenanceMarginPercentage"] = this.parseNumber(derivedMmp);
+                }
+            }
+            // 5. marginRatio = maintenanceMargin / collateral
+            object marginRatio = this.safeValue(position, "marginRatio");
+            if (((marginRatio == null)) && ((maintenanceMarginString != null)) && ((collateralString != null)))
+            {
+                if (Precise.stringGt(maintenanceMarginString, "0") && Precise.stringGt(collateralString, "0"))
+                {
+                    string? derivedMarginRatio = Precise.stringDiv(maintenanceMarginString, collateralString, 4);
+                    if (((derivedMarginRatio != null)) && Precise.stringGt(derivedMarginRatio, "0"))
+                    {
+                        ((IDictionary<string,object>)position)["marginRatio"] = this.parseNumber(derivedMarginRatio);
+                    }
+                }
+            }
+        }
+        //
+        // PERCENTAGE
+        //
+        object percentage = this.safeValue(position, "percentage");
+        if (((percentage == null)) && ((unrealizedPnlString != null)) && ((initialMarginString != null)))
+        {
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+            string? percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
+            ((IDictionary<string,object>)position)["percentage"] = this.parseNumber(percentageString);
         }
         return ((Dictionary<string, object>)((object)(position)));
     }
@@ -4560,13 +4969,29 @@ public partial class BaseExchange
         return bidAsk;
     }
 
+    public virtual object parseOrderBookBidAskL3(object bidask, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    {
+        priceKey ??= 0;
+        amountKey ??= 1;
+        countOrIdKey ??= 2;
+        double? price = this.safeFloat(bidask, priceKey);
+        double? amount = this.safeFloat(bidask, amountKey);
+        string? countOrId = this.safeString(bidask, countOrIdKey);
+        List<object> bidAsk = new List<object>() {price, amount};
+        if ((countOrId != null))
+        {
+            bidAsk.Add(countOrId);
+        }
+        return bidAsk;
+    }
+
     public virtual Dictionary<string, object> safeCurrency(object currencyId, object currency = null)
     {
         if (((currencyId == null)) && ((currency != null)))
         {
             return ccxt.BaseExchange.ToDict(currency);
         }
-        if (((currencyId != null)) && ((this.currencies_by_id != null)) && ((this.currencies_by_id != null && currencyId is string inOpKey0 && this.currencies_by_id.ContainsKey(inOpKey0))) && (!isEqual(getValue(this.currencies_by_id, currencyId), null)))
+        if (((currencyId != null)) && ((this.currencies_by_id != null)) && ((this.currencies_by_id != null && currencyId is string inOpKey1 && this.currencies_by_id.ContainsKey(inOpKey1))) && (!isEqual(getValue(this.currencies_by_id, currencyId), null)))
         {
             return ccxt.BaseExchange.ToDict(getValue(this.currencies_by_id, currencyId));
         }
@@ -4586,7 +5011,7 @@ public partial class BaseExchange
     {
         if ((marketId != null))
         {
-            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey1 && this.markets_by_id.ContainsKey(inOpKey1))))
+            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey2 && this.markets_by_id.ContainsKey(inOpKey2))))
             {
                 object markets = getValue(this.markets_by_id, marketId);
                 int numMarkets = getArrayLength(markets);
@@ -5559,10 +5984,10 @@ public partial class BaseExchange
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((markets != null && symbol is string inOpKey2 && markets.ContainsKey(inOpKey2)))
+        if ((markets != null && symbol is string inOpKey3 && markets.ContainsKey(inOpKey3)))
         {
             return ccxt.BaseExchange.ToDict(getValue(markets, symbol));
-        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey3 && marketsById.ContainsKey(inOpKey3))))
+        } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey4 && marketsById.ContainsKey(inOpKey4))))
         {
             object marketsList = getValue(marketsById, symbol);
             string? defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
@@ -6493,7 +6918,7 @@ public partial class BaseExchange
         }
         IDictionary<string, object> markets = ((IDictionary<string, object>)this.markets);
         IDictionary<string, object> marketsById = this.markets_by_id;
-        if ((((markets != null)) && ((markets != null && account is string inOpKey4 && markets.ContainsKey(inOpKey4)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey5 && marketsById.ContainsKey(inOpKey5)))))
+        if ((((markets != null)) && ((markets != null && account is string inOpKey5 && markets.ContainsKey(inOpKey5)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey6 && marketsById.ContainsKey(inOpKey6)))))
         {
             Dictionary<string, object> market = this.market(account);
             return ((string?)((object)((market.ContainsKey("id") ? market["id"] : null))));
@@ -7251,7 +7676,7 @@ public partial class BaseExchange
                     id = add(id, amount);
                 }
             }
-            if ((id != null) && !((id is string inOpKey6 && uniqueResult.ContainsKey(inOpKey6))))
+            if ((id != null) && !((id is string inOpKey7 && uniqueResult.ContainsKey(inOpKey7))))
             {
                 uniqueResult[(string)id] = entry;
             }
@@ -7676,13 +8101,13 @@ public partial class BaseExchange
     public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, bool? subHashIsPrefix = null)
     {
         subHashIsPrefix ??= false;
-        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey7 && client.subscriptions.ContainsKey(inOpKey7))))
+        if (((unsubHash != null)) && ((client.subscriptions != null && unsubHash is string inOpKey8 && client.subscriptions.ContainsKey(inOpKey8))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
         if (subHashIsPrefix != true)
         {
-            if (((subHash != null)) && ((client.subscriptions != null && subHash is string inOpKey8 && client.subscriptions.ContainsKey(inOpKey8))))
+            if (((subHash != null)) && ((client.subscriptions != null && subHash is string inOpKey9 && client.subscriptions.ContainsKey(inOpKey9))))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
             }
@@ -7752,25 +8177,25 @@ public partial class BaseExchange
                 object symbol = symbols[i];
                 if (topic == "trades")
                 {
-                    if ((this.trades != null && symbol is string inOpKey10 && this.trades.ContainsKey(inOpKey10)))
+                    if ((this.trades != null && symbol is string inOpKey11 && this.trades.ContainsKey(inOpKey11)))
                     {
                         this.trades.Remove((string)symbol);
                     }
                 } else if (topic == "orderbook")
                 {
-                    if ((this.orderbooks != null && symbol is string inOpKey11 && this.orderbooks.ContainsKey(inOpKey11)))
+                    if ((this.orderbooks != null && symbol is string inOpKey12 && this.orderbooks.ContainsKey(inOpKey12)))
                     {
                         ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                     }
                 } else if (topic == "ticker")
                 {
-                    if ((this.tickers != null && symbol is string inOpKey12 && this.tickers.ContainsKey(inOpKey12)))
+                    if ((this.tickers != null && symbol is string inOpKey13 && this.tickers.ContainsKey(inOpKey13)))
                     {
                         this.tickers.Remove((string)symbol);
                     }
                 } else if (topic == "bidsasks")
                 {
-                    if ((this.bidsasks != null && symbol is string inOpKey13 && this.bidsasks.ContainsKey(inOpKey13)))
+                    if ((this.bidsasks != null && symbol is string inOpKey14 && this.bidsasks.ContainsKey(inOpKey14)))
                     {
                         this.bidsasks.Remove((string)symbol);
                     }

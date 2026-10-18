@@ -2049,12 +2049,21 @@ public partial class zebpay : Exchange
         string? datetime = this.safeString(position, "datetime");
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        return new Dictionary<string, object>() {
+        string? marginMode = this.safeStringLower(position, "marginMode", "isolated");
+        double? initialMargin = this.safeNumber(position, "initialMargin");
+        // isolated positions hold exactly the initial margin posted for them
+        double? positionMargin = null;
+        if (marginMode == "isolated")
+        {
+            positionMargin = initialMargin;
+        }
+        return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
-            { "symbol", marketId },
+            { "id", this.safeString(position, "id") },
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
-            { "initialMargin", this.safeNumber(position, "initialMargin") },
+            { "initialMargin", initialMargin },
             { "initialMarginPercentage", null },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
@@ -2067,11 +2076,12 @@ public partial class zebpay : Exchange
             { "marginRatio", null },
             { "liquidationPrice", this.safeNumber(position, "liquidationPrice") },
             { "markPrice", null },
+            { "positionMargin", positionMargin },
             { "collateral", null },
-            { "marginMode", "isolated" },
-            { "side", this.safeString(position, "side") },
+            { "marginMode", marginMode },
+            { "side", this.safeStringLower(position, "side") },
             { "percentage", null },
-        };
+        });
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)

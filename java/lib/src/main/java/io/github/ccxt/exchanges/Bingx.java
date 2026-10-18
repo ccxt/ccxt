@@ -94,6 +94,7 @@ public class Bingx extends BingxApi
                 put( "editOrder", true );
                 put( "fetchAllGreeks", false );
                 put( "fetchBalance", true );
+                put( "fetchBidsAsks", true );
                 put( "fetchBorrowInterest", false );
                 put( "fetchBorrowRate", false );
                 put( "fetchBorrowRateHistories", false );
@@ -949,15 +950,13 @@ public class Bingx extends BingxApi
                     put( "asset", new HashMap<String, Object>() {{
                         put( "v1", new HashMap<String, Object>() {{
                             put( "private", new HashMap<String, Object>() {{
-                                put( "post", new HashMap<String, Object>() {{
-                                    put( "transfer", new HashMap<String, Object>() {{
+                                put( "get", new HashMap<String, Object>() {{
+                                    put( "transfer/supportCoins", new HashMap<String, Object>() {{
                                         put( "cost", 5 );
                                     }} );
                                 }} );
-                            }} );
-                            put( "public", new HashMap<String, Object>() {{
-                                put( "get", new HashMap<String, Object>() {{
-                                    put( "transfer/supportCoins", new HashMap<String, Object>() {{
+                                put( "post", new HashMap<String, Object>() {{
+                                    put( "transfer", new HashMap<String, Object>() {{
                                         put( "cost", 5 );
                                     }} );
                                 }} );
@@ -2828,6 +2827,64 @@ public class Bingx extends BingxApi
 
     /**
      * @method
+     * @name bingx#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Symbol%20Order%20Book%20Ticker
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Symbol%20Order%20Book%20Ticker
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all spot markets are returned if not assigned, swap requires exactly one symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchBidsAsks(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters, (String) null);
+            String type = typeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            List<Object> rows = new ArrayList<Object>(Arrays.asList());
+            Integer symbolsLength = (((java.util.Objects.equals(symbolsNormalized, null)))) ? 0 : ((List<?>)symbolsNormalized).size();
+            if (java.util.Objects.equals(type, "spot"))
+            {
+                if ((!java.util.Objects.equals(market, null)) && ((symbolsLength != null && symbolsLength == 1)))
+                {
+                    request.put("symbol", market.get("id"));
+                }
+                Map<String, Object> response = (this.spotV2PublicGetQuoteBookTicker(this.extend(request, paramsMarketType))).join();
+                rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            } else
+            {
+                if ((java.util.Objects.equals(market, null)) || (java.util.Objects.equals(market.get("inverse"), true)) || ((symbolsLength == null || symbolsLength != 1)))
+                {
+                    throw new ArgumentsRequired((this.id + " fetchBidsAsks() requires exactly one linear swap symbol for contract markets")) ;
+                }
+                request.put("symbol", market.get("id"));
+                Map<String, Object> response = (this.swapV2PublicGetQuoteBookTicker(this.extend(request, paramsMarketType))).join();
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                rows = new ArrayList<Object>(Arrays.asList(this.safeDict(data, "book_ticker", new HashMap<String, Object>() {{}})));
+            }
+            // a multi-symbol spot response holds every listed pair, the first symbol's market must not label unknown rows
+            Map<String, Object> rowMarket = ((((symbolsLength != null && symbolsLength == 1)))) ? market : null;
+            List<Object> results = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            {
+                ((List<Object>)results).add(this.parseTicker((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), rowMarket));
+            }
+            return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
+        }).thenApply(Tickers::new);
+
+    }
+
+    /**
+     * @method
      * @name bingx#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
@@ -3084,12 +3141,16 @@ public class Bingx extends BingxApi
         String lastQty = this.safeString(ticker, "lastQty");
         // in spot markets, lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
-        String type = "swap";
+        Object type = "swap";
         if (java.util.Objects.equals(lastQty, null))
         {
             type = "spot";
         }
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, type);
+        if (!java.util.Objects.equals(market, null))
+        {
+            type = market.get("type");
+        }
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, Helpers.toStringArg(type));
         String symbol = (String) marketResolved.get("symbol");
         String open = this.safeString(ticker, "openPrice");
         String high = this.safeString(ticker, "highPrice");
@@ -3103,16 +3164,16 @@ public class Bingx extends BingxApi
             percentage = percentage.replaceFirst("%", "");
         }
         String change = this.safeString(ticker, "priceChange");
-        Long ts = this.safeInteger(ticker, "closeTime");
+        Long ts = (Long) this.safeInteger2(ticker, "closeTime", "time");
         if ((ts != null && ts == 0))
         {
             ts = null;
         }
         String datetime = this.iso8601(ts);
-        String bid = this.safeString(ticker, "bidPrice");
-        String bidVolume = this.safeString(ticker, "bidQty");
-        String ask = this.safeString(ticker, "askPrice");
-        String askVolume = this.safeString(ticker, "askQty");
+        String bid = this.safeString2(ticker, "bidPrice", "bid_price");
+        String bidVolume = this.safeString2(ticker, "bidQty", "bid_qty");
+        String ask = this.safeString2(ticker, "askPrice", "ask_price");
+        String askVolume = this.safeString2(ticker, "askQty", "ask_qty");
         HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
         mapLiteral7.put("symbol", symbol);
         mapLiteral7.put("timestamp", ts);

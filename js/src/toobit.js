@@ -1483,7 +1483,7 @@ export default class toobit extends Exchange {
             'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
-            'price': this.safeNumberOmitZero(entry, 'price'),
+            'price': this.safeNumberOmitZero(entry, 'p'),
             'side': undefined,
             'info': entry,
         };
@@ -3213,7 +3213,7 @@ export default class toobit extends Exchange {
             'unrealizedPnl': this.safeNumber(position, 'unrealizedPnL'),
             'side': side,
             'contracts': this.parseNumber(quantity),
-            'contractSize': undefined,
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'timestamp': undefined,
             'datetime': undefined,
             'hedged': undefined,

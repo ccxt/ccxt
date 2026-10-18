@@ -1856,7 +1856,7 @@ func (this *Toobit) ParseLastPrice(entry any, optionalArgs ...any) any {
 		"symbol":    marketResolved["symbol"],
 		"timestamp": nil,
 		"datetime":  nil,
-		"price":     this.SafeNumberOmitZero(entry, "price"),
+		"price":     this.SafeNumberOmitZero(entry, "p"),
 		"side":      nil,
 		"info":      entry,
 	}
@@ -4109,7 +4109,7 @@ func (this *Toobit) ParsePosition(position any, optionalArgs ...any) any {
 		"unrealizedPnl":               this.SafeNumber(position, "unrealizedPnL"),
 		"side":                        side,
 		"contracts":                   this.ParseNumber(quantity),
-		"contractSize":                nil,
+		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"timestamp":                   nil,
 		"datetime":                    nil,
 		"hedged":                      nil,

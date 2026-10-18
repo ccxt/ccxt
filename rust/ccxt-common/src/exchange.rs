@@ -139,6 +139,7 @@ pub trait DerivedExchange {
     fn parse_market_leverage_tiers(&self, _info: Value, _market: Value) -> Value { Value::Null }
     fn parse_deposit_withdraw_fee(&self, _fee: Value, _currency: Value) -> Value { Value::Null }
     fn create_expired_option_market(&self, _symbol: Value) -> Value { Value::Null }
+    fn market(&self, _symbol: Value) -> Value { Value::Null }
     // ── prediction-tier parsers (overridden by prediction venues) ────────
     fn parse_prediction_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
     fn parse_prediction_order(&self, _order: Value, _market: Value) -> Value { Value::Null }
@@ -1721,7 +1722,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         <Self as crate::exchange_generated::ExchangeBase>::handle_market_type_and_params(self, method_name, &[market, params, default_value])
     }
     fn super_market(&self, symbol: Value) -> Value {
-        <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol)
+        <Self as crate::exchange_generated::ExchangeBase>::market_non_virtual(self, symbol)
     }
     fn super_amount_to_precision(&self, symbol: Value, amount: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::amount_to_precision(self, symbol, amount)

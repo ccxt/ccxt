@@ -11514,12 +11514,15 @@ public partial class bitget : Exchange
         Int64? timestamp = this.safeIntegerN(position, new List<object>() {"cTime", "ctime", "createdTime"});
         string? marginMode = this.safeString(position, "marginMode");
         string? collateral = null;
+        string? marginString = null;
         string? initialMargin = null;
         string? unrealizedPnl = this.safeString2(position, "unrealizedPL", "unrealisedPnl");
-        string? rawCollateral = this.safeString2(position, "marginSize", "positionBalance");
+        string? rawCollateral = ((string)this.omitZero(this.safeString2(position, "marginSize", "positionBalance")));
         if (marginMode == "isolated")
         {
-            collateral = Precise.stringAdd(rawCollateral, unrealizedPnl);
+            collateral = ((unrealizedPnl != null)) ? Precise.stringAdd(rawCollateral, unrealizedPnl) : rawCollateral;
+            initialMargin = rawCollateral;
+            marginString = rawCollateral;
         } else if (marginMode == "crossed")
         {
             marginMode = "cross";
@@ -11540,7 +11543,7 @@ public partial class bitget : Exchange
         string? contractSize = this.numberToString(contractSizeNumber);
         string? baseAmount = this.safeString2(position, "total", "openTotalPos");
         string? entryPrice = this.safeStringN(position, new List<object>() {"openPriceAvg", "openAvgPrice", "avgPrice"});
-        string? maintenanceMarginPercentage = this.safeString(position, "keepMarginRate");
+        string? maintenanceMarginPercentage = this.safeString2(position, "keepMarginRate", "mmr");
         string? openNotional = Precise.stringMul(entryPrice, baseAmount);
         if ((initialMargin == null))
         {
@@ -11554,9 +11557,10 @@ public partial class bitget : Exchange
         string? markPrice = this.safeString(position, "markPrice");
         string? notional = Precise.stringMul(baseAmount, markPrice);
         string? initialMarginPercentage = Precise.stringDiv(initialMargin, notional);
-        double? liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidationPrice")));
-        string calcTakerFeeRate = "0.0006";
-        string calcTakerFeeMult = "0.9994";
+        string? rawLiquidationPrice = ((string)this.omitZero(this.safeString(position, "liquidationPrice")));
+        double? liquidationPrice = (((rawLiquidationPrice != null)) && Precise.stringGt(rawLiquidationPrice, "0")) ? this.parseNumber(rawLiquidationPrice) : null;
+        string? calcTakerFeeRate = this.safeString(marketResolved, "taker", "0.0006");
+        string? calcTakerFeeMult = Precise.stringSub("1", calcTakerFeeRate);
         if (((liquidationPrice == null)) && (marginMode == "isolated") && Precise.stringGt(baseAmount, "0"))
         {
             string? signedMargin = Precise.stringDiv(rawCollateral, baseAmount);
@@ -11575,7 +11579,11 @@ public partial class bitget : Exchange
             {
                 numerator = Precise.stringMul(numerator, calcTakerFeeMult);
             }
-            liquidationPrice = this.parseNumber(Precise.stringDiv(numerator, mmrMinusOne));
+            string? derivedLiq = Precise.stringDiv(numerator, mmrMinusOne);
+            if (((derivedLiq != null)) && Precise.stringGt(derivedLiq, "0"))
+            {
+                liquidationPrice = this.parseNumber(derivedLiq);
+            }
         }
         string? feeToClose = Precise.stringMul(notional, calcTakerFeeRate);
         string? maintenanceMargin = Precise.stringAdd(Precise.stringMul(maintenanceMarginPercentage, notional), feeToClose);
@@ -11602,11 +11610,12 @@ public partial class bitget : Exchange
             { "lastUpdateTimestamp", this.safeInteger2(position, "utime", "updatedTime") },
             { "maintenanceMargin", this.parseNumber(maintenanceMargin) },
             { "maintenanceMarginPercentage", this.parseNumber(maintenanceMarginPercentage) },
+            { "positionMargin", this.parseNumber(marginString) },
             { "collateral", this.parseNumber(collateral) },
             { "initialMargin", this.parseNumber(initialMargin) },
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },
             { "leverage", this.parseNumber(leverage) },
-            { "marginRatio", this.safeNumber2(position, "marginRatio", "mmr") },
+            { "marginRatio", this.safeNumber(position, "marginRatio") },
             { "stopLossPrice", null },
             { "takeProfitPrice", null },
         });

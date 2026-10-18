@@ -1484,7 +1484,7 @@ class toobit extends Exchange {
             'symbol' => $marketResolved['symbol'],
             'timestamp' => null,
             'datetime' => null,
-            'price' => $this->safe_number_omit_zero($entry, 'price'),
+            'price' => $this->safe_number_omit_zero($entry, 'p'),
             'side' => null,
             'info' => $entry,
         );
@@ -3241,7 +3241,7 @@ class toobit extends Exchange {
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnL'),
             'side' => $side,
             'contracts' => $this->parse_number($quantity),
-            'contractSize' => null,
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'timestamp' => null,
             'datetime' => null,
             'hedged' => null,

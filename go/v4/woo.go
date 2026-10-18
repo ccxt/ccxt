@@ -5717,6 +5717,11 @@ func (this *Woo) ParsePosition(position any, optionalArgs ...any) any {
 	size = Precise.StringAbs(size)
 	var notional *string = Precise.StringMul(size, markPrice)
 	var positionSide *string = this.SafeString(position, "positionSide") // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+	var marginMode *string = this.SafeStringLower2(position, "marginMode", "margin_mode")
+	var positionMargin *float64 = nil
+	if marginMode != nil && *marginMode == "isolated" {
+		positionMargin = this.SafeNumber2(position, "isolatedMarginAmount", "isolated_margin_amount")
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -5738,8 +5743,9 @@ func (this *Woo) ParsePosition(position any, optionalArgs ...any) any {
 		"liquidationPrice":            this.SafeNumber2(position, "estLiqPrice", "est_liq_price"),
 		"markPrice":                   this.ParseNumber(markPrice),
 		"lastPrice":                   nil,
+		"positionMargin":              positionMargin,
 		"collateral":                  nil,
-		"marginMode":                  this.SafeStringLower2(position, "marginMode", "margin_mode"),
+		"marginMode":                  marginMode,
 		"side":                        side,
 		"percentage":                  nil,
 		"hedged":                      (positionSide == nil || *positionSide != "BOTH"),

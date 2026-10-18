@@ -964,16 +964,16 @@ impl DeepcoinCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_590: bool = true;
-            while { if !__for_first_590 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_590 = false; i.as_f64().unwrap_or(f64::NAN) < ((types.len() as i64) as f64) } {
+            let mut __for_first_593: bool = true;
+            while { if !__for_first_593 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_593 = false; i.as_f64().unwrap_or(f64::NAN) < ((types.len() as i64) as f64) } {
             append_to_array(&mut promises, self.fetch_markets_by_type(types.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[params.clone()]).await);
         }
         }
         promises = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_591: bool = true;
-            while { if !__for_first_591 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_591 = false; i.as_f64().unwrap_or(f64::NAN) < ((promises.len() as i64) as f64) } {
+            let mut __for_first_594: bool = true;
+            while { if !__for_first_594 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_594 = false; i.as_f64().unwrap_or(f64::NAN) < ((promises.len() as i64) as f64) } {
             result = self.array_concat(result.clone(), promises.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1187,8 +1187,8 @@ impl DeepcoinCore {
         let mut symbols: Value = object_keys(&result);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_592: bool = true;
-            while { if !__for_first_592 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_592 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_595: bool = true;
+            while { if !__for_first_595 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_595 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = get_value(&result, &symbol);
             let mut market: Value = get_value(&result, &symbol);
@@ -1676,8 +1676,8 @@ impl DeepcoinCore {
         let mut balances: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_593: bool = true;
-            while { if !__for_first_593 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_593 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            let mut __for_first_596: bool = true;
+            while { if !__for_first_596 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_596 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(balance.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(symbol, &[]);
@@ -2007,8 +2007,8 @@ impl DeepcoinCore {
         if (network != Value::Null) && (length > ((1i64) as f64)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_594: bool = true;
-                while { if !__for_first_594 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_594 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
+                let mut __for_first_597: bool = true;
+                while { if !__for_first_597 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_597 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
                 let mut entry: Value = addressess.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if is_equal(&entry.as_map().and_then(|__m| __m.get("network")).cloned().unwrap_or(Value::Null), &network) {
                     address = entry.clone();
@@ -3731,6 +3731,13 @@ impl DeepcoinCore {
         let mut marketId: Value = self.safe_string_k(position.clone(), "instId", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "cTime", &[]);
+        let mut marginMode: Value = self.safe_string_k(position.clone(), "mgnMode", &[]);
+        let mut useMargin: Value = self.safe_number_k(position.clone(), "useMargin", &[]);
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        let mut positionMargin: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) {
+            positionMargin = useMargin.clone();
+        }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -3742,17 +3749,18 @@ impl DeepcoinCore {
         m.insert("side".to_string(), self.safe_string_k(position.clone(), "posSide", &[]));
         m.insert("notional".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "lever", &[])), &[]));
-        m.insert("unrealizedPnl".to_string(), Value::Null);
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizedProfit", &[]));
         m.insert("realizedPnl".to_string(), Value::Null);
+        m.insert("positionMargin".to_string(), positionMargin);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "avgPx", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liqPx", &[]));
-        m.insert("marginMode".to_string(), self.safe_string_k(position.clone(), "mgnMode", &[]));
+        m.insert("marginMode".to_string(), marginMode);
         m.insert("hedged".to_string(), Value::Bool(true));
-        m.insert("maintenanceMargin".to_string(), self.safe_number_k(position.clone(), "useMargin", &[]));
+        m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), Value::Null);
+        m.insert("initialMargin".to_string(), useMargin);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(position.clone(), "uTime", &[]));
@@ -4342,8 +4350,8 @@ impl DeepcoinCore {
         if (errorList != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_595: bool = true;
-                while { if !__for_first_595 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_595 = false; i.as_f64().unwrap_or(f64::NAN) < ((errorList.len() as i64) as f64) } {
+                let mut __for_first_598: bool = true;
+                while { if !__for_first_598 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_598 = false; i.as_f64().unwrap_or(f64::NAN) < ((errorList.len() as i64) as f64) } {
                 let mut entry: Value = self.safe_dict(errorList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

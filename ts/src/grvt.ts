@@ -2426,12 +2426,18 @@ export default class grvt extends Exchange {
         if (isLong) {
             side = 'long';
         }
+        // isolated_balance is the wallet balance reserved for the isolated position
+        const marginMode = this.safeStringLower (position, 'margin_type');
+        let positionMargin: Num = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.safeNumber (position, 'isolated_balance');
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': this.safeSymbol (marketId, market),
             'notional': this.parseNumber (Precise.stringAbs (this.safeString (position, 'notional'))),
-            'marginMode': undefined,
+            'marginMode': marginMode,
             'liquidationPrice': this.safeNumber (position, 'est_liquidation_price'),
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
@@ -2445,10 +2451,11 @@ export default class grvt extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': this.safeInteger (position, 'lastUpdateTime'),
-            'maintenanceMargin': this.safeNumber (position, 'maintenanceMargin'),
+            'maintenanceMargin': this.safeNumber2 (position, 'isolated_mm', 'maintenanceMargin'),
             'maintenanceMarginPercentage': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
-            'initialMargin': this.safeNumber (position, 'initialMargin'),
+            'initialMargin': this.safeNumber2 (position, 'isolated_im', 'initialMargin'),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber (position, 'leverage'),
             'marginRatio': undefined,

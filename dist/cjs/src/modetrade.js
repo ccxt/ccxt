@@ -526,6 +526,7 @@ class modetrade extends modetrade$1["default"] {
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
+        //     "status": "ACTIVE",
         //     "quote_min": 123,
         //     "quote_max": 100000,
         //     "quote_tick": 0.1,
@@ -551,6 +552,11 @@ class modetrade extends modetrade$1["default"] {
         //   }
         //
         const marketId = this.safeString(market, 'symbol', '');
+        const status = this.safeString(market, 'status');
+        let active = undefined;
+        if (status !== undefined) {
+            active = (status === 'ACTIVE');
+        }
         const parts = marketId.split('_');
         const marketType = 'swap';
         const baseId = this.safeString(parts, 1);
@@ -578,7 +584,7 @@ class modetrade extends modetrade$1["default"] {
             'swap': true,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': active,
             'contract': true,
             'linear': true,
             'inverse': false,
@@ -631,6 +637,7 @@ class modetrade extends modetrade$1["default"] {
         //       "rows": [
         //         {
         //           "symbol": "PERP_BTC_USDC",
+        //           "status": "ACTIVE",
         //           "quote_min": 123,
         //           "quote_max": 100000,
         //           "quote_tick": 0.1,

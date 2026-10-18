@@ -1347,6 +1347,7 @@ public partial class mudrex : Exchange
             { "lastPrice", this.safeNumber(position, "closed_price") },
             { "notional", notional },
             { "leverage", this.safeInteger(position, "leverage") },
+            { "positionMargin", this.parseNumber(initialMargin) },
             { "collateral", this.parseNumber(initialMargin) },
             { "initialMargin", this.parseNumber(initialMargin) },
             { "initialMarginPercentage", null },

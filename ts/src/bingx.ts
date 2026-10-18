@@ -58,6 +58,7 @@ export default class bingx extends Exchange {
                 'editOrder': true,
                 'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBidsAsks': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -541,13 +542,11 @@ export default class bingx extends Exchange {
                     'asset': {
                         'v1': {
                             'private': {
-                                'post': {
-                                    'transfer': { 'cost': 5 } as Endpoint<Dict>,
-                                },
-                            },
-                            'public': {
                                 'get': {
                                     'transfer/supportCoins': { 'cost': 5 } as Endpoint<Dict>,
+                                },
+                                'post': {
+                                    'transfer': { 'cost': 5 } as Endpoint<Dict>,
                                 },
                             },
                         },
@@ -2207,6 +2206,50 @@ export default class bingx extends Exchange {
 
     /**
      * @method
+     * @name bingx#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Symbol%20Order%20Book%20Ticker
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Symbol%20Order%20Book%20Ticker
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all spot markets are returned if not assigned, swap requires exactly one symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async fetchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized = this.marketSymbols (symbols);
+        const market = this.getMarketFromSymbols (symbolsNormalized);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
+        const request: Dict = {};
+        let rows: List = [];
+        const symbolsLength = (symbolsNormalized === undefined) ? 0 : symbolsNormalized.length;
+        if (type === 'spot') {
+            if ((market !== undefined) && (symbolsLength === 1)) {
+                request['symbol'] = market['id'];
+            }
+            const response = await this.spotV2PublicGetQuoteBookTicker (this.extend (request, paramsMarketType));
+            rows = this.safeList (response, 'data', []);
+        } else {
+            if ((market === undefined) || (market['inverse'] === true) || (symbolsLength !== 1)) {
+                throw new ArgumentsRequired (this.id + ' fetchBidsAsks() requires exactly one linear swap symbol for contract markets');
+            }
+            request['symbol'] = market['id'];
+            const response = await this.swapV2PublicGetQuoteBookTicker (this.extend (request, paramsMarketType));
+            const data = this.safeDict (response, 'data', {});
+            rows = [ this.safeDict (data, 'book_ticker', {}) ];
+        }
+        // a multi-symbol spot response holds every listed pair, the first symbol's market must not label unknown rows
+        const rowMarket = (symbolsLength === 1) ? market : undefined;
+        const results = [];
+        for (let i = 0; i < rows.length; i++) {
+            results.push (this.parseTicker (rows[i], rowMarket));
+        }
+        return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
+    }
+
+    /**
+     * @method
      * @name bingx#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
@@ -2453,6 +2496,9 @@ export default class bingx extends Exchange {
         if (lastQty === undefined) {
             type = 'spot';
         }
+        if (market !== undefined) {
+            type = market['type'];
+        }
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, type);
         const symbol = marketResolved['symbol'];
         const open = this.safeString (ticker, 'openPrice');
@@ -2466,15 +2512,15 @@ export default class bingx extends Exchange {
             percentage = percentage.replace ('%', '');
         }
         const change = this.safeString (ticker, 'priceChange');
-        let ts = this.safeInteger (ticker, 'closeTime');
+        let ts = this.safeInteger2 (ticker, 'closeTime', 'time');
         if (ts === 0) {
             ts = undefined;
         }
         const datetime = this.iso8601 (ts);
-        const bid = this.safeString (ticker, 'bidPrice');
-        const bidVolume = this.safeString (ticker, 'bidQty');
-        const ask = this.safeString (ticker, 'askPrice');
-        const askVolume = this.safeString (ticker, 'askQty');
+        const bid = this.safeString2 (ticker, 'bidPrice', 'bid_price');
+        const bidVolume = this.safeString2 (ticker, 'bidQty', 'bid_qty');
+        const ask = this.safeString2 (ticker, 'askPrice', 'ask_price');
+        const askVolume = this.safeString2 (ticker, 'askQty', 'ask_qty');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': ts,
@@ -3083,6 +3129,15 @@ export default class bingx extends Exchange {
         if (isolated !== undefined) {
             marginMode = isolated ? 'isolated' : 'cross';
         }
+        const initialMarginString = this.safeString (position, 'initialMargin');
+        const unrealizedPnlString = this.safeString (position, 'unrealizedProfit');
+        let collateralString: Str = undefined;
+        if (marginMode === 'isolated') {
+            collateralString = this.omitZero (this.safeString (position, 'margin'));
+            if ((collateralString === undefined) && (initialMarginString !== undefined)) {
+                collateralString = (unrealizedPnlString !== undefined) ? Precise.stringAdd (initialMarginString, unrealizedPnlString) : initialMarginString;
+            }
+        }
         const timestamp = this.safeInteger (position, 'openTime');
         return this.safePosition ({
             'info': position,
@@ -3092,7 +3147,7 @@ export default class bingx extends Exchange {
             'marginMode': marginMode,
             'liquidationPrice': this.safeNumberOmitZero (position, 'liquidationPrice'),
             'entryPrice': this.safeNumber2 (position, 'avgPrice', 'entryPrice'),
-            'unrealizedPnl': this.safeNumber (position, 'unrealizedProfit'),
+            'unrealizedPnl': this.parseNumber (unrealizedPnlString),
             'realizedPnl': this.safeNumber (position, 'realisedProfit'),
             'percentage': undefined,
             'contracts': this.safeNumber (position, 'positionAmt'),
@@ -3106,8 +3161,8 @@ export default class bingx extends Exchange {
             'lastUpdateTimestamp': this.safeInteger (position, 'updateTime'),
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'collateral': undefined,
-            'initialMargin': this.safeNumber (position, 'initialMargin'),
+            'collateral': this.parseNumber (collateralString),
+            'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber (position, 'leverage'),
             'marginRatio': undefined,

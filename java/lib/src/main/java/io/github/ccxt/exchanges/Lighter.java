@@ -1815,7 +1815,7 @@ public class Lighter extends LighterApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Math.min(limit, 100));
+                request.put("limit", Math.min(limit, 250));
             }
             Map<String, Object> response = (this.publicGetOrderBookOrders(this.extend(request, parameters))).join();
             //

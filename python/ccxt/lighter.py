@@ -1321,7 +1321,7 @@ class lighter(Exchange, ImplicitAPI):
             'limit': 100,
         }
         if limit is not None:
-            request['limit'] = min(limit, 100)
+            request['limit'] = min(limit, 250)
         response = self.publicGetOrderBookOrders(self.extend(request, params))
         #
         #     {
@@ -1923,6 +1923,13 @@ class lighter(Exchange, ImplicitAPI):
             imf = self.parse_to_int(imfStr)
             if imf > 0:
                 leverage = 100 / imf
+        contractsString = self.safe_string(position, 'position')
+        positionValueString = self.safe_string(position, 'position_value')
+        markPriceString = Precise.string_div(positionValueString, contractsString)
+        # allocated_margin is the isolated collateral balance (0 for cross)
+        positionMargin = None
+        if marginMode == 'isolated':
+            positionMargin = self.safe_number(position, 'allocated_margin')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -1932,13 +1939,14 @@ class lighter(Exchange, ImplicitAPI):
             'isolated': (marginMode == 'isolated'),
             'hedged': None,
             'side': side,
-            'contracts': self.safe_number(position, 'position'),
+            'contracts': self.parse_number(contractsString),
             'contractSize': None,
             'entryPrice': self.safe_number(position, 'avg_entry_price'),
-            'markPrice': None,
-            'notional': self.safe_number(position, 'position_value'),
+            'markPrice': self.parse_number(markPriceString),
+            'notional': self.parse_number(positionValueString),
             'leverage': leverage,
-            'collateral': self.safe_number(position, 'allocated_margin'),
+            'positionMargin': positionMargin,
+            'collateral': None,
             'initialMargin': None,
             'maintenanceMargin': None,
             'initialMarginPercentage': None,

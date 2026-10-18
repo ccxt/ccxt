@@ -2765,6 +2765,13 @@ class deepcoin extends Exchange {
         $marketId = $this->safe_string($position, 'instId');
         $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($position, 'cTime');
+        $marginMode = $this->safe_string($position, 'mgnMode');
+        $useMargin = $this->safe_number($position, 'useMargin');
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        $positionMargin = null;
+        if ($marginMode === 'isolated') {
+            $positionMargin = $useMargin;
+        }
         return $this->safe_position(array(
             'symbol' => $marketResolved['symbol'],
             'id' => $this->safe_string($position, 'posId'),
@@ -2775,17 +2782,18 @@ class deepcoin extends Exchange {
             'side' => $this->safe_string($position, 'posSide'),
             'notional' => null,
             'leverage' => $this->parse_number($this->omit_zero($this->safe_string($position, 'lever'))),
-            'unrealizedPnl' => null,
+            'unrealizedPnl' => $this->safe_number($position, 'unrealizedProfit'),
             'realizedPnl' => null,
+            'positionMargin' => $positionMargin,
             'collateral' => null,
             'entryPrice' => $this->safe_number($position, 'avgPx'),
             'markPrice' => null,
             'liquidationPrice' => $this->safe_number($position, 'liqPx'),
-            'marginMode' => $this->safe_string($position, 'mgnMode'),
+            'marginMode' => $marginMode,
             'hedged' => true,
-            'maintenanceMargin' => $this->safe_number($position, 'useMargin'),
+            'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
-            'initialMargin' => null,
+            'initialMargin' => $useMargin,
             'initialMarginPercentage' => null,
             'marginRatio' => null,
             'lastUpdateTimestamp' => $this->safe_integer($position, 'uTime'),

@@ -1,5 +1,5 @@
 import Exchange from './abstract/blockchaincom.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderBookL3, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 /**
  * @class blockchaincom
  * @augments Exchange
@@ -36,7 +36,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchL3OrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    fetchL3OrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBookL3>;
     fetchL2OrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**

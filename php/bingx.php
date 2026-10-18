@@ -51,6 +51,7 @@ class bingx extends Exchange {
                 'editOrder' => true,
                 'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBidsAsks' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -534,13 +535,11 @@ class bingx extends Exchange {
                     'asset' => array(
                         'v1' => array(
                             'private' => array(
-                                'post' => array(
-                                    'transfer' => array( 'cost' => 5 ),
-                                ),
-                            ),
-                            'public' => array(
                                 'get' => array(
                                     'transfer/supportCoins' => array( 'cost' => 5 ),
+                                ),
+                                'post' => array(
+                                    'transfer' => array( 'cost' => 5 ),
                                 ),
                             ),
                         ),
@@ -2181,6 +2180,50 @@ class bingx extends Exchange {
         return $this->parse_ticker($dataDict, $market);
     }
 
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): array {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         *
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Symbol%20Order%20Book%20Ticker
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Symbol%20Order%20Book%20Ticker
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all spot markets are returned if not assigned, swap requires exactly one symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $market = $this->get_market_from_symbols($symbolsNormalized);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
+        $request = array();
+        $rows = array();
+        $symbolsLength = ($symbolsNormalized === null) ? 0 : count($symbolsNormalized);
+        if ($type === 'spot') {
+            if (($market !== null) && ($symbolsLength === 1)) {
+                $request['symbol'] = $market['id'];
+            }
+            $response = $this->spotV2PublicGetQuoteBookTicker($this->extend($request, $paramsMarketType));
+            $rows = $this->safe_list($response, 'data', array());
+        } else {
+            if (($market === null) || ($market['inverse'] === true) || ($symbolsLength !== 1)) {
+                throw new ArgumentsRequired($this->id . ' fetchBidsAsks() requires exactly one linear swap symbol for contract markets');
+            }
+            $request['symbol'] = $market['id'];
+            $response = $this->swapV2PublicGetQuoteBookTicker($this->extend($request, $paramsMarketType));
+            $data = $this->safe_dict($response, 'data', array());
+            $rows = array( $this->safe_dict($data, 'book_ticker', array()) );
+        }
+        // a multi-symbol spot response holds every listed pair, the first symbol's market must not label unknown rows
+        $rowMarket = ($symbolsLength === 1) ? $market : null;
+        $results = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $results[] = $this->parse_ticker($rows[$i], $rowMarket);
+        }
+        return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
+    }
+
     public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
@@ -2426,6 +2469,9 @@ class bingx extends Exchange {
         if ($lastQty === null) {
             $type = 'spot';
         }
+        if ($market !== null) {
+            $type = $market['type'];
+        }
         $marketResolved = $this->safe_market($marketId, $market, null, $type);
         $symbol = $marketResolved['symbol'];
         $open = $this->safe_string($ticker, 'openPrice');
@@ -2439,15 +2485,15 @@ class bingx extends Exchange {
             $percentage = str_replace('%', '', $percentage);
         }
         $change = $this->safe_string($ticker, 'priceChange');
-        $ts = $this->safe_integer($ticker, 'closeTime');
+        $ts = $this->safe_integer_2($ticker, 'closeTime', 'time');
         if ($ts === 0) {
             $ts = null;
         }
         $datetime = $this->iso8601($ts);
-        $bid = $this->safe_string($ticker, 'bidPrice');
-        $bidVolume = $this->safe_string($ticker, 'bidQty');
-        $ask = $this->safe_string($ticker, 'askPrice');
-        $askVolume = $this->safe_string($ticker, 'askQty');
+        $bid = $this->safe_string_2($ticker, 'bidPrice', 'bid_price');
+        $bidVolume = $this->safe_string_2($ticker, 'bidQty', 'bid_qty');
+        $ask = $this->safe_string_2($ticker, 'askPrice', 'ask_price');
+        $askVolume = $this->safe_string_2($ticker, 'askQty', 'ask_qty');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $ts,
@@ -3052,6 +3098,15 @@ class bingx extends Exchange {
         if ($isolated !== null) {
             $marginMode = $isolated ? 'isolated' : 'cross';
         }
+        $initialMarginString = $this->safe_string($position, 'initialMargin');
+        $unrealizedPnlString = $this->safe_string($position, 'unrealizedProfit');
+        $collateralString = null;
+        if ($marginMode === 'isolated') {
+            $collateralString = $this->omit_zero($this->safe_string($position, 'margin'));
+            if (($collateralString === null) && ($initialMarginString !== null)) {
+                $collateralString = ($unrealizedPnlString !== null) ? Precise::string_add($initialMarginString, $unrealizedPnlString) : $initialMarginString;
+            }
+        }
         $timestamp = $this->safe_integer($position, 'openTime');
         return $this->safe_position(array(
             'info' => $position,
@@ -3061,7 +3116,7 @@ class bingx extends Exchange {
             'marginMode' => $marginMode,
             'liquidationPrice' => $this->safe_number_omit_zero($position, 'liquidationPrice'),
             'entryPrice' => $this->safe_number_2($position, 'avgPrice', 'entryPrice'),
-            'unrealizedPnl' => $this->safe_number($position, 'unrealizedProfit'),
+            'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
             'realizedPnl' => $this->safe_number($position, 'realisedProfit'),
             'percentage' => null,
             'contracts' => $this->safe_number($position, 'positionAmt'),
@@ -3075,8 +3130,8 @@ class bingx extends Exchange {
             'lastUpdateTimestamp' => $this->safe_integer($position, 'updateTime'),
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
-            'collateral' => null,
-            'initialMargin' => $this->safe_number($position, 'initialMargin'),
+            'collateral' => $this->parse_number($collateralString),
+            'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => null,
             'leverage' => $this->safe_number($position, 'leverage'),
             'marginRatio' => null,

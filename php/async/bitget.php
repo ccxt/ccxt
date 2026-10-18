@@ -9324,11 +9324,14 @@ class bitget extends Exchange {
         $timestamp = $this->safe_integer_n($position, array( 'cTime', 'ctime', 'createdTime' ));
         $marginMode = $this->safe_string($position, 'marginMode');
         $collateral = null;
+        $marginString = null;
         $initialMargin = null;
         $unrealizedPnl = $this->safe_string_2($position, 'unrealizedPL', 'unrealisedPnl');
-        $rawCollateral = $this->safe_string_2($position, 'marginSize', 'positionBalance');
+        $rawCollateral = $this->omit_zero($this->safe_string_2($position, 'marginSize', 'positionBalance'));
         if ($marginMode === 'isolated') {
-            $collateral = Precise::string_add($rawCollateral, $unrealizedPnl);
+            $collateral = ($unrealizedPnl !== null) ? Precise::string_add($rawCollateral, $unrealizedPnl) : $rawCollateral;
+            $initialMargin = $rawCollateral;
+            $marginString = $rawCollateral;
         } elseif ($marginMode === 'crossed') {
             $marginMode = 'cross';
             $initialMargin = $rawCollateral;
@@ -9346,7 +9349,7 @@ class bitget extends Exchange {
         $contractSize = $this->number_to_string($contractSizeNumber);
         $baseAmount = $this->safe_string_2($position, 'total', 'openTotalPos');
         $entryPrice = $this->safe_string_n($position, array( 'openPriceAvg', 'openAvgPrice', 'avgPrice' ));
-        $maintenanceMarginPercentage = $this->safe_string($position, 'keepMarginRate');
+        $maintenanceMarginPercentage = $this->safe_string_2($position, 'keepMarginRate', 'mmr');
         $openNotional = Precise::string_mul($entryPrice, $baseAmount);
         if ($initialMargin === null) {
             $initialMargin = Precise::string_div($openNotional, $leverage);
@@ -9358,9 +9361,10 @@ class bitget extends Exchange {
         $markPrice = $this->safe_string($position, 'markPrice');
         $notional = Precise::string_mul($baseAmount, $markPrice);
         $initialMarginPercentage = Precise::string_div($initialMargin, $notional);
-        $liquidationPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidationPrice')));
-        $calcTakerFeeRate = '0.0006';
-        $calcTakerFeeMult = '0.9994';
+        $rawLiquidationPrice = $this->omit_zero($this->safe_string($position, 'liquidationPrice'));
+        $liquidationPrice = (($rawLiquidationPrice !== null) && Precise::string_gt($rawLiquidationPrice, '0')) ? $this->parse_number($rawLiquidationPrice) : null;
+        $calcTakerFeeRate = $this->safe_string($marketResolved, 'taker', '0.0006');
+        $calcTakerFeeMult = Precise::string_sub('1', $calcTakerFeeRate);
         if (($liquidationPrice === null) && ($marginMode === 'isolated') && Precise::string_gt($baseAmount, '0')) {
             $signedMargin = Precise::string_div($rawCollateral, $baseAmount);
             $signedMmp = $maintenanceMarginPercentage;
@@ -9375,7 +9379,10 @@ class bitget extends Exchange {
             } else {
                 $numerator = Precise::string_mul($numerator, $calcTakerFeeMult);
             }
-            $liquidationPrice = $this->parse_number(Precise::string_div($numerator, $mmrMinusOne));
+            $derivedLiq = Precise::string_div($numerator, $mmrMinusOne);
+            if (($derivedLiq !== null) && Precise::string_gt($derivedLiq, '0')) {
+                $liquidationPrice = $this->parse_number($derivedLiq);
+            }
         }
         $feeToClose = Precise::string_mul($notional, $calcTakerFeeRate);
         $maintenanceMargin = Precise::string_add(Precise::string_mul($maintenanceMarginPercentage, $notional), $feeToClose);
@@ -9402,11 +9409,12 @@ class bitget extends Exchange {
             'lastUpdateTimestamp' => $this->safe_integer_2($position, 'utime', 'updatedTime'),
             'maintenanceMargin' => $this->parse_number($maintenanceMargin),
             'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentage),
+            'positionMargin' => $this->parse_number($marginString),
             'collateral' => $this->parse_number($collateral),
             'initialMargin' => $this->parse_number($initialMargin),
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
             'leverage' => $this->parse_number($leverage),
-            'marginRatio' => $this->safe_number_2($position, 'marginRatio', 'mmr'),
+            'marginRatio' => $this->safe_number($position, 'marginRatio'),
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
         ));

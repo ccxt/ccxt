@@ -1448,7 +1448,7 @@ class toobit(Exchange, ImplicitAPI):
             'symbol': marketResolved['symbol'],
             'timestamp': None,
             'datetime': None,
-            'price': self.safe_number_omit_zero(entry, 'price'),
+            'price': self.safe_number_omit_zero(entry, 'p'),
             'side': None,
             'info': entry,
         }
@@ -3048,7 +3048,7 @@ class toobit(Exchange, ImplicitAPI):
             'unrealizedPnl': self.safe_number(position, 'unrealizedPnL'),
             'side': side,
             'contracts': self.parse_number(quantity),
-            'contractSize': None,
+            'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'timestamp': None,
             'datetime': None,
             'hedged': None,

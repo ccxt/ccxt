@@ -2780,7 +2780,7 @@ class BaseExchange(object):
                 'borrowMargin': None,
                 'cancelAllOrders': None,
                 'cancelAllOrdersWs': None,
-                'cancelOrder': True,
+                'cancelOrder': None,
                 'cancelOrderWithClientOrderId': None,
                 'cancelOrderWs': None,
                 'cancelOrders': None,
@@ -2791,7 +2791,7 @@ class BaseExchange(object):
                 'createDepositAddress': None,
                 'createLimitBuyOrder': None,
                 'createLimitBuyOrderWs': None,
-                'createLimitOrder': True,
+                'createLimitOrder': None,
                 'createLimitOrderWs': None,
                 'createLimitSellOrder': None,
                 'createLimitSellOrderWs': None,
@@ -2799,15 +2799,15 @@ class BaseExchange(object):
                 'createMarketBuyOrderWs': None,
                 'createMarketBuyOrderWithCost': None,
                 'createMarketBuyOrderWithCostWs': None,
-                'createMarketOrder': True,
-                'createMarketOrderWs': True,
+                'createMarketOrder': None,
+                'createMarketOrderWs': None,
                 'createMarketOrderWithCost': None,
                 'createMarketOrderWithCostWs': None,
                 'createMarketSellOrder': None,
                 'createMarketSellOrderWs': None,
                 'createMarketSellOrderWithCost': None,
                 'createMarketSellOrderWithCostWs': None,
-                'createOrder': True,
+                'createOrder': None,
                 'createOrderWs': None,
                 'createOrders': None,
                 'createOrderWithTakeProfitAndStopLoss': None,
@@ -2839,7 +2839,7 @@ class BaseExchange(object):
                 'editOrderWs': None,
                 'fetchAccounts': None,
                 'fetchADLRank': None,
-                'fetchBalance': True,
+                'fetchBalance': None,
                 'fetchBalanceWs': None,
                 'fetchBidsAsks': None,
                 'fetchBorrowInterest': None,
@@ -2882,7 +2882,7 @@ class BaseExchange(object):
                 'fetchIsolatedBorrowRates': None,
                 'fetchMarginAdjustmentHistory': None,
                 'fetchIsolatedPositions': None,
-                'fetchL2OrderBook': True,
+                'fetchL2OrderBook': None,
                 'fetchL3OrderBook': None,
                 'fetchLastPrices': None,
                 'fetchLedger': None,
@@ -2915,7 +2915,7 @@ class BaseExchange(object):
                 'fetchOptionChain': None,
                 'fetchOrder': None,
                 'fetchOrderWithClientOrderId': None,
-                'fetchOrderBook': True,
+                'fetchOrderBook': None,
                 'fetchOrderBooks': None,
                 'fetchOrderBookWs': None,
                 'fetchOrders': None,
@@ -2938,13 +2938,13 @@ class BaseExchange(object):
                 'fetchPremiumIndexOHLCV': None,
                 'fetchSettlementHistory': None,
                 'fetchStatus': None,
-                'fetchTicker': True,
+                'fetchTicker': 'emulated',
                 'fetchTickerWs': None,
                 'fetchTickers': None,
                 'fetchMarkPrices': None,
                 'fetchTickersWs': None,
                 'fetchTime': None,
-                'fetchTrades': True,
+                'fetchTrades': None,
                 'fetchTradesWs': None,
                 'fetchTradingFee': None,
                 'fetchTradingFees': None,
@@ -3828,6 +3828,7 @@ class BaseExchange(object):
         networkIdsToCodesGenerated = self.invert_flat_string_dictionary(self.safe_value(self.options, 'networks', {}))
         self.options['networksById'] = self.extend(networkIdsToCodesGenerated, self.safe_value(self.options, 'networksById', {}))
         self.features_generator()
+        self.has_autocorrect()
         # init predefined markets if any
         if self.markets is not None:
             self.set_markets(self.markets)
@@ -3840,6 +3841,23 @@ class BaseExchange(object):
         # compatibility for sandbox/testnet options in userConfig
         if (self.safe_bool(userConfig, 'sandbox', False)) or (self.safe_bool(userConfig, 'testnet', False)):
             self.set_sandbox_mode(True)
+
+    def has_autocorrect(self):
+        fallbacks = {
+            'fetchL2OrderBook': 'fetchOrderBook',
+            'createLimitOrder': 'createOrder',
+            'createMarketOrder': 'createOrder',
+            'createLimitOrderWs': 'createOrderWs',
+            'createMarketOrderWs': 'createOrderWs',
+        }
+        targets = list(fallbacks.keys())
+        for i in range(0, len(targets)):
+            target = targets[i]
+            source = fallbacks[target]
+            sourceDefined = (source in self.has) and (self.has[source] is not None)
+            targetDefined = (target in self.has) and (self.has[target] is not None)
+            if sourceDefined and not targetDefined:
+                self.has[target] = self.has[source]
 
     def init_rest_rate_limiter(self):
         if self.rateLimit is None or (self.id is not None and self.rateLimit == -1):
@@ -5225,6 +5243,13 @@ class BaseExchange(object):
             result.append(self.parse_order_book_bid_ask(bidasksValue[i], priceKey, amountKey, countOrIdKey))
         return result
 
+    def parse_order_book_bids_asks_l3(self, bidasks: object, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+        bidasksValue = self.to_array(bidasks)
+        result = []
+        for i in range(0, len(bidasksValue)):
+            result.append(self.parse_order_book_bid_ask_l3(bidasksValue[i], priceKey, amountKey, countOrIdKey))
+        return result
+
     def filter_by_key(self, objects: object, key: IndexType, value: Str = None):
         if value is None:
             return objects
@@ -5383,6 +5408,18 @@ class BaseExchange(object):
             'nonce': None,
         }
 
+    def parse_order_book_l3(self, orderbook: object | None, symbol: Str, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+        bids = self.parse_order_book_bids_asks_l3(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
+        asks = self.parse_order_book_bids_asks_l3(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
+        return {
+            'symbol': symbol,
+            'bids': self.sort_by(bids, 0, True),
+            'asks': self.sort_by(asks, 0),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'nonce': None,
+        }
+
     def parse_ohlcvs(self, ohlcvs: list[object] | None, market: object = None, timeframe: str = '1m', since: Int = None, limit: Int = None, tail: Bool = False):
         if ohlcvs is None:
             return []
@@ -5437,16 +5474,6 @@ class BaseExchange(object):
 
     def safe_position(self, position: dict):
         # simplified version of: /pull/12765/
-        unrealizedPnlString = self.safe_string(position, 'unrealizedPnl')
-        initialMarginString = self.safe_string(position, 'initialMargin')
-        #
-        # PERCENTAGE
-        #
-        percentage = self.safe_value(position, 'percentage')
-        if (percentage is None) and (unrealizedPnlString is not None) and (initialMarginString is not None):
-            # as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
-            percentageString = Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100')
-            position['percentage'] = self.parse_number(percentageString)
         # if contractSize is undefined get from market
         contractSize = self.safe_number(position, 'contractSize')
         symbol = self.safe_string(position, 'symbol')
@@ -5456,6 +5483,239 @@ class BaseExchange(object):
         if contractSize is None and market is not None:
             contractSize = self.safe_number(market, 'contractSize')
             position['contractSize'] = contractSize
+        isInverse = (market is not None) and self.safe_bool(market, 'inverse', False)
+        side = self.safe_string(position, 'side')
+        marginMode = self.safe_string(position, 'marginMode')
+        unrealizedPnlString = self.safe_string(position, 'unrealizedPnl')
+        initialMarginString = self.safe_string(position, 'initialMargin')
+        maintenanceMarginString = self.safe_string(position, 'maintenanceMargin')
+        collateralString = self.safe_string(position, 'collateral')
+        entryPriceString = self.safe_string(position, 'entryPrice')
+        liquidationPriceString = self.safe_string(position, 'liquidationPrice')
+        contractsString = self.safe_string(position, 'contracts')
+        contractSizeString = self.safe_string(position, 'contractSize')
+        # margin is the amount held in the position (excludes unrealized pnl), collateral = margin + unrealizedPnl
+        marginString = self.safe_string(position, 'positionMargin')
+        if (marginString is None) and (marginMode == 'isolated') and (collateralString is not None):
+            derivedMargin = collateralString
+            if (unrealizedPnlString is not None) and not Precise.string_eq(collateralString, initialMarginString):
+                derivedMargin = Precise.string_sub(collateralString, unrealizedPnlString)
+            if Precise.string_gt(derivedMargin, '0'):
+                marginString = derivedMargin
+                position['positionMargin'] = self.parse_number(derivedMargin)
+        if marginString is None:
+            position['positionMargin'] = None  # keep the unified key present across all exchanges
+        if (collateralString is None) and (marginString is not None) and (unrealizedPnlString is not None):
+            collateralString = Precise.string_add(marginString, unrealizedPnlString)
+            position['collateral'] = self.parse_number(collateralString)
+        if marginMode == 'isolated':
+            entryMarginString = marginString
+            if (entryMarginString is None) and (collateralString is None):
+                entryMarginString = initialMarginString
+            hasEntryMargin = (entryMarginString is not None) and Precise.string_gt(entryMarginString, '0')
+            hasEntryPrice = (entryPriceString is not None) and Precise.string_gt(entryPriceString, '0')
+            hasLiqPrice = (liquidationPriceString is not None) and Precise.string_gt(liquidationPriceString, '0')
+            hasContracts = (contractsString is not None) and Precise.string_gt(contractsString, '0')
+            hasContractSize = (contractSizeString is not None) and Precise.string_gt(contractSizeString, '0')
+            hasMm = (maintenanceMarginString is not None) and Precise.string_gt(maintenanceMarginString, '0')
+            priceDiff = None
+            if hasEntryPrice and hasLiqPrice:
+                if isInverse:
+                    invEntry = Precise.string_div('1', entryPriceString)
+                    invLiq = Precise.string_div('1', liquidationPriceString)
+                    if side == 'long':
+                        priceDiff = Precise.string_sub(invLiq, invEntry)
+                    elif side == 'short':
+                        priceDiff = Precise.string_sub(invEntry, invLiq)
+                    else:
+                        priceDiff = Precise.string_abs(Precise.string_sub(invEntry, invLiq))
+                else:
+                    if side == 'long':
+                        priceDiff = Precise.string_sub(entryPriceString, liquidationPriceString)
+                    elif side == 'short':
+                        priceDiff = Precise.string_sub(liquidationPriceString, entryPriceString)
+                    else:
+                        priceDiff = Precise.string_abs(Precise.string_sub(entryPriceString, liquidationPriceString))
+            hasPriceDiff = (priceDiff is not None) and Precise.string_gt(priceDiff, '0')
+            if (maintenanceMarginString is None) and hasEntryMargin and hasPriceDiff and hasContracts and hasContractSize:
+                lossFromEntry = Precise.string_mul(priceDiff, Precise.string_mul(contractsString, contractSizeString))
+                derivedMm = Precise.string_sub(entryMarginString, lossFromEntry)
+                if Precise.string_gt(derivedMm, '0'):
+                    maintenanceMarginString = derivedMm
+                    position['maintenanceMargin'] = self.parse_number(derivedMm)
+            elif (collateralString is None) and (initialMarginString is None) and hasMm and hasPriceDiff and hasContracts and hasContractSize:
+                lossFromEntry = Precise.string_mul(priceDiff, Precise.string_mul(contractsString, contractSizeString))
+                derivedEntryMargin = Precise.string_add(maintenanceMarginString, lossFromEntry)
+                if Precise.string_gt(derivedEntryMargin, '0'):
+                    initialMarginString = derivedEntryMargin
+                    position['initialMargin'] = self.parse_number(derivedEntryMargin)
+                    marginString = derivedEntryMargin
+                    position['positionMargin'] = self.parse_number(derivedEntryMargin)
+                    derivedCollateral = Precise.string_add(derivedEntryMargin, unrealizedPnlString) if (unrealizedPnlString is not None) else derivedEntryMargin
+                    if Precise.string_gt(derivedCollateral, '0'):
+                        collateralString = derivedCollateral
+                        position['collateral'] = self.parse_number(derivedCollateral)
+            elif (liquidationPriceString is None) and hasEntryMargin and hasMm and hasEntryPrice and hasContracts and hasContractSize and ((side == 'long') or (side == 'short')):
+                marginBuffer = Precise.string_sub(entryMarginString, maintenanceMarginString)
+                totalSize = Precise.string_mul(contractsString, contractSizeString)
+                if Precise.string_gt(marginBuffer, '0') and Precise.string_gt(totalSize, '0'):
+                    bufferPerUnit = Precise.string_div(marginBuffer, totalSize)
+                    derivedLp = None
+                    if isInverse:
+                        invEntry = Precise.string_div('1', entryPriceString)
+                        invLp = Precise.string_add(invEntry, bufferPerUnit) if (side == 'long') else Precise.string_sub(invEntry, bufferPerUnit)
+                        if Precise.string_gt(invLp, '0'):
+                            derivedLp = Precise.string_div('1', invLp)
+                    else:
+                        derivedLp = Precise.string_sub(entryPriceString, bufferPerUnit) if (side == 'long') else Precise.string_add(entryPriceString, bufferPerUnit)
+                    if (derivedLp is not None) and Precise.string_gt(derivedLp, '0'):
+                        liquidationPriceString = derivedLp
+                        position['liquidationPrice'] = self.parse_number(derivedLp)
+            elif (entryPriceString is None) and hasEntryMargin and hasMm and hasLiqPrice and hasContracts and hasContractSize and ((side == 'long') or (side == 'short')):
+                marginBuffer = Precise.string_sub(entryMarginString, maintenanceMarginString)
+                totalSize = Precise.string_mul(contractsString, contractSizeString)
+                if Precise.string_gt(marginBuffer, '0') and Precise.string_gt(totalSize, '0'):
+                    bufferPerUnit = Precise.string_div(marginBuffer, totalSize)
+                    derivedEp = None
+                    if isInverse:
+                        invLp = Precise.string_div('1', liquidationPriceString)
+                        invEp = Precise.string_sub(invLp, bufferPerUnit) if (side == 'long') else Precise.string_add(invLp, bufferPerUnit)
+                        if Precise.string_gt(invEp, '0'):
+                            derivedEp = Precise.string_div('1', invEp)
+                    else:
+                        derivedEp = Precise.string_add(liquidationPriceString, bufferPerUnit) if (side == 'long') else Precise.string_sub(liquidationPriceString, bufferPerUnit)
+                    if (derivedEp is not None) and Precise.string_gt(derivedEp, '0'):
+                        entryPriceString = derivedEp
+                        position['entryPrice'] = self.parse_number(derivedEp)
+            elif (contractsString is None) and hasEntryMargin and hasMm and hasPriceDiff and hasContractSize:
+                marginBuffer = Precise.string_sub(entryMarginString, maintenanceMarginString)
+                denom = Precise.string_mul(priceDiff, contractSizeString)
+                if Precise.string_gt(marginBuffer, '0') and Precise.string_gt(denom, '0'):
+                    derivedContracts = Precise.string_div(marginBuffer, denom)
+                    if Precise.string_gt(derivedContracts, '0'):
+                        contractsString = derivedContracts
+                        position['contracts'] = self.parse_number(derivedContracts)
+            elif (contractSizeString is None) and hasEntryMargin and hasMm and hasPriceDiff and hasContracts:
+                marginBuffer = Precise.string_sub(entryMarginString, maintenanceMarginString)
+                denom = Precise.string_mul(priceDiff, contractsString)
+                if Precise.string_gt(marginBuffer, '0') and Precise.string_gt(denom, '0'):
+                    derivedContractSize = Precise.string_div(marginBuffer, denom)
+                    if Precise.string_gt(derivedContractSize, '0'):
+                        contractSizeString = derivedContractSize
+                        position['contractSize'] = self.parse_number(derivedContractSize)
+        #
+        # POSITION-LOCAL DERIVATIONS (CROSS & ISOLATED)
+        #
+        isZeroPosition = (contractsString is not None) and Precise.string_eq(contractsString, '0')
+        if not isZeroPosition:
+            notionalString = self.safe_string(position, 'notional')
+            markPriceString = self.safe_string(position, 'markPrice')
+            lastPriceString = self.safe_string(position, 'lastPrice')
+            hasContracts = (contractsString is not None) and Precise.string_gt(contractsString, '0')
+            hasContractSize = (contractSizeString is not None) and Precise.string_gt(contractSizeString, '0')
+            hasMarkPrice = (markPriceString is not None) and Precise.string_gt(markPriceString, '0')
+            hasNotional = (notionalString is not None) and Precise.string_gt(notionalString, '0')
+            # 1. notional <-> markPrice / contracts / contractSize
+            if (notionalString is None) and hasMarkPrice and hasContracts and hasContractSize:
+                totalSize = Precise.string_mul(contractsString, contractSizeString)
+                derivedNotional = Precise.string_div(totalSize, markPriceString) if isInverse else Precise.string_mul(totalSize, markPriceString)
+                if Precise.string_gt(derivedNotional, '0'):
+                    notionalString = derivedNotional
+                    position['notional'] = self.parse_number(derivedNotional)
+            elif (markPriceString is None) and (entryPriceString is None) and (lastPriceString is None) and hasNotional and hasContracts and hasContractSize:
+                totalSize = Precise.string_mul(contractsString, contractSizeString)
+                derivedMark = Precise.string_div(totalSize, notionalString) if isInverse else Precise.string_div(notionalString, totalSize)
+                if Precise.string_gt(derivedMark, '0'):
+                    markPriceString = derivedMark
+                    position['markPrice'] = self.parse_number(derivedMark)
+            elif (contractsString is None) and hasNotional and hasMarkPrice and hasContractSize:
+                derivedContracts = Precise.string_div(Precise.string_mul(notionalString, markPriceString), contractSizeString) if isInverse else Precise.string_div(notionalString, Precise.string_mul(markPriceString, contractSizeString))
+                if Precise.string_gt(derivedContracts, '0'):
+                    contractsString = derivedContracts
+                    position['contracts'] = self.parse_number(derivedContracts)
+            elif (contractSizeString is None) and hasNotional and hasMarkPrice and hasContracts:
+                derivedContractSize = Precise.string_div(Precise.string_mul(notionalString, markPriceString), contractsString) if isInverse else Precise.string_div(notionalString, Precise.string_mul(markPriceString, contractsString))
+                if Precise.string_gt(derivedContractSize, '0'):
+                    contractSizeString = derivedContractSize
+                    position['contractSize'] = self.parse_number(derivedContractSize)
+            # 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
+            if (unrealizedPnlString is None) and (entryPriceString is not None) and (markPriceString is not None) and (contractsString is not None) and (contractSizeString is not None):
+                if Precise.string_gt(entryPriceString, '0') and Precise.string_gt(markPriceString, '0') and Precise.string_gt(contractsString, '0') and Precise.string_gt(contractSizeString, '0'):
+                    totalSize = Precise.string_mul(contractsString, contractSizeString)
+                    pnlDiff = None
+                    if isInverse:
+                        invEntry = Precise.string_div('1', entryPriceString)
+                        invMark = Precise.string_div('1', markPriceString)
+                        if side == 'long':
+                            pnlDiff = Precise.string_sub(invEntry, invMark)
+                        elif side == 'short':
+                            pnlDiff = Precise.string_sub(invMark, invEntry)
+                    else:
+                        if side == 'long':
+                            pnlDiff = Precise.string_sub(markPriceString, entryPriceString)
+                        elif side == 'short':
+                            pnlDiff = Precise.string_sub(entryPriceString, markPriceString)
+                    if pnlDiff is not None:
+                        candidateUpnl = Precise.string_mul(pnlDiff, totalSize)
+                        if Precise.string_eq(candidateUpnl, '0') or Precise.string_ge(Precise.string_abs(candidateUpnl), '0.000001'):
+                            unrealizedPnlString = candidateUpnl
+                            position['unrealizedPnl'] = self.parse_number(unrealizedPnlString)
+            # 3. initialMargin <-> initialMarginPercentage <-> leverage / notional
+            hasValidNotional = (notionalString is not None) and Precise.string_gt(notionalString, '0')
+            hasNegativeCollateral = (collateralString is not None) and Precise.string_lt(collateralString, '0')
+            initialMarginPercentageString = self.safe_string(position, 'initialMarginPercentage')
+            leverageString = self.safe_string(position, 'leverage')
+            hasLeverage = (leverageString is not None) and Precise.string_gt(leverageString, '0')
+            hasInitialMargin = (initialMarginString is not None) and Precise.string_gt(initialMarginString, '0')
+            hadInitialMargin = (initialMarginString is not None)
+            if (initialMarginPercentageString is None) and not hasNegativeCollateral and (hasInitialMargin or not hadInitialMargin):
+                if hasInitialMargin and hasValidNotional:
+                    initialMarginPercentageString = Precise.string_div(initialMarginString, notionalString)
+                elif hasLeverage:
+                    initialMarginPercentageString = Precise.string_div('1', leverageString)
+                if (initialMarginPercentageString is not None) and Precise.string_gt(initialMarginPercentageString, '0'):
+                    position['initialMarginPercentage'] = self.parse_number(initialMarginPercentageString)
+            hasImp = (initialMarginPercentageString is not None) and Precise.string_gt(initialMarginPercentageString, '0')
+            if (initialMarginString is None) and not hasNegativeCollateral and hasValidNotional:
+                if hasLeverage:
+                    initialMarginString = Precise.string_div(notionalString, leverageString)
+                elif hasImp:
+                    initialMarginString = Precise.string_mul(notionalString, initialMarginPercentageString)
+                if (initialMarginString is not None) and Precise.string_gt(initialMarginString, '0'):
+                    position['initialMargin'] = self.parse_number(initialMarginString)
+            if (leverageString is None) and not hadInitialMargin and hasImp:
+                derivedLeverage = Precise.string_div('1', initialMarginPercentageString)
+                if Precise.string_gt(derivedLeverage, '0') and Precise.string_le(derivedLeverage, '200'):
+                    position['leverage'] = self.parse_number(derivedLeverage)
+            # 4. maintenanceMargin <-> maintenanceMarginPercentage / notional
+            maintenanceMarginPercentageString = self.safe_string(position, 'maintenanceMarginPercentage')
+            hasValidMm = (maintenanceMarginString is not None) and Precise.string_gt(maintenanceMarginString, '0')
+            hasValidMmp = (maintenanceMarginPercentageString is not None) and Precise.string_gt(maintenanceMarginPercentageString, '0')
+            if (maintenanceMarginString is None) and hasValidNotional and hasValidMmp:
+                derivedMm = Precise.string_mul(notionalString, maintenanceMarginPercentageString)
+                if Precise.string_gt(derivedMm, '0'):
+                    maintenanceMarginString = derivedMm
+                    position['maintenanceMargin'] = self.parse_number(derivedMm)
+            elif (maintenanceMarginPercentageString is None) and hasValidNotional and hasValidMm:
+                derivedMmp = Precise.string_div(maintenanceMarginString, notionalString)
+                if Precise.string_gt(derivedMmp, '0'):
+                    maintenanceMarginPercentageString = derivedMmp
+                    position['maintenanceMarginPercentage'] = self.parse_number(derivedMmp)
+            # 5. marginRatio = maintenanceMargin / collateral
+            marginRatio = self.safe_value(position, 'marginRatio')
+            if (marginRatio is None) and (maintenanceMarginString is not None) and (collateralString is not None):
+                if Precise.string_gt(maintenanceMarginString, '0') and Precise.string_gt(collateralString, '0'):
+                    derivedMarginRatio = Precise.string_div(maintenanceMarginString, collateralString, 4)
+                    if (derivedMarginRatio is not None) and Precise.string_gt(derivedMarginRatio, '0'):
+                        position['marginRatio'] = self.parse_number(derivedMarginRatio)
+        #
+        # PERCENTAGE
+        #
+        percentage = self.safe_value(position, 'percentage')
+        if (percentage is None) and (unrealizedPnlString is not None) and (initialMarginString is not None):
+            # as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+            percentageString = Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100')
+            position['percentage'] = self.parse_number(percentageString)
         return position
 
     def parse_positions(self, positions: list, symbols: Strings = None, params: dict = {}):
@@ -5821,6 +6081,15 @@ class BaseExchange(object):
         price = self.safe_float(bidask, priceKey)
         amount = self.safe_float(bidask, amountKey)
         countOrId = self.safe_integer(bidask, countOrIdKey)
+        bidAsk = [price, amount]
+        if countOrId is not None:
+            bidAsk.append(countOrId)
+        return bidAsk
+
+    def parse_order_book_bid_ask_l3(self, bidask: object, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+        price = self.safe_float(bidask, priceKey)
+        amount = self.safe_float(bidask, amountKey)
+        countOrId = self.safe_string(bidask, countOrIdKey)
         bidAsk = [price, amount]
         if countOrId is not None:
             bidAsk.append(countOrId)

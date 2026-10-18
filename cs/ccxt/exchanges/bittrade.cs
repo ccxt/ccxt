@@ -547,6 +547,7 @@ public partial class bittrade : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "contract is restricted of closing positions on API.  Please contact customer service", typeof(OnMaintenance) },
                     { "maintain", typeof(OnMaintenance) },
+                    { "trade not open now", typeof(BadSymbol) },
                 } },
                 { "exact", new Dictionary<string, object>() {
                     { "bad-request", typeof(BadRequest) },

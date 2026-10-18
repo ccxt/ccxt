@@ -232,7 +232,91 @@ public class Nado extends NadoApi
                 put( "1w", 604800 );
                 put( "4w", 2419200 );
             }} );
-            put( "features", new HashMap<String, Object>() {{}} );
+            put( "features", new HashMap<String, Object>() {{
+                put( "default", new HashMap<String, Object>() {{
+                    put( "sandbox", true );
+                    put( "createOrder", new HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "triggerPrice", true );
+                        put( "triggerPriceType", null );
+                        put( "triggerDirection", true );
+                        put( "stopLossPrice", true );
+                        put( "takeProfitPrice", true );
+                        put( "attachedStopLossTakeProfit", null );
+                        put( "timeInForce", new HashMap<String, Object>() {{
+                            put( "IOC", true );
+                            put( "FOK", true );
+                            put( "PO", true );
+                            put( "GTD", false );
+                        }} );
+                        put( "hedged", false );
+                        put( "trailing", false );
+                        put( "leverage", false );
+                        put( "marketBuyByCost", false );
+                        put( "marketBuyRequiresPrice", false );
+                        put( "selfTradePrevention", false );
+                        put( "iceberg", false );
+                    }} );
+                    put( "createOrders", null );
+                    put( "fetchMyTrades", new HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "limit", 500 );
+                        put( "daysBack", null );
+                        put( "untilDays", null );
+                        put( "symbolRequired", false );
+                    }} );
+                    put( "fetchOrder", new HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "trigger", false );
+                        put( "trailing", false );
+                        put( "symbolRequired", true );
+                    }} );
+                    put( "fetchOpenOrders", new HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "limit", null );
+                        put( "trigger", true );
+                        put( "trailing", false );
+                        put( "symbolRequired", true );
+                    }} );
+                    put( "fetchOrders", new HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "limit", 500 );
+                        put( "daysBack", null );
+                        put( "untilDays", null );
+                        put( "trigger", true );
+                        put( "trailing", false );
+                        put( "symbolRequired", false );
+                    }} );
+                    put( "fetchClosedOrders", new HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "limit", 500 );
+                        put( "daysBack", null );
+                        put( "daysBackCanceled", null );
+                        put( "untilDays", null );
+                        put( "trigger", true );
+                        put( "trailing", false );
+                        put( "symbolRequired", false );
+                    }} );
+                    put( "fetchOHLCV", new HashMap<String, Object>() {{
+                        put( "limit", 500 );
+                    }} );
+                }} );
+                put( "spot", new HashMap<String, Object>() {{
+                    put( "extends", "default" );
+                    put( "createOrder", new HashMap<String, Object>() {{
+                        put( "triggerPrice", false );
+                        put( "triggerDirection", false );
+                        put( "stopLossPrice", false );
+                        put( "takeProfitPrice", false );
+                    }} );
+                }} );
+                put( "swap", new HashMap<String, Object>() {{
+                    put( "linear", new HashMap<String, Object>() {{
+                        put( "extends", "default" );
+                    }} );
+                    put( "inverse", null );
+                }} );
+            }} );
             put( "exceptions", new HashMap<String, Object>() {{
                 put( "exact", new HashMap<String, Object>() {{
                     put( "1000", RateLimitExceeded.class );

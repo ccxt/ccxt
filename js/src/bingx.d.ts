@@ -167,6 +167,17 @@ export default class bingx extends Exchange {
     fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
+     * @name bingx#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Symbol%20Order%20Book%20Ticker
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Symbol%20Order%20Book%20Ticker
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all spot markets are returned if not assigned, swap requires exactly one symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    fetchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    /**
+     * @method
      * @name bingx#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics

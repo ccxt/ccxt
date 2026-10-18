@@ -331,6 +331,7 @@ class bittrade extends Exchange {
                 'broad' => array(
                     'contract is restricted of closing positions on API.  Please contact customer service' => '\\ccxt\\OnMaintenance',
                     'maintain' => '\\ccxt\\OnMaintenance',
+                    'trade not open now' => '\\ccxt\\BadSymbol', // {"status":"error","err-code":"bad-request","err-msg":"symbol:maticjpy trade not open now "}
                 ),
                 'exact' => array(
                     // err-code
