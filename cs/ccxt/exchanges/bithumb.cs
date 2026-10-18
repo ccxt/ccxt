@@ -491,7 +491,7 @@ public partial class bithumb : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "generation", 2 },
-                { "fetchTickersGeneration2MaxMarketIdsPerRequest", 300 },
+                { "fetchTickersGeneration2MaxMarketIdsPerRequest", 200 },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "quoteCurrencies", new Dictionary<string, object>() {
                     { "KRW", new Dictionary<string, object>() {
@@ -1118,31 +1118,24 @@ public partial class bithumb : Exchange
             }
             List<object> marketIdsChunks = new List<object>() {};
             List<object> promises = new List<object>() {};
-            if ((symbols != null))
+            // the exchange rejects more than 200 market ids per request
+            object maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200);
+            if (((maxMarketIdsPerRequest == null)) || (isLessThan(maxMarketIdsPerRequest, 1)))
             {
-                request["markets"] = String.Join(",", marketIds.ToArray());
-                marketIdsChunks.Add(marketIds);
-                promises.Add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
-            } else
+                maxMarketIdsPerRequest = 200;
+            }
+            List<object> marketIdsChunk = new List<object>() {};
+            for (int i = 0; i < marketIdsLength; i++)
             {
-                object maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300);
-                if (((maxMarketIdsPerRequest == null)) || (isLessThan(maxMarketIdsPerRequest, 1)))
+                marketIdsChunk.Add((marketIds != null && i < marketIds.Count ? marketIds[i] : null));
+                int marketIdsChunkLength = (marketIdsChunk?.Count ?? 0);
+                bool isLastMarketId = (isEqual(i, ((marketIdsLength - 1))));
+                if ((isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId)
                 {
-                    maxMarketIdsPerRequest = 300;
-                }
-                List<object> marketIdsChunk = new List<object>() {};
-                for (int i = 0; i < marketIdsLength; i++)
-                {
-                    marketIdsChunk.Add((marketIds != null && i < marketIds.Count ? marketIds[i] : null));
-                    int marketIdsChunkLength = (marketIdsChunk?.Count ?? 0);
-                    bool isLastMarketId = (isEqual(i, ((marketIdsLength - 1))));
-                    if ((isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId)
-                    {
-                        marketIdsChunks.Add(marketIdsChunk);
-                        request["markets"] = String.Join(",", marketIdsChunk.ToArray());
-                        promises.Add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
-                        marketIdsChunk = new List<object>() {};
-                    }
+                    marketIdsChunks.Add(marketIdsChunk);
+                    request["markets"] = String.Join(",", marketIdsChunk.ToArray());
+                    promises.Add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
+                    marketIdsChunk = new List<object>() {};
                 }
             }
             //
@@ -1187,9 +1180,9 @@ public partial class bithumb : Exchange
                     response = getValue(response, "data");
                 }
                 string? expectedMarketId = null;
-                List<object> marketIdsChunk = this.safeList(marketIdsChunks, i, new List<object>() {});
-                string? firstMarketId = this.safeString(marketIdsChunk, 0);
-                if (((firstMarketId != null)) && ((this.safeString(marketIdsChunk, 1) == null)))
+                List<object> requestedMarketIds = this.safeList(marketIdsChunks, i, new List<object>() {});
+                string? firstMarketId = this.safeString(requestedMarketIds, 0);
+                if (((firstMarketId != null)) && ((this.safeString(requestedMarketIds, 1) == null)))
                 {
                     expectedMarketId = firstMarketId;
                 }

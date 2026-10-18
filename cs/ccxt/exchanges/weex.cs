@@ -1495,7 +1495,7 @@ public partial class weex : Exchange
             { "ask", this.safeString(ticker, "askPrice") },
             { "askVolume", this.safeString(ticker, "askQty") },
             { "vwap", null },
-            { "open", this.safeString(ticker, "openPrice") },
+            { "open", null },
             { "close", this.safeString(ticker, "lastPrice") },
             { "last", this.safeString(ticker, "lastPrice") },
             { "previousClose", null },

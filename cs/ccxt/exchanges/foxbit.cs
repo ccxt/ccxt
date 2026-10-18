@@ -1933,6 +1933,15 @@ public partial class foxbit : Exchange
         IDictionary<string, object> bestBid = this.safeDict(best, "bid");
         IDictionary<string, object> lastTrade = this.safeDict(ticker, "last_trade");
         string? lastPrice = this.safeString(lastTrade, "price");
+        string? change = this.safeString(rolling_24h, "price_change");
+        string? percentage = this.safeString(rolling_24h, "price_change_percent");
+        // never-traded markets report all-zero placeholders instead of omitting the values
+        if (Precise.stringEq(lastPrice, "0"))
+        {
+            lastPrice = null;
+            change = null;
+            percentage = null;
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", this.parseDate(this.safeString(lastTrade, "date")) },
@@ -1948,8 +1957,8 @@ public partial class foxbit : Exchange
             { "close", lastPrice },
             { "last", lastPrice },
             { "previousClose", null },
-            { "change", this.safeString(rolling_24h, "price_change") },
-            { "percentage", this.safeString(rolling_24h, "price_change_percent") },
+            { "change", change },
+            { "percentage", percentage },
             { "average", null },
             { "baseVolume", this.safeString(rolling_24h, "volume") },
             { "quoteVolume", this.safeString(rolling_24h, "quote_volume") },

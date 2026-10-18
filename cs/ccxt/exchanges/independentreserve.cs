@@ -495,7 +495,10 @@ public partial class independentreserve : Exchange
                         } },
                     } },
                     { "created", null },
-                    { "info", id },
+                    { "info", new Dictionary<string, object>() {
+                        { "primaryCurrencyCode", baseId },
+                        { "secondaryCurrencyCode", quoteId },
+                    } },
                 });
             }
         }
@@ -1388,11 +1391,12 @@ public partial class independentreserve : Exchange
                 { "headers", signedHeaders },
             };
         }
+        Dictionary<string, object> headers = new Dictionary<string, object>() {};
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
             { "body", null },
-            { "headers", null },
+            { "headers", headers },
         };
     }
 }
