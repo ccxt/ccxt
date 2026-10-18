@@ -284,7 +284,7 @@
                   "buy",
                   1
                 ],
-                "output": { "contract": "XRP_USDT", "size": 1, "price": "0", "tif": "ioc" }
+                "output": { "contract": "XRP_USDT", "size": "1", "price": "0", "tif": "ioc" }
             },
             {
                 "description": "swap market sell",
@@ -296,7 +296,7 @@
                   "sell",
                   1
                 ],
-                "output": { "contract": "XRP_USDT", "size": -1, "price": "0", "tif": "ioc" }
+                "output": { "contract": "XRP_USDT", "size": "-1", "price": "0", "tif": "ioc" }
             },
             {
                 "description": "unified spot create a limit order",
