@@ -253,7 +253,7 @@
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:253"
             },
             "fetchTickers": {
-                "checkActiveSymbols": "spot ticker/24hr lists ~660 of ~1740 active markets",
+                "checkActiveSymbols": "fetchTickers () returns one market type per call (defaultType), the check counts active markets of all types",
                 "comparePercentage": "priceChangePercent is rounded to two decimals by the venue"
             },
             "fetchCurrencies": {
