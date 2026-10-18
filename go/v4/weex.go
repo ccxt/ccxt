@@ -1621,7 +1621,7 @@ func (this *Weex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"ask":           this.SafeString(ticker, "askPrice"),
 		"askVolume":     this.SafeString(ticker, "askQty"),
 		"vwap":          nil,
-		"open":          this.SafeString(ticker, "openPrice"),
+		"open":          nil,
 		"close":         this.SafeString(ticker, "lastPrice"),
 		"last":          this.SafeString(ticker, "lastPrice"),
 		"previousClose": nil,
@@ -1949,11 +1949,11 @@ func (this *Weex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes154419 []any = r1.Value
-		if retRes154419 == nil {
+		var retRes154519 []any = r1.Value
+		if retRes154519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes154419}
+			ch <- AsyncResult[any]{Value: retRes154519}
 		}
 		return nil
 	} else {
@@ -1962,11 +1962,11 @@ func (this *Weex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, option
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes154619 []any = r2.Value
-		if retRes154619 == nil {
+		var retRes154719 []any = r2.Value
+		if retRes154719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes154619}
+			ch <- AsyncResult[any]{Value: retRes154719}
 		}
 		return nil
 	}
@@ -2077,11 +2077,11 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]any], symbol stri
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes160319 []any = ListTyped(r1.Value)
-		if retRes160319 == nil {
+		var retRes160419 []any = ListTyped(r1.Value)
+		if retRes160419 == nil {
 			ch <- AsyncResult[[]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]any]{Value: retRes160319}
+			ch <- AsyncResult[[]any]{Value: retRes160419}
 		}
 		return nil
 	}
@@ -2795,11 +2795,11 @@ func (this *Weex) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes212419 []any = ListTyped(r1.Value)
-		if retRes212419 == nil {
+		var retRes212519 []any = ListTyped(r1.Value)
+		if retRes212519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes212419}
+			ch <- AsyncResult[any]{Value: retRes212519}
 		}
 		return nil
 	}
@@ -2904,11 +2904,11 @@ func (this *Weex) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes220019 map[string]any = r1.Value
-		if retRes220019 == nil {
+		var retRes220119 map[string]any = r1.Value
+		if retRes220119 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes220019}
+			ch <- AsyncResult[map[string]any]{Value: retRes220119}
 		}
 		return nil
 	} else {
@@ -2921,11 +2921,11 @@ func (this *Weex) createOrderBody(ch chan AsyncResult[map[string]any], symbol st
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes220619 map[string]any = r2.Value
-		if retRes220619 == nil {
+		var retRes220719 map[string]any = r2.Value
+		if retRes220719 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes220619}
+			ch <- AsyncResult[map[string]any]{Value: retRes220719}
 		}
 		return nil
 	}
@@ -3685,11 +3685,11 @@ func (this *Weex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes275719 []any = ListTyped(r1.Value)
-		if retRes275719 == nil {
+		var retRes275819 []any = ListTyped(r1.Value)
+		if retRes275819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes275719}
+			ch <- AsyncResult[any]{Value: retRes275819}
 		}
 		return nil
 	}
@@ -4007,11 +4007,11 @@ func (this *Weex) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes296219 []any = ListTyped(r1.Value)
-		if retRes296219 == nil {
+		var retRes296319 []any = ListTyped(r1.Value)
+		if retRes296319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes296219}
+			ch <- AsyncResult[any]{Value: retRes296319}
 		}
 		return nil
 	}
@@ -4110,11 +4110,11 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes302819 []any = ListTyped(r1.Value)
-		if retRes302819 == nil {
+		var retRes302919 []any = ListTyped(r1.Value)
+		if retRes302919 == nil {
 			ch <- AsyncResult[[]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]any]{Value: retRes302819}
+			ch <- AsyncResult[[]any]{Value: retRes302919}
 		}
 		return nil
 	}
@@ -4439,11 +4439,11 @@ func (this *Weex) fetchOrderTradesBody(ch chan AsyncResult[any], id string, opti
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes330215 []any = ListTyped(r1.Value)
-	if retRes330215 == nil {
+	var retRes330315 []any = ListTyped(r1.Value)
+	if retRes330315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes330215}
+		ch <- AsyncResult[any]{Value: retRes330315}
 	}
 	return nil
 }
@@ -4502,11 +4502,11 @@ func (this *Weex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...an
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333519 []any = ListTyped(r1.Value)
-		if retRes333519 == nil {
+		var retRes333619 []any = ListTyped(r1.Value)
+		if retRes333619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes333519}
+			ch <- AsyncResult[any]{Value: retRes333619}
 		}
 		return nil
 	}
@@ -4628,11 +4628,11 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes341919 []any = ListTyped(r1.Value)
-		if retRes341919 == nil {
+		var retRes342019 []any = ListTyped(r1.Value)
+		if retRes342019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes341919}
+			ch <- AsyncResult[any]{Value: retRes342019}
 		}
 		return nil
 	}
@@ -4854,11 +4854,11 @@ func (this *Weex) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes359019 []any = ListTyped(r1.Value)
-		if retRes359019 == nil {
+		var retRes359119 []any = ListTyped(r1.Value)
+		if retRes359119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes359019}
+			ch <- AsyncResult[any]{Value: retRes359119}
 		}
 		return nil
 	}
@@ -5065,12 +5065,12 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan AsyncResult[[]any], symbol
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes372719 []any = ListTyped(r1.Value)
+		var retRes372819 []any = ListTyped(r1.Value)
 		// the demo trading API does not provide a single-position endpoint
-		if retRes372719 == nil {
+		if retRes372819 == nil {
 			ch <- AsyncResult[[]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]any]{Value: retRes372719}
+			ch <- AsyncResult[[]any]{Value: retRes372819}
 		}
 		return nil
 	}
@@ -5934,11 +5934,11 @@ func (this *Weex) reduceMarginBody(ch chan EndpointResult[map[string]any], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes431015 map[string]any = MapTyped(r.Value)
-	if retRes431015 == nil {
+	var retRes431115 map[string]any = MapTyped(r.Value)
+	if retRes431115 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes431015, Raw: retRes431015}
+		ch <- EndpointResult[map[string]any]{Value: retRes431115, Raw: retRes431115}
 	}
 	return nil
 }
@@ -5969,11 +5969,11 @@ func (this *Weex) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes432515 map[string]any = MapTyped(r.Value)
-	if retRes432515 == nil {
+	var retRes432615 map[string]any = MapTyped(r.Value)
+	if retRes432615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes432515}
+		ch <- AsyncResult[map[string]any]{Value: retRes432615}
 	}
 	return nil
 }
