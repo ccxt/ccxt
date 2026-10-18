@@ -111,9 +111,9 @@ export default class toobit extends Exchange {
                         'quote/v1/depth/merged': { 'cost': 1 } as Endpoint<Dict>,
                         'quote/v1/trades': { 'cost': 1 } as Endpoint<List>,
                         'quote/v1/klines': { 'cost': 1 } as Endpoint<List>,
-                        'quote/v1/index/klines': { 'cost': 1 } as Endpoint<List>,
+                        'quote/v1/index/klines': { 'cost': 1 } as Endpoint<Dict>,
                         'quote/v1/indexPriceComponents': { 'cost': 1 } as Endpoint<Dict>,
-                        'quote/v1/markPrice/klines': { 'cost': 1 } as Endpoint<List>,
+                        'quote/v1/markPrice/klines': { 'cost': 1 } as Endpoint<Dict>,
                         'quote/v1/markPrice': { 'cost': 10 } as Endpoint<Dict>, // 5 requests per second
                         'quote/v1/index': { 'cost': 1 } as Endpoint<Dict>,
                         'quote/v1/ticker/24hr': { 'cost': 40 } as Endpoint<List>, // todo: 1-40 depending noSymbol
@@ -1241,6 +1241,8 @@ export default class toobit extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
@@ -1252,20 +1254,33 @@ export default class toobit extends Exchange {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
         const until = this.safeInteger (params, 'until');
-        if (until !== undefined) {
-            request['endTime'] = until;
-        }
         const paramsOmitted = (until !== undefined) ? this.omit (params, 'until') : params;
+        const [ endpoint, paramsPrice ] = this.handleOptionStringAndParams (paramsOmitted, 'fetchOHLCV', 'price');
+        const isPriceKlines = (endpoint === 'index') || (endpoint === 'mark');
+        let startKey = 'startTime';
+        let endKey = 'endTime';
+        if (isPriceKlines) {
+            startKey = 'from';
+            endKey = 'to';
+        }
+        if (since !== undefined) {
+            request[startKey] = since;
+        }
+        if (until !== undefined) {
+            request[endKey] = until;
+        } else if (isPriceKlines && (since !== undefined)) {
+            // mark and index klines walk backwards from `to` and ignore a lone `from`
+            const duration = this.parseTimeframe (timeframe);
+            const requestedLimit = (limit === undefined) ? 2000 : limit; // exchange default
+            request['to'] = this.sum (since, duration * requestedLimit * 1000);
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         let response: Dict | List = [];
-        const [ endpoint, paramsPrice ] = this.handleOptionStringAndParams (paramsOmitted, 'fetchOHLCV', 'price');
         if (endpoint === 'index') {
+            request['symbol'] = this.safeString (market['info'], 'indexToken'); // index klines take the index id instead of the market id
             response = await this.commonGetQuoteV1IndexKlines (this.extend (request, paramsPrice));
             //
             //     {
@@ -1336,6 +1351,8 @@ export default class toobit extends Exchange {
         let candles: List = [];
         if (Array.isArray (response)) {
             candles = response;
+        } else {
+            candles = this.safeList (response, 'data', []);
         }
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
