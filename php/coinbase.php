@@ -1847,7 +1847,8 @@ class coinbase extends Exchange {
         if (($base === null) || ($quote === null)) {
             return null;
         }
-        $tradingDisabled = $this->safe_bool($market, 'is_disabled');
+        $isDisabled = $this->safe_bool($market, 'is_disabled');
+        $tradingDisabled = ($isDisabled === true) || ($this->safe_bool($market, 'trading_disabled') === true);
         $symbol = $base . '/' . $quote;
         $type = null;
         if ($isSwap) {

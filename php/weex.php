@@ -1324,7 +1324,8 @@ class weex extends Exchange {
             'ask' => $this->safe_string($ticker, 'askPrice'),
             'askVolume' => $this->safe_string($ticker, 'askQty'),
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'openPrice'),
+            // openPrice comes from a different window than priceChange/priceChangePercent, so open is derived from last - change
+            'open' => null,
             'close' => $this->safe_string($ticker, 'lastPrice'),
             'last' => $this->safe_string($ticker, 'lastPrice'),
             'previousClose' => null,
