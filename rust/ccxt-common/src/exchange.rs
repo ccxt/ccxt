@@ -1180,7 +1180,17 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             .find_map(|v| match v { Value::Str(s) if !s.is_empty() => Some(s.to_string()), _ => None });
         // binary frames are decompressed unless the exchange opts out (mexc, paradex)
         let __decompress_binary = !matches!(crate::get_value(&self.options, &Value::Str("decompressBinary".into())), Value::Bool(false));
-        let client = match crate::pro::ws_client::ensure_client(&url, __ws_proxy, __decompress_binary).await {
+        // options.ws.options.headers ride on the upgrade request, as in the other ports
+        let __ws_options = crate::get_value(&crate::get_value(&self.options, &Value::Str("ws".into())), &Value::Str("options".into()));
+        let __ws_headers: Vec<(String, String)> = match crate::get_value(&__ws_options, &Value::Str("headers".into())) {
+            Value::Dict(m) => m.iter().filter_map(|(k, v)| match v {
+                Value::Str(s) => Some((k.clone(), s.to_string())),
+                Value::Int(n) => Some((k.clone(), n.to_string())),
+                _ => None,
+            }).collect(),
+            _ => Vec::new(),
+        };
+        let client = match crate::pro::ws_client::ensure_client_with_headers(&url, &__ws_headers, __ws_proxy, __decompress_binary).await {
             Ok(c) => c,
             Err(e) => panic!("{}", e),
         };
