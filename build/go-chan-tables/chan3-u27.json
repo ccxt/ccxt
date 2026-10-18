@@ -2,5 +2,6 @@
     "CreateOrder": "Order",
     "EditOrder": "Order",
     "FetchOrder": "Order",
-    "CancelOrder": "Order"
+    "CancelOrder": "Order",
+    "ClosePosition": "Order"
 }
