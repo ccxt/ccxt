@@ -1,0 +1,11 @@
+{
+    "CreateOrDeriveApiKey": "map[string]any",
+    "LoadApiKey": "*string",
+    "SendEvmTransaction": "*string",
+    "WaitForTransactionReceipt": "map[string]any",
+    "LoadQuoteToken": "map[string]any",
+    "LoadTradeMarket": "map[string]any",
+    "LoadSxObv3Metadata": "map[string]any",
+    "FetchSxbetBestOdds": "[]any",
+    "WalletEventsTopic": "*string"
+}

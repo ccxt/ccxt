@@ -1,6 +1,4 @@
 {
-    "FetchTickers": "map[string]any",
     "FetchBidsAsks": "map[string]any",
-    "FetchFundingRates": "map[string]any",
     "FetchLastPrices": "map[string]any"
 }

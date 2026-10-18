@@ -1,0 +1,4 @@
+{
+  "UnWatchOHLCV": "bool",
+  "UnWatchOHLCVForSymbols": "bool"
+}

@@ -1,0 +1,11 @@
+{
+  "Deepcoin.WatchPrivate": "[]any",
+  "Hashkey.WatchPrivate": "[]any",
+  "Kraken.WatchPrivate": "[]any",
+  "Nado.WatchPrivate": "[]any",
+  "Whitebit.WatchPrivate": "map[string]any",
+  "Bitvavo.WatchPublicMultiple": "map[string]any",
+  "Modetrade.WatchPrivateMultiple": "[]any",
+  "Woo.WatchPrivateMultiple": "[]any",
+  "Woofipro.WatchPrivateMultiple": "[]any"
+}

@@ -1,0 +1,5 @@
+{
+  "UnWatchTicker": "bool",
+  "UnWatchTickers": "bool",
+  "UnWatchBidsAsks": "bool"
+}

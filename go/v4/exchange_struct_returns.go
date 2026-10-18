@@ -259,6 +259,68 @@ func ConversionToMap(c Conversion) map[string]any {
 	return StructToMap(c)
 }
 
+// Map-of-struct channels (W29, build/go-chan3.ts goChan3StructPass with a `map[string]T` table value):
+// a string-keyed dict of unified rows (fetchTickers, fetchFundingRates, ...) carried as map[string]T.
+// Only dict-valued entries are rows (a top-level `info` or other scalar is not), as in NewTickers.
+
+// StructDictFromMap builds the typed dict of a unified dict of rows.
+func StructDictFromMap[T any](data any, from func(any) T) map[string]T {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return nil
+	}
+	out := make(map[string]T, len(m))
+	for k, v := range m {
+		if _, isDict := v.(map[string]any); isDict && k != "info" {
+			out[k] = from(v)
+		}
+	}
+	return out
+}
+
+// StructDictToMap is the map shape every untyped caller expects (nil for a nil dict).
+func StructDictToMap[T any](d map[string]T, to func(T) map[string]any) map[string]any {
+	if d == nil {
+		return nil
+	}
+	out := make(map[string]any, len(d))
+	for k, v := range d {
+		out[k] = to(v)
+	}
+	return out
+}
+
+func TickerMapFromMap(data any) map[string]Ticker { return StructDictFromMap(data, TickerFromMap) }
+func TickerMapToMap(d map[string]Ticker) map[string]any { return StructDictToMap(d, TickerToMap) }
+func FundingRateMapFromMap(data any) map[string]FundingRate {
+	return StructDictFromMap(data, FundingRateFromMap)
+}
+func FundingRateMapToMap(d map[string]FundingRate) map[string]any {
+	return StructDictToMap(d, FundingRateToMap)
+}
+func OpenInterestMapFromMap(data any) map[string]OpenInterest {
+	return StructDictFromMap(data, OpenInterestFromMap)
+}
+func OpenInterestMapToMap(d map[string]OpenInterest) map[string]any {
+	return StructDictToMap(d, OpenInterestToMap)
+}
+func TradingFeeInterfaceMapFromMap(data any) map[string]TradingFeeInterface {
+	return StructDictFromMap(data, TradingFeeInterfaceFromMap)
+}
+func TradingFeeInterfaceMapToMap(d map[string]TradingFeeInterface) map[string]any {
+	return StructDictToMap(d, TradingFeeInterfaceToMap)
+}
+func LeverageMapFromMap(data any) map[string]Leverage { return StructDictFromMap(data, LeverageFromMap) }
+func LeverageMapToMap(d map[string]Leverage) map[string]any {
+	return StructDictToMap(d, LeverageToMap)
+}
+func MarginModeMapFromMap(data any) map[string]MarginMode {
+	return StructDictFromMap(data, MarginModeFromMap)
+}
+func MarginModeMapToMap(d map[string]MarginMode) map[string]any {
+	return StructDictToMap(d, MarginModeToMap)
+}
+
 func copyMap(m map[string]any) map[string]any {
 	out := make(map[string]any, len(m))
 	for k, v := range m {
@@ -491,4 +553,123 @@ func WatchMultiple[T any](ex interface{ WatchMultiple(args ...any) <-chan AsyncR
 		ch <- AsyncResult[T]{Value: WatchResolved[T](r.Value)}
 	}()
 	return ch
+}
+
+// List-of-struct channels (build/go-chan3.ts goChan3StructListPass, W28): a core typed AsyncResult[[]T]
+// sends the parsed rows as []T; readers that hand the value on untyped read it back with <Ts>ToList, the
+// exact []any (nil for nil) the AsyncResult[[]any] core sent, and reflective readers (AsyncResult.Boxed:
+// PromiseAll, CallInternalMethod) get the same []any through structListBoxers.
+
+// StructListFromList builds a []T from a parsed list (an ArrayCache reads as its rows; nil stays nil).
+func StructListFromList[T any](data any, from func(any) T) []T {
+	rows := listValueToTypedSlice(data)
+	if rows == nil {
+		return nil
+	}
+	out := make([]T, 0, len(rows))
+	for _, row := range rows {
+		if typed, isTyped := row.(T); isTyped {
+			out = append(out, typed)
+		} else if row != nil {
+			out = append(out, from(row))
+		}
+	}
+	return out
+}
+
+// StructListToList is the []any shape every untyped caller expects (nil for a nil slice).
+func StructListToList[T any, R any](v []T, to func(T) R) []any {
+	if v == nil {
+		return nil
+	}
+	out := make([]any, len(v))
+	for i, row := range v {
+		out[i] = to(row)
+	}
+	return out
+}
+
+// StructListBox is the untyped box of a list-of-struct channel value: untyped nil for a nil slice.
+func StructListBox[T any, R any](v []T, to func(T) R) any {
+	if v == nil {
+		return nil
+	}
+	return StructListToList(v, to)
+}
+
+// StructListsToLists converts a PromiseAllTyped result of list-of-struct channels to [][]any.
+func StructListsToLists[T any, R any](v [][]T, to func(T) R) [][]any {
+	if v == nil {
+		return nil
+	}
+	out := make([][]any, len(v))
+	for i, rows := range v {
+		out[i] = StructListToList(rows, to)
+	}
+	return out
+}
+
+// TradesFromList builds a []Trade from a parsed trade list.
+func TradesFromList(data any) []Trade { return StructListFromList(data, TradeFromMap) }
+
+// TradesToList is the []any shape every untyped caller expects.
+func TradesToList(v []Trade) []any { return StructListToList(v, TradeToMap) }
+
+// OrdersFromList builds an []Order from a parsed order list.
+func OrdersFromList(data any) []Order { return StructListFromList(data, OrderFromMap) }
+
+// OrdersToList is the []any shape every untyped caller expects.
+func OrdersToList(v []Order) []any { return StructListToList(v, OrderToMap) }
+
+// OHLCVsFromList builds an []OHLCV from parsed candle rows.
+func OHLCVsFromList(data any) []OHLCV { return StructListFromList(data, OHLCVFromList) }
+
+// OHLCVsToList is the []any shape every untyped caller expects (each candle its original row).
+func OHLCVsToList(v []OHLCV) []any { return StructListToList(v, OHLCVToList) }
+
+// PositionsFromList builds a []Position from a parsed position list.
+func PositionsFromList(data any) []Position { return StructListFromList(data, PositionFromMap) }
+
+// PositionsToList is the []any shape every untyped caller expects.
+func PositionsToList(v []Position) []any { return StructListToList(v, PositionToMap) }
+
+// TransactionsFromList builds a []Transaction from a parsed transaction list.
+func TransactionsFromList(data any) []Transaction {
+	return StructListFromList(data, TransactionFromMap)
+}
+
+// TransactionsToList is the []any shape every untyped caller expects.
+func TransactionsToList(v []Transaction) []any { return StructListToList(v, TransactionToMap) }
+
+// LedgerEntriesFromList builds a []LedgerEntry from a parsed ledger.
+func LedgerEntriesFromList(data any) []LedgerEntry {
+	return StructListFromList(data, LedgerEntryFromMap)
+}
+
+// LedgerEntriesToList is the []any shape every untyped caller expects.
+func LedgerEntriesToList(v []LedgerEntry) []any { return StructListToList(v, LedgerEntryToMap) }
+
+// structListBoxers: the reflective box (AsyncResult.Boxed) of every list-of-struct channel element type.
+var structListBoxers = map[reflect.Type]func(any) any{
+	reflect.TypeOf([]Trade(nil)):       func(v any) any { return TradesToList(v.([]Trade)) },
+	reflect.TypeOf([]Order(nil)):       func(v any) any { return OrdersToList(v.([]Order)) },
+	reflect.TypeOf([]OHLCV(nil)):       func(v any) any { return OHLCVsToList(v.([]OHLCV)) },
+	reflect.TypeOf([]Position(nil)):    func(v any) any { return PositionsToList(v.([]Position)) },
+	reflect.TypeOf([]Transaction(nil)): func(v any) any { return TransactionsToList(v.([]Transaction)) },
+	reflect.TypeOf([]LedgerEntry(nil)): func(v any) any { return LedgerEntriesToList(v.([]LedgerEntry)) },
+}
+
+// structListBoxed is the reflective box of a list-of-struct value (ok false for any other value).
+func structListBoxed(v any) (any, bool) {
+	rv := reflect.ValueOf(v)
+	if !rv.IsValid() || rv.Kind() != reflect.Slice || rv.Type().Elem().Kind() != reflect.Struct {
+		return nil, false
+	}
+	if rv.IsNil() {
+		return nil, true
+	}
+	if box, ok := structListBoxers[rv.Type()]; ok {
+		return box(v), true
+	}
+	return nil, false
 }

@@ -11726,14 +11726,13 @@ export default class kucoin extends Exchange {
      * @returns {boolean} true if unified account is enabled, false otherwise
      */
     override async isUTAEnabled (params: Dict = {}): Promise<boolean> {
-        let uta = this.safeBool (this.options, 'uta');
-        if (uta === undefined) {
+        if (this.safeBool (this.options, 'uta') === undefined) {
             const response = await this.utaPrivateGetAccountMode (params);
             const data = this.safeDict (response, 'data', {});
             const accountMode = this.safeString (data, 'selfAccountMode');
-            uta = (accountMode === 'UNIFIED');
-            this.options['uta'] = uta;
+            this.options['uta'] = (accountMode === 'UNIFIED');
         }
+        const uta = this.safeBool (this.options, 'uta') === true;
         return uta;
     }
 

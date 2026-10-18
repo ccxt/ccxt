@@ -1,0 +1,7 @@
+{
+  "UnWatchMarkPrice": "bool",
+  "UnWatchMarkPrices": "bool",
+  "UnWatchFundingRate": "bool",
+  "UnWatchFundingRates": "bool",
+  "UnWatchWalletEvents": "bool"
+}

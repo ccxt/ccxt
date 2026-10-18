@@ -2349,7 +2349,8 @@ export default class kalshi extends Exchange {
     async fetchRawEventByTicker (ticker: string, params: Dict = {}): Promise<any> {
         const request: Dict = { 'event_ticker': ticker, 'with_nested_markets': true };
         const response = await this.kalshiPublicGetEventsEventTicker (this.extend (request, params));
-        const fullEvent = this.safeDict (response, 'event', response);
+        // a typed copy of the event row: the caller-facing dict is never the raw response
+        const fullEvent = this.extend ({}, this.safeDict (response, 'event', response));
         const nestedMarkets = this.safeList (fullEvent, 'markets');
         if (nestedMarkets === undefined) {
             fullEvent['markets'] = this.safeList (response, 'markets', []);
@@ -2502,7 +2503,7 @@ export default class kalshi extends Exchange {
      * @param {object} rawEvent the raw event object
      * @returns {object} an event structure
      */
-    parseEvent (rawEvent: Dict): any {
+    parseEvent (rawEvent: Dict): PredictionEvent {
         // {
         //         "available_on_brokers": true,
         //         "category": "Politics",

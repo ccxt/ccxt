@@ -1,0 +1,8 @@
+{
+    "FetchTickers": "map[string]Ticker",
+    "FetchFundingRates": "map[string]FundingRate",
+    "FetchOpenInterests": "map[string]OpenInterest",
+    "FetchTradingFees": "map[string]TradingFeeInterface",
+    "FetchLeverages": "map[string]Leverage",
+    "FetchMarginModes": "map[string]MarginMode"
+}

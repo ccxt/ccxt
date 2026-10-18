@@ -579,8 +579,8 @@ export default class sxbet extends Exchange {
      * @param {object[]} rawMarkets the raw sx.bet market objects belonging to this fixture
      * @returns {object} an event structure
      */
-    parseEvent (fixtureId: string, rawMarkets: any[]): any {
-        const marketsList: Market[] = [];
+    parseEvent (fixtureId: string, rawMarkets: any[]): PredictionEvent {
+        const marketsList: any[] = [];
         let anyActive = false;
         let earliestGameTime: Str = undefined;
         let teamOneName: Str = undefined;

@@ -511,7 +511,7 @@ export default class opinion extends Exchange {
      * @param {object} rawEvent the raw opinion categorical market object
      * @returns {object} an event structure
      */
-    parseEvent (rawEvent: Dict): any {
+    parseEvent (rawEvent: Dict): PredictionEvent {
         // {
         //     "chainId": "56",
         //     "childMarkets": [

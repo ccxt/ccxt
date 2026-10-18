@@ -1,0 +1,5 @@
+{
+    "FetchEvent": "map[string]any",
+    "FetchRawEventByTicker": "map[string]any",
+    "FetchWallet": "map[string]any"
+}

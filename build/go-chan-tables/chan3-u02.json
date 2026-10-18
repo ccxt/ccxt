@@ -5,7 +5,6 @@
     "DeleteApiKey": "map[string]any",
     "FetchBorrowRate": "map[string]any",
     "FetchLongShortRatio": "map[string]any",
-    "FetchMarginMode": "map[string]any",
     "FetchPositionsForSymbolWs": "[]any",
     "FetchQuote": "map[string]any",
     "FetchRawQuestionById": "map[string]any",

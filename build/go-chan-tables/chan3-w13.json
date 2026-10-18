@@ -1,0 +1,6 @@
+{
+  "Myriad.ConnectCentrifugo": "bool",
+  "Sxbet.ConnectSxbetCentrifugo": "bool",
+  "Polymarket.SubscribeUserChannel": "ArrayCacheInterface",
+  "Sxbet.SubscribeSxbetChannel": "ArrayCacheInterface"
+}

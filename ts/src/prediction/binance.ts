@@ -1578,9 +1578,8 @@ export default class binance extends Exchange {
      * @returns {object} a wallet
      */
     async fetchWallet (methodName: string, params: Dict = {}): Promise<any> {
-        let cachedWallet = this.safeDict (this.options, 'wallet');
-        if (cachedWallet !== undefined) {
-            return cachedWallet;
+        if (this.safeDict (this.options, 'wallet') !== undefined) {
+            return this.safeDict (this.options, 'wallet');
         }
         const walletAddress = this.handleOptionStringAndParams (params, methodName, 'walletAddress', this.walletAddress)[0];
         const response = await this.sapiPrivateGetWalletList ();
@@ -1597,23 +1596,18 @@ export default class binance extends Exchange {
         //
         const wallets = this.safeList (response, 'wallets', []);
         if (walletAddress === undefined) {
-            cachedWallet = this.safeDict (wallets, 0);
-            this.options['wallet'] = cachedWallet;
-            return cachedWallet;
+            this.options['wallet'] = this.safeDict (wallets, 0);
+            return this.safeDict (this.options, 'wallet');
         }
         const walletLength = wallets.length;
         for (let i = 0; i < walletLength; i++) {
             const w = this.safeString (wallets[i], 'walletAddress', '');
             if (w === walletAddress) {
-                cachedWallet = wallets[i];
-                break;
+                this.options['wallet'] = wallets[i];
+                return this.safeDict (this.options, 'wallet');
             }
         }
-        if (cachedWallet === undefined) {
-            throw new NotSupported (this.id + 'fetchWallet could\'n find wallet ' + walletAddress);
-        }
-        this.options['wallet'] = cachedWallet;
-        return cachedWallet;
+        throw new NotSupported (this.id + 'fetchWallet could\'n find wallet ' + walletAddress);
     }
 
     /**

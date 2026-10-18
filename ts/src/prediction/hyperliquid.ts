@@ -2002,7 +2002,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} raw a dict with parentSymbol and markets entries
      * @returns {object} an event structure
      */
-    parseEvent (raw: Dict): any {
+    parseEvent (raw: Dict): PredictionEvent {
         const parentSymbol = this.safeString (raw, 'parentSymbol');
         const markets = this.safeList (raw, 'markets', []) as any[];
         // Extract info from first market

@@ -1,0 +1,5 @@
+{
+    "FetchPosition": "Position",
+    "FetchFundingRate": "FundingRate",
+    "FetchOpenInterest": "OpenInterest"
+}

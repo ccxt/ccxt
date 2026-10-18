@@ -1,0 +1,8 @@
+{
+    "FetchDepositAddress": "DepositAddress",
+    "CreateDepositAddress": "DepositAddress",
+    "Withdraw": "Transaction",
+    "FetchDeposit": "Transaction",
+    "FetchWithdrawal": "Transaction",
+    "Transfer": "TransferEntry"
+}

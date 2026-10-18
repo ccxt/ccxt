@@ -1,0 +1,6 @@
+{
+  "UnWatchOrders": "bool",
+  "UnWatchMyTrades": "bool",
+  "UnWatchPositions": "bool",
+  "UnWatchBalance": "bool"
+}

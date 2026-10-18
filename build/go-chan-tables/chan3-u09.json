@@ -1,8 +1,5 @@
 {
-    "FetchDeposits": "[]any",
-    "FetchWithdrawals": "[]any",
     "FetchDepositsWithdrawals": "[]any",
     "FetchTransactions": "[]any",
-    "FetchTransfers": "[]any",
-    "FetchLedger": "[]any"
+    "FetchTransfers": "[]any"
 }

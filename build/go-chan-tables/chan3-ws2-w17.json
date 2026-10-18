@@ -1,0 +1,4 @@
+{
+  "LoadLeverageBrackets": "map[string]any",
+  "FetchPartialBalance": "map[string]any"
+}

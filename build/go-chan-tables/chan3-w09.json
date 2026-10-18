@@ -1,0 +1,5 @@
+{
+    "Bitstamp.SubscribePrivate": "ArrayCacheInterface",
+    "Lighter.SubscribePublicMultiple": "map[string]any",
+    "Kucoin.SubscribePublicMultipleUta": "map[string]any"
+}

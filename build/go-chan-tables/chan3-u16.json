@@ -1,5 +1,4 @@
 {
-    "FetchOpenInterests": "map[string]any",
     "FetchOpenInterestHistory": "[]any",
     "FetchMyLiquidations": "[]any",
     "FetchLiquidations": "[]any",

@@ -1,0 +1,10 @@
+{
+    "FetchLeverage": "Leverage",
+    "FetchMarginMode": "MarginMode",
+    "FetchGreeks": "Greeks",
+    "FetchOption": "Option",
+    "FetchConvertQuote": "Conversion",
+    "CreateConvertTrade": "Conversion",
+    "FetchConvertTrade": "Conversion",
+    "FetchLedgerEntry": "LedgerEntry"
+}

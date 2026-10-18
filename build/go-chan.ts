@@ -18,6 +18,8 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'TransferEntryToMap': 'map[string]any', 'FundingRateToMap': 'map[string]any', 'OpenInterestToMap': 'map[string]any', 'TradingFeeInterfaceToMap': 'map[string]any',
     'LeverageToMap': 'map[string]any', 'MarginModeToMap': 'map[string]any', 'GreeksToMap': 'map[string]any', 'OptionToMap': 'map[string]any', 'ConversionToMap': 'map[string]any',
     'OHLCVToList': '[]any',
+    'TradesToList': '[]any', 'OrdersToList': '[]any', 'OHLCVsToList': '[]any', 'PositionsToList': '[]any', 'TransactionsToList': '[]any', 'LedgerEntriesToList': '[]any', // W28
+    ...Object.fromEntries ([ 'Ticker', 'FundingRate', 'OpenInterest', 'TradingFeeInterface', 'Leverage', 'MarginMode' ].map ((t) => [ t + 'MapToMap', 'map[string]any' ])), // W29
     'MapTyped': 'map[string]any', 'MarketTyped': 'map[string]any', 'ListTyped': '[]any',
     // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
     'this.ApplyEventFetchParams': '[]any',
@@ -45,6 +47,10 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     ...Object.fromEntries ([ 'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee', 'ParsePublicDepositWithdrawFees' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])), // U12
     'this.SafePosition': 'map[string]any', 'this.DerivedExchange.SafePosition': 'map[string]any', 'this.ParsePosition': 'map[string]any', 'this.DerivedExchange.ParsePosition': 'map[string]any', 'this.ParseOptionPosition': 'map[string]any', 'this.DerivedExchange.ParseOptionPosition': 'map[string]any', // gochan32-U10
     'this.ParsePredictionPositions': '[]any', 'this.DerivedExchange.ParsePredictionPositions': '[]any', // U10
+    'this.ParseDepositAddresses': '[]any', 'this.DerivedExchange.ParseDepositAddresses': '[]any', // W15
+    'this.ParseEvent': 'map[string]any', 'this.ParseMarketToEvent': 'map[string]any', // W18
+    'this.SetApiCredentials': 'map[string]any', 'this.Decode': 'string', // W20
+    'this.ParseDepositMethodIds': '[]any', 'this.ParsePortfolioDetails': '[]any', // W23
 };
 // the Go element type of a table value (`T?` marks cores that may also send a bare nil)
 export function goChanType (value: string | undefined): string | undefined {

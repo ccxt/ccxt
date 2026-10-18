@@ -1,0 +1,9 @@
+{
+  "FetchPartialBalance": "map[string]any",
+  "FetchFreeBalance": "map[string]any",
+  "FetchUsedBalance": "map[string]any",
+  "FetchTotalBalance": "map[string]any",
+  "FetchContractBalance": "map[string]any",
+  "FetchUtaBalance": "map[string]any",
+  "LoadLeverageBrackets": "map[string]any"
+}

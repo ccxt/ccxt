@@ -8675,8 +8675,9 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const underlyings = this.safeList (response, 'data', []) as List;
-        return underlyings[0];
+        const underlyings = this.safeList (response, 'data', []);
+        const firstUnderlyings = this.safeList (underlyings, 0, []);
+        return firstUnderlyings;
     }
 
     /**

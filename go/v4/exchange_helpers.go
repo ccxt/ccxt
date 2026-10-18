@@ -3225,6 +3225,10 @@ func (r AsyncResult[T]) Boxed() any {
 			return nil
 		}
 	}
+	// a list-of-struct channel (AsyncResult[[]Trade], ...) boxes as the []any of maps it replaced
+	if boxed, isList := structListBoxed(r.Value); isList {
+		return boxed
+	}
 	// a struct channel (AsyncResult[Order], ...) sends the zero struct for an absent result
 	if rv := reflect.ValueOf(&r.Value).Elem(); rv.Kind() == reflect.Struct && rv.IsZero() {
 		return nil

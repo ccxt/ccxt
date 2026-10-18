@@ -1291,7 +1291,7 @@ export default class coinone extends Exchange {
                 result[code] = depositAddress;
             }
         }
-        return result as DepositAddress[];
+        return this.toArray (result);
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {

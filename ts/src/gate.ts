@@ -1265,7 +1265,8 @@ export default class gate extends Exchange {
                 this.options['unifiedAccount'] = false;
             }
         }
-        return this.options['unifiedAccount'];
+        const unified = this.safeBool (this.options, 'unifiedAccount') === true;
+        return unified;
     }
 
     async upgradeUnifiedTradeAccount (params: Dict = {}): Promise<Dict> {

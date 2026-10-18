@@ -1,4 +1,2 @@
 {
-    "FetchDepositAddress": "map[string]any",
-    "CreateDepositAddress": "map[string]any"
 }

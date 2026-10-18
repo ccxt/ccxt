@@ -3793,6 +3793,7 @@ function goProvenParseMapMethods (): string[] {
         'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting',
         'ParseMarginLoan', // U15
         'ParseADLRank', // U16
+        'ParseEvent', 'ParseMarketToEvent', // W18
         'SafePosition', 'ParsePosition', 'ParseOptionPosition' ]; // gochan32-U10
 }
 
@@ -3867,7 +3868,9 @@ function goProvenListMethods (): string[] {
         'ParsePredictionOrders', 'FilterByOutcomeSinceLimit', // U03
         'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories', // U13
         'ParsePredictionTrades', // U04
-        'ParsePredictionPositions' ]; // U10
+        'ParsePredictionPositions', // U10
+        'ParseDepositAddresses', // W15
+        'ParseDepositMethodIds', 'ParsePortfolioDetails' ]; // W23
 }
 
 // dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays
@@ -3886,7 +3889,8 @@ function goProvenMapCollectionMethods (): string[] {
         'ParseAllGreeks', 'ParseOptionChain', 'ParseAccount', // U17
         'ParseDepositAddressSpecial', // U11
         'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee',
-        'ParsePublicDepositWithdrawFees' ]; // U12
+        'ParsePublicDepositWithdrawFees', // U12
+        'SetApiCredentials' ]; // W20: opinion/polymarket return their creds map literal
 }
 
 // `X` is a balance local: declared once as a map literal, and every later write keeps the same map
@@ -6170,6 +6174,7 @@ ${constStatements.join('\n')}
             // sites live only inside the 62 (regular-only code that prediction never compiles), so we
             // type-assert to the per-method interface (I<Method>), which the regular venue satisfies.
             [new RegExp(`this\\.DerivedExchange\\.(CreateOrder|CancelOrder|EditOrder|FetchOrder|FetchTickers|CancelOrderWs|CreateOrderWs|FetchOrdersWs|FetchTickersWs|FetchPositionsHistory)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`],
+            [new RegExp(`this\\.DerivedExchange\\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`], // W28
             // SafeNumber / SafeNumber2 / SafeNumberN / SafeNumberOmitZero are hand-written in
             // go/v4/exchange_safe.go with the honest *float64 return the printer cannot emit (the
             // TS `Num` annotation prints as `any`), so drop the transpiled copies to avoid a
@@ -6276,6 +6281,8 @@ ${constStatements.join('\n')}
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'ParseSearchQueries', undefined, true, '[]any');
         // applyEventFetchParams (: any[]) has no venue override: every return is the events list (ListTyped), so fetchEvents cores send []any
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'ApplyEventFetchParams', undefined, true, '[]any');
+        // setEvents (: Dictionary<any>) has no venue override: its only return is this.events (MapTyped), so loadEvents cores send map[string]any // W19
+        baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'SetEvents', undefined, true); // W19
         const jsDelimiter = '// ' + delimiter;
         const parts = baseClass.split (jsDelimiter);
         if (parts.length > 1) {
@@ -8037,6 +8044,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             // for exactly the method called. A prediction venue that overrides only some of these runs
             // the has-gated test for the ones it has, and each single-method assertion succeeds.
             [/exchange\.(CreateOrder|CancelOrder|FetchL2OrderBook|FetchPositions|FetchTicker|FetchTickers|WatchTicker|WatchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
+            [/exchange\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('], // W28
             GO_TEST_ANY_RECEIVE_REGEX,
             // SafeBool* now return `*bool` (the pointer layer): an `any` local that captures
             // the call must keep holding the plain value, exactly as it did before that change,
@@ -8164,6 +8172,7 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // (ccxt.I<Method>) for exactly the method called, so a prediction venue that overrides
                 // only some of them satisfies each has-gated per-method assertion it actually runs.
                 [/exchange\.(CreateOrder|CancelOrder|FetchL2OrderBook|FetchPositions|FetchTicker|FetchTickers|WatchTicker|WatchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
+                [/exchange\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('], // W28
                 GO_TEST_ANY_RECEIVE_REGEX,
                 // SafeBool* now return `*bool` (the pointer layer): an `any` local that
                 // captures the call must keep holding the plain value, exactly as it did before

@@ -7548,7 +7548,8 @@ export class BaseExchange {
 
     async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.has['fetchDepositAddresses'] !== undefined && this.has['fetchDepositAddresses'] !== false) {
-            const depositAddresses = await this.fetchDepositAddresses ([ code ], params);
+            const depositAddressesList = await this.fetchDepositAddresses ([ code ], params);
+            const depositAddresses = this.indexBy (depositAddressesList, 'currency');
             if (this.safeDict (depositAddresses, code) === undefined) {
                 throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
             }
@@ -7847,7 +7848,7 @@ export class BaseExchange {
             throw new ExchangeError (this.id + ' loadTimeDifference() missing serverTime');
         }
         this.options['timeDifference'] = after - serverTime;
-        return this.options['timeDifference'];
+        return this.parseToInt (this.options['timeDifference']);
     }
 
     implodeHostname (url: string): string {
@@ -7974,18 +7975,16 @@ export class BaseExchange {
     }
 
     parseDepositAddresses (addresses: any, codes: Strings = undefined, indexed = true, params: Dict = {}): DepositAddress[] {
-        let result: Dict[] = [];
+        // always a list (the `indexed` argument is kept for signature compatibility); index with indexBy at the caller
+        let result: DepositAddress[] = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend (this.parseDepositAddress (addresses[i]), params);
             result.push (address);
         }
         if (codes !== undefined) {
-            result = this.filterByArray (result, 'currency', codes, false);
+            result = this.toArray (this.filterByArray (result, 'currency', codes, false));
         }
-        if (indexed) {
-            result = this.filterByArray (result, 'currency', undefined, indexed);
-        }
-        return result as DepositAddress[];
+        return result;
     }
 
     parseBorrowInterests (response: any, market: Market = undefined): BorrowInterest[] {
@@ -8631,7 +8630,7 @@ export class BaseExchange {
         return [ maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest ];
     }
 
-    async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any> {
+    async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any[]> {
         const maxCalls = 10;
         const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
         const maxRetries = 3;
@@ -8748,7 +8747,7 @@ export class BaseExchange {
         return [];
     }
 
-    async fetchPaginatedCallDeterministic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined): Promise<any> {
+    async fetchPaginatedCallDeterministic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined): Promise<any[]> {
         const maxCalls = 10;
         const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
         const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsPaginationCalls);
@@ -8807,7 +8806,7 @@ export class BaseExchange {
 
     // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
     // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
-    async fetchPaginatedCallCursor (method: string, symbol: Str | Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
+    async fetchPaginatedCallCursor (method: string, symbol: Str | Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any[]> {
         const maxCalls = 10;
         const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
         const maxRetries = 3;
@@ -8897,7 +8896,7 @@ export class BaseExchange {
         return this.filterBySinceLimit (sorted, since, limit, key);
     }
 
-    async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, pageKey: Str = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
+    async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, pageKey: Str = undefined, maxEntriesPerRequest: Int = undefined): Promise<any[]> {
         const maxCalls = 10;
         const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
         const maxRetries = 3;

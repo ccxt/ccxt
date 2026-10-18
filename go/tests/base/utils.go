@@ -498,7 +498,33 @@ func DetypeForComparison(value any) any {
 			if fv.Kind() == reflect.Ptr {
 				fv = fv.Elem()
 			}
-			out[strings.ToLower(field.Name[:1])+field.Name[1:]] = DetypeForComparison(fv.Interface())
+			detyped := DetypeForComparison(fv.Interface())
+			if fv.Kind() == reflect.Struct {
+				if m, isMap := detyped.(map[string]any); isMap {
+					vacant := true
+					for _, mv := range m {
+						if mv != nil {
+							vacant = false
+							break
+						}
+					}
+					if vacant {
+						detyped = nil
+					}
+				}
+			}
+			out[strings.ToLower(field.Name[:1])+field.Name[1:]] = detyped
+		}
+		if _, isTx := value.(ccxt.Transaction); isTx {
+			out["txid"] = out["txId"]
+			delete(out, "txId")
+		}
+		if _, isPos := value.(ccxt.Position); isPos {
+			for _, k := range []string{"timestamp", "lastUpdateTimestamp"} {
+				if f, isFloat := out[k].(float64); isFloat && f == float64(int64(f)) {
+					out[k] = int64(f)
+				}
+			}
 		}
 		return out
 	case reflect.Map:

@@ -1,0 +1,4 @@
+{
+  "UnWatchTrades": "bool",
+  "UnWatchTradesForSymbols": "bool"
+}

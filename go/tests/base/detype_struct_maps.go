@@ -1,0 +1,32 @@
+package base
+
+import (
+	"reflect"
+
+	ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+// W29/W30/W31/W32 struct and map-of-struct channels: DetypeForComparison projects their rows.
+// Registered by assignment (not in the detypedStructs literal) so units adding the same struct merge cleanly.
+func init() {
+	for _, t := range []reflect.Type{
+		reflect.TypeOf(ccxt.Ticker{}),
+		reflect.TypeOf(ccxt.Order{}),
+		reflect.TypeOf(ccxt.Trade{}),
+		reflect.TypeOf(ccxt.Position{}),
+		reflect.TypeOf(ccxt.Transaction{}),
+		reflect.TypeOf(ccxt.LedgerEntry{}),
+		reflect.TypeOf(ccxt.DepositAddress{}),
+		reflect.TypeOf(ccxt.TransferEntry{}),
+		reflect.TypeOf(ccxt.FundingRate{}),
+		reflect.TypeOf(ccxt.OpenInterest{}),
+		reflect.TypeOf(ccxt.TradingFeeInterface{}),
+		reflect.TypeOf(ccxt.Leverage{}),
+		reflect.TypeOf(ccxt.MarginMode{}),
+		reflect.TypeOf(ccxt.Greeks{}),
+		reflect.TypeOf(ccxt.Option{}),
+		reflect.TypeOf(ccxt.Conversion{}),
+	} {
+		detypedStructs[t] = true
+	}
+}

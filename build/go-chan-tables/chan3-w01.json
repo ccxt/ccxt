@@ -1,0 +1,4 @@
+{
+  "UnWatchOrderBook": "bool",
+  "UnWatchOrderBookForSymbols": "bool"
+}

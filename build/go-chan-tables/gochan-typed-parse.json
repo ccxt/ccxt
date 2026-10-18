@@ -22,6 +22,5 @@
     "FetchUtaOrder": "map[string]any",
     "FuturesTransfer": "map[string]any",
     "TransferBetweenMainAndSubAccount": "map[string]any",
-    "TransferBetweenSubAccounts": "map[string]any",
-    "Withdraw": "map[string]any"
+    "TransferBetweenSubAccounts": "map[string]any"
 }

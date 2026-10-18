@@ -1,0 +1,5 @@
+{
+    "Poloniex.FetchTransactionsHelper": "map[string]any",
+    "FetchTransactionsHelper": "[]any",
+    "InternalFetchTransfers": "[]any"
+}

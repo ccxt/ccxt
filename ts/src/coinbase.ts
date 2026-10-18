@@ -1982,7 +1982,8 @@ export default class coinbase extends Exchange {
                 'timestamp': now,
             });
         }
-        return this.safeDict (this.options, 'fetchCurrencies', {});
+        const cached = this.safeDict (this.options, 'fetchCurrencies', {});
+        return cached;
     }
 
     /**
@@ -3025,7 +3026,7 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < this.accounts.length; i++) {
             const account = this.accounts[i];
             if (account['code'] === code) {
-                return account['id'];
+                return this.safeString (account, 'id');
             }
         }
         return undefined;
@@ -5253,7 +5254,7 @@ export default class coinbase extends Exchange {
         return result;
     }
 
-    parsePortfolioDetails (portfolioData: Dict) {
+    parsePortfolioDetails (portfolioData: Dict): Dict[] {
         const breakdown = this.safeDict (portfolioData, 'breakdown');
         const portfolioInfo = this.safeDict (breakdown, 'portfolio', {});
         const portfolioName = this.safeString (portfolioInfo, 'name', 'Unknown');
