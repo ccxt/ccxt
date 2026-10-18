@@ -2141,7 +2141,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 1,
+            "amount": 0.1,
             "price": 0.01
         },
         "limits": {
@@ -2150,7 +2150,7 @@
                 "max": 200
             },
             "amount": {
-                "min": 0,
+                "min": 0.1,
                 "max": 3800000
             },
             "price": {
@@ -2176,7 +2176,7 @@
             "interest_rate": "0.0003",
             "index_price": "1987.69",
             "order_price_round": "0.01",
-            "order_size_min": "0",
+            "order_size_min": "0.1",
             "enable_decimal": true,
             "ref_rebate_rate": "0.2",
             "name": "ETH_USDT",
@@ -2912,7 +2912,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 1,
+            "amount": 0.1,
             "price": 0.0001
         },
         "limits": {
@@ -2921,7 +2921,7 @@
                 "max": 100
             },
             "amount": {
-                "min": 0,
+                "min": 0.1,
                 "max": 680000
             },
             "price": {
@@ -2947,7 +2947,7 @@
             "interest_rate": "0.0003",
             "index_price": "1.3144",
             "order_price_round": "0.0001",
-            "order_size_min": "0",
+            "order_size_min": "0.1",
             "enable_decimal": true,
             "ref_rebate_rate": "0.2",
             "name": "XRP_USDT",
@@ -3426,7 +3426,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 1,
+            "amount": 0.1,
             "price": 0.00001
         },
         "limits": {
@@ -3435,7 +3435,7 @@
                 "max": 75
             },
             "amount": {
-                "min": 0,
+                "min": 0.1,
                 "max": 90000
             },
             "price": {
@@ -3461,7 +3461,7 @@
             "interest_rate": "0.0003",
             "index_price": "0.351454",
             "order_price_round": "0.00001",
-            "order_size_min": "0",
+            "order_size_min": "0.1",
             "enable_decimal": true,
             "ref_rebate_rate": "0.2",
             "name": "TRX_USDT",
