@@ -1863,7 +1863,8 @@ export default class coinbase extends Exchange {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        const tradingDisabled = this.safeBool(market, 'is_disabled');
+        const isDisabled = this.safeBool(market, 'is_disabled');
+        const tradingDisabled = (isDisabled === true) || (this.safeBool(market, 'trading_disabled') === true);
         let symbol = base + '/' + quote;
         let type = undefined;
         if (isSwap) {

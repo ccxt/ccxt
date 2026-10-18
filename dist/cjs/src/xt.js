@@ -2025,7 +2025,12 @@ class xt extends xt$1["default"] {
         const marketResolved = this.safeMarket(marketId, market, '_', marketType);
         const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger(ticker, 't');
-        let percentage = this.safeString2(ticker, 'cr', 'r');
+        const open = this.safeString(ticker, 'o');
+        // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
+        let percentage = this.safeString(ticker, 'r');
+        if (open === undefined) {
+            percentage = this.safeString2(ticker, 'cr', 'r');
+        }
         if (percentage !== undefined) {
             percentage = Precise["default"].stringMul(percentage, '100');
         }
@@ -2054,11 +2059,11 @@ class xt extends xt$1["default"] {
             'ask': this.safeNumber(ticker, 'ap'),
             'askVolume': this.safeNumber(ticker, 'aq'),
             'vwap': undefined,
-            'open': this.safeString(ticker, 'o'),
+            'open': open,
             'close': this.safeString(ticker, 'c'),
             'last': this.safeString(ticker, 'c'),
             'previousClose': undefined,
-            'change': this.safeNumber(ticker, 'cv'),
+            'change': undefined,
             'percentage': this.parseNumber(percentage),
             'average': undefined,
             'baseVolume': baseVolume,
