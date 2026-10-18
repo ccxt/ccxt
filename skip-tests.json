@@ -243,8 +243,6 @@
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
-                "taker": "is undefined",
-                "maker": "is undefined",
                 "currencyIdAndCode": "not all currencies are available"
             },
             "ticker": {
@@ -254,7 +252,10 @@
                 "spread": "same bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/269550508#L3581",
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:253"
             },
-            "fetchTickers": "tmp skip, todo",
+            "fetchTickers": {
+                "checkActiveSymbols": "spot ticker/24hr lists ~660 of ~1740 active markets",
+                "comparePercentage": "priceChangePercent is rounded to two decimals by the venue"
+            },
             "fetchCurrencies": {
                 "limits": "min/max essup temrporarily"
             },
@@ -262,20 +263,12 @@
                 "compareToNextItem": "multiple bid prices are equal https://app.travis-ci.com/github/ccxt/ccxt/builds/265172859#L2745"
             },
             "fetchPositions": {
-                "marginRatio": "undefined",
                 "stopLossPrice": "undefined",
                 "takeProfitPrice": "undefined",
-                "initialMarginPercentage": "undefined",
                 "hedged": "undefined",
                 "timestamp": "undefined",
                 "datetime": "undefined",
-                "lastUpdateTimestamp": "undefined",
-                "maintenanceMargin": "undefined",
-                "contractSize": "undefined",
-                "markPrice": "undefined",
-                "lastPrice": "undefined",
-                "percentage": "undefined",
-                "liquidationPrice": "undefined"
+                "lastPrice": "undefined"
             }
         }
     },
