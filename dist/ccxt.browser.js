@@ -457839,6 +457839,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                 'createTrailingPercentOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'editOrders': true,
                 'fetchAccounts': true,
                 'fetchAllGreeks': true,
                 'fetchBalance': true,
@@ -457887,7 +457888,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                 'fetchMarkOHLCV': true,
                 'fetchMarkPrice': true,
                 'fetchMarkPrices': true,
-                'fetchMySettlementHistory': false,
+                'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -459664,10 +459665,10 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                     '51500': _base_errors_js__rspack_import_1.ExchangeError,
                     '51501': _base_errors_js__rspack_import_1.ExchangeError,
                     '51502': _base_errors_js__rspack_import_1.InsufficientFunds,
-                    '51503': _base_errors_js__rspack_import_1.ExchangeError,
+                    '51503': _base_errors_js__rspack_import_1.OrderNotFound,
                     '51506': _base_errors_js__rspack_import_1.ExchangeError,
                     '51508': _base_errors_js__rspack_import_1.ExchangeError,
-                    '51509': _base_errors_js__rspack_import_1.ExchangeError,
+                    '51509': _base_errors_js__rspack_import_1.OrderNotFound,
                     '51510': _base_errors_js__rspack_import_1.ExchangeError,
                     '51511': _base_errors_js__rspack_import_1.ExchangeError,
                     '51600': _base_errors_js__rspack_import_1.ExchangeError,
@@ -461934,7 +461935,11 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const hasTakeProfit = takeProfit !== undefined;
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
-        const trailingPrice = this.safeString2(params, 'trailingPrice', 'callbackSpread');
+        const trailingPrice = this.safeStringN(params, [
+            'trailingAmount',
+            'trailingPrice',
+            'callbackSpread'
+        ]);
         const isTrailingPriceOrder = trailingPrice !== undefined;
         const trigger = triggerPrice !== undefined || type === 'trigger';
         const isReduceOnly = this.safeBool(params, 'reduceOnly', false) || closeFraction !== undefined;
@@ -462010,7 +462015,9 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             'margin',
             'stopLoss',
             'takeProfit',
-            'trailingPercent'
+            'trailingPercent',
+            'trailingAmount',
+            'trailingPrice'
         ]);
         const ioc = timeInForce === 'IOC' || type === 'ioc';
         const fok = timeInForce === 'FOK' || type === 'fok';
@@ -462296,7 +462303,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         let request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let method = this.safeString(this.options, 'createOrder', 'privatePostTradeBatchOrders');
         const requestOrdType = this.safeString(request, 'ordType');
-        if (requestOrdType === 'trigger' || requestOrdType === 'conditional' || requestOrdType === 'move_order_stop' || type === 'move_order_stop' || type === 'oco' || type === 'iceberg' || type === 'twap') {
+        if (requestOrdType === 'trigger' || requestOrdType === 'conditional' || requestOrdType === 'move_order_stop' || requestOrdType === 'oco' || type === 'move_order_stop' || type === 'oco' || type === 'iceberg' || type === 'twap') {
             method = 'privatePostTradeOrderAlgo';
         }
         if (method !== 'privatePostTradeOrder' && method !== 'privatePostTradeOrderAlgo' && method !== 'privatePostTradeBatchOrders') {
@@ -462413,8 +462420,14 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const hasStopLoss = stopLoss !== undefined;
         const hasTakeProfit = takeProfit !== undefined;
         if (isAlgoOrder) {
-            if (stopLossTriggerPrice === undefined && takeProfitTriggerPrice === undefined) {
-                throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order');
+            const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'newTriggerPx');
+            if (triggerPrice !== undefined) {
+                request['newTriggerPx'] = this.priceToPrecision(symbol, triggerPrice);
+                request['newOrdPx'] = price === undefined ? '-1' : this.priceToPrecision(symbol, price);
+                request['newTriggerPxType'] = this.safeString(params, 'newTriggerPxType', 'last');
+            }
+            if (stopLossTriggerPrice === undefined && takeProfitTriggerPrice === undefined && triggerPrice === undefined && amount === undefined) {
+                throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' editOrder() requires a triggerPrice, stopLossPrice, takeProfitPrice or amount for editing an algo order');
             }
             if (stopLossTriggerPrice !== undefined) {
                 if (stopLossPrice === undefined) {
@@ -462476,7 +462489,8 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             'stopLossPrice',
             'stopLoss',
             'takeProfit',
-            'postOnly'
+            'postOnly',
+            'triggerPrice'
         ]);
         return this.extend(request, paramsOmitted);
     }
@@ -462547,6 +462561,64 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         order['type'] = type;
         order['side'] = side;
         return order;
+    }
+    /**
+     * @method
+     * @name okx#editOrders
+     * @description edit a list of trade orders
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-amend-multiple-orders
+     * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */ async editOrders(orders, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const ordersRequests = [];
+        for(let i = 0; i < orders.length; i++){
+            const rawOrder = this.safeDict(orders, i);
+            const symbol = this.safeString(rawOrder, 'symbol');
+            if (symbol === undefined) {
+                throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' editOrders() requires a symbol for each order');
+            }
+            const id = this.safeString(rawOrder, 'id');
+            const orderParams = this.safeDict(rawOrder, 'params', {});
+            const clientOrderId = this.safeString2(orderParams, 'clientOrderId', 'clOrdId');
+            if (id === undefined && clientOrderId === undefined) {
+                throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' editOrders() requires an id or params.clientOrderId for each order');
+            }
+            const type = this.safeString(rawOrder, 'type', '');
+            if (type === 'trigger' || type === 'conditional' || type === 'move_order_stop' || type === 'oco' || type === 'iceberg' || type === 'twap') {
+                throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' editOrders() does not support algo orders, use editOrder() instead');
+            }
+            const side = this.safeString(rawOrder, 'side', '');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
+            const extendedParams = this.extend(orderParams, params); // the request body is a list, so common params are merged into each order
+            const orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, extendedParams);
+            ordersRequests.push(orderRequest);
+        }
+        const response = await this.privatePostTradeAmendBatchOrders(ordersRequests);
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "clOrdId": "",
+        //                 "ordId": "12344",
+        //                 "ts": "1695190491421",
+        //                 "reqId": "b12344",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             }
+        //         ],
+        //         "inTime": "1695190491421339",
+        //         "msg": "",
+        //         "outTime": "1695190491423240"
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseOrders(data);
     }
     /**
      * @method
@@ -463114,8 +463186,19 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         if (clientOrderId !== undefined && clientOrderId.length < 1) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopLossPrice = this.safeNumber2(order, 'slTriggerPx', 'slOrdPx');
-        const takeProfitPrice = this.safeNumber2(order, 'tpTriggerPx', 'tpOrdPx');
+        let stopLossPrice = this.safeNumber2(order, 'slTriggerPx', 'slOrdPx');
+        let takeProfitPrice = this.safeNumber2(order, 'tpTriggerPx', 'tpOrdPx');
+        // regular orders carry attached sl/tp inside attachAlgoOrds
+        const attachAlgoOrds = this.safeList(order, 'attachAlgoOrds', []);
+        for(let i = 0; i < attachAlgoOrds.length; i++){
+            const attached = attachAlgoOrds[i];
+            if (stopLossPrice === undefined) {
+                stopLossPrice = this.safeNumber(attached, 'slTriggerPx');
+            }
+            if (takeProfitPrice === undefined) {
+                takeProfitPrice = this.safeNumber(attached, 'tpTriggerPx');
+            }
+        }
         const reduceOnlyRaw = this.safeString(order, 'reduceOnly');
         let reduceOnly = false;
         if (reduceOnlyRaw !== undefined) {
@@ -463178,9 +463261,9 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const options = this.safeDict(this.options, 'fetchOrder', {});
         const defaultMethod = this.safeString(options, 'method', 'privateGetTradeOrder');
         let method = this.safeString(params, 'method', defaultMethod);
-        const trigger = this.safeBool2(params, 'stop', 'trigger');
-        const isTrigger = trigger === true;
-        if (isTrigger) {
+        const trigger = this.safeBool2(params, 'stop', 'trigger', false);
+        const trailing = this.safeBool(params, 'trailing', false);
+        if (trigger || trailing) {
             method = 'privateGetTradeOrderAlgo';
             if (clientOrderId !== undefined) {
                 request['algoClOrdId'] = clientOrderId;
@@ -463199,7 +463282,8 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             'clOrdId',
             'clientOrderId',
             'stop',
-            'trigger'
+            'trigger',
+            'trailing'
         ]);
         let response;
         if (method === 'privateGetTradeOrderAlgo') {
@@ -464337,16 +464421,14 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         }
         let fee = this.safeString(paramsWithdrawTag, 'fee');
         if (fee === undefined) {
-            const currencies = await this.fetchCurrencies();
-            this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
+            // the network fee comes from currencies cached by loadMarkets, the endpoint does not require it
             const networkCodeResolved = this.networkIdToCode(network, this.safeString(currency, 'code'));
-            const targetNetwork = networkCodeResolved === undefined ? {} : this.safeDict(currency['networks'], networkCodeResolved, {});
+            const targetNetwork = networkCodeResolved === undefined ? {} : this.safeDict(this.safeDict(currency, 'networks', {}), networkCodeResolved, {});
             fee = this.safeString(targetNetwork, 'fee');
-            if (fee === undefined) {
-                throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
-            }
         }
-        request['fee'] = this.numberToString(fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
+        if (fee !== undefined) {
+            request['fee'] = this.numberToString(fee);
+        }
         const query = this.omit(paramsWithdrawTag, omitKeys);
         const response = await this.privatePostAssetWithdrawal(this.extend(request, query));
         //
@@ -465129,27 +465211,8 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         }
         const rounder = '0.00005'; // round to closest 0.01%
         const maintenanceMarginPercentage = maintenanceMarginPercentageString !== undefined ? this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(maintenanceMarginPercentageString, rounder), '1', 4)) : undefined;
-        let liquidationPriceString = this.omitZero(this.safeString(position, 'liqPx'));
-        if (liquidationPriceString === undefined && marginMode === 'isolated' && initialMarginString !== undefined && entryPriceString !== undefined && contractsAbs !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(contractsAbs, '0') && contractSizeString !== undefined && maintenanceMarginPercentage !== undefined) {
-            const takerFeeRate = this.safeString(marketResolved, 'taker', '0.0005');
-            const mmpWithFee = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(this.numberToString(maintenanceMarginPercentage), takerFeeRate);
-            const totalSize = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(contractsAbs, contractSizeString);
-            if (marketResolved['inverse'] === true) {
-                const invEntry = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(totalSize, entryPriceString);
-                const denom = side === 'long' ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(invEntry, initialMarginString) : _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(invEntry, initialMarginString);
-                const numFactor = side === 'long' ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd('1', mmpWithFee) : _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub('1', mmpWithFee);
-                if (denom !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(denom, '0')) {
-                    liquidationPriceString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(totalSize, numFactor), denom);
-                }
-            } else {
-                const marginPerUnit = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(initialMarginString, totalSize);
-                const num = side === 'long' ? _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(entryPriceString, marginPerUnit) : _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(entryPriceString, marginPerUnit);
-                const denom = side === 'long' ? _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub('1', mmpWithFee) : _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd('1', mmpWithFee);
-                if (denom !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(denom, '0')) {
-                    liquidationPriceString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(num, denom);
-                }
-            }
-        }
+        // okx always reports liqPx for open positions; no local estimate (it depends on the account fee tier)
+        const liquidationPriceString = this.omitZero(this.safeString(position, 'liqPx'));
         const liquidationPrice = liquidationPriceString !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(liquidationPriceString, '0') ? this.parseNumber(liquidationPriceString) : undefined;
         const percentageString = this.safeString(position, 'uplRatio');
         const percentage = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(percentageString, '100'));
@@ -467077,7 +467140,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         }
         const request = {
             'instType': this.convertToInstrumentType(type),
-            'uly': market['baseId'] + '-' + market['quoteId']
+            'instFamily': this.safeString(market['info'], 'instFamily')
         };
         if (since !== undefined) {
             request['before'] = since - 1;
@@ -467105,8 +467168,61 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const settlements = this.parseSettlements(data, market);
+        // rows cover every contract of the instrument family, including expired ids missing from markets
+        const settlements = this.parseSettlements(data, undefined);
         const sorted = this.sortBy(settlements, 'timestamp');
+        return this.filterBySinceLimit(sorted, since, limit);
+    }
+    /**
+     * @method
+     * @name okx#fetchMySettlementHistory
+     * @description fetches historical settlement records of the user, derived from delivery and exercise account bills
+     * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+     * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
+     * @param {string} [symbol] unified market symbol of the settlement history
+     * @param {int} [since] timestamp in ms
+     * @param {int} [limit] number of records, max 100
+     * @param {object} [params] exchange specific params
+     * @param {string} [params.method] 'privateGetAccountBillsArchive' (default, last 3 months) or 'privateGetAccountBills' (last 7 days)
+     * @param {int} [params.until] timestamp in ms of the latest record to fetch
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+     */ async fetchMySettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        let market = undefined;
+        const request = {
+            'type': '3'
+        };
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['instId'] = market['id'];
+            request['instType'] = this.convertToInstrumentType(market['type']);
+        }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const [method, paramsMethod] = this.handleOptionAndParams(params, 'fetchMySettlementHistory', 'method', 'privateGetAccountBillsArchive');
+        const until = this.safeInteger(paramsMethod, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+        }
+        const query = this.omit(paramsMethod, 'until');
+        let response = {};
+        if (method === 'privateGetAccountBills') {
+            response = await this.privateGetAccountBills(this.extend(request, query));
+        } else {
+            response = await this.privateGetAccountBillsArchive(this.extend(request, query));
+        }
+        const data = this.safeList(response, 'data', []);
+        const result = [];
+        for(let i = 0; i < data.length; i++){
+            result.push(this.parseSettlement(data[i], market));
+        }
+        const sorted = this.sortBy(result, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
     parseSettlement(settlement, market) {
@@ -467117,13 +467233,29 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         //         "type": "exercised"
         //     }
         //
-        const marketId = this.safeString(settlement, 'insId');
+        // fetchMySettlementHistory (account bills, type 3 delivery)
+        //
+        //     {
+        //         "instId": "BTC-USD-241227",
+        //         "instType": "FUTURES",
+        //         "px": "94012.3",
+        //         "sz": "1",
+        //         "pnl": "0.0001",
+        //         "fee": "0",
+        //         "ccy": "BTC",
+        //         "type": "3",
+        //         "subType": "14",
+        //         "ts": "1735286400000"
+        //     }
+        //
+        const marketId = this.safeString2(settlement, 'insId', 'instId');
+        const timestamp = this.safeInteger(settlement, 'ts');
         return {
             'info': settlement,
             'symbol': this.safeSymbol(marketId, market),
             'price': this.safeNumber(settlement, 'px'),
-            'timestamp': undefined,
-            'datetime': undefined
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp)
         };
     }
     parseSettlements(settlements, market) {
@@ -593962,6 +594094,34 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         };
         return await this.watch(url, messageHash, request, messageHash);
     }
+    handleCancelOrders(client, message) {
+        //
+        //    {
+        //        "id": "1512",
+        //        "op": "batch-cancel-orders",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "2510789768709120",
+        //                "sCode": "0",
+        //                "sMsg": ""
+        //            }
+        //        ],
+        //        "code": "0",
+        //        "msg": ""
+        //    }
+        //
+        const messageHash = this.safeString(message, 'id');
+        let args = this.safeList(message, 'data', []);
+        args = this.filterBy(args, 'sCode', '0');
+        if (this.isEmpty(args)) {
+            const method = this.safeString(message, 'op');
+            const stringMsg = this.json(message);
+            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, {});
+        }
+        const orders = this.parseOrders(args, undefined, undefined, undefined);
+        client.resolve(orders, messageHash);
+    }
     handleCancelAllOrders(client, message) {
         //
         //    {
@@ -594122,6 +594282,7 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
                 'amend-order': this.handlePlaceOrders,
                 'batch-amend-orders': this.handlePlaceOrders,
                 'cancel-order': this.handlePlaceOrders,
+                'batch-cancel-orders': this.handleCancelOrders,
                 'mass-cancel': this.handleCancelAllOrders
             };
             const method = this.safeValue(methods, event);
@@ -594192,6 +594353,10 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         const subMessageHash = 'multi:' + channel + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
+        // watchOHLCV subscribes through subscribe () under channel:marketId
+        if (symbol !== undefined) {
+            this.cleanUnsubscription(client, channel + ':' + this.marketId(symbol), undefined);
+        }
         if (symbol !== undefined && timeframe !== undefined && timeframe in this.ohlcvs[symbol]) {
             delete this.ohlcvs[symbol][timeframe];
         }

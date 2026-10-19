@@ -1750,6 +1750,7 @@ edit a list of trade orders
 * [bydfi](/exchanges/bydfi.md#editorders)
 * [hibachi](/exchanges/hibachi.md#editorders)
 * [hyperliquid](/exchanges/hyperliquid.md#editorders)
+* [okx](/exchanges/okx.md#editorders)
 
 ---
 
@@ -4256,6 +4257,7 @@ fetches historical settlement records of the user
 * [derive](/exchanges/derive.md#fetchmysettlementhistory)
 * [gate](/exchanges/gate.md#fetchmysettlementhistory)
 * [hibachi](/exchanges/hibachi.md#fetchmysettlementhistory)
+* [okx](/exchanges/okx.md#fetchmysettlementhistory)
 
 ---
 
