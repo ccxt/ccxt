@@ -359369,6 +359369,15 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             contractSize = '1'; // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         }
         const status = this.safeString(market, 'status', 'trading'); // or "suspend"
+        let amountPrecision = this.parseNumber('1');
+        const enableDecimal = this.safeBool(market, 'enable_decimal', false);
+        const orderSizeMin = this.safeString(market, 'order_size_min');
+        const swap = marketType === 'swap';
+        const minAmount = this.parseNumber(orderSizeMin);
+        if (swap && enableDecimal && orderSizeMin !== undefined && minAmount !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(orderSizeMin, '0')) {
+            amountPrecision = minAmount;
+        }
+        const active = status === 'trading';
         return {
             'id': id,
             'symbol': symbol,
@@ -359381,10 +359390,10 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             'type': marketType,
             'spot': false,
             'margin': false,
-            'swap': marketType === 'swap',
+            'swap': swap,
             'future': marketType === 'future',
             'option': false,
-            'active': status === 'trading',
+            'active': active,
             'contract': true,
             'linear': isLinear,
             'inverse': !isLinear,
@@ -359396,7 +359405,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber('1'),
+                'amount': amountPrecision,
                 'price': this.safeNumber(market, 'order_price_round')
             },
             'limits': {
@@ -359405,7 +359414,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
                     'max': this.safeNumber(market, 'leverage_max')
                 },
                 'amount': {
-                    'min': this.safeNumber(market, 'order_size_min'),
+                    'min': minAmount,
                     'max': this.safeNumber(market, 'order_size_max')
                 },
                 'price': {
@@ -362253,6 +362262,19 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         }
         return this.parseOrders(response);
     }
+    isGateFuturesContractWithDecimalSize(market) {
+        const info = this.safeDict(market, 'info', {});
+        const isSwap = this.safeBool(market, 'swap', false);
+        const enableDecimal = this.safeBool(info, 'enable_decimal', false);
+        return isSwap && enableDecimal;
+    }
+    getGateFuturesSignedAmount(symbol, side, amount) {
+        const amountString = this.amountToPrecision(symbol, amount);
+        if (side === 'sell') {
+            return _base_Precise_js__rspack_import_3/* .Precise.stringNeg */.Y.stringNeg(amountString);
+        }
+        return amountString;
+    }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         if (type === undefined) {
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' requires a type argument');
@@ -362317,18 +362339,23 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             priceResolved = 0;
         }
         let contractAmount = 0;
+        let signedAmount = undefined;
+        let useGateFuturesDecimalSize = false;
         if (contract === true) {
             const isClose = this.safeBool(query, 'close');
             if (isClose !== true) {
-                const amountToPrecision = this.amountToPrecision(symbol, amount);
-                let signedAmount = amountToPrecision;
-                if (side === 'sell') {
-                    signedAmount = _base_Precise_js__rspack_import_3/* .Precise.stringNeg */.Y.stringNeg(amountToPrecision);
+                signedAmount = this.getGateFuturesSignedAmount(symbol, side, amount);
+                useGateFuturesDecimalSize = this.isGateFuturesContractWithDecimalSize(market);
+                if (!useGateFuturesDecimalSize) {
+                    contractAmount = parseInt(signedAmount);
                 }
-                contractAmount = parseInt(signedAmount);
             }
         }
         const amountResolved = contract === true ? contractAmount : amount;
+        let sizeRequest = amountResolved;
+        if (useGateFuturesDecimalSize) {
+            sizeRequest = signedAmount;
+        }
         let request = undefined;
         const nonTriggerOrder = !isTpsl && trigger === undefined;
         if (nonTriggerOrder) {
@@ -362336,7 +362363,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
                 // contract order
                 request = {
                     'contract': market['id'],
-                    'size': amountResolved
+                    'size': sizeRequest
                 };
                 if (market['option'] !== true) {
                     request['settle'] = market['settleId']; // filled in prepareRequest above
@@ -362422,11 +362449,15 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
                 // contract conditional order
                 request = {
                     'initial': {
-                        'contract': market['id'],
-                        'size': amountResolved
+                        'contract': market['id']
                     },
                     'settle': market['settleId']
                 };
+                if (useGateFuturesDecimalSize) {
+                    request['initial']['amount'] = signedAmount; // FuturesInitialOrder.amount takes precedence over size
+                } else {
+                    request['initial']['size'] = amountResolved;
+                }
                 if (type === 'market') {
                     request['initial']['price'] = '0';
                 } else {
@@ -362561,10 +362592,11 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
             if (market['spot'] === true) {
                 request['amount'] = this.amountToPrecision(symbol, amount);
             } else {
-                if (side === 'sell') {
-                    request['size'] = this.parseToNumeric(_base_Precise_js__rspack_import_3/* .Precise.stringNeg */.Y.stringNeg(this.amountToPrecision(symbol, amount)));
+                const signedAmount = this.getGateFuturesSignedAmount(symbol, side, amount);
+                if (this.isGateFuturesContractWithDecimalSize(market)) {
+                    request['size'] = signedAmount;
                 } else {
-                    request['size'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                    request['size'] = this.parseToNumeric(signedAmount);
                 }
             }
         }
@@ -364832,8 +364864,14 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
                 'Content-Type': 'application/json'
             };
         }
+        let headersResolved = signedHeaders;
+        if (type === 'futures') {
+            if (headersResolved === undefined) {
+                headersResolved = {};
+            }
+            headersResolved['X-Gate-Size-Decimal'] = '1';
+        }
         const bodyResolved = bodyJson;
-        const headersResolved = signedHeaders;
         return {
             'url': url,
             'method': method,
@@ -560276,6 +560314,13 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
                 }
             },
             'options': {
+                'ws': {
+                    'options': {
+                        'headers': {
+                            'X-Gate-Size-Decimal': '1'
+                        }
+                    }
+                },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'watchTradesSubscriptions': {},
@@ -561895,8 +561940,8 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
             } else if (event === 'finish') {
                 const status = this.safeString(parsed, 'status');
                 if (status === undefined) {
-                    const left = this.safeInteger(info, 'left');
-                    parsed['status'] = left === 0 ? 'closed' : 'canceled';
+                    const left = this.safeString(info, 'left');
+                    parsed['status'] = _base_Precise_js__rspack_import_3/* .Precise.stringEquals */.Y.stringEquals(left, '0') ? 'closed' : 'canceled';
                 }
             }
             stored.append(parsed);
