@@ -1049,7 +1049,7 @@ func NewBalances(balancesData2 any) Balances {
 
 	for key, value := range balancesData {
 		// Skip non-balance fields
-		if key == "info" || key == "free" || key == "used" || key == "total" || key == "timestamp" || key == "datetime" {
+		if key == "info" || key == "free" || key == "used" || key == "total" || key == "debt" || key == "timestamp" || key == "datetime" {
 			continue
 		}
 
