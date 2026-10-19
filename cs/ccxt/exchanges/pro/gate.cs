@@ -101,6 +101,13 @@ public partial class gate : ccxt.gate
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "ws", new Dictionary<string, object>() {
+                    { "options", new Dictionary<string, object>() {
+                        { "headers", new Dictionary<string, object>() {
+                            { "X-Gate-Size-Decimal", "1" },
+                        } },
+                    } },
+                } },
                 { "tradesLimit", 1000 },
                 { "OHLCVLimit", 1000 },
                 { "watchTradesSubscriptions", new Dictionary<string, object>() {} },
@@ -1965,8 +1972,8 @@ public partial class gate : ccxt.gate
                 string? status = this.safeString(parsed, "status");
                 if ((status == null))
                 {
-                    Int64? left = this.safeInteger(info, "left");
-                    ((IDictionary<string,object>)parsed)["status"] = ((left == 0)) ? "closed" : "canceled";
+                    string? left = this.safeString(info, "left");
+                    ((IDictionary<string,object>)parsed)["status"] = Precise.stringEquals(left, "0") ? "closed" : "canceled";
                 }
             }
             ccxt.pro.BaseCache.appendTo(stored, parsed);
