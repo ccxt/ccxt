@@ -2069,8 +2069,10 @@ class gate(ccxt.async_support.gate):
     def get_market_type_by_url(self, url: str) -> str:
         findBy = {
             'op-': 'option',
+            '/ws/options/': 'option',
             'delivery': 'future',
             'fx': 'swap',
+            '/ws/futures/': 'swap',
         }
         keys = list(findBy.keys())
         for i in range(0, len(keys)):
