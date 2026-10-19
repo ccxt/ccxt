@@ -3,6 +3,17 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "cancelOrder": [
+            {
+                "description": "spot without symbol",
+                "method": "cancelOrder",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/order/468370477",
+                "input": [
+                    468370477
+                ],
+                "output": null
+            }
+        ],
         
     },
     "outputType": "both"

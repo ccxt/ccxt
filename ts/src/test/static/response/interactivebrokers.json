@@ -3,5 +3,54 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "cancelOrder": [
+            {
+                "description": "spot without symbol",
+                "method": "cancelOrder",
+                "input": [
+                    468370477
+                ],
+                "httpResponse": {
+                    "msg": "Request was submitted",
+                    "order_id": 468370477,
+                    "conid": -1,
+                    "account": null
+                },
+                "parsedResponse": {
+                    "id": "468370477",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "msg": "Request was submitted",
+                        "order_id": 468370477,
+                        "conid": -1,
+                        "account": null
+                    },
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
     }
 }
