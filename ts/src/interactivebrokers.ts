@@ -36,13 +36,8 @@ export default class interactivebrokers extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createDepositAddress': false,
-                'createLimitOrder': true,
-                'createMarketOrder': true,
+                'createMarketOrder': false,
                 'createOrder': true,
-                'createStopOrder': true,
-                'createTrailingAmountOrder': true,
-                'createTrailingPercentOrder': true,
-                'createTriggerOrder': true,
                 'deposit': false,
                 'editOrder': true,
                 'fetchAccounts': true,
@@ -594,6 +589,11 @@ export default class interactivebrokers extends Exchange {
                 'fetchOrders': {
                     'retryDelay': 500, // the first request of a session may return an incomplete snapshot
                 },
+                'fetchBalance': {
+                    'positions': true, // add the holdings of portfolio2/{accountId}/positions with an asset class of positionAssetClasses as balances
+                    'positionAssetClasses': [ 'CRYPTO' ], // add 'STK' to also list the shares, e.g. AAPL
+                    'openOrders': true, // compute 'used' from the open spot orders of the current brokerage session (iserver/account/orders)
+                },
                 'fetchMyTrades': {
                     'days': 7, // max 7
                 },
@@ -815,19 +815,51 @@ export default class interactivebrokers extends Exchange {
     /**
      * @method
      * @name interactivebrokers#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders, the cash comes from the ledger, the crypto holdings from the positions and the locked ('used') amounts from the open orders of the current brokerage session
      * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#portfolio-ledger
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-positions-in-real-time
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] the account id, defaults to options["accountId"] or the selected account
+     * @param {boolean} [params.positions] add the holdings of options.fetchBalance.positionAssetClasses (crypto by default) as balances, default true
+     * @param {boolean} [params.openOrders] compute the locked ('used') amounts from the open orders, default true
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
         await this.authenticate ();
-        const [ accountId, query ] = await this.loadAccountId (params);
+        const [ accountId, accountQuery ] = await this.loadAccountId (params);
+        const [ withPositions, positionsQuery ] = this.handleOptionAndParams (accountQuery, 'fetchBalance', 'positions', true);
+        const [ withOpenOrders, query ] = this.handleOptionAndParams (positionsQuery, 'fetchBalance', 'openOrders', true);
         const request: Dict = {
             'accountId': accountId,
         };
-        const response = await this.privateGetPortfolioAccountIdLedger (this.extend (request, query));
+        if (withPositions || withOpenOrders) {
+            // the conids of the positions and orders are resolved to currencies via the markets
+            await this.loadMarkets ();
+        }
+        const promises = [];
+        promises.push (this.privateGetPortfolioAccountIdLedger (this.extend (request, query)));
+        if (withPositions) {
+            promises.push (this.privateGetPortfolio2AccountIdPositions (request));
+            //
+            //     [
+            //         {
+            //             "position": 0.0012,
+            //             "conid": "479624278",
+            //             "avgCost": 82000,
+            //             "currency": "USD",
+            //             "description": "BTC",
+            //             "assetClass": "CRYPTO",
+            //             ...
+            //         }
+            //     ]
+            //
+        }
+        if (withOpenOrders) {
+            promises.push (this.fetchLiveOrdersRaw ());
+        }
+        const results = await Promise.all (promises);
+        const response = results[0];
         //
         //     {
         //         "USD": {
@@ -853,29 +885,155 @@ export default class interactivebrokers extends Exchange {
         //         "BASE": { ... }
         //     }
         //
-        return this.parseBalance (response);
+        const balanceResponse: Dict = {
+            'ledger': response,
+        };
+        let index = 1;
+        if (withPositions) {
+            balanceResponse['positions'] = results[index];
+            index = index + 1;
+        }
+        if (withOpenOrders) {
+            // the 'orders' key is present only when the open orders were fetched, then the currencies without open orders get used = 0
+            balanceResponse['orders'] = results[index];
+        }
+        return this.parseBalance (balanceResponse);
     }
 
     override parseBalance (response: any): Balances {
+        //
+        //     {
+        //         "ledger": { "USD": { "cashbalance": 1000.0, ... }, "BASE": { "timestamp": 1702582321, ... } },
+        //         "positions": [ { "position": 0.0012, "conid": "479624278", "assetClass": "CRYPTO", ... } ],
+        //         "orders": [ { "conid": 479624278, "side": "BUY", "status": "Submitted", "price": "80000", "remainingQuantity": 0.001, "cashCcy": "USD", ... } ]
+        //     }
+        //
+        const ledger = this.safeDict (response, 'ledger', response);
+        const positions = this.safeList (response, 'positions', []);
+        const orders = this.safeList (response, 'orders', []);
         const result: Dict = {
             'info': response,
         };
-        const currencyIds = Object.keys (response);
+        // cash, from the ledger
+        const currencyIds = Object.keys (ledger);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             if (currencyId === 'BASE') {
                 continue; // aggregated entry in the account base currency
             }
-            const balance = this.safeDict (response, currencyId, {});
+            const balance = this.safeDict (ledger, currencyId);
+            if (balance === undefined) {
+                continue;
+            }
             const code = this.safeCurrencyCode (currencyId) as string;
             const account = this.account ();
             account['total'] = this.safeString (balance, 'cashbalance');
             result[code] = account;
         }
-        const timestamp = this.safeTimestamp (this.safeDict (response, 'BASE', {}), 'timestamp');
+        // holdings, from the positions
+        const balanceOptions = this.safeDict (this.options, 'fetchBalance', {});
+        const positionAssetClasses = this.safeList (balanceOptions, 'positionAssetClasses', [ 'CRYPTO' ]);
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const assetClass = this.safeString (position, 'assetClass');
+            if (!this.inArray (assetClass, positionAssetClasses)) {
+                continue;
+            }
+            const code = this.ibkrBalanceCode (position);
+            if ((code === undefined) || (code in result)) {
+                continue; // the ledger takes precedence
+            }
+            const account = this.account ();
+            account['total'] = this.safeString (position, 'position');
+            result[code] = account;
+        }
+        // locked amounts, from the open orders: buy orders lock remaining * price of the quote currency, sell orders lock the remaining base amount
+        const used: Dict = {};
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const status = this.parseOrderStatus (this.safeString2 (order, 'status', 'order_status'));
+            if (status !== 'open') {
+                continue;
+            }
+            const marketId = this.safeString (order, 'conid');
+            const market = this.safeMarket (marketId);
+            if (this.safeBool (market, 'contract', false)) {
+                continue; // contracts lock margin, not the currencies, see fetchPositions
+            }
+            const remaining = this.safeString2 (order, 'remainingQuantity', 'size');
+            if ((remaining === undefined) || !Precise.stringGt (remaining, '0')) {
+                continue;
+            }
+            const side = this.safeStringUpper (order, 'side');
+            let code: Str = undefined;
+            let amount: Str = undefined;
+            if ((side === 'BUY') || (side === 'B')) {
+                const price = this.omitZero (this.safeString2 (order, 'price', 'limit_price'));
+                if (price === undefined) {
+                    continue; // market orders have no price to estimate the locked cost
+                }
+                const cashCurrencyId = this.safeString (order, 'cashCcy');
+                if (cashCurrencyId !== undefined) {
+                    code = this.safeCurrencyCode (cashCurrencyId);
+                } else {
+                    code = this.safeString (market, 'quote');
+                }
+                amount = Precise.stringMul (remaining, price);
+            } else if ((side === 'SELL') || (side === 'S')) {
+                code = this.safeString (market, 'base');
+                amount = remaining;
+            }
+            if ((code === undefined) || !(code in result)) {
+                continue; // no known total to lock the amount from
+            }
+            const previous = this.safeString (used, code, '0');
+            used[code] = Precise.stringAdd (previous, amount);
+        }
+        const usedCodes = Object.keys (used);
+        for (let i = 0; i < usedCodes.length; i++) {
+            const code = usedCodes[i];
+            result[code]['used'] = used[code];
+        }
+        // every currency of the ledger and the positions gets a 'used' when the open orders were fetched, so that 'free' is computed
+        if ('orders' in response) {
+            const codes = Object.keys (result);
+            for (let i = 0; i < codes.length; i++) {
+                const code = codes[i];
+                if ((code !== 'info') && (this.safeString (result[code], 'used') === undefined)) {
+                    result[code]['used'] = '0';
+                }
+            }
+        }
+        const timestamp = this.safeTimestamp (this.safeDict (ledger, 'BASE', {}), 'timestamp');
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrBalanceCode
+     * @description resolves the currency code of a position held as a balance, BTC for the BTC crypto, AAPL for the AAPL shares
+     * @ignore
+     * @param {object} position a raw position from portfolio2/{accountId}/positions
+     * @returns {string|undefined} the currency code
+     */
+    ibkrBalanceCode (position: Dict): Str {
+        const marketId = this.safeString (position, 'conid');
+        const market = this.safeMarket (marketId);
+        const base = this.safeString (market, 'base');
+        if (base !== undefined) {
+            return base;
+        }
+        const description = this.safeString2 (position, 'ticker', 'description');
+        if (description === undefined) {
+            return undefined;
+        }
+        if (this.safeString (position, 'assetClass') === 'CRYPTO') {
+            return this.safeCurrencyCode (description);
+        }
+        const parts = description.split (' ');
+        return parts.join ('.'); // 'BRK B' -> 'BRK.B', as in parseMarket
     }
 
     /**
@@ -2269,8 +2427,22 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        await this.loadServiceAccounts ();
         const market = this.marketOrNull (symbol);
+        const orders = await this.fetchLiveOrdersRaw (params);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchLiveOrdersRaw
+     * @description fetches the raw live orders of the current brokerage session, retries once when the first request only starts the order subscription
+     * @ignore
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} the raw orders
+     */
+    async fetchLiveOrdersRaw (params: Dict = {}): Promise<Dict[]> {
+        await this.loadServiceAccounts ();
         const retryDelay = this.safeInteger (this.safeDict (this.options, 'fetchOrders', {}), 'retryDelay', 500);
         let response = await this.privateGetIserverAccountOrders (params);
         if (!this.safeBool (response, 'snapshot', true)) {
@@ -2302,8 +2474,7 @@ export default class interactivebrokers extends Exchange {
         //         "snapshot": true
         //     }
         //
-        const orders = this.safeList (response, 'orders', []);
-        return this.parseOrders (orders, market, since, limit);
+        return this.safeList (response, 'orders', []) as Dict[];
     }
 
     /**
