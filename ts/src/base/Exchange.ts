@@ -8081,7 +8081,7 @@ export class BaseExchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
-    handleTriggerPricesAndParams (symbol: any, params: any, omitParams = true): any[] {
+    handleTriggerPricesAndParams (symbol: any, params: any, omitParams = true): [Str, Str, Str, Dict] {
         //
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr: Str = undefined;
@@ -8115,7 +8115,7 @@ export class BaseExchange {
         return [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted ];
     }
 
-    handleTriggerDirectionAndParams (params: any, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false): any[] {
+    handleTriggerDirectionAndParams (params: any, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false): [Str, Dict] {
         /**
          * @ignore
          * @method
@@ -8139,13 +8139,13 @@ export class BaseExchange {
         return [ triggerDirection, paramsOmitted ];
     }
 
-    handleTriggerAndParams (params: any): any[] {
+    handleTriggerAndParams (params: any): [Bool, Dict] {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         const paramsOmitted = (isTrigger === true) ? this.omit (params, [ 'trigger', 'stop' ]) : params;
         return [ isTrigger, paramsOmitted ];
     }
 
-    isTriggerOrder (params: any): any[] {
+    isTriggerOrder (params: any): [Bool, Dict] {
         // for backwards compatibility
         return this.handleTriggerAndParams (params);
     }

@@ -849,7 +849,7 @@ export default class extended extends extendedRest {
         client.resolve (stored, messageHash);
     }
 
-    findSubscription (client: Client, name: string) {
+    findSubscription (client: Client, name: string): NullableDict {
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];

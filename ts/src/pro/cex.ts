@@ -927,7 +927,7 @@ export default class cex extends cexRest {
         return this.safeOrder (parsedOrder, marketResolved);
     }
 
-    fromPrecision (amount: any, scale: any) {
+    fromPrecision (amount: any, scale: any): Str {
         if (amount === undefined) {
             return undefined;
         }
@@ -937,7 +937,7 @@ export default class cex extends cexRest {
         return precise.toString ();
     }
 
-    currencyFromPrecision (currency: string, amount: any) {
+    currencyFromPrecision (currency: string, amount: any): Str {
         const scale = this.safeInteger (this.currencies[currency], 'precision', 0);
         return this.fromPrecision (amount, scale);
     }

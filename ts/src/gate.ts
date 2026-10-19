@@ -2836,7 +2836,7 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseFundingHistory (info: NullableDict, market: Market = undefined) {
+    parseFundingHistory (info: NullableDict, market: Market = undefined): FundingHistory {
         //
         //    {
         //        "time": 1646899200,
@@ -3197,7 +3197,7 @@ export default class gate extends Exchange {
         return this.parseTickers (response, symbolsNormalized);
     }
 
-    parseBalanceHelper (entry: Dict) {
+    parseBalanceHelper (entry: Dict): Dict {
         const account = this.account ();
         account['used'] = this.safeString2 (entry, 'freeze', 'locked');
         account['free'] = this.safeString (entry, 'available');
@@ -4293,7 +4293,7 @@ export default class gate extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'PEND': 'pending',
             'REQUEST': 'pending',
@@ -5051,7 +5051,7 @@ export default class gate extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'open': 'open',
             '_new': 'open',

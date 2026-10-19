@@ -2979,7 +2979,7 @@ export default class nado extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderTimeInForce (timeInForce: Str) {
+    parseOrderTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'default': 'GTC',
             'ioc': 'IOC',
@@ -3050,7 +3050,7 @@ export default class nado extends Exchange {
         return appendix;
     }
 
-    createSubaccount (walletAddress: Str, subaccount: Str = 'default') {
+    createSubaccount (walletAddress: Str, subaccount: Str = 'default'): string {
         if (walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' createSubaccount() requires walletAddress');
         }
@@ -3080,7 +3080,7 @@ export default class nado extends Exchange {
         return data;
     }
 
-    orderVerifyingContract (productId: Int) {
+    orderVerifyingContract (productId: Int): string {
         return '0x' + this.padHex (this.intToBase16 (productId), 40);
     }
 
@@ -3181,7 +3181,7 @@ export default class nado extends Exchange {
         return this.signHash (hash, this.privateKey);
     }
 
-    signHash (hash: string, privateKey: Str) {
+    signHash (hash: string, privateKey: Str): string {
         if (privateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' signHash() requires privateKey');
         }
@@ -3192,7 +3192,7 @@ export default class nado extends Exchange {
         return '0x' + this.padHex (r, 64) + this.padHex (s, 64) + v;
     }
 
-    removeMarketSuffix (marketId: Str) {
+    removeMarketSuffix (marketId: Str): Str {
         if (marketId === undefined) {
             return undefined;
         }

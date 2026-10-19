@@ -457,7 +457,7 @@ export default class bitrue extends bitrueRest {
         return result;
     }
 
-    convertFromRawQuantity (symbol: string, rawQuantity: Num) {
+    convertFromRawQuantity (symbol: string, rawQuantity: Num): Num {
         if (rawQuantity === undefined) {
             return undefined;
         }

@@ -719,7 +719,7 @@ export default class coinbase extends coinbaseRest {
         return orderbook.limit ();
     }
 
-    handleTrade (client: any, message: Dict) {
+    handleTrade (client: Client, message: Dict) {
         //
         //    {
         //        "channel": "market_trades",
@@ -776,7 +776,7 @@ export default class coinbase extends coinbaseRest {
         this.tryResolveUsdc (client, messageHash, tradesArray);
     }
 
-    handleOrder (client: any, message: Dict) {
+    handleOrder (client: Client, message: Dict) {
         //
         //    {
         //        "channel": "user",
@@ -906,7 +906,7 @@ export default class coinbase extends coinbaseRest {
         }
     }
 
-    handleOrderBook (client: any, message: Dict) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //    {
         //        "channel": "l2_data",

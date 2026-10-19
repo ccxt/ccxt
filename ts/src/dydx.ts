@@ -939,7 +939,7 @@ export default class dydx extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'UNTRIGGERED': 'open',
             'OPEN': 'open',
@@ -950,7 +950,7 @@ export default class dydx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LIMIT': 'LIMIT',
             'STOP_LIMIT': 'LIMIT',
@@ -1255,7 +1255,7 @@ export default class dydx extends Exchange {
         return this.encodeDydxTxRaw (signDoc, signature['r'] + signature['s']);
     }
 
-    retrieveCredentials (): any {
+    retrieveCredentials (): Dict {
         let credentials = this.safeDict (this.options, 'dydxCredentials');
         if (credentials !== undefined) {
             return credentials;
@@ -1311,7 +1311,7 @@ export default class dydx extends Exchange {
         return account;
     }
 
-    pow (n: string, m: Str) {
+    pow (n: string, m: Str): Str {
         let r = Precise.stringMul (n, '1');
         const c = this.parseToInt (m);
         // TODO: cap
@@ -2489,7 +2489,7 @@ export default class dydx extends Exchange {
         return this.milliseconds () - timeDifference;
     }
 
-    getWalletAddress () {
+    getWalletAddress (): string {
         if (this.walletAddress !== undefined && this.walletAddress !== '') {
             return this.walletAddress;
         }

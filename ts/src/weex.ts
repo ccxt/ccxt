@@ -2332,7 +2332,7 @@ export default class weex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createContractOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}) {
+    createContractOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -2489,7 +2489,7 @@ export default class weex extends Exchange {
         return this.extend (request, paramsOmitted);
     }
 
-    encodeTriggerPriceType (triggerPriceType: Str) {
+    encodeTriggerPriceType (triggerPriceType: Str): Str {
         const types: Dict = {
             'mark': 'MARK_PRICE',
             'last': 'CONTRACT_PRICE',
@@ -3239,7 +3239,7 @@ export default class weex extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'new': 'open',
             'partial_fill': 'closed',
@@ -3253,7 +3253,7 @@ export default class weex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -3554,7 +3554,7 @@ export default class weex extends Exchange {
         }, currencyResolved) as LedgerEntry;
     }
 
-    parseLedgerType (type: Str) {
+    parseLedgerType (type: Str): Str {
         const types: Dict = {
             'transfer_in': 'transfer',
             'transfer_out': 'transfer',
@@ -4029,7 +4029,7 @@ export default class weex extends Exchange {
         } as MarginMode;
     }
 
-    parseMarginType (marginType: Str) {
+    parseMarginType (marginType: Str): Str {
         const marginTypes: Dict = {
             'CROSSED': 'cross',
             'ISOLATED': 'isolated',
@@ -4062,7 +4062,7 @@ export default class weex extends Exchange {
         return await this.contractPrivatePostCapiV3AccountMarginType (this.extend (request, params));
     }
 
-    encodeMarginMode (marginMode: Str) {
+    encodeMarginMode (marginMode: Str): string {
         const marginTypes: Dict = {
             'cross': 'CROSSED',
             'isolated': 'ISOLATED',

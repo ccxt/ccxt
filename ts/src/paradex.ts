@@ -1414,7 +1414,7 @@ export default class paradex extends Exchange {
         }, marketResolved);
     }
 
-    hashMessage (message: any) {
+    hashMessage (message: any): string {
         const hashed: string = this.hash (message, keccak, 'hex');
         return '0x' + hashed;
     }
@@ -1677,7 +1677,7 @@ export default class paradex extends Exchange {
         }, marketResolved);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'IOC': 'IOC',
             'GTC': 'GTC',
@@ -1686,7 +1686,7 @@ export default class paradex extends Exchange {
         return this.safeString (timeInForces, (timeInForce as string));
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         if (status !== undefined) {
             const statuses: Dict = {
                 'NEW': 'open',
@@ -1699,7 +1699,7 @@ export default class paradex extends Exchange {
         return undefined;
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1709,7 +1709,7 @@ export default class paradex extends Exchange {
         return this.safeStringLower (types, type, type);
     }
 
-    scaleNumber (num: string) {
+    scaleNumber (num: string): Str {
         return Precise.stringMul (num, '100000000');
     }
 
@@ -2966,7 +2966,7 @@ export default class paradex extends Exchange {
         };
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'PENDING': 'pending',
             'AVAILABLE': 'pending',

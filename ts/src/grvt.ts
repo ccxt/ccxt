@@ -414,7 +414,7 @@ export default class grvt extends Exchange {
         });
     }
 
-    eipDefinitions () {
+    eipDefinitions (): Dict {
         return {
             'EIP712_ORDER_TYPE': {
                 'Order': [
@@ -3111,7 +3111,7 @@ export default class grvt extends Exchange {
         return this.safeInteger (timeInForces, timeInForce, 0);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'PENDING': 'pending',
             'OPEN': 'open',
@@ -3191,7 +3191,7 @@ export default class grvt extends Exchange {
         return this.parseOrder (result);
     }
 
-    eipDomainData () {
+    eipDomainData (): Dict {
         //     GrvtEnv.DEV.value: 327,
         //     GrvtEnv.STAGING.value: 327,
         //     GrvtEnv.TESTNET.value: 326,
@@ -3272,7 +3272,7 @@ export default class grvt extends Exchange {
         return request;
     }
 
-    formatSignatureRS (value: string) {
+    formatSignatureRS (value: string): string {
         const padded = value.padStart (64, '0');
         if (padded.startsWith ('0x')) {
             return padded;
@@ -3281,7 +3281,7 @@ export default class grvt extends Exchange {
         }
     }
 
-    defaultSignature () {
+    defaultSignature (): Dict {
         const expiration = this.milliseconds () * 1000000 + 1000000 * this.safeInteger (this.options, 'expirationSeconds', 30) * 1000;
         return {
             'signer': '',

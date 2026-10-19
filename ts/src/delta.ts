@@ -651,7 +651,7 @@ export default class delta extends Exchange {
         return markets;
     }
 
-    indexByStringifiedNumericId (input: NullableDict) {
+    indexByStringifiedNumericId (input: NullableDict): NullableDict {
         const result: Dict = {};
         if (input === undefined) {
             return undefined;
@@ -1898,7 +1898,7 @@ export default class delta extends Exchange {
         });
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'open': 'open',
             'pending': 'open',
@@ -2545,7 +2545,7 @@ export default class delta extends Exchange {
         return this.parseLedger (result, currency, since, limit);
     }
 
-    parseLedgerEntryType (type: Str) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             'pnl': 'pnl',
             'deposit': 'transaction',

@@ -116,6 +116,9 @@ export const CCXT_GO_BOOL_METHOD_NAMES = [
     // hx4 G09: every return is a Go bool; no interface pins them, no venue overrides
     'IsLeveragedCurrency',
     'HasOutcome',
+    // hx4 B01: base bodies return a Go bool on every path; the interface pins them as bool
+    'IsEmptyString',
+    'IsTickPrecision',
 ];
 
 
@@ -3360,6 +3363,9 @@ function ccxtGoContainerNeverNil (goTranspiler, expression) {
     if ((expression === undefined) || ts.isObjectLiteralExpression (expression) || ts.isArrayLiteralExpression (expression)) {
         return expression !== undefined;
     }
+    if (ts.isIdentifier (expression)) {
+        return g13LocalContainerNeverNil (goTranspiler, expression);
+    }
     if (!ts.isCallExpression (expression) || !ts.isPropertyAccessExpression (expression.expression)
         || (expression.expression.expression.kind !== ts.SyntaxKind.ThisKeyword)) {
         return false;
@@ -3402,7 +3408,7 @@ function ccxtGoAnnotatedMethodReturnType (goTranspiler, node) {
     if ((reserved !== undefined) && (reserved.has (name) || reserved.has (name.charAt (0).toUpperCase () + name.slice (1)))) {
         return undefined; // the interface files list the emitted (capitalised) Go name
     }
-    const allowed = ccxtGoAnnotatedReturnTypes (goTranspiler, node);
+    const allowed = ccxtGoAnnotatedReturnTypes (goTranspiler, node) ?? g13ArrayAnnotatedReturnTypes (goTranspiler, node, name);
     if (allowed === undefined) {
         return undefined;
     }
@@ -3649,7 +3655,7 @@ function installNilDeclaredJoin (goTranspiler) {
     const upstream = goTranspiler.printVariableDeclarationList;
     goTranspiler.printVariableDeclarationList = function (node, identation) {
         const declaration = node?.declarations?.[0];
-        const joinType = ccxtGoNilDeclaredJoinType (this, declaration);
+        const joinType = ccxtGoNilDeclaredJoinType (this, declaration) ?? g13StrNilDeclaredJoinType (this, declaration);
         if (joinType !== undefined) {
             // the printer's own nil branch, with the proven pointer type named
             return this.getIden (identation) + 'var ' + this.printNode (declaration.name) + ' ' + joinType + ' = ' + this.NULL_TOKEN;
@@ -6964,6 +6970,7 @@ export function installCcxtGoLocalTypes (goTranspiler, unifiedInt64Params = unde
     // the container locals the printer's own predicate leaves out: cast-wrapped initializers,
     // non-empty (kept) defaults, the two-key accessors and the Safe* read shapes of the list family
     installCcxtGoSafeCollectionUnbox (goTranspiler);
+    installCcxtGoG14SafeListWrappedReads (goTranspiler);
     // B1: name the async-receive locals whose element type the core's channel carries
     installCcxtGoAsyncReceiveUnbox (goTranspiler);
     installCcxtGoAsyncForwardRebox (goTranspiler);
@@ -10330,3 +10337,123 @@ function installHx4G10SelfMapWrites (goTranspiler) {
     }
     goTranspiler.__hx4G10Installed = true;
 }
+
+// hx4 G13
+// `: Dict[]` / `: any[]` returns print `[]any` (the List mapping) on methods no related file redeclares
+function g13ArrayAnnotatedReturnTypes (goTranspiler, node, name) {
+    const annotation = node.type?.getText ()?.replace (/\s+/g, '');
+    if (((annotation !== 'Dict[]') && (annotation !== 'any[]')) || !ccxtGoGeneralAnnotatedMethodIsClosed (node, name)) {
+        return undefined;
+    }
+    try {
+        const checker = goTranspiler.getChecker ();
+        const type = checker.getReturnTypeOfSignature (checker.getSignatureFromDeclaration (node));
+        return checker.isArrayType (type) ? [ '[]any' ] : undefined;
+    } catch (e) {
+        return undefined;
+    }
+}
+
+// a local whose initializer and every later `x = ..` write is itself a never-nil container
+const G13_NEVER_NIL_IN_PROGRESS = new Set ();
+function g13LocalContainerNeverNil (goTranspiler, identifier) {
+    const declaration = ccxtGoParamDeclarationOf (goTranspiler, identifier);
+    if ((declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || !ts.isIdentifier (declaration.name)
+        || (declaration.initializer === undefined) || G13_NEVER_NIL_IN_PROGRESS.has (declaration)) {
+        return false;
+    }
+    const scope = goTranspiler.goEnclosingFunction?. (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    G13_NEVER_NIL_IN_PROGRESS.add (declaration);
+    try {
+        if (!ccxtGoContainerNeverNil (goTranspiler, declaration.initializer)) {
+            return false;
+        }
+        const name = declaration.name.text;
+        let unsafe = false;
+        const visit = (n) => {
+            if (unsafe) {
+                return;
+            }
+            if (ts.isIdentifier (n) && (n.text === name) && (n !== declaration.name)) {
+                const parent = n.parent;
+                if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)
+                    && (parent.operatorToken.kind >= ts.SyntaxKind.FirstAssignment) && (parent.operatorToken.kind <= ts.SyntaxKind.LastAssignment)) {
+                    unsafe = (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken) || !ccxtGoContainerNeverNil (goTranspiler, parent.right);
+                } else if (isDestructuringTarget (n)) {
+                    unsafe = true;
+                }
+            }
+            n.forEachChild (visit);
+        };
+        scope.forEachChild (visit);
+        return !unsafe;
+    } finally {
+        G13_NEVER_NIL_IN_PROGRESS.delete (declaration);
+    }
+}
+
+// `let x: Str = undefined` whose every write is nil or a proven *string (call or *string local), and
+// every read passes the nil-declared read proof: `var x *string = nil` holds the same values
+function g13StrNilDeclaredJoinType (goTranspiler, declaration) {
+    if ((declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || !ts.isIdentifier (declaration.name)
+        || (declaration.type?.getText () !== 'Str') || !isNilLiteralExpression (declaration.initializer)
+        || (NIL_DECLARED_GUARD_NAMES.indexOf (declaration.name.text) >= 0)) {
+        return undefined;
+    }
+    const scope = goTranspiler.goEnclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const name = declaration.name.text;
+    let pointerWrites = 0;
+    let unsafe = false;
+    const visit = (n) => {
+        if (unsafe) {
+            return;
+        }
+        if (ts.isIdentifier (n) && (n.text === name) && (n !== declaration.name)) {
+            const parent = n.parent;
+            if ((parent?.kind === ts.SyntaxKind.VariableDeclaration) && (parent.name === n)) {
+                unsafe = true; // a shadowing declaration
+            } else if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n) && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
+                const right = parent.right;
+                if (!isNilLiteralExpression (right)) {
+                    const written = ts.isIdentifier (right) ? goTranspiler.goDeclaredTypeOfIdentifier (right)
+                        : goTranspiler.goTypeOfInitializer (right, goTranspiler.printNode (right, 0));
+                    unsafe = (written !== '*string');
+                    pointerWrites += 1;
+                }
+            } else if (!nilDeclaredReadIsSafe (goTranspiler, n)) {
+                unsafe = true;
+            }
+        }
+        n.forEachChild (visit);
+    };
+    scope.forEachChild (visit);
+    if (unsafe || (pointerWrites === 0) || goTranspiler.goTypeNameIsShadowed (scope, '*string')) {
+        return undefined;
+    }
+    return '*string';
+}
+
+// hx4 G14
+// `(x as List).length` / `(x)[i]`: a type assertion or parentheses print as the bare operand, so the
+// list-read verdict of the wrapped local is the verdict of the outermost wrapper
+function installCcxtGoG14SafeListWrappedReads (goTranspiler) {
+    if ((typeof goTranspiler.goSafeListUseReadsTheList !== 'function') || goTranspiler.__ccxtGoG14Installed) {
+        return;
+    }
+    const shipped = goTranspiler.goSafeListUseReadsTheList;
+    goTranspiler.goSafeListUseReadsTheList = function (node) {
+        let outer = node;
+        while ((outer.parent?.kind === ts.SyntaxKind.AsExpression) || (outer.parent?.kind === ts.SyntaxKind.ParenthesizedExpression)) {
+            outer = outer.parent;
+        }
+        return shipped.call (this, outer);
+    };
+    goTranspiler.__ccxtGoG14Installed = true;
+}
+

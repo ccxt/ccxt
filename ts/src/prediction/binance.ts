@@ -510,7 +510,7 @@ export default class binance extends Exchange {
      * @param {object} rawTopic the raw market topic object
      * @returns {object} an event structure
      */
-    parseEvent (rawTopic: Dict): any {
+    parseEvent (rawTopic: Dict): Dict {
         //
         //     {
         //         "marketTopicId": 4229564,

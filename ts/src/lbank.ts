@@ -1335,7 +1335,7 @@ export default class lbank extends Exchange {
         };
         const data = this.safeDict (response, 'data');
         // from spotPrivatePostUserInfo
-        const toBtc = this.safeValue (data, 'toBtc');
+        const toBtc = this.safeDict (data, 'toBtc');
         if (toBtc !== undefined) {
             const used = this.safeDict (data, 'freeze', {});
             const free = this.safeDict (data, 'free', {});
@@ -1748,7 +1748,7 @@ export default class lbank extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             '-1': 'canceled', // canceled
             '0': 'open', // not traded
@@ -3152,7 +3152,7 @@ export default class lbank extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    convertSecretToPem (secret: any) {
+    convertSecretToPem (secret: any): string {
         const lineLength = 64;
         const secretLength = secret.length - 0;
         let numLines = this.parseToInt (secretLength / lineLength);

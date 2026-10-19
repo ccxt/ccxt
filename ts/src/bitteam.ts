@@ -1386,7 +1386,7 @@ export default class bitteam extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'accepted': 'open',
             'executed': 'closed',
@@ -1408,7 +1408,7 @@ export default class bitteam extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseValueToPricision (valueObject: Dict, valueKey: string, preciseObject: NullableDict, precisionKey: string) {
+    parseValueToPricision (valueObject: Dict, valueKey: string, preciseObject: NullableDict, precisionKey: string): Str {
         const valueRawString = this.safeString (valueObject, valueKey);
         const precisionRawString = this.safeString (preciseObject, precisionKey);
         if (valueRawString === undefined || precisionRawString === undefined) {
@@ -2425,7 +2425,7 @@ export default class bitteam extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'approving': 'pending',
             'success': 'ok',

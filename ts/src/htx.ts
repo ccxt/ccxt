@@ -3885,7 +3885,7 @@ export default class htx extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    parseMarginBalanceHelper (balance: Dict, code: string, result: Dict) {
+    parseMarginBalanceHelper (balance: Dict, code: string, result: Dict): Dict {
         let account: NullableDict = undefined;
         if (code in result) {
             account = result[code];
@@ -4692,7 +4692,7 @@ export default class htx extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             // spot
             'partial-filled': 'open',
@@ -6723,7 +6723,7 @@ export default class htx extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             // deposit statuses
             'unknown': 'failed',
@@ -8464,7 +8464,7 @@ export default class htx extends Exchange {
         return parsed;
     }
 
-    parseLedgerEntryType (type: Str) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             'trade': 'trade',
             'etf': 'trade',
@@ -9485,7 +9485,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    parseSettlements (settlements: any, market: MarketInterface) {
+    parseSettlements (settlements: any, market: MarketInterface): List {
         //
         // coin-m swap, fetchSettlementHistory
         //

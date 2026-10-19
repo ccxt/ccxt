@@ -2044,7 +2044,7 @@ export default class bithumb extends Exchange {
         return this.parseOrder (parsedOrder, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'Pending': 'open',
             'Completed': 'closed',
@@ -3259,7 +3259,7 @@ export default class bithumb extends Exchange {
         } as DepositAddress;
     }
 
-    fixCommaNumber (numberStr: Str) {
+    fixCommaNumber (numberStr: Str): Str {
         // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
         if (numberStr === undefined) {
             return undefined;
@@ -3275,7 +3275,7 @@ export default class bithumb extends Exchange {
         return this.milliseconds ();
     }
 
-    urlencodeWithArrayBrackets (query: Dict) {
+    urlencodeWithArrayBrackets (query: Dict): string {
         const keys = Object.keys (query);
         let result = '';
         for (let i = 0; i < keys.length; i++) {

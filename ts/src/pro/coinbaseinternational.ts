@@ -234,7 +234,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return await this.subscribe ((channel as string), [ symbol ], paramsChannel);
     }
 
-    getActiveSymbols (): any[] {
+    getActiveSymbols (): string[] {
         const symbols = this.symbols;
         const output: any[] = [];
         for (let i = 0; i < symbols.length; i++) {

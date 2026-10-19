@@ -1506,7 +1506,7 @@ export default class okx extends Exchange {
         return super.handleMarketTypeAndParams (methodName, market, paramsOmitted, defaultValue);
     }
 
-    convertToInstrumentType (type: any) {
+    convertToInstrumentType (type: Str): Str {
         const exchangeTypes = this.safeDict (this.options, 'exchangeType', {});
         return this.safeString (exchangeTypes, (type as string), type);
     }
@@ -4123,7 +4123,7 @@ export default class okx extends Exchange {
         return response;
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
@@ -5916,7 +5916,7 @@ export default class okx extends Exchange {
         return this.parseTransaction (withdrawal);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         //
         // deposit statuses
         //

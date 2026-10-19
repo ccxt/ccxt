@@ -8914,9 +8914,10 @@ function csharpHx4C03OperandType (m: string, takeType, content: string): string 
         return csharpHx4C03MethodType (call[2], content);
     }
     // the guarded dictionary / list reads the getValue pass emits: a ternary of an object element and null
-    const dict = /^\((?:(this\.\w+|\w+) != null && )?(this\.\w+|\w+)\.ContainsKey\(("[ ]*"|\w+)\) \? (this\.\w+|\w+)\[("[ ]*"|\w+)\] : null\)$/.exec (m);
-    if ((dict !== null) && ((dict[1] === undefined) || (dict[1] === dict[2])) && (dict[2] === dict[4]) && (dict[3] === dict[5])) {
-        return csharpHx4C03ObjectDict (dict[2], takeType) ? 'object' : undefined;
+    // (hx4 C11 adds the identifier key's own `k != null &&` test)
+    const dict = /^\((?:(this\.\w+|\w+) != null && )?(?:(\w+) != null && )?(this\.\w+|\w+)\.ContainsKey\(("[ ]*"|\w+)\) \? (this\.\w+|\w+)\[("[ ]*"|\w+)\] : null\)$/.exec (m);
+    if ((dict !== null) && ((dict[1] === undefined) || (dict[1] === dict[3])) && ((dict[2] === undefined) || (dict[2] === dict[4])) && (dict[3] === dict[5]) && (dict[4] === dict[6])) {
+        return csharpHx4C03ObjectDict (dict[3], takeType) ? 'object' : undefined;
     }
     const list = /^\((\w+) != null && (\d+|\w+) < (\w+)\.Count \? (\w+)\[(\d+|\w+)\] : null\)$/.exec (m);
     if ((list !== null) && (list[1] === list[3]) && (list[1] === list[4]) && (list[2] === list[5])) {
@@ -9633,6 +9634,57 @@ export function csharpHx4SelfTest (): string[] {
         keeps ('if (isLessThan(limit, 1.5)) { }');
         keeps ('if (true)\n{\n    Int64? x = 1;\n}\nelse\n{\n    object x = 2;\n    if (isLessThan(x, 3)) { }\n}');
         keeps ('uint big = 4000000000;\nif (isLessThan(limit, big)) { }');
+    }
+    {
+        // hx4 C09: a safeDict* local rewritten through the 2-argument dict-receiver omit stays IDictionary
+        const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+        const transpiler = new Transpiler (config);
+        setupCsharpPrinter (transpiler);
+        const check = (name: string, body: string, expected: string, forbidden?: string) => {
+            const src = 'type Dict = any; class Test {\n safeDict (o, k, d = undefined): Dict { return d; }\n omit (o, ...k): any { return o; }\n safeString (o, k): string { return k; }\n' + body + '\n}';
+            const out: string = (transpiler as any).transpileCSharp (src).content;
+            if (!out.includes (expected) || (forbidden !== undefined && out.includes (forbidden))) {
+                problems.push (`hx4 C09 omit-rewritten safeDict local: ${name}\n${out.slice (-600)}`);
+            }
+        };
+        check ('omit(self, keys) keeps IDictionary',
+            'f (raw) { let p = this.safeDict (raw, "params", {}); p["s"] = 1; p = this.omit (p, [ "a" ]); return this.safeString (p, "b"); }',
+            'IDictionary<string, object> p = this.safeDict(', 'object p = ');
+        check ('omit(self, key) in a branch keeps IDictionary',
+            'f (raw, h) { let p = this.safeDict (raw, "k", {}); if (h) { p = this.omit (p, h); } return p; }',
+            'IDictionary<string, object> p = this.safeDict(');
+        check ('3-argument omit stays object',
+            'f (raw, h) { let p = this.safeDict (raw, "k", {}); p = this.omit (p, h, "x"); return p; }', 'object p = this.safeDict(');
+        check ('omit of another receiver stays object',
+            'f (raw, o) { let p = this.safeDict (raw, "k", {}); p = this.omit (o, "x"); return p; }', 'object p = this.safeDict(');
+        check ('null write after omit: a reference local holds null',
+            'f (raw) { let p = this.safeDict (raw, "k", {}); p = this.omit (p, "x"); p = undefined; return p; }', 'IDictionary<string, object> p = this.safeDict(');
+        check ('list write stays object',
+            'f (raw, xs) { let p = this.safeDict (raw, "k", {}); p = this.omit (p, "x"); p = [ xs ]; return p; }', 'object p = this.safeDict(');
+    }
+    // hx4 C10: native `+` on a left operand proven a non-null string
+    {
+        const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+        const transpiler = new Transpiler (config);
+        setupCsharpPrinter (transpiler);
+        const check = (name: string, body: string, expected: string, forbidden?: string) => {
+            const src = 'class Test {\n safeString (o, k, d = undefined): string { return d; }\n implodeParams (p, o): string { return p; }\n' + body + '\n}';
+            const out: string = (transpiler as any).transpileCSharp (src).content;
+            if (!out.includes (expected) || (forbidden !== undefined && out.includes (forbidden))) {
+                problems.push (`hx4 C10 native concat: ${name}\n${out}`);
+            }
+        };
+        check ('literal-initialized accumulator += element', 'f (o, xs) { let s = \'\'; for (let i = 0; i < xs.length; i++) { s += \',\'; s += xs[i]; } return s + \'!\'; }', 'return (s + "!")', 'add(s, ",")');
+        check ('+= conditional right keeps its parentheses', 'f (o, side) { let s = \'\'; s += (side === \'sell\') ? \'A\' : \'B\'; return s; }', 's = s + ((', '(s + (isEqual');
+        check ('object-printed += conditional right', 'f (o, side, xs) { let s = \'\'; s += xs[0]; s += (side === \'sell\') ? \'A\' : \'B\'; return s; }', 's = (s + ((isEqual(side, "sell")) ? "A" : "B"));', 'add(s, (');
+        check ('safeString with literal default + literal', 'f (o) { const a = this.safeString (o, \'a\', \'x\'); return a + \':\'; }', '(a + ":")', 'add(a');
+        check ('literal accumulator self-concat writes', 'f (o, xs) { let s = \'\'; for (let i = 0; i < xs.length; i++) { s = s + \'&\'; } return s; }', '(s + "&")', 'add(s');
+        check ('safeString without default keeps helper', 'f (o) { const a = this.safeString (o, \'a\'); const b = o[\'b\']; return a + b; }', 'add(a, b)');
+        check ('later unknown write keeps helper', 'f (o) { let s = \'\'; s = o[\'x\']; return s + \':\'; }', 'add(s, ":")');
+        check ('object left + object right keeps helper', 'f (o) { let s = \'\'; const b = o[\'b\']; s = s + b; return s + b; }', 'return add(s, b)');
+        check ('object-printed left + string? local right', 'f (o, xs) { let s = \'\'; const v = this.safeString (o, \'v\'); s = s + xs[0]; return s + v; }', '(s + v)');
+        check ('loop write of unknown box keeps helper', 'f (o, xs) { let s = \'\'; for (let i = 0; i < xs.length; i++) { s = xs[i]; } return s + \':\'; }', 'add(s, ":")');
+        check ('closure write keeps helper', 'f (o) { let s = \'\'; const g = () => { s = o[\'x\']; }; g (); return s + \':\'; }', 'add(s, ":")');
     }
     return problems;
 }

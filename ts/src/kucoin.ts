@@ -4205,7 +4205,7 @@ export default class kucoin extends Exchange {
         return this.extend (request, paramsOmitted);
     }
 
-    marketOrderAmountToPrecision (symbol: Str, amount: any) {
+    marketOrderAmountToPrecision (symbol: Str, amount: any): string {
         const market = this.market (symbol);
         const result = this.decimalToPrecision (amount, TRUNCATE, market['info']['quoteIncrement'], this.precisionMode, this.paddingMode);
         if (result === '0') {
@@ -7700,7 +7700,7 @@ export default class kucoin extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'SUCCESS': 'ok',
             'PROCESSING': 'pending',

@@ -1484,7 +1484,7 @@ export default class bigone extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseType (type: Str) {
+    parseType (type: Str): Str {
         const types: Dict = {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
@@ -1931,7 +1931,7 @@ export default class bigone extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'PENDING': 'open',
             'FILLED': 'closed',
@@ -2077,7 +2077,7 @@ export default class bigone extends Exchange {
         } as DepositAddress;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             // what are other statuses here?
             'WITHHOLD': 'ok', // deposits

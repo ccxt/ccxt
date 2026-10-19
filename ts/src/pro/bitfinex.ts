@@ -107,7 +107,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
 
-    async subscribePrivate (messageHash: any) {
+    async subscribePrivate (messageHash: string) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -935,7 +935,7 @@ export default class bitfinex extends bitfinexRest {
         }
     }
 
-    parseWsBalance (balance: any) {
+    parseWsBalance (balance: List) {
         //
         //     [
         //         "exchange",

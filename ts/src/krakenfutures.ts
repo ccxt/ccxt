@@ -930,7 +930,7 @@ export default class krakenfutures extends Exchange {
         };
         const paramsOmitted: Dict = this.omit (paramsPaginate, 'price');
         const windowLimit = (limit === undefined) ? 2000 : Math.min (limit, 2000);
-        let limitResolved = undefined;
+        let limitResolved: Int = undefined;
         if ((since !== undefined) || (limit !== undefined)) {
             limitResolved = windowLimit;
         }
@@ -1918,7 +1918,7 @@ export default class krakenfutures extends Exchange {
         return this.safeString (typesMap, orderType, orderType);
     }
 
-    verifyOrderActionSuccess (status: any, method: any, omit: string[] = []) {
+    verifyOrderActionSuccess (status: any, method: string, omit: string[] = []) {
         const errors: Dict = {
             'invalidOrderType': InvalidOrder,
             'invalidSide': InvalidOrder,
@@ -1946,7 +1946,7 @@ export default class krakenfutures extends Exchange {
         }
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'placed': 'open', // the order was placed successfully
             'cancelled': 'canceled', // the order was cancelled successfully
@@ -3853,7 +3853,7 @@ export default class krakenfutures extends Exchange {
         }
         const url = apiUrl + query;
         const requestBody = (path === 'batchorder') ? postData : undefined;
-        let privateHeaders = undefined;
+        let privateHeaders: NullableDict = undefined;
         if (apiName === 'private' || access === 'private') {
             this.checkRequiredCredentials ();
             let auth = postData + '/api/';

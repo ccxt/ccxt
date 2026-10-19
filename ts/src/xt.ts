@@ -1073,7 +1073,7 @@ export default class xt extends Exchange {
         return this.arrayConcat (spotMarkets, swapAndFutureMarkets);
     }
 
-    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
+    async fetchSpotMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicSpotGetSymbol (params);
         //
         //     {
@@ -4016,7 +4016,7 @@ export default class xt extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -4144,7 +4144,7 @@ export default class xt extends Exchange {
         }, currencyResolved) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: Str) {
+    parseLedgerEntryType (type: Str): Str {
         const ledgerType = {
             'EXCHANGE': 'transfer',
             'CLOSE_POSITION': 'trade',
@@ -4453,7 +4453,7 @@ export default class xt extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses = {
             'SUBMIT': 'pending',
             'REVIEW': 'pending',

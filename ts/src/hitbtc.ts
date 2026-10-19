@@ -1546,7 +1546,7 @@ export default class hitbtc extends Exchange {
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'CREATED': 'pending',
             'PENDING': 'pending',
@@ -2516,7 +2516,7 @@ export default class hitbtc extends Exchange {
         return [ request, paramsOmitted ];
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'new': 'open',
             'suspended': 'open',
@@ -2788,7 +2788,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async convertCurrencyNetwork (code: string, amount: Num, fromNetwork: any, toNetwork: any, params: Dict = {}): Promise<Dict> {
+    async convertCurrencyNetwork (code: string, amount: Num, fromNetwork: string, toNetwork: string, params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3443,7 +3443,7 @@ export default class hitbtc extends Exchange {
         } as FundingRate;
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, type: Str, params: Dict = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: number, type: Str, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

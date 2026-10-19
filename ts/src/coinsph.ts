@@ -1751,7 +1751,7 @@ export default class coinsph extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderSide (status: Str) {
+    parseOrderSide (status: Str): Str {
         const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -1762,7 +1762,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    encodeOrderSide (status: Str) {
+    encodeOrderSide (status: Str): Str {
         const statuses: Dict = {
             'buy': 'BUY',
             'sell': 'SELL',
@@ -1773,7 +1773,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status: Str) {
+    parseOrderType (status: Str): Str {
         const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -1789,7 +1789,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    encodeOrderType (status: Str) {
+    encodeOrderType (status: Str): Str {
         const statuses: Dict = {
             'market': 'MARKET',
             'limit': 'LIMIT',
@@ -1805,7 +1805,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'NEW': 'open',
             'FILLED': 'closed',
@@ -1820,7 +1820,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderTimeInForce (status: Str) {
+    parseOrderTimeInForce (status: Str): Str {
         const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
@@ -2183,7 +2183,7 @@ export default class coinsph extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
@@ -2251,7 +2251,7 @@ export default class coinsph extends Exchange {
         } as DepositAddress;
     }
 
-    urlEncodeQuery (query: Dict = {}) {
+    urlEncodeQuery (query: Dict = {}): string {
         let encodedArrayParams = '';
         let remainingQuery: Dict = query;
         const keys = Object.keys (query);

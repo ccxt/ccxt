@@ -1902,7 +1902,7 @@ export default class kraken extends Exchange {
         return market;
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'pending': 'open', // order pending book entry
             'open': 'open',
@@ -2966,7 +2966,7 @@ export default class kraken extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         // IFEX transaction states
         const statuses: Dict = {
             'Initial': 'pending',
@@ -3267,7 +3267,7 @@ export default class kraken extends Exchange {
         return this.parseTransactionsByType ('withdrawal', rawWithdrawals, code, since, limit);
     }
 
-    addPaginationCursorToResult (result: any) {
+    addPaginationCursorToResult (result: Dict): List {
         const cursor = this.safeString (result, 'next_cursor');
         const data = this.safeValue (result, 'withdrawals');
         const dataLength = data.length;
@@ -3595,7 +3595,7 @@ export default class kraken extends Exchange {
         });
     }
 
-    parseAccountType (account: Str) {
+    parseAccountType (account: Str): Str {
         const accountByType: Dict = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',

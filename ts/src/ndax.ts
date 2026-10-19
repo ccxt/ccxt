@@ -1476,7 +1476,7 @@ export default class ndax extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'Accepted': 'open',
             'Rejected': 'rejected',
@@ -2467,7 +2467,7 @@ export default class ndax extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status: Str = undefined, type: Str = undefined) {
+    parseTransactionStatusByType (status: Str = undefined, type: Str = undefined): Str {
         const statusesByType: Dict = {
             'deposit': {
                 'New': 'pending', // new ticket awaiting operator review

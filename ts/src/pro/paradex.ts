@@ -4,7 +4,7 @@
 import paradexRest from '../paradex.js';
 import Precise from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances } from '../base/types.js';
+import type { Int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -1069,7 +1069,7 @@ export default class paradex extends paradexRest {
         return result;
     }
 
-    parseSbeTrade (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbeTrade (frameHex: string, blockLength: number, frameLength: number): NullableDict {
         //
         // TradeEvent (templateId 1), 50-byte block
         //
@@ -1098,7 +1098,7 @@ export default class paradex extends paradexRest {
         };
     }
 
-    parseSbeOrderBook (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbeOrderBook (frameHex: string, blockLength: number, frameLength: number): NullableDict {
         //
         // BookEvent (templateId 3), 89-byte block
         //
@@ -1151,7 +1151,7 @@ export default class paradex extends paradexRest {
         };
     }
 
-    parseSbeMarketSummary (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbeMarketSummary (frameHex: string, blockLength: number, frameLength: number): NullableDict {
         //
         // MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
         // 12 int64 fields and settlementTwapEstimate are read
@@ -1190,7 +1190,7 @@ export default class paradex extends paradexRest {
         };
     }
 
-    parseSbeFundingData (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbeFundingData (frameHex: string, blockLength: number, frameLength: number): NullableDict {
         //
         // FundingDataEvent (templateId 5), 66-byte block
         //
@@ -1216,7 +1216,7 @@ export default class paradex extends paradexRest {
         };
     }
 
-    parseSbeOrder (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbeOrder (frameHex: string, blockLength: number, frameLength: number): NullableDict {
         //
         // OrderEvent (templateId 20), 128-byte block (126 before the 1:2 request fields)
         //
@@ -1283,7 +1283,7 @@ export default class paradex extends paradexRest {
         return flags;
     }
 
-    parseSbeFill (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbeFill (frameHex: string, blockLength: number, frameLength: number): NullableDict {
         //
         // FillEvent (templateId 21), 116-byte block (107 before the 1:2 flags and orderbookSeqNo)
         //
@@ -1329,7 +1329,7 @@ export default class paradex extends paradexRest {
         return fill;
     }
 
-    parseSbePosition (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbePosition (frameHex: string, blockLength: number, frameLength: number): NullableDict {
         //
         // PositionEvent (templateId 22), 154-byte block
         //
@@ -1380,7 +1380,7 @@ export default class paradex extends paradexRest {
         };
     }
 
-    parseSbeAccount (frameHex: string, blockLength: number, frameLength: number): any {
+    parseSbeAccount (frameHex: string, blockLength: number, frameLength: number): NullableDict {
         //
         // AccountEvent (templateId 23), 121-byte block (113 before the 1:2 lastSeenNotification)
         //

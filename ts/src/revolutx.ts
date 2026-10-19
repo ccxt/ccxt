@@ -883,7 +883,7 @@ export default class revolutx extends Exchange {
      * @param {string} status the exchange-specific order status
      * @returns {string|undefined} the unified order status
      */
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'pending_new': 'open',
             'new': 'open',

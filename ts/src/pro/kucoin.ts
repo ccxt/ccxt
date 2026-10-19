@@ -294,7 +294,7 @@ export default class kucoin extends kucoinRest {
         return this.safeString (this.options, 'utaToken');
     }
 
-    unSubscribe (url: any, messageHash: any, topic: any, subscriptionHash: any, params: Dict = {}, subscription: NullableDict = undefined): Promise<any> {
+    unSubscribe (url: string, messageHash: string, topic: string, subscriptionHash: string, params: Dict = {}, subscription: NullableDict = undefined): Promise<any> {
         return this.unSubscribeMultiple (url, [ messageHash ], topic, [ subscriptionHash ], params, subscription);
     }
 
@@ -2971,7 +2971,7 @@ export default class kucoin extends kucoinRest {
         return this.filterBySymbolsSinceLimit (cache, symbolsNormalized, since, limit, true);
     }
 
-    getCurrentPosition (symbol: string) {
+    getCurrentPosition (symbol: string): NullableDict {
         if (this.positions === undefined) {
             return undefined;
         }

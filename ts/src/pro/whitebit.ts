@@ -729,7 +729,7 @@ export default class whitebit extends whitebitRest {
         }, marketResolved);
     }
 
-    parseWsOrderType (status: any): string {
+    parseWsOrderType (status: Str): Str {
         const statuses: Dict = {
             '1': 'limit',
             '2': 'market',
@@ -783,7 +783,7 @@ export default class whitebit extends whitebitRest {
         return await this.watchPrivate (messageHash, method, [], paramsAwaitBalanceSnapshot);
     }
 
-    setBalanceCache (client: Client, type: Str, subscriptionHash: any) {
+    setBalanceCache (client: Client, type: Str, subscriptionHash: string) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
@@ -797,7 +797,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    async loadBalanceSnapshot (client: any, messageHash: any, type: any, subscriptionHash: any) {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: Str, subscriptionHash: string) {
         const response = await this.fetchBalance ({ 'type': type });
         this.balance = this.extend (response, this.balance);
         // don't remove the future from the .futures cache

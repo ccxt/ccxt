@@ -774,7 +774,7 @@ export default class kalshi extends Exchange {
         //         }
         //     }
         //
-        const raw = this.safeValue (response, 'market', response);
+        const raw = this.safeDict (response, 'market', response);
         return this.parsePredictionTicker (raw, outcomeObj as any);
     }
 
@@ -1090,7 +1090,7 @@ export default class kalshi extends Exchange {
         //         }
         //     }
         //
-        const book = this.safeValue (response, 'orderbook_fp', response);
+        const book = this.safeDict (response, 'orderbook_fp', response);
         // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
         const rawYes = this.safeList (book, 'yes_dollars', []);
         const rawNo = this.safeList (book, 'no_dollars', []);
@@ -1670,7 +1670,7 @@ export default class kalshi extends Exchange {
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a prediction settlement structure
      */
-    parseSettlement (settlement: Dict, market: Market = undefined): any {
+    parseSettlement (settlement: Dict, market: Market = undefined): Dict {
         const ticker = this.safeString (settlement, 'ticker');
         // the leg the user actually held (kalshi reports separate yes/no counts + costs)
         const yesCount = this.safeNumber2 (settlement, 'yes_count_fp', 'yes_count', 0);
@@ -1892,7 +1892,7 @@ export default class kalshi extends Exchange {
             await this.loadOutcome (outcome);
         }
         const response = await this.kalshiPrivateGetPortfolioOrdersOrderId (this.extend ({ 'order_id': id }, params));
-        return this.parsePredictionOrder (this.safeValue (response, 'order', response));
+        return this.parsePredictionOrder (this.safeDict (response, 'order', response));
     }
 
     /**
@@ -2346,7 +2346,7 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra params forwarded verbatim to the events endpoint
      * @returns {object} the raw kalshi event object with nested markets
      */
-    async fetchRawEventByTicker (ticker: string, params: Dict = {}): Promise<any> {
+    async fetchRawEventByTicker (ticker: string, params: Dict = {}): Promise<Dict> {
         const request: Dict = { 'event_ticker': ticker, 'with_nested_markets': true };
         const response = await this.kalshiPublicGetEventsEventTicker (this.extend (request, params));
         const fullEvent = this.safeDict (response, 'event', response);
@@ -2502,7 +2502,7 @@ export default class kalshi extends Exchange {
      * @param {object} rawEvent the raw event object
      * @returns {object} an event structure
      */
-    parseEvent (rawEvent: Dict): any {
+    parseEvent (rawEvent: Dict): PredictionEvent {
         // {
         //         "available_on_brokers": true,
         //         "category": "Politics",

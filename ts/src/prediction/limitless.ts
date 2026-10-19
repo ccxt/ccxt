@@ -588,8 +588,8 @@ export default class limitless extends Exchange {
      * @param {object[]} rawRows raw listing rows, single-market and group rows mixed
      * @returns {object[]} raw single-market rows only
      */
-    expandGroupRows (rawRows: any[]): any[] {
-        const result: any[] = [];
+    expandGroupRows (rawRows: any[]): Dict[] {
+        const result: Dict[] = [];
         for (let i = 0; i < rawRows.length; i++) {
             const raw = rawRows[i];
             const rowType = this.safeString (raw, 'marketType');

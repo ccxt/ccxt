@@ -265,11 +265,11 @@ export default class bydfi extends bydfiRest {
         return await this.watchPublic (messageHashes, channels, paramsExtended, subscription);
     }
 
-    getMessageHashesForTickersUnsubscription () {
+    getMessageHashesForTickersUnsubscription (): string[] {
         const url = this.urls['api']['ws']['public'];
         const client = this.client (url);
         const subscriptions = client.subscriptions;
-        const messageHashes: List = [];
+        const messageHashes: string[] = [];
         const keys = Object.keys (subscriptions);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];

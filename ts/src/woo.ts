@@ -2114,7 +2114,7 @@ export default class woo extends Exchange {
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -2279,7 +2279,7 @@ export default class woo extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         if (status !== undefined) {
             const statuses: Dict = {
                 'NEW': 'open',
@@ -2897,7 +2897,7 @@ export default class woo extends Exchange {
         return this.parseDepositAddress (this.extend (data, { 'network': this.safeString (request, 'network') }), currency);
     }
 
-    getDedicatedNetworkId (currency: any, params: Dict): any {
+    getDedicatedNetworkId (currency: any, params: Dict): [Str, Dict] {
         const [ networkCodeRaw, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         const networkCode = this.networkIdToCode (networkCodeRaw, currency['code']);
         const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
@@ -3066,7 +3066,7 @@ export default class woo extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    getCurrencyFromChaincode (networkizedCode: any, currency: any) {
+    getCurrencyFromChaincode (networkizedCode: any, currency: any): CurrencyInterface {
         if (currency !== undefined) {
             return currency;
         } else {

@@ -1337,7 +1337,7 @@ export default class coinbaseexchange extends Exchange {
         return this.safeTimestamp (response, 'epoch');
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'pending': 'open',
             'active': 'open',

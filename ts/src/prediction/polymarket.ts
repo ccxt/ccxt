@@ -12,6 +12,7 @@ import type { OrderSide, OrderType, Int, Str, Num, Dict,
     Strings, PredictionOpenInterest, PredictionTradingFee,
     PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition,
     fetchEventsParams,Bool, NullableDict, Endpoint, List } from '../base/types.js';
+import type Client from '../base/ws/Client.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds, PermissionDenied, OrderNotFillable, ExchangeError } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -2671,7 +2672,7 @@ export default class polymarket extends Exchange {
      * @param {object[]} rawEvents the raw gamma event objects
      * @returns {object[]} a list of event structures
      */
-    parseEvents (rawEvents: any[]): any[] {
+    parseEvents (rawEvents: any[]): Dict[] {
         const result: any[] = [];
         for (let i = 0; i < rawEvents.length; i++) {
             const rawEvent = rawEvents[i];
@@ -3036,7 +3037,7 @@ export default class polymarket extends Exchange {
         }
     }
 
-    handleOrderBookSnapshot (client: any, event: Dict) {
+    handleOrderBookSnapshot (client: Client, event: Dict) {
         const tokenId = this.safeString (event, 'asset_id');
         const outcome = this.tokenIdToSymbol (tokenId);
         if (outcome === undefined) {
@@ -3074,7 +3075,7 @@ export default class polymarket extends Exchange {
         client.resolve (orderbook, 'ticker::' + outcome);
     }
 
-    handleOrderBookDelta (client: any, event: Dict) {
+    handleOrderBookDelta (client: Client, event: Dict) {
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
         const changes: Dict[] = this.safeList (event, 'price_changes', []);
         const updated: Dict = {};
@@ -3106,7 +3107,7 @@ export default class polymarket extends Exchange {
         }
     }
 
-    handleTrade (client: any, event: Dict) {
+    handleTrade (client: Client, event: Dict) {
         const tokenId = this.safeString (event, 'asset_id');
         const outcome = this.tokenIdToSymbol (tokenId);
         if (outcome === undefined) {
@@ -3349,7 +3350,7 @@ export default class polymarket extends Exchange {
         return await this.watch (url, messageHash, this.extend (subscribeMsg, params), subscribeHash);
     }
 
-    handleOrder (client: any, event: Dict) {
+    handleOrder (client: Client, event: Dict) {
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheByOutcomeById (limit);
@@ -3364,7 +3365,7 @@ export default class polymarket extends Exchange {
         }
     }
 
-    handleMyTrade (client: any, event: Dict) {
+    handleMyTrade (client: Client, event: Dict) {
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheByOutcomeById (limit);

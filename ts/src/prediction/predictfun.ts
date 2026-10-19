@@ -761,7 +761,7 @@ export default class predictfun extends Exchange {
      * @param {object} rawTopic the raw market topic object
      * @returns {object} an event structure
      */
-    parseEvent (rawTopic: Dict): any {
+    parseEvent (rawTopic: Dict): Dict {
         //
         //     {
         //         "createdAt": "2026-08-26T14:00:02.000Z",
@@ -3614,7 +3614,7 @@ export default class predictfun extends Exchange {
      * @param {object} details the event's details block
      * @returns {object} the outcome object, or a stub when the market is not cached
      */
-    walletEventOutcome (details: Dict): any {
+    walletEventOutcome (details: Dict): Dict {
         const marketId = this.safeString (details, 'marketId');
         const outcomeIndex = this.safeInteger (details, 'outcomeIndex');
         const outcomes = this.outcomesByMarketId (marketId);

@@ -565,7 +565,7 @@ export default class bitfinex extends Exchange {
         return (code in this.options['fiat']);
     }
 
-    getCurrencyName (code: string) {
+    getCurrencyName (code: string): string {
         // temporary fix for transpiler recognition, even though this is in parent class
         if (code in this.options['currencyNames']) {
             return this.options['currencyNames'][code];
@@ -1635,7 +1635,7 @@ export default class bitfinex extends Exchange {
         ];
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         if (status === undefined) {
             return undefined;
         }
@@ -1656,7 +1656,7 @@ export default class bitfinex extends Exchange {
         return this.safeString (statuses, state as IndexType, status);
     }
 
-    parseOrderFlags (flags: Str) {
+    parseOrderFlags (flags: Str): Strings {
         // flags can be added to each other...
         const flagValues: Dict = {
             '1024': [ 'reduceOnly' ],
@@ -2511,7 +2511,7 @@ export default class bitfinex extends Exchange {
         } as DepositAddress;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'SUCCESS': 'ok',
             'COMPLETED': 'ok',
@@ -3142,7 +3142,7 @@ export default class bitfinex extends Exchange {
         return response;
     }
 
-    parseLedgerEntryType (type: Str) {
+    parseLedgerEntryType (type: Str): Str {
         if (type === undefined) {
             return undefined;
         } else if (type.indexOf ('fee') >= 0 || type.indexOf ('charged') >= 0) {

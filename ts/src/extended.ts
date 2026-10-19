@@ -360,7 +360,7 @@ export default class extended extends Exchange {
         return markets;
     }
 
-    indexByStringifiedNumericId (input: Dict) {
+    indexByStringifiedNumericId (input: Dict): NullableDict {
         const result: Dict = {};
         if (input === undefined) {
             return undefined;
@@ -3424,7 +3424,7 @@ export default class extended extends Exchange {
         return value;
     }
 
-    getExtendedDecimalToBase16 (value: any) {
+    getExtendedDecimalToBase16 (value: any): string {
         let decimalString = '';
         if (typeof value === 'string') {
             decimalString = value;
@@ -3444,7 +3444,7 @@ export default class extended extends Exchange {
         return result;
     }
 
-    getExtendedSignatureHex (signature: any) {
+    getExtendedSignatureHex (signature: any): string {
         if (typeof signature === 'string') {
             if (signature.indexOf ('0x') === 0) {
                 return signature;

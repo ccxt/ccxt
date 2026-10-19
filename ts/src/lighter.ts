@@ -599,7 +599,7 @@ export default class lighter extends Exchange {
         return token;
     }
 
-    pow (n: string, m: string) {
+    pow (n: string, m: string): Str {
         let r = Precise.stringMul (n, '1');
         const c = this.parseToInt (m);
         if (c < 0) {
@@ -674,7 +674,7 @@ export default class lighter extends Exchange {
         return true;
     }
 
-    async checkIfStandardTier (accountIndex: number) {
+    async checkIfStandardTier (accountIndex: number): Promise<boolean> {
         const tiersForAccountIndexes = this.safeDict (this.options, 'tiersForAccountIndexes', {});
         const accountIndexStr = accountIndex.toString ();
         const isStandardTier = this.safeBool (tiersForAccountIndexes, accountIndexStr);
@@ -2464,7 +2464,7 @@ export default class lighter extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'in-progress': 'open',
             'pending': 'open',
@@ -2529,7 +2529,7 @@ export default class lighter extends Exchange {
         return this.safeString (timeInForces, tif, tif);
     }
 
-    parseOrderTimeInForceInteger (tifInteger: any) {
+    parseOrderTimeInForceInteger (tifInteger: number): Str {
         const timeInForces: Dict = {
             '0': 'immediate-or-cancel',
             '1': 'good-till-time',
@@ -2879,7 +2879,7 @@ export default class lighter extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'failed': 'failed',
             'pending': 'pending',

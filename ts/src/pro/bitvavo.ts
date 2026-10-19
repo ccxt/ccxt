@@ -932,7 +932,7 @@ export default class bitvavo extends bitvavoRest {
         }
     }
 
-    async unWatchChannels (topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params = {}): Promise<any> {
+    async unWatchChannels (topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'action': 'unsubscribe',

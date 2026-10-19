@@ -29,6 +29,9 @@ import { nativeJavaToLongOrNullH2kJ13 } from './java-local-types.js';
 import { installJavaNativePadStartFirst, installJ08NativeReplace } from './java-local-types.js';
 import { installJ10Types } from './java-local-types.js';
 import { installJ11MapLocals } from './java-local-types.js';
+import { installJ12ParamTypes } from './java-local-types.js';
+import { installJ13ListLocals } from './java-local-types.js';
+import { installJ14ScalarLocals } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -2394,6 +2397,9 @@ class NewTranspiler {
         installJ08NativeReplace(this.transpiler);
         installJ10Types(this.transpiler); // hx4 J10
         installJ11MapLocals(this.transpiler); // hx4 J11
+        installJ12ParamTypes(this.transpiler); // hx4 J12
+        installJ13ListLocals(this.transpiler); // hx4 J13
+        installJ14ScalarLocals(this.transpiler); // hx4 J14
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5731,7 +5737,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7047,6 +7053,120 @@ function j04ArithmeticSelfTest (): string[] {
             if (!ok) { failed++; console.log ('FAIL', name, '\n', out); }
         }
         assert.strictEqual (failed, 0);
+    }
+    return problems;
+}
+
+// hx4 J12: venue-only methods called with typed arguments print typed parameters; a written,
+// mistyped, `+`-left or name-referenced parameter keeps Object
+function j12ParamTypesSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzj12selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        'export default class zzj12selftest extends Exchange {',
+        "    run (r: any) { const s = this.safeString (r, 'a'); this.zzjA (s, s === 'b', this.safeList (r, 'l', [])); this.zzjB (s); this.zzjC (s); this.zzjD (r); const f = this.zzjE; return f; }",
+        "    zzjA (code: string, flag: boolean, rows: any[]) { return [ code.length, flag, rows.length ]; }",
+        "    zzjB (code: string) { code = code + 'x'; return code; }",
+        "    zzjC (code: string) { return code + this.id; }",
+        "    zzjD (code: string) { return code; }",
+        "    zzjE (code: string) { return code; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/zzjA\(String code, Boolean flag, java\.util\.List<Object> rows\)/.test(out)) problems.push('j12: zzjA must print String/Boolean/List<Object> params');
+        if (!/this\.zzjA\(s, java\.util\.Objects\.equals\(s, "b"\), \(java\.util\.List<Object>\) \(this\.safeList\(/.test(out)) problems.push('j12: zzjA call must pass the String local bare and checkcast the List');
+        for (const name of [ 'zzjB', 'zzjC', 'zzjD', 'zzjE' ]) {
+            if (!new RegExp(`${name}\\(Object code\\)`).test(out)) problems.push(`j12: ${name} must keep Object code`);
+        }
+    } catch (e: any) {
+        problems.push(`j12 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// hx4 J13: Object locals whose init and every write are Lists print List<Object>; any other write keeps Object
+function j13ListLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzj13selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        'export default class zzj13selftest extends Exchange {',
+        "    acc (r: any) { let a = []; for (let i = 0; i < 3; i++) { a = this.arrayConcat (a, [ i ]); } return [ a.length, a[0] ]; }",
+        "    lst (r: any) { let b = this.safeList (r, 'k', []); if (b.length === 0) { b = this.safeList (r, 'z', []); } return b[0]; }",
+        "    keys (r: any) { const c = Object.keys (r); return c.length; }",
+        "    anyWrite (r: any) { let e = []; e = this.safeValue (r, 'v'); return e.length; }",
+        "    otherDefault (r: any) { const f = this.safeList (r, 'k', r); return f.length; }",
+        "    nullOnly (r: any) { let g = undefined; if (r) { g = undefined; } return g; }",
+        "    bybit (ps: any[]) { let h: any[] = []; for (let i = 0; i < ps.length; i++) { const p = ps[i]; h = this.arrayConcat (h, p); } return [ h.length, h[0] ]; }",
+        "    binLev (response: any) { let k = this.safeList (response, 'positions', []); if (Array.isArray (response)) { k = response; } return k.length; }",
+        "    mexc (response: any, x: boolean) { let m = []; if (x) { m = this.toArray (response); } else { m = this.convertTradingViewToOHLCV (response); } return m.length; }",
+        "    chunk (ids: string[]) { let n: string[] = []; for (let i = 0; i < ids.length; i++) { n.push (ids[i]); if (n.length > 3) { n = []; } } return n[0]; }",
+        "    strs (r: any) { const q = this.safeList (r, 'k', []) as string[]; return q.length; }",
+        "    anyCast (r: any) { const s = this.toArray (r) as any; let t = s; t = this.sortBy (t, 'x'); return t.length; }",
+        "    fbl (r: any) { let o = this.filterBySinceLimit (r, 1, 2); if (o.length > 1) { o = this.sortBy (o, 'x'); } return o[0]; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<Object> a = /.test(out)) problems.push("j13: 'a' ([] + arrayConcat) must print List<Object>");
+        if (!/a = \(java\.util\.List<Object>\) this\.arrayConcat\(/.test(out)) problems.push("j13: 'a' arrayConcat write needs a checkcast");
+        if (!/List<Object> b = \(java\.util\.List<Object>\) this\.safeList\(/.test(out)) problems.push("j13: 'b' (safeList + safeList write) must print List<Object> with a checkcast");
+        if (!/List<Object> c = /.test(out)) problems.push("j13: 'c' (Object.keys) must print List<Object>");
+        if (/Helpers\.getArrayLength\((a|b)\)/.test(out) || /Helpers\.GetValue\((a|b), /.test(out)) problems.push("j13: 'a'/'b' length/get must go native");
+        // shapes no earlier section types: toArray / fresh-list method writes, a List<Object> core + sortBy
+        if (!/List<Object> m = /.test(out) || !/m = \(java\.util\.List<Object>\) this\.convertTradingViewToOHLCV\(/.test(out)) problems.push("j13: 'm' ([] + toArray + fresh-list method) must print List<Object> with a write checkcast");
+        if (!/List<Object> o = this\.filterBySinceLimit\(/.test(out)) problems.push("j13: 'o' (filterBySinceLimit + sortBy) must print List<Object>");
+        if (/Helpers\.getArrayLength\([mo]\)/.test(out) || /Helpers\.GetValue\(o, /.test(out)) problems.push("j13: 'm'/'o' length/get must go native");
+        if (/List<Object> q = /.test(out)) problems.push("j13: 'q' (as string[] prints a List<String> cast) must not print List<Object>");
+        if (/List<Object> s = (?!\(java\.util\.List<Object>\) \(\(Object\))/.test(out)) problems.push("j13: 's' (as any prints ((Object)v)) needs the List checkcast");
+        for (const name of [ 'e', 'f', 'k' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`j13: '${name}' has an unproven write/default and must stay Object`);
+        }
+        if (/List<Object> g = /.test(out)) problems.push("j13: 'g' has no List write and must not print List<Object>");
+        if (problems.length) problems.push('j13 output:\n' + out);
+    } catch (e: any) {
+        problems.push(`j13 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// hx4 J14: Object locals whose init and every write are one proven scalar box print it; a mixed write keeps Object
+function j14ScalarLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzj14selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        'export default class zzj14selftest extends Exchange {',
+        "    ts (t: any) { const a = this.safeIntegerOmitZero (t, 'k'); return { 'a': a }; }",
+        "    flag (p: any, d: boolean) { const b = this.safeBool (p, 'x', this.safeBool (p, 'y', false)); return [ b, p ]; }",
+        "    str (t: any) { let c = this.safeString (t, 'v'); if (c === undefined) { c = this.safeString2 (t, 'w', 'z'); } return { 'c': c }; }",
+        "    until (p: any) { let u = this.safeInteger (p, 'until'); if (u === undefined) { u = this.milliseconds (); } return u > 5; }",
+        "    mixed (p: any) { let e = this.safeInteger (p, 'k'); e = this.sum (e, 1); return e; }",
+        "    product (p: any) { const g = this.safeIntegerProduct2 (p, 'a', 'b', 1000, 0); return g; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Long a = \(Long\) this\.safeIntegerOmitZero\(/.test(out)) problems.push("j14: 'a' (safeIntegerOmitZero, no default) must print Long with a checkcast");
+        if (!/Boolean b = \(Boolean\) this\.safeBool\(/.test(out)) problems.push("j14: 'b' (safeBool, Boolean default) must print Boolean");
+        if (!/String c = this\.safeString\(/.test(out)) problems.push("j14: 'c' (safeString + safeString2 write) must print String");
+        if (!/Long u = this\.safeInteger\(/.test(out)) problems.push("j14: 'u' (safeInteger + milliseconds write) must print Long");
+        for (const name of [ 'e', 'g' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`j14: '${name}' has an unproven write/default/arm and must stay Object`);
+        }
+    } catch (e: any) {
+        problems.push(`j14 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
     }
     return problems;
 }

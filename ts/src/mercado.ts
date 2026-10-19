@@ -674,7 +674,7 @@ export default class mercado extends Exchange {
         return this.parseOrder (order as Dict, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             '2': 'open',
             '3': 'canceled',

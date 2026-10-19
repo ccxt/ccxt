@@ -17610,3 +17610,658 @@ export function installJ11MapLocals (transpiler) {
         return accumulatorCastWrite (printer, node, printed, { cast: J11_MAP_CAST });
     };
 }
+
+// hx4 J12: fixed parameters of venue-only methods print their TS type instead of `Object`
+// (`string` -> String, `boolean` -> Boolean, `any[]`/`List`/`Dict[]` -> List<Object>) when the name is
+// declared once in ts/src, only ever called as `this.name (..)` in its own file with typed arguments,
+// never referenced otherwise (no dispatch tables / string names) and never written in the body.
+const J12_PARAM_TYPES = {
+    'string': 'String',
+    'boolean': 'Boolean',
+    'any[]': 'java.util.List<Object>',
+    'List': 'java.util.List<Object>',
+    'Dict[]': 'java.util.List<Object>',
+};
+const J12_VENUE_FILE = /(^|[\\/])ts[\\/]src[\\/](?:pro[\\/])?[a-z0-9_]+\.ts$/;
+const J12_JAVA_DIR = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
+let j12Index;
+
+// every method/property name declared in ts/src, every non-call `.name` reference and every string literal
+function j12NameIndex () {
+    if (j12Index !== undefined) {
+        return j12Index;
+    }
+    const declared = new Map ();
+    const referenced = new Set ();
+    const literals = new Set ();
+    const files = new Set ();
+    const visitDir = (dir) => {
+        if (!fs.existsSync (dir)) {
+            return;
+        }
+        for (const entry of fs.readdirSync (dir, { withFileTypes: true })) {
+            const full = path.join (dir, entry.name);
+            if (entry.isDirectory ()) {
+                if (entry.name !== 'static_dependencies' && entry.name !== 'node_modules') {
+                    visitDir (full);
+                }
+                continue;
+            }
+            if (!entry.name.endsWith ('.ts') || entry.name.endsWith ('.d.ts')) {
+                continue;
+            }
+            files.add (path.resolve (full));
+            j12IndexSource (ts.createSourceFile (full, fs.readFileSync (full, 'utf8'), ts.ScriptTarget.Latest, true), declared, referenced, literals);
+        }
+    };
+    visitDir (JAVA_FRESH_MAP_TS_ROOT);
+    let java = '';
+    try {
+        java = fs.readdirSync (J12_JAVA_DIR).filter ((f) => f.endsWith ('.java'))
+            .map ((f) => fs.readFileSync (path.join (J12_JAVA_DIR, f), 'utf8').split ('// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT')[0]).join ('\n');
+    } catch (e) {
+        java = undefined;
+    }
+    j12Index = { declared, referenced, literals, java, files };
+    return j12Index;
+}
+
+// a file written after the index was built (a probe) is folded in on first sight
+function j12IndexFile (file) {
+    const index = j12NameIndex ();
+    const key = path.resolve (file.fileName);
+    if (!index.files.has (key)) {
+        index.files.add (key);
+        j12IndexSource (file, index.declared, index.referenced, index.literals);
+    }
+    return index;
+}
+
+function j12IndexSource (sf, declared, referenced, literals) {
+    const visit = (n) => {
+        if ((ts.isMethodDeclaration (n) || ts.isPropertyDeclaration (n) || ts.isPropertyAssignment (n)) && n.name !== undefined && ts.isIdentifier (n.name)) {
+            declared.set (n.name.text, (declared.get (n.name.text) ?? 0) + 1);
+        }
+        if (ts.isPropertyAccessExpression (n)) {
+            const isThisCall = n.expression.kind === ts.SyntaxKind.ThisKeyword && ts.isCallExpression (n.parent) && n.parent.expression === n;
+            if (!isThisCall) {
+                referenced.add (n.name.text);
+            }
+        }
+        if (ts.isStringLiteralLike (n)) {
+            literals.add (n.text);
+        }
+        n.forEachChild (visit);
+    };
+    visit (sf);
+}
+
+// the argument already prints the target Java type (no checkcast, so no new ClassCastException):
+// null, a literal of the family, a local/parameter declared that type, a primitive boolean
+// expression, an array literal, or safeList* with a list default (the section-10 checkcast proof)
+function j12ArgumentTypeAgrees (printer, arg, target) {
+    const bare = unwrapParens (arg);
+    if (bare === undefined || ts.isSpreadElement (bare)) {
+        return false;
+    }
+    if (bare.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (bare) && bare.text === 'undefined')) {
+        return true;
+    }
+    if (ts.isIdentifier (bare)) {
+        const declared = printer.printNode (bare, 0) === bare.text ? printer.javaDeclaredTypeOf (bare) : undefined;
+        if (declared !== undefined && declared.replace (/java\.util\./g, '') === target.replace (/java\.util\./g, '')) {
+            return true;
+        }
+    }
+    if (target === 'String') {
+        return printer.javaNativeArgumentAlreadyTyped (bare, 'String');
+    }
+    if (target === 'Boolean') {
+        return javaBooleanArgumentIsTyped (printer, bare);
+    }
+    if (ts.isArrayLiteralExpression (bare)) {
+        return !bare.elements.some ((e) => ts.isSpreadElement (e));
+    }
+    return ts.isCallExpression (bare) && ts.isPropertyAccessExpression (bare.expression)
+        && bare.expression.expression.kind === ts.SyntaxKind.ThisKeyword
+        && JAVA_SAFE_LIST_NAMES.has (bare.expression.name.text) && safeListDefaultIsList (printer, bare, bare.expression.name.text);
+}
+
+// a String parameter must not be the left operand of `+` against a non-literal: Helpers.add(String, Object)
+// prints "null.." where add(Object, Object) answers null for a null left and non-String right
+function j12StringPlusHazard (method, name) {
+    let hazard = false;
+    const visit = (n) => {
+        if (hazard) {
+            return;
+        }
+        if (ts.isBinaryExpression (n) && (n.operatorToken.kind === ts.SyntaxKind.PlusToken || n.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)) {
+            const left = unwrapParens (n.left);
+            const right = unwrapParens (n.right);
+            if (ts.isIdentifier (left) && left.text === name && !ts.isStringLiteralLike (right)) {
+                hazard = true;
+                return;
+            }
+        }
+        n.forEachChild (visit);
+    };
+    visit (method.body);
+    return hazard;
+}
+
+function j12ParamType (printer, node) {
+    const method = node?.parent;
+    if (node?.kind !== ts.SyntaxKind.Parameter || node.initializer !== undefined || node.questionToken !== undefined
+        || node.dotDotDotToken !== undefined || !ts.isIdentifier (node.name) || node.type === undefined
+        || method?.kind !== ts.SyntaxKind.MethodDeclaration || method.body === undefined
+        || !ts.isIdentifier (method.name ?? {}) || !ts.isClassDeclaration (method.parent)) {
+        return undefined;
+    }
+    const target = J12_PARAM_TYPES[node.type.getText ().replace (/\s/g, '')];
+    const file = node.getSourceFile ();
+    if (target === undefined || !J12_VENUE_FILE.test (file.fileName)) {
+        return undefined;
+    }
+    const cache = printer._j12ParamTypes ?? (printer._j12ParamTypes = new WeakMap ());
+    if (cache.has (node)) {
+        return cache.get (node);
+    }
+    cache.set (node, undefined);
+    let result;
+    try {
+        const name = method.name.text;
+        const index = method.parameters.indexOf (node);
+        const { declared, referenced, literals, java } = j12IndexFile (file);
+        const unique = declared.get (name) === 1 && !referenced.has (name) && !literals.has (name)
+            && java !== undefined && !new RegExp (`\\b${name}\\s*\\(`).test (java);
+        const venueOnly = unique && printer.getMethodOverride (method) === undefined && !printer.exchangeTierMethods ().has (name)
+            && printer.javaIsPrintedMethod (method);
+        const readOnly = venueOnly && !printer.javaParameterIsWritten (node) && !printer.javaParameterIsCompoundAssigned (node)
+            && !(target === 'String' && j12StringPlusHazard (method, node.name.text));
+        if (readOnly) {
+            let ok = true;
+            const visit = (n) => {
+                if (!ok) {
+                    return;
+                }
+                if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && n.expression.name.text === name) {
+                    const arg = n.arguments[index];
+                    ok = n.expression.expression.kind === ts.SyntaxKind.ThisKeyword && arg !== undefined
+                        && !n.arguments.some ((a) => ts.isSpreadElement (a)) && j12ArgumentTypeAgrees (printer, arg, target);
+                }
+                n.forEachChild (visit);
+            };
+            visit (file);
+            result = ok ? target : undefined;
+        }
+    } catch (e) {
+        result = undefined;
+    }
+    cache.set (node, result);
+    return result;
+}
+
+export function installJ12ParamTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeParameterTypeOf !== 'function' || printer._j12ParamTypesPatched) {
+        return;
+    }
+    printer._j12ParamTypesPatched = true;
+    const upstreamType = printer.javaNativeParameterTypeOf.bind (printer);
+    printer.javaNativeParameterTypeOf = function (node) {
+        return upstreamType (node) ?? j12ParamType (printer, node);
+    };
+    // an identifier already declared the slot's type passes bare into a J12-typed slot
+    const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
+    printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
+        return upstreamTyped (arg, type) || j12SlotArgumentDeclared (printer, arg, type);
+    };
+}
+
+function j12SlotArgumentDeclared (printer, arg, type) {
+    const call = arg?.parent;
+    if (!ts.isIdentifier (arg ?? {}) || call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)
+        || call.expression.expression.kind !== ts.SyntaxKind.ThisKeyword || printer.printNode (arg, 0) !== arg.text) {
+        return false;
+    }
+    const declared = printer.javaDeclaredTypeOf (arg);
+    if (declared === undefined || declared.replace (/java\.util\./g, '') !== type.replace (/java\.util\./g, '')) {
+        return false;
+    }
+    try {
+        const method = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve?.();
+        const param = method?.parameters?.[call.arguments.indexOf (arg)];
+        return param !== undefined && j12ParamType (printer, param) === type;
+    } catch (e) {
+        return false;
+    }
+}
+
+// ===== hx4 J13: Object locals that only ever hold a List print java.util.List<Object> =====
+// Init and every write are proven lists (literal, base safeList* with a list default, Object.keys, collection
+// helpers, sync List<Object> cores, fresh-list methods); published so length/element reads see a declared List.
+const J13_LIST_TYPE = 'java.util.List<Object>';
+const J13_LIST_CAST = '(java.util.List<Object>)';
+const J13_SAFE_LIST_DEFAULT_AT = new Map ([ [ 'safeList', 2 ], [ 'safeList2', 3 ], [ 'safeListN', 2 ] ]);
+
+function j13DeclaredListLocal (printer, identifier) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration)) {
+        return false;
+    }
+    const type = String (printer.javaDeclaredLocalTypeResolver?.(declaration) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+    return type === 'List<Object>';
+}
+
+// a method body whose every return is an array literal or a never-reassigned local initialised with one
+function j13FreshListBody (declaration) {
+    if (!ts.isMethodDeclaration (declaration) || declaration.body === undefined) {
+        return false;
+    }
+    const fresh = new Set ();
+    const written = new Set ();
+    const returned = [];
+    let ok = true;
+    const walk = (node) => {
+        if (!ok || node === undefined || (node !== declaration && ts.isFunctionLike (node))) {
+            return;
+        }
+        if (ts.isVariableDeclaration (node) && ts.isIdentifier (node.name) && node.initializer !== undefined) {
+            const init = javaFreshMapUnwrap (node.initializer);
+            if (ts.isArrayLiteralExpression (init) && literalArrayLiteralIsPlain (init)) {
+                fresh.add (node.name.text);
+            }
+        }
+        if (ts.isBinaryExpression (node) && node.operatorToken.kind >= ts.SyntaxKind.FirstAssignment && node.operatorToken.kind <= ts.SyntaxKind.LastAssignment) {
+            const left = javaFreshMapUnwrap (node.left);
+            if (ts.isIdentifier (left)) {
+                written.add (left.text);
+            } else if (ts.isArrayLiteralExpression (left) || ts.isObjectLiteralExpression (left)) {
+                ok = false;
+            }
+        }
+        if (ts.isReturnStatement (node)) {
+            returned.push (javaFreshMapUnwrap (node.expression));
+        }
+        node.forEachChild (walk);
+    };
+    walk (declaration.body);
+    return ok && returned.length > 0 && returned.every ((r) => r !== undefined
+        && ((ts.isArrayLiteralExpression (r) && literalArrayLiteralIsPlain (r))
+            || (ts.isIdentifier (r) && fresh.has (r.text) && !written.has (r.text))));
+}
+
+// every declaration a this-call can dispatch to is a generated-tier fresh-list body (no hand-written base)
+function j13FreshListMethod (call) {
+    const name = String (call.expression.name.text);
+    const state = javaFreshMapMethods ();
+    const declarations = javaFreshMapDispatch (call.getSourceFile ().fileName, name) ?? [];
+    if (declarations.length === 0 || state.handWritten.some ((text) => text === undefined || new RegExp (`\\s${name}\\s*\\(`).test (text))) {
+        return false;
+    }
+    return declarations.every ((d) => j13FreshListBody (d));
+}
+
+// { cast } when the printed value is a List<Object> (or null) on every path, else undefined
+function j13ListValue (printer, node, declaration, depth = 0) {
+    let value = unwrapParens (node);
+    if (value !== undefined && ts.isAsExpression (value)) {
+        // printAsExpression: `as any` prints ((Object)v), `as any[]` (List<Object>)(v), `as string[]` an
+        // inconvertible (List<String>)(v); every other assertion prints v bare
+        const kind = value.type.kind;
+        const element = kind === ts.SyntaxKind.ArrayType ? value.type.elementType.kind : undefined;
+        if (kind === ts.SyntaxKind.StringKeyword || element === ts.SyntaxKind.StringKeyword) {
+            return undefined;
+        }
+        const inner = j13ListValue (printer, value.expression, declaration, depth + 1);
+        if (inner === undefined) {
+            return undefined;
+        }
+        return kind === ts.SyntaxKind.AnyKeyword ? { cast: true } : element === ts.SyntaxKind.AnyKeyword ? { cast: false } : inner;
+    }
+    if (value === undefined || depth > 3 || ts.isTypeAssertion (value)) {
+        return undefined;
+    }
+    if (isNullishInitializer (value)) {
+        return { cast: false };
+    }
+    if (ts.isArrayLiteralExpression (value)) {
+        return literalArrayLiteralIsPlain (value) ? { cast: false } : undefined;
+    }
+    if (ts.isIdentifier (value)) {
+        return value.text === declaration.name.text || j13DeclaredListLocal (printer, value) ? { cast: false } : undefined;
+    }
+    if (!ts.isCallExpression (value) || value.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    // Object.keys (x) prints Helpers.objectKeys(x) / a native keySet copy, both List<Object>
+    if (ts.isPropertyAccessExpression (value.expression) && value.expression.name.text === 'keys'
+        && ts.isIdentifier (value.expression.expression) && value.expression.expression.text === 'Object') {
+        return { cast: false };
+    }
+    if (!isThisCall (value)) {
+        return undefined;
+    }
+    const name = String (value.expression.name.text);
+    const defaultAt = J13_SAFE_LIST_DEFAULT_AT.get (name);
+    if (defaultAt !== undefined) {
+        // BaseExchange.safeList* hands back a List element of the source or the default untouched
+        if (!resolvesToBaseOrStrippedAccessor (printer, value, name) || !safeListInitializerIsList (printer, value)
+            || value.arguments.length > defaultAt + 1) {
+            return undefined;
+        }
+        const fallback = value.arguments[defaultAt];
+        return fallback === undefined || j13ListValue (printer, fallback, declaration, depth + 1) !== undefined ? { cast: true } : undefined;
+    }
+    const collection = collectionCallInfo (printer, value);
+    if (collection !== undefined) {
+        return collection.type === JAVA_ARRAY_TYPE ? { cast: collection.cast } : undefined;
+    }
+    if (isAsyncMethodCall (printer, value)) {
+        return undefined; // prints a CompletableFuture
+    }
+    const declared = String (syncCoreCallType (printer, value) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+    if (declared === 'List<Object>') {
+        return { cast: false };
+    }
+    if (declared === '' && j13FreshListMethod (value)) {
+        return { cast: true };
+    }
+    return undefined;
+}
+
+function j13ListLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const init = j13ListValue (printer, declaration.initializer, declaration);
+    if (init === undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, J13_LIST_TYPE)) {
+        return undefined;
+    }
+    let listWrites = 0;
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const ok = isSafeToNarrow (printer, declaration, name, J13_LIST_TYPE, isProFile, {
+        noCastAssertions: true,
+        writeOnly: true,
+        writeOk: (right) => {
+            const info = j13ListValue (printer, right, declaration);
+            if (info !== undefined && !isNullishInitializer (unwrapParens (right))) {
+                listWrites++;
+            }
+            return info !== undefined;
+        },
+    });
+    // a nullish start needs at least one List write to say anything
+    return ok && (listWrites > 0 || !isNullishInitializer (unwrapParens (declaration.initializer))) ? { cast: init.cast } : undefined;
+}
+
+export function installJ13ListLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaJ13ListLocalsPatched) {
+        return;
+    }
+    printer._javaJ13ListLocalsPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let info;
+        try {
+            info = j13ListLocal (printer, declaration);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        typed.set (declaration, J13_LIST_TYPE);
+        const head = marker.replace (/Object (\S+) = $/, `${J13_LIST_TYPE} $1 = `) + (info.cast ? J13_LIST_CAST + ' ' : '');
+        return printed.slice (0, at) + head + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // later writes from an Object-declared List producer take the same checkcast
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let info;
+        try {
+            const declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+            info = declaration !== undefined && typed.has (declaration) ? j13ListValue (printer, node.right, declaration) : undefined;
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined || !info.cast) {
+            return printed;
+        }
+        return accumulatorCastWrite (printer, node, printed, { cast: J13_LIST_CAST });
+    };
+}
+
+// ===== hx4 J14: Object locals fed only by proven Long/Double/String/Boolean producers print that box =====
+// The init and every write must be the same box (or null): a sync callee whose on-disk Java declaration
+// returns it, a base accessor that returns it on every path (checkcast), a typed local, or a literal/
+// comparison for String/Boolean. Published to javaDeclaredLocalTypeResolver so J04/J05/J08/J09 fire.
+const J14_TYPES = [ 'Long', 'Double', 'String', 'Boolean' ];
+// base accessors declared `Object` in Java whose box is fixed when the default argument is absent/null
+// (safeIntegerOmitZero: Long or null on every path; safeNumberOmitZero / safeIntegerProduct2/N hand the
+// default back, so only a nullish default proves them)
+const J14_CAST_ACCESSORS = {
+    'safeIntegerOmitZero': { type: 'Long', defaultAt: -1 },
+    'safeNumberOmitZero': { type: 'Double', defaultAt: 2 },
+    'safeIntegerProduct2': { type: 'Long', defaultAt: 4 },
+    'safeIntegerProductN': { type: 'Long', defaultAt: 3 },
+};
+const J14_BASE_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/](Exchange(\.nooverloads\.\d+)?\.ts|functions[\\/]type\.ts)$/;
+
+function j14ResolvesToBase (printer, call) {
+    const file = resolvedSignatureFile (printer, call);
+    return file !== undefined && J14_BASE_FILE.test (file);
+}
+
+// { cast } when the printed value is a T box or null on every path, else undefined
+function j14Value (printer, node, declaration, type, depth = 0) {
+    const value = unwrapParens (node);
+    if (value === undefined || depth > 4) {
+        return undefined;
+    }
+    if (isNullishInitializer (value)) {
+        return { cast: '' };
+    }
+    if (ts.isIdentifier (value)) {
+        if (value.text === declaration.name.text) {
+            return { cast: '' };
+        }
+        let declared;
+        try {
+            declared = printer.javaDeclaredTypeOf (value);
+        } catch (e) {
+            declared = undefined;
+        }
+        return declared === type && printer.printNode (value, 0) === value.text ? { cast: '' } : undefined;
+    }
+    if (type === 'String') {
+        if (value.kind === ts.SyntaxKind.StringLiteral || value.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+            return { cast: '' };
+        }
+        if (ts.isConditionalExpression (value)) {
+            return j14Value (printer, value.whenTrue, declaration, type, depth + 1)?.cast === ''
+                && j14Value (printer, value.whenFalse, declaration, type, depth + 1)?.cast === '' ? { cast: '' } : undefined;
+        }
+        if (ts.isBinaryExpression (value) || ts.isPropertyAccessExpression (value)) {
+            return printedJavaIsString (printer, value) ? { cast: '' } : undefined;
+        }
+    }
+    if (type === 'Long' && ts.isBinaryExpression (value) && [ ts.SyntaxKind.PlusToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken ].includes (value.operatorToken.kind)) {
+        // Helpers.add/subtract/multiply widen Integer to Long: Long|int operands give a Long box or null
+        const operand = (o) => j10IntLiteral (o) || j14Value (printer, o, declaration, 'Long', depth + 1)?.cast === '';
+        return operand (value.left) && operand (value.right) && !(j10IntLiteral (value.left) && j10IntLiteral (value.right)) ? { cast: '(Long)' } : undefined;
+    }
+    if (type === 'Boolean' && (value.kind === ts.SyntaxKind.TrueKeyword || value.kind === ts.SyntaxKind.FalseKeyword
+        || javaPrimitiveBooleanExpression (printer, value))) {
+        return { cast: '' }; // a primitive boolean autoboxes
+    }
+    if (!ts.isCallExpression (value)) {
+        return undefined;
+    }
+    if (ts.isPropertyAccessExpression (value.expression) && ts.isIdentifier (value.expression.expression)
+        && value.expression.expression.text === 'Precise') {
+        return type === 'String' && PRECISE_STRING_STATICS.has (String (value.expression.name.text)) ? { cast: '' } : undefined;
+    }
+    if (!isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a)) || isAsyncMethodCall (printer, value)) {
+        return undefined;
+    }
+    const name = String (value.expression.name.text);
+    const accessor = LOCAL_THIS_RETURN_TYPES[name];
+    if (type === 'Boolean' && accessor?.safeBool === true) {
+        // BaseExchange.safeBool*: `value instanceof Boolean ? value : defaultValue`
+        if (!accessorResolvesToBase (printer, value, name, accessor) || value.arguments.length > accessor.defaultArg + 1) {
+            return undefined;
+        }
+        const fallback = value.arguments[accessor.defaultArg];
+        return fallback === undefined || j14Value (printer, fallback, declaration, type, depth + 1) !== undefined ? { cast: '(Boolean)' } : undefined;
+    }
+    const cast = J14_CAST_ACCESSORS[name];
+    if (cast !== undefined) {
+        if (cast.type !== type || !j14ResolvesToBase (printer, value)) {
+            return undefined;
+        }
+        const fallback = cast.defaultAt < 0 ? undefined : value.arguments[cast.defaultAt];
+        return fallback === undefined || isNullishInitializer (fallback) ? { cast: `(${type})` } : undefined;
+    }
+    // a sync callee whose Java declaration (hand-written base or generated core) already returns T
+    const declared = syncCoreCallType (printer, value);
+    return declared === type ? { cast: '' } : undefined;
+}
+
+// a ternary arm / unary operand would unbox a Long/Double/Boolean local (NPE on null); an equality
+// against a non-literal can print `a == b` on two boxes (a reference compare)
+function j14UnboxingUse (n) {
+    let child = n;
+    let parent = n.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        child = parent;
+        parent = parent.parent;
+    }
+    if (parent !== undefined && ts.isBinaryExpression (parent) && [ ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.EqualsEqualsEqualsToken,
+        ts.SyntaxKind.ExclamationEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ].includes (parent.operatorToken.kind)) {
+        const other = unwrapParens (parent.left === child ? parent.right : parent.left);
+        return !(isNullishInitializer (other) || j10IntLiteral (other) || other?.kind === ts.SyntaxKind.NumericLiteral
+            || other?.kind === ts.SyntaxKind.StringLiteral || other?.kind === ts.SyntaxKind.TrueKeyword || other?.kind === ts.SyntaxKind.FalseKeyword);
+    }
+    return parent !== undefined && ((ts.isConditionalExpression (parent) && parent.condition !== child)
+        || ts.isPrefixUnaryExpression (parent) && parent.operator !== ts.SyntaxKind.ExclamationToken);
+}
+
+function j14ScalarLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined || isNullishInitializer (declaration.initializer)) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name) || index.blockedNames.has (name)) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    for (const type of J14_TYPES) {
+        const init = j14Value (printer, declaration.initializer, declaration, type);
+        if (init === undefined || dataflowTypeTokenCollides (index, type)) {
+            continue;
+        }
+        if (type !== 'String' && (identifierIndex (scope).get (name) ?? []).some ((n) => n !== declaration.name && j14UnboxingUse (n))) {
+            return undefined;
+        }
+        const ok = isSafeToNarrow (printer, declaration, name, type, isProFile, {
+            writeOnly: true,
+            nonNull: type === 'String' ? false : undefined,
+            strictPlus: type === 'String',
+            writeOk: (right) => j14Value (printer, right, declaration, type) !== undefined,
+        });
+        return ok ? { type, cast: init.cast } : undefined;
+    }
+    return undefined;
+}
+
+export function installJ14ScalarLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._j14ScalarLocalsPatched) {
+        return;
+    }
+    printer._j14ScalarLocalsPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let info;
+        try {
+            info = j14ScalarLocal (printer, declaration);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        typed.set (declaration, info.type);
+        const rest = printed.slice (at + marker.length);
+        const head = marker.replace (/Object (\S+) = $/, `${info.type} $1 = `) + (info.cast !== '' && !rest.startsWith (info.cast) ? info.cast + ' ' : '');
+        return printed.slice (0, at) + head + rest;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // later writes from an Object-declared producer take the same checkcast
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let info;
+        try {
+            const declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+            const type = declaration === undefined ? undefined : typed.get (declaration);
+            info = type === undefined ? undefined : j14Value (printer, node.right, declaration, type);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined || info.cast === '') {
+            return printed;
+        }
+        return accumulatorCastWrite (printer, node, printed, { cast: info.cast });
+    };
+}

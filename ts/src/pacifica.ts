@@ -1690,7 +1690,7 @@ export default class pacifica extends Exchange {
         return [ request, operationType ];
     }
 
-    batchOrdersRequest (actions: any[]) {
+    batchOrdersRequest (actions: any[]): Dict {
         //
         // [
         //     {
@@ -2522,7 +2522,7 @@ export default class pacifica extends Exchange {
         return this.parseOrder (lastInfo, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'open': 'open',
             'partially_filled': 'open',
@@ -2550,7 +2550,7 @@ export default class pacifica extends Exchange {
         return this.safeString (tifMap, tif, 'GTC');
     }
 
-    mapSide (sideRaw: Str) {
+    mapSide (sideRaw: Str): Str {
         const sideMap: Dict = {
             'sell': 'ask',
             'buy': 'bid',
@@ -2558,7 +2558,7 @@ export default class pacifica extends Exchange {
         return this.safeString (sideMap, sideRaw, sideRaw);
     }
 
-    parseOrderType (status: Str) {
+    parseOrderType (status: Str): Str {
         const statuses: Dict = {
             'stop_limit': 'limit',
             'stop_market': 'market',

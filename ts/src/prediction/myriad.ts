@@ -1227,7 +1227,7 @@ export default class myriad extends Exchange {
      * @description extracts an optional pre-fetched order response from params for static tests and higher-level callers that already resolved the original order
      * @returns {object} the fetchOrder-style response wrapper or a raw-order wrapper
      */
-    getOrderResponseFromParams (id: Str, params: Dict = {}): any {
+    getOrderResponseFromParams (id: Str, params: Dict = {}): NullableDict {
         const orderResponse = this.safeDict (params, 'orderResponse');
         if (orderResponse !== undefined) {
             return orderResponse;

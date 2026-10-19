@@ -779,7 +779,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} maxDecimals the maxDecimals to use in the calculation
      * @returns {int} The calculated price precision
      */
-    calculatePricePrecision (price: number, amountPrecision: number, maxDecimals: number) {
+    calculatePricePrecision (price: number, amountPrecision: number, maxDecimals: number): number {
         let pricePrecision = 0;
         const priceStr = this.numberToString (price);
         if (priceStr === undefined) {
@@ -1686,7 +1686,7 @@ export default class hyperliquid extends Exchange {
         return this.decimalToPrecision (result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
     }
 
-    hashMessage (message: any) {
+    hashMessage (message: any): string {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
@@ -1703,7 +1703,7 @@ export default class hyperliquid extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    constructPhantomAgent (hash: any, isTestnet = true) {
+    constructPhantomAgent (hash: any, isTestnet = true): Dict {
         const source = (isTestnet) ? 'b' : 'a';
         return {
             'source': source,
@@ -3135,7 +3135,7 @@ export default class hyperliquid extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    getDexFromHip3Symbol (market: Market) {
+    getDexFromHip3Symbol (market: Market): Str {
         const baseName = this.safeString (market, 'baseName', '');
         const part = baseName.split (':');
         const partsLength = part.length;
@@ -3596,7 +3596,7 @@ export default class hyperliquid extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         if (status === undefined) {
             return undefined;
         }
@@ -3878,7 +3878,7 @@ export default class hyperliquid extends Exchange {
         return this.safeDict (positions, 0, {}) as Position;
     }
 
-    getDexFromSymbols (methodName: string, symbols: Strings = undefined) {
+    getDexFromSymbols (methodName: string, symbols: Strings = undefined): Str {
         if (symbols === undefined) {
             return undefined;
         }
@@ -5115,7 +5115,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    extractTypeFromDelta (data: Dict[] = []) {
+    extractTypeFromDelta (data: Dict[] = []): Dict[] {
         const records: Dict[] = [];
         for (let i = 0; i < data.length; i++) {
             const record = data[i];

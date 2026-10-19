@@ -745,7 +745,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'ACTIVE': 'open',
             'COMPLETED': 'closed',

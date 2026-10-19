@@ -3421,7 +3421,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    parseTransactionType (type: Str) {
+    parseTransactionType (type: Str): Str {
         // the wire says withdraw, and a unified transaction says withdrawal
         const types: Dict = {
             'withdraw': 'withdrawal',
@@ -3429,7 +3429,7 @@ export default class bitget extends Exchange {
         return this.safeString (types, type as string, type);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'success': 'ok',
             'Pending': 'pending',
@@ -5186,7 +5186,7 @@ export default class bitget extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'new': 'open',
             'init': 'open',
@@ -9760,7 +9760,7 @@ export default class bitget extends Exchange {
         return this.parseFundingHistories (bills, market, since, limit);
     }
 
-    parseFundingHistory (contract: NullableDict, market: Market = undefined) {
+    parseFundingHistory (contract: NullableDict, market: Market = undefined): Dict {
         //
         //     {
         //         "billId": "1111499428100472833",

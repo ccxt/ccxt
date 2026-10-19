@@ -1245,7 +1245,7 @@ export default class apex extends Exchange {
         }, marketResolved);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'GOOD_TIL_CANCEL': 'GOOD_TIL_CANCEL',
             'FILL_OR_KILL': 'FILL_OR_KILL',
@@ -1255,7 +1255,7 @@ export default class apex extends Exchange {
         return this.safeString (timeInForces, timeInForce);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         if (status !== undefined) {
             const statuses: Dict = {
                 'PENDING': 'open',
@@ -1270,7 +1270,7 @@ export default class apex extends Exchange {
         return undefined;
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1308,7 +1308,7 @@ export default class apex extends Exchange {
         return super.safeMarket (marketId, marketValue, delimiter, marketType);
     }
 
-    generateRandomClientIdOmni (_accountId: Str) {
+    generateRandomClientIdOmni (_accountId: Str): string {
         const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
         let accountId: Str = undefined;
         if (hasAccountId) {
@@ -1319,7 +1319,7 @@ export default class apex extends Exchange {
         return 'apexomni-' + accountId + '-' + this.milliseconds ().toString () + '-' + this.randNumber (6).toString ();
     }
 
-    addHyphenBeforeUsdt (symbol: string) {
+    addHyphenBeforeUsdt (symbol: string): string {
         const uppercaseSymbol = symbol.toUpperCase ();
         const index = uppercaseSymbol.indexOf ('USDT');
         const symbolChar = this.safeString (symbol, index - 1);
@@ -1329,7 +1329,7 @@ export default class apex extends Exchange {
         return symbol;
     }
 
-    getSeeds () {
+    getSeeds (): string {
         const seeds = this.safeString (this.options, 'seeds');
         if (seeds === undefined) {
             throw new ArgumentsRequired (this.id + ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options["seeds"] = XXXX');

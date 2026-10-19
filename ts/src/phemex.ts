@@ -648,7 +648,7 @@ export default class phemex extends Exchange {
         });
     }
 
-    parseSafeNumber (value: Str = undefined) {
+    parseSafeNumber (value: Str = undefined): Num {
         if (value === undefined) {
             return value;
         }
@@ -1313,7 +1313,7 @@ export default class phemex extends Exchange {
         return this.extend (orderbook, { 'nonce': nonce }) as OrderBook;
     }
 
-    toEn (n: any, scale: Int) {
+    toEn (n: any, scale: Int): Num {
         if ((n === undefined) || (scale === undefined)) {
             return undefined;
         }
@@ -1339,7 +1339,7 @@ export default class phemex extends Exchange {
         return this.toEn (price, this.safeInteger (market, 'priceScale'));
     }
 
-    fromEn (en: any, scale: any) {
+    fromEn (en: any, scale: any): Str {
         if (en === undefined || scale === undefined) {
             return undefined;
         }
@@ -2309,7 +2309,7 @@ export default class phemex extends Exchange {
         return this.parseSpotBalance (response);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'Created': 'open',
             'Untriggered': 'open',
@@ -2333,7 +2333,7 @@ export default class phemex extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             '1': 'market',
             '2': 'limit',
@@ -2351,7 +2351,7 @@ export default class phemex extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'GoodTillCancel': 'GTC',
             'PostOnly': 'PO',
@@ -2361,7 +2361,7 @@ export default class phemex extends Exchange {
         return this.safeString (timeInForces, timeInForce as string, timeInForce);
     }
 
-    parseSpotOrder (order: Dict, market: Market = undefined) {
+    parseSpotOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot
         //
@@ -3733,7 +3733,7 @@ export default class phemex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'Success': 'ok',
             'Succeed': 'ok',

@@ -1918,7 +1918,7 @@ export default class derive extends Exchange {
         } as FundingRate;
     }
 
-    hashOrderMessage (order: any) {
+    hashOrderMessage (order: any): string {
         const accountHash = this.hash (this.ethAbiEncode ([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), keccak, 'binary');
@@ -1956,7 +1956,7 @@ export default class derive extends Exchange {
         return milliseconds + padded;
     }
 
-    hashMessage (message: any) {
+    hashMessage (message: string): string {
         const binaryMessage = this.encode (message);
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
@@ -1974,7 +1974,7 @@ export default class derive extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    signMessage (message: any, privateKey: string): string {
+    signMessage (message: string, privateKey: string): string {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -2739,7 +2739,7 @@ export default class derive extends Exchange {
         return this.filterBy (orders, 'status', 'canceled') as Order[];
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -2749,7 +2749,7 @@ export default class derive extends Exchange {
         return this.safeString (timeInForces, (timeInForce as string));
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         if (status !== undefined) {
             const statuses: Dict = {
                 'open': 'open',
@@ -4247,7 +4247,7 @@ export default class derive extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'Batching': 'pending',
             'Executing': 'pending',

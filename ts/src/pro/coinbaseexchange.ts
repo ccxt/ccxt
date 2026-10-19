@@ -47,7 +47,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         });
     }
 
-    authenticate () {
+    authenticate (): Dict {
         this.checkRequiredCredentials ();
         const path = '/users/self/verify';
         const nonce = this.nonce ();

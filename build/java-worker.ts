@@ -8,6 +8,9 @@ import { installH2kJ11StringArgs } from './java-local-types.js';
 import { installJavaNativePadStartFirst, installJ08NativeReplace } from './java-local-types.js';
 import { installJ10Types } from './java-local-types.js';
 import { installJ11MapLocals } from './java-local-types.js';
+import { installJ12ParamTypes } from './java-local-types.js';
+import { installJ13ListLocals } from './java-local-types.js';
+import { installJ14ScalarLocals } from './java-local-types.js';
 import log from 'ololog'
 
 // task payload posted by javaTranspiler.ts#webworkerTranspile (structured clone)
@@ -95,6 +98,9 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJ08NativeReplace (cachedTranspiler);
         installJ10Types (cachedTranspiler); // hx4 J10
         installJ11MapLocals (cachedTranspiler); // hx4 J11
+        installJ12ParamTypes (cachedTranspiler); // hx4 J12
+        installJ13ListLocals (cachedTranspiler); // hx4 J13
+        installJ14ScalarLocals (cachedTranspiler); // hx4 J14
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

@@ -1696,7 +1696,7 @@ export default class bybit extends Exchange {
         return [ subType, paramsSubType ];
     }
 
-    getAmount (symbol: Str, amount: number | undefined) {
+    getAmount (symbol: Str, amount: number | undefined): Str {
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
         const market = this.market (symbol);
@@ -1720,7 +1720,7 @@ export default class bybit extends Exchange {
         return price;
     }
 
-    getCost (symbol: Str, cost: Str) {
+    getCost (symbol: Str, cost: Str): Str {
         const market = this.market (symbol);
         const emptyPrecisionPrice = (market['precision']['price'] === undefined);
         if (!emptyPrecisionPrice) {
@@ -3878,7 +3878,7 @@ export default class bybit extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             // v3 spot
             'NEW': 'open',
@@ -3907,7 +3907,7 @@ export default class bybit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'GoodTillCancel': 'GTC',
             'ImmediateOrCancel': 'IOC',
@@ -6229,7 +6229,7 @@ export default class bybit extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             // v3 deposit status
             '0': 'unknown',
@@ -6598,7 +6598,7 @@ export default class bybit extends Exchange {
         }, currencyResolved) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: Str) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',

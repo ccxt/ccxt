@@ -2225,7 +2225,7 @@ export default class hashkey extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             '1': 'pending',
             '2': 'pending',
@@ -2346,7 +2346,7 @@ export default class hashkey extends Exchange {
         };
     }
 
-    parseAccountType (type: Str) {
+    parseAccountType (type: Str): Str {
         const types: Dict = {
             '1': 'spot account',
             '3': 'swap account',
@@ -3803,7 +3803,7 @@ export default class hashkey extends Exchange {
         return [ side, reduceOnly ];
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',

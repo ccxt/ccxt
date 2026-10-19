@@ -2044,7 +2044,7 @@ export default class toobit extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'PENDING_NEW': 'open',
             'NEW': 'open',
@@ -2060,7 +2060,7 @@ export default class toobit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status: Str) {
+    parseOrderType (status: Str): Str {
         const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -2871,7 +2871,7 @@ export default class toobit extends Exchange {
         return this.filterByCurrencySinceLimit (sorted, currencyCode, since, limit);
     }
 
-    parseTransactionWithType (transaction: Dict, currency: Currency = undefined, transactType: Str = undefined) {
+    parseTransactionWithType (transaction: Dict, currency: Currency = undefined, transactType: Str = undefined): Transaction {
         const result = this.parseTransaction (transaction, currency);
         if (transactType !== undefined) {
             result['type'] = transactType;
@@ -2963,7 +2963,7 @@ export default class toobit extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str, type: Str = undefined) {
+    parseTransactionStatus (status: Str, type: Str = undefined): Str {
         const statusesByType: Dict = {
             'deposit': {
                 '2': 'ok', // DEPOSIT_CAN_WITHDRAW

@@ -3977,7 +3977,7 @@ export default class binance extends Exchange {
         return this.safeMarketStructure (entry);
     }
 
-    parseBalanceHelper (entry: Dict) {
+    parseBalanceHelper (entry: Dict): Dict {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'locked');
         account['free'] = this.safeString (entry, 'free');
@@ -4978,7 +4978,7 @@ export default class binance extends Exchange {
         return this.parseTickers (response, symbolsNormalized);
     }
 
-    parseTickersForRolling (response: any, symbols: any) {
+    parseTickersForRolling (response: any, symbols: Strings): Tickers {
         const results: List = [];
         for (let i = 0; i < response.length; i++) {
             const marketId = this.safeString (response[i], 'symbol');
@@ -6174,7 +6174,7 @@ export default class binance extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderTypeByMarket (type: Str, marketType: Str) {
+    parseOrderTypeByMarket (type: Str, marketType: Str): Str {
         let types: Dict = {};
         if ((marketType !== undefined) && marketType === 'spot') {
             types = {
@@ -9478,7 +9478,7 @@ export default class binance extends Exchange {
         return this.filterBySinceLimit (trades, since, limit);
     }
 
-    parseDustTrade (trade: Dict, market: Market = undefined) {
+    parseDustTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //       "fromAsset": "USDT",
@@ -11333,7 +11333,7 @@ export default class binance extends Exchange {
         return result;
     }
 
-    parseAccountPosition (position: Dict, market: Market = undefined) {
+    parseAccountPosition (position: Dict, market: Market = undefined): Position {
         //
         // usdm
         //
@@ -11591,7 +11591,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parsePositionRisk (position: Dict, market: Market = undefined) {
+    parsePositionRisk (position: Dict, market: Market = undefined): Position {
         //
         // usdm
         //
@@ -12115,7 +12115,7 @@ export default class binance extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
 
-    parseOptionPosition (position: Dict, market: Market = undefined) {
+    parseOptionPosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //         "entryPrice": "27.70000000",
@@ -12952,7 +12952,7 @@ export default class binance extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit);
     }
 
-    parseSettlement (settlement: Dict, market: Market) {
+    parseSettlement (settlement: Dict, market: Market): Dict {
         //
         // fetchSettlementHistory
         //
@@ -13428,7 +13428,7 @@ export default class binance extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    getExceptionsByUrl (url: Str, exactOrBroad: string) {
+    getExceptionsByUrl (url: Str, exactOrBroad: string): Dict {
         if (url === undefined) {
             return {};
         }

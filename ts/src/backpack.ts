@@ -2396,7 +2396,7 @@ export default class backpack extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'cancelled': 'cancelled',
             'confirmed': 'ok',
@@ -3194,7 +3194,7 @@ export default class backpack extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'New': 'open',
             'Filled': 'closed',
@@ -3207,7 +3207,7 @@ export default class backpack extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderSide (side: Str) {
+    parseOrderSide (side: Str): Str {
         const sides: Dict = {
             'Bid': 'buy',
             'Ask': 'sell',

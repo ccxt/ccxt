@@ -258,7 +258,7 @@ export default class binance extends binanceRest {
         return stream;
     }
 
-    getWsUrl (type: any, category: string): string {
+    getWsUrl (type: string, category: string): string {
         if ((type === 'option') || (type === 'optionMarket') || (type === 'optionPrivate')) {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
@@ -287,7 +287,7 @@ export default class binance extends binanceRest {
         return baseUrl;
     }
 
-    getFutureWsCategory (channel: Str) {
+    getFutureWsCategory (channel: Str): string {
         if (channel === 'depth' || channel === 'rpiDepth' || channel === 'bookTicker' || channel === 'trade') {
             return 'public';
         }
@@ -308,7 +308,7 @@ export default class binance extends binanceRest {
         return wsUrl + '/' + listenKey;
     }
 
-    getStockWsUrl (streamType: Str = 'market') {
+    getStockWsUrl (streamType: Str = 'market'): string {
         const baseUrl = this.urls['api']['ws']['stock'];
         if (streamType === 'combined') {
             return baseUrl.replace ('/ws', '/stream');
@@ -1084,7 +1084,7 @@ export default class binance extends binanceRest {
         return orderbook;
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -1202,7 +1202,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleOrderBookSubscription (client: Client, message: any, subscription: any) {
+    handleOrderBookSubscription (client: Client, message: any, subscription: Dict) {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
         const symbolOfSubscription = this.safeString (subscription, 'symbol'); // watchOrderBook
@@ -2567,7 +2567,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    parseWsTicker (message: any, marketType: any): Ticker {
+    parseWsTicker (message: NullableDict, marketType: Str): Ticker {
         // markPrice
         //   {
         //       "e": "markPriceUpdate",   // Event type
@@ -3622,7 +3622,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, type);
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict) {
         //
         // sent upon a balance update not related to orders
         //
@@ -3778,7 +3778,7 @@ export default class binance extends binanceRest {
         return [ type, subType, paramsSubType ];
     }
 
-    getMarketType (method: any, market: any, params: Dict = {}): string {
+    getMarketType (method: string, market: Market, params: Dict = {}): string {
         let type: Str = undefined;
         let paramsMarketType: Dict = {};
         [ type, paramsMarketType ] = this.handleMarketTypeAndParams (method, market, params);
@@ -4770,7 +4770,7 @@ export default class binance extends binanceRest {
         });
     }
 
-    handleOrderUpdate (client: Client, message: any) {
+    handleOrderUpdate (client: Client, message: Dict) {
         //
         // spot
         //
@@ -5308,7 +5308,7 @@ export default class binance extends binanceRest {
         });
     }
 
-    parseWsOptionsPosition (position: any, market: any = undefined) {
+    parseWsOptionsPosition (position: NullableDict, market: Market = undefined): Position {
         //
         //  from BALANCE_POSITION_UPDATE event P[] array:
         //  {
@@ -5693,7 +5693,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleAcountUpdate (client: Client, message: any) {
+    handleAcountUpdate (client: Client, message: Dict) {
         this.handleBalance (client, message);
         this.handlePositions (client, message);
     }
