@@ -2908,9 +2908,8 @@ export default class backpack extends Exchange {
                 return order;
             }
         }
-        const orderId: string = id;
         const openOrderParams: Dict = this.extend (query, { 'stock': this.safeBool (selection, 0, false) });
-        return await this.fetchOpenOrder (orderId, symbol, openOrderParams);
+        return await this.fetchOpenOrder (id as string, symbol, openOrderParams);
     }
 
     /**

@@ -1175,7 +1175,8 @@ export default class backpack extends backpackRest {
             storedOrderBook.cache.push (data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             const market = this.market (symbol);
-            const defaultSnapshotDelay = (market['stock'] === true) ? 0 : 10;
+            const isStockMarket = (market['stock'] === true) || ((marketId !== undefined) && ((marketId.indexOf ('.US_') !== -1) || (marketId.indexOf ('.HK_') !== -1)));
+            const defaultSnapshotDelay = isStockMarket ? 0 : 10;
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay);
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, undefined, {});
