@@ -89,19 +89,19 @@ public:
                         std::string("wss://stream.testnet.binance.vision/ws")},
                        {std::string("margin"),
                         std::string("wss://stream.testnet.binance.vision/ws")},
-                       {std::string("future"),
+                       {std::string("linear"),
                         std::string("wss://fstream.binancefuture.com/ws")},
-                       {std::string("delivery"),
+                       {std::string("inverse"),
                         std::string("wss://dstream.binancefuture.com/ws")},
                        {std::string("ws-api"),
                         ccxt::dict{
                             {std::string("spot"),
                              std::string("wss://ws-api.testnet.binance.vision/"
                                          "ws-api/v3")},
-                            {std::string("future"),
+                            {std::string("linear"),
                              std::string(
                                  "wss://testnet.binancefuture.com/ws-fapi/v1")},
-                            {std::string("delivery"),
+                            {std::string("inverse"),
                              std::string(
                                  "wss://testnet.binancefuture.com/ws-dapi/v1")},
                         }},
@@ -115,19 +115,19 @@ public:
                         std::string("wss://demo-stream.binance.com/ws")},
                        {std::string("margin"),
                         std::string("wss://demo-stream.binance.com/ws")},
-                       {std::string("future"),
+                       {std::string("linear"),
                         std::string("wss://fstream.binancefuture.com/ws")},
-                       {std::string("delivery"),
+                       {std::string("inverse"),
                         std::string("wss://dstream.binancefuture.com/ws")},
                        {std::string("ws-api"),
                         ccxt::dict{
                             {std::string("spot"),
                              std::string(
                                  "wss://demo-ws-api.binance.com/ws-api/v3")},
-                            {std::string("future"),
+                            {std::string("linear"),
                              std::string(
                                  "wss://testnet.binancefuture.com/ws-fapi/v1")},
-                            {std::string("delivery"),
+                            {std::string("inverse"),
                              std::string(
                                  "wss://testnet.binancefuture.com/ws-dapi/v1")},
                         }},
@@ -141,9 +141,9 @@ public:
                         std::string("wss://stream.binance.com:9443/ws")},
                        {std::string("margin"),
                         std::string("wss://stream.binance.com:9443/ws")},
-                       {std::string("future"),
+                       {std::string("linear"),
                         std::string("wss://fstream.binance.com/ws")},
-                       {std::string("delivery"),
+                       {std::string("inverse"),
                         std::string("wss://dstream.binance.com/ws")},
                        {std::string("stock"),
                         std::string("wss://nbstream.binance.com/equity/ws")},
@@ -158,10 +158,10 @@ public:
                             {std::string("spot"),
                              std::string(
                                  "wss://ws-api.binance.com:443/ws-api/v3")},
-                            {std::string("future"),
+                            {std::string("linear"),
                              std::string(
                                  "wss://ws-fapi.binance.com/ws-fapi/v1")},
-                            {std::string("delivery"),
+                            {std::string("inverse"),
                              std::string(
                                  "wss://ws-dapi.binance.com/ws-dapi/v1")},
                         }},
@@ -183,8 +183,8 @@ public:
               ccxt::dict{
                   {std::string("spot"), 50},
                   {std::string("margin"), 50},
-                  {std::string("future"), 50},
-                  {std::string("delivery"), 50},
+                  {std::string("linear"), 50},
+                  {std::string("inverse"), 50},
                   {std::string("stock"), 50},
                   {std::string("option"), 50},
                   {std::string("optionMarket"), 50},
@@ -193,8 +193,8 @@ public:
               ccxt::dict{
                   {std::string("spot"), 200},
                   {std::string("margin"), 200},
-                  {std::string("future"), 200},
-                  {std::string("delivery"), 200},
+                  {std::string("linear"), 200},
+                  {std::string("inverse"), 200},
                   {std::string("stock"), 200},
                   {std::string("option"), 200},
                   {std::string("optionMarket"), 200},
@@ -362,7 +362,7 @@ public:
         ::getValue(::getValue(::getValue(this->urls, std::string("api")),
                               std::string("ws")),
                    type);
-    if (isTrue(isEqual(type, std::string("future")))) {
+    if (isTrue(isEqual(type, std::string("linear")))) {
       // skip URL manipulation for proxied/bridge URLs (contain an embedded
       // protocol) const firstProtocol = baseUrl.indexOf ('://'); if
       // (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !==
@@ -405,7 +405,7 @@ public:
           std::string(
               " getPrivateWsUrl() requires a listenKey from authenticate()"))));
     }
-    if (isTrue(isEqual(type, std::string("future")))) {
+    if (isTrue(isEqual(type, std::string("linear")))) {
       return add(add(this->getWsUrl(type, std::string("private")),
                      std::string("?listenKey=")),
                  listenKey);
@@ -1116,8 +1116,8 @@ public:
                    type = (isTrue((isEqual(
                                ::getValue(firstMarket, std::string("linear")),
                                true)))
-                               ? ccxt::any(std::string("future"))
-                               : ccxt::any(std::string("delivery")));
+                               ? ccxt::any(std::string("linear"))
+                               : ccxt::any(std::string("inverse")));
                  }
                  ccxt::any name = std::string("depth");
                  ccxt::any streamHash = std::string("multipleOrderbook");
@@ -1152,7 +1152,7 @@ public:
                  ccxt::any rpi = ::getValue(rpiparamsRpiVariable, 0);
                  ccxt::any paramsRpi = ::getValue(rpiparamsRpiVariable, 1);
                  if (isTrue(isTrue(rpi) &&
-                            isTrue(isEqual(type, std::string("future"))))) {
+                            isTrue(isEqual(type, std::string("linear"))))) {
                    name = std::string("rpiDepth");
                    watchOrderBookRate = std::string("500");
                  }
@@ -1269,8 +1269,8 @@ public:
                    type = (isTrue((isEqual(
                                ::getValue(firstMarket, std::string("linear")),
                                true)))
-                               ? ccxt::any(std::string("future"))
-                               : ccxt::any(std::string("delivery")));
+                               ? ccxt::any(std::string("linear"))
+                               : ccxt::any(std::string("inverse")));
                  }
                  ccxt::any name = std::string("depth");
                  ccxt::any streamHash = std::string("multipleOrderbook");
@@ -1415,7 +1415,7 @@ public:
                  }
                  ccxt::any marketType = this->getMarketType(
                      std::string("fetchOrderBookWs"), market, params);
-                 if (isTrue(!isEqual(marketType, std::string("future")))) {
+                 if (isTrue(!isEqual(marketType, std::string("linear")))) {
                    throw BadRequest(toString(add(
                        this->id,
                        std::string(
@@ -1551,7 +1551,7 @@ public:
                      }
                      ccxt::any pu =
                          this->safeInteger(messageItem, std::string("pu"));
-                     if (isTrue(isEqual(type, std::string("future")))) {
+                     if (isTrue(isEqual(type, std::string("linear")))) {
                        // 4. Drop any event where u is < lastUpdateId in the
                        // snapshot
                        if (isTrue(isLessThan(
@@ -1796,11 +1796,13 @@ public:
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(symbols));
          postFixIncrement(i)) {
       ccxt::any symbol = ::getValue(symbols, i);
-      if (isTrue(inOp(this->orderbooks, symbol))) {
-        deleteKey(this->orderbooks, symbol);
+      if (!isTrue((inOp(this->orderbooks, symbol)))) {
+        ::setValue(this->orderbooks, symbol,
+                   this->orderBook(ccxt::dict{}, limit));
       }
-      ::setValue(this->orderbooks, symbol,
-                 this->orderBook(ccxt::dict{}, limit));
+      ccxt::any orderbook = ::getValue(this->orderbooks, symbol);
+      ::setValue(orderbook, std::string("nonce"), ccxt::any{});
+      ::getValue(orderbook, std::string("cache")) = ccxt::list{};
       ccxt::any symbolSubscription =
           this->extend(subscription, ccxt::dict{
                                          {std::string("symbol"), symbol},
@@ -1928,8 +1930,8 @@ public:
                    type = (isTrue((isEqual(
                                ::getValue(firstMarket, std::string("linear")),
                                true)))
-                               ? ccxt::any(std::string("future"))
-                               : ccxt::any(std::string("delivery")));
+                               ? ccxt::any(std::string("linear"))
+                               : ccxt::any(std::string("inverse")));
                  }
                  ccxt::any messageHashes = ccxt::list{};
                  ccxt::any subParams = ccxt::list{};
@@ -2079,8 +2081,8 @@ public:
                    type = (isTrue((isEqual(
                                ::getValue(firstMarket, std::string("linear")),
                                true)))
-                               ? ccxt::any(std::string("future"))
-                               : ccxt::any(std::string("delivery")));
+                               ? ccxt::any(std::string("linear"))
+                               : ccxt::any(std::string("inverse")));
                  }
                  ccxt::any subMessageHashes = ccxt::list{};
                  ccxt::any subParams = ccxt::list{};
@@ -2304,7 +2306,7 @@ public:
     //         "Q": "0.00000000"
     //     }
     //
-    // private watchMyTrades future/delivery
+    // private watchMyTrades linear/inverse
     //
     //     {
     //         "s": "BTCUSDT",
@@ -2670,8 +2672,8 @@ public:
                    type = (isTrue((isEqual(
                                ::getValue(firstMarket, std::string("linear")),
                                true)))
-                               ? ccxt::any(std::string("future"))
-                               : ccxt::any(std::string("delivery")));
+                               ? ccxt::any(std::string("linear"))
+                               : ccxt::any(std::string("inverse")));
                    wsUrlType = type;
                  }
                  ccxt::any isSpot = (isEqual(type, std::string("spot")));
@@ -2835,8 +2837,8 @@ public:
                    type = (isTrue((isEqual(
                                ::getValue(firstMarket, std::string("linear")),
                                true)))
-                               ? ccxt::any(std::string("future"))
-                               : ccxt::any(std::string("delivery")));
+                               ? ccxt::any(std::string("linear"))
+                               : ccxt::any(std::string("inverse")));
                    wsUrlType = type;
                  }
                  ccxt::any isSpot = (isEqual(type, std::string("spot")));
@@ -3089,7 +3091,7 @@ public:
                  };
                  ccxt::any type = this->getMarketType(
                      std::string("fetchTickerWs"), market, params);
-                 if (isTrue(!isEqual(type, std::string("future")))) {
+                 if (isTrue(!isEqual(type, std::string("linear")))) {
                    throw BadRequest(toString(
                        add(this->id,
                            std::string(
@@ -3179,7 +3181,7 @@ public:
                      std::string("fetchOHLCVWs"), market, params);
                  if (isTrue(
                          isTrue(!isEqual(marketType, std::string("spot"))) &&
-                         isTrue(!isEqual(marketType, std::string("future"))))) {
+                         isTrue(!isEqual(marketType, std::string("linear"))))) {
                    throw BadRequest(toString(
                        add(this->id, std::string(" fetchOHLCVWs only supports "
                                                  "spot or swap markets"))));
@@ -3850,9 +3852,9 @@ public:
                                         ? ccxt::any(std::string("optionMarket"))
                                         : ccxt::any(std::string("option")));
                  } else if (isTrue(this->isLinear(marketType, subType))) {
-                   rawMarketType = std::string("future");
+                   rawMarketType = std::string("linear");
                  } else if (isTrue(this->isInverse(marketType, subType))) {
-                   rawMarketType = std::string("delivery");
+                   rawMarketType = std::string("inverse");
                  } else if (isTrue(isEqual(marketType, std::string("spot")))) {
                    rawMarketType = marketType;
                  } else {
@@ -4299,7 +4301,7 @@ public:
     ccxt::any messageHash = this->safeString(message, std::string("id"));
     ccxt::any result =
         this->safeDict(message, std::string("result"), ccxt::dict{});
-    ccxt::any ticker = this->parseWsTicker(result, std::string("future"));
+    ccxt::any ticker = this->parseWsTicker(result, std::string("contract"));
     this->resolve(ticker, messageHash);
   }
 
@@ -4524,12 +4526,6 @@ public:
                    awaitValue(::wsClientFuture(client, messageHash));
                    return ccxt::any{};
                  }
-                 ::wsClientFuture(
-                     client,
-                     messageHash); // created ahead of the request below, so
-                                   // concurrent callers can find it
-                 ::setValue(::getValue(client, std::string("subscriptions")),
-                            marketType, true);
                  ccxt::any requestId = this->requestId(url);
                  ccxt::any requestHash = toString(requestId);
                  ccxt::any message = ccxt::dict{
@@ -4544,6 +4540,13 @@ public:
                       std::string("handleUserDataStreamSubscribe")},
                      {std::string("subscription"), marketType},
                  };
+                 // created right before the request, after the signing above:
+                 // concurrent callers find it, and in the threaded ports the
+                 // ack can not arrive between this future and the request one
+                 // watch () adds
+                 ::wsClientFuture(client, messageHash);
+                 ::setValue(::getValue(client, std::string("subscriptions")),
+                            marketType, true);
                  try {
                    awaitValue(this->watch(url, requestHash, message,
                                           requestHash, subscription));
@@ -4902,10 +4905,10 @@ public:
                     } else if (isTrue(isPortfolioMargin)) {
                       response =
                           awaitValue(this->papiPostListenKey(paramsOmitted));
-                    } else if (isTrue(isEqual(type, std::string("future")))) {
+                    } else if (isTrue(isEqual(type, std::string("linear")))) {
                       response = awaitValue(
                           this->fapiPrivatePostListenKey(paramsOmitted));
-                    } else if (isTrue(isEqual(type, std::string("delivery")))) {
+                    } else if (isTrue(isEqual(type, std::string("inverse")))) {
                       response = awaitValue(
                           this->dapiPrivatePostListenKey(paramsOmitted));
                     } else if (isTrue(isEqual(type, std::string("option")))) {
@@ -4999,17 +5002,17 @@ public:
                             isTrue(!isEqual(type, std::string("stock"))))) {
                    // guard options first: isLinear returns true for
                    // linear-settled options (subType='linear') which would
-                   // incorrectly convert type='option' to 'future'. stock needs
+                   // incorrectly convert type='option' to 'linear'. stock needs
                    // the same exemption: with a defaultSubType of 'linear' -
                    // always on binanceusdm, common on mixed instances -
                    // isLinear keys off subType alone and would flip 'stock' to
-                   // 'future' - the stock branch below would never run, and the
+                   // 'linear' - the stock branch below would never run, and the
                    // bucket lookup would renew the FUTURES listen key while the
                    // stock key silently expires
                    if (isTrue(this->isLinear(type, subType))) {
-                     type = std::string("future");
+                     type = std::string("linear");
                    } else if (isTrue(this->isInverse(type, subType))) {
-                     type = std::string("delivery");
+                     type = std::string("inverse");
                    }
                  }
                  // For margin, token renewal is handled by renewListenToken
@@ -5044,10 +5047,10 @@ public:
                    } else if (isTrue(isPortfolioMargin)) {
                      awaitValue(this->papiPutListenKey(
                          this->extend(request, paramsOmitted)));
-                   } else if (isTrue(isEqual(type, std::string("future")))) {
+                   } else if (isTrue(isEqual(type, std::string("linear")))) {
                      awaitValue(this->fapiPrivatePutListenKey(
                          this->extend(request, paramsOmitted)));
-                   } else if (isTrue(isEqual(type, std::string("delivery")))) {
+                   } else if (isTrue(isEqual(type, std::string("inverse")))) {
                      awaitValue(this->dapiPrivatePutListenKey(
                          this->extend(request, paramsOmitted)));
                    } else if (isTrue(isEqual(type, std::string("option")))) {
@@ -5222,8 +5225,8 @@ public:
    * https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
-   * @param {string|undefined} [params.type] 'future', 'delivery', 'savings',
-   * 'funding', or 'spot'
+   * @param {string|undefined} [params.type] 'spot', 'margin', 'swap', 'future',
+   * 'savings' or 'funding', use params.subType 'inverse' for COIN-M
    * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for
    * margin trading, uses ::getValue(this,
    * std::string("options")).defaultMarginMode if not passed, defaults to
@@ -5248,8 +5251,8 @@ public:
                  if (isTrue(
                          isTrue(
                              isTrue(!isEqual(type, std::string("spot"))) &&
-                             isTrue(!isEqual(type, std::string("future")))) &&
-                         isTrue(!isEqual(type, std::string("delivery"))))) {
+                             isTrue(!isEqual(type, std::string("linear")))) &&
+                         isTrue(!isEqual(type, std::string("inverse"))))) {
                    throw BadRequest(toString(add(
                        this->id, std::string(" fetchBalanceWs only supports "
                                              "spot or swap markets"))));
@@ -5444,10 +5447,10 @@ public:
                             isTrue((isEqual(type, std::string("spot")))))) {
                    // when symbols aren't provide
                    // we shouldn't rely on the defaultType
-                   type = std::string("future");
+                   type = std::string("linear");
                  }
-                 if (isTrue(isTrue(!isEqual(type, std::string("future"))) &&
-                            isTrue(!isEqual(type, std::string("delivery"))))) {
+                 if (isTrue(isTrue(!isEqual(type, std::string("linear"))) &&
+                            isTrue(!isEqual(type, std::string("inverse"))))) {
                    throw BadRequest(toString(add(
                        this->id,
                        std::string(
@@ -5680,7 +5683,7 @@ public:
     //         ]
     //     }
     //
-    // future/delivery
+    // linear/inverse
     //
     //     {
     //         "e": "ACCOUNT_UPDATE",            // Event Type
@@ -5802,14 +5805,13 @@ public:
          postFixIncrement(i)) {
       ccxt::any subscription = ::getValue(subscriptions, i);
       if (isTrue(
-              isTrue(
-                  isTrue(
-                      isTrue(isTrue((
-                                 isEqual(subscription, std::string("spot")))) ||
-                             isTrue((isEqual(subscription,
-                                             std::string("margin"))))) ||
-                      isTrue((isEqual(subscription, std::string("future"))))) ||
-                  isTrue((isEqual(subscription, std::string("delivery"))))) ||
+              isTrue(isTrue(isTrue(isTrue((isEqual(subscription,
+                                                   std::string("spot")))) ||
+                                   isTrue((isEqual(subscription,
+                                                   std::string("margin"))))) ||
+                            isTrue((isEqual(subscription,
+                                            std::string("linear"))))) ||
+                     isTrue((isEqual(subscription, std::string("inverse"))))) ||
               isTrue((isEqual(subscription, std::string("option")))))) {
         accountType = subscription;
         break;
@@ -5841,9 +5843,9 @@ public:
     if (isTrue(isTrue(!isEqual(type, std::string("option"))) &&
                isTrue(!isEqual(type, std::string("stock"))))) {
       if (isTrue(this->isLinear(type, subType))) {
-        type = std::string("future");
+        type = std::string("linear");
       } else if (isTrue(this->isInverse(type, subType))) {
-        type = std::string("delivery");
+        type = std::string("inverse");
       }
     }
     // sites consuming every element unpack this; the two that skip subType
@@ -5862,9 +5864,9 @@ public:
     ccxt::any subType = ::getValue(
         this->handleSubTypeAndParams(method, market, paramsMarketType), 0);
     if (isTrue(this->isLinear(type, subType))) {
-      type = std::string("future");
+      type = std::string("linear");
     } else if (isTrue(this->isInverse(type, subType))) {
-      type = std::string("delivery");
+      type = std::string("inverse");
     }
     return type;
   }
@@ -5912,9 +5914,9 @@ public:
                  if (isTrue(isTrue(isTrue(!isEqual(marketType,
                                                    std::string("spot"))) &&
                                    isTrue(!isEqual(marketType,
-                                                   std::string("future")))) &&
+                                                   std::string("linear")))) &&
                             isTrue(!isEqual(marketType,
-                                            std::string("delivery"))))) {
+                                            std::string("inverse"))))) {
                    throw BadRequest(toString(
                        add(this->id, std::string(" createOrderWs only supports "
                                                  "spot or swap markets"))));
@@ -6150,12 +6152,12 @@ public:
                 ccxt::any market = this->market(symbol);
                 ccxt::any marketType = this->getMarketType(
                     std::string("editOrderWs"), market, params);
-                if (isTrue(isTrue(isTrue(!isEqual(marketType,
-                                                  std::string("spot"))) &&
-                                  isTrue(!isEqual(marketType,
-                                                  std::string("future")))) &&
-                           isTrue(!isEqual(marketType,
-                                           std::string("delivery"))))) {
+                if (isTrue(
+                        isTrue(
+                            isTrue(!isEqual(marketType, std::string("spot"))) &&
+                            isTrue(
+                                !isEqual(marketType, std::string("linear")))) &&
+                        isTrue(!isEqual(marketType, std::string("inverse"))))) {
                   throw BadRequest(toString(add(
                       this->id,
                       std::string(
@@ -6175,8 +6177,8 @@ public:
                 ccxt::any requestId = this->requestId(url);
                 ccxt::any messageHash = toString(requestId);
                 ccxt::any isSwap =
-                    (isTrue(isEqual(marketType, std::string("future"))) ||
-                     isTrue(isEqual(marketType, std::string("delivery"))));
+                    (isTrue(isEqual(marketType, std::string("linear"))) ||
+                     isTrue(isEqual(marketType, std::string("inverse"))));
                 ccxt::any payload = ccxt::dict{};
                 if (isTrue(isEqual(marketType, std::string("spot")))) {
                   payload = this->editSpotOrderRequest(id, symbol, type, side,
@@ -6574,8 +6576,8 @@ public:
                  if (isTrue(
                          isTrue(
                              isTrue(!isEqual(type, std::string("spot"))) &&
-                             isTrue(!isEqual(type, std::string("future")))) &&
-                         isTrue(!isEqual(type, std::string("delivery"))))) {
+                             isTrue(!isEqual(type, std::string("linear")))) &&
+                         isTrue(!isEqual(type, std::string("inverse"))))) {
                    throw BadRequest(toString(
                        add(this->id, std::string(" fetchOrderWs only supports "
                                                  "spot or swap markets"))));
@@ -7320,6 +7322,9 @@ public:
       // Only
       timeInForce = std::string("PO");
     }
+    ccxt::any postOnly =
+        isTrue((isEqual(orderType, std::string("limit_maker")))) ||
+        isTrue((isEqual(timeInForce, std::string("PO"))));
     return this->safeOrder(ccxt::dict{
         {std::string("info"), order},
         {std::string("symbol"), symbol},
@@ -7333,7 +7338,7 @@ public:
         {std::string("type"),
          this->parseOrderTypeByMarket(orderType, marketType)},
         {std::string("timeInForce"), timeInForce},
-        {std::string("postOnly"), ccxt::any{}},
+        {std::string("postOnly"), postOnly},
         {std::string("reduceOnly"), this->safeBool(order, std::string("R"))},
         {std::string("side"), this->safeStringLower(order, std::string("S"))},
         {std::string("price"), this->safeString(order, std::string("p"))},
@@ -7729,15 +7734,15 @@ public:
                  // to spot or margin after the helper falls through to the
                  // derivatives stream matching the subType. requests a
                  // defaultSubType already rewrote arrive here as future or
-                 // delivery and pass untouched, which lands on the same stream
+                 // inverse and pass untouched, which lands on the same stream
                  // the old raw-type ordering produced in every case
                  if (isTrue(isTrue(isEqual(type, std::string("spot"))) ||
                             isTrue(isEqual(type, std::string("margin"))))) {
                    type = (isTrue((isEqual(subType, std::string("inverse"))))
-                               ? ccxt::any(std::string("delivery"))
-                               : ccxt::any(std::string("future")));
+                               ? ccxt::any(std::string("inverse"))
+                               : ccxt::any(std::string("linear")));
                  }
-                 // 'option' stays as 'option', don't redirect to 'future' - the
+                 // 'option' stays as 'option', don't redirect to 'linear' - the
                  // helper's guard finally makes this comment true
                  ccxt::any marketTypeObject = ccxt::dict{};
                  ::setValue(marketTypeObject, std::string("type"), type);
@@ -8094,7 +8099,7 @@ public:
                  ccxt::any type = this->getMarketType(
                      std::string("fetchMyTradesWs"), market, params);
                  if (isTrue(isTrue(!isEqual(type, std::string("spot"))) &&
-                            isTrue(!isEqual(type, std::string("future"))))) {
+                            isTrue(!isEqual(type, std::string("linear"))))) {
                    throw BadRequest(toString(
                        add(add(add(this->id,
                                    std::string(
@@ -8194,7 +8199,7 @@ public:
                  ccxt::any type = this->getMarketType(
                      std::string("fetchTradesWs"), market, params);
                  if (isTrue(isTrue(!isEqual(type, std::string("spot"))) &&
-                            isTrue(!isEqual(type, std::string("future"))))) {
+                            isTrue(!isEqual(type, std::string("linear"))))) {
                    throw BadRequest(toString(add(
                        add(add(this->id,
                                std::string(" fetchTradesWs does not support ")),
@@ -9913,8 +9918,18 @@ public:
       }
     }
     if (which == "afterConstruct") {
-      if (true) {
+      if (count <= 0) {
         this->afterConstruct();
+        return ccxt::any{};
+      }
+      if (count >= 1) {
+        this->afterConstruct(::getValue(args, 0));
+        return ccxt::any{};
+      }
+    }
+    if (which == "hasAutocorrect") {
+      if (true) {
+        this->hasAutocorrect();
         return ccxt::any{};
       }
     }
@@ -9927,12 +9942,6 @@ public:
     if (which == "featuresGenerator") {
       if (true) {
         this->featuresGenerator();
-        return ccxt::any{};
-      }
-    }
-    if (which == "createNetworksByIdObject") {
-      if (true) {
-        this->createNetworksByIdObject();
         return ccxt::any{};
       }
     }

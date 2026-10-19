@@ -4243,7 +4243,6 @@ public:
                       {std::string("spot"), std::string("x-TKT5PX2F")},
                       {std::string("margin"), std::string("x-TKT5PX2F")},
                       {std::string("future"), std::string("x-cvBPrNm9")},
-                      {std::string("delivery"), std::string("x-xcKtGhcu")},
                       {std::string("swap"), std::string("x-cvBPrNm9")},
                       {std::string("option"), std::string("x-xcKtGhcu")},
                       {std::string("inverse"), std::string("x-xcKtGhcu")},
@@ -4255,8 +4254,6 @@ public:
                       {std::string("funding"), std::string("FUNDING")},
                       {std::string("margin"), std::string("MARGIN")},
                       {std::string("cross"), std::string("MARGIN")},
-                      {std::string("future"), std::string("UMFUTURE")},
-                      {std::string("delivery"), std::string("CMFUTURE")},
                       {std::string("linear"), std::string("UMFUTURE")},
                       {std::string("swap"), std::string("UMFUTURE")},
                       {std::string("inverse"), std::string("CMFUTURE")},
@@ -4277,11 +4274,8 @@ public:
                       {std::string("BTCSEGWIT"), std::string("SEGWITBTC")},
                       {std::string("BTCLIGHTNING"), std::string("LIGHTNING")},
                       {std::string("ERC20"), std::string("ETH")},
-                      {std::string("ETH"), std::string("ETH")},
                       {std::string("TRC20"), std::string("TRX")},
-                      {std::string("TRX"), std::string("TRX")},
                       {std::string("BEP2"), std::string("BNB")},
-                      {std::string("BSC"), std::string("BSC")},
                       {std::string("BEP20"), std::string("BSC")},
                       {std::string("CHZ2"), std::string("CHZ2")},
                       {std::string("XRP"), std::string("XRP")},
@@ -5856,11 +5850,7 @@ public:
   }
 
   virtual ccxt::any isInverse(ccxt::any type, ccxt::any subType = ccxt::any{}) {
-    if (isTrue(isEqual(subType, ccxt::any{}))) {
-      return (isEqual(type, std::string("delivery")));
-    } else {
-      return isEqual(subType, std::string("inverse"));
-    }
+    return isEqual(subType, std::string("inverse"));
   }
 
   virtual ccxt::any isLinear(ccxt::any type, ccxt::any subType = ccxt::any{}) {
@@ -5972,14 +5962,20 @@ public:
       throw ExchangeError(
           toString(add(this->id, std::string(" markets not loaded"))));
     }
-    // defaultType has legacy support on binance
+    // defaultType 'swap' resolves spot-style symbols to the perpetual of
+    // defaultSubType
     ccxt::any defaultType =
         this->safeString(this->options, std::string("defaultType"));
     ccxt::any defaultSubType =
         this->safeString(this->options, std::string("defaultSubType"));
-    ccxt::any isLegacyLinear = isEqual(defaultType, std::string("future"));
-    ccxt::any isLegacyInverse = isEqual(defaultType, std::string("delivery"));
-    ccxt::any isLegacy = isTrue(isLegacyLinear) || isTrue(isLegacyInverse);
+    ccxt::any isLegacy = isEqual(defaultType, std::string("swap"));
+    ccxt::any isDerivative =
+        isTrue(isLegacy) ||
+        isTrue((isEqual(defaultType, std::string("future"))));
+    ccxt::any isLegacyInverse =
+        isTrue(isLegacy) &&
+        isTrue((isEqual(defaultSubType, std::string("inverse"))));
+    ccxt::any isLegacyLinear = isTrue(isLegacy) && !isTrue(isLegacyInverse);
     if (isTrue(isString(symbol))) {
       if (isTrue(isTrue((!isEqual(this->markets, ccxt::any{}))) &&
                  isTrue((inOp(this->markets, symbol))))) {
@@ -6004,10 +6000,11 @@ public:
                         isTrue((inOp(this->markets_by_id, symbol))))) {
         ccxt::any markets = ::getValue(this->markets_by_id, symbol);
         // begin diff
-        if (isTrue(isLegacyLinear)) {
-          defaultType = std::string("linear");
-        } else if (isTrue(isLegacyInverse)) {
-          defaultType = std::string("inverse");
+        if (isTrue(isDerivative)) {
+          defaultType =
+              (isTrue((isEqual(defaultSubType, std::string("inverse"))))
+                   ? ccxt::any(std::string("inverse"))
+                   : ccxt::any(std::string("linear")));
         } else if (isTrue(isEqual(defaultType, ccxt::any{}))) {
           defaultType = defaultSubType;
         }
@@ -6024,8 +6021,7 @@ public:
                             getIndexOf(symbol, std::string("/")), -1))) &&
                         isTrue((isLessThan(getIndexOf(symbol, std::string(":")),
                                            0))))) {
-        if (isTrue(isTrue((!isEqual(defaultType, ccxt::any{}))) &&
-                   isTrue((!isEqual(defaultType, std::string("spot")))))) {
+        if (isTrue(isLegacy)) {
           // support legacy symbols
           ccxt::any basequoteVariable = split(symbol, std::string("/"));
           ccxt::any base = ::getValue(basequoteVariable, 0);
@@ -7600,8 +7596,8 @@ public:
    * // portfolio margin
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
-   * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding',
-   * or 'spot' or 'papi'
+   * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'option',
+   * 'savings', 'funding' or 'papi', use params.subType 'inverse' for COIN-M
    * @param {string} [params.marginMode] 'cross' or 'isolated', for margin
    * trading, uses ::getValue(this, std::string("options")).defaultMarginMode if
    * not passed, defaults to undefined/None/null
@@ -11656,13 +11652,17 @@ public:
    * @name binance#generateClientOrderId
    * @description builds a fresh client order id
    * @param {object} [market] the market of the order, takes precedence over the
-   * api argument
+   * other arguments
    * @param {string} [api] the implicit api section the order is sent to
    * (private, sapi, fapiPrivate, dapiPrivate, eapiPrivate, ...)
+   * @param {string} [path] the implicit api path the order is sent to, resolves
+   * the market type from the um/, cm/, margin/ and equity/ path prefixes whose
+   * api section is ambiguous, takes precedence over the api argument
    * @returns {string} the broker prefix followed by 22 random characters
    */
   virtual ccxt::any generateClientOrderId(ccxt::any market = ccxt::any{},
-                                          ccxt::any api = ccxt::any{}) {
+                                          ccxt::any api = ccxt::any{},
+                                          ccxt::any path = ccxt::any{}) {
     ccxt::any idMarketType = ccxt::any{};
     if (isTrue(!isEqual(market, ccxt::any{}))) {
       if (isTrue(isEqual(::getValue(market, std::string("option")), true))) {
@@ -11679,7 +11679,21 @@ public:
       } else {
         idMarketType = std::string("spot");
       }
-    } else if (isTrue(!isEqual(api, ccxt::any{}))) {
+    }
+    if (isTrue(isTrue((isEqual(idMarketType, ccxt::any{}))) &&
+               isTrue((!isEqual(path, ccxt::any{}))))) {
+      if (isTrue(isEqual(getIndexOf(path, std::string("um/")), 0))) {
+        idMarketType = std::string("swap");
+      } else if (isTrue(isEqual(getIndexOf(path, std::string("cm/")), 0))) {
+        idMarketType = std::string("inverse");
+      } else if (isTrue(isEqual(getIndexOf(path, std::string("margin/")), 0))) {
+        idMarketType = std::string("margin");
+      } else if (isTrue(isEqual(getIndexOf(path, std::string("equity/")), 0))) {
+        idMarketType = std::string("spot");
+      }
+    }
+    if (isTrue(isTrue((isEqual(idMarketType, ccxt::any{}))) &&
+               isTrue((!isEqual(api, ccxt::any{}))))) {
       ccxt::any isSpotOrMargin =
           (isTrue(isGreaterThan(getIndexOf(api, std::string("sapi")), -1)) ||
            isTrue(isEqual(api, std::string("private"))));
@@ -11694,20 +11708,17 @@ public:
       } else {
         idMarketType = std::string("future");
       }
-    } else {
+    }
+    if (isTrue(isEqual(idMarketType, ccxt::any{}))) {
       ccxt::any defaultType = this->safeString(
           this->options, std::string("defaultType"), std::string("spot"));
       ccxt::any defaultSubType =
           this->safeString(this->options, std::string("defaultSubType"));
       idMarketType = defaultType;
-      if (isTrue(isEqual(defaultType, std::string("delivery")))) {
-        idMarketType = std::string("inverse");
-      } else if (isTrue(isTrue((
-                            isEqual(defaultSubType, std::string("inverse")))) &&
-                        isTrue((isTrue((isEqual(defaultType,
-                                                std::string("swap")))) ||
-                                isTrue((isEqual(defaultType,
-                                                std::string("future")))))))) {
+      if (isTrue(isTrue((isEqual(defaultSubType, std::string("inverse")))) &&
+                 isTrue((
+                     isTrue((isEqual(defaultType, std::string("swap")))) ||
+                     isTrue((isEqual(defaultType, std::string("future")))))))) {
         idMarketType = std::string("inverse");
       }
     }
@@ -11723,6 +11734,159 @@ public:
         this->safeDict(this->options, std::string("broker"), ccxt::dict{});
     ccxt::any brokerId = this->safeString(broker, idMarketType, defaultId);
     return add(brokerId, this->uuid22());
+  }
+
+  /**
+   * @method
+   * @name binance#handleClientOrderId
+   * @ignore
+   * @param {object} params request params
+   * @param {string} api the implicit api section the request is sent to
+   * @param {string} path the implicit api path the request is sent to
+   * @param {string} method HTTP method
+   * @returns {object} params with the injected client order id
+   */
+  virtual ccxt::any handleClientOrderId(ccxt::any params, ccxt::any api,
+                                        ccxt::any path, ccxt::any method) {
+    if (isTrue(!isEqual(method, std::string("POST")))) {
+      return params;
+    }
+    if (isTrue(
+            isTrue(
+                isTrue(
+                    isTrue(
+                        isTrue(isTrue((isEqual(path, std::string("order")))) ||
+                               isTrue((
+                                   isEqual(path, std::string("sor/order"))))) ||
+                        isTrue((isEqual(
+                            path, std::string("order/cancelReplace"))))) ||
+                    isTrue((isEqual(path, std::string("um/order"))))) ||
+                isTrue((isEqual(path, std::string("cm/order"))))) ||
+            isTrue((isEqual(path, std::string("margin/order")))))) {
+      // the eapi order endpoint takes clientOrderId instead of newClientOrderId
+      ccxt::any clientOrderIdKey =
+          (isTrue((isEqual(api, std::string("eapiPrivate"))))
+               ? ccxt::any(std::string("clientOrderId"))
+               : ccxt::any(std::string("newClientOrderId")));
+      ccxt::any clientOrderId =
+          this->safeString2(params, std::string("clientOrderId"),
+                            std::string("newClientOrderId"));
+      if (isTrue(isEqual(clientOrderId, ccxt::any{}))) {
+        ::setValue(params, clientOrderIdKey,
+                   this->generateClientOrderId(ccxt::any{}, api, path));
+      }
+    } else if (isTrue(isTrue((isEqual(path, std::string("algoOrder")))) ||
+                      isTrue((isEqual(path, std::string("um/algo/order")))))) {
+      // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of
+      // newClientOrderId
+      ccxt::any clientAlgoId =
+          this->safeString(params, std::string("clientAlgoId"));
+      if (isTrue(isEqual(clientAlgoId, ccxt::any{}))) {
+        ::setValue(params, std::string("clientAlgoId"),
+                   this->generateClientOrderId(ccxt::any{}, api, path));
+      }
+    } else if (isTrue(isTrue((isEqual(path,
+                                      std::string("cm/conditional/order")))) ||
+                      isTrue((isEqual(path,
+                                      std::string("um/conditional/order")))))) {
+      // the papi conditional order endpoints take newClientStrategyId instead
+      // of newClientOrderId
+      ccxt::any newClientStrategyId =
+          this->safeString(params, std::string("newClientStrategyId"));
+      if (isTrue(isEqual(newClientStrategyId, ccxt::any{}))) {
+        ::setValue(params, std::string("newClientStrategyId"),
+                   this->generateClientOrderId(ccxt::any{}, api, path));
+      }
+    } else if (isTrue(isEqual(path, std::string("equity/order/place")))) {
+      // the equity order endpoint takes clientOrderId instead of
+      // newClientOrderId
+      ccxt::any equityClientOrderId =
+          this->safeString(params, std::string("clientOrderId"));
+      if (isTrue(isEqual(equityClientOrderId, ccxt::any{}))) {
+        ::setValue(params, std::string("clientOrderId"),
+                   this->generateClientOrderId(ccxt::any{}, api, path));
+      }
+    } else if (isTrue(
+                   isTrue(
+                       isTrue(
+                           isTrue(
+                               isTrue(
+                                   isTrue(
+                                       isTrue((isEqual(
+                                           path, std::string("order/oco")))) ||
+                                       isTrue((isEqual(
+                                           path, std::string(
+                                                     "margin/order/oco"))))) ||
+                                   isTrue((isEqual(
+                                       path, std::string("orderList/oco"))))) ||
+                               isTrue((isEqual(
+                                   path, std::string("orderList/oto"))))) ||
+                           isTrue((isEqual(path,
+                                           std::string("orderList/otoco"))))) ||
+                       isTrue((isEqual(path, std::string("orderList/opo"))))) ||
+                   isTrue((isEqual(path, std::string("orderList/opoco")))))) {
+      // the order list endpoints take a listClientOrderId and one client order
+      // id per leg
+      ccxt::any clientOrderIdKeys = ccxt::list{
+          std::string("listClientOrderId"), std::string("limitClientOrderId"),
+          std::string("stopClientOrderId")};
+      if (isTrue(isEqual(path, std::string("orderList/oco")))) {
+        clientOrderIdKeys = ccxt::list{std::string("listClientOrderId"),
+                                       std::string("aboveClientOrderId"),
+                                       std::string("belowClientOrderId")};
+      } else if (isTrue(
+                     isTrue((isEqual(path, std::string("orderList/oto")))) ||
+                     isTrue((isEqual(path, std::string("orderList/opo")))))) {
+        clientOrderIdKeys = ccxt::list{std::string("listClientOrderId"),
+                                       std::string("workingClientOrderId"),
+                                       std::string("pendingClientOrderId")};
+      } else if (isTrue(
+                     isTrue((isEqual(path, std::string("orderList/otoco")))) ||
+                     isTrue((isEqual(path, std::string("orderList/opoco")))))) {
+        clientOrderIdKeys =
+            ccxt::list{std::string("listClientOrderId"),
+                       std::string("workingClientOrderId"),
+                       std::string("pendingAboveClientOrderId"),
+                       std::string("pendingBelowClientOrderId")};
+      }
+      for (ccxt::any i = 0; isLessThan(i, getArrayLength(clientOrderIdKeys));
+           postFixIncrement(i)) {
+        ccxt::any currentClientOrderIdKey = ::getValue(clientOrderIdKeys, i);
+        ccxt::any currentClientOrderId =
+            this->safeString(params, currentClientOrderIdKey);
+        if (isTrue(isEqual(currentClientOrderId, ccxt::any{}))) {
+          ::setValue(params, currentClientOrderIdKey,
+                     this->generateClientOrderId(ccxt::any{}, api, path));
+        }
+      }
+    } else if (isTrue(isEqual(path, std::string("batchOrders")))) {
+      // the batch legs take the same client order id fields as the single order
+      // endpoints
+      if (isTrue(isTrue(isTrue((isEqual(api, std::string("fapiPrivate")))) ||
+                        isTrue((isEqual(api, std::string("dapiPrivate"))))) ||
+                 isTrue((isEqual(api, std::string("eapiPrivate")))))) {
+        ccxt::any batchClientOrderIdKey =
+            (isTrue((isEqual(api, std::string("eapiPrivate"))))
+                 ? ccxt::any(std::string("clientOrderId"))
+                 : ccxt::any(std::string("newClientOrderId")));
+        ccxt::any batchOrders =
+            this->safeList(params, std::string("batchOrders"), ccxt::list{});
+        ccxt::any checkedBatchOrders = ccxt::list{};
+        for (ccxt::any i = 0; isLessThan(i, getArrayLength(batchOrders));
+             postFixIncrement(i)) {
+          ccxt::any batchOrder = ::getValue(batchOrders, i);
+          ccxt::any batchClientOrderId =
+              this->safeString(batchOrder, batchClientOrderIdKey);
+          if (isTrue(isEqual(batchClientOrderId, ccxt::any{}))) {
+            ::setValue(batchOrder, batchClientOrderIdKey,
+                       this->generateClientOrderId(ccxt::any{}, api, path));
+          }
+          arrayPush(checkedBatchOrders, batchOrder);
+        }
+        ::setValue(params, std::string("batchOrders"), checkedBatchOrders);
+      }
+    }
+    return params;
   }
 
   /**
@@ -12012,6 +12176,10 @@ public:
     if (isTrue(isAlgoOrder)) {
       clientOrderIdRequest = std::string("clientAlgoId");
     } else if (isTrue(isEqual(stock, true))) {
+      clientOrderIdRequest = std::string("clientOrderId");
+    } else if (isTrue(
+                   isEqual(::getValue(market, std::string("option")), true))) {
+      // the option api takes clientOrderId instead of newClientOrderId
       clientOrderIdRequest = std::string("clientOrderId");
     }
     if (isTrue(isEqual(clientOrderId, ccxt::any{}))) {
@@ -15942,8 +16110,11 @@ public:
                        std::string("defaultType"), std::string("spot"));
                    ccxt::any fromAccount = this->safeString(
                        paramsOmitted, std::string("fromAccount"), defaultType);
-                   ccxt::any defaultTo = std::string("future");
-                   if (isTrue(isEqual(fromAccount, std::string("future")))) {
+                   ccxt::any defaultTo = std::string("swap");
+                   if (isTrue(isTrue((
+                                  isEqual(fromAccount, std::string("swap")))) ||
+                              isTrue((isEqual(fromAccount,
+                                              std::string("linear")))))) {
                      defaultTo = std::string("spot");
                    }
                    ccxt::any toAccount = this->safeString(
@@ -16232,7 +16403,8 @@ public:
                      ccxt::any networkEntry = this->safeDict(networkList, j);
                      ccxt::any networkId =
                          this->safeString(networkEntry, std::string("network"));
-                     ccxt::any networkCode = this->safeCurrencyCode(networkId);
+                     ccxt::any networkCode =
+                         this->networkIdToCode(networkId, code);
                      ccxt::any fee = this->safeNumber(
                          networkEntry, std::string("withdrawFee"));
                      if (isTrue(isTrue((!isEqual(code, ccxt::any{}))) &&
@@ -16418,26 +16590,26 @@ public:
    * @param {string} code unified currency code
    * @param {float} amount the amount to withdraw
    * @param {string} address the address to withdraw to
-   * @param {string} tag
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
+   * @param {string} [params.tag] memo / destination tag, required for
+   * currencies in options['withdrawTagRequiredCurrencies']
    * @returns {object} a [transaction structure]{@link
    * https://docs.ccxt.com/?id=transaction-structure}
    */
   std::shared_future<ccxt::any>
   withdraw(ccxt::any code, ccxt::any amount, ccxt::any address,
-           ccxt::any tag = ccxt::any{},
            ccxt::any params = ccxt::dict{}) override {
     return std::async(
                std::launch::deferred,
                [=]() mutable -> ccxt::any {
                  ccxt::any tagWithdrawTagparamsWithdrawTagVariable =
-                     this->handleWithdrawTagAndParams(tag, params);
+                     this->handleParamString(params, std::string("tag"));
                  ccxt::any tagWithdrawTag =
                      ::getValue(tagWithdrawTagparamsWithdrawTagVariable, 0);
                  ccxt::any paramsWithdrawTag =
                      ::getValue(tagWithdrawTagparamsWithdrawTagVariable, 1);
-                 this->checkAddress(address);
+                 this->checkAddress(address, code, tagWithdrawTag);
                  if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
                  }
@@ -17077,7 +17249,7 @@ public:
                  }
                  ccxt::any defaultType = this->safeString2(
                      this->options, std::string("fetchFundingRateHistory"),
-                     std::string("defaultType"), std::string("future"));
+                     std::string("defaultType"), std::string("swap"));
                  ccxt::any type = this->safeString(
                      paramsPaginate, std::string("type"), defaultType);
                  ccxt::any market = ccxt::any{};
@@ -17193,7 +17365,7 @@ public:
                  ccxt::any symbolsNormalized = this->marketSymbols(symbols);
                  ccxt::any defaultType = this->safeString2(
                      this->options, std::string("fetchFundingRates"),
-                     std::string("defaultType"), std::string("future"));
+                     std::string("defaultType"), std::string("swap"));
                  ccxt::any type =
                      this->safeString(params, std::string("type"), defaultType);
                  ccxt::any subTypeparamsSubTypeVariable =
@@ -17656,6 +17828,11 @@ public:
     ccxt::any positionSide =
         this->safeString(position, std::string("positionSide"));
     ccxt::any hedged = !isEqual(positionSide, std::string("BOTH"));
+    ccxt::any isolatedWalletString = ccxt::any{};
+    if (isTrue(isEqual(marginMode, std::string("isolated")))) {
+      isolatedWalletString =
+          this->safeString(position, std::string("isolatedWallet"));
+    }
     return ccxt::dict{
         {std::string("info"), position},
         {std::string("id"), ccxt::any{}},
@@ -17677,6 +17854,8 @@ public:
         {std::string("marginRatio"), marginRatio},
         {std::string("liquidationPrice"), liquidationPrice},
         {std::string("markPrice"), ccxt::any{}},
+        {std::string("positionMargin"),
+         this->parseNumber(isolatedWalletString)},
         {std::string("collateral"), collateral},
         {std::string("marginMode"), marginMode},
         {std::string("side"), side},
@@ -17962,6 +18141,11 @@ public:
     ccxt::any positionSide =
         this->safeString(position, std::string("positionSide"));
     ccxt::any hedged = !isEqual(positionSide, std::string("BOTH"));
+    ccxt::any isolatedWalletString = ccxt::any{};
+    if (isTrue(isEqual(marginMode, std::string("isolated")))) {
+      isolatedWalletString =
+          this->safeString(position, std::string("isolatedWallet"));
+    }
     return this->safePosition(ccxt::dict{
         {std::string("info"), position},
         {std::string("id"), ccxt::any{}},
@@ -17971,6 +18155,8 @@ public:
         {std::string("unrealizedPnl"), unrealizedPnl},
         {std::string("leverage"), this->parseNumber(leverageString)},
         {std::string("liquidationPrice"), liquidationPrice},
+        {std::string("positionMargin"),
+         this->parseNumber(isolatedWalletString)},
         {std::string("collateral"), collateral},
         {std::string("notional"), notional},
         {std::string("markPrice"), markPrice},
@@ -18011,7 +18197,7 @@ public:
                             isTrue((reload)))) {
                    ccxt::any defaultType = this->safeString(
                        this->options, std::string("defaultType"),
-                       std::string("future"));
+                       std::string("swap"));
                    ccxt::any type = this->safeString(
                        params, std::string("type"), defaultType);
                    ccxt::any query = this->omit(params, std::string("type"));
@@ -18623,7 +18809,7 @@ public:
                  awaitValue(this->loadLeverageBrackets(false, params));
                  ccxt::any defaultType =
                      this->safeString(this->options, std::string("defaultType"),
-                                      std::string("future"));
+                                      std::string("swap"));
                  ccxt::any type =
                      this->safeString(params, std::string("type"), defaultType);
                  ccxt::any paramsOmitted =
@@ -18737,7 +18923,7 @@ public:
                  }
                  awaitValue(this->loadLeverageBrackets(false, params));
                  ccxt::any request = ccxt::dict{};
-                 ccxt::any defaultType = std::string("future");
+                 ccxt::any defaultType = std::string("swap");
                  defaultType = this->safeString(
                      this->options, std::string("defaultType"), defaultType);
                  ccxt::any type =
@@ -18989,7 +19175,7 @@ public:
                  }
                  ccxt::any defaultType = this->safeString2(
                      this->options, std::string("fetchFundingHistory"),
-                     std::string("defaultType"), std::string("future"));
+                     std::string("defaultType"), std::string("swap"));
                  ccxt::any type = this->safeString(
                      paramsUntil, std::string("type"), defaultType);
                  ccxt::any paramsOmitted =
@@ -20074,21 +20260,21 @@ public:
     return add(add(add(scheme, std::string("//")), domain), std::string("/"));
   }
 
-  ccxt::any sign(ccxt::any path, ccxt::any api = std::string("public"),
+  ccxt::any sign(ccxt::any path,
+                 ccxt::any api = ccxt::list{std::string("public")},
                  ccxt::any method = std::string("GET"),
-                 ccxt::any params = ccxt::dict{},
-                 ccxt::any headers = ccxt::any{},
-                 ccxt::any body = ccxt::any{}) override {
+                 ccxt::any params = ccxt::dict{}) override {
+    ccxt::any apiName = ::getValue(api, 0);
     ccxt::any urls = this->urls;
-    if (!isTrue((inOp(::getValue(urls, std::string("api")), api)))) {
+    if (!isTrue((inOp(::getValue(urls, std::string("api")), apiName)))) {
       throw NotSupported(toString(
           add(add(add(this->id,
                       std::string(" does not have a testnet/sandbox URL for ")),
-                  api),
+                  apiName),
               std::string(" endpoints"))));
     }
     ccxt::any baseApiUrl =
-        this->safeString(::getValue(this->urls, std::string("api")), api);
+        this->safeString(::getValue(this->urls, std::string("api")), apiName);
     if (isTrue(isEqual(baseApiUrl, ccxt::any{}))) {
       throw ExchangeError(toString(add(
           this->id, std::string(" sign() has no API URL for this endpoint"))));
@@ -20143,17 +20329,18 @@ public:
                                     isTrue(
                                         isTrue(
                                             isTrue(
-                                                isTrue(isTrue((isEqual(
-                                                           api,
-                                                           std::string(
-                                                               "private")))) ||
-                                                       isTrue((isEqual(
-                                                           api, std::string(
-                                                                    "eapiPrivat"
+                                                isTrue(
+                                                    isTrue((isEqual(
+                                                        apiName,
+                                                        std::string(
+                                                            "private")))) ||
+                                                    isTrue((isEqual(
+                                                        apiName,
+                                                        std::string("eapiPrivat"
                                                                     "e"))))) ||
                                                 isTrue((
                                                     isTrue(isEqual(
-                                                        api,
+                                                        apiName,
                                                         std::string("sapi"))) &&
                                                     isTrue(!isEqual(
                                                         path,
@@ -20161,21 +20348,23 @@ public:
                                                             "system/"
                                                             "status")))))) ||
                                             isTrue((isEqual(
-                                                api,
+                                                apiName,
                                                 std::string("sapiV2"))))) ||
-                                        isTrue((isEqual(
-                                            api, std::string("sapiV3"))))) ||
-                                    isTrue((isEqual(api,
+                                        isTrue((
+                                            isEqual(apiName,
+                                                    std::string("sapiV3"))))) ||
+                                    isTrue((isEqual(apiName,
                                                     std::string("sapiV4"))))) ||
                                 isTrue((isEqual(
-                                    api, std::string("dapiPrivate"))))) ||
-                            isTrue((
-                                isEqual(api, std::string("dapiPrivateV2"))))) ||
-                        isTrue((isEqual(api, std::string("fapiPrivate"))))) ||
-                    isTrue((isEqual(api, std::string("fapiPrivateV2"))))) ||
-                isTrue((isEqual(api, std::string("fapiPrivateV3"))))) ||
-            isTrue((isTrue(isEqual(api, std::string("papiV2"))) ||
-                    isTrue(isTrue(isEqual(api, std::string("papi"))) &&
+                                    apiName, std::string("dapiPrivate"))))) ||
+                            isTrue((isEqual(apiName,
+                                            std::string("dapiPrivateV2"))))) ||
+                        isTrue(
+                            (isEqual(apiName, std::string("fapiPrivate"))))) ||
+                    isTrue((isEqual(apiName, std::string("fapiPrivateV2"))))) ||
+                isTrue((isEqual(apiName, std::string("fapiPrivateV3"))))) ||
+            isTrue((isTrue(isEqual(apiName, std::string("papiV2"))) ||
+                    isTrue(isTrue(isEqual(apiName, std::string("papi"))) &&
                            isTrue(!isEqual(path, std::string("ping")))))))) {
       this->checkRequiredCredentials();
       if (isTrue(isTrue(isTrue((isGreaterThan(
@@ -20193,56 +20382,17 @@ public:
                             "announcement https://t.me/ccxt_announcements/92 "
                             "and consider using the demo trading instead."))));
       }
-      if (isTrue(isTrue(isEqual(method, std::string("POST"))) &&
-                 isTrue((isTrue((isEqual(path, std::string("order")))) ||
-                         isTrue((isEqual(path, std::string("sor/order")))))))) {
-        // inject in implicit API calls
-        ccxt::any newClientOrderId =
-            this->safeString(params, std::string("newClientOrderId"));
-        if (isTrue(isEqual(newClientOrderId, ccxt::any{}))) {
-          ::setValue(params, std::string("newClientOrderId"),
-                     this->generateClientOrderId(ccxt::any{}, api));
-        }
-      } else if (isTrue(isTrue(isEqual(method, std::string("POST"))) &&
-                        isTrue((isEqual(path, std::string("algoOrder")))))) {
-        // the fapi/dapi algo order endpoints take clientAlgoId instead of
-        // newClientOrderId
-        ccxt::any clientAlgoId =
-            this->safeString(params, std::string("clientAlgoId"));
-        if (isTrue(isEqual(clientAlgoId, ccxt::any{}))) {
-          ::setValue(params, std::string("clientAlgoId"),
-                     this->generateClientOrderId(ccxt::any{}, api));
-        }
-      }
+      ccxt::any requestParams =
+          this->handleClientOrderId(params, apiName, path, method);
       ccxt::any query = ccxt::any{};
       // handle batchOrders
       if (isTrue(isTrue((isEqual(path, std::string("batchOrders")))) &&
                  isTrue((isTrue((isEqual(method, std::string("POST")))) ||
                          isTrue((isEqual(method, std::string("PUT")))))))) {
-        ccxt::any batchOrders =
-            this->safeList(params, std::string("batchOrders"), ccxt::list{});
-        ccxt::any checkedBatchOrders = batchOrders;
-        if (isTrue(
-                isTrue(isEqual(method, std::string("POST"))) &&
-                isTrue((isTrue((isEqual(api, std::string("fapiPrivate")))) ||
-                        isTrue((isEqual(api, std::string("dapiPrivate")))))))) {
-          // check broker id if batchOrders are called with
-          // fapiPrivatePostBatchOrders / dapiPrivatePostBatchOrders
-          checkedBatchOrders = ccxt::list{};
-          for (ccxt::any i = 0; isLessThan(i, getArrayLength(batchOrders));
-               postFixIncrement(i)) {
-            ccxt::any batchOrder = ::getValue(batchOrders, i);
-            ccxt::any newClientOrderId =
-                this->safeString(batchOrder, std::string("newClientOrderId"));
-            if (isTrue(isEqual(newClientOrderId, ccxt::any{}))) {
-              ::setValue(batchOrder, std::string("newClientOrderId"),
-                         this->generateClientOrderId(ccxt::any{}, api));
-            }
-            arrayPush(checkedBatchOrders, batchOrder);
-          }
-        }
-        ccxt::any queryBatch = (this->json(checkedBatchOrders));
-        ::setValue(params, std::string("batchOrders"), queryBatch);
+        ccxt::any batchOrders = this->safeList(
+            requestParams, std::string("batchOrders"), ccxt::list{});
+        ccxt::any queryBatch = (this->json(batchOrders));
+        ::setValue(requestParams, std::string("batchOrders"), queryBatch);
       }
       ccxt::any defaultRecvWindow =
           this->safeInteger(this->options, std::string("recvWindow"));
@@ -20250,17 +20400,17 @@ public:
           ccxt::dict{
               {std::string("timestamp"), this->nonce()},
           },
-          params);
+          requestParams);
       if (isTrue(!isEqual(defaultRecvWindow, ccxt::any{}))) {
         ::setValue(extendedParams, std::string("recvWindow"),
                    defaultRecvWindow);
       }
       ccxt::any recvWindow =
-          this->safeInteger(params, std::string("recvWindow"));
+          this->safeInteger(requestParams, std::string("recvWindow"));
       if (isTrue(!isEqual(recvWindow, ccxt::any{}))) {
         ::setValue(extendedParams, std::string("recvWindow"), recvWindow);
       }
-      if (isTrue(isTrue((isEqual(api, std::string("sapi")))) &&
+      if (isTrue(isTrue((isEqual(apiName, std::string("sapi")))) &&
                  isTrue((isEqual(path, std::string("asset/dust")))))) {
         query = this->urlencodeWithArrayRepeat(extendedParams);
       } else if (isTrue(
@@ -20358,12 +20508,8 @@ public:
         url = add(url, add(std::string("?"), this->urlencode(params)));
       }
     }
-    ccxt::any headersResolved = (isTrue((!isEqual(signedHeaders, ccxt::any{})))
-                                     ? ccxt::any(signedHeaders)
-                                     : ccxt::any(headers));
-    ccxt::any bodyResolved =
-        (isTrue((!isEqual(signedBody, ccxt::any{}))) ? ccxt::any(signedBody)
-                                                     : ccxt::any(body));
+    ccxt::any headersResolved = signedHeaders;
+    ccxt::any bodyResolved = signedBody;
     return ccxt::dict{
         {std::string("url"), url},
         {std::string("method"), method},
@@ -20595,18 +20741,18 @@ public:
   }
 
   std::shared_future<ccxt::any>
-  request(ccxt::any path, ccxt::any api = std::string("public"),
+  request(ccxt::any path, ccxt::any api = ccxt::list{std::string("public")},
           ccxt::any method = std::string("GET"),
-          ccxt::any params = ccxt::dict{}, ccxt::any headers = ccxt::any{},
-          ccxt::any body = ccxt::any{},
+          ccxt::any params = ccxt::dict{},
           ccxt::any config = ccxt::dict{}) override {
     return std::async(std::launch::deferred,
                       [=]() mutable -> ccxt::any {
-                        ccxt::any response = awaitValue(this->fetch2(
-                            path, api, method, params, headers, body, config));
+                        ccxt::any response = awaitValue(
+                            this->fetch2(path, api, method, params, config));
                         // a workaround for {"code":-2015,"msg":"Invalid
                         // API-key, IP, or permissions for action."}
-                        if (isTrue(isEqual(api, std::string("private")))) {
+                        if (isTrue(isEqual(::getValue(api, 0),
+                                           std::string("private")))) {
                           ::setValue(this->options,
                                      std::string(
                                          "hasAlreadyAuthenticatedSuccessfully"),
@@ -20626,18 +20772,18 @@ public:
                  // used to modify isolated positions
                  ccxt::any defaultType =
                      this->safeString(this->options, std::string("defaultType"),
-                                      std::string("future"));
+                                      std::string("swap"));
                  if (isTrue(isEqual(defaultType, std::string("spot")))) {
-                   defaultType = std::string("future");
+                   defaultType = std::string("swap");
                  }
                  ccxt::any type =
                      this->safeString(params, std::string("type"), defaultType);
                  if (isTrue(isTrue((isEqual(type, std::string("margin")))) ||
                             isTrue((isEqual(type, std::string("spot")))))) {
-                   throw NotSupported(toString(
-                       add(this->id,
-                           std::string(" add / reduce margin only supported "
-                                       "with type future or delivery"))));
+                   throw NotSupported(toString(add(
+                       this->id,
+                       std::string(" add / reduce margin only supported with "
+                                   "linear or inverse swap/future markets"))));
                  }
                  if (isTrue(isEqual(this->markets, ccxt::any{}))) {
                    awaitValue(this->loadMarkets());
@@ -21672,19 +21818,32 @@ public:
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
                    ::setValue(request, std::string("limit"), limit);
                  }
-                 ccxt::any symbolKey = std::string("pair");
                  if (isTrue(isEqual(::getValue(market, std::string("linear")),
                                     true))) {
-                   symbolKey = std::string("symbol");
-                 }
-                 ::setValue(request, symbolKey,
-                            ::getValue(market, std::string("id")));
-                 if (isTrue(isEqual(::getValue(market, std::string("inverse")),
-                                    true))) {
-                   ::setValue(request, std::string("contractType"),
-                              this->safeString(paramsPaginate,
-                                               std::string("contractType"),
-                                               std::string("CURRENT_QUARTER")));
+                   ::setValue(request, std::string("symbol"),
+                              ::getValue(market, std::string("id")));
+                 } else if (isTrue(isEqual(
+                                ::getValue(market, std::string("inverse")),
+                                true))) {
+                   // dapi expects the underlying pair (BTCUSD) and a contract
+                   // type, not the market id (BTCUSD_PERP)
+                   ::setValue(
+                       request, std::string("pair"),
+                       this->safeString(::getValue(market, std::string("info")),
+                                        std::string("pair")));
+                   ::setValue(
+                       request, std::string("contractType"),
+                       (isTrue((isEqual(::getValue(market, std::string("swap")),
+                                        true)))
+                            ? ccxt::any(std::string("PERPETUAL"))
+                            : ccxt::any(this->safeString(
+                                  ::getValue(market, std::string("info")),
+                                  std::string("contractType")))));
+                 } else {
+                   throw NotSupported(toString(
+                       add(this->id,
+                           std::string(" fetchOpenInterestHistory() supports "
+                                       "linear and inverse contracts only"))));
                  }
                  if (isTrue(!isEqual(since, ccxt::any{}))) {
                    ::setValue(request, std::string("startTime"), since);
@@ -21730,6 +21889,19 @@ public:
                  //          "sumOpenInterest":"75375.61700000",
                  //          "sumOpenInterestValue":"3248828883.71251440",
                  //          "timestamp":1642179900000
+                 //      },
+                 //      ...
+                 //  ]
+                 //
+                 // inverse
+                 //
+                 //  [
+                 //      {
+                 //          "contractType":"PERPETUAL",
+                 //          "sumOpenInterest":"13069401.00000000",
+                 //          "sumOpenInterestValue":"15796.96988405",
+                 //          "pair":"BTCUSD",
+                 //          "timestamp":1791835200000
                  //      },
                  //      ...
                  //  ]
@@ -24118,9 +24290,18 @@ public:
         return this->generateClientOrderId();
       if (count == 1)
         return this->generateClientOrderId(::getValue(args, 0));
-      if (count >= 2)
+      if (count == 2)
         return this->generateClientOrderId(::getValue(args, 0),
                                            ::getValue(args, 1));
+      if (count >= 3)
+        return this->generateClientOrderId(
+            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
+    }
+    if (which == "handleClientOrderId") {
+      if (true)
+        return this->handleClientOrderId(
+            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
+            ::getValue(args, 3));
     }
     if (which == "isConditionalOrder") {
       if (count <= 0)
@@ -24489,14 +24670,10 @@ public:
       if (count <= 3)
         return awaitValue(this->withdraw(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
+      if (count >= 4)
         return awaitValue(
             this->withdraw(::getValue(args, 0), ::getValue(args, 1),
                            ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->withdraw(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
     }
     if (which == "parseTradingFee") {
       if (count <= 1)
@@ -24823,17 +25000,9 @@ public:
       if (count == 3)
         return this->sign(::getValue(args, 0), ::getValue(args, 1),
                           ::getValue(args, 2));
-      if (count == 4)
+      if (count >= 4)
         return this->sign(::getValue(args, 0), ::getValue(args, 1),
                           ::getValue(args, 2), ::getValue(args, 3));
-      if (count == 5)
-        return this->sign(::getValue(args, 0), ::getValue(args, 1),
-                          ::getValue(args, 2), ::getValue(args, 3),
-                          ::getValue(args, 4));
-      if (count >= 6)
-        return this->sign(::getValue(args, 0), ::getValue(args, 1),
-                          ::getValue(args, 2), ::getValue(args, 3),
-                          ::getValue(args, 4), ::getValue(args, 5));
     }
     if (which == "getExceptionsByUrl") {
       if (true)
@@ -24870,19 +25039,10 @@ public:
         return awaitValue(
             this->request(::getValue(args, 0), ::getValue(args, 1),
                           ::getValue(args, 2), ::getValue(args, 3)));
-      if (count == 5)
+      if (count >= 5)
         return awaitValue(this->request(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3), ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->request(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count >= 7)
-        return awaitValue(this->request(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6)));
     }
     if (which == "modifyMarginHelper") {
       if (count <= 3)
@@ -25402,8 +25562,18 @@ public:
       }
     }
     if (which == "afterConstruct") {
-      if (true) {
+      if (count <= 0) {
         this->afterConstruct();
+        return ccxt::any{};
+      }
+      if (count >= 1) {
+        this->afterConstruct(::getValue(args, 0));
+        return ccxt::any{};
+      }
+    }
+    if (which == "hasAutocorrect") {
+      if (true) {
+        this->hasAutocorrect();
         return ccxt::any{};
       }
     }
@@ -25416,12 +25586,6 @@ public:
     if (which == "featuresGenerator") {
       if (true) {
         this->featuresGenerator();
-        return ccxt::any{};
-      }
-    }
-    if (which == "createNetworksByIdObject") {
-      if (true) {
-        this->createNetworksByIdObject();
         return ccxt::any{};
       }
     }

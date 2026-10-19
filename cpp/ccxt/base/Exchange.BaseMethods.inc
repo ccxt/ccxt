@@ -78,7 +78,9 @@ virtual ccxt::any checkWsProxySettings();
 virtual void checkConflictingProxies(ccxt::any proxyAgentSet,
                                      ccxt::any proxyUrlSet);
 
-virtual ccxt::any checkAddress(ccxt::any address = ccxt::any{});
+virtual ccxt::any checkAddress(ccxt::any address = ccxt::any{},
+                               ccxt::any code = ccxt::any{},
+                               ccxt::any tag = ccxt::any{});
 
 virtual ccxt::any findMessageHashes(ccxt::any client, ccxt::any element);
 
@@ -114,11 +116,10 @@ virtual void setSandboxMode(ccxt::any enabled);
  */
 virtual void enableDemoTrading(ccxt::any enable);
 
-virtual ccxt::any sign(ccxt::any path, ccxt::any api = std::string("public"),
+virtual ccxt::any sign(ccxt::any path,
+                       ccxt::any api = ccxt::list{std::string("public")},
                        ccxt::any method = std::string("GET"),
-                       ccxt::any params = ccxt::dict{},
-                       ccxt::any headers = ccxt::any{},
-                       ccxt::any body = ccxt::any{});
+                       ccxt::any params = ccxt::dict{});
 
 virtual std::shared_future<ccxt::any>
 fetchAccounts(ccxt::any params = ccxt::dict{}) {
@@ -645,7 +646,7 @@ transfer(ccxt::any code, ccxt::any amount, ccxt::any fromAccount,
 
 virtual std::shared_future<ccxt::any>
 withdraw(ccxt::any code, ccxt::any amount, ccxt::any address,
-         ccxt::any tag = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
+         ccxt::any params = ccxt::dict{}) {
   return std::async(
              std::launch::deferred,
              [=]() mutable -> ccxt::any {
@@ -914,7 +915,9 @@ virtual ccxt::any safeNumberOmitZero(ccxt::any obj, ccxt::any key,
 virtual ccxt::any safeIntegerOmitZero(ccxt::any obj, ccxt::any key,
                                       ccxt::any defaultValue = ccxt::any{});
 
-virtual void afterConstruct();
+virtual void afterConstruct(ccxt::any userConfig = ccxt::dict{});
+
+virtual void hasAutocorrect();
 
 virtual void initRestRateLimiter();
 
@@ -935,8 +938,6 @@ virtual ccxt::any featureValueByType(ccxt::any marketType, ccxt::any subType,
                                      ccxt::any defaultValue = ccxt::any{});
 
 virtual ccxt::any orderbookChecksumMessage(ccxt::any symbol);
-
-virtual void createNetworksByIdObject();
 
 virtual ccxt::any getDefaultOptions();
 
@@ -1340,6 +1341,11 @@ virtual ccxt::any parseOrderBookBidsAsks(ccxt::any bidasks,
                                          ccxt::any amountKey = 1,
                                          ccxt::any countOrIdKey = 2);
 
+virtual ccxt::any parseOrderBookBidsAsksL3(ccxt::any bidasks,
+                                           ccxt::any priceKey = 0,
+                                           ccxt::any amountKey = 1,
+                                           ccxt::any countOrIdKey = 2);
+
 virtual ccxt::any filterByKey(ccxt::any objects, ccxt::any key,
                               ccxt::any value = ccxt::any{});
 
@@ -1350,11 +1356,6 @@ virtual ccxt::any parseOHLCV(ccxt::any ohlcv, ccxt::any market = ccxt::any{});
 
 virtual ccxt::any safeNetwork(ccxt::any network);
 
-virtual ccxt::any
-prioritizedNetworkAliases(ccxt::any networkCode = ccxt::any{},
-                          ccxt::any currencyCode = ccxt::any{},
-                          ccxt::any allowDefault = false);
-
 virtual ccxt::any networkCodeToId(ccxt::any networkCode,
                                   ccxt::any currencyCode = ccxt::any{});
 
@@ -1362,17 +1363,6 @@ virtual ccxt::any networkIdToCode(ccxt::any networkId = ccxt::any{},
                                   ccxt::any currencyCode = ccxt::any{});
 
 virtual ccxt::any handleNetworkCodeAndParams(ccxt::any params);
-
-virtual ccxt::any defaultNetworkCode(ccxt::any currencyCode);
-
-virtual ccxt::any
-selectNetworkCodeFromUnifiedNetworks(ccxt::any currencyCode,
-                                     ccxt::any networkCode,
-                                     ccxt::any indexedNetworkEntries);
-
-virtual ccxt::any
-selectNetworkIdFromRawNetworks(ccxt::any currencyCode, ccxt::any networkCode,
-                               ccxt::any indexedNetworkEntries);
 
 virtual ccxt::any
 selectNetworkKeyFromNetworks(ccxt::any currencyCode, ccxt::any networkCode,
@@ -1389,6 +1379,14 @@ virtual ccxt::any parseOrderBook(ccxt::any orderbook, ccxt::any symbol,
                                  ccxt::any priceKey = 0,
                                  ccxt::any amountKey = 1,
                                  ccxt::any countOrIdKey = 2);
+
+virtual ccxt::any parseOrderBookL3(ccxt::any orderbook, ccxt::any symbol,
+                                   ccxt::any timestamp = ccxt::any{},
+                                   ccxt::any bidsKey = std::string("bids"),
+                                   ccxt::any asksKey = std::string("asks"),
+                                   ccxt::any priceKey = 0,
+                                   ccxt::any amountKey = 1,
+                                   ccxt::any countOrIdKey = 2);
 
 virtual ccxt::any parseOHLCVs(ccxt::any ohlcvs, ccxt::any market = ccxt::any{},
                               ccxt::any timeframe = std::string("1m"),
@@ -1544,22 +1542,6 @@ virtual ccxt::any handleParamBool2(ccxt::any params, ccxt::any paramName1,
                                    ccxt::any paramName2,
                                    ccxt::any defaultValue = ccxt::any{});
 
-/**
- * @param {object} params - extra parameters
- * @param {object} request - existing dictionary of request
- * @param {string} exchangeSpecificKey - the key for chain id to be set in
- * request
- * @param {object} currencyCode - (optional) existing dictionary of request
- * @param {boolean} isRequired - (optional) whether that param is required to be
- * present
- * @returns {object[]} - returns [request, params] where request is the modified
- * request object and params is the modified params object
- */
-virtual ccxt::any handleRequestNetwork(ccxt::any params, ccxt::any request,
-                                       ccxt::any exchangeSpecificKey,
-                                       ccxt::any currencyCode = ccxt::any{},
-                                       ccxt::any isRequired = false);
-
 virtual ccxt::any resolvePath(ccxt::any path, ccxt::any params);
 
 virtual ccxt::any getListFromObjectValues(ccxt::any objects, ccxt::any key);
@@ -1579,9 +1561,8 @@ virtual ccxt::any filterOutByArray(ccxt::any objects, ccxt::any key,
                                    ccxt::any indexed = true);
 
 virtual std::shared_future<ccxt::any>
-fetch2(ccxt::any path, ccxt::any api = std::string("public"),
+fetch2(ccxt::any path, ccxt::any api = ccxt::list{std::string("public")},
        ccxt::any method = std::string("GET"), ccxt::any params = ccxt::dict{},
-       ccxt::any headers = ccxt::any{}, ccxt::any body = ccxt::any{},
        ccxt::any config = ccxt::dict{}) {
   return std::
       async(std::launch::deferred,
@@ -1636,9 +1617,8 @@ fetch2(ccxt::any path, ccxt::any api = std::string("public"),
                 }
                 try {
                   this->setLastRestRequestTimestamp();
-                  ccxt::any request =
-                      this->sign(path, api, method,
-                                 paramsMaxRetriesOnFailureDelay, headers, body);
+                  ccxt::any request = this->sign(
+                      path, api, method, paramsMaxRetriesOnFailureDelay);
                   if (isTrue(!isEqual(fetchData, ccxt::any{}))) {
                     ::setValue(fetchData, std::string("request"), request);
                   }
@@ -1698,14 +1678,13 @@ fetch2(ccxt::any path, ccxt::any api = std::string("public"),
 }
 
 virtual std::shared_future<ccxt::any>
-request(ccxt::any path, ccxt::any api = std::string("public"),
+request(ccxt::any path, ccxt::any api = ccxt::list{std::string("public")},
         ccxt::any method = std::string("GET"), ccxt::any params = ccxt::dict{},
-        ccxt::any headers = ccxt::any{}, ccxt::any body = ccxt::any{},
         ccxt::any config = ccxt::dict{}) {
   return std::async(std::launch::deferred,
                     [=]() mutable -> ccxt::any {
-                      return awaitValue(this->fetch2(path, api, method, params,
-                                                     headers, body, config));
+                      return awaitValue(
+                          this->fetch2(path, api, method, params, config));
                     })
       .share();
 }
@@ -1788,6 +1767,11 @@ fetchLedgerEntry(ccxt::any id, ccxt::any code = ccxt::any{},
 virtual ccxt::any parseOrderBookBidAsk(ccxt::any bidask, ccxt::any priceKey = 0,
                                        ccxt::any amountKey = 1,
                                        ccxt::any countOrIdKey = 2);
+
+virtual ccxt::any parseOrderBookBidAskL3(ccxt::any bidask,
+                                         ccxt::any priceKey = 0,
+                                         ccxt::any amountKey = 1,
+                                         ccxt::any countOrIdKey = 2);
 
 virtual ccxt::any safeCurrency(ccxt::any currencyId,
                                ccxt::any currency = ccxt::any{});
@@ -2780,8 +2764,6 @@ virtual ccxt::any createExpiredOptionMarket(ccxt::any symbol);
 virtual ccxt::any
 isLeveragedCurrency(ccxt::any currencyCode, ccxt::any checkBaseCoin = false,
                     ccxt::any existingCurrencies = ccxt::any{});
-
-virtual ccxt::any handleWithdrawTagAndParams(ccxt::any tag, ccxt::any params);
 
 virtual ccxt::any costToPrecision(ccxt::any symbol, ccxt::any cost);
 
@@ -4130,7 +4112,7 @@ unWatchOHLCV(ccxt::any symbol, ccxt::any timeframe = std::string("1m"),
 
 virtual std::shared_future<ccxt::any>
 withdrawWs(ccxt::any code, ccxt::any amount, ccxt::any address,
-           ccxt::any tag = ccxt::any{}, ccxt::any params = ccxt::dict{}) {
+           ccxt::any params = ccxt::dict{}) {
   return std::async(std::launch::deferred,
                     [=]() mutable -> ccxt::any {
                       throw NotSupported(toString(add(

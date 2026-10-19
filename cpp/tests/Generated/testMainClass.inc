@@ -2981,6 +2981,163 @@ virtual ccxt::any assertStaticRequestOutput(
   return true;
 }
 
+virtual ccxt::any assertStaticIsolatedPosition(ccxt::any exchange,
+                                               ccxt::any entry) {
+  if (!isTrue(callDynamically(exchange, std::string("isDictionary"),
+                              ccxt::list{entry}))) {
+    return true;
+  }
+  ccxt::any marginMode =
+      callDynamically(exchange, std::string("safeString"),
+                      ccxt::list{entry, std::string("marginMode")});
+  if (isTrue(!isEqual(marginMode, std::string("isolated")))) {
+    return true;
+  }
+  ccxt::any side = callDynamically(exchange, std::string("safeString"),
+                                   ccxt::list{entry, std::string("side")});
+  ccxt::any entryPrice =
+      callDynamically(exchange, std::string("safeNumber"),
+                      ccxt::list{entry, std::string("entryPrice")});
+  ccxt::any liquidationPrice =
+      callDynamically(exchange, std::string("safeNumber"),
+                      ccxt::list{entry, std::string("liquidationPrice")});
+  ccxt::any contracts =
+      callDynamically(exchange, std::string("safeNumber"),
+                      ccxt::list{entry, std::string("contracts")});
+  ccxt::any contractSize =
+      callDynamically(exchange, std::string("safeNumber"),
+                      ccxt::list{entry, std::string("contractSize")});
+  ccxt::any maintenanceMargin =
+      callDynamically(exchange, std::string("safeNumber"),
+                      ccxt::list{entry, std::string("maintenanceMargin")});
+  ccxt::any collateral =
+      callDynamically(exchange, std::string("safeNumber"),
+                      ccxt::list{entry, std::string("collateral")});
+  ccxt::any initialMargin =
+      callDynamically(exchange, std::string("safeNumber"),
+                      ccxt::list{entry, std::string("initialMargin")});
+  ccxt::any unrealizedPnl =
+      callDynamically(exchange, std::string("safeNumber"),
+                      ccxt::list{entry, std::string("unrealizedPnl")});
+  if (isTrue(isTrue(isTrue(isTrue((!isEqual(entryPrice, ccxt::any{}))) &&
+                           isTrue((!isEqual(liquidationPrice, ccxt::any{})))) &&
+                    isTrue((isGreaterThan(entryPrice, 0)))) &&
+             isTrue((isGreaterThan(liquidationPrice, 0))))) {
+    if (isTrue(isEqual(side, std::string("long")))) {
+      this->assertStaticError(
+          isLessThan(liquidationPrice, entryPrice),
+          std::string(
+              "isolated long liquidationPrice should be less than entryPrice"),
+          entryPrice, liquidationPrice);
+    } else if (isTrue(isEqual(side, std::string("short")))) {
+      this->assertStaticError(isGreaterThan(liquidationPrice, entryPrice),
+                              std::string("isolated short liquidationPrice "
+                                          "should be greater than entryPrice"),
+                              entryPrice, liquidationPrice);
+    }
+  }
+  ccxt::any entryMargin = ccxt::any{};
+  if (isTrue(!isEqual(collateral, ccxt::any{}))) {
+    if (isTrue(isTrue((!isEqual(unrealizedPnl, ccxt::any{}))) &&
+               isTrue((!isEqual(collateral, initialMargin))))) {
+      entryMargin = subtract(collateral, unrealizedPnl);
+    } else {
+      entryMargin = collateral;
+    }
+  } else if (isTrue(!isEqual(initialMargin, ccxt::any{}))) {
+    entryMargin = initialMargin;
+  }
+  if (isTrue(
+          isTrue(
+              isTrue(
+                  isTrue(isTrue(isTrue((!isEqual(entryMargin, ccxt::any{}))) &&
+                                isTrue((!isEqual(entryPrice, ccxt::any{})))) &&
+                         isTrue((!isEqual(liquidationPrice, ccxt::any{})))) &&
+                  isTrue((!isEqual(contracts, ccxt::any{})))) &&
+              isTrue((!isEqual(contractSize, ccxt::any{})))) &&
+          isTrue((!isEqual(maintenanceMargin, ccxt::any{}))))) {
+    if (isTrue(
+            isTrue(
+                isTrue(isTrue(isTrue(isTrue((isGreaterThan(entryMargin, 0))) &&
+                                     isTrue((isGreaterThan(entryPrice, 0)))) &&
+                              isTrue((isGreaterThan(liquidationPrice, 0)))) &&
+                       isTrue((isGreaterThan(contracts, 0)))) &&
+                isTrue((isGreaterThan(contractSize, 0)))) &&
+            isTrue((isGreaterThan(maintenanceMargin, 0))))) {
+      ccxt::any symbol =
+          callDynamically(exchange, std::string("safeString"),
+                          ccxt::list{entry, std::string("symbol")});
+      ccxt::any market =
+          (isTrue((!isEqual(symbol, ccxt::any{})))
+               ? ccxt::any(callDynamically(
+                     exchange, std::string("safeDict"),
+                     ccxt::list{getProperty(exchange, std::string("markets")),
+                                symbol}))
+               : ccxt::any(ccxt::any{}));
+      ccxt::any isInverse =
+          isTrue((!isEqual(market, ccxt::any{}))) &&
+          isTrue(callDynamically(
+              exchange, std::string("safeBool"),
+              ccxt::list{market, std::string("inverse"), false}));
+      ccxt::any priceDiff = 0;
+      if (isTrue(isInverse)) {
+        ccxt::any invEntry = divide(1, entryPrice);
+        ccxt::any invLiq = divide(1, liquidationPrice);
+        priceDiff = (isTrue((isGreaterThan(invEntry, invLiq)))
+                         ? ccxt::any((subtract(invEntry, invLiq)))
+                         : ccxt::any((subtract(invLiq, invEntry))));
+      } else {
+        priceDiff = (isTrue((isGreaterThan(entryPrice, liquidationPrice)))
+                         ? ccxt::any((subtract(entryPrice, liquidationPrice)))
+                         : ccxt::any((subtract(liquidationPrice, entryPrice))));
+      }
+      ccxt::any lossFromEntry =
+          multiply(multiply(priceDiff, contracts), contractSize);
+      ccxt::any calculatedMm = subtract(entryMargin, lossFromEntry);
+      this->assertStaticError(
+          isGreaterThan(calculatedMm, 0),
+          std::string("isolated position remaining collateral at "
+                      "liquidationPrice should be greater than 0"),
+          maintenanceMargin, calculatedMm);
+      ccxt::any mmDiff =
+          (isTrue((isGreaterThan(calculatedMm, maintenanceMargin)))
+               ? ccxt::any((subtract(calculatedMm, maintenanceMargin)))
+               : ccxt::any((subtract(maintenanceMargin, calculatedMm))));
+      ccxt::any maxTolerance = multiply(entryMargin, 0.05);
+      this->assertStaticError(
+          isLessThanOrEqual(mmDiff, maxTolerance),
+          std::string("isolated position maintenanceMargin does not match "
+                      "remaining collateral at liquidationPrice"),
+          maintenanceMargin, calculatedMm);
+    }
+  }
+  return true;
+}
+
+virtual ccxt::any assertStaticIsolatedPositions(ccxt::any exchange,
+                                                ccxt::any method,
+                                                ccxt::any output) {
+  if (isTrue(
+          isTrue(
+              isTrue(
+                  isTrue((isEqual(method, std::string("fetchPosition")))) ||
+                  isTrue((isEqual(method, std::string("fetchPositions"))))) ||
+              isTrue(
+                  (isEqual(method, std::string("fetchPositionsForSymbol"))))) ||
+          isTrue((isEqual(method, std::string("fetchPositionsRisk")))))) {
+    if (isTrue(isArray(output))) {
+      ccxt::any outputLength = getArrayLength(output);
+      for (ccxt::any i = 0; isLessThan(i, outputLength); postFixIncrement(i)) {
+        this->assertStaticIsolatedPosition(exchange, ::getValue(output, i));
+      }
+    } else if (isTrue(callDynamically(exchange, std::string("isDictionary"),
+                                      ccxt::list{output}))) {
+      this->assertStaticIsolatedPosition(exchange, output);
+    }
+  }
+  return true;
+}
+
 virtual void assertStaticResponseOutput(ccxt::any exchange, ccxt::any skipKeys,
                                         ccxt::any computedResult,
                                         ccxt::any storedResult) {
@@ -3152,6 +3309,8 @@ virtual std::shared_future<ccxt::any> testResponseStatically(ccxt::any exchange,
                                ::getValue(data, std::string("input")))));
                    this->assertStaticResponseOutput(
                        mockedExchange, skipKeys, unifiedResult, expectedResult);
+                   this->assertStaticIsolatedPositions(mockedExchange, method,
+                                                       expectedResult);
                  } else {
                    ccxt::any unifiedResultSync =
                        callExchangeMethodDynamicallySync(
@@ -3161,6 +3320,8 @@ virtual std::shared_future<ccxt::any> testResponseStatically(ccxt::any exchange,
                    this->assertStaticResponseOutput(mockedExchange, skipKeys,
                                                     unifiedResultSync,
                                                     expectedResult);
+                   this->assertStaticIsolatedPositions(mockedExchange, method,
+                                                       expectedResult);
                  }
                } catch (...) {
                  std::exception_ptr e = std::current_exception();
@@ -3192,6 +3353,21 @@ virtual std::shared_future<ccxt::any> testResponseStatically(ccxt::any exchange,
       .share();
 }
 
+virtual ccxt::any wsRequestWasSent(ccxt::any exchange, ccxt::any url,
+                                   ccxt::any id) {
+  ccxt::any sentMessages = getWsSentMessages(exchange, url);
+  for (ccxt::any i = 0; isLessThan(i, getArrayLength(sentMessages));
+       postFixIncrement(i)) {
+    if (isTrue(isEqual(callDynamically(exchange, std::string("safeString"),
+                                       ccxt::list{::getValue(sentMessages, i),
+                                                  std::string("id")}),
+                       id))) {
+      return true;
+    }
+  }
+  return false;
+}
+
 virtual std::shared_future<ccxt::any>
 injectWsMessages(ccxt::any exchange, ccxt::any url, ccxt::any messages,
                  ccxt::any sequential = false) {
@@ -3210,7 +3386,32 @@ injectWsMessages(ccxt::any exchange, ccxt::any url, ccxt::any messages,
                                               ccxt::list{50}));
                    waited = add(waited, 50);
                  }
-                 injectWsMessage(exchange, url, ::getValue(messages, i));
+                 // a reply frame must not arrive before its request was sent,
+                 // or it is dropped
+                 ccxt::any frameId = callDynamically(
+                     exchange, std::string("safeString"),
+                     ccxt::list{::getValue(messages, i), std::string("id")});
+                 ccxt::any waitedSent = 0;
+                 while (isTrue(isTrue((!isEqual(frameId, ccxt::any{}))) &&
+                               !isTrue(this->wsRequestWasSent(exchange, url,
+                                                              frameId))) &&
+                        isTrue((isLessThan(waitedSent, 5000)))) {
+                   awaitValue(callDynamically(exchange, std::string("sleep"),
+                                              ccxt::list{50}));
+                   waitedSent = add(waitedSent, 50);
+                 }
+                 // a frame given as { "binary": "<base16>" } is replayed as a
+                 // binary frame (e.g. SBE)
+                 ccxt::any frame = ::getValue(messages, i);
+                 ccxt::any binaryFrame =
+                     callDynamically(exchange, std::string("safeString"),
+                                     ccxt::list{frame, std::string("binary")});
+                 if (isTrue(!isEqual(binaryFrame, ccxt::any{}))) {
+                   frame =
+                       callDynamically(exchange, std::string("base16ToBinary"),
+                                       ccxt::list{binaryFrame});
+                 }
+                 injectWsMessage(exchange, url, frame);
                  // threaded runtimes resolve futures on another thread — wait
                  // for the consumed frame to settle so the pending check above
                  // does not observe a stale future and burn the next frame
@@ -4412,6 +4613,92 @@ virtual std::shared_future<ccxt::any> testBinance() {
                               clientOrderIdInverse),
                           std::string(" does not start with swapId")),
                       inverseSwapId));
+              // defaultType swap routes spot-style symbols by defaultSubType:
+              // unset or linear -> USDⓈ-M, inverse -> COIN-M
+              callDynamically(
+                  exchange, std::string("extendExchangeOptions"),
+                  ccxt::list{ccxt::dict{
+                      {std::string("defaultType"), std::string("swap")},
+                  }});
+              ccxt::any swapNoSubTypeRequest = ccxt::dict{};
+              try {
+                awaitValue(callDynamically(
+                    exchange, std::string("createOrder"),
+                    ccxt::list{std::string("BTC/USDT"), std::string("limit"),
+                               std::string("buy"), 1, 20000}));
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
+                swapNoSubTypeRequest = this->urlencodedToDict(
+                    getProperty(exchange, std::string("last_request_body")));
+              }
+              ccxt::any swapNoSubTypeId = ::getValue(
+                  swapNoSubTypeRequest, std::string("newClientOrderId"));
+              assertTrue(
+                  isEqual(startsWith(swapNoSubTypeId, swapId), true),
+                  add(add(add(std::string("binance - defaultType swap without "
+                                          "subType clientOrderId: "),
+                              swapNoSubTypeId),
+                          std::string(" does not start with swapId")),
+                      swapId));
+              callDynamically(
+                  exchange, std::string("extendExchangeOptions"),
+                  ccxt::list{ccxt::dict{
+                      {std::string("defaultSubType"), std::string("linear")},
+                  }});
+              ccxt::any swapLinearRequest = ccxt::dict{};
+              try {
+                awaitValue(callDynamically(
+                    exchange, std::string("createOrder"),
+                    ccxt::list{std::string("BTC/USDT"), std::string("limit"),
+                               std::string("buy"), 1, 20000}));
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
+                swapLinearRequest = this->urlencodedToDict(
+                    getProperty(exchange, std::string("last_request_body")));
+              }
+              ccxt::any swapLinearId = ::getValue(
+                  swapLinearRequest, std::string("newClientOrderId"));
+              assertTrue(isEqual(startsWith(swapLinearId, swapId), true),
+                         add(add(add(std::string("binance - defaultType swap "
+                                                 "linear clientOrderId: "),
+                                     swapLinearId),
+                                 std::string(" does not start with swapId")),
+                             swapId));
+              callDynamically(
+                  exchange, std::string("extendExchangeOptions"),
+                  ccxt::list{ccxt::dict{
+                      {std::string("defaultSubType"), std::string("inverse")},
+                  }});
+              ccxt::any swapInverseRequest = ccxt::dict{};
+              try {
+                awaitValue(callDynamically(
+                    exchange, std::string("createOrder"),
+                    ccxt::list{std::string("BTC/USD"), std::string("limit"),
+                               std::string("buy"), 1, 20000}));
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
+                swapInverseRequest = this->urlencodedToDict(
+                    getProperty(exchange, std::string("last_request_body")));
+              }
+              ccxt::any swapInverseId = ::getValue(
+                  swapInverseRequest, std::string("newClientOrderId"));
+              assertTrue(
+                  isEqual(startsWith(swapInverseId, inverseSwapId), true),
+                  add(add(add(std::string("binance - defaultType swap inverse "
+                                          "clientOrderId: "),
+                              swapInverseId),
+                          std::string(" does not start with inverseSwapId")),
+                      inverseSwapId));
+              callDynamically(
+                  exchange, std::string("extendExchangeOptions"),
+                  ccxt::list{ccxt::dict{
+                      {std::string("defaultType"), std::string("spot")},
+                  }});
+              callDynamically(
+                  exchange, std::string("extendExchangeOptions"),
+                  ccxt::list{ccxt::dict{
+                      {std::string("defaultSubType"), std::string("linear")},
+                  }});
               // linear swap conditional order
               ccxt::any swapAlgoOrderRequest = ccxt::dict{};
               try {
@@ -4629,6 +4916,32 @@ virtual std::shared_future<ccxt::any> testBinance() {
                               clientOrderIdInverseFuture),
                           std::string(" does not start with inverseSwapId")),
                       inverseSwapId));
+              // the option api takes clientOrderId instead of newClientOrderId
+              ccxt::any optionOrderRequest = ccxt::dict{};
+              try {
+                awaitValue(callDynamically(
+                    exchange, std::string("createOrder"),
+                    ccxt::list{std::string("ETH/USDT:USDT-231229-800-C"),
+                               std::string("limit"), std::string("buy"), 1,
+                               100}));
+              } catch (...) {
+                std::exception_ptr e = std::current_exception();
+                optionOrderRequest = this->urlencodedToDict(
+                    getProperty(exchange, std::string("last_request_body")));
+              }
+              ccxt::any optionClientOrderId = callDynamically(
+                  exchange, std::string("safeString"),
+                  ccxt::list{optionOrderRequest, std::string("clientOrderId")});
+              assertTrue(!isEqual(optionClientOrderId, ccxt::any{}),
+                         std::string(
+                             "binance - option order must send clientOrderId"));
+              assertTrue(
+                  isEqual(startsWith(optionClientOrderId, inverseSwapId), true),
+                  add(add(add(std::string("binance - option clientOrderId: "),
+                              optionClientOrderId),
+                          std::string(
+                              " does not start with the option broker id ")),
+                      inverseSwapId));
               // the implicit order endpoints inject the broker id of their api
               // section skipped in the sync flavours:
               // callExchangeMethodDynamically is async-only there
@@ -4741,6 +5054,850 @@ virtual std::shared_future<ccxt::any> testBinance() {
                                 implicitFapiClientAlgoId),
                             std::string(" does not start with swapId")),
                         swapId));
+                // the papi order endpoints resolve the broker id from the path,
+                // not from the api section
+                ccxt::any implicitPapiUmOrderRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("papiPostUmOrder"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("ETHUSDT")},
+                          {std::string("side"), std::string("SELL")},
+                          {std::string("type"), std::string("LIMIT")},
+                          {std::string("quantity"), std::string("1")},
+                          {std::string("price"), std::string("4100")},
+                          {std::string("timeInForce"), std::string("GTC")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitPapiUmOrderRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any implicitPapiUmClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitPapiUmOrderRequest,
+                               std::string("newClientOrderId")});
+                assertTrue(!isEqual(implicitPapiUmClientOrderId, ccxt::any{}),
+                           std::string("binance - implicit papi um order must "
+                                       "inject newClientOrderId"));
+                assertTrue(
+                    isEqual(startsWith(implicitPapiUmClientOrderId, swapId),
+                            true),
+                    add(add(add(std::string("binance - implicit papi um "
+                                            "clientOrderId: "),
+                                implicitPapiUmClientOrderId),
+                            std::string(" does not start with swapId")),
+                        swapId));
+                ccxt::any implicitPapiCmOrderRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("papiPostCmOrder"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("ETHUSD_PERP")},
+                          {std::string("side"), std::string("SELL")},
+                          {std::string("type"), std::string("LIMIT")},
+                          {std::string("quantity"), std::string("1")},
+                          {std::string("price"), std::string("4100")},
+                          {std::string("timeInForce"), std::string("GTC")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitPapiCmOrderRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any implicitPapiCmClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitPapiCmOrderRequest,
+                               std::string("newClientOrderId")});
+                assertTrue(!isEqual(implicitPapiCmClientOrderId, ccxt::any{}),
+                           std::string("binance - implicit papi cm order must "
+                                       "inject newClientOrderId"));
+                assertTrue(
+                    isEqual(
+                        startsWith(implicitPapiCmClientOrderId, inverseSwapId),
+                        true),
+                    add(add(add(std::string("binance - implicit papi cm "
+                                            "clientOrderId: "),
+                                implicitPapiCmClientOrderId),
+                            std::string(" does not start with inverseSwapId")),
+                        inverseSwapId));
+                ccxt::any implicitPapiMarginOrderRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("papiPostMarginOrder"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("BTCUSDT")},
+                          {std::string("side"), std::string("BUY")},
+                          {std::string("type"), std::string("LIMIT")},
+                          {std::string("quantity"), std::string("0.001")},
+                          {std::string("price"), std::string("20000")},
+                          {std::string("timeInForce"), std::string("GTC")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitPapiMarginOrderRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any implicitPapiMarginClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitPapiMarginOrderRequest,
+                               std::string("newClientOrderId")});
+                assertTrue(
+                    !isEqual(implicitPapiMarginClientOrderId, ccxt::any{}),
+                    std::string("binance - implicit papi margin order must "
+                                "inject newClientOrderId"));
+                assertTrue(
+                    isEqual(startsWith(implicitPapiMarginClientOrderId, spotId),
+                            true),
+                    add(add(add(std::string("binance - implicit papi margin "
+                                            "clientOrderId: "),
+                                implicitPapiMarginClientOrderId),
+                            std::string(" does not start with spotId")),
+                        spotId));
+                ccxt::any implicitSapiMarginOrderRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("sapiPostMarginOrder"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("BTCUSDT")},
+                          {std::string("side"), std::string("BUY")},
+                          {std::string("type"), std::string("LIMIT")},
+                          {std::string("quantity"), std::string("0.001")},
+                          {std::string("price"), std::string("20000")},
+                          {std::string("timeInForce"), std::string("GTC")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitSapiMarginOrderRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any implicitSapiMarginClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitSapiMarginOrderRequest,
+                               std::string("newClientOrderId")});
+                assertTrue(
+                    !isEqual(implicitSapiMarginClientOrderId, ccxt::any{}),
+                    std::string("binance - implicit sapi margin order must "
+                                "inject newClientOrderId"));
+                assertTrue(
+                    isEqual(startsWith(implicitSapiMarginClientOrderId, spotId),
+                            true),
+                    add(add(add(std::string("binance - implicit sapi margin "
+                                            "clientOrderId: "),
+                                implicitSapiMarginClientOrderId),
+                            std::string(" does not start with spotId")),
+                        spotId));
+                // the papi um algo order endpoint takes clientAlgoId
+                ccxt::any implicitPapiUmAlgoOrderRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("papiPostUmAlgoOrder"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("ETHUSDT")},
+                          {std::string("side"), std::string("SELL")},
+                          {std::string("algoType"), std::string("CONDITIONAL")},
+                          {std::string("type"), std::string("STOP")},
+                          {std::string("quantity"), std::string("1")},
+                          {std::string("price"), std::string("4100")},
+                          {std::string("triggerPrice"), std::string("4200")},
+                          {std::string("timeInForce"), std::string("GTC")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitPapiUmAlgoOrderRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any implicitPapiUmClientAlgoId =
+                    callDynamically(exchange, std::string("safeString"),
+                                    ccxt::list{implicitPapiUmAlgoOrderRequest,
+                                               std::string("clientAlgoId")});
+                assertTrue(!isEqual(implicitPapiUmClientAlgoId, ccxt::any{}),
+                           std::string("binance - implicit papi um algo order "
+                                       "must inject clientAlgoId"));
+                assertTrue(
+                    isEqual(startsWith(implicitPapiUmClientAlgoId, swapId),
+                            true),
+                    add(add(add(std::string("binance - implicit papi um "
+                                            "clientAlgoId: "),
+                                implicitPapiUmClientAlgoId),
+                            std::string(" does not start with swapId")),
+                        swapId));
+                // the papi cm conditional order endpoint takes
+                // newClientStrategyId
+                ccxt::any implicitPapiCmConditionalOrderRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("papiPostCmConditionalOrder"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("ETHUSD_PERP")},
+                          {std::string("side"), std::string("SELL")},
+                          {std::string("strategyType"), std::string("STOP")},
+                          {std::string("quantity"), std::string("1")},
+                          {std::string("price"), std::string("4100")},
+                          {std::string("stopPrice"), std::string("4200")},
+                          {std::string("timeInForce"), std::string("GTC")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitPapiCmConditionalOrderRequest =
+                      this->urlencodedToDict(getProperty(
+                          exchange, std::string("last_request_body")));
+                }
+                ccxt::any implicitPapiCmStrategyId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitPapiCmConditionalOrderRequest,
+                               std::string("newClientStrategyId")});
+                assertTrue(
+                    !isEqual(implicitPapiCmStrategyId, ccxt::any{}),
+                    std::string("binance - implicit papi cm conditional order "
+                                "must inject newClientStrategyId"));
+                assertTrue(
+                    isEqual(startsWith(implicitPapiCmStrategyId, inverseSwapId),
+                            true),
+                    add(add(add(std::string("binance - implicit papi cm "
+                                            "newClientStrategyId: "),
+                                implicitPapiCmStrategyId),
+                            std::string(" does not start with inverseSwapId")),
+                        inverseSwapId));
+                ccxt::any implicitPapiUmConditionalOrderRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("papiPostUmConditionalOrder"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("ETHUSDT")},
+                          {std::string("side"), std::string("SELL")},
+                          {std::string("strategyType"), std::string("STOP")},
+                          {std::string("quantity"), std::string("1")},
+                          {std::string("price"), std::string("4100")},
+                          {std::string("stopPrice"), std::string("4200")},
+                          {std::string("timeInForce"), std::string("GTC")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitPapiUmConditionalOrderRequest =
+                      this->urlencodedToDict(getProperty(
+                          exchange, std::string("last_request_body")));
+                }
+                ccxt::any implicitPapiUmStrategyId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitPapiUmConditionalOrderRequest,
+                               std::string("newClientStrategyId")});
+                assertTrue(
+                    !isEqual(implicitPapiUmStrategyId, ccxt::any{}),
+                    std::string("binance - implicit papi um conditional order "
+                                "must inject newClientStrategyId"));
+                assertTrue(
+                    isEqual(startsWith(implicitPapiUmStrategyId, swapId), true),
+                    add(add(add(std::string("binance - implicit papi um "
+                                            "newClientStrategyId: "),
+                                implicitPapiUmStrategyId),
+                            std::string(" does not start with swapId")),
+                        swapId));
+                // the eapi order endpoints take clientOrderId
+                ccxt::any implicitEapiOrderRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("eapiPrivatePostOrder"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"),
+                           std::string("ETH-231229-800-C")},
+                          {std::string("side"), std::string("BUY")},
+                          {std::string("type"), std::string("LIMIT")},
+                          {std::string("quantity"), std::string("1")},
+                          {std::string("price"), std::string("100")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitEapiOrderRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any implicitEapiClientOrderId =
+                    callDynamically(exchange, std::string("safeString"),
+                                    ccxt::list{implicitEapiOrderRequest,
+                                               std::string("clientOrderId")});
+                assertTrue(!isEqual(implicitEapiClientOrderId, ccxt::any{}),
+                           std::string("binance - implicit eapi order must "
+                                       "inject clientOrderId"));
+                assertTrue(
+                    isEqual(
+                        startsWith(implicitEapiClientOrderId, inverseSwapId),
+                        true),
+                    add(add(add(std::string(
+                                    "binance - implicit eapi clientOrderId: "),
+                                implicitEapiClientOrderId),
+                            std::string(
+                                " does not start with the option broker id ")),
+                        inverseSwapId));
+                ccxt::any implicitEapiBatchRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("eapiPrivatePostBatchOrders"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("batchOrders"),
+                           ccxt::list{ccxt::dict{
+                               {std::string("symbol"),
+                                std::string("ETH-231229-800-C")},
+                               {std::string("side"), std::string("BUY")},
+                               {std::string("type"), std::string("LIMIT")},
+                               {std::string("quantity"), std::string("1")},
+                               {std::string("price"), std::string("100")},
+                           }}},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitEapiBatchRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any implicitEapiBatchOrders = callDynamically(
+                    exchange, std::string("safeList"),
+                    ccxt::list{implicitEapiBatchRequest,
+                               std::string("batchOrders"), ccxt::list{}});
+                ccxt::any implicitEapiBatchOrder = callDynamically(
+                    exchange, std::string("safeDict"),
+                    ccxt::list{implicitEapiBatchOrders, 0, ccxt::dict{}});
+                ccxt::any implicitEapiBatchClientOrderId =
+                    callDynamically(exchange, std::string("safeString"),
+                                    ccxt::list{implicitEapiBatchOrder,
+                                               std::string("clientOrderId")});
+                assertTrue(
+                    !isEqual(implicitEapiBatchClientOrderId, ccxt::any{}),
+                    std::string("binance - implicit eapi batch order must "
+                                "inject clientOrderId"));
+                assertTrue(
+                    isEqual(startsWith(implicitEapiBatchClientOrderId,
+                                       inverseSwapId),
+                            true),
+                    add(add(add(std::string("binance - implicit eapi batch "
+                                            "clientOrderId: "),
+                                implicitEapiBatchClientOrderId),
+                            std::string(
+                                " does not start with the option broker id ")),
+                        inverseSwapId));
+                // the equity order endpoint takes clientOrderId
+                ccxt::any implicitEquityOrderRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("sapiPostEquityOrderPlace"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("AAPLUSDC")},
+                          {std::string("side"), std::string("BUY")},
+                          {std::string("orderType"), std::string("LIMIT")},
+                          {std::string("quantity"), std::string("1")},
+                          {std::string("price"), std::string("100")},
+                          {std::string("timeInForce"), std::string("GTC")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitEquityOrderRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any implicitEquityClientOrderId =
+                    callDynamically(exchange, std::string("safeString"),
+                                    ccxt::list{implicitEquityOrderRequest,
+                                               std::string("clientOrderId")});
+                assertTrue(!isEqual(implicitEquityClientOrderId, ccxt::any{}),
+                           std::string("binance - implicit equity order must "
+                                       "inject clientOrderId"));
+                assertTrue(
+                    isEqual(startsWith(implicitEquityClientOrderId, spotId),
+                            true),
+                    add(add(add(std::string("binance - implicit equity "
+                                            "clientOrderId: "),
+                                implicitEquityClientOrderId),
+                            std::string(" does not start with spotId")),
+                        spotId));
+                // the order list endpoints inject a listClientOrderId and one
+                // client order id per leg
+                ccxt::any implicitOcoListRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("privatePostOrderListOco"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("BTCUSDT")},
+                          {std::string("side"), std::string("SELL")},
+                          {std::string("quantity"), std::string("0.001")},
+                          {std::string("abovePrice"), std::string("110000")},
+                          {std::string("aboveType"),
+                           std::string("LIMIT_MAKER")},
+                          {std::string("belowType"), std::string("STOP_LOSS")},
+                          {std::string("belowStopPrice"), std::string("95000")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitOcoListRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any ocoListClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOcoListRequest,
+                               std::string("listClientOrderId")});
+                ccxt::any ocoAboveClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOcoListRequest,
+                               std::string("aboveClientOrderId")});
+                ccxt::any ocoBelowClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOcoListRequest,
+                               std::string("belowClientOrderId")});
+                assertTrue(!isEqual(ocoListClientOrderId, ccxt::any{}),
+                           std::string("binance - implicit oco list must "
+                                       "inject listClientOrderId"));
+                assertTrue(
+                    isEqual(startsWith(ocoListClientOrderId, spotId), true),
+                    add(add(add(std::string("binance - implicit oco "
+                                            "listClientOrderId: "),
+                                ocoListClientOrderId),
+                            std::string(" does not start with spotId")),
+                        spotId));
+                assertTrue(
+                    isTrue((!isEqual(ocoAboveClientOrderId, ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(ocoAboveClientOrderId, spotId), true))),
+                    std::string("binance - implicit oco aboveClientOrderId "
+                                "must inject the spot broker id"));
+                assertTrue(
+                    isTrue((!isEqual(ocoBelowClientOrderId, ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(ocoBelowClientOrderId, spotId), true))),
+                    std::string("binance - implicit oco belowClientOrderId "
+                                "must inject the spot broker id"));
+                ccxt::any implicitOtocoListRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("privatePostOrderListOtoco"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("BTCUSDT")},
+                          {std::string("workingType"), std::string("LIMIT")},
+                          {std::string("workingSide"), std::string("BUY")},
+                          {std::string("workingPrice"), std::string("100000")},
+                          {std::string("workingQuantity"),
+                           std::string("0.001")},
+                          {std::string("pendingSide"), std::string("SELL")},
+                          {std::string("pendingQuantity"),
+                           std::string("0.001")},
+                          {std::string("pendingAboveType"),
+                           std::string("LIMIT_MAKER")},
+                          {std::string("pendingAbovePrice"),
+                           std::string("110000")},
+                          {std::string("pendingBelowType"),
+                           std::string("STOP_LOSS")},
+                          {std::string("pendingBelowStopPrice"),
+                           std::string("95000")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitOtocoListRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any otocoWorkingClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOtocoListRequest,
+                               std::string("workingClientOrderId")});
+                ccxt::any otocoPendingAboveClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOtocoListRequest,
+                               std::string("pendingAboveClientOrderId")});
+                ccxt::any otocoPendingBelowClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOtocoListRequest,
+                               std::string("pendingBelowClientOrderId")});
+                assertTrue(
+                    isTrue(
+                        (!isEqual(otocoWorkingClientOrderId, ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(otocoWorkingClientOrderId, spotId),
+                            true))),
+                    std::string("binance - implicit otoco workingClientOrderId "
+                                "must inject the spot broker id"));
+                assertTrue(
+                    isTrue((!isEqual(otocoPendingAboveClientOrderId,
+                                     ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(otocoPendingAboveClientOrderId, spotId),
+                            true))),
+                    std::string(
+                        "binance - implicit otoco pendingAboveClientOrderId "
+                        "must inject the spot broker id"));
+                assertTrue(
+                    isTrue((!isEqual(otocoPendingBelowClientOrderId,
+                                     ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(otocoPendingBelowClientOrderId, spotId),
+                            true))),
+                    std::string(
+                        "binance - implicit otoco pendingBelowClientOrderId "
+                        "must inject the spot broker id"));
+                ccxt::any implicitSapiMarginOcoRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("sapiPostMarginOrderOco"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("BTCUSDT")},
+                          {std::string("side"), std::string("SELL")},
+                          {std::string("quantity"), std::string("0.001")},
+                          {std::string("price"), std::string("110000")},
+                          {std::string("stopPrice"), std::string("95000")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitSapiMarginOcoRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any sapiMarginOcoLimitClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitSapiMarginOcoRequest,
+                               std::string("limitClientOrderId")});
+                ccxt::any sapiMarginOcoStopClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitSapiMarginOcoRequest,
+                               std::string("stopClientOrderId")});
+                assertTrue(
+                    isTrue((!isEqual(sapiMarginOcoLimitClientOrderId,
+                                     ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(sapiMarginOcoLimitClientOrderId, spotId),
+                            true))),
+                    std::string(
+                        "binance - implicit sapi margin oco limitClientOrderId "
+                        "must inject the spot broker id"));
+                assertTrue(
+                    isTrue((!isEqual(sapiMarginOcoStopClientOrderId,
+                                     ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(sapiMarginOcoStopClientOrderId, spotId),
+                            true))),
+                    std::string(
+                        "binance - implicit sapi margin oco stopClientOrderId "
+                        "must inject the spot broker id"));
+                ccxt::any implicitPapiMarginOcoRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("papiPostMarginOrderOco"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("BTCUSDT")},
+                          {std::string("side"), std::string("SELL")},
+                          {std::string("quantity"), std::string("0.001")},
+                          {std::string("price"), std::string("110000")},
+                          {std::string("stopPrice"), std::string("95000")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitPapiMarginOcoRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any papiMarginOcoListClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitPapiMarginOcoRequest,
+                               std::string("listClientOrderId")});
+                assertTrue(
+                    isTrue((!isEqual(papiMarginOcoListClientOrderId,
+                                     ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(papiMarginOcoListClientOrderId, spotId),
+                            true))),
+                    std::string(
+                        "binance - implicit papi margin oco listClientOrderId "
+                        "must inject the spot broker id"));
+                ccxt::any papiMarginOcoLimitClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitPapiMarginOcoRequest,
+                               std::string("limitClientOrderId")});
+                ccxt::any papiMarginOcoStopClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitPapiMarginOcoRequest,
+                               std::string("stopClientOrderId")});
+                assertTrue(
+                    isTrue((!isEqual(papiMarginOcoLimitClientOrderId,
+                                     ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(papiMarginOcoLimitClientOrderId, spotId),
+                            true))),
+                    std::string(
+                        "binance - implicit papi margin oco limitClientOrderId "
+                        "must inject the spot broker id"));
+                assertTrue(
+                    isTrue((!isEqual(papiMarginOcoStopClientOrderId,
+                                     ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(papiMarginOcoStopClientOrderId, spotId),
+                            true))),
+                    std::string(
+                        "binance - implicit papi margin oco stopClientOrderId "
+                        "must inject the spot broker id"));
+                ccxt::any implicitLegacyOcoRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("privatePostOrderOco"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("BTCUSDT")},
+                          {std::string("side"), std::string("SELL")},
+                          {std::string("quantity"), std::string("0.001")},
+                          {std::string("price"), std::string("110000")},
+                          {std::string("stopPrice"), std::string("95000")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitLegacyOcoRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any legacyOcoListClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitLegacyOcoRequest,
+                               std::string("listClientOrderId")});
+                ccxt::any legacyOcoLimitClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitLegacyOcoRequest,
+                               std::string("limitClientOrderId")});
+                ccxt::any legacyOcoStopClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitLegacyOcoRequest,
+                               std::string("stopClientOrderId")});
+                assertTrue(
+                    isTrue(
+                        (!isEqual(legacyOcoListClientOrderId, ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(legacyOcoListClientOrderId, spotId),
+                            true))),
+                    std::string(
+                        "binance - implicit legacy oco listClientOrderId must "
+                        "inject the spot broker id"));
+                assertTrue(
+                    isTrue(
+                        (!isEqual(legacyOcoLimitClientOrderId, ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(legacyOcoLimitClientOrderId, spotId),
+                            true))),
+                    std::string(
+                        "binance - implicit legacy oco limitClientOrderId must "
+                        "inject the spot broker id"));
+                assertTrue(
+                    isTrue(
+                        (!isEqual(legacyOcoStopClientOrderId, ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(legacyOcoStopClientOrderId, spotId),
+                            true))),
+                    std::string(
+                        "binance - implicit legacy oco stopClientOrderId must "
+                        "inject the spot broker id"));
+                ccxt::any implicitOtoListRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("privatePostOrderListOto"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("BTCUSDT")},
+                          {std::string("workingType"), std::string("LIMIT")},
+                          {std::string("workingSide"), std::string("BUY")},
+                          {std::string("workingPrice"), std::string("100000")},
+                          {std::string("workingQuantity"),
+                           std::string("0.001")},
+                          {std::string("pendingType"), std::string("MARKET")},
+                          {std::string("pendingSide"), std::string("SELL")},
+                          {std::string("pendingQuantity"),
+                           std::string("0.001")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitOtoListRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any otoListClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOtoListRequest,
+                               std::string("listClientOrderId")});
+                ccxt::any otoWorkingClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOtoListRequest,
+                               std::string("workingClientOrderId")});
+                ccxt::any otoPendingClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOtoListRequest,
+                               std::string("pendingClientOrderId")});
+                assertTrue(
+                    isTrue((!isEqual(otoListClientOrderId, ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(otoListClientOrderId, spotId), true))),
+                    std::string("binance - implicit oto listClientOrderId must "
+                                "inject the spot broker id"));
+                assertTrue(
+                    isTrue((!isEqual(otoWorkingClientOrderId, ccxt::any{}))) &&
+                        isTrue((
+                            isEqual(startsWith(otoWorkingClientOrderId, spotId),
+                                    true))),
+                    std::string("binance - implicit oto workingClientOrderId "
+                                "must inject the spot broker id"));
+                assertTrue(
+                    isTrue((!isEqual(otoPendingClientOrderId, ccxt::any{}))) &&
+                        isTrue((
+                            isEqual(startsWith(otoPendingClientOrderId, spotId),
+                                    true))),
+                    std::string("binance - implicit oto pendingClientOrderId "
+                                "must inject the spot broker id"));
+                ccxt::any implicitOpoListRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("privatePostOrderListOpo"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("BTCUSDT")},
+                          {std::string("workingType"), std::string("LIMIT")},
+                          {std::string("workingSide"), std::string("BUY")},
+                          {std::string("workingPrice"), std::string("100000")},
+                          {std::string("workingQuantity"),
+                           std::string("0.001")},
+                          {std::string("pendingType"), std::string("MARKET")},
+                          {std::string("pendingSide"), std::string("SELL")},
+                          {std::string("pendingQuantity"),
+                           std::string("0.001")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitOpoListRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any opoListClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOpoListRequest,
+                               std::string("listClientOrderId")});
+                ccxt::any opoWorkingClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOpoListRequest,
+                               std::string("workingClientOrderId")});
+                ccxt::any opoPendingClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOpoListRequest,
+                               std::string("pendingClientOrderId")});
+                assertTrue(
+                    isTrue((!isEqual(opoListClientOrderId, ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(opoListClientOrderId, spotId), true))),
+                    std::string("binance - implicit opo listClientOrderId must "
+                                "inject the spot broker id"));
+                assertTrue(
+                    isTrue((!isEqual(opoWorkingClientOrderId, ccxt::any{}))) &&
+                        isTrue((
+                            isEqual(startsWith(opoWorkingClientOrderId, spotId),
+                                    true))),
+                    std::string("binance - implicit opo workingClientOrderId "
+                                "must inject the spot broker id"));
+                assertTrue(
+                    isTrue((!isEqual(opoPendingClientOrderId, ccxt::any{}))) &&
+                        isTrue((
+                            isEqual(startsWith(opoPendingClientOrderId, spotId),
+                                    true))),
+                    std::string("binance - implicit opo pendingClientOrderId "
+                                "must inject the spot broker id"));
+                ccxt::any implicitOpocoListRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("privatePostOrderListOpoco"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("BTCUSDT")},
+                          {std::string("workingType"), std::string("LIMIT")},
+                          {std::string("workingSide"), std::string("BUY")},
+                          {std::string("workingPrice"), std::string("100000")},
+                          {std::string("workingQuantity"),
+                           std::string("0.001")},
+                          {std::string("pendingSide"), std::string("SELL")},
+                          {std::string("pendingQuantity"),
+                           std::string("0.001")},
+                          {std::string("pendingAboveType"),
+                           std::string("LIMIT_MAKER")},
+                          {std::string("pendingAbovePrice"),
+                           std::string("110000")},
+                          {std::string("pendingBelowType"),
+                           std::string("STOP_LOSS")},
+                          {std::string("pendingBelowStopPrice"),
+                           std::string("95000")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitOpocoListRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any opocoListClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOpocoListRequest,
+                               std::string("listClientOrderId")});
+                ccxt::any opocoWorkingClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOpocoListRequest,
+                               std::string("workingClientOrderId")});
+                ccxt::any opocoPendingAboveClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOpocoListRequest,
+                               std::string("pendingAboveClientOrderId")});
+                ccxt::any opocoPendingBelowClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitOpocoListRequest,
+                               std::string("pendingBelowClientOrderId")});
+                assertTrue(
+                    isTrue((!isEqual(opocoListClientOrderId, ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(opocoListClientOrderId, spotId), true))),
+                    std::string("binance - implicit opoco listClientOrderId "
+                                "must inject the spot broker id"));
+                assertTrue(
+                    isTrue(
+                        (!isEqual(opocoWorkingClientOrderId, ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(opocoWorkingClientOrderId, spotId),
+                            true))),
+                    std::string("binance - implicit opoco workingClientOrderId "
+                                "must inject the spot broker id"));
+                assertTrue(
+                    isTrue((!isEqual(opocoPendingAboveClientOrderId,
+                                     ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(opocoPendingAboveClientOrderId, spotId),
+                            true))),
+                    std::string(
+                        "binance - implicit opoco pendingAboveClientOrderId "
+                        "must inject the spot broker id"));
+                assertTrue(
+                    isTrue((!isEqual(opocoPendingBelowClientOrderId,
+                                     ccxt::any{}))) &&
+                        isTrue((isEqual(
+                            startsWith(opocoPendingBelowClientOrderId, spotId),
+                            true))),
+                    std::string(
+                        "binance - implicit opoco pendingBelowClientOrderId "
+                        "must inject the spot broker id"));
+                // the cancel-replace endpoint creates a new order and takes
+                // newClientOrderId for it
+                ccxt::any implicitCancelReplaceRequest = ccxt::dict{};
+                try {
+                  awaitValue(callExchangeMethodDynamically(
+                      exchange, std::string("privatePostOrderCancelReplace"),
+                      ccxt::list{ccxt::dict{
+                          {std::string("symbol"), std::string("BTCUSDT")},
+                          {std::string("side"), std::string("BUY")},
+                          {std::string("type"), std::string("LIMIT")},
+                          {std::string("quantity"), std::string("0.001")},
+                          {std::string("price"), std::string("20000")},
+                          {std::string("timeInForce"), std::string("GTC")},
+                          {std::string("cancelReplaceMode"),
+                           std::string("STOP_ON_FAILURE")},
+                          {std::string("cancelOrderId"), std::string("12345")},
+                      }}));
+                } catch (...) {
+                  std::exception_ptr e = std::current_exception();
+                  implicitCancelReplaceRequest = this->urlencodedToDict(
+                      getProperty(exchange, std::string("last_request_body")));
+                }
+                ccxt::any cancelReplaceClientOrderId = callDynamically(
+                    exchange, std::string("safeString"),
+                    ccxt::list{implicitCancelReplaceRequest,
+                               std::string("newClientOrderId")});
+                assertTrue(!isEqual(cancelReplaceClientOrderId, ccxt::any{}),
+                           std::string("binance - implicit cancel-replace must "
+                                       "inject newClientOrderId"));
+                assertTrue(
+                    isEqual(startsWith(cancelReplaceClientOrderId, spotId),
+                            true),
+                    add(add(add(std::string("binance - implicit cancel-replace "
+                                            "newClientOrderId: "),
+                                cancelReplaceClientOrderId),
+                            std::string(" does not start with spotId")),
+                        spotId));
               }
               if (!isTrue(isSync())) {
                 awaitValue(close(exchange));

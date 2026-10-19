@@ -2760,18 +2760,13 @@ public:
    * @param {string|string[]} [api] the api group and access level
    * @param {string} [method] HTTP method
    * @param {object} [params] request parameters
-   * @param {object} [headers] request headers
-   * @param {object} [body] request body
    * @returns {object} a dictionary with url, method, body and headers
    */
-  ccxt::any sign(ccxt::any path, ccxt::any api = std::string("sapi"),
+  ccxt::any sign(ccxt::any path,
+                 ccxt::any api = ccxt::list{std::string("sapi")},
                  ccxt::any method = std::string("GET"),
-                 ccxt::any params = ccxt::dict{},
-                 ccxt::any headers = ccxt::any{},
-                 ccxt::any body = ccxt::any{}) override {
-    ccxt::any apiGroup =
-        (isTrue(isString(api)) ? ccxt::any(api)
-                               : ccxt::any(::getValue(api, 0)));
+                 ccxt::any params = ccxt::dict{}) override {
+    ccxt::any apiGroup = ::getValue(api, 0);
     ccxt::any baseUrls = ::getValue(this->urls, std::string("api"));
     ccxt::any baseUrl = this->safeString(
         baseUrls, apiGroup, ::getValue(baseUrls, std::string("sapi")));
@@ -2798,7 +2793,7 @@ public:
     ccxt::any headersValue = ccxt::dict{
         {std::string("X-MBX-APIKEY"), this->apiKey},
     };
-    ccxt::any bodyValue = body;
+    ccxt::any bodyValue = ccxt::any{};
     if (isTrue(isTrue((isEqual(method, std::string("GET")))) ||
                isTrue((isEqual(method, std::string("DELETE")))))) {
       url = add(add(url, std::string("?")), querystring);
@@ -3095,17 +3090,9 @@ public:
       if (count == 3)
         return this->sign(::getValue(args, 0), ::getValue(args, 1),
                           ::getValue(args, 2));
-      if (count == 4)
+      if (count >= 4)
         return this->sign(::getValue(args, 0), ::getValue(args, 1),
                           ::getValue(args, 2), ::getValue(args, 3));
-      if (count == 5)
-        return this->sign(::getValue(args, 0), ::getValue(args, 1),
-                          ::getValue(args, 2), ::getValue(args, 3),
-                          ::getValue(args, 4));
-      if (count >= 6)
-        return this->sign(::getValue(args, 0), ::getValue(args, 1),
-                          ::getValue(args, 2), ::getValue(args, 3),
-                          ::getValue(args, 4), ::getValue(args, 5));
     }
     // not defined on this exchange: fall back to the TS parent class
     return ccxt::PredictionExchange::callMethod(name, args);
