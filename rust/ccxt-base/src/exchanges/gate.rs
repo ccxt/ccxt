@@ -215,6 +215,7 @@ impl crate::exchange_generated::ExchangeBase for GateCore {
                 "get_margin_mode" => self.get_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "get_settlement_currencies" => self.get_settlement_currencies(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                "is_gate_futures_contract_with_decimal_size" => self.is_gate_futures_contract_with_decimal_size(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "load_unified_status" => self.load_unified_status(&args[..]).await,
                 "modify_margin_helper" => self.modify_margin_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "multi_order_spot_prepare_request" => self.multi_order_spot_prepare_request(&args[..]),
@@ -3873,6 +3874,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             contractSize = Value::Str("1".into()); // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         }
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[Value::Str("trading".into())]).as_str().map(str::to_owned); // or "suspend"
+        let mut amountPrecision: Value = self.parse_number(Value::Str("1".into()), &[]);
+        let mut enableDecimal: Value = self.safe_bool_k(market.clone(), "enable_decimal", &[Value::Bool(false)]);
+        let mut orderSizeMin: Value = self.safe_string_k(market.clone(), "order_size_min", &[]);
+        let mut swap: Value = Value::Bool(marketType.as_str() == Some("swap"));
+        let mut minAmount: Value = self.parse_number(orderSizeMin.clone(), &[]);
+        if matches!(&swap, Value::Bool(true)) && enableDecimal.as_bool() == Some(true) && (orderSizeMin != Value::Null) && (minAmount != Value::Null) && is_true(&crate::precise::Precise::stringGt(&orderSizeMin, &Value::Str("0".into()))) {
+            amountPrecision = minAmount.clone();
+        }
+        let mut active: Value = (Value::Bool(status.as_deref() == Some("trading")));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
@@ -3886,10 +3896,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), marketType.clone());
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(marketType.as_str() == Some("swap")));
-        m.insert("future".to_string(), Value::Bool(marketType.as_str() == Some("future")));
+        m.insert("swap".to_string(), swap);
+        m.insert("future".to_string(), (Value::Bool(marketType.as_str() == Some("future"))));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), Value::Bool(status.as_deref() == Some("trading")));
+        m.insert("active".to_string(), active);
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("linear".to_string(), isLinear.clone());
         m.insert("inverse".to_string(), Value::Bool(!(matches!(&isLinear, Value::Bool(true)))));
@@ -3902,7 +3912,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.parse_number(Value::Str("1".into()), &[]));
+        m.insert("amount".to_string(), amountPrecision);
         m.insert("price".to_string(), self.safe_number_k(market.clone(), "order_price_round", &[]));
     m
 }));
@@ -3916,7 +3926,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(market.clone(), "order_size_min", &[]));
+        m.insert("min".to_string(), minAmount);
         m.insert("max".to_string(), self.safe_number_k(market.clone(), "order_size_max", &[]));
     m
 }));
@@ -6988,6 +6998,28 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
+    pub fn is_gate_futures_contract_with_decimal_size(&self, mut market: Value) -> Value {
+        let __market_empty = indexmap::IndexMap::new();
+        let market = market.as_map().unwrap_or(&__market_empty);
+        let mut info: Value = (match market.get("info") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
+        let mut isSwap: Value = (match market.get("swap") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) });
+        let mut enableDecimal: Value = self.safe_bool_k(info, "enable_decimal", &[Value::Bool(false)]);
+        return Value::Bool(is_true(&isSwap) && enableDecimal.as_bool() == Some(true));
+
+    Value::Null
+}
+
+    pub fn get_gate_futures_signed_amount(&self, mut symbol: Value, mut side: Value, mut amount: Value) -> Option<String> {
+        let mut amountString: Value = self.amount_to_precision(symbol, amount);
+        if (side.as_str() == Some("sell")) {
+            return crate::precise::Precise::stringNeg(&amountString).as_str().map(str::to_owned);
+        }
+        return amountString.as_str().map(str::to_owned);
+}
+
     pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
@@ -7046,18 +7078,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             priceResolved = Value::Int(0);
         }
         let mut contractAmount: Value = Value::Int(0);
+        let mut signedAmount: Value = Value::Null;
+        let mut useGateFuturesDecimalSize: Value = Value::Bool(false);
         if (contract.as_bool() == Some(true)) {
             let mut isClose: Value = self.safe_bool_k(query.clone(), "close", &[]);
             if (isClose.as_bool() != Some(true)) {
-                let mut amountToPrecision: Value = self.amount_to_precision(symbol.clone(), amount.clone());
-                let mut signedAmount: Value = amountToPrecision.clone();
-                if (side.as_str() == Some("sell")) {
-                    signedAmount = crate::precise::Precise::stringNeg(&amountToPrecision);
+                signedAmount = self.get_gate_futures_signed_amount(symbol.clone(), side.clone(), amount.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+                useGateFuturesDecimalSize = self.is_gate_futures_contract_with_decimal_size(market.clone());
+                if !is_true(&useGateFuturesDecimalSize) {
+                    contractAmount = (match &signedAmount { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
                 }
-                contractAmount = (match &signedAmount { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
             }
         }
         let mut amountResolved: Value = (if (contract.as_bool() == Some(true)) { contractAmount } else { amount });
+        let mut sizeRequest: Value = amountResolved.clone();
+        if is_true(&useGateFuturesDecimalSize) {
+            sizeRequest = signedAmount.clone();
+        }
         let mut request: Value = Value::Null;
         let mut nonTriggerOrder: bool = !isTpsl && (trigger == Value::Null);
         if nonTriggerOrder {
@@ -7066,7 +7103,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 request = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("contract".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                        m.insert("size".to_string(), amountResolved.clone());
+                        m.insert("size".to_string(), sizeRequest);
                     m
                 });
                 if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
@@ -7157,12 +7194,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m.insert("initial".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("contract".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-        m.insert("size".to_string(), amountResolved.clone());
     m
 }));
                         m.insert("settle".to_string(), market.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null));
                     m
                 });
+                if is_true(&useGateFuturesDecimalSize) {
+                    add_element_to_object(get_value_mut(&mut request, &Value::Str("initial".into())), &Value::Str("amount".into()), signedAmount); // FuturesInitialOrder.amount takes precedence over size
+                }  else {
+                    add_element_to_object(get_value_mut(&mut request, &Value::Str("initial".into())), &Value::Str("size".into()), amountResolved.clone());
+                }
                 if (type_var.as_str() == Some("market")) {
                     add_element_to_object(get_value_mut(&mut request, &Value::Str("initial".into())), &Value::Str("price".into()), Value::Str("0".into()));
                 }  else {
@@ -7329,10 +7370,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".into(), self.amount_to_precision(symbol.clone(), amount.clone())); }
             }  else {
-                if (side.as_str() == Some("sell")) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), self.parse_to_numeric(crate::precise::Precise::stringNeg(&self.amount_to_precision(symbol.clone(), amount.clone())))); }
+                let mut signedAmount: Value = self.get_gate_futures_signed_amount(symbol.clone(), side, amount).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+                if self.is_gate_futures_contract_with_decimal_size(market.clone()).as_bool() == Some(true) {
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), signedAmount.clone()); }
                 }  else {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), self.parse_to_numeric(self.amount_to_precision(symbol.clone(), amount))); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), self.parse_to_numeric(signedAmount)); }
                 }
             }
         }
@@ -9755,8 +9797,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
         }
-        let mut bodyResolved: Value = bodyJson;
         let mut headersResolved: Value = signedHeaders;
+        if (type_var.as_str() == Some("futures")) {
+            if (headersResolved == Value::Null) {
+                headersResolved = Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                });
+            }
+            add_element_to_object(&mut headersResolved, &Value::Str("X-Gate-Size-Decimal".into()), Value::Str("1".into()));
+        }
+        let mut bodyResolved: Value = bodyJson;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

@@ -428,6 +428,19 @@ impl GateCore {
 }));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("ws".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("options".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("headers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("X-Gate-Size-Decimal".to_string(), Value::Str("1".into()));
+    m
+}));
+    m
+}));
+    m
+}));
         m.insert("tradesLimit".to_string(), Value::Int(1000));
         m.insert("OHLCVLimit".to_string(), Value::Int(1000));
         m.insert("watchTradesSubscriptions".to_string(), Value::Map({
@@ -2442,8 +2455,8 @@ impl GateCore {
             }  else if (event.as_deref() == Some("finish")) {
                 let mut status: Option<String> = self.safe_string_k(parsed.clone(), "status", &[]).as_str().map(str::to_owned);
                 if (status.is_none()) {
-                    let mut left: Option<i64> = self.safe_integer_k(info, "left", &[]).as_i64();
-                    add_element_to_object(&mut parsed, &Value::Str("status".into()), (if (left == Some(0)) { Value::Str("closed".into()) } else { Value::Str("canceled".into()) }));
+                    let mut left: Value = self.safe_string_k(info, "left", &[]);
+                    add_element_to_object(&mut parsed, &Value::Str("status".into()), (if is_true(&crate::precise::Precise::stringEquals(&left, &Value::Str("0".into()))) { Value::Str("closed".into()) } else { Value::Str("canceled".into()) }));
                 }
             }
             stored.append(parsed.clone());
