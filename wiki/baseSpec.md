@@ -894,21 +894,26 @@ helper method for creating contract orders in batch
 <a name="createConvertTrade" id="createconverttrade"></a>
 
 ## createConvertTrade
-convert from one currency to another
+converts between a tokenized stock and its quote currency through a bounded RFQ
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
+**Returns**: <code>object</code> - conversion result; RFQ submission may remain open and is not necessarily a fill
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| id | <code>string</code> | Yes | the id of the trade that you want to make |
-| fromCode | <code>string</code> | Yes | the currency that you want to sell and convert from |
-| toCode | <code>string</code> | Yes | the currency that you want to buy and convert into |
-| amount | <code>float</code> | No | how much you want to trade in units of the from currency |
+| id | <code>string</code> | Yes | RFQ identifier when accepting a quote, or a numeric client identifier for a new RFQ |
+| fromCode | <code>string</code> | Yes | the currency to convert from |
+| toCode | <code>string</code> | Yes | the currency to convert to |
+| amount | <code>float</code> | No | amount in units of the from currency |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.quoteId | <code>string</code> | No | accept this quote for RFQ id supplied as id |
+| params.price | <code>float</code> | No | price bound from fetchConvertQuote; required when buying stock |
+| params.baseAmount | <code>float</code> | No | stock quantity when converting quote currency to stock |
+| params.clientOrderId | <code>int</code> | No | requester client identifier for a newly submitted RFQ |
 
 ##### Supported exchanges
+* [backpack](/exchanges/backpack.md#createconverttrade)
 * [binance](/exchanges/binance.md#createconverttrade)
 * [bitget](/exchanges/bitget.md#createconverttrade)
 * [bybit](/exchanges/bybit.md#createconverttrade)
@@ -2572,21 +2577,22 @@ fetches all available currencies that can be converted
 <a name="fetchConvertQuote" id="fetchconvertquote"></a>
 
 ## fetchConvertQuote
-fetch a quote for converting from one currency to another
+fetches an indicative quote for converting between a tokenized stock and its quote currency
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
+**Returns**: <code>object</code> - indicative conversion estimate; the price is a bound and is not guaranteed
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| fromCode | <code>string</code> | Yes | the currency that you want to sell and convert from |
-| toCode | <code>string</code> | Yes | the currency that you want to buy and convert into |
-| amount | <code>float</code> | Yes | how much you want to trade in units of the from currency |
+| fromCode | <code>string</code> | Yes | the currency to convert from |
+| toCode | <code>string</code> | Yes | the currency to convert to |
+| amount | <code>float</code> | Yes | amount in units of the from currency |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.walletType | <code>string</code> | No | either 'SPOT' or 'FUNDING', the default is 'SPOT' |
+| params.price | <code>float</code> | No | optional limit price when converting quote currency to stock |
 
 ##### Supported exchanges
+* [backpack](/exchanges/backpack.md#fetchconvertquote)
 * [binance](/exchanges/binance.md#fetchconvertquote)
 * [bitget](/exchanges/bitget.md#fetchconvertquote)
 * [bybit](/exchanges/bybit.md#fetchconvertquote)
@@ -4916,6 +4922,7 @@ fetches information on an order made by the user
 * [alpaca](/exchanges/alpaca.md#fetchorder)
 * [apex](/exchanges/apex.md#fetchorder)
 * [aster](/exchanges/aster.md#fetchorder)
+* [backpack](/exchanges/backpack.md#fetchorder)
 * [bigone](/exchanges/bigone.md#fetchorder)
 * [binance](/exchanges/binance.md#fetchorder)
 * [bingx](/exchanges/bingx.md#fetchorder)
@@ -7610,17 +7617,19 @@ transfer currency internally between wallets on the same account with uta endpoi
 <a name="unWatchBalance" id="unwatchbalance"></a>
 
 ## unWatchBalance
-unWatches balance
+unsubscribes from all capital-account asset updates
 
 **Kind**: instance   
-**Returns**: <code>object</code> - status of the unwatch request
+**Returns**: <code>object</code> - unsubscription result
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params | <code>object</code> | No | extra exchange-specific parameters |
+| params.stock | <code>boolean</code> | No | accepts the tokenized stock view selector; explicit because this method has no symbol |
 
 ##### Supported exchanges
+* [backpack](/exchanges/backpack.md#unwatchbalance)
 * [hyperliquid](/exchanges/hyperliquid.md#unwatchbalance)
 
 ---
@@ -7894,6 +7903,7 @@ unWatches information on multiple orders made by the user
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | No | unified market symbol of the market orders were made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock order subscriptions |
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#unwatchorders)
@@ -8123,6 +8133,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 ##### Supported exchanges
 * [aster](/exchanges/aster.md#watchbalance)
+* [backpack](/exchanges/backpack.md#watchbalance)
 * [binance](/exchanges/binance.md#watchbalance)
 * [bingx](/exchanges/bingx.md#watchbalance)
 * [bitfinex](/exchanges/bitfinex.md#watchbalance)

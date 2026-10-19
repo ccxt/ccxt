@@ -7986,6 +7986,27 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'cost': 1
         });
     }
+    publicGetApiV1StockSessions(params = {}) {
+        return this.request('api/v1/stockSessions', [
+            'public'
+        ], 'GET', params, {
+            'cost': 1
+        });
+    }
+    publicGetApiV1StockHolidays(params = {}) {
+        return this.request('api/v1/stockHolidays', [
+            'public'
+        ], 'GET', params, {
+            'cost': 1
+        });
+    }
+    publicGetApiV1StockIndicativeQuote(params = {}) {
+        return this.request('api/v1/stockIndicativeQuote', [
+            'public'
+        ], 'GET', params, {
+            'cost': 1
+        });
+    }
     publicGetApiV1Securities(params = {}) {
         return this.request('api/v1/securities', [
             'public'
@@ -8324,13 +8345,6 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
     }
     privatePostApiV1RfqAccept(params = {}) {
         return this.request('api/v1/rfq/accept', [
-            'private'
-        ], 'POST', params, {
-            'cost': 1
-        });
-    }
-    privatePostApiV1RfqRefresh(params = {}) {
-        return this.request('api/v1/rfq/refresh', [
             'private'
         ], 'POST', params, {
             'cost': 1
@@ -172098,7 +172112,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
                 'cancelOrders': false,
                 'cancelWithdraw': false,
                 'closePosition': false,
-                'createConvertTrade': false,
+                'createConvertTrade': true,
                 'createDepositAddress': false,
                 'createLimitBuyOrder': true,
                 'createLimitOrder': true,
@@ -172127,7 +172141,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': false,
                 'fetchConvertCurrencies': false,
-                'fetchConvertQuote': false,
+                'fetchConvertQuote': true,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': true,
@@ -172156,7 +172170,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
                 'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
-                'fetchOrder': false,
+                'fetchOrder': 'emulated',
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': false,
@@ -172257,6 +172271,15 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
                             'cost': 1
                         },
                         'api/v1/market-holidays': {
+                            'cost': 1
+                        },
+                        'api/v1/stockSessions': {
+                            'cost': 1
+                        },
+                        'api/v1/stockHolidays': {
+                            'cost': 1
+                        },
+                        'api/v1/stockIndicativeQuote': {
                             'cost': 1
                         },
                         'api/v1/securities': {
@@ -172410,9 +172433,6 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
                             'cost': 1
                         },
                         'api/v1/rfq/accept': {
-                            'cost': 1
-                        },
-                        'api/v1/rfq/refresh': {
                             'cost': 1
                         },
                         'api/v1/rfq/cancel': {
@@ -172597,6 +172617,24 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
                     'wapi/v1/history/rfq': {
                         'GET': 'rfqHistoryQueryAll'
                     },
+                    'api/v1/rfq': {
+                        'POST': 'rfqSubmit'
+                    },
+                    'api/v1/rfqs': {
+                        'GET': 'rfqQuery'
+                    },
+                    'api/v1/rfq/accept': {
+                        'POST': 'quoteAccept'
+                    },
+                    'api/v1/rfq/cancel': {
+                        'POST': 'rfqCancel'
+                    },
+                    'wapi/v1/history/rfq/fill': {
+                        'GET': 'rfqFillHistoryQueryAll'
+                    },
+                    'wapi/v1/history/quote/fill': {
+                        'GET': 'quoteFillHistoryQueryAll'
+                    },
                     'wapi/v1/history/quote': {
                         'GET': 'quoteHistoryQueryAll'
                     },
@@ -172720,12 +172758,14 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
     /**
      * @method
      * @name backpack#fetchCurrencies
-     * @description fetches all available currencies on an exchange
+     * @description fetches available crypto and tokenized stock currencies from the assets endpoint
      * @see https://docs.backpack.exchange/#tag/Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock assets only
      * @returns {object} an associative dictionary of currencies
      */ async fetchCurrencies(params = {}) {
-        const response = await this.publicGetApiV1Assets(params);
+        const [stock, query] = this.handleStockParams('fetchCurrencies', params);
+        const response = await this.publicGetApiV1Assets(query);
         //
         //     [
         //         {
@@ -172749,10 +172789,19 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         //         ...
         //     ]
         //
-        return this.parseCurrencies(response);
+        const currencies = {};
+        for(let i = 0; i < response.length; i++){
+            const currency = this.parseCurrency(response[i]);
+            if (stock !== true || currency['type'] === 'stock') {
+                currencies[currency['code']] = currency;
+            }
+        }
+        return currencies;
     }
     parseCurrency(rawCurrency) {
         const currencyId = this.safeString(rawCurrency, 'symbol');
+        const symbol = this.safeString(rawCurrency, 'symbol', '');
+        const stock = symbol.endsWith('.US') || symbol.endsWith('.HK');
         const code = this.safeCurrencyCode(currencyId);
         const networks = this.safeList(rawCurrency, 'tokens', []);
         const parsedNetworks = {};
@@ -172788,7 +172837,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         let deposit = undefined;
         let withdraw = undefined;
         if (this.isEmpty(parsedNetworks)) {
-            active = false;
+            active = stock ? undefined : false;
             deposit = false;
             withdraw = false;
         }
@@ -172796,7 +172845,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             'id': currencyId,
             'code': code,
             'precision': undefined,
-            'type': 'crypto',
+            'type': stock ? 'stock' : 'crypto',
             'name': this.safeString(rawCurrency, 'displayName'),
             'active': active,
             'deposit': deposit,
@@ -172819,16 +172868,108 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
     /**
      * @method
      * @name backpack#fetchMarkets
-     * @description retrieves data on all markets for bitbank
+     * @description retrieves venue markets and tokenized stock RFQ markets discovered from securities
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_markets
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_securities
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock markets only
+     * @param {string|string[]} [params.marketType] market types to discover: spot, swap or stock
      * @returns {object[]} an array of objects representing market data
      */ async fetchMarkets(params = {}) {
         if (this.safeBool(this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference();
         }
-        const response = await this.publicGetApiV1Markets(params);
-        return this.parseMarkets(response);
+        const [stock, query] = this.handleStockParams('fetchMarkets', params);
+        const marketType = this.safeString(query, 'marketType');
+        const defaultTypes = marketType === undefined ? [
+            'SPOT',
+            'PERP',
+            'RFQ'
+        ] : [
+            marketType
+        ];
+        const requestedTypes = this.safeList(query, 'marketType', defaultTypes);
+        const aliases = {
+            'spot': 'SPOT',
+            'swap': 'PERP',
+            'stock': 'RFQ'
+        };
+        const supportedTypes = [
+            'SPOT',
+            'PERP',
+            'RFQ'
+        ];
+        const marketTypes = [];
+        for(let i = 0; i < requestedTypes.length; i++){
+            const requestedType = requestedTypes[i];
+            const normalizedType = this.safeString(aliases, requestedType, requestedType);
+            if (!this.inArray(normalizedType, supportedTypes)) {
+                throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchMarkets() unsupported marketType ' + requestedType);
+            }
+            if (!this.inArray(normalizedType, marketTypes)) {
+                marketTypes.push(normalizedType);
+            }
+        }
+        const includeRfq = this.inArray('RFQ', marketTypes);
+        const marketQuery = this.omit(query, 'marketType');
+        if ('marketType' in query) {
+            marketQuery['marketType'] = marketTypes;
+        }
+        const response = await this.publicGetApiV1Markets(marketQuery);
+        let securities = [];
+        if (includeRfq) {
+            securities = await this.fetchSecurities();
+        }
+        const securityById = this.indexBy(securities, 'asset');
+        const markets = [];
+        const marketIds = {};
+        for(let i = 0; i < response.length; i++){
+            const rawMarket = response[i];
+            const rawType = this.safeString(rawMarket, 'marketType', '');
+            if (!this.inArray(rawType, marketTypes)) {
+                continue;
+            }
+            const baseId = this.safeString(rawMarket, 'baseSymbol');
+            const security = this.safeDict(securityById, baseId);
+            const market = this.parseMarket(security === undefined ? rawMarket : this.extend(rawMarket, {
+                'security': security
+            }));
+            if (market !== undefined) {
+                const marketId = this.safeString(market, 'id');
+                if (marketId === undefined || marketId in marketIds) {
+                    continue;
+                }
+                marketIds[marketId] = true;
+                if (stock !== true || market['stock'] === true) {
+                    markets.push(market);
+                }
+            }
+        }
+        if (includeRfq) {
+            for(let i = 0; i < securities.length; i++){
+                const security = securities[i];
+                const assetId = this.safeString(security, 'asset');
+                if (assetId === undefined) {
+                    continue;
+                }
+                const marketId = assetId + '_USDC_RFQ';
+                if (!(marketId in marketIds)) {
+                    const market = this.parseMarket({
+                        'symbol': marketId,
+                        'baseSymbol': assetId,
+                        'quoteSymbol': 'USDC',
+                        'marketType': 'RFQ',
+                        'rwaMarketType': 'STOCK',
+                        'security': security
+                    });
+                    if (market !== undefined) {
+                        marketIds[marketId] = true;
+                        markets.push(market);
+                    }
+                }
+            }
+        }
+        return markets;
     }
     parseMarket(market) {
         //
@@ -172919,6 +173060,38 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         //         }
         //     ]
         //
+        // fetchMarkets stock
+        //
+        //     [
+        //         {
+        //             {
+        //                 "asset": "QNDX.US",
+        //                 "cusip": null,
+        //                 "name": "State Street SPDR Portfolio Nasdaq 100 ETF",
+        //                 "sessions": [
+        //                     {
+        //                         "maxQuantity": "1000",
+        //                         "minQuantity": "1",
+        //                         "name": "US_EQUITIES_PRE_MARKET",
+        //                         "stepSize": "1"
+        //                     },
+        //                     {
+        //                         "maxQuantity": "10000",
+        //                         "minQuantity": "0.01",
+        //                         "name": "US_EQUITIES_REGULAR",
+        //                         "stepSize": "0.01"
+        //                     },
+        //                     {
+        //                         "maxQuantity": "1000",
+        //                         "minQuantity": "1",
+        //                         "name": "US_EQUITIES_POST_MARKET",
+        //                         "stepSize": "1"
+        //                     }
+        //                 ]
+        //             },
+        //         }
+        //     ]
+        //
         const id = this.safeString(market, 'symbol');
         const baseId = this.safeString(market, 'baseSymbol');
         const quoteId = this.safeString(market, 'quoteSymbol');
@@ -172934,18 +173107,53 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         const minPrice = this.safeNumber(priceFilter, 'minPrice');
         const pricePrecision = this.safeNumber(priceFilter, 'tickSize');
         const quantityFilter = this.safeDict(filters, 'quantity', {});
-        const maxQuantity = this.safeNumber(quantityFilter, 'maxQuantity');
-        const minQuantity = this.safeNumber(quantityFilter, 'minQuantity');
-        const amountPrecision = this.safeNumber(quantityFilter, 'stepSize');
+        let maxQuantity = this.safeNumber(quantityFilter, 'maxQuantity');
+        let minQuantity = this.safeNumber(quantityFilter, 'minQuantity');
+        let amountPrecision = this.safeNumber(quantityFilter, 'stepSize');
         let type = undefined;
-        const typeOfMarket = this.parseMarketType(this.safeString(market, 'marketType'));
+        const rawType = this.safeString(market, 'marketType');
+        const rfq = rawType === 'RFQ';
+        const security = this.safeDict(market, 'security');
+        const baseSymbol = this.safeString(market, 'baseSymbol', '');
+        const stock = this.safeString(market, 'rwaMarketType') === 'STOCK' || security !== undefined || baseSymbol.endsWith('.US') || baseSymbol.endsWith('.HK');
+        const typeOfMarket = this.parseMarketType(rawType);
         let linear = undefined;
         let inverse = undefined;
         let settle = undefined;
         let settleId = undefined;
         let contractSize = undefined;
-        if (typeOfMarket === 'spot') {
+        if (typeOfMarket === 'spot' || rfq) {
             type = 'spot';
+            if (rfq) {
+                symbol = base + '.RFQ/' + quote;
+                const sessions = this.safeList(security, 'sessions', []);
+                let stepSize = undefined;
+                let minimum = undefined;
+                let maximum = undefined;
+                let unbounded = false;
+                for(let i = 0; i < sessions.length; i++){
+                    const sessionStep = this.safeString(sessions[i], 'stepSize');
+                    if (sessionStep !== undefined && (stepSize === undefined || _base_Precise_js__rspack_import_3/* .Precise.stringLt */.Y.stringLt(sessionStep, stepSize))) {
+                        stepSize = sessionStep;
+                    }
+                    const sessionMin = this.safeString(sessions[i], 'minQuantity');
+                    const sessionMax = this.safeString(sessions[i], 'maxQuantity');
+                    if (sessionMin !== undefined && (minimum === undefined || _base_Precise_js__rspack_import_3/* .Precise.stringLt */.Y.stringLt(sessionMin, minimum))) {
+                        minimum = sessionMin;
+                    }
+                    if (sessionMax === undefined) {
+                        unbounded = true;
+                    } else if (maximum === undefined || _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(sessionMax, maximum)) {
+                        maximum = sessionMax;
+                    }
+                }
+                const sessionsLength = sessions.length;
+                if (sessionsLength > 0) {
+                    amountPrecision = this.parseNumber(stepSize);
+                    minQuantity = this.parseNumber(minimum);
+                    maxQuantity = unbounded ? undefined : this.parseNumber(maximum);
+                }
+            }
         } else if (typeOfMarket === 'swap') {
             type = 'swap';
             linear = true;
@@ -172954,8 +173162,12 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             settle = this.safeCurrencyCode(settleId);
             symbol += ':' + settle;
             contractSize = 1;
+        } else {
+            return undefined;
         }
         const orderBookState = this.safeString(market, 'orderBookState');
+        // RFQ active means listed, not currently in session; an explicit order book state takes precedence.
+        const active = rfq && orderBookState === undefined ? id !== undefined || this.safeString(security, 'asset') !== undefined : orderBookState === 'Open';
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -172967,11 +173179,13 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             'settleId': settleId,
             'type': type,
             'spot': type === 'spot',
-            'margin': type === 'spot',
+            'margin': type === 'spot' && !stock && !rfq,
+            'stock': stock,
+            'executionModel': rfq ? 'rfq' : undefined,
             'swap': type === 'swap',
             'future': false,
             'option': false,
-            'active': orderBookState === 'Open',
+            'active': active,
             'contract': type !== 'spot',
             'linear': linear,
             'inverse': inverse,
@@ -173008,6 +173222,406 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             'info': market
         });
     }
+    /**
+     * @ignore
+     * @method
+     * @name backpack#handleStockParams
+     * @description resolves the stock market filter
+     * @param {string} methodName calling method
+     * @param {object} params exchange-specific parameters
+     * @param {object} [market] resolved market
+     * @returns {Array} stock flag and remaining parameters
+     */ handleStockParams(methodName, params, market = undefined) {
+        const defaultStock = this.safeBool(market, 'stock', false);
+        const [stock, query] = this.handleOptionBoolAndParams(params, methodName, 'stock', defaultStock);
+        if (market !== undefined && stock && !this.safeBool(market, 'stock', false)) {
+            throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' ' + methodName + '() requires a stock market');
+        }
+        return [
+            stock,
+            query
+        ];
+    }
+    /**
+     * @ignore
+     * @method
+     * @name backpack#fetchSecurities
+     * @description fetches stock security metadata and session-specific share quantity constraints
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_securities
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} security metadata, not account holdings or proof of equity ownership
+     */ async fetchSecurities(params = {}) {
+        const response = await this.publicGetApiV1Securities(params);
+        this.options['securities'] = response;
+        return response;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name backpack#fetchStockIndicativeQuote
+     * @description fetches a size-specific indicative stock quote without submitting or accepting an RFQ
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_stock_indicative_quote
+     * @param {string} symbol unified stock market symbol
+     * @param {string} side buy or sell
+     * @param {float} amount number of base shares
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @returns {object} indicative quote with availability, session constraints and non-guaranteed prices
+     */ async fetchStockIndicativeQuote(symbol, side, amount, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const selection = this.handleStockParams('fetchStockIndicativeQuote', params, market);
+        const query = this.safeDict(selection, 1, {});
+        if (market['stock'] !== true) {
+            throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchStockIndicativeQuote() requires a stock market');
+        }
+        if (side !== 'buy' && side !== 'sell') {
+            throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchStockIndicativeQuote() requires buy or sell');
+        }
+        if (amount === undefined || !_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(this.numberToString(amount), '0')) {
+            throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' fetchStockIndicativeQuote() requires a positive base share quantity');
+        }
+        const request = {
+            'symbol': market['baseId'],
+            'side': this.encodeOrderSide(side),
+            'quantity': this.numberToString(amount)
+        };
+        const requestMethod = 'publicGetApiV1StockIndicativeQuote';
+        return await this[requestMethod](this.extend(query, request));
+    }
+    /**
+     * @ignore
+     * @method
+     * @name backpack#rfqConversionMarket
+     * @description resolves a stock RFQ market for a currency conversion pair
+     * @param {string} fromCode source currency code
+     * @param {string} toCode destination currency code
+     * @returns {object} resolved stock RFQ market
+     */ rfqConversionMarket(fromCode, toCode) {
+        const fromIsStock = fromCode.endsWith('.US') || fromCode.endsWith('.HK');
+        const toIsStock = toCode.endsWith('.US') || toCode.endsWith('.HK');
+        if (fromIsStock === toIsStock) {
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' conversion requires exactly one stock currency');
+        }
+        const stockCode = fromIsStock ? fromCode : toCode;
+        const quoteCode = fromIsStock ? toCode : fromCode;
+        const symbol = stockCode + '.RFQ/' + quoteCode;
+        const market = this.safeDict(this.markets, symbol);
+        if (market === undefined || market['executionModel'] !== 'rfq' || market['stock'] !== true) {
+            throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' conversion requires a listed stock RFQ market: ' + symbol);
+        }
+        return market;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name backpack#parseConversion
+     * @description converts a submitted or accepted RFQ order into a conversion structure
+     * @param {object} order parsed RFQ order
+     * @param {object} [fromCurrency] source currency
+     * @param {object} [toCurrency] destination currency
+     * @returns {object} unified conversion structure
+     */ parseConversion(order, fromCurrency = undefined, toCurrency = undefined) {
+        const fromCode = this.safeString(fromCurrency, 'code');
+        const toCode = this.safeString(toCurrency, 'code');
+        if (fromCode === undefined || toCode === undefined) {
+            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' parseConversion() requires source and destination currencies');
+        }
+        const market = this.rfqConversionMarket(fromCode, toCode);
+        const fromIsBase = fromCode === market['base'];
+        const filled = this.safeNumber(order, 'filled');
+        const cost = this.safeNumber(order, 'cost');
+        const fee = this.safeDict(order, 'fee');
+        const timestamp = this.safeInteger(order, 'timestamp');
+        return {
+            'info': order['info'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'id': this.safeString(order, 'id'),
+            'fromCurrency': this.safeCurrencyCode(fromCode),
+            'fromAmount': fromIsBase ? filled : cost,
+            'toCurrency': this.safeCurrencyCode(toCode),
+            'toAmount': fromIsBase ? cost : filled,
+            'price': this.safeNumber2(order, 'average', 'price'),
+            'fee': this.safeNumber(fee, 'cost')
+        };
+    }
+    /**
+     * @method
+     * @name backpack#fetchConvertQuote
+     * @description fetches an indicative quote for converting between a tokenized stock and its quote currency
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_stock_indicative_quote
+     * @param {string} fromCode the currency to convert from
+     * @param {string} toCode the currency to convert to
+     * @param {float} amount amount in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.price] optional limit price when converting quote currency to stock
+     * @returns {object} indicative conversion estimate; the price is a bound and is not guaranteed
+     */ async fetchConvertQuote(fromCode, toCode, amount = undefined, params = {}) {
+        let amountString = this.numberToString(amount);
+        if (amountString === undefined || !_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(amountString, '0')) {
+            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchConvertQuote() requires a positive amount');
+        }
+        await this.loadMarkets();
+        const market = this.rfqConversionMarket(fromCode, toCode);
+        const fromIsBase = fromCode === market['base'];
+        const side = fromIsBase ? 'sell' : 'buy';
+        if (!fromIsBase) {
+            const initialQuote = await this.fetchStockIndicativeQuote(market['symbol'], side, 1, {
+                'stock': true
+            });
+            const initialPrice = this.safeString(initialQuote, 'price');
+            if (!this.safeBool(initialQuote, 'available', false) || initialPrice === undefined) {
+                throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' fetchConvertQuote() stock indicative quote unavailable: ' + this.safeString(initialQuote, 'reason', 'priceUnavailable'));
+            }
+            let priceParam = this.safeString(params, 'price');
+            if (priceParam === undefined) {
+                priceParam = initialPrice;
+            }
+            if (!_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(priceParam, '0')) {
+                throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' fetchConvertQuote() price must be positive');
+            }
+            const rawQuantity = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(amountString, priceParam, 18);
+            const preciseQuantity = this.amountToPrecision(market['symbol'], this.parseNumber(rawQuantity));
+            if (preciseQuantity === undefined) {
+                throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' fetchConvertQuote() could not determine a stock quantity');
+            }
+            amountString = preciseQuantity;
+            if (!_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(amountString, '0')) {
+                throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' fetchConvertQuote() amount is too small for one stock increment');
+            }
+        }
+        let quote = await this.fetchStockIndicativeQuote(market['symbol'], side, this.parseNumber(amountString), {
+            'stock': true
+        });
+        if (!this.safeBool(quote, 'available', false) || this.safeString(quote, 'price') === undefined) {
+            throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' fetchConvertQuote() stock indicative quote unavailable: ' + this.safeString(quote, 'reason', 'priceUnavailable'));
+        }
+        if (!fromIsBase) {
+            const quoteQuantity = this.safeString(quote, 'quoteQuantity');
+            const quantityFilter = this.safeDict(quote, 'quantityFilter', {});
+            const stepSize = this.safeString(quantityFilter, 'stepSize');
+            if (quoteQuantity !== undefined && stepSize !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(quoteQuantity, this.numberToString(amount))) {
+                const reducedQuantity = _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(amountString, stepSize);
+                if (reducedQuantity === undefined || !_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(reducedQuantity, '0')) {
+                    throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' fetchConvertQuote() amount is too small for one stock increment');
+                }
+                amountString = reducedQuantity;
+                quote = await this.fetchStockIndicativeQuote(market['symbol'], side, this.parseNumber(amountString), {
+                    'stock': true
+                });
+                if (!this.safeBool(quote, 'available', false) || this.safeString(quote, 'price') === undefined) {
+                    throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' fetchConvertQuote() stock indicative quote unavailable: ' + this.safeString(quote, 'reason', 'priceUnavailable'));
+                }
+            }
+            const finalQuoteQuantity = this.safeString(quote, 'quoteQuantity');
+            if (finalQuoteQuantity !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(finalQuoteQuantity, this.numberToString(amount))) {
+                throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' fetchConvertQuote() rounded stock quantity exceeds the requested quote-currency amount');
+            }
+        }
+        const quoteAmount = this.safeNumber(quote, 'quoteQuantity');
+        const baseAmount = this.parseNumber(amountString);
+        const fromCurrency = this.safeCurrencyCode(fromCode);
+        const toCurrency = this.safeCurrencyCode(toCode);
+        return {
+            'info': quote,
+            'timestamp': this.safeInteger(quote, 'publishedAt'),
+            'datetime': this.iso8601(this.safeInteger(quote, 'publishedAt')),
+            'id': undefined,
+            'fromCurrency': fromCurrency,
+            'fromAmount': fromIsBase ? baseAmount : quoteAmount,
+            'toCurrency': toCurrency,
+            'toAmount': fromIsBase ? quoteAmount : baseAmount,
+            'price': this.safeNumber(quote, 'price'),
+            'fee': undefined
+        };
+    }
+    /**
+     * @method
+     * @name backpack#createConvertTrade
+     * @description converts between a tokenized stock and its quote currency through a bounded RFQ
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/accept_quote
+     * @param {string} id RFQ identifier when accepting a quote, or a numeric client identifier for a new RFQ
+     * @param {string} fromCode the currency to convert from
+     * @param {string} toCode the currency to convert to
+     * @param {float} [amount] amount in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.quoteId] accept this quote for RFQ id supplied as id
+     * @param {float} [params.price] price bound from fetchConvertQuote; required when buying stock
+     * @param {float} [params.baseAmount] stock quantity when converting quote currency to stock
+     * @param {int} [params.clientOrderId] requester client identifier for a newly submitted RFQ
+     * @returns {object} conversion result; RFQ submission may remain open and is not necessarily a fill
+     */ async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
+        await this.loadMarkets();
+        const market = this.rfqConversionMarket(fromCode, toCode);
+        const selection = this.handleStockParams('createConvertTrade', params, market);
+        const query = this.safeDict(selection, 1, {});
+        const quoteId = this.safeString(query, 'quoteId');
+        if (quoteId !== undefined) {
+            const acceptParams = this.omit(query, [
+                'quoteId',
+                'price',
+                'baseAmount',
+                'clientOrderId'
+            ]);
+            const accepted = await this.acceptRfqQuote(id, quoteId, market['symbol'], acceptParams);
+            return this.parseConversion(accepted, this.currency(fromCode), this.currency(toCode));
+        }
+        if (amount === undefined || !_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(this.numberToString(amount), '0')) {
+            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' createConvertTrade() requires a positive amount');
+        }
+        const fromIsBase = fromCode === market['base'];
+        const side = fromIsBase ? 'sell' : 'buy';
+        let quantity = this.numberToString(amount);
+        let price = this.safeNumber(query, 'price');
+        if (!fromIsBase) {
+            const baseAmount = this.safeNumber(query, 'baseAmount');
+            if (baseAmount !== undefined) {
+                quantity = this.numberToString(baseAmount);
+            } else {
+                if (price === undefined || !_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(this.numberToString(price), '0')) {
+                    const indicative = await this.fetchStockIndicativeQuote(market['symbol'], side, 1, {
+                        'stock': true
+                    });
+                    if (!this.safeBool(indicative, 'available', false)) {
+                        throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createConvertTrade() stock indicative quote unavailable: ' + this.safeString(indicative, 'reason', 'priceUnavailable'));
+                    }
+                    price = this.safeNumber(indicative, 'price');
+                }
+                if (price === undefined || !_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(this.numberToString(price), '0')) {
+                    throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createConvertTrade() buying stock requires a positive price bound');
+                }
+                const rawQuantity = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(this.numberToString(amount), this.numberToString(price), 18);
+                const preciseQuantity = this.amountToPrecision(market['symbol'], this.parseNumber(rawQuantity));
+                if (preciseQuantity === undefined) {
+                    throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createConvertTrade() could not determine a stock quantity');
+                }
+                quantity = preciseQuantity;
+            }
+            if (price === undefined || !_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(this.numberToString(price), '0')) {
+                const indicative = await this.fetchStockIndicativeQuote(market['symbol'], side, this.parseNumber(quantity), {
+                    'stock': true
+                });
+                if (!this.safeBool(indicative, 'available', false)) {
+                    throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createConvertTrade() stock indicative quote unavailable: ' + this.safeString(indicative, 'reason', 'priceUnavailable'));
+                }
+                price = this.safeNumber(indicative, 'price');
+            }
+            if (price === undefined || !_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(this.numberToString(price), '0')) {
+                throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createConvertTrade() buying stock requires a positive price bound');
+            }
+            let quoteCost = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(quantity, this.numberToString(price));
+            if (_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(quoteCost, this.numberToString(amount))) {
+                const precision = this.safeDict(market, 'precision', {});
+                const stepSize = this.numberToString(this.safeNumber(precision, 'amount'));
+                if (!_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(stepSize, '0')) {
+                    throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createConvertTrade() cannot safely round stock quantity to the quote-currency budget');
+                }
+                const reducedQuantity = _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(quantity, stepSize);
+                if (reducedQuantity === undefined || !_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(reducedQuantity, '0')) {
+                    throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createConvertTrade() stock quantity is too small for one increment');
+                }
+                quantity = reducedQuantity;
+                quoteCost = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(quantity, this.numberToString(price));
+                if (!_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(quantity, '0') || _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(quoteCost, this.numberToString(amount))) {
+                    throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createConvertTrade() stock quantity exceeds the quote-currency amount');
+                }
+            }
+        }
+        let clientOrderId = this.safeInteger(query, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            clientOrderId = this.safeInteger({
+                'id': id
+            }, 'id');
+        }
+        const orderParams = this.omit(query, [
+            'price',
+            'baseAmount',
+            'quoteId',
+            'clientOrderId'
+        ]);
+        if (clientOrderId !== undefined) {
+            orderParams['clientOrderId'] = clientOrderId;
+        }
+        const order = await this.createRfqOrder(market['symbol'], 'market', side, this.parseNumber(quantity), price, this.extend(orderParams, {
+            'stock': true
+        }));
+        return this.parseConversion(order, this.currency(fromCode), this.currency(toCode));
+    }
+    /**
+     * @ignore
+     * @method
+     * @name backpack#stockDataRequest
+     * @description resolves venue or external stock statistics without treating RFQs as an order book
+     * @param {string} methodName calling method
+     * @param {object} params exchange-specific parameters
+     * @param {object} [market] resolved market
+     * @returns {object} market data parameters
+     */ stockDataRequest(methodName, params, market = undefined) {
+        const selection = this.handleStockParams(methodName, params, market);
+        const stock = this.safeBool(selection, 0, false);
+        const query = this.safeDict(selection, 1, {});
+        const request = this.extend({}, query);
+        let source = this.safeString(query, 'source');
+        const isRfq = market !== undefined && this.safeString(market['info'], 'marketType') === 'RFQ';
+        if (source === undefined) {
+            source = isRfq ? 'External' : 'Venue';
+        }
+        if (source !== 'Venue' && source !== 'External') {
+            throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' ' + methodName + '() source must be Venue or External');
+        }
+        if (source === 'External') {
+            if (!stock) {
+                throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' ' + methodName + '() External provider data requires a stock market symbol or params.stock=true when no symbol is provided');
+            }
+            if (market !== undefined && market['stock'] !== true) {
+                throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' ' + methodName + '() External data requires a stock market');
+            }
+            request['source'] = source;
+            if (methodName === 'fetchOHLCV') {
+                const priceType = this.safeString(query, 'priceType', 'Last');
+                const price = this.safeString(query, 'price');
+                if (priceType !== 'Last' || price !== undefined && price !== 'last') {
+                    throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' fetchOHLCV() External data requires Last prices');
+                }
+                request['priceType'] = 'Last';
+            } else {
+                const interval = this.safeString(query, 'interval', '1d');
+                if (interval !== '1d') {
+                    throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' ' + methodName + '() External tickers require interval=1d');
+                }
+                request['interval'] = interval;
+            }
+        }
+        if (market !== undefined) {
+            let marketId = market['id'];
+            if (this.safeString(market['info'], 'marketType') === 'RFQ') {
+                marketId = market['baseId'] + '_' + market['quoteId'];
+            }
+            request['symbol'] = marketId;
+        }
+        return request;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name backpack#filterStockStructures
+     * @description filters parsed account structures by securities metadata, never by RFQ execution alone
+     * @param {Array} entries parsed trades or orders
+     * @returns {Array} tokenized stock structures
+     */ filterStockStructures(entries) {
+        const result = [];
+        for(let i = 0; i < entries.length; i++){
+            const entry = entries[i];
+            const symbol = this.safeString(entry, 'symbol');
+            const market = this.safeDict(this.markets, symbol);
+            if (this.safeBool(market, 'stock', false)) {
+                result.push(entry);
+            }
+        }
+        return result;
+    }
     parseMarketType(type) {
         const types = {
             'SPOT': 'spot',
@@ -173018,37 +173632,104 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
     /**
      * @method
      * @name backpack#fetchTickers
+     * @description fetches venue or external provider statistics, not executable RFQ prices
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_tickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock tickers only; inferred from requested symbols when omitted
+     * @param {string} [params.source] Venue or External; RFQ symbols default to External, other symbols default to Venue
+     * @param {string} [params.interval] ticker interval, External requires 1d
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */ async fetchTickers(symbols = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const request = {};
-        const response = await this.publicGetApiV1Tickers(this.extend(request, params));
+        const selection = this.handleStockParams('fetchTickers', params);
+        const stockOnly = this.safeBool(selection, 0, false);
+        const query = this.safeDict(selection, 1, {});
+        const source = this.safeString(query, 'source', 'Venue');
+        let symbolsLength = 0;
+        if (symbols !== undefined) {
+            symbolsLength = symbols.length;
+        }
+        const symbolsNormalized = symbolsLength === 0 ? undefined : this.marketSymbols(symbols, undefined, false);
+        const symbolsResolved = symbolsNormalized === undefined ? Object.keys(this.markets) : symbolsNormalized;
+        let hasRfqSymbol = false;
+        let hasStockSymbol = false;
+        if (symbols !== undefined) {
+            for(let i = 0; i < symbolsResolved.length; i++){
+                const market = this.market(symbolsResolved[i]);
+                if (market['stock'] === true) {
+                    hasStockSymbol = true;
+                }
+                if (this.safeString(market['info'], 'marketType') === 'RFQ') {
+                    hasRfqSymbol = true;
+                }
+            }
+        }
+        const stockExplicitlyDisabled = this.safeValue2(params, 'stock', 'defaultStock') === false;
+        const needsExternalRfqTickers = source === 'Venue' && this.safeString(query, 'source') === undefined && hasRfqSymbol && !stockExplicitlyDisabled;
+        let requestParams = query;
+        if (source === 'External' && (stockOnly || hasStockSymbol) && !stockExplicitlyDisabled) {
+            requestParams = this.extend(query, {
+                'stock': true
+            });
+        }
+        const request = this.stockDataRequest('fetchTickers', requestParams);
+        const response = await this.publicGetApiV1Tickers(request);
         const tickers = this.parseTickers(response);
-        return this.filterByArrayTickers(tickers, 'symbol', symbols);
+        const responseById = this.indexBy(response, 'symbol');
+        let externalResponse = [];
+        let externalResponseById = {};
+        if (needsExternalRfqTickers || source === 'External') {
+            const externalParams = this.extend(query, {
+                'stock': true,
+                'source': 'External'
+            });
+            externalResponse = await this.publicGetApiV1Tickers(this.stockDataRequest('fetchTickers', externalParams));
+            externalResponseById = this.indexBy(externalResponse, 'symbol');
+        }
+        const result = {};
+        for(let i = 0; i < symbolsResolved.length; i++){
+            const marketSymbol = symbolsResolved[i];
+            const market = this.market(marketSymbol);
+            if (stockOnly && market['stock'] !== true) {
+                continue;
+            }
+            const marketIsRfq = this.safeString(market['info'], 'marketType') === 'RFQ';
+            const ticker = this.safeDict(tickers, marketSymbol);
+            if (ticker !== undefined && (source !== 'External' || market['stock'] === true)) {
+                result[marketSymbol] = ticker;
+            } else if (marketIsRfq) {
+                const underlyingId = market['baseId'] + '_' + market['quoteId'];
+                const useExternal = source === 'External' || needsExternalRfqTickers;
+                const tickerSource = useExternal ? externalResponseById : responseById;
+                const underlyingTicker = this.safeDict(tickerSource, underlyingId);
+                if (underlyingTicker !== undefined) {
+                    result[marketSymbol] = this.parseTicker(underlyingTicker, market);
+                }
+            }
+        }
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     /**
      * @method
      * @name backpack#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @description fetches underlying venue or external stock statistics, not an executable RFQ quote
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @param {string} [params.source] Venue or External; RFQ symbols default to External
+     * @param {string} [params.interval] ticker interval, External requires 1d
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */ async fetchTicker(symbol, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const request = {
-            'symbol': market['id']
-        };
-        const response = await this.publicGetApiV1Ticker(this.extend(request, params));
+        const request = this.stockDataRequest('fetchTicker', params, market);
+        const response = await this.publicGetApiV1Ticker(request);
         return this.parseTicker(response, market);
     }
     parseTicker(ticker, market = undefined) {
@@ -173069,8 +173750,8 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         //     }, ...
         //
         const marketId = this.safeString(ticker, 'symbol');
-        const marketResolved = this.safeMarket(marketId, market);
-        const symbol = this.safeSymbol(marketId, marketResolved);
+        const marketResolved = market === undefined ? this.safeMarket(marketId) : market;
+        const symbol = marketResolved['symbol'];
         const open = this.safeString(ticker, 'firstPrice');
         const last = this.safeString(ticker, 'lastPrice');
         const high = this.safeString(ticker, 'high');
@@ -173113,35 +173794,48 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
     /**
      * @method
      * @name backpack#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @description fetches venue order-book depth, RFQ and external provider depth are not supported
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
+     * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects a tokenized stock spot order book; inferred from symbol when omitted
+     * @param {string} [params.source] Venue, External provider depth is not supported
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */ async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const selection = this.handleStockParams('fetchOrderBook', params, market);
+        const query = this.safeDict(selection, 1, {});
+        const source = this.safeString(query, 'source', 'Venue');
+        if (source !== 'Venue' || this.safeString(market['info'], 'marketType') === 'RFQ') {
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrderBook() requires a venue order-book market; use fetchStockIndicativeQuote() for size-specific RFQ prices');
+        }
         const request = {
             'symbol': market['id']
         };
-        const response = await this.publicGetApiV1Depth(this.extend(request, params));
-        //
-        //     {
-        //         "asks": [
-        //             ["118318.3","0.00633"],
-        //             ["118567.2","0.08450"]
-        //         ],
-        //         "bids": [
-        //             ["1.0","0.38647"],
-        //             ["12.9","1.00000"]
-        //         ],
-        //         "lastUpdateId":"1504999670",
-        //         "timestamp":1753102447307501
-        //     }
-        //
+        let requestLimit = undefined;
+        if (limit !== undefined) {
+            const supportedLimits = [
+                5,
+                10,
+                20,
+                50,
+                100,
+                500
+            ];
+            requestLimit = 500;
+            for(let i = 0; i < supportedLimits.length; i++){
+                if (limit <= supportedLimits[i]) {
+                    requestLimit = supportedLimits[i];
+                    break;
+                }
+            }
+            request['limit'] = requestLimit;
+        }
+        const response = await this.publicGetApiV1Depth(this.extend(request, this.omit(query, 'source')));
         const microseconds = this.safeInteger(response, 'timestamp');
         if (microseconds === undefined) {
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' fetchOrderBook() missing microseconds');
@@ -173149,19 +173843,28 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         const timestamp = this.parseToInt(microseconds / 1000);
         const orderbook = this.parseOrderBook(response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
+        if (limit !== undefined) {
+            orderbook['bids'] = this.arraySlice(orderbook['bids'], 0, limit);
+            orderbook['asks'] = this.arraySlice(orderbook['asks'], 0, limit);
+        }
         return orderbook;
     }
     /**
      * @method
      * @name backpack#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @description fetches venue or external stock candlestick data for the underlying market
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_klines
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in seconds of the earliest candle to fetch
+     * @param {int} [since] timestamp in milliseconds of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @param {string} [params.source] Venue or External; RFQ symbols default to External
+     * @param {string} [params.price] last, mark or index, External requires last
+     * @param {string} [params.priceType] Last, Mark or Index, External requires Last
+     * @param {int} [params.until] latest candle timestamp in milliseconds
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */ async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -173169,11 +173872,12 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const duration = this.parseTimeframe(timeframe);
+        const dataRequest = this.stockDataRequest('fetchOHLCV', params, market);
         const request = {
-            'symbol': market['id'],
+            'symbol': dataRequest['symbol'],
             'interval': interval
         };
-        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchOHLCV', 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(this.omit(dataRequest, 'symbol'), 'fetchOHLCV', 'until');
         if (until !== undefined) {
             request['endTime'] = this.parseToInt(until / 1000); // convert milliseconds to seconds
         }
@@ -173388,7 +174092,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
     /**
      * @method
      * @name backpack#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
+     * @description gets recent venue order-book trades, not public RFQ or external provider fills
      * @see https://docs.backpack.exchange/#tag/Trades/operation/get_recent_trades
      * @see https://docs.backpack.exchange/#tag/Trades/operation/get_historical_trades
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -173396,12 +174100,18 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.offset] the number of trades to skip, default is 0
+     * @param {boolean} [params.stock] selects tokenized stock spot trades; inferred from symbol when omitted
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */ async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const selection = this.handleStockParams('fetchTrades', params, market);
+        const query = this.safeDict(selection, 1, {});
+        if (this.safeString(query, 'source', 'Venue') !== 'Venue' || this.safeString(market['info'], 'marketType') === 'RFQ') {
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchTrades() only supports venue order-book trades; use fetchMyTrades() for RFQ fills');
+        }
         const request = {
             'symbol': market['id']
         };
@@ -173409,11 +174119,11 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             request['limit'] = Math.min(limit, 1000); // api maximum 1000
         }
         let response = undefined;
-        const offset = this.safeInteger(params, 'offset');
+        const offset = this.safeInteger(query, 'offset');
         if (offset !== undefined) {
-            response = await this.publicGetApiV1TradesHistory(this.extend(request, params));
+            response = await this.publicGetApiV1TradesHistory(this.extend(request, query));
         } else {
-            response = await this.publicGetApiV1Trades(this.extend(request, params));
+            response = await this.publicGetApiV1Trades(this.extend(request, query));
         }
         const responseList = this.toArray(response);
         return this.parseTrades(responseList, market, since, limit);
@@ -173421,14 +174131,20 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
     /**
      * @method
      * @name backpack#fetchMyTrades
-     * @description fetch all trades made by the user
+     * @description fetches venue fills or requester RFQ fills, combining stock records when no symbol is supplied
      * @see https://docs.backpack.exchange/#tag/History/operation/get_fills
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_fill_history
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [since] the earliest time in ms to fetch trades for, locally filtered for RFQ history pages
      * @param {int} [limit] the maximum number of trades structures to retrieve (default 100, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {string} [params.fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
+     * @param {int} [params.until] the latest time in ms to fetch trades for, locally filtered for RFQ history pages
+     * @param {boolean} [params.stock] selects tokenized stock fills; inferred from symbol when omitted
+     * @param {boolean} [params.rfq] selects requester RFQ fills only, inferred from RFQ symbols
+     * @param {int} [params.offset] exchange history pagination offset
+     * @param {string} [params.sortDirection] Asc or Desc
+     * @param {boolean} [params.deferredSettlement] selects deferred or immediate RFQ settlement records
+     * @param {string} [params.fillType] User or CollateralConversion for RFQs, additional exchange-specific types for venue fills
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */ async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -173440,16 +174156,71 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
+        const selection = this.handleStockParams('fetchMyTrades', params, market);
+        const stock = this.safeBool(selection, 0, false);
+        const query = this.safeDict(selection, 1, {});
+        const rfq = this.safeBool(query, 'rfq', false) || this.safeString(this.safeDict(market, 'info'), 'marketType') === 'RFQ';
+        const aggregate = stock && market === undefined && !rfq;
+        if (rfq && market !== undefined && this.safeString(market['info'], 'marketType') !== 'RFQ') {
+            throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchMyTrades() rfq requires an RFQ market symbol');
+        }
+        const accountParams = this.omit(query, [
+            'rfq',
+            'until'
+        ]);
+        const until = this.safeInteger(query, 'until');
+        if (rfq || aggregate) {
+            const rfqRequest = {};
+            if (market !== undefined) {
+                rfqRequest['symbol'] = market['id'];
+            }
+            if (limit !== undefined) {
+                rfqRequest['limit'] = Math.min(limit, 1000);
+            }
+            const rfqParams = this.omit(accountParams, [
+                'assetClass',
+                'marketType',
+                'from',
+                'to'
+            ]);
+            const rfqResponse = await this.privateGetWapiV1HistoryRfqFill(this.extend(rfqRequest, rfqParams));
+            let rfqTrades = this.parseTrades(rfqResponse, market, since);
+            if (aggregate) {
+                const venueParams = this.extend(this.omit(accountParams, [
+                    'rfqId',
+                    'quoteId',
+                    'deferredSettlement'
+                ]), {
+                    'assetClass': 'STOCK',
+                    'stock': false
+                });
+                const venueTrades = await this.fetchMyTrades(undefined, since, limit, venueParams);
+                rfqTrades = this.arrayConcat(rfqTrades, venueTrades);
+            }
+            if (stock) {
+                rfqTrades = this.filterStockStructures(rfqTrades);
+            }
+            const filtered = [];
+            for(let i = 0; i < rfqTrades.length; i++){
+                const trade = rfqTrades[i];
+                const timestamp = this.safeInteger(trade, 'timestamp');
+                if (until === undefined || timestamp !== undefined && timestamp <= until) {
+                    filtered.push(trade);
+                }
+            }
+            const sorted = this.sortBy(filtered, 'timestamp');
+            return this.filterBySinceLimit(sorted, since, limit);
+        }
         if (since !== undefined) {
             request['from'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger(params, 'until');
-        const paramsOmitted = until !== undefined ? this.omit(params, [
-            'until'
-        ]) : params;
+        const paramsOmitted = accountParams;
+        if (stock) {
+            request['assetClass'] = 'STOCK';
+        }
         if (until !== undefined) {
             request['to'] = until;
         }
@@ -173457,7 +174228,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         if (fillType === undefined) {
             request['fillType'] = 'User'; // default
         }
-        const response = await this.privateGetWapiV1HistoryFills(this.extend(request, paramsOmitted));
+        const response = await this.privateGetWapiV1HistoryFills(this.extend(paramsOmitted, request));
         const responseList = this.toArray(response);
         return this.parseTrades(responseList, market, since, limit);
     }
@@ -173492,8 +174263,8 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         const id = this.safeString2(trade, 'id', 'tradeId');
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const price = this.safeString(trade, 'price');
-        const amount = this.safeString(trade, 'quantity');
+        const price = this.safeString2(trade, 'fillPrice', 'price');
+        const amount = this.safeString2(trade, 'fillQuantity', 'quantity');
         const isBuyerMaker = this.safeBool(trade, 'isBuyerMaker');
         let side = this.parseOrderSide(this.safeString(trade, 'side'));
         const isMaker = this.safeBool(trade, 'isMaker');
@@ -173504,7 +174275,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             takerOrMaker = 'taker';
             side = isBuyerMaker ? 'sell' : 'buy';
         }
-        const orderId = this.safeString(trade, 'orderId');
+        const orderId = this.safeString2(trade, 'orderId', 'rfqId');
         let fee = undefined;
         const feeAmount = this.safeString(trade, 'fee');
         let timestamp = this.safeInteger(trade, 'timestamp');
@@ -173512,6 +174283,10 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             // if fetchMyTrades
             const datetime = this.safeString(trade, 'timestamp');
             timestamp = this.parse8601(datetime);
+        }
+        const filledAt = this.safeString(trade, 'filledAt');
+        if (filledAt !== undefined) {
+            timestamp = this.parse8601(filledAt);
         }
         const feeSymbol = this.safeCurrencyCode(this.safeString(trade, 'feeSymbol'));
         if (feeAmount !== undefined) {
@@ -173533,7 +174308,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': undefined,
+            'cost': this.safeString2(trade, 'fillQuoteQuantity', 'quoteQuantity'),
             'fee': fee
         }, marketResolved);
     }
@@ -173581,15 +174356,35 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
     /**
      * @method
      * @name backpack#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @description queries the capital account, optionally filtering tokenized stock assets locally
      * @see https://docs.backpack.exchange/#tag/Capital/operation/get_balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock holdings only, without quote-currency cash
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */ async fetchBalance(params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this.privateGetApiV1Capital(params);
+        const selection = this.handleStockParams('fetchBalance', params);
+        const stock = this.safeBool(selection, 0, false);
+        const query = this.safeDict(selection, 1, {});
+        const response = await this.privateGetApiV1Capital(query);
+        if (stock) {
+            let securities = this.safeList(this.options, 'securities');
+            if (securities === undefined) {
+                securities = await this.fetchSecurities();
+            }
+            const securityIds = this.indexBy(securities, 'asset');
+            const balances = {};
+            const assetIds = Object.keys(response);
+            for(let i = 0; i < assetIds.length; i++){
+                const assetId = assetIds[i];
+                if (assetId in securityIds) {
+                    balances[assetId] = response[assetId];
+                }
+            }
+            return this.parseBalance(balances);
+        }
         return this.parseBalance(response);
     }
     parseBalance(response) {
@@ -173895,54 +174690,218 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
     /**
      * @method
      * @name backpack#createOrder
-     * @description create a trade order
+     * @description creates a venue order or bounded requester RFQ for a tokenized stock
      * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+     * @param {float} amount quantity in base currency, RFQs require base quantity
+     * @param {float} [price] limit price, ignored for venue market orders but an optional execution bound for market RFQs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency (could be used instead of amount)
+     * @param {float} [params.cost] venue market orders only, quote-currency cost instead of amount
+     * @param {boolean} [params.stock] selects tokenized stock spot or RFQ execution; inferred from symbol when omitted
+     * @param {string} [params.executionMode] RFQ only, Immediate (default) or AwaitAccept for manually accepted limit RFQs
+     * @param {int} [params.orderExpiryTime] RFQ only, resting Immediate RFQ expiry in milliseconds
      * @param {int} [params.clientOrderId] a unique id for the order
-     * @param {boolean} [params.postOnly] true to place a post only order
-     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
-     * @param {bool} [params.reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
-     * @param {string} [params.selfTradePrevention] one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
-     * @param {bool} [params.autoLend] *spot margin only* if true then the order can lend
-     * @param {bool} [params.autoLendRedeem] *spot margin only* if true then the order can redeem a lend if required
-     * @param {bool} [params.autoBorrow] *spot margin only* if true then the order can borrow
-     * @param {bool} [params.autoBorrowRepay] *spot margin only* if true then the order can repay a borrow
-     * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
-     * @param {object} [params.takeProfit] *swap markets only - takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+     * @param {boolean} [params.postOnly] venue orders only, true to place a post only order
+     * @param {string} [params.timeInForce] venue orders only, GTC, IOC, FOK or PO
+     * @param {bool} [params.reduceOnly] contracts only, reduces a position
+     * @param {string} [params.selfTradePrevention] venue orders only, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
+     * @param {bool} [params.autoLend] lend if required
+     * @param {bool} [params.autoLendRedeem] redeem a lend if required
+     * @param {bool} [params.autoBorrow] borrow if required
+     * @param {bool} [params.autoBorrowRepay] repay a borrow if required
+     * @param {float} [params.triggerPrice] venue orders only, trigger price
+     * @param {object} [params.takeProfit] swap markets only, attached take profit order
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-     * @param {float} [params.takeProfit.price] take profit order price (if not provided the order will be a market order)
-     * @param {object} [params.stopLoss] *swap markets only - stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+     * @param {float} [params.takeProfit.price] take profit limit price, omitted for a market order
+     * @param {object} [params.stopLoss] swap markets only, attached stop loss order
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
+     * @param {float} [params.stopLoss.price] stop loss limit price, omitted for a market order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
+        const selection = this.handleStockParams('createOrder', params, market);
+        const query = this.safeDict(selection, 1, {});
+        const orderParams = this.extend(query, {
+            'stock': this.safeBool(selection, 0, false)
+        });
+        if (this.safeString(market['info'], 'marketType') === 'RFQ') {
+            const rfqResponse = await this.createRfqOrder(symbol, type, side, amount, price, orderParams);
+            const rfqOrder = this.safeDict({
+                'order': rfqResponse
+            }, 'order');
+            return rfqOrder;
+        }
+        const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
         const response = await this.privatePostApiV1Order(orderRequest);
+        return this.parseOrder(response, market);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name backpack#createRfqOrder
+     * @description submits a base-quantity RFQ, with explicit market orders using an indicative execution bound
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
+     * @param {string} symbol unified RFQ market symbol
+     * @param {string} type market or limit
+     * @param {string} side buy or sell
+     * @param {float} amount base quantity
+     * @param {float} [price] required limit price, or optional market execution bound
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.executionMode] Immediate (default and required) to enforce the execution price bound
+     * @param {int} [params.orderExpiryTime] exchange-specific resting RFQ expiry in milliseconds
+     * @param {int} [params.clientOrderId] requester client identifier
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */ async createRfqOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const selection = this.handleStockParams('createRfqOrder', params, market);
+        const paramsResolved = this.safeDict(selection, 1, {});
+        if (this.safeString(market['info'], 'marketType') !== 'RFQ') {
+            throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' createRfqOrder() requires an RFQ market');
+        }
+        if (type !== 'market' && type !== 'limit') {
+            throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() RFQs support market or limit orders only');
+        }
+        if (side !== 'buy' && side !== 'sell') {
+            throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() requires buy or sell');
+        }
+        if (amount === undefined || !_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(this.numberToString(amount), '0')) {
+            throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() RFQs require a positive base quantity');
+        }
+        const unsupported = [
+            'cost',
+            'quoteQuantity',
+            'postOnly',
+            'triggerPrice',
+            'stopLossPrice',
+            'takeProfitPrice',
+            'stopLoss',
+            'takeProfit',
+            'reduceOnly',
+            'timeInForce',
+            'selfTradePrevention'
+        ];
+        for(let i = 0; i < unsupported.length; i++){
+            const key = unsupported[i];
+            if (key in paramsResolved) {
+                throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrder() RFQs do not support ' + key);
+            }
+        }
+        const executionMode = this.safeString(paramsResolved, 'executionMode', 'Immediate');
+        if (executionMode !== 'Immediate') {
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrder() requires Immediate RFQs to enforce the price bound; AwaitAccept has no engine-enforced limit price');
+        }
+        const quantity = this.numberToString(amount);
+        const precision = this.safeDict(market, 'precision', {});
+        if (this.safeNumber(precision, 'amount') !== undefined) {
+            const preciseQuantity = this.amountToPrecision(symbol, amount);
+            if (!_base_Precise_js__rspack_import_3/* .Precise.stringEq */.Y.stringEq(quantity, preciseQuantity)) {
+                throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() RFQ quantity must match the share increment without rounding');
+            }
+        }
+        let limitPrice = this.numberToString(price);
+        if (type === 'limit') {
+            if (limitPrice === undefined || !_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(limitPrice, '0')) {
+                throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() limit RFQs require a positive price');
+            }
+        }
+        if (market['stock'] === true) {
+            const indicative = await this.fetchStockIndicativeQuote(symbol, side, amount, {
+                'stock': false
+            });
+            const indicativePrice = this.safeString(indicative, 'price');
+            if (!this.safeBool(indicative, 'available', false) || indicativePrice === undefined) {
+                throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() stock indicative quote unavailable: ' + this.safeString(indicative, 'reason', 'priceUnavailable'));
+            }
+            if (type === 'market' && limitPrice === undefined) {
+                limitPrice = indicativePrice;
+            }
+            const quantityFilter = this.safeDict(indicative, 'quantityFilter', {});
+            const stepSize = this.safeString(quantityFilter, 'stepSize');
+            const minimum = this.safeString(quantityFilter, 'minQuantity');
+            const maximum = this.safeString(quantityFilter, 'maxQuantity');
+            if (minimum === undefined || stepSize === undefined || !_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(stepSize, '0')) {
+                throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() stock indicative quote is missing valid session quantity constraints');
+            }
+            if (minimum !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringLt */.Y.stringLt(quantity, minimum) || maximum !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(quantity, maximum) || stepSize !== undefined && !_base_Precise_js__rspack_import_3/* .Precise.stringEq */.Y.stringEq(_base_Precise_js__rspack_import_3/* .Precise.stringMod */.Y.stringMod(quantity, stepSize), '0')) {
+                throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() quantity does not match the current stock session constraints');
+            }
+        } else if (limitPrice === undefined) {
+            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' createOrder() crypto market RFQs require an explicit price bound');
+        }
+        if (limitPrice !== undefined && !_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(limitPrice, '0')) {
+            throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() RFQ price must be positive');
+        }
+        if (this.safeInteger(params, 'orderExpiryTime') !== undefined && executionMode !== 'Immediate') {
+            throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() resting RFQs require Immediate execution');
+        }
+        const request = {
+            'symbol': market['id'],
+            'side': this.encodeOrderSide(side),
+            'quantity': quantity,
+            'price': limitPrice,
+            'executionMode': executionMode
+        };
+        const clientOrderId = this.safeInteger(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientId'] = clientOrderId;
+        }
+        const query = this.omit(paramsResolved, 'clientOrderId');
+        const response = await this.privatePostApiV1Rfq(this.extend(query, request));
+        const order = this.parseOrder(response, market);
+        order['type'] = type;
+        return order;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name backpack#acceptRfqQuote
+     * @description explicitly accepts a selected current best quote, which may bind funds before settlement
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/accept_quote
+     * @param {string} id requester RFQ identifier
+     * @param {string} quoteId selected quote identifier
+     * @param {string} symbol unified RFQ market symbol
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */ async acceptRfqQuote(id, quoteId, symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const selection = this.handleStockParams('acceptRfqQuote', params, market);
+        const query = this.safeDict(selection, 1, {});
+        if (this.safeString(market['info'], 'marketType') !== 'RFQ') {
+            throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' acceptRfqQuote() requires an RFQ market');
+        }
+        const request = {
+            'rfqId': id,
+            'quoteId': quoteId
+        };
+        const response = await this.privatePostApiV1RfqAccept(this.extend(query, request));
         return this.parseOrder(response, market);
     }
     /**
      * @method
      * @name backpack#createOrders
-     * @description create a list of trade orders
+     * @description creates venue order-book orders, RFQ batches are not supported
      * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     * @param {boolean} [params.stock] selects tokenized stock spot execution for all orders, otherwise inferred per symbol
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async createOrders(orders, params = {}) {
+        const selection = this.handleStockParams('createOrders', params);
+        const query = this.safeDict(selection, 1, {});
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const ordersRequests = [];
+        const stockOption = this.safeValue2(params, 'stock', 'defaultStock');
+        const stock = this.safeBool(selection, 0, false);
         for(let i = 0; i < orders.length; i++){
             const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
@@ -173951,14 +174910,31 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             const amount = this.safeNumber(rawOrder, 'amount');
             const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
-            const extendedParams = this.extend(orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            const baseParams = {};
+            if (stock || stockOption === false) {
+                baseParams['stock'] = stock;
+            }
+            const baseQuery = this.extend(baseParams, query);
+            const extendedParams = this.extend(baseQuery, orderParams);
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ordersRequests.push(orderRequest);
         }
         const response = await this.privatePostApiV1Orders(ordersRequests);
         return this.parseOrders(response);
     }
-    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+    /**
+     * @ignore
+     * @method
+     * @name backpack#createOrderRequest
+     * @description builds a venue order-book request and rejects RFQ batch execution
+     * @param {string} symbol unified market symbol
+     * @param {string} type order type
+     * @param {string} side order side
+     * @param {float} amount base quantity
+     * @param {float} [price] limit price
+     * @param {object} [params] exchange-specific order parameters
+     * @returns {object} venue order payload
+     */ createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         if (type === undefined) {
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' requires a type argument');
         }
@@ -173966,24 +174942,28 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' requires a side argument');
         }
         const market = this.market(symbol);
+        const selection = this.handleStockParams('createOrder', params, market);
+        const query = this.safeDict(selection, 1, {});
+        if (this.safeString(market['info'], 'marketType') === 'RFQ') {
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' createOrders() does not support RFQ batches; use createOrder()');
+        }
         const request = {
             'symbol': market['id'],
             'side': this.encodeOrderSide(side),
             'orderType': this.capitalize(type)
         };
-        const triggerPrice = this.safeString(params, 'triggerPrice');
+        const triggerPrice = this.safeString(query, 'triggerPrice');
         const isTriggerOrder = triggerPrice !== undefined;
         let quantityKey = 'quantity';
         if (isTriggerOrder) {
             quantityKey = 'triggerQuantity';
         }
         const omitKeys = [];
-        // handle basic limit/market order types
         if (type === 'limit') {
             request['price'] = this.priceToPrecision(symbol, price);
             request[quantityKey] = this.amountToPrecision(symbol, amount);
         } else if (type === 'market') {
-            const cost = this.safeString2(params, 'cost', 'quoteQuantity');
+            const cost = this.safeString2(query, 'cost', 'quoteQuantity');
             if (cost !== undefined) {
                 request['quoteQuantity'] = this.costToPrecision(symbol, cost);
                 omitKeys.push('cost');
@@ -173992,17 +174972,16 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
                 request[quantityKey] = this.amountToPrecision(symbol, amount);
             }
         }
-        // trigger orders
         if (isTriggerOrder) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             omitKeys.push('triggerPrice');
         }
-        const clientOrderId = this.safeInteger(params, 'clientOrderId'); // the exchange requires uint
+        const clientOrderId = this.safeInteger(query, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientId'] = clientOrderId;
             omitKeys.push('clientOrderId');
         }
-        const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', false, this.omit(params, omitKeys));
+        const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', false, this.omit(query, omitKeys));
         if (postOnly) {
             paramsPostOnly['postOnly'] = true;
         }
@@ -174053,12 +175032,16 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
     /**
      * @method
      * @name backpack#fetchOpenOrders
-     * @description fetch all unfilled currently open orders
+     * @description fetches open venue orders or RFQs with their candidate quotes
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_open_orders
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when provided, otherwise selects both venue/RFQ records
+     * @param {boolean} [params.rfq] selects requester RFQs only, inferred from RFQ symbols
+     * @param {boolean} [params.deferredSettlement] selects deferred or immediate RFQ records
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -174070,17 +175053,42 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetApiV1Orders(this.extend(request, params));
-        return this.parseOrders(response, market, since, limit);
+        const selection = this.handleStockParams('fetchOpenOrders', params, market);
+        const stock = this.safeBool(selection, 0, false);
+        const query = this.safeDict(selection, 1, {});
+        const rfq = this.safeBool(query, 'rfq', false) || this.safeString(this.safeDict(market, 'info'), 'marketType') === 'RFQ';
+        if (rfq && market !== undefined && this.safeString(market['info'], 'marketType') !== 'RFQ') {
+            throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchOpenOrders() rfq requires an RFQ market symbol');
+        }
+        const accountParams = this.omit(query, 'rfq');
+        let response = [];
+        if (!rfq) {
+            const venueParams = this.omit(accountParams, [
+                'rfqId',
+                'deferredSettlement'
+            ]);
+            response = await this.privateGetApiV1Orders(this.extend(request, venueParams));
+        }
+        if (rfq || stock && market === undefined) {
+            const rfqResponse = await this.privateGetApiV1Rfqs(this.extend(request, this.omit(accountParams, 'marketType')));
+            response = this.arrayConcat(response, rfqResponse);
+        }
+        let orders = this.parseOrders(response, market, since);
+        if (stock) {
+            orders = this.filterStockStructures(orders);
+        }
+        return this.filterBySinceLimit(this.sortBy(orders, 'timestamp'), since, limit);
     }
     /**
      * @method
      * @name backpack#fetchOpenOrder
-     * @description fetch an open order by it's id
+     * @description fetches an open venue order or requester RFQ by identifier
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
-     * @param {string} id order id
-     * @param {string} symbol not used by fetchOpenOrder ()
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
+     * @param {string} id order or requester RFQ identifier
+     * @param {string} symbol unified market symbol, required
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async fetchOpenOrder(id, symbol = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -174090,22 +175098,86 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchOpenOrder() requires a symbol argument');
         }
         const market = this.market(symbol);
+        const selection = this.handleStockParams('fetchOpenOrder', params, market);
+        const query = this.safeDict(selection, 1, {});
+        if (this.safeString(market['info'], 'marketType') === 'RFQ') {
+            const rfqResponse = await this.privateGetApiV1Rfqs(this.extend(query, {
+                'symbol': market['id'],
+                'rfqId': id
+            }));
+            for(let i = 0; i < rfqResponse.length; i++){
+                const order = this.parseOrder(rfqResponse[i], market);
+                if (order['id'] === id) {
+                    return order;
+                }
+            }
+            throw new _base_errors_js__rspack_import_2.OrderNotFound(this.id + ' fetchOpenOrder() RFQ ' + id + ' not found');
+        }
         const request = {
             'symbol': market['id'],
             'orderId': id
         };
-        const response = await this.privateGetApiV1Order(this.extend(request, params));
-        return this.parseOrder(response);
+        const response = await this.privateGetApiV1Order(this.extend(request, query));
+        return this.parseOrder(response, market);
+    }
+    /**
+     * @method
+     * @name backpack#fetchOrder
+     * @description fetches an order from filtered history with an open-order fallback
+     * @see https://docs.backpack.exchange/#tag/History
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_history
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
+     * @param {string} id order or requester RFQ identifier
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */ async fetchOrder(id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const selection = this.handleStockParams('fetchOrder', params, market);
+        const query = this.safeDict(selection, 1, {});
+        const rfq = this.safeString(market['info'], 'marketType') === 'RFQ';
+        const request = {
+            'symbol': market['id']
+        };
+        if (rfq) {
+            request['rfqId'] = id;
+        } else {
+            request['orderId'] = id;
+        }
+        let response = [];
+        if (rfq) {
+            response = await this.privateGetWapiV1HistoryRfq(this.extend(query, request));
+        } else {
+            response = await this.privateGetWapiV1HistoryOrders(this.extend(query, request));
+        }
+        for(let i = 0; i < response.length; i++){
+            const order = this.parseOrder(response[i], market);
+            if (order['id'] === id) {
+                return order;
+            }
+        }
+        const openOrderParams = this.extend(query, {
+            'stock': this.safeBool(selection, 0, false)
+        });
+        return await this.fetchOpenOrder(id, symbol, openOrderParams);
     }
     /**
      * @method
      * @name backpack#cancelOrder
-     * @description cancels an open order
+     * @description cancels a venue order or requests RFQ cancellation without assuming immediate cancellation
      * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_order
-     * @param {string} id order id
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/cancel_rfq
+     * @param {string} id order or requester RFQ identifier
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
+     * @param {int} [params.clientOrderId] RFQ client identifier instead of id
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrder(id, symbol = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -174114,44 +175186,70 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         const market = this.market(symbol);
+        const selection = this.handleStockParams('cancelOrder', params, market);
+        const query = this.safeDict(selection, 1, {});
+        if (this.safeString(market['info'], 'marketType') === 'RFQ') {
+            const clientOrderId = this.safeInteger(query, 'clientOrderId');
+            const rfqRequest = {};
+            if (clientOrderId === undefined) {
+                rfqRequest['rfqId'] = id;
+            } else {
+                rfqRequest['clientId'] = clientOrderId;
+            }
+            const rfqResponse = await this.privatePostApiV1RfqCancel(this.extend(this.omit(query, 'clientOrderId'), rfqRequest));
+            return this.parseOrder(rfqResponse, market);
+        }
         const request = {
             'orderId': id,
             'symbol': market['id']
         };
-        const response = await this.privateDeleteApiV1Order(this.extend(request, params));
-        return this.parseOrder(response);
+        const response = await this.privateDeleteApiV1Order(this.extend(request, query));
+        return this.parseOrder(response, market);
     }
     /**
      * @method
      * @name backpack#cancelAllOrders
-     * @description cancel all open orders
+     * @description cancels venue orders, bulk RFQ cancellation is not supported
      * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @see https://docs.backpack.exchange/#tag/RFQ
+     * @param {string} symbol unified market symbol, required
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelAllOrders(symbol = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
+            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
         const market = this.market(symbol);
+        const selection = this.handleStockParams('cancelAllOrders', params, market);
+        const query = this.safeDict(selection, 1, {});
+        if (this.safeString(market['info'], 'marketType') === 'RFQ') {
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' cancelAllOrders() does not support RFQs; cancel each RFQ explicitly with cancelOrder()');
+        }
         const request = {
             'symbol': market['id']
         };
-        const response = await this.privateDeleteApiV1Orders(this.extend(request, params));
+        const response = await this.privateDeleteApiV1Orders(this.extend(request, query));
         return this.parseOrders(response, market);
     }
     /**
      * @method
      * @name backpack#fetchOrders
-     * @description fetches information on multiple orders made by the user
+     * @description fetches venue or requester RFQ order history
      * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_history
      * @param {string} [symbol] unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [since] the earliest time in ms to fetch orders for, locally filtered on retrieved pages
      * @param {int} [limit] the maximum number of order structures to retrieve (default 100, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when provided, otherwise selects both venue/RFQ records
+     * @param {boolean} [params.rfq] selects requester RFQ history only, inferred from RFQ symbols
+     * @param {int} [params.offset] exchange history pagination offset
+     * @param {string} [params.sortDirection] Asc or Desc
+     * @param {boolean} [params.deferredSettlement] selects deferred or immediate RFQ history
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */ async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -174166,10 +175264,41 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetWapiV1HistoryOrders(this.extend(request, params));
-        return this.parseOrders(response, market, since, limit);
+        const selection = this.handleStockParams('fetchOrders', params, market);
+        const stock = this.safeBool(selection, 0, false);
+        const query = this.safeDict(selection, 1, {});
+        const rfq = this.safeBool(query, 'rfq', false) || this.safeString(this.safeDict(market, 'info'), 'marketType') === 'RFQ';
+        if (rfq && market !== undefined && this.safeString(market['info'], 'marketType') !== 'RFQ') {
+            throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchOrders() rfq requires an RFQ market symbol');
+        }
+        const accountParams = this.omit(query, 'rfq');
+        let response = [];
+        if (!rfq) {
+            const venueParams = this.omit(accountParams, [
+                'rfqId',
+                'status',
+                'side',
+                'deferredSettlement'
+            ]);
+            response = await this.privateGetWapiV1HistoryOrders(this.extend(request, venueParams));
+        }
+        if (rfq || stock && market === undefined) {
+            const rfqResponse = await this.privateGetWapiV1HistoryRfq(this.extend(request, this.omit(accountParams, 'marketType')));
+            response = this.arrayConcat(response, rfqResponse);
+        }
+        let orders = this.parseOrders(response, market, since);
+        if (stock) {
+            orders = this.filterStockStructures(orders);
+        }
+        return this.filterBySinceLimit(this.sortBy(orders, 'timestamp'), since, limit);
     }
     parseOrder(order, market = undefined) {
+        const rfq = this.safeDict(order, 'rfq');
+        if (rfq !== undefined) {
+            const parsed = this.parseOrder(rfq, market);
+            parsed['info'] = order;
+            return parsed;
+        }
         //
         //     {
         //         "clientId": null,
@@ -174221,6 +175350,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         //         "stopLossTriggerPrice": null,
         //         "strategyId": null,
         //         "symbol": "ETH_USDC",
+        //         "systemOrderType": null,
         //         "takeProfitLimitPrice": null,
         //         "takeProfitTriggerBy": null,
         //         "takeProfitTriggerPrice": null,
@@ -174267,10 +175397,15 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         if (timestamp2 !== undefined) {
             timestamp = timestamp2;
         }
-        const id = this.safeString(order, 'id');
+        const id = this.safeString2(order, 'id', 'rfqId');
         const clientOrderId = this.safeString(order, 'clientId');
-        const symbol = this.safeSymbol(this.safeString(order, 'symbol'), market);
-        const type = this.safeStringLower(order, 'orderType');
+        const marketId = this.safeString(order, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = this.safeSymbol(marketId, marketResolved);
+        let type = this.safeStringLower(order, 'orderType');
+        if (type === undefined && this.safeString(order, 'rfqId') !== undefined && this.safeString(order, 'price') !== undefined) {
+            type = 'limit';
+        }
         const timeInForce = this.safeString(order, 'timeInForce');
         const side = this.parseOrderSide(this.safeString(order, 'side'));
         const amount = this.safeString2(order, 'quantity', 'triggerQuantity');
@@ -174308,7 +175443,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             'status': status,
             'fee': undefined,
             'trades': undefined
-        }, market);
+        }, marketResolved);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -174332,7 +175467,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
     /**
      * @method
      * @name backpack#fetchPositions
-     * @description fetch all open positions
+     * @description fetches derivative positions
      * @see https://docs.backpack.exchange/#tag/Futures/operation/get_positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -174382,7 +175517,6 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
         //         "symbol": "ETH_USDC_PERP",
         //         "userId":1813870
         //     }
-        //
         //
         const id = this.safeString(position, 'positionId');
         const marketId = this.safeString(position, 'symbol');
@@ -174506,7 +175640,13 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl;
-        const sortedParams = Array.isArray(params) ? params : this.keysort(params);
+        const requestParams = Array.isArray(params) ? params : this.omit(params, [
+            'stock',
+            'defaultStock',
+            'rfq',
+            'callerMethodName'
+        ]);
+        const sortedParams = Array.isArray(requestParams) ? requestParams : this.keysort(requestParams);
         let headersSigned = undefined;
         let bodySigned = undefined;
         if (apiName === 'private') {
@@ -174542,7 +175682,7 @@ class backpack extends _abstract_backpack_js__rspack_import_0/* ["default"] */.A
             }
         }
         if (method === 'GET') {
-            const query = this.urlencode(sortedParams);
+            const query = this.urlencodeWithArrayRepeat(sortedParams);
             if (query.length !== 0) {
                 endpoint += '?' + query;
             }
@@ -521794,11 +522934,11 @@ __webpack_require__.d(__webpack_exports__, {
 },
 6476(__unused_rspack_module, __webpack_exports__, __webpack_require__) {
 "use strict";
-/* import */ var _noble_curves_ed25519_js__rspack_import_2 = __webpack_require__(7468);
+/* import */ var _noble_curves_ed25519_js__rspack_import_3 = __webpack_require__(7468);
 /* import */ var _backpack_js__rspack_import_0 = __webpack_require__(9264);
-/* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
+/* import */ var _base_errors_js__rspack_import_1 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_4 = __webpack_require__(1697);
-/* import */ var _base_functions_crypto_js__rspack_import_1 = __webpack_require__(1093);
+/* import */ var _base_functions_crypto_js__rspack_import_2 = __webpack_require__(1093);
 //  ---------------------------------------------------------------------------
 
 
@@ -521810,7 +522950,8 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
+                'watchBalance': true,
+                'unWatchBalance': true,
                 'watchBidsAsks': true,
                 'watchMyTrades': false,
                 'watchOHLCV': true,
@@ -521852,6 +522993,176 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
             }
         });
     }
+    /**
+     * @ignore
+     * @method
+     * @name backpack#prepareWsStockParams
+     * @description validates the stock selector before market loading and preserves it locally
+     * @param {string} methodName calling method
+     * @param {object} params exchange-specific parameters
+     * @returns {object} local parameters with the validated stock selector
+     */ async prepareWsStockParams(methodName, params) {
+        const [stock, query] = this.handleOptionBoolAndParams(params, methodName, 'stock');
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        if (stock === undefined) {
+            return query;
+        }
+        return this.extend(query, {
+            'stock': stock
+        });
+    }
+    /**
+     * @ignore
+     * @method
+     * @name backpack#wsVenueMarketId
+     * @description rejects undocumented provider and RFQ venue streams
+     * @param {string} methodName calling method
+     * @param {object} market resolved market
+     * @param {object} params local parameters
+     * @returns {string} venue market id
+     */ wsVenueMarketId(methodName, market, params) {
+        if (market === undefined) {
+            throw new _base_errors_js__rspack_import_1.BadSymbol(this.id + ' ' + methodName + '() requires a market');
+        }
+        this.handleStockParams(methodName, params, market);
+        const source = this.safeString(params, 'source', 'Venue');
+        if (source === 'External' || this.safeString(market, 'executionModel') === 'rfq' || this.safeString(market['info'], 'marketType') === 'RFQ') {
+            throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' ' + methodName + '() requires a venue order-book market; provider and RFQ streams are not documented for this method');
+        }
+        if (source !== 'Venue') {
+            throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' ' + methodName + '() source must be Venue');
+        }
+        return market['id'];
+    }
+    /**
+     * @ignore
+     * @method
+     * @name backpack#subscribeWsTickers
+     * @description subscribes to venue statistics or stock provider streams with explicit symbol routing
+     * @param {string} methodName calling method
+     * @param {string[]} [symbols] unified symbols
+     * @param {object} [params] local parameters
+     * @param {boolean} [bidAsk] whether bid and ask data is requested
+     * @param {boolean} [unwatch] whether to unsubscribe
+     * @returns {object} unified tickers
+     */ async subscribeWsTickers(methodName, symbols = undefined, params = {}, bidAsk = false, unwatch = false) {
+        const query = await this.prepareWsStockParams(methodName, params);
+        const stock = this.safeBool(query, 'stock', false);
+        const explicitSource = this.safeString(query, 'source');
+        const channel = this.safeString(query, 'channel');
+        const normalized = this.marketSymbols(symbols, undefined, false);
+        const symbolsResolved = [];
+        const topics = [];
+        const messageHashes = [];
+        const url = this.urls['api']['ws']['public'];
+        const client = this.client(url);
+        const kind = bidAsk ? 'bidask' : 'ticker';
+        for(let i = 0; i < normalized.length; i++){
+            const market = this.market(normalized[i]);
+            if (symbols === undefined && (stock || explicitSource === 'External' || channel !== undefined) && market['stock'] !== true) {
+                continue;
+            }
+            const marketSelection = this.handleStockParams(methodName, query, market);
+            const marketStock = this.safeBool(marketSelection, 0, false);
+            const marketParams = this.safeDict(marketSelection, 1, {});
+            const isRfq = this.safeString(market['info'], 'marketType') === 'RFQ';
+            let source = explicitSource;
+            if (source === undefined) {
+                source = isRfq && !bidAsk ? 'External' : 'Venue';
+            }
+            const requestParams = this.extend(marketParams, {
+                'stock': marketStock,
+                'source': source
+            });
+            const request = this.stockDataRequest(methodName, requestParams, market);
+            let topic = 'ticker.' + this.safeString(request, 'symbol');
+            if (channel !== undefined) {
+                if (channel !== 'stockPrice' && channel !== 'stockIndicativeQuote') {
+                    throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' ' + methodName + '() channel must be stockPrice or stockIndicativeQuote');
+                }
+                if (market['stock'] !== true) {
+                    throw new _base_errors_js__rspack_import_1.BadSymbol(this.id + ' ' + methodName + '() stock quote channels require a stock market');
+                }
+                const baseId = this.safeString(market, 'baseId', '');
+                const ticker = baseId.replace('.US', '');
+                topic = channel + '.' + ticker;
+            } else if (bidAsk) {
+                if (source === 'External' || this.safeString(market, 'executionModel') === 'rfq' || isRfq) {
+                    if (market['stock'] !== true) {
+                        throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' ' + methodName + '() RFQ quote streams require a stock market');
+                    }
+                    const baseId = this.safeString(market, 'baseId', '');
+                    const ticker = baseId.replace('.US', '');
+                    const quoteChannel = source === 'External' ? 'stockPrice' : 'stockIndicativeQuote';
+                    topic = quoteChannel + '.' + ticker;
+                } else {
+                    topic = 'bookTicker.' + this.wsVenueMarketId(methodName, market, query);
+                }
+            } else if (source === 'External') {
+                topic = 'externalTicker.' + market['baseId'] + '_USDC';
+            } else if (this.safeString(market, 'executionModel') === 'rfq' && market['stock'] !== true) {
+                throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' ' + methodName + '() RFQ venue tickers are only mapped for stock data');
+            }
+            const symbol = market['symbol'];
+            const messageHash = kind + ':' + symbol + '@' + topic;
+            const subscriptionKey = 'marketData:' + topic;
+            let subscriptions = this.safeDict(client.subscriptions, subscriptionKey, {});
+            if (unwatch) {
+                subscriptions = this.omit(subscriptions, messageHash);
+                this.cleanUnsubscription(client, messageHash, 'unsubscribe:' + messageHash);
+                if (bidAsk) {
+                    delete this.bidsasks[symbol];
+                } else {
+                    delete this.tickers[symbol];
+                }
+            } else {
+                subscriptions[messageHash] = {
+                    'symbol': symbol,
+                    'bidAsk': bidAsk
+                };
+                messageHashes.push(messageHash);
+            }
+            client.subscriptions[subscriptionKey] = subscriptions;
+            const subscriptionHashes = Object.keys(subscriptions);
+            const subscriptionsLength = subscriptionHashes.length;
+            if (!unwatch || subscriptionsLength === 0) {
+                if (!this.inArray(topic, topics)) {
+                    topics.push(topic);
+                }
+            }
+            symbolsResolved.push(symbol);
+        }
+        const symbolsResolvedLength = symbolsResolved.length;
+        if (symbolsResolvedLength === 0) {
+            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' ' + methodName + '() requires at least one matching market');
+        }
+        const payload = this.omit(query, [
+            'stock',
+            'source',
+            'interval',
+            'channel'
+        ]);
+        if (unwatch) {
+            const topicsLength = topics.length;
+            if (topicsLength > 0) {
+                const request = this.extend({
+                    'method': 'UNSUBSCRIBE',
+                    'params': topics
+                }, payload);
+                const messageHash = 'unsubscribe:marketData:' + topics.join(',');
+                this.watchMultiple(url, [
+                    messageHash
+                ], request);
+                client.resolve(true, messageHash);
+            }
+        } else {
+            await this.watchPublic(topics, messageHashes, payload);
+        }
+        const tickers = bidAsk ? this.bidsasks : this.tickers;
+        return this.filterByArray(tickers, 'symbol', symbolsResolved);
+    }
     async watchPublic(topics, messageHashes, params = {}, unwatch = false) {
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -521885,7 +523196,7 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         const payload = 'instruction=' + instruction + '&' + 'timestamp=' + ts + '&window=' + recvWindow;
         const secretBytes = this.base64ToBinary(this.secret);
         const seed = this.arraySlice(secretBytes, 0, 32);
-        const signature = (0,_base_functions_crypto_js__rspack_import_1/* .eddsa */.q4)(this.encode(payload), seed, _noble_curves_ed25519_js__rspack_import_2/* .ed25519 */.ev);
+        const signature = (0,_base_functions_crypto_js__rspack_import_2/* .eddsa */.q4)(this.encode(payload), seed, _noble_curves_ed25519_js__rspack_import_3/* .ed25519 */.ev);
         const request = {
             'method': method,
             'params': topics,
@@ -521980,20 +523291,16 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @param {string} [params.source] Venue or External; RFQ ticker symbols default to External
+     * @param {string} [params.interval] External ticker interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote for quotes instead of statistics
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */ async watchTicker(symbol, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
-        const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const topic = 'ticker' + '.' + market['id'];
-        const messageHash = 'ticker' + ':' + symbolValue;
-        return await this.watchPublic([
-            topic
-        ], [
-            messageHash
+        const tickers = await this.subscribeWsTickers('watchTicker', [
+            symbol
         ], params);
+        return tickers[this.symbol(symbol)];
     }
     /**
      * @method
@@ -522002,11 +523309,16 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @param {string} [params.source] Venue or External, matching the subscription
+     * @param {string} [params.interval] External ticker interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote, matching the subscription
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */ unWatchTicker(symbol, params = {}) {
-        return this.unWatchTickers([
+     */ async unWatchTicker(symbol, params = {}) {
+        await this.subscribeWsTickers('watchTicker', [
             symbol
-        ], params);
+        ], params, false, true);
+        return undefined;
     }
     /**
      * @method
@@ -522015,22 +523327,13 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock markets only; inferred from symbols when omitted
+     * @param {string} [params.source] Venue or External; RFQ ticker symbols default to External
+     * @param {string} [params.interval] External ticker interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote for quotes instead of statistics
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */ async watchTickers(symbols = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const messageHashes = [];
-        const topics = [];
-        for(let i = 0; i < symbolsNormalized.length; i++){
-            const symbol = symbolsNormalized[i];
-            const marketId = this.marketId(symbol);
-            messageHashes.push('ticker:' + symbol);
-            topics.push('ticker.' + marketId);
-        }
-        await this.watchPublic(topics, messageHashes, params);
-        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
+        return await this.subscribeWsTickers('watchTickers', symbols, params);
     }
     /**
      * @method
@@ -522039,21 +523342,14 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock markets only; inferred from symbols when omitted
+     * @param {string} [params.source] Venue or External, matching the subscription
+     * @param {string} [params.interval] External ticker interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote, matching the subscription
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */ async unWatchTickers(symbols = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const topics = [];
-        const messageHashes = [];
-        for(let i = 0; i < symbolsNormalized.length; i++){
-            const symbol = symbolsNormalized[i];
-            const marketId = this.marketId(symbol);
-            topics.push('ticker.' + marketId);
-            messageHashes.push('unsubscribe:ticker:' + symbol);
-        }
-        return await this.watchPublic(topics, messageHashes, params, true);
+        await this.subscribeWsTickers('watchTickers', symbols, params, false, true);
+        return undefined;
     }
     handleTicker(client, message) {
         //
@@ -522074,13 +523370,36 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const ticker = this.safeDict(message, 'data', {});
+        const stream = this.safeString(message, 'stream', '');
+        const subscriptions = this.safeDict(client.subscriptions, 'marketData:' + stream, {});
+        const hashes = Object.keys(subscriptions);
+        const hashesLength = hashes.length;
+        for(let i = 0; i < hashesLength; i++){
+            const messageHash = hashes[i];
+            const subscription = this.safeDict(subscriptions, messageHash, {});
+            const symbol = this.safeString(subscription, 'symbol');
+            if (symbol === undefined) {
+                continue;
+            }
+            const market = this.market(symbol);
+            const mappedTicker = this.extend(ticker, {
+                's': market['id']
+            });
+            const parsedTicker = this.parseWsTicker(mappedTicker, market);
+            parsedTicker['info'] = ticker;
+            this.tickers[symbol] = parsedTicker;
+            client.resolve(parsedTicker, messageHash);
+        }
+        if (hashesLength > 0) {
+            return;
+        }
         const marketId = this.safeString(ticker, 's');
-        const market = this.safeMarket(marketId);
-        const symbol = this.safeSymbol(marketId, market);
-        const parsedTicker = this.parseWsTicker(ticker, market);
-        const messageHash = 'ticker' + ':' + symbol;
-        this.tickers[symbol] = parsedTicker;
-        client.resolve(parsedTicker, messageHash);
+        const fallbackMarket = this.safeMarket(marketId);
+        const fallbackSymbol = this.safeSymbol(marketId, fallbackMarket);
+        const fallbackTicker = this.parseWsTicker(ticker, fallbackMarket);
+        const fallbackHash = 'ticker' + ':' + fallbackSymbol;
+        this.tickers[fallbackSymbol] = fallbackTicker;
+        client.resolve(fallbackTicker, fallbackHash);
     }
     parseWsTicker(ticker, market = undefined) {
         //
@@ -522128,28 +523447,59 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         }, marketResolved);
     }
     /**
+     * @ignore
+     * @method
+     * @name backpack#handleStockTicker
+     * @description routes provider and indicative stock quotes without treating mid prices as trades
+     * @param {object} client websocket client
+     * @param {object} message stream envelope
+     * @returns {boolean} whether a subscription was updated
+     */ handleStockTicker(client, message) {
+        const data = this.safeDict(message, 'data', {});
+        const stream = this.safeString(message, 'stream', '');
+        const subscriptions = this.safeDict(client.subscriptions, 'marketData:' + stream, {});
+        const hashes = Object.keys(subscriptions);
+        const hashesLength = hashes.length;
+        for(let i = 0; i < hashesLength; i++){
+            const messageHash = hashes[i];
+            const subscription = this.safeDict(subscriptions, messageHash, {});
+            const symbol = this.safeString(subscription, 'symbol');
+            if (symbol === undefined) {
+                continue;
+            }
+            const market = this.market(symbol);
+            const timestamp = this.safeInteger(data, 'timestamp');
+            const parsed = this.safeTicker({
+                'symbol': symbol,
+                'timestamp': timestamp,
+                'datetime': this.iso8601(timestamp),
+                'bid': this.safeString(data, 'bid'),
+                'ask': this.safeString(data, 'ask'),
+                'info': data
+            }, market);
+            if (this.safeBool(subscription, 'bidAsk', false)) {
+                this.bidsasks[symbol] = parsed;
+            } else {
+                this.tickers[symbol] = parsed;
+            }
+            client.resolve(parsed, messageHash);
+        }
+        return hashesLength > 0;
+    }
+    /**
      * @method
      * @name backpack#watchBidsAsks
      * @description watches best bid & ask for symbols
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Book-ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock quotes; inferred from symbols when omitted
+     * @param {string} [params.source] Venue or External; RFQ quotes default to indicative quotes
+     * @param {string} [params.interval] External data interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote, unavailable prices remain undefined
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */ async watchBidsAsks(symbols = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const topics = [];
-        const messageHashes = [];
-        for(let i = 0; i < symbolsNormalized.length; i++){
-            const symbol = symbolsNormalized[i];
-            const marketId = this.marketId(symbol);
-            topics.push('bookTicker.' + marketId);
-            messageHashes.push('bidask:' + symbol);
-        }
-        await this.watchPublic(topics, messageHashes, params);
-        return this.filterByArray(this.bidsasks, 'symbol', symbolsNormalized);
+        return await this.subscribeWsTickers('watchBidsAsks', symbols, params, true);
     }
     /**
      * @method
@@ -522157,21 +523507,14 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @description unWatches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock markets only; inferred from symbols when omitted
+     * @param {string} [params.source] Venue or External, matching the subscription
+     * @param {string} [params.interval] External data interval, must be 1d
+     * @param {string} [params.channel] stockPrice or stockIndicativeQuote, matching the subscription
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */ async unWatchBidsAsks(symbols = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets();
-        }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const topics = [];
-        const messageHashes = [];
-        for(let i = 0; i < symbolsNormalized.length; i++){
-            const symbol = symbolsNormalized[i];
-            const marketId = this.marketId(symbol);
-            topics.push('bookTicker.' + marketId);
-            messageHashes.push('unsubscribe:bidask:' + symbol);
-        }
-        return await this.watchPublic(topics, messageHashes, params, true);
+        await this.subscribeWsTickers('watchBidsAsks', symbols, params, true, true);
+        return undefined;
     }
     handleBidAsk(client, message) {
         //
@@ -522190,13 +523533,32 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         //         stream: 'bookTicker.ETH_USDC'
         //     }
         const data = this.safeDict(message, 'data', {});
+        const stream = this.safeString(message, 'stream', '');
+        const subscriptions = this.safeDict(client.subscriptions, 'marketData:' + stream, {});
+        const hashes = Object.keys(subscriptions);
+        const hashesLength = hashes.length;
+        for(let i = 0; i < hashesLength; i++){
+            const messageHash = hashes[i];
+            const subscription = this.safeDict(subscriptions, messageHash, {});
+            const symbol = this.safeString(subscription, 'symbol');
+            if (symbol === undefined) {
+                continue;
+            }
+            const market = this.market(symbol);
+            const parsedBidAsk = this.parseWsBidAsk(data, market);
+            this.bidsasks[symbol] = parsedBidAsk;
+            client.resolve(parsedBidAsk, messageHash);
+        }
+        if (hashesLength > 0) {
+            return;
+        }
         const marketId = this.safeString(data, 's');
-        const market = this.safeMarket(marketId);
-        const symbol = this.safeSymbol(marketId, market);
-        const parsedBidAsk = this.parseWsBidAsk(data, market);
-        const messageHash = 'bidask' + ':' + symbol;
-        this.bidsasks[symbol] = parsedBidAsk;
-        client.resolve(parsedBidAsk, messageHash);
+        const fallbackMarket = this.safeMarket(marketId);
+        const fallbackSymbol = this.safeSymbol(marketId, fallbackMarket);
+        const fallbackBidAsk = this.parseWsBidAsk(data, fallbackMarket);
+        const fallbackHash = 'bidask' + ':' + fallbackSymbol;
+        this.bidsasks[fallbackSymbol] = fallbackBidAsk;
+        client.resolve(fallbackBidAsk, fallbackHash);
     }
     parseWsBidAsk(ticker, market = undefined) {
         //
@@ -522242,14 +523604,17 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects stock spot order-book candles, RFQ candles are unsupported
+     * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */ async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const query = await this.prepareWsStockParams('watchOHLCV', params);
         const result = await this.watchOHLCVForSymbols([
             [
                 symbol,
                 timeframe
             ]
-        ], since, limit, params);
+        ], since, limit, query);
         return result[symbol][timeframe];
     }
     /**
@@ -522260,14 +523625,17 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects stock spot order-book candles
+     * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */ unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        return this.unWatchOHLCVForSymbols([
+     */ async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        const query = await this.prepareWsStockParams('watchOHLCV', params);
+        return await this.unWatchOHLCVForSymbols([
             [
                 symbol,
                 timeframe
             ]
-        ], params);
+        ], query);
     }
     /**
      * @method
@@ -522278,11 +523646,14 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets, not RFQ markets
+     * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */ async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
+        const query = await this.prepareWsStockParams('watchOHLCVForSymbols', params);
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray(symbolsAndTimeframes[0])) {
-            throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
+            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -522295,10 +523666,13 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
             const market = this.market(marketId);
             const tf = this.safeString(symbolAndTimeframe, 1);
             const interval = this.safeString(this.timeframes, tf, tf);
-            topics.push('kline.' + interval + '.' + market['id']);
+            topics.push('kline.' + interval + '.' + this.wsVenueMarketId('watchOHLCVForSymbols', market, query));
             messageHashes.push('candles:' + market['symbol'] + ':' + interval);
         }
-        const [symbol, timeframe, candles] = await this.watchPublic(topics, messageHashes, params);
+        const [symbol, timeframe, candles] = await this.watchPublic(topics, messageHashes, this.omit(query, [
+            'stock',
+            'source'
+        ]));
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = candles.getLimit(symbol, limit);
@@ -522313,11 +523687,14 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/K-Line
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets
+     * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */ async unWatchOHLCVForSymbols(symbolsAndTimeframes, params = {}) {
+        const query = await this.prepareWsStockParams('watchOHLCVForSymbols', params);
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray(symbolsAndTimeframes[0])) {
-            throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
+            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -522330,10 +523707,13 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
             const market = this.market(marketId);
             const tf = this.safeString(symbolAndTimeframe, 1);
             const interval = this.safeString(this.timeframes, tf, tf);
-            topics.push('kline.' + interval + '.' + market['id']);
+            topics.push('kline.' + interval + '.' + this.wsVenueMarketId('watchOHLCVForSymbols', market, query));
             messageHashes.push('unsubscribe:candles:' + market['symbol'] + ':' + interval);
         }
-        return await this.watchPublic(topics, messageHashes, params, true);
+        return await this.watchPublic(topics, messageHashes, this.omit(query, [
+            'stock',
+            'source'
+        ]), true);
     }
     handleOHLCV(client, message) {
         //
@@ -522415,11 +523795,14 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires a stock spot order-book market, RFQ public trades are unsupported
+     * @param {string} [params.source] Venue only
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */ watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return this.watchTradesForSymbols([
+     */ async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        const query = await this.prepareWsStockParams('watchTrades', params);
+        return await this.watchTradesForSymbols([
             symbol
-        ], since, limit, params);
+        ], since, limit, query);
     }
     /**
      * @method
@@ -522428,11 +523811,14 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires a stock spot order-book market
+     * @param {string} [params.source] Venue only
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
-     */ unWatchTrades(symbol, params = {}) {
-        return this.unWatchTradesForSymbols([
+     */ async unWatchTrades(symbol, params = {}) {
+        const query = await this.prepareWsStockParams('watchTrades', params);
+        return await this.unWatchTradesForSymbols([
             symbol
-        ], params);
+        ], query);
     }
     /**
      * @method
@@ -522443,25 +523829,31 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets, not RFQ markets
+     * @param {string} [params.source] Venue only
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */ async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        const query = await this.prepareWsStockParams('watchTradesForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols);
         const symbolsLength = symbolsNormalized.length;
         if (symbolsLength === 0) {
-            throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         const topics = [];
         const messageHashes = [];
         for(let i = 0; i < symbolsNormalized.length; i++){
             const symbol = symbolsNormalized[i];
-            const marketId = this.marketId(symbol);
+            const marketId = this.wsVenueMarketId('watchTradesForSymbols', this.market(symbol), query);
             topics.push('trade.' + marketId);
             messageHashes.push('trades:' + symbol);
         }
-        const trades = await this.watchPublic(topics, messageHashes, params);
+        const trades = await this.watchPublic(topics, messageHashes, this.omit(query, [
+            'stock',
+            'source'
+        ]));
         const first = this.safeDict(trades, 0);
         const tradeSymbol = this.safeString(first, 'symbol');
         let limitResolved = limit;
@@ -522478,25 +523870,31 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets
+     * @param {string} [params.source] Venue only
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */ async unWatchTradesForSymbols(symbols, params = {}) {
+        const query = await this.prepareWsStockParams('watchTradesForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols);
         const symbolsLength = symbolsNormalized.length;
         if (symbolsLength === 0) {
-            throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' unWatchTradesForSymbols() requires a non-empty array of symbols');
+            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' unWatchTradesForSymbols() requires a non-empty array of symbols');
         }
         const topics = [];
         const messageHashes = [];
         for(let i = 0; i < symbolsNormalized.length; i++){
             const symbol = symbolsNormalized[i];
-            const marketId = this.marketId(symbol);
+            const marketId = this.wsVenueMarketId('watchTradesForSymbols', this.market(symbol), query);
             topics.push('trade.' + marketId);
             messageHashes.push('unsubscribe:trades:' + symbol);
         }
-        return await this.watchPublic(topics, messageHashes, params, true);
+        return await this.watchPublic(topics, messageHashes, this.omit(query, [
+            'stock',
+            'source'
+        ]), true);
     }
     handleTrades(client, message) {
         //
@@ -522598,11 +523996,14 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires a stock spot order-book market, not an RFQ market
+     * @param {string} [params.source] Venue only
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */ watchOrderBook(symbol, limit = undefined, params = {}) {
-        return this.watchOrderBookForSymbols([
+     */ async watchOrderBook(symbol, limit = undefined, params = {}) {
+        const query = await this.prepareWsStockParams('watchOrderBook', params);
+        return await this.watchOrderBookForSymbols([
             symbol
-        ], limit, params);
+        ], limit, query);
     }
     /**
      * @method
@@ -522612,25 +524013,33 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets, not RFQ markets
+     * @param {string} [params.source] Venue only
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */ async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        const query = await this.prepareWsStockParams('watchOrderBookForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const marketIds = this.marketIds(symbolsNormalized);
         const messageHashes = [];
         const topics = [];
         for(let i = 0; i < symbolsNormalized.length; i++){
             const symbol = symbolsNormalized[i];
             messageHashes.push('orderbook:' + symbol);
-            const marketId = marketIds[i];
+            const marketId = this.wsVenueMarketId('watchOrderBookForSymbols', this.market(symbol), query);
             const topic = 'depth.' + marketId;
             topics.push(topic);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
+            }
         }
-        const orderbook = await this.watchPublic(topics, messageHashes, params);
-        return orderbook.limit(); // todo check if limit is needed
+        const orderbook = await this.watchPublic(topics, messageHashes, this.omit(query, [
+            'stock',
+            'source'
+        ]));
+        return orderbook.limit();
     }
     /**
      * @method
@@ -522638,11 +524047,14 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires a stock spot order-book market
+     * @param {string} [params.source] Venue only
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
-     */ unWatchOrderBook(symbol, params = {}) {
-        return this.unWatchOrderBookForSymbols([
+     */ async unWatchOrderBook(symbol, params = {}) {
+        const query = await this.prepareWsStockParams('watchOrderBook', params);
+        return await this.unWatchOrderBookForSymbols([
             symbol
-        ], params);
+        ], query);
     }
     /**
      * @method
@@ -522650,24 +524062,29 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] requires stock spot order-book markets
+     * @param {string} [params.source] Venue only
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */ async unWatchOrderBookForSymbols(symbols, params = {}) {
+        const query = await this.prepareWsStockParams('watchOrderBookForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const marketIds = this.marketIds(symbolsNormalized);
         const messageHashes = [];
         const topics = [];
         for(let i = 0; i < symbolsNormalized.length; i++){
             const symbol = symbolsNormalized[i];
             messageHashes.push('unsubscribe:orderbook:' + symbol);
-            const marketId = marketIds[i];
+            const marketId = this.wsVenueMarketId('watchOrderBookForSymbols', this.market(symbol), query);
             const topic = 'depth.' + marketId;
             topics.push(topic);
         }
-        return await this.watchPublic(topics, messageHashes, params, true);
+        return await this.watchPublic(topics, messageHashes, this.omit(query, [
+            'stock',
+            'source'
+        ]), true);
     }
     handleOrderBook(client, message) {
         //
@@ -522700,13 +524117,16 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            // the rest API is very delayed
-            // usually it takes at least 9 deltas to resolve
-            const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 10);
-            if (cacheLength === snapshotDelay) {
-                this.spawn(this.loadOrderBook, client, messageHash, symbol, null, {});
-            }
+            // cache the triggering delta before a synchronous snapshot can inspect the cache
             storedOrderBook.cache.push(data);
+            // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
+            const market = this.market(symbol);
+            const isStockMarket = market['stock'] === true || marketId !== undefined && (marketId.indexOf('.US_') !== -1 || marketId.indexOf('.HK_') !== -1);
+            const defaultSnapshotDelay = isStockMarket ? 0 : 10;
+            const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', defaultSnapshotDelay);
+            if (cacheLength === snapshotDelay) {
+                this.spawn(this.loadOrderBook, client, messageHash, symbol, undefined, {});
+            }
             return;
         } else if (deltaNonce !== undefined && nonce > deltaNonce) {
             return;
@@ -522738,8 +524158,9 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         const firstDelta = this.safeDict(cache, 0);
         const nonce = this.safeInteger(orderbook, 'nonce');
         const firstDeltaStart = this.safeInteger(firstDelta, 'U');
+        const cacheLength = cache.length;
         if (nonce === undefined) {
-            return cache.length;
+            return cacheLength;
         }
         if (firstDeltaStart === undefined) {
             return -1;
@@ -522747,18 +524168,18 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
-        for(let i = 0; i < cache.length; i++){
+        for(let i = 0; i < cacheLength; i++){
             const delta = this.safeDict(cache, i);
             const deltaStart = this.safeInteger(delta, 'U');
             const deltaEnd = this.safeInteger(delta, 'u');
             if (deltaStart === undefined || deltaEnd === undefined) {
-                return cache.length;
+                return cacheLength;
             }
             if (nonce >= deltaStart - 1 && nonce < deltaEnd) {
                 return i;
             }
         }
-        return cache.length;
+        return cacheLength;
     }
     /**
      * @method
@@ -522769,32 +524190,46 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders, RFQ markets use account.rfqUpdate
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const query = await this.prepareWsStockParams('watchOrders', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
+            this.handleStockParams('watchOrders', query, market);
         }
         const symbolResolved = market !== undefined ? this.safeString(market, 'symbol') : symbol;
         let topic = 'account.orderUpdate';
         let messageHash = 'orders';
         if (market !== undefined) {
             topic = 'account.orderUpdate.' + market['id'];
+            if (this.safeString(market, 'executionModel') === 'rfq') {
+                topic = 'account.rfqUpdate.' + market['id'];
+            }
             messageHash = 'orders:' + symbolResolved;
         }
-        const orders = await this.watchPrivate([
+        const topics = [
             topic
-        ], [
+        ];
+        if (market === undefined) {
+            topics.push('account.rfqUpdate');
+        }
+        const orders = await this.watchPrivate(topics, [
             messageHash
-        ], params);
+        ], this.omit(query, 'stock'));
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
+        const filtered = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
+        if (this.safeBool(query, 'stock', false)) {
+            return this.filterStockStructures(filtered);
+        }
+        return filtered;
     }
     /**
      * @method
@@ -522803,27 +524238,37 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
      * @see https://docs.backpack.exchange/#tag/Streams/Private/Order-update
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock order subscriptions
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async unWatchOrders(symbol = undefined, params = {}) {
+        const query = await this.prepareWsStockParams('watchOrders', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
+            this.handleStockParams('watchOrders', query, market);
         }
         const symbolResolved = market !== undefined ? market['symbol'] : symbol;
         let topic = 'account.orderUpdate';
         let messageHash = 'unsubscribe:orders';
         if (market !== undefined) {
             topic = 'account.orderUpdate.' + market['id'];
+            if (this.safeString(market, 'executionModel') === 'rfq') {
+                topic = 'account.rfqUpdate.' + market['id'];
+            }
             messageHash = 'unsubscribe:orders:' + symbolResolved;
         }
-        return await this.watchPrivate([
+        const topics = [
             topic
-        ], [
+        ];
+        if (market === undefined) {
+            topics.push('account.rfqUpdate');
+        }
+        return await this.watchPrivate(topics, [
             messageHash
-        ], params, true);
+        ], this.omit(query, 'stock'), true);
     }
     handleOrder(client, message) {
         //
@@ -522855,7 +524300,13 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString(data, 's');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        const parsed = this.parseWsOrder(data, market);
+        const event = this.safeString(data, 'e', '');
+        let parsed;
+        if (event.indexOf('rfq') === 0 || event.indexOf('quote') === 0) {
+            parsed = this.parseWsRfqOrder(data, market);
+        } else {
+            parsed = this.parseWsOrder(data, market);
+        }
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
@@ -522866,6 +524317,136 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         client.resolve(orders, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve(orders, symbolSpecificMessageHash);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name backpack#parseWsRfqOrder
+     * @description maps documented RFQ lifecycle fields to the REST order parser without inventing fills or fees
+     * @param {object} data RFQ update payload
+     * @param {object} [market] resolved RFQ market
+     * @returns {object} unified order
+     */ parseWsRfqOrder(data, market = undefined) {
+        const event = this.safeString(data, 'e', '');
+        const quoteEvent = event.indexOf('quote') === 0;
+        const timestamp = this.parseToInt(this.safeInteger(data, 'E', 0) / 1000);
+        const request = {
+            'rfqId': this.safeString(data, 'R'),
+            'clientId': this.safeString(data, 'C'),
+            'symbol': this.safeString(data, 's'),
+            'side': this.safeString(data, 'S'),
+            'quantity': this.safeString(data, 'q'),
+            'quoteQuantity': this.safeString(data, 'Q'),
+            'price': this.safeString(data, 'p'),
+            'status': this.safeString(data, 'X'),
+            'createdAt': timestamp,
+            'submissionTime': this.safeInteger(data, 'w'),
+            'expiryTime': this.safeInteger(data, 'W'),
+            'systemOrderType': this.safeString(data, 'o')
+        };
+        if (quoteEvent) {
+            request['id'] = this.safeString(data, 'u');
+        }
+        const marketResolved = this.safeMarket(this.safeString(data, 's'), market);
+        const parsed = this.parseOrder(request, marketResolved);
+        parsed['info'] = data;
+        if (event === 'rfqFilled') {
+            parsed['lastTradeTimestamp'] = this.parseToInt(this.safeInteger(data, 'T', 0) / 1000);
+        }
+        return parsed;
+    }
+    /**
+     * @method
+     * @name backpack#watchBalance
+     * @description watches absolute capital-account asset updates accumulated since subscription, without an initial snapshot
+     * @see https://docs.backpack.exchange/#tag/Streams/Private/Balance-update
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.stock] return tokenized stock assets only; explicit because this method has no symbol
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */ async watchBalance(params = {}) {
+        const query = await this.prepareWsStockParams('watchBalance', params);
+        const stock = this.safeBool(query, 'stock', false);
+        if (stock && this.safeList(this.options, 'securities') === undefined) {
+            await this.fetchSecurities();
+        }
+        const response = await this.watchPrivate([
+            'account.balanceUpdate'
+        ], [
+            'balance'
+        ], this.omit(query, 'stock'));
+        const balances = this.safeDict({
+            'balances': response
+        }, 'balances', {});
+        if (stock) {
+            const securities = this.safeList(this.options, 'securities', []);
+            const result = {
+                'timestamp': this.safeInteger(balances, 'timestamp'),
+                'datetime': this.safeString(balances, 'datetime'),
+                'info': this.safeDict(balances, 'info')
+            };
+            for(let i = 0; i < securities.length; i++){
+                const security = this.safeDict(securities, i, {});
+                const code = this.safeCurrencyCode(this.safeString(security, 'asset'));
+                if (code === undefined) {
+                    continue;
+                }
+                const account = this.safeDict(balances, code);
+                if (account !== undefined) {
+                    result[code] = account;
+                }
+            }
+            return this.safeBalance(result);
+        }
+        return this.safeBalance(balances);
+    }
+    /**
+     * @method
+     * @name backpack#unWatchBalance
+     * @description unsubscribes from all capital-account asset updates
+     * @see https://docs.backpack.exchange/#tag/Streams/Private/Balance-update
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.stock] accepts the tokenized stock view selector; explicit because this method has no symbol
+     * @returns {object} unsubscription result
+     */ async unWatchBalance(params = {}) {
+        const query = await this.prepareWsStockParams('watchBalance', params);
+        return await this.watchPrivate([
+            'account.balanceUpdate'
+        ], [
+            'unsubscribe:balance'
+        ], this.omit(query, 'stock'), true);
+    }
+    /**
+     * @ignore
+     * @method
+     * @name backpack#handleBalance
+     * @description merges absolute asset balances using the REST capital parser
+     * @param {object} client websocket client
+     * @param {object} message stream envelope
+     * @returns {boolean} whether a balance was updated
+     */ handleBalance(client, message) {
+        const data = this.safeDict(message, 'data', {});
+        const assetId = this.safeString(data, 'a');
+        if (assetId === undefined) {
+            return false;
+        }
+        const assets = this.safeDict(this.options, 'wsBalanceAssets', {});
+        assets[assetId] = {
+            'available': this.safeString(data, 'A'),
+            'locked': this.safeString(data, 'L'),
+            'staked': this.safeString(data, 'S')
+        };
+        this.options['wsBalanceAssets'] = assets;
+        const response = this.parseBalance(assets);
+        const parsed = this.safeDict({
+            'balances': response
+        }, 'balances', {});
+        const timestamp = this.parseToInt(this.safeInteger(data, 'E', 0) / 1000);
+        parsed['timestamp'] = timestamp;
+        parsed['datetime'] = this.iso8601(timestamp);
+        parsed['info'] = assets;
+        this.balance = parsed;
+        client.resolve(parsed, 'balance');
+        return true;
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -523145,7 +524726,13 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         }
         const data = this.safeDict(message, 'data');
         const event = this.safeString(data, 'e');
-        if (event === 'ticker') {
+        if (event === 'stockPrice' || event === 'stockIndicativeQuote') {
+            this.handleStockTicker(client, message);
+        } else if (event === 'balanceUpdate') {
+            this.handleBalance(client, message);
+        } else if (event === 'rfqAccepted' || event === 'rfqCandidate' || event === 'rfqAcceptedBinding' || event === 'rfqFilled' || event === 'rfqCancelled' || event === 'quoteAccepted' || event === 'quoteCancelled') {
+            this.handleOrder(client, message);
+        } else if (event === 'ticker' || event === 'externalTicker') {
             this.handleTicker(client, message);
         } else if (event === 'bookTicker') {
             this.handleBidAsk(client, message);
@@ -523176,7 +524763,7 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         try {
             if (code !== undefined) {
                 const msg = this.safeString(error, 'message');
-                throw new _base_errors_js__rspack_import_3.ExchangeError(this.id + ' ' + msg);
+                throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' ' + msg);
             }
             return true;
         } catch (e) {
