@@ -1,0 +1,4 @@
+{
+  "FetchPaginatedCallDynamic": "[]map[string]any",
+  "FetchPaginatedCallIncremental": "[]map[string]any"
+}

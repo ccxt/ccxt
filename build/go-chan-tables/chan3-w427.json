@@ -1,7 +1,5 @@
 {
-    "AuthenticateRest": "*string",
-    "CompleteRawTopics": "[]any",
-    "FetchAccountIdByType": "*string",
-    "FetchAccountSettings": "map[string]any",
-    "FetchCurrency": "map[string]any"
+  "AuthenticateRest": "*string",
+  "FetchAccountIdByType": "*string",
+  "FetchAccountSettings": "map[string]any"
 }

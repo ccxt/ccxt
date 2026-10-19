@@ -1,8 +1,7 @@
 {
-    "RepayCrossMargin": "map[string]any",
-    "BorrowCrossMargin": "map[string]any",
-    "RepayIsolatedMargin": "map[string]any",
-    "BorrowIsolatedMargin": "map[string]any",
-    "FetchBorrowRateHistory": "[]any",
-    "FetchIsolatedBorrowRates": "map[string]any"
+  "RepayCrossMargin": "map[string]any",
+  "BorrowCrossMargin": "map[string]any",
+  "RepayIsolatedMargin": "map[string]any",
+  "BorrowIsolatedMargin": "map[string]any",
+  "FetchIsolatedBorrowRates": "map[string]any"
 }

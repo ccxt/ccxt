@@ -1,11 +1,6 @@
 {
-    "GetAccountId": "*string",
-    "FetchMarketsFromCache": "[]any",
-    "FetchOrdersByType": "[]any",
-    "FetchOrderClassic": "map[string]any",
-    "FetchCurrenciesFromCache": "map[string]any",
-    "FindAccountId": "*string",
-    "FetchDepositMethodIds": "[]any",
-    "FetchPortfolioDetails": "[]any",
-    "FetchUnderlyingAssets": "[]any"
+  "GetAccountId": "*string",
+  "FetchOrdersByType": "[]any",
+  "FetchOrderClassic": "map[string]any",
+  "FindAccountId": "*string"
 }

@@ -1,0 +1,4 @@
+{
+  "FetchBorrowRate": "CrossBorrowRate",
+  "Coinbase.FetchTickerV2": "Ticker"
+}

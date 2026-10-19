@@ -1,6 +1,5 @@
 {
   "Bybit.GetUrlByMarketType": "*string",
-  "FetchCurrenciesWs": "map[string]any",
   "FetchMarketsWs": "[]any",
   "FetchOrderBookWs": "OrderBookInterface",
   "GetListenKey": "*string",

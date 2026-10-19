@@ -1,7 +1,5 @@
 {
-    "FetchMarketsV3": "[]any",
-    "FetchOptionUnderlyings": "[]any",
-    "FetchUTAMarkets": "[]any",
-    "FetchUtaMarkets": "[]any",
-    "FetchVolatilityHistory": "[]any"
+  "FetchMarketsV3": "[]any",
+  "FetchUTAMarkets": "[]any",
+  "FetchUtaMarkets": "[]any"
 }

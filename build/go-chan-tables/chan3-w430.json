@@ -1,8 +1,7 @@
 {
-    "FetchSxbetRealtimeToken": "*string",
-    "FetchTradeQuote": "map[string]any",
-    "FetchTradingLimits": "map[string]any",
-    "FetchTransactionFee": "map[string]any",
-    "GetWithdrawNonce": "*float64",
-    "ResolveEventSeriesTickers": "[]any"
+  "FetchSxbetRealtimeToken": "*string",
+  "FetchTradeQuote": "map[string]any",
+  "FetchTradingLimits": "map[string]any",
+  "FetchTransactionFee": "map[string]any",
+  "GetWithdrawNonce": "*float64"
 }

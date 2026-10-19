@@ -264,7 +264,7 @@ type ICoreExchange interface {
 	NumberToString(num any) *string
 	Base16ToBinary(str any) []byte
 	ParseToNumeric(value any) any
-	LoadMarketsAsync(params ...any) <-chan AsyncResult[any]
+	LoadMarketsAsync(params ...any) <-chan AsyncResult[*sync.Map]
 	SetMarkets(markets any, optionalArgs ...any) any
 	SafeDict(dictionary any, key any, defaultValue ...any) any
 	SafeDictMap(dictionaryOrList any, key any, optionalArgs ...any) map[string]any
@@ -299,7 +299,7 @@ type ICoreExchange interface {
 	FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]MarginMode]
 	FetchOptionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Option]
 	FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]MarginModification]
-	FetchConvertCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	FetchConvertCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[Currencies]
 	FetchConvertQuoteAsync(fromCode string, toCode string, optionalArgs ...any) <-chan AsyncResult[Conversion]
 	CreateConvertTradeAsync(id string, fromCode string, toCode string, optionalArgs ...any) <-chan AsyncResult[Conversion]
 	FetchConvertTradeAsync(id string, optionalArgs ...any) <-chan AsyncResult[Conversion]
@@ -479,8 +479,8 @@ type IDerivedExchange interface {
 	FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]DepositWithdrawFee]
 	CreateExpiredOptionMarket(symbol any) any
 	FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64]
-	FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
-	FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[map[string]any]
+	FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]PredictionEvent]
+	FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[PredictionOutcome]
 	FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncResult[map[string]any]
 	SignEvmTransaction(tx any, privateKey any) any
 	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[LeverageTiers]

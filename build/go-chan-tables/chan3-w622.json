@@ -1,0 +1,4 @@
+{
+  "FetchEventsByQuery": "[]map[string]any",
+  "FetchSeriesEvents": "[]map[string]any"
+}

@@ -1,0 +1,4 @@
+{
+  "FetchMarketsFromCache": "[]map[string]any",
+  "FetchPortfolioDetails": "[]map[string]any"
+}

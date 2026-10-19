@@ -1,7 +1,4 @@
 {
-    "FetchDepositMethodId": "map[string]any",
-    "FetchEventsByQuery": "[]any",
-    "FetchLatestBlockHeight": "*int64",
-    "FetchMarket": "map[string]any",
-    "FetchRawEventsBySearch": "[]any"
+  "FetchDepositMethodId": "map[string]any",
+  "FetchLatestBlockHeight": "*int64"
 }

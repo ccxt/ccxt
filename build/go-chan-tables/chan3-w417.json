@@ -1,7 +1,4 @@
 {
-    "RepayMargin": "map[string]any",
-    "SetContractLeverage": "map[string]any",
-    "SignAndCancelAllOrders": "[]any",
-    "SignAndCancelOrder": "[]any",
-    "SignAndCreateOrder": "[]any"
+  "RepayMargin": "map[string]any",
+  "SetContractLeverage": "map[string]any"
 }
