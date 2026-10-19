@@ -1451,6 +1451,8 @@ public partial class toobit : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1467,26 +1469,41 @@ public partial class toobit : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
+        Int64? until = this.safeInteger(parameters, "until");
+        object paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;
+        (string?, object) endpointparamsPriceVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price");
+        string? endpoint = endpointparamsPriceVariable.Item1;
+        object paramsPrice = endpointparamsPriceVariable.Item2;
+        bool isPriceKlines = ((endpoint == "index")) || ((endpoint == "mark"));
+        string startKey = "startTime";
+        string endKey = "endTime";
+        if (isPriceKlines)
+        {
+            startKey = "from";
+            endKey = "to";
+        }
         if ((since != null))
         {
-            request["startTime"] = since;
+            request[(string)startKey] = since;
         }
-        Int64? until = this.safeInteger(parameters, "until");
         if ((until != null))
         {
-            request["endTime"] = until;
+            request[(string)endKey] = until;
+        } else if (isPriceKlines && ((since != null)))
+        {
+            // mark and index klines walk backwards from `to` and ignore a lone `from`
+            int duration = this.parseTimeframe(timeframeVar);
+            Int64? requestedLimit = ((limit == null)) ? 2000 : limit; // exchange default
+            request["to"] = this.sum(since, ((duration * requestedLimit) * 1000));
         }
-        object paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;
         if ((limit != null))
         {
             request["limit"] = limit;
         }
-        List<object> response = new List<object>() {};
-        (string?, object) endpointparamsPriceVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price");
-        string? endpoint = endpointparamsPriceVariable.Item1;
-        object paramsPrice = endpointparamsPriceVariable.Item2;
+        object response = new List<object>() {};
         if ((endpoint == "index"))
         {
+            request["symbol"] = this.safeString((market.ContainsKey("info") ? market["info"] : null), "indexToken"); // index klines take the index id instead of the market id
             response = await this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice));
         } else if ((endpoint == "mark"))
         {
@@ -1495,10 +1512,13 @@ public partial class toobit : Exchange
         {
             response = await this.commonGetQuoteV1Klines(this.extend(request, paramsPrice));
         }
-        List<object> candles = new List<object>() {};
+        object candles = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             candles = response;
+        } else
+        {
+            candles = this.safeList(response, "data", new List<object>() {});
         }
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
     }
