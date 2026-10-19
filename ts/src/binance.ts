@@ -6082,7 +6082,7 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         const ordersRequests: List = [];
-        let orderSymbols: List = [];
+        const orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -6101,8 +6101,8 @@ export default class binance extends Exchange {
             const orderRequest = this.editContractOrderRequest (id, marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
-        const market = this.market (orderSymbols[0]);
+        const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const market = this.market (symbols[0]);
         if ((market['spot'] === true) || (market['option'] === true)) {
             throw new NotSupported (this.id + ' editOrders() does not support ' + market['type'] + ' orders');
         }
@@ -6901,7 +6901,7 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         const ordersRequests: List = [];
-        let orderSymbols: List = [];
+        const orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -6923,8 +6923,8 @@ export default class binance extends Exchange {
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, this.extend (orderParams, { 'isAlgoOrder': false }));
             ordersRequests.push (orderRequest);
         }
-        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
-        const market = this.market (orderSymbols[0]);
+        const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const market = this.market (symbols[0]);
         if (market['spot'] === true) {
             throw new NotSupported (this.id + ' createOrders() does not support ' + market['type'] + ' orders');
         }

@@ -3589,7 +3589,7 @@ export default class aster extends Exchange {
         let maintenanceMarginPercentageString: Str = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise.stringLt (notionalStringAbs, bracket[0])) {
+            if (Precise.stringLt (notionalStringAbs, this.safeString (bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString (bracket, 1);
@@ -3841,9 +3841,10 @@ export default class aster extends Exchange {
             if (!filterClosed || isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
                 if (code in balances) {
+                    const balance = this.safeDict (balances, code);
                     const parsed = this.parseAccountPosition (this.extend (position, {
-                        'crossMargin': balances[code]['crossMargin'],
-                        'crossWalletBalance': balances[code]['crossWalletBalance'],
+                        'crossMargin': this.safeString (balance, 'crossMargin'),
+                        'crossWalletBalance': this.safeString (balance, 'crossWalletBalance'),
                     }), market);
                     result.push (parsed);
                 }
@@ -3894,7 +3895,7 @@ export default class aster extends Exchange {
         let maintenanceMarginPercentageString: Str = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise.stringLt (notionalStringAbs, bracket[0])) {
+            if (Precise.stringLt (notionalStringAbs, this.safeString (bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString (bracket, 1);

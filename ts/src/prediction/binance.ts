@@ -3,7 +3,7 @@ import { Precise } from '../base/Precise.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidNonce, PermissionDenied, RateLimitExceeded, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound } from '../base/errors.js';
-import type { OrderSide, OrderType, Int, int, Str, Dict, List, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade, Endpoint } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Dict, Bool, List, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade, Endpoint } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -649,7 +649,7 @@ export default class binance extends Exchange {
             const tokenId = this.safeString (rawOutcome, 'tokenId');
             const outcomeHandle = marketSymbol + ':' + label;
             const price = this.safeString (rawOutcome, 'price');
-            let winnerRaw = undefined;
+            let winnerRaw: Bool = undefined;
             let settleFractionRaw = undefined;
             if (resolved && (price !== undefined)) {
                 winnerRaw = Precise.stringEq (price, '1');

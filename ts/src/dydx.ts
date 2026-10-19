@@ -1468,7 +1468,7 @@ export default class dydx extends Exchange {
         return this.uuid5 (nameSp, orderInfo);
     }
 
-    async fetchLatestBlockHeight (params = {}): Promise<int> {
+    async fetchLatestBlockHeight (params: Dict = {}): Promise<int> {
         const response = await this.nodeRpcGetAbciInfo (params);
         //
         // {
@@ -2277,7 +2277,7 @@ export default class dydx extends Exchange {
         return this.parseTransactions (rows, currency, since, limit);
     }
 
-    async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
+    async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
         const methodName = this.safeString (params, 'methodName');
         const paramsOmitted = this.omit (params, 'methodName');
         const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress (methodName, paramsOmitted);

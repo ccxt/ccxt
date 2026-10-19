@@ -268,8 +268,7 @@ export default class cryptocom extends cryptocomRest {
         const marketId = this.safeString (message, 'instrument_name');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let data = this.safeValue (message, 'data');
-        data = this.safeDict (data, 0);
+        const data = this.safeDict (this.safeList (message, 'data'), 0);
         const timestamp = this.safeInteger (data, 't');
         if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger (message, 'depth');

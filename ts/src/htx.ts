@@ -1550,7 +1550,7 @@ export default class htx extends Exchange {
         let paramsTypes: Dict = {};
         [ types, paramsTypes ] = this.handleOptionAndParams (params, 'fetchMarkets', 'types', {});
         let allMarkets: List = [];
-        let promises: List = [];
+        const promises: List = [];
         const keys = Object.keys (types);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -1565,9 +1565,9 @@ export default class htx extends Exchange {
                 }
             }
         }
-        promises = await Promise.all (promises);
-        for (let i = 0; i < promises.length; i++) {
-            allMarkets = this.arrayConcat (allMarkets, promises[i]);
+        const responses = await Promise.all (promises);
+        for (let i = 0; i < responses.length; i++) {
+            allMarkets = this.arrayConcat (allMarkets, responses[i]);
         }
         return allMarkets;
     }

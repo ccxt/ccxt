@@ -233,6 +233,12 @@ func MarketTyped(v any) map[string]any {
 	return row
 }
 
+// CurrencyTyped is MarketTyped for currency rows: SafeCurrencyStructure returns its fresh row through
+// it, and Currency()/SafeCurrency() wrap their result, so `row["k"]` equals GetValue(row, "k").
+func CurrencyTyped(v any) map[string]any {
+	return MarketTyped(v)
+}
+
 func marketValueIsPlain(v any) bool {
 	switch p := v.(type) {
 	case *string, *int64, *float64, *bool, *int, *[]string, *[]any, *map[string]any, *any:

@@ -3583,8 +3583,7 @@ export default class phemex extends Exchange {
         if (isUSDTSettled) {
             data = this.safeList (response, 'data', []);
         } else {
-            data = this.safeValue (response, 'data', {});
-            data = this.safeList (data, 'rows', []);
+            data = this.safeList (this.safeDict (response, 'data', {}), 'rows', []);
         }
         return this.parseTrades (data, market, since, limitResolved);
     }

@@ -99,7 +99,7 @@ export default class woo extends wooRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async unwatchPublic (subHash: string, symbol: Str, topic: string, params = {}): Promise<any> {
+    async unwatchPublic (subHash: string, symbol: Str, topic: string, params: Dict = {}): Promise<any> {
         let urlUid: Str = '';
         if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;

@@ -826,7 +826,7 @@ export default class bybit extends bybitRest {
         //         "type": "snapshot"
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeList (message, 'data', []);
         const topic = this.safeString (message, 'topic', '');
         const topicParts = topic.split ('.');
         const topicLength = topicParts.length;
@@ -1215,7 +1215,7 @@ export default class bybit extends bybitRest {
         //         ]
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeList (message, 'data', []);
         const topic = this.safeString (message, 'topic', '');
         const trades = data;
         const parts = topic.split ('.');

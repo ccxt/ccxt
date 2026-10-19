@@ -294,7 +294,7 @@ export default class kucoin extends kucoinRest {
         return this.safeString (this.options, 'utaToken');
     }
 
-    unSubscribe (url: any, messageHash: any, topic: any, subscriptionHash: any, params = {}, subscription: NullableDict = undefined): Promise<any> {
+    unSubscribe (url: any, messageHash: any, topic: any, subscriptionHash: any, params: Dict = {}, subscription: NullableDict = undefined): Promise<any> {
         return this.unSubscribeMultiple (url, [ messageHash ], topic, [ subscriptionHash ], params, subscription);
     }
 

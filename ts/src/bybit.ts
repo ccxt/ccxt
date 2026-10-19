@@ -4819,7 +4819,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const ordersRequests: List = [];
-        let orderSymbols: List = [];
+        const orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -4834,8 +4834,8 @@ export default class bybit extends Exchange {
             delete orderRequest['category'];
             ordersRequests.push (orderRequest);
         }
-        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
-        const market = this.market (orderSymbols[0]);
+        const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const market = this.market (symbols[0]);
         const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 6);
         const [ category, paramsValue ] = this.getBybitType ('editOrders', market, params);
         if ((category === 'inverse') && (unifiedMarginStatus < 5)) {

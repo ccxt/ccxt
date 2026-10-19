@@ -8977,6 +8977,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // locals make the remaining `is_true` sites native.
                 rustContent = this.dropNativeCallIsTrue(rustContent);
                 rustContent = this.dropOptionShadowIsTrue(rustContent);
+                rustContent = this.hx4R03DropBoolBoxedIsTrue(rustContent);
                 // Last: drop `.clone()` on the value arg of
                 // extend/omit/market/parse_number when the local is dead
                 // afterwards (those callees take the Value by value).
@@ -9709,6 +9710,7 @@ impl std::ops::DerefMut for ${coreName} {
         // D-32: bool/`Option<bool>` callees and `Option`-typed shadow locals.
         finalFile = this.dropNativeCallIsTrue(finalFile);
         finalFile = this.dropOptionShadowIsTrue(finalFile);
+        finalFile = this.hx4R03DropBoolBoxedIsTrue(finalFile);
         finalFile = this.nativeRequestDictInserts(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
         finalFile = this.typeSafeListLocals(finalFile);
@@ -11673,6 +11675,282 @@ impl std::ops::DerefMut for ${coreName} {
                 unexpected.map(t => `${t.kind}:${t.name}`).join(', '),
             );
         }
+    }
+
+    // hx4 R03 — `is_true(&X)` -> `X.as_bool() == Some(true)` when X can only hold
+    // `Value::Bool(..)` / `Value::Null` (exact: `is_truthy` reads Bool by payload, Null false).
+
+    /** Every return path is a `Value::Bool(..)` box or `Value::Null`: explicit
+     *  `return`s plus the fn's tail expression (after the last top-level `;`/`}`). */
+    hx4R03BodyReturnsBoolNullOnly(body: string): boolean {
+        const masked = this.maskStringsAndComments(body);
+        const inner = masked.slice(1, masked.lastIndexOf('}'));
+        if (/\?\s*[;)}\n]/.test(inner)) return false;
+        for (const r of inner.matchAll(/\breturn\b\s*([^;]*);/g)) {
+            const t = r[1].trim();
+            if (!(t === 'Value::Null' || t === 'crate::Value::Null' ||
+                (/^(?:crate::)?Value::Bool\(/.test(t) && this.closeParenAt(t, t.indexOf('(')) === t.length - 1))) return false;
+        }
+        let depth = 0; let last = -1;
+        for (let i = 0; i < inner.length; i++) {
+            const c = inner[i];
+            if (c === '(' || c === '[' || c === '{') depth += 1;
+            else if (c === ')' || c === ']') depth -= 1;
+            else if (c === '}') { depth -= 1; if (depth === 0) last = i; }
+            else if (c === ';' && depth === 0) last = i;
+        }
+        const tail = inner.slice(last + 1).trim();
+        // An empty tail may be a value-producing `if`/`match` block: keep the helper.
+        if (tail === 'Value::Null' || tail === 'crate::Value::Null') return true;
+        return /^(?:crate::)?Value::Bool\(/.test(tail) && this.closeParenAt(tail, tail.indexOf('(')) === tail.length - 1;
+    }
+
+    /** Hand-written base fields whose every write in the runtime is a `Value::Bool(..)` box. */
+    hx4R03BoolFields(): Set<string> {
+        const cache = this as any;
+        if (cache._hx4R03BoolFields !== undefined) return cache._hx4R03BoolFields;
+        const out = new Set<string>();
+        let srcs: string[] = [];
+        try {
+            const core = fs.readdirSync(RUST_CORE).filter(f => f.endsWith('.rs') && f !== 'exchange.rs').map(f => `${RUST_CORE}/${f}`);
+            srcs = [`${RUST_CORE}/exchange.rs`, ...core].map(f => this.maskStringsAndComments(fs.readFileSync(f, 'utf8')));
+        } catch {
+            cache._hx4R03BoolFields = out;
+            return out;
+        }
+        const decl = srcs[0];
+        for (const m of decl.matchAll(/^\s*pub ([A-Za-z_][A-Za-z0-9_]*)\s*:\s*Value\s*,/gm)) {
+            const name = m[1];
+            let ok = true; let inits = 0;
+            for (const src of srcs) {
+                // struct-literal init `name: <rhs>,` and assignments `.name = <rhs>;`
+                const re = new RegExp(`(?:^\\s*${name}\\s*:(?!:)|\\.${name}\\s*=(?!=))\\s*([^\\n]*)`, 'gm');
+                for (const w of src.matchAll(re)) {
+                    if (/^\s*pub\s/.test(w[0])) continue;
+                    if (!/^(?:crate::)?Value::Bool\((?:true|false)\)\s*[,;]/.test(w[1].trim())) { ok = false; break; }
+                    inits += 1;
+                }
+                // `&mut self.name` / `get_value_mut(&mut self.name` style writers.
+                if (new RegExp(`&mut\\s+self\\.${name}\\b`).test(src)) ok = false;
+                if (!ok) break;
+            }
+            if (ok && inits > 0 && !this.hx4R03TsWritesField(name)) out.add(name);
+        }
+        cache._hx4R03BoolFields = out;
+        return out;
+    }
+
+    /** A venue source (ts/src, ts/src/pro, ts/src/prediction) assigns `this.<field>`. */
+    hx4R03TsWritesField(field: string): boolean {
+        const re = new RegExp(`\\bthis\\.${field}\\s*=(?!=)`);
+        for (const dir of ['./ts/src', './ts/src/pro', './ts/src/prediction']) {
+            let files: string[] = [];
+            try { files = fs.readdirSync(dir).filter(f => f.endsWith('.ts')); } catch { continue; }
+            for (const f of files) if (re.test(fs.readFileSync(`${dir}/${f}`, 'utf8'))) return true;
+        }
+        return false;
+    }
+
+    /** `crate::precise::Precise::stringX` comparators returning only `Bool(false)` / `vbool(..)`. */
+    hx4R03PreciseBoolFns(): Set<string> {
+        const cache = this as any;
+        if (cache._hx4R03PreciseBoolFns !== undefined) return cache._hx4R03PreciseBoolFns;
+        const out = new Set<string>();
+        try {
+            const src = fs.readFileSync(`${RUST_CORE}/precise.rs`, 'utf8');
+            for (const m of src.matchAll(/pub fn (string[A-Z][A-Za-z]*)\(a: &crate::Value, b: &crate::Value\)\s*-> crate::Value \{([^\n]*)\}\s*$/gm)) {
+                const body = m[2].trim();
+                if (/^if Self::any_null\(a, b\) \{ return crate::Value::Bool\(false\); \} Self::vbool\([^;{}]*\)$/.test(body)) out.add(m[1]);
+            }
+            for (const m of src.matchAll(/pub fn (string[A-Z][A-Za-z]*)\(a: &crate::Value, b: &crate::Value\)\s*-> crate::Value \{ Self::(string[A-Z][A-Za-z]*)\(a, b\) \}/g)) {
+                if (out.has(m[2])) out.add(m[1]);
+            }
+        } catch { /* precise.rs absent: keep the helper */ }
+        cache._hx4R03PreciseBoolFns = out;
+        return out;
+    }
+
+    /** True when the printed expression can only be a `Value::Bool(..)` / Null box. */
+    hx4R03IsBoolBoxedExpr(raw: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const e = this.stripOuterParens(raw.trim());
+        if (this.isBoolValuedRhs(e)) return true;
+        if (this.hx4X03IsBoolTupleHead(e, content, own, memo)) return true;
+        const field = /^self\.([A-Za-z_][A-Za-z0-9_]*)(?:\.clone\(\))?$/.exec(e);
+        if (field !== null) return this.hx4R03BoolFields().has(field[1]) && this.hx4R03FieldWritesBoxed(content, field[1]);
+        const precise = /^crate::precise::Precise::([A-Za-z]+)\(/.exec(e);
+        if (precise !== null) {
+            return this.closeParenAt(e, precise[0].length - 1) === e.length - 1 && this.hx4R03PreciseBoolFns().has(precise[1]);
+        }
+        const call = /^self\.([a-z_][a-z0-9_]*)\(/.exec(e);
+        if (call === null || this.closeParenAt(e, call[0].length - 1) !== e.length - 1) return false;
+        const name = call[1];
+        if (memo.has(name)) return memo.get(name) as boolean;
+        let ok = false;
+        if (!(name in this.traitMethodSignatures())) {
+            const srcs = own.has(name) ? [content] : (this._rustBoolReturnMethods?.src ?? []);
+            const sigRe = new RegExp(`\\b(async\\s+)?fn\\s+${name}\\s*\\(`, 'g');
+            // Every declaration must be sync and print `-> Value` (a native `bool` has no `.as_bool()`).
+            const asyncDecl = srcs.some(s => [...s.matchAll(sigRe)].some(m => m[1] !== undefined ||
+                !/->\s*(?:crate::)?Value\s*$/.test(s.slice(m.index, m.index + 400).split('{')[0].trim())));
+            const bodies = srcs.flatMap(s => this.rustFnBodies(s, name));
+            ok = !asyncDecl && bodies.length > 0 && bodies.every(b => this.hx4R03BodyReturnsBoolNullOnly(b));
+        }
+        memo.set(name, ok);
+        return ok;
+    }
+
+    /** No write in this file can put a non-bool box in `self.<field>`. */
+    hx4R03FieldWritesBoxed(content: string, field: string): boolean {
+        const masked = this.maskStringsAndComments(content);
+        if (new RegExp(`&mut\\s+self\\.${field}\\b`).test(masked)) return false;
+        for (const w of masked.matchAll(new RegExp(`\\.${field}\\s*=(?!=)\\s*`, 'g'))) {
+            const end = this.endOfRustStatement(masked, w.index + w[0].length);
+            if (end < 0 || !this.isBoolValuedRhs(masked.slice(w.index + w[0].length, end))) return false;
+        }
+        return true;
+    }
+
+    /** Rewrites `is_true(&X)` in a proven bool slot when X is bool-boxed (call/field/local). */
+    hx4R03DropBoolBoxedIsTrue(content: string): string {
+        if (!content.includes('is_true(&')) return content;
+        // Prime the base-source cache shared with the D-32 call fold.
+        this.rustEmittedBoolReturnMethods(content, []);
+        const masked = this.maskStringsAndComments(content);
+        const own = new Set<string>();
+        for (const om of masked.matchAll(/\bfn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>{}()]*>)?\s*\(/g)) own.add(om[1]);
+        const memo = new Map<string, boolean>();
+        const headers: number[] = [];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.unshift(0);
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const region = masked.slice(from, headers[h + 1]);
+            const localOk = new Map<string, boolean>();
+            const provenLocal = (name: string): boolean => {
+                if (localOk.has(name)) return localOk.get(name) as boolean;
+                let ok = false;
+                const decls = [...region.matchAll(new RegExp(`let (?:mut )?${name}\\b(\\s*:\\s*Value)?\\s*=\\s*`, 'g'))];
+                if (decls.length === 1 && decls[0][1] !== undefined &&
+                    !new RegExp(`\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`).test(region) &&
+                    !new RegExp(`(?:for|if let|while let)\\s+${name}\\s+(?:in|=)`).test(region) &&
+                    !new RegExp(`&mut\\s+${name}\\b`).test(region) &&
+                    !new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*(?:[-+*/%|&^]|<<|>>)=`).test(region) &&
+                    // Pattern bindings (`Some(x) =>`) and in-place methods can swap the variant.
+                    !new RegExp(`\\b${name}\\s*\\)\\s*(?:=>|if\\b)`).test(region) &&
+                    !new RegExp(`(?<![A-Za-z0-9_.])${name}\\.(?!clone\\(|as_[a-z0-9]+\\(|is_[a-z_]+\\()[a-z_]+\\(`).test(region)) {
+                    const initAt = (decls[0].index as number) + decls[0][0].length;
+                    const initEnd = this.endOfRustStatement(region, initAt);
+                    ok = initEnd >= 0 && this.hx4R03IsBoolBoxedExpr(content.slice(from + initAt, from + initEnd), content, own, memo);
+                    for (const w of ok ? region.matchAll(new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*=(?!=)\\s*`, 'g')) : []) {
+                        const rhsAt = (w.index as number) + w[0].length;
+                        const end = this.endOfRustStatement(region, rhsAt);
+                        const rhs = end < 0 ? '' : content.slice(from + rhsAt, from + end);
+                        if (end < 0 || !this.hx4R03IsBoolBoxedExpr(rhs, content, own, memo)) { ok = false; break; }
+                    }
+                }
+                localOk.set(name, ok);
+                return ok;
+            };
+            for (const sm of region.matchAll(/(?<![A-Za-z0-9_:])is_true\(&/g)) {
+                const start = from + (sm.index as number);
+                const open = start + 'is_true('.length - 1;
+                const close = this.closeParenAt(content, open);
+                if (close < 0 || close >= headers[h + 1]) continue;
+                const end = close + 1;
+                if (/^\s*\./.test(content.slice(end, end + 4))) continue;
+                // A compare after the site would chain with the emitted `==`.
+                if (/^\s*(?:==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
+                // A left operand of `&&`/`||` is a bool slot too.
+                const lead = content.slice(Math.max(0, start - 12), start);
+                const slot = this.rustIsTrueBoolSlot(content, start, end) ??
+                    (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
+                     /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
+                if (slot === undefined) continue;
+                const inner = this.stripOuterParens(content.slice(open + 2, close).trim());
+                const ident = /^[A-Za-z_][A-Za-z0-9_]*$/.test(inner);
+                // A read before the sole `let` names a parameter / outer binding.
+                const declAt = ident ? region.search(new RegExp(`let (?:mut )?${inner}\\b`)) : -1;
+                if (ident && (declAt < 0 || declAt > (sm.index as number))) continue;
+                if (ident ? !provenLocal(inner) : !this.hx4R03IsBoolBoxedExpr(inner, content, own, memo)) continue;
+                const cmp = `${inner}.as_bool() == Some(true)`;
+                rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
+            }
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx4 X03 — element 0 of a tuple returned by a sync `self.m(..)` whose every
+    // return is `Value::from(vec![<bool-boxed head>, ..])` or Null (handleOptionBoolAndParams[2]).
+
+    /** `R.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)` with R a proven tuple call or tuple local. */
+    hx4X03IsBoolTupleHead(e: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const suffix = '.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)';
+        if (!e.endsWith(suffix)) return false;
+        const recv = e.slice(0, e.length - suffix.length).trim();
+        if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(recv)) {
+            // Every `let` of the tuple local in this file binds a proven call; no other write.
+            const masked = this.maskStringsAndComments(content);
+            if (new RegExp(`&mut\\s+${recv}\\b|(?<![A-Za-z0-9_.])(?<!let (?:mut )?)${recv}\\s*=(?!=)|\\|[^|\\n]*\\b${recv}\\b[^|\\n]*\\||(?:for|if let|while let)\\s+${recv}\\s`).test(masked)) return false;
+            const decls = [...masked.matchAll(new RegExp(`let (?:mut )?${recv}(?:\\s*:\\s*Value)?\\s*=\\s*`, 'g'))];
+            if (decls.length === 0) return false;
+            for (const d of decls) {
+                const at = (d.index as number) + d[0].length;
+                const end = this.endOfRustStatement(masked, at);
+                if (end < 0 || !this.hx4X03IsBoolTupleCall(content.slice(at, end).trim(), content, own, memo)) return false;
+            }
+            return true;
+        }
+        return this.hx4X03IsBoolTupleCall(recv, content, own, memo);
+    }
+
+    /** `self.m(..)` (whole expression) where m is sync, prints `-> Value`, and only returns bool-headed tuples / Null. */
+    hx4X03IsBoolTupleCall(e: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const call = /^self\.([a-z_][a-z0-9_]*)\(/.exec(e);
+        if (call === null || this.closeParenAt(e, call[0].length - 1) !== e.length - 1) return false;
+        const key = `tuple:${call[1]}`;
+        if (memo.has(key)) return memo.get(key) as boolean;
+        memo.set(key, false);
+        let ok = false;
+        if (!(call[1] in this.traitMethodSignatures())) {
+            const srcs = own.has(call[1]) ? [content] : (this._rustBoolReturnMethods?.src ?? []);
+            const sigRe = new RegExp(`\\b(async\\s+)?fn\\s+${call[1]}\\s*\\(`, 'g');
+            const badDecl = srcs.some(s => [...s.matchAll(sigRe)].some(m => m[1] !== undefined ||
+                !/->\s*(?:crate::)?Value\s*$/.test(s.slice(m.index, m.index + 400).split('{')[0].trim())));
+            const bodies = srcs.flatMap(s => this.rustFnBodies(s, call[1]));
+            ok = !badDecl && bodies.length > 0 && bodies.every(b => this.hx4X03BodyReturnsBoolTuples(b, content, own, memo));
+        }
+        memo.set(key, ok);
+        return ok;
+    }
+
+    /** Every explicit return is `Value::from(vec![H, ..])` (H bool-boxed) or Null; the tail is Null. */
+    hx4X03BodyReturnsBoolTuples(body: string, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const masked = this.maskStringsAndComments(body);
+        const inner = masked.slice(1, masked.lastIndexOf('}'));
+        if (/\?\s*[;)}\n]/.test(inner)) return false;
+        let returns = 0;
+        for (const r of inner.matchAll(/\breturn\b\s*([^;]*);/g)) {
+            const at = (r.index as number) + r[0].length - r[1].length - 1;
+            const t = body.slice(1 + at, 1 + at + r[1].length).trim();
+            if (t === 'Value::Null' || t === 'crate::Value::Null') continue;
+            const head = /^(?:crate::)?Value::from\(vec!\[/.exec(t);
+            if (head === null || !t.endsWith('])')) return false;
+            const parts = this.splitTopLevelCommas(t.slice(head[0].length, t.length - 2));
+            if (parts.length < 2 || !this.hx4R03IsBoolBoxedExpr(parts[0], content, own, memo)) return false;
+            returns += 1;
+        }
+        const lastStmt = Math.max(inner.lastIndexOf(';'), inner.lastIndexOf('}'));
+        const tail = inner.slice(lastStmt + 1).trim();
+        return returns > 0 && (tail === 'Value::Null' || tail === 'crate::Value::Null');
     }
 }
 

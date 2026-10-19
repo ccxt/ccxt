@@ -176,7 +176,7 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
         return this.unWatchTickers ([ symbol ], params);
     }
 
@@ -328,7 +328,7 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         return this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
 
@@ -463,7 +463,7 @@ export default class bydfi extends bydfiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         return this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
 

@@ -1205,40 +1205,27 @@ export default class btse extends Exchange {
             if (symbolsNormalized === undefined || this.inArray (symbol, symbolsNormalized)) {
                 const levels: Dict[] = this.safeList (entry, 'riskLimits', []);
                 const tiers: Dict[] = [];
+                // each tier's floor is the previous tier's cap (0 for the first)
+                let minNotional: Num = undefined;
                 for (let j = 0; j < levels.length; j++) {
                     const level = levels[j];
+                    const maxNotional = this.safeNumber (level, 'value');
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
                     tiers.push ({
                         'tier': this.safeInteger (level, 'level'),
                         'symbol': symbol,
                         'currency': market['settle'],
-                        'minNotional': undefined,
-                        'maxNotional': this.safeNumber (level, 'value'),
+                        'minNotional': (j === 0) ? 0 : minNotional,
+                        'maxNotional': maxNotional,
                         'maintenanceMarginRate': undefined,
                         'maxLeverage': undefined,
                         'info': level,
                     });
+                    minNotional = maxNotional;
                 }
                 result[symbol] = tiers; // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
             }
-        }
-        // the exchange only provides the cap of each risk tier, so the floor
-        // is derived from the previous tier: 0 for the first tier, and the
-        // previous tier's maxNotional for every subsequent tier
-        const symbolKeys = Object.keys (result);
-        for (let i = 0; i < symbolKeys.length; i++) {
-            const symbolKey = symbolKeys[i];
-            const tiersList = result[symbolKey];
-            for (let j = 0; j < tiersList.length; j++) {
-                if (j === 0) {
-                    tiersList[j]['minNotional'] = 0;
-                } else {
-                    tiersList[j]['minNotional'] = tiersList[j - 1]['maxNotional'];
-                }
-            }
-            // php copies arrays by value, so the mutated list must be written back explicitly
-            result[symbolKey] = tiersList;
         }
         return result as LeverageTiers;
     }

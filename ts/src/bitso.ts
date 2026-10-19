@@ -1666,7 +1666,7 @@ export default class bitso extends Exchange {
             }
             if (code !== undefined) {
                 result[code] = {
-                    'deposit': this.safeValue (this.safeDict (result, code), 'deposit'),
+                    'deposit': this.safeNumber (this.safeDict (result, code), 'deposit'),
                     'withdraw': this.safeNumber (withdrawalFees, currencyId),
                     'info': {
                         'deposit': this.safeValue (this.safeDict (this.safeDict (result, code), 'info'), 'deposit'),

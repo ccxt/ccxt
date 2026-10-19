@@ -2971,8 +2971,18 @@ class BaseExchange {
     }
 
     public function check_option_bool($methodName, $optionName, $value) {
-        // the statically typed ports throw on a present non-boolean value; here it passes through unchanged
-        return $value;
+        // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws BadRequest
+        if ($value === null || is_bool($value)) {
+            return $value;
+        }
+        if ($value === 'true' || $value === 1 || $value === 1.0) {
+            return true;
+        }
+        if ($value === 'false' || $value === 0 || $value === 0.0) {
+            return false;
+        }
+        $label = ($methodName === null) ? 'exchange-wide' : $methodName . '()';
+        throw new BadRequest($this->id . ' ' . $label . ' option ' . $optionName . ' must be a boolean');
     }
 
     public function check_option_integer($methodName, $optionName, $value) {

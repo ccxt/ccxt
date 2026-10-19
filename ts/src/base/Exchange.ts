@@ -2402,8 +2402,18 @@ export class BaseExchange {
     }
 
     checkOptionBool (methodName: Str, optionName: string, value: any): Bool {
-        // the statically typed ports throw on a present non-boolean value; here it passes through unchanged
-        return value;
+        // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws BadRequest
+        if ((value === undefined) || (value === null)) {
+            return undefined;
+        }
+        if ((value === true) || (value === 'true') || (value === 1)) {
+            return true;
+        }
+        if ((value === false) || (value === 'false') || (value === 0)) {
+            return false;
+        }
+        const label = (methodName === undefined) ? 'exchange-wide' : methodName + '()';
+        throw new BadRequest (this.id + ' ' + label + ' option ' + optionName + ' must be a boolean');
     }
 
     checkOptionInteger (methodName: Str, optionName: string, value: any): Int {
@@ -7170,7 +7180,7 @@ export class BaseExchange {
     handleOptionBoolAndParams (params: Dict, methodName: Str, optionName: string, defaultValue?: Bool): [Bool, Dict];
     /* eslint-enable no-unused-vars */
     handleOptionBoolAndParams (params: Dict, methodName: Str, optionName: string, defaultValue: Bool = undefined): [Bool, Dict] {
-        // handleOptionAndParams read as a boolean; the statically typed ports throw on another type
+        // handleOptionAndParams read as a boolean (see checkOptionBool)
         const [ value, newParams ] = this.handleOptionAndParams (params, methodName, optionName, defaultValue);
         return [ this.checkOptionBool (methodName, optionName, value), newParams ];
     }

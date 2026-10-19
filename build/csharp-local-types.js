@@ -596,7 +596,7 @@ export const CORE_NUMERIC_ARGS = {
     'createOrder': { 3: 'double', 4: 'double?' },
     'createOrderWithTakeProfitAndStopLossWs': { 3: 'double', 4: 'double?' },
     'createOrderWs': { 3: 'double', 4: 'double?' },
-    'createOrderbookOrder': { 3: 'double', 4: 'double?' },
+    'createOrderbookOrder': { 3: 'double?', 4: 'double?' },
     'createPostOnlyOrderWs': { 3: 'double', 4: 'double?' },
     'createReduceOnlyOrderWs': { 3: 'double', 4: 'double?' },
     'createStopLimitOrderWs': { 2: 'double', 3: 'double' },
@@ -637,7 +637,7 @@ export const CORE_NUMERIC_ARGS = {
     'fetchDeposits': { 1: 'Int64?', 2: 'Int64?' },
     'fetchDepositsWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
     'fetchDerivativesOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchEventsByQuery': { 1: 'Int64' },
+    'fetchEventsByQuery': { 1: 'Int64?' },
     'fetchFundingHistory': { 1: 'Int64?', 2: 'Int64?' },
     'fetchFundingRateHistory': { 1: 'Int64?', 2: 'Int64?' },
     'fetchL2OrderBook': { 1: 'Int64?' },
@@ -10745,7 +10745,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? hx4C08CounterLocal (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -17921,4 +17921,229 @@ function integerLiteralArithmeticLocal (csharp, declaration, context) {
         reads++;
     }
     return (reads > 0) ? { type: 'Int64' } : undefined;
+}
+
+// ===== hx4 C01: emitted collection declarations for the printer's indexer reads =====
+// The printer's literal-key read (csharpDeclaredCollectionRead / the row-read arm) emits
+// `(x != null && x.ContainsKey("k") ? x["k"] : null)` / `(x != null && N < x.Count ? x[N] : null)`
+// only for a declaration whose EMITTED type it can name: record the final line per declaration.
+function hx4C01EmittedCollectionType (printed, printedName) {
+    const line = (printed ?? '').split ('\n').find ((l) => l.trim () !== '');
+    const match = (line === undefined) ? null : DECLARED_LOCAL_LINE_RE.exec (line);
+    if (match === null || match[2] !== printedName) {
+        return undefined;
+    }
+    let type = match[1].trim ();
+    if (type === 'var') {
+        const value = match[3].trim ();
+        type = value.startsWith ('new Dictionary<string, object>(') ? 'Dictionary<string, object>'
+            : (value.startsWith ('new List<object>(') ? 'List<object>' : undefined);
+    }
+    const collections = [ 'List<object>', 'IList<object>', 'Dictionary<string, object>', 'IDictionary<string, object>' ];
+    return collections.includes (type) ? type : undefined;
+}
+
+export function installCsharpDeclaredCollectionLocals (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printVariableDeclarationList !== 'function' || csharp._hx4C01Patched) {
+        return;
+    }
+    // keyed by file + position: the worker batch hands back fresh node handles from resolve ()
+    const recorded = new Map ();
+    const keyOf = (n) => `${n.getSourceFile?.()?.fileName ?? ''}:${n.pos}:${n.end}`;
+    const upstreamPrint = csharp.printVariableDeclarationList.bind (csharp);
+    csharp.printVariableDeclarationList = (node, identation) => {
+        const printed = upstreamPrint (node, identation);
+        const declarations = node?.declarations;
+        if (typeof printed === 'string' && declarations?.length === 1 && declarations[0].name?.kind === ts.SyntaxKind.Identifier) {
+            const type = hx4C01EmittedCollectionType (printed, csharp.printNode (declarations[0].name, 0));
+            if (type !== undefined) {
+                recorded.set (keyOf (declarations[0]), type);
+            } else {
+                recorded.delete (keyOf (declarations[0]));
+            }
+        }
+        return printed;
+    };
+    const upstreamResolver = csharp.csharpDeclaredLocalTypeResolver;
+    if (typeof csharp.printParameter === 'function') {
+        const upstreamParameter = csharp.printParameter.bind (csharp);
+        csharp.printParameter = (node, defaultValue = true) => {
+            const printed = upstreamParameter (node, defaultValue);
+            const head = (typeof printed === 'string') ? printed.trim ().split (' = ')[0] : '';
+            const match = /^(.+) ([A-Za-z_]\w*)$/s.exec (head);
+            const type = (match === null) ? undefined : match[1].trim ();
+            const collections = [ 'List<object>', 'IList<object>', 'Dictionary<string, object>', 'IDictionary<string, object>' ];
+            if (node?.name?.kind === ts.SyntaxKind.Identifier && collections.includes (type)) {
+                recorded.set (keyOf (node), type);
+            }
+            return printed;
+        };
+    }
+    csharp.csharpDeclaredLocalTypeResolver = (declaration) => {
+        const upstream = (typeof upstreamResolver === 'function') ? upstreamResolver (declaration) : undefined;
+        if (upstream !== undefined) {
+            return upstream;
+        }
+        return (declaration === undefined) ? undefined : recorded.get (keyOf (declaration));
+    };
+    csharp._hx4C01Patched = true;
+}
+
+// hx4 C02: `+` on Int64 operands the native arithmetic rule leaves on add().
+// (a) an `Int64?` operand proven non-null (null guard / non-null default) is the Int64 branch;
+// (b) `int + <int literal>` statically binds add(Int64, Int64): printed `(x + NL)`, same Int64 sum.
+function hx4C02NonNullKind (csharp, node, plus) {
+    let operand = node;
+    while (operand?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        operand = operand.expression;
+    }
+    const kind = nativeArithmeticOperandKind (csharp, operand);
+    if (kind !== 'Int64?') {
+        return { kind, demoted: false };
+    }
+    if (nativeInt64ValueIsNonNull (csharp, operand, 0)) {
+        return { kind: 'Int64', demoted: true };
+    }
+    const guarded = (operand.kind === ts.SyntaxKind.Identifier) && !nativeSubtractOperandIsRebound (csharp, operand)
+        && (typeof csharp.csharpNullGuardAdmitsRead === 'function') && csharp.csharpNullGuardAdmitsRead (plus, operand);
+    return { kind: guarded ? 'Int64' : kind, demoted: guarded };
+}
+
+function hx4C02NativeAdd (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.BinaryExpression || node.operatorToken?.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    const leftLiteral = intLiteralText (node.left);
+    const rightLiteral = intLiteralText (node.right);
+    if ((leftLiteral === undefined) !== (rightLiteral === undefined)) {
+        const other = (leftLiteral === undefined) ? node.left : node.right;
+        if (nativeArithmeticOperandKind (csharp, other) === 'int') {
+            const L = leftLiteral ?? csharp.printNode (node.left, 0);
+            const R = rightLiteral ?? csharp.printNode (node.right, 0);
+            return '(' + L + ' + ' + R + ')';
+        }
+    }
+    const left = hx4C02NonNullKind (csharp, node.left, node);
+    const right = hx4C02NonNullKind (csharp, node.right, node);
+    if (!left.demoted && !right.demoted) {
+        return undefined; // nativeArithmeticIsProven's decision
+    }
+    const small = (k) => NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (k);
+    if (!small (left.kind) || !small (right.kind) || (left.kind !== 'Int64' && right.kind !== 'Int64')) {
+        return undefined;
+    }
+    return '(' + csharp.printNode (node.left, 0) + ' + ' + csharp.printNode (node.right, 0) + ')';
+}
+
+export function installCsharpNativeAddHx4C02 (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printCustomBinaryExpressionIfAny !== 'function' || csharp._hx4C02Patched) {
+        return;
+    }
+    const upstream = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
+    csharp.printCustomBinaryExpressionIfAny = (node, identation) => hx4C02NativeAdd (csharp, node) ?? upstream (node, identation);
+    csharp._hx4C02Patched = true;
+}
+
+// ===== hx4 C08: integer-literal counters (`let n = 0; n += 1; if (n < max)`) =====
+// Widens integerLiteralArithmeticLocal: writes may also be `n += <int lit>`, `n = n + <int lit>`,
+// `n++` / `n--` (add(object, object) and the ref twins box Int64 for these), reads may be integer `===`/`!==` and numberToString.
+function hx4C08CounterLocal (csharp, declaration, context) {
+    const intKinds = [ 'int', 'uint', 'Int64', 'Int64?' ];
+    const consumers = [ ts.SyntaxKind.MinusToken, ts.SyntaxKind.PlusToken, ts.SyntaxKind.AsteriskToken, ts.SyntaxKind.SlashToken ];
+    const equalities = [ ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsToken ];
+    if (!integerLiteralArithmeticLiteral (declaration.initializer) || !isBlockScopedDeclaration (declaration)
+            || declaration.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined || typeNameIsShadowed (csharp, scope, declaration, 'Int64')) {
+        return undefined;
+    }
+    const name = declaration.name.text;
+    const isSelf = (node) => {
+        let current = node;
+        while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            current = current.expression;
+        }
+        return current?.kind === ts.SyntaxKind.Identifier && current.text === name;
+    };
+    const intOperand = (node) => integerLiteralArithmeticLiteral (stripParens (node)) || intKinds.includes (nativeArithmeticOperandKind (csharp, node));
+    let reads = 0;
+    let counterWrites = 0;
+    for (const n of (indexScope (csharp, scope).identifiers.get (name) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.PostfixUnaryExpression)
+                && ((parent.operator === ts.SyntaxKind.PlusPlusToken) || (parent.operator === ts.SyntaxKind.MinusMinusToken))) {
+            // statement / for-incrementor position only: a value-position `n++` hands out the box
+            const holder = parent.parent;
+            if (!(holder?.kind === ts.SyntaxKind.ExpressionStatement || (holder?.kind === ts.SyntaxKind.ForStatement && holder.incrementor === parent))) {
+                return undefined;
+            }
+            counterWrites++;
+            continue;
+        }
+        if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)) {
+            const op = parent.operatorToken.kind;
+            if (op === ts.SyntaxKind.PlusEqualsToken && integerLiteralArithmeticLiteral (stripParens (parent.right))) {
+                counterWrites++;
+                continue;
+            }
+            if (op === ts.SyntaxKind.EqualsToken) {
+                const value = stripParens (parent.right);
+                if (integerLiteralArithmeticLiteral (value)) {
+                    continue;
+                }
+                if (value?.kind === ts.SyntaxKind.BinaryExpression && value.operatorToken.kind === ts.SyntaxKind.PlusToken
+                        && isSelf (value.left) && integerLiteralArithmeticLiteral (stripParens (value.right))) {
+                    counterWrites++;
+                    continue;
+                }
+                return undefined;
+            }
+        }
+        let operand = n;
+        while (operand.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            operand = operand.parent;
+        }
+        const consumer = operand.parent;
+        // the `n` read inside the self write `n = n + 1` was accepted with that write
+        if (consumer?.kind === ts.SyntaxKind.BinaryExpression && consumer.left === operand && consumer.operatorToken.kind === ts.SyntaxKind.PlusToken
+                && consumer.parent?.kind === ts.SyntaxKind.BinaryExpression && stripParens (consumer.parent.right) === consumer
+                && consumer.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && isSelf (consumer.parent.left)
+                && integerLiteralArithmeticLiteral (stripParens (consumer.right))) {
+            reads++;
+            continue;
+        }
+        // this.numberToString (n): numberToString(object) prints the same digits for an Int32 / Int64 box
+        if (consumer?.kind === ts.SyntaxKind.CallExpression && consumer.arguments.length === 1 && consumer.arguments[0] === operand
+                && consumer.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && consumer.expression.expression?.kind === ts.SyntaxKind.ThisKeyword
+                && consumer.expression.name?.text === 'numberToString') {
+            reads++;
+            continue;
+        }
+        if (consumer?.kind !== ts.SyntaxKind.BinaryExpression) {
+            return undefined;
+        }
+        const op = consumer.operatorToken.kind;
+        const sibling = (consumer.left === operand) ? consumer.right : consumer.left;
+        if (NATIVE_COMPARISON_SYMBOLS[op] !== undefined) {
+            reads++; // (object, object) helpers only: they normalise both boxes
+            continue;
+        }
+        // isEqual compares two integer boxes by Convert.ToInt64 whatever their widths
+        if (equalities.includes (op) || consumers.includes (op)) {
+            if (!intOperand (sibling)) {
+                return undefined;
+            }
+            reads++;
+            continue;
+        }
+        return undefined;
+    }
+    return (reads > 0 && counterWrites > 0) ? { type: 'Int64' } : undefined;
 }

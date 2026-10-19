@@ -16858,3 +16858,755 @@ export function installJavaNativePadStartFirst (transpiler) {
         return native ?? upstream (node, identation, name, parsedArg, parsedArg2);
     };
 }
+
+// hx4 J04
+// ===== hx4 J04: Helpers.add/subtract/multiply/divide/mod/opNeg on proven typed operands print native =====
+// The helpers widen Integer to Long and return null for a null operand: over non-null int/long operands
+// `+ - *` is the same long box, `/ %` the same double; opNeg negates the exact box; a static String left
+// operand already binds Helpers.add(String, ..) = `a + b`. Proofs: literals, declared types, non-null writes, null guards.
+function j04Ind (l) {
+    return /^\s*/.exec (l)[0].length;
+}
+
+// top-level ` + ` / ` - ` / ` * ` operands of a printed expression, strings masked; undefined when not a chain
+function j04Operands (e) {
+    const mask = longMultiplyMask (e);
+    const out = [];
+    let depth = 0;
+    let last = 0;
+    for (let k = 0; k < mask.length; k++) {
+        const ch = mask[k];
+        if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        else if (depth === 0 && /^ [-+*] /.test (mask.slice (k, k + 3))) {
+            out.push (e.slice (last, k));
+            last = k + 3;
+            k += 2;
+        }
+    }
+    out.push (e.slice (last));
+    return out.length > 1 ? out : undefined;
+}
+
+// 'intlit' | 'int' | 'long' | 'double' for a printed operand that is never null; undefined when unproven
+function j04Kind (ctx, text, nn) {
+    const e = longLimitStrip (text);
+    if (LONG_LIMIT_INT.test (e)) return 'intlit';
+    if (/^-?\d+L$/.test (e)) return 'long';
+    // BaseExchange declares `Long milliseconds()/seconds()` (never null) and `int parseTimeframe (Object)`
+    if (/^this\.(?:milliseconds|seconds)\(\)$/.test (e)) return 'long';
+    if (/^this\.parseTimeframe\((?:[A-Za-z_]\w*|java\.util\.Objects\.requireNonNullElse\([A-Za-z_]\w*, "\w+"\))\)$/.test (e)) return 'int';
+    // Helpers declares `int getArrayLength (Object)`
+    if (/^Helpers\.getArrayLength\([A-Za-z_]\w*\)$/.test (e)) return 'int';
+    const cast = /^\(long\) (.*)$/.exec (e);
+    if (cast !== null) {
+        const k = j04Kind (ctx, cast[1], nn);
+        return (k !== undefined && k !== 'double') ? 'long' : undefined;
+    }
+    if (/^[A-Za-z_]\w*$/.test (e)) {
+        const t = ctx.declType (e);
+        if (t === 'int' || t === 'long') return t;
+        if (t === 'Long' || t === 'Integer' || t === 'Double') return nn (e) ? { Long: 'long', Integer: 'int', Double: 'double' }[t] : undefined;
+        return undefined;
+    }
+    const ops = j04Operands (e);
+    if (ops !== undefined) {
+        const ks = ops.map ((o) => j04Kind (ctx, o, nn));
+        if (ks.includes (undefined) || ks.includes ('double')) return undefined;
+        return ks.includes ('long') ? 'long' : 'int';
+    }
+    return undefined;
+}
+
+// a printed value that is never null (the local it initialises can be read unguarded)
+function j04NonNullValue (ctx, value, nn) {
+    const e = longLimitStrip (value);
+    const k = j04Kind (ctx, e, nn);
+    if (k !== undefined && k !== 'double') return true;
+    // Math.min/max return a primitive (a null box throws before the write)
+    for (const callee of [ 'Math.min', 'Math.max' ]) {
+        if (longLimitCallArgs (longMultiplyMask (e), callee) !== undefined) return true;
+    }
+    // SafeIntegerN answers its converted default for every miss: an integer-literal default is never null
+    const safe = /^this\.(safeInteger|safeInteger2|safeIntegerN)\(/.exec (e);
+    if (safe !== null) {
+        const args = longLimitCallArgs (e, 'this.' + safe[1]);
+        const min = safe[1] === 'safeInteger2' ? 4 : 3;
+        if (args !== undefined && args.length === min && /^-?\d+L?$/.test (args[min - 1])) return true;
+    }
+    const t = longLimitSplitTernary (e);
+    if (t !== undefined) {
+        const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
+        const arm = (a, isTrue) => (g !== null && longLimitStrip (a) === g[2] && (g[1] === '!') === isTrue
+            && [ 'Long', 'Integer' ].includes (ctx.declType (g[2]))) || j04NonNullValue (ctx, a, nn);
+        return arm (t.whenTrue, true) && arm (t.whenFalse, false);
+    }
+    return false;
+}
+
+// names a `!Objects.equals(x, null)` conjunction (positive) or `Objects.equals(x, null)` disjunction (negated) proves
+function j04GuardNames (cond, negated) {
+    const c = longLimitStrip (cond);
+    if (/[?:]/.test (longMultiplyMask (c)) || (negated ? / && /.test (c) : / \|\| /.test (c))) return [];
+    const re = negated ? /^java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/ : /^!java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/;
+    const out = [];
+    for (const p of c.split (negated ? ' || ' : ' && ')) {
+        const x = re.exec (longLimitStrip (p));
+        if (x !== null) out.push (x[1]);
+    }
+    return out;
+}
+
+function j04MemberCtx (lines, from, to) {
+    const declCache = new Map ();
+    const ctx = {
+        declType: (name) => {
+            if (!declCache.has (name)) {
+                const d = longLimitDeclarations (lines, from, to, name);
+                declCache.set (name, d.length === 1 ? d[0].type.replace (/^final\s+/, '') : undefined);
+            }
+            return declCache.get (name);
+        },
+    };
+    // the lines writing `name` (declaration initialiser included); undefined when a write is compound or unparsed
+    const writeCache = new Map ();
+    const writes = (name) => {
+        if (writeCache.has (name)) return writeCache.get (name);
+        const decl = new RegExp (`^\\s*(?:final\\s+)?[A-Za-z_][\\w.<>, ]*? ${name} = (.*?);(\\s*//.*)?$`);
+        const plain = new RegExp (`^\\s*${name} = (.*?);(\\s*//.*)?$`);
+        const other = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+        const any = new RegExp (`(?<![\\w$.])${name}\\s*=(?!=)`);
+        let out = [];
+        for (let w = from + 1; w < to && out !== undefined; w++) {
+            const code = longLimitCodeOnly (lines[w]);
+            if (!new RegExp (`(?<![\\w$.])${name}\\b`).test (code)) continue;
+            if (other.test (code)) { out = undefined; break; }
+            const m = decl.exec (lines[w]) ?? plain.exec (lines[w]);
+            if (m !== null) out.push ({ line: w, value: m[1].trim () });
+            else if (any.test (code)) out = undefined;
+        }
+        writeCache.set (name, out);
+        return out;
+    };
+    // the guard at line g holds at line j: every write precedes it, no lambda between, and a guard
+    // inside a loop needs a single-assignment local (a later write cannot reach the next iteration)
+    const guardHolds = (name, g, j) => {
+        const ws = writes (name);
+        if (ws === undefined || ws.some ((w) => w.line >= g) || lines.slice (g, j + 1).some ((l) => /->/.test (l))) return false;
+        if (ws.length > 1) {
+            for (let k = g - 1; k > from; k--) {
+                if (!/^\s*(?:for|while|do)\b/.test (lines[k]) || j04Ind (lines[k]) >= j04Ind (lines[g])) continue;
+                let open = true;
+                for (let x = k + 2; x < g; x++) if (lines[x].trim () !== '' && j04Ind (lines[x]) <= j04Ind (lines[k])) { open = false; break; }
+                if (open) return false;
+            }
+        }
+        return true;
+    };
+    const guardCache = new Map ();
+    const guardedAt = (j) => {
+        if (guardCache.has (j)) return guardCache.get (j);
+        const out = new Set ();
+        const ij = j04Ind (lines[j]);
+        for (let g = j - 1; g > from; g--) {
+            const m = /^(\s*)(?:} else )?if \((.*)\)$/.exec (lines[g]);
+            if (m === null || lines[g + 1]?.trim () !== '{' || j04Ind (lines[g + 1]) !== m[1].length) continue;
+            const ig = m[1].length;
+            if (ig < ij) {
+                // `if (!Objects.equals(x, null) && ..)` whose then-block is still open at j
+                let open = true;
+                for (let k = g + 2; k < j; k++) if (lines[k].trim () !== '' && j04Ind (lines[k]) <= ig) { open = false; break; }
+                if (open) for (const x of j04GuardNames (m[2], false)) if (guardHolds (x, g, j)) out.add (x);
+            }
+            // `if (Objects.equals(x, null) || ..) { return|throw ..; }` earlier in an enclosing block
+            const body = lines[g + 2]?.trim () ?? '';
+            if (ig > ij || g + 3 >= j || !/^(?:return|throw)\b.*;$/.test (body) || lines[g + 3]?.trim () !== '}' || j04Ind (lines[g + 3]) !== ig) continue;
+            if (/^\s*else\b/.test (lines[g + 4] ?? '')) continue;
+            let scoped = true;
+            for (let k = g + 4; k < j; k++) if (lines[k].trim () !== '' && j04Ind (lines[k]) < ig) { scoped = false; break; }
+            if (scoped) for (const x of j04GuardNames (m[2], true)) if (guardHolds (x, g, j)) out.add (x);
+        }
+        guardCache.set (j, out);
+        return out;
+    };
+    const memo = new Map ();
+    // a declared local whose every write is a non-null value
+    const writesNonNull = (name, seen) => {
+        if (memo.has (name)) return memo.get (name);
+        if (seen.has (name)) return false;
+        seen.add (name);
+        const ws = writes (name);
+        const ok = ws !== undefined && ws.length > 0 && [ 'Long', 'Integer' ].includes (ctx.declType (name))
+            && new RegExp (`^\\s*(?:final\\s+)?(?:Long|Integer) ${name} = `).test (lines[ws[0].line])
+            && ws.every ((w) => j04NonNullValue (ctx, w.value, (n) => guardedAt (w.line).has (n) || writesNonNull (n, seen)));
+        seen.delete (name);
+        memo.set (name, ok);
+        return ok;
+    };
+    const nonNullAt = (name, j) => guardedAt (j).has (name) || ([ 'Long', 'Integer' ].includes (ctx.declType (name)) && writesNonNull (name, new Set ()));
+    return { ctx, nonNullAt };
+}
+
+// names the true arm of an enclosing `(!Objects.equals(x, null) && ..) ? <arm> : ..` proves at `start`
+function j04TernaryGuarded (mask, line, start) {
+    const out = new Set ();
+    for (let q = start - 1; q > 1; q--) {
+        if (mask[q] !== '?' || mask[q - 1] !== ' ' || mask[q + 1] !== ' ') continue;
+        let depth = 0;
+        let inArm = true;
+        for (let k = q + 1; k < start && inArm; k++) {
+            if (mask[k] === '(') depth++;
+            else if (mask[k] === ')') { depth--; if (depth < 0) inArm = false; }
+            else if (mask[k] === ':' && depth === 0) inArm = false;
+        }
+        if (!inArm || mask[q - 2] !== ')') continue;
+        let k = q - 2;
+        for (let d = 0; k >= 0; k--) {
+            if (mask[k] === ')') d++;
+            else if (mask[k] === '(' && --d === 0) break;
+        }
+        // the parenthesised group must be the whole condition
+        const head = mask.slice (0, k).trimEnd ();
+        if (k < 0 || !(/[(,]$/.test (head) || /(?<![=!<>])=$/.test (head) || /\breturn$/.test (head))) continue;
+        for (const x of j04GuardNames (line.slice (k, q - 1), false)) out.add (x);
+    }
+    return out;
+}
+
+// a position where the primitive reads exactly like the helper's box: a call argument, assignment or return value
+// (not a statement, cast, ternary arm, reference compare, receiver)
+function j04PlainValuePosition (mask, start, close) {
+    const before = mask.slice (0, start).trimEnd ();
+    const after = mask.slice (close + 1);
+    if (before === '' || /[;{})]$/.test (before) || /[?:][\s(]*$/.test (before) || /^[\s)]*[?:]/.test (after)) return false;
+    if (/[=!]=[\s(]*$/.test (before) || /^[\s)]*(?:[=!]=|instanceof\b)/.test (after) || /^\s*[.[]/.test (after)) return false;
+    return true;
+}
+
+function j04Member (lines, from, to) {
+    let state;
+    let changed = false;
+    const helpers = [ [ 'Helpers.add(', '+' ], [ 'Helpers.subtract(', '-' ], [ 'Helpers.multiply(', '*' ],
+        [ 'Helpers.divide(', '/' ], [ 'Helpers.mod(', '%' ], [ 'Helpers.opNeg(', 'neg' ] ];
+    const atom = (e) => (/^[\w.]+(\(\))?$/.test (e) || /^"(?:[^"\\]|\\.)*"$/.test (e) ? e : `(${e})`);
+    for (let j = from + 1; j < to; j++) {
+        if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
+        state = state ?? j04MemberCtx (lines, from, to);
+        let line = lines[j];
+        const mask0 = longMultiplyMask (line);
+        const starts = [];
+        for (const [ h, op ] of helpers) {
+            for (let k = mask0.indexOf (h); k !== -1; k = mask0.indexOf (h, k + 1)) {
+                if (k === 0 || !/[\w.]/.test (mask0[k - 1])) starts.push ([ k, h, op ]);
+            }
+        }
+        // innermost (rightmost) first, so an outer call sees the native inner value
+        starts.sort ((a, b) => b[0] - a[0]);
+        for (const [ start, h, op ] of starts) {
+            const mask = longMultiplyMask (line);
+            const call = longMultiplyArgSpans (mask, start + h.length - 1);
+            if (call === undefined || call.spans.length !== (op === 'neg' ? 1 : 2)) continue;
+            const args = call.spans.map (([ x, y ]) => longLimitStrip (line.slice (x, y)));
+            const before = mask.slice (0, start).trimEnd ();
+            let text;
+            if (op === '+' && (/^"(?:[^"\\]|\\.)*"$/.test (args[0]) || (/^[A-Za-z_]\w*$/.test (args[0]) && state.ctx.declType (args[0]) === 'String'))) {
+                // a static String left operand binds add(String, String|Object): `a + String.valueOf(b)` is `a + b`
+                if (before === '' || /[;{}]$/.test (before)) continue;
+                text = `(${atom (args[0])} + ${atom (args[1])})`;
+            } else {
+                if (!j04PlainValuePosition (mask, start, call.close)) continue;
+                const ternary = j04TernaryGuarded (mask, line, start);
+                const nn = (n) => ternary.has (n) || state.nonNullAt (n, j);
+                const kinds = args.map ((a) => j04Kind (state.ctx, a, nn));
+                if (kinds.includes (undefined)) continue;
+                if (op === 'neg') {
+                    // opNeg negates the exact box: no widening, a literal keeps its own type
+                    text = `(-${atom (args[0])})`;
+                } else if (kinds.includes ('double')) {
+                    continue;
+                } else if (op === '/' || op === '%') {
+                    text = `(((double) ${atom (args[0])}) ${op} ((double) ${atom (args[1])}))`;
+                } else {
+                    const show = (a, k) => (k === 'intlit' ? a + 'L' : atom (a));
+                    // an all-int value is computed in long: the helper widens Integer to Long first
+                    const allInt = kinds.every ((k) => k === 'int');
+                    text = `(${allInt ? `((long) ${atom (args[0])})` : show (args[0], kinds[0])} ${op} ${show (args[1], kinds[1])})`;
+                }
+            }
+            line = line.slice (0, start) + text + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    return changed;
+}
+
+export function nativeJavaJ04Arithmetic (content) {
+    if (!/Helpers\.(?:add|subtract|multiply|divide|mod|opNeg)\(/.test (content)) return content;
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    let changed = false;
+    for (let s = 0; s < starts.length; s++) {
+        if (j04Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// hx4 J08: Helpers.replace(r, "a", "b") with literal args on a string-typed identifier / this.x
+// receiver -> (r == null ? null : ((String)r).replaceFirst(...)); Pattern.quote / quoteReplacement
+// keep literal first-occurrence semantics when the literal holds regex or `$`/`\` characters.
+function j08ReplaceReceiverNode (node) {
+    let receiver = node?.expression?.expression;
+    while (receiver !== undefined && (ts.isParenthesizedExpression (receiver)
+        || ((ts.isAsExpression (receiver) || ts.isTypeAssertion (receiver)) && receiver.type?.kind === ts.SyntaxKind.StringKeyword))) {
+        receiver = receiver.expression;
+    }
+    return receiver;
+}
+
+function j08ReplaceReceiverIsPlain (node) {
+    if (node === undefined) {
+        return false;
+    }
+    if (ts.isIdentifier (node)) {
+        return true;
+    }
+    return ts.isPropertyAccessExpression (node) && ts.isIdentifier (node.name)
+        && (node.expression.kind === ts.SyntaxKind.ThisKeyword || j08ReplaceReceiverIsPlain (node.expression))
+        && node.expression.kind !== ts.SyntaxKind.Identifier;
+}
+
+function j08ReplaceStringTyped (printer, node) {
+    const type = printer.getChecker ().getTypeAtLocation (node);
+    if (type === undefined) {
+        return false;
+    }
+    const members = (type.flags & ts.TypeFlags.Union) !== 0 ? (type.types ?? []) : [ type ];
+    let sawString = false;
+    for (const member of members) {
+        if ((member.flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral)) !== 0) {
+            sawString = true;
+        } else if ((member.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0) {
+            return false;
+        }
+    }
+    return sawString;
+}
+
+function j08NativeReplaceText (printer, node, out) {
+    const args = node?.arguments;
+    if (typeof out !== 'string' || args === undefined || args.length !== 2
+        || !ts.isStringLiteral (args[0]) || !ts.isStringLiteral (args[1]) || args[0].text === '') {
+        return out;
+    }
+    const shape = /^Helpers\.replace\((?:\(\(String\)([\w$]+(?:\.[\w$]+)*)\)|\(String\)([\w$]+(?:\.[\w$]+)*)|([\w$]+(?:\.[\w$]+)*)), (?:\(String\))?("[^"\\]*"), (?:\(String\))?("[^"\\]*")\)$/;
+    const m = shape.exec (out);
+    if (m === null) {
+        return out;
+    }
+    const receiver = j08ReplaceReceiverNode (node);
+    if (!j08ReplaceReceiverIsPlain (receiver) || !j08ReplaceStringTyped (printer, receiver)) {
+        return out;
+    }
+    const recv = m[1] ?? m[2] ?? m[3];
+    // the printed literal must be the TS literal verbatim (no escapes were needed)
+    if (m[4] !== JSON.stringify (args[0].text) || m[5] !== JSON.stringify (args[1].text)) {
+        return out;
+    }
+    const pattern = JAVA_REPLACE_REGEX_CHARS.test (args[0].text) ? `java.util.regex.Pattern.quote(${m[4]})` : m[4];
+    const replacement = /[$\\]/.test (args[1].text) ? `java.util.regex.Matcher.quoteReplacement(${m[5]})` : m[5];
+    return `(${recv} == null ? null : ((String)${recv}).replaceFirst(${pattern}, ${replacement}))`;
+}
+
+export function installJ08NativeReplace (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printReplaceCall !== 'function' || printer._j08NativeReplacePatched) {
+        return;
+    }
+    printer._j08NativeReplacePatched = true;
+    // the guarded native print is a String too: keep `String x = ` local typing on it
+    const entry = RECEIVER_METHOD_LOCAL_ENTRIES.replace;
+    const previous = entry.match;
+    const guarded = /^\(([\w$.]+) == null \? null : \(\(String\)\1\)\.replaceFirst\(/;
+    entry.match = { test: (text) => previous.test (text) || guarded.test (text) };
+    const upstream = printer.printReplaceCall.bind (printer);
+    printer.printReplaceCall = function (node, identation, name, parsedArg, parsedArg2) {
+        const out = upstream (node, identation, name, parsedArg, parsedArg2);
+        try {
+            return j08NativeReplaceText (this, node, out);
+        } catch (e) {
+            return out;
+        }
+    };
+}
+
+// hx4 J10
+// ===== hx4 J10 (A): venue defaulted boolean parameters print `Boolean` =====
+// Per venue file (method -> positions): every declaration defaults to a boolean literal, is never written,
+// and every call passes a literal, nothing, null or a Boolean/boolean-declared value. Same proof as section 43,
+// scoped to one file so a same-named method in another venue keeps its own signature.
+function j10BooleanParamTable () {
+    return {
+        'extended.ts': { getExtendedStarkAmount: [ 2 ] },
+        'hyperliquid.ts': { constructPhantomAgent: [ 1 ], isUnifiedEnabled: [ 2 ] },
+        'kucoin.ts': { handleTradeType: [ 2 ] },
+        'binance.ts': { parseBalanceCustom: [ 3 ] },
+        'cex.ts': { parseTradingFees: [ 1 ] },
+        'paradex.ts': { signOrderRequest: [ 1 ] },
+        'prediction/hyperliquid.ts': { constructPhantomAgent: [ 1 ] },
+        'prediction/limitless.ts': { applyScale: [ 1 ] },
+        'pro/backpack.ts': { watchPublic: [ 3 ], watchPrivate: [ 3 ] },
+        'pro/bybit.ts': { getUrlByMarketType: [ 1 ] },
+        'pro/gate.ts': { getUrlByMarketType: [ 1 ], subscribePrivate: [ 5 ] },
+        'pro/grvt.ts': { subscribeMultiple: [ 3 ] },
+        'pro/htx.ts': { getUrlByMarketType: [ 2, 3, 4 ] },
+        'pro/weex.ts': { subscribePublic: [ 2 ], subscribePrivate: [ 3 ] },
+    };
+}
+
+function j10BooleanParamType (printer, node) {
+    const method = node?.parent;
+    if (node?.kind !== ts.SyntaxKind.Parameter || method?.kind !== ts.SyntaxKind.MethodDeclaration || !ts.isIdentifier (method.name ?? {})) {
+        return undefined;
+    }
+    const fileName = node.getSourceFile ().fileName.replace (/\\/g, '/');
+    const m = /\/ts\/src\/((?:pro\/|prediction\/)?[a-z0-9]+\.ts)$/.exec (fileName);
+    const positions = m === null ? undefined : j10BooleanParamTable ()[m[1]]?.[method.name.text];
+    if (!Array.isArray (positions) || !positions.includes (method.parameters.indexOf (node)) || !printer.javaIsPrintedMethod (method)) {
+        return undefined;
+    }
+    const annotation = node.type === undefined ? '' : node.type.getText ().replace (/\s/g, '');
+    if (!isBooleanLiteralNode (node.initializer) || ![ '', 'boolean', 'Bool' ].includes (annotation)
+        || !ts.isIdentifier (node.name) || printer.javaParameterIsWritten (node)) {
+        throw new Error (`hx4 J10: ${method.name.text} (${m[1]}) param ${node.name.getText ()} is not a read-only boolean-literal default`);
+    }
+    return 'Boolean';
+}
+
+// ===== hx4 J10 (B): integer-literal counters print `long` =====
+// `let x = <int>` whose every write is `<int>`, `x ± <int>`, `x ±= <int>` or `x++`/`x--`, and whose every read is an
+// ordering comparison, an arithmetic operand, an element index or a this.sum argument: each of those reads goes
+// through a helper that normalises Integer to Long, or through the printer's native long rule, so the value is unchanged.
+function j10IntLiteral (node) {
+    const n = unwrapParens (node);
+    const lit = n !== undefined && ts.isPrefixUnaryExpression (n) && n.operator === ts.SyntaxKind.MinusToken ? n.operand : n;
+    return lit !== undefined && ts.isNumericLiteral (lit) && /^\d{1,9}$/.test (lit.text);
+}
+
+function j10SameSymbol (checker, symbol, node) {
+    const n = unwrapParens (node);
+    return n !== undefined && ts.isIdentifier (n) && checker.getSymbolAtLocation (n) === symbol;
+}
+
+const J10_ORDER_OPS = new Set ([ ts.SyntaxKind.LessThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.GreaterThanEqualsToken,
+    ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ]);
+const J10_ARITH_OPS = new Set ([ ts.SyntaxKind.PlusToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken, ts.SyntaxKind.SlashToken, ts.SyntaxKind.PercentToken ]);
+
+// the write shape of an assignment to the counter: 'lit' | '+' | '-' (with its int literal), or undefined
+function j10CounterWrite (checker, symbol, binary) {
+    const op = binary.operatorToken.kind;
+    if (op === ts.SyntaxKind.PlusEqualsToken || op === ts.SyntaxKind.MinusEqualsToken) {
+        return j10IntLiteral (binary.right) ? { op: op === ts.SyntaxKind.PlusEqualsToken ? '+' : '-', literal: unwrapParens (binary.right) } : undefined;
+    }
+    if (op !== ts.SyntaxKind.EqualsToken) {
+        return undefined;
+    }
+    if (j10IntLiteral (binary.right)) {
+        return { op: 'lit', literal: unwrapParens (binary.right) };
+    }
+    const r = unwrapParens (binary.right);
+    if (r !== undefined && ts.isBinaryExpression (r) && (r.operatorToken.kind === ts.SyntaxKind.PlusToken || r.operatorToken.kind === ts.SyntaxKind.MinusToken)
+        && j10SameSymbol (checker, symbol, r.left) && j10IntLiteral (r.right)) {
+        return { op: r.operatorToken.kind === ts.SyntaxKind.PlusToken ? '+' : '-', literal: unwrapParens (r.right) };
+    }
+    return undefined;
+}
+
+function j10CounterAdmitted (printer, declaration) {
+    if (!ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name) || !j10IntLiteral (declaration.initializer)) {
+        return false;
+    }
+    const list = declaration.parent;
+    if (!ts.isVariableDeclarationList (list) || list.declarations.length !== 1 || (list.flags & ts.NodeFlags.Let) === 0
+        || ts.isForStatement (list.parent) || ts.isForInStatement (list.parent) || ts.isForOfStatement (list.parent)) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    const scope = enclosingFunction (declaration);
+    if (symbol === undefined || scope === undefined || printer.printNode (declaration.name, 0) !== declaration.name.text) {
+        return false;
+    }
+    let writes = 0;
+    for (const n of identifierIndex (scope).get (declaration.name.text) ?? []) {
+        if (n === declaration.name || checker.getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        if (enclosingFunction (n) !== scope) {
+            return false; // a closure capture
+        }
+        let child = n;
+        let parent = n.parent;
+        while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+            child = parent;
+            parent = parent.parent;
+        }
+        if (parent === undefined) {
+            return false;
+        }
+        if ((ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent))
+            && (parent.operator === ts.SyntaxKind.PlusPlusToken || parent.operator === ts.SyntaxKind.MinusMinusToken)) {
+            if (!ts.isExpressionStatement (parent.parent) && !(ts.isForStatement (parent.parent) && parent.parent.incrementor === parent)) {
+                return false;
+            }
+            writes++;
+            continue;
+        }
+        if (ts.isBinaryExpression (parent)) {
+            const op = parent.operatorToken.kind;
+            if (parent.left === child && op >= ts.SyntaxKind.FirstAssignment && op <= ts.SyntaxKind.LastAssignment) {
+                if (child !== n || j10CounterWrite (checker, symbol, parent) === undefined || !ts.isExpressionStatement (parent.parent)) {
+                    return false;
+                }
+                writes++;
+                continue;
+            }
+            if (J10_ORDER_OPS.has (op) || J10_ARITH_OPS.has (op)) {
+                continue;
+            }
+            return false;
+        }
+        if (ts.isElementAccessExpression (parent) && parent.argumentExpression === child) {
+            continue;
+        }
+        if (ts.isCallExpression (parent) && parent.arguments.includes (child) && isThisCall (parent) && parent.expression.name.text === 'sum') {
+            continue;
+        }
+        return false;
+    }
+    return writes > 0;
+}
+
+function j10CounterDeclaration (printer, node, memo) {
+    if (node === undefined || !ts.isIdentifier (node)) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration)) {
+        return undefined;
+    }
+    if (!memo.has (declaration)) {
+        let ok = false;
+        try {
+            ok = j10CounterAdmitted (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        memo.set (declaration, ok);
+    }
+    return memo.get (declaration) ? declaration : undefined;
+}
+
+export function installJ10Types (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaOptionalParameterTypeOf !== 'function' || printer._j10TypesPatched) {
+        return;
+    }
+    printer._j10TypesPatched = true;
+    // (A) defaulted boolean params
+    const upstreamType = printer.javaOptionalParameterTypeOf.bind (printer);
+    printer.javaOptionalParameterTypeOf = function (node) {
+        return j10BooleanParamType (printer, node) ?? upstreamType (node);
+    };
+    const upstreamConvert = printer.javaConvertToCoreType.bind (printer);
+    printer.javaConvertToCoreType = function (type, printed, node) {
+        if (type === 'Boolean' && node !== undefined && unwrapParens (node)?.kind !== ts.SyntaxKind.NullKeyword
+            && !(ts.isIdentifier (node) && node.text === 'undefined') && javaBooleanArgumentIsTyped (printer, node)) {
+            return printed;
+        }
+        return upstreamConvert (type, printed, node);
+    };
+    const upstreamCondition = printer.printCondition.bind (printer);
+    printer.printCondition = function (node, identation) {
+        const bare = unwrapParens (node);
+        if (bare?.kind === ts.SyntaxKind.Identifier) {
+            const declaration = printer.javaDeclarationOfIdentifier (bare);
+            const printed = printer.printNode (bare, 0);
+            if (declaration?.kind === ts.SyntaxKind.Parameter && j10BooleanParamType (printer, declaration) === 'Boolean'
+                && printed.startsWith ('java.util.Objects.requireNonNullElse(')) {
+                return printer.getIden (identation) + printed;
+            }
+        }
+        return upstreamCondition (node, identation);
+    };
+    // (B) counters
+    const memo = new WeakMap ();
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (declaration !== undefined && ts.isVariableDeclaration (declaration)
+        && j10CounterDeclaration (printer, declaration.name, memo) === declaration ? 'long' : undefined));
+    const upstreamList = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamList (node, identation);
+        const declaration = node.declarations?.length === 1 ? node.declarations[0] : undefined;
+        if (declaration === undefined || j10CounterDeclaration (printer, declaration.name, memo) !== declaration) {
+            return printed;
+        }
+        const m = new RegExp (`(?:${printer.VAR_TOKEN}|Integer|Long|int|long) ${declaration.name.text} = `).exec (printed);
+        if (m === null) {
+            throw new Error (`hx4 J10: counter ${declaration.name.text} printed without a numeric declaration`);
+        }
+        return printed.slice (0, m.index) + `long ${declaration.name.text} = ` + printed.slice (m.index + m[0].length);
+    };
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const op = node.operatorToken.kind;
+        if (op >= ts.SyntaxKind.FirstAssignment && op <= ts.SyntaxKind.LastAssignment && ts.isIdentifier (node.left)) {
+            const declaration = j10CounterDeclaration (printer, node.left, memo);
+            if (declaration !== undefined) {
+                const write = j10CounterWrite (printer.getChecker (), printer.getChecker ().getSymbolAtLocation (node.left), node);
+                const name = node.left.text;
+                const lit = printer.printNode (write.literal, 0).replace (/^\((.*)\)$/, '$1');
+                return write.op === 'lit' ? `${name} = ${lit}` : `${name} = (${name} ${write.op} ${lit}L)`;
+            }
+        }
+        return upstreamBinary (node, identation);
+    };
+}
+
+// ===== hx4 J11: Object locals that only ever hold a Map print java.util.Map<String, Object> =====
+// Joins what sections 13/16/50 keep apart: a casted Map producer (base safeDict*, a fresh-map method)
+// with omit-of-self / Map-copy writes. The J01 put and J02 get rules then see a declared Map receiver.
+const J11_MAP_CAST = '(java.util.Map<String, Object>)';
+
+// { cast } when the printed value is a Map (or null) on every path, else undefined
+function j11MapValue (printer, node, declaration, depth = 0) {
+    const value = unwrapParens (node);
+    if (value === undefined || depth > 3) {
+        return undefined;
+    }
+    if (isNullishInitializer (value)) {
+        return { cast: false };
+    }
+    if (ts.isObjectLiteralExpression (value)) {
+        return literalObjectLiteralIsPlain (value) ? { cast: false } : undefined;
+    }
+    if (ts.isIdentifier (value)) {
+        return value.text === declaration.name.text || javaOmitSourceIsMap (printer, value, 0) ? { cast: false } : undefined;
+    }
+    if (!ts.isCallExpression (value) || !isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    if (javaOmitMapCall (printer, value) !== undefined || javaOmitSelfCall (printer, value, declaration)) {
+        return { cast: false }; // the typed omit(Map, ..) overload returns a fresh Map
+    }
+    const name = String (value.expression.name.text);
+    const defaultAt = SAFE_DICT_ACCESSORS.get (name);
+    if (defaultAt !== undefined) {
+        // BaseExchange.safeDict* hands back a Map element of the source or the default untouched
+        if (!resolvesToBaseOrStrippedAccessor (printer, value, name) || value.arguments.length > defaultAt + 1) {
+            return undefined;
+        }
+        const fallback = value.arguments[defaultAt];
+        return fallback === undefined || j11MapValue (printer, fallback, declaration, depth + 1) !== undefined ? { cast: true } : undefined;
+    }
+    const collection = collectionCallInfo (printer, value);
+    if (collection !== undefined) {
+        return collection.type === JAVA_MAP_TYPE ? { cast: collection.cast } : undefined;
+    }
+    // a method whose every dispatchable body returns a fresh map literal / extend (account, depositWithdrawFee)
+    if (!javaFreshMapMethods ().classes.has (path.resolve (value.getSourceFile ().fileName))) {
+        javaFreshMapMethodIndex = undefined; // the class index predates this file: rebuild it once
+    }
+    if (!isAsyncMethodCall (printer, value) && javaFreshMapValue (value, new Set ())) {
+        const declared = String (syncCoreCallType (printer, value) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+        return { cast: declared !== 'Map<String,Object>' };
+    }
+    return undefined;
+}
+
+function j11MapLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const init = j11MapValue (printer, declaration.initializer, declaration);
+    if (init === undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, JAVA_MAP_TYPE)) {
+        return undefined;
+    }
+    // a nullish start needs at least one Map write to say anything
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const ok = isSafeToNarrow (printer, declaration, name, JAVA_MAP_TYPE, isProFile, {
+        noCastAssertions: true,
+        writeOnly: true,
+        writeOk: (right) => j11MapValue (printer, right, declaration) !== undefined,
+        destructureOk: (assignment, at) => mapLocalDestructureOk (printer, assignment, at),
+    });
+    return ok ? { cast: init.cast } : undefined;
+}
+
+export function installJ11MapLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaJ11MapLocalsPatched) {
+        return;
+    }
+    printer._javaJ11MapLocalsPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let info;
+        try {
+            info = j11MapLocal (printer, declaration);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        typed.set (declaration, JAVA_MAP_TYPE);
+        const head = marker.replace (/Object (\S+) = $/, `${JAVA_MAP_TYPE} $1 = `) + (info.cast ? J11_MAP_CAST + ' ' : '');
+        return printed.slice (0, at) + head + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // later writes from an Object-declared Map producer take the same checkcast
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let declaration;
+        let info;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+            info = declaration !== undefined && typed.has (declaration) ? j11MapValue (printer, node.right, declaration) : undefined;
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined || !info.cast) {
+            return printed;
+        }
+        return accumulatorCastWrite (printer, node, printed, { cast: J11_MAP_CAST });
+    };
+}

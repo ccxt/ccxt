@@ -937,7 +937,7 @@ export default class cex extends cexRest {
         return precise.toString ();
     }
 
-    currencyFromPrecision (currency: any, amount: any) {
+    currencyFromPrecision (currency: string, amount: any) {
         const scale = this.safeInteger (this.currencies[currency], 'precision', 0);
         return this.fromPrecision (amount, scale);
     }

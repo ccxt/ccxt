@@ -5583,8 +5583,7 @@ export default class binance extends binanceRest {
         if (executionType === 'TRADE') {
             const trade = this.parseWsTrade (message);
             const orderId = this.safeString (trade, 'order');
-            let tradeFee = this.safeDict (trade, 'fee', {});
-            tradeFee = this.extend ({}, tradeFee);
+            const tradeFee: Dict = this.extend ({}, this.safeDict (trade, 'fee', {}));
             const symbol = this.safeString (trade, 'symbol');
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
                 const cachedOrders = this.orders;
@@ -5593,9 +5592,9 @@ export default class binance extends binanceRest {
                     const order = this.safeDict (orders, orderId);
                     if (order !== undefined) {
                         // accumulate order fees
-                        const fees = this.safeValue (order, 'fees');
+                        const fees = this.safeList (order, 'fees');
                         const fee = this.safeDict (order, 'fee');
-                        if (!this.isEmpty (fees)) {
+                        if ((fees !== undefined) && !this.isEmpty (fees)) {
                             let insertNewFeeCurrency = true;
                             for (let i = 0; i < fees.length; i++) {
                                 const orderFee = fees[i];

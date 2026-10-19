@@ -3891,14 +3891,14 @@ export default class gate extends Exchange {
         }
         let marginMode: Str = undefined;
         let request: Dict = {};
-        let query = undefined;
+        let query: Dict;
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const until = this.safeInteger (paramsPaginate, 'until');
         const paramsOmitted = this.omit (paramsPaginate, [ 'until' ]);
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, paramsOmitted);
         const contract = (type === 'swap') || (type === 'future') || (type === 'option');
         if (contract) {
-            let contractQuery = undefined;
+            let contractQuery: Dict;
             [ request, contractQuery ] = this.prepareRequest (market, type, paramsMarketType);
             query = (type === 'option') ? this.omit (contractQuery, 'order_id') : contractQuery;
         } else {

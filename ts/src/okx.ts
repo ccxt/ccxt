@@ -1767,14 +1767,14 @@ export default class okx extends Exchange {
         } else {
             types = this.safeList (this.options, 'fetchMarkets', types); // backward-support
         }
-        let promises: List = [];
+        const promises: List = [];
         let result: List = [];
         for (let i = 0; i < types.length; i++) {
             promises.push (this.fetchMarketsByType (types[i], params));
         }
-        promises = await Promise.all (promises);
-        for (let i = 0; i < promises.length; i++) {
-            result = this.arrayConcat (result, promises[i]);
+        const responses = await Promise.all (promises);
+        for (let i = 0; i < responses.length; i++) {
+            result = this.arrayConcat (result, responses[i]);
         }
         return result;
     }

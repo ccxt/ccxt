@@ -894,7 +894,7 @@ export default class coinbase extends coinbaseRest {
         });
     }
 
-    handleOrderBookHelper (orderbook: any, updates: any) {
+    handleOrderBookHelper (orderbook: any, updates: any[]) {
         for (let i = 0; i < updates.length; i++) {
             const trade = this.safeDict (updates, i);
             const sideId = this.safeString (trade, 'side');

@@ -1617,7 +1617,7 @@ export default class bithumb extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrders() requires a non-empty orders array');
         }
         const ordersRequests: List = [];
-        let orderSymbols: string[] = [];
+        const orderSymbols: string[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -1639,8 +1639,8 @@ export default class bithumb extends Exchange {
             const orderRequest = this.createOrderRequest (symbol, type as OrderType, side as OrderSide, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
-        const market = this.market (orderSymbols[0]);
+        const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const market = this.market (symbols[0]);
         const request: Dict = {
             'batch_orders': ordersRequests,
         };

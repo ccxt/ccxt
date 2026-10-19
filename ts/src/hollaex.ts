@@ -1861,10 +1861,11 @@ export default class hollaex extends Exchange {
         }
         const currencyId = this.safeString (transaction, 'currency');
         const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
-        let status = this.safeValue (transaction, 'status');
+        const completed = this.safeBool (transaction, 'status');
         const dismissed = this.safeBool (transaction, 'dismissed');
         const rejected = this.safeBool (transaction, 'rejected');
-        if (status === true) {
+        let status: Str = undefined;
+        if (completed === true) {
             status = 'ok';
         } else if (dismissed === true) {
             status = 'canceled';

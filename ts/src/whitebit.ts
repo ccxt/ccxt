@@ -1251,8 +1251,8 @@ export default class whitebit extends Exchange {
             };
             // Add fee information if available
             if (feeData !== undefined) {
-                const depositFee = feeData['deposit'];
-                const withdrawFee = feeData['withdraw'];
+                const depositFee = this.safeDict (feeData, 'deposit');
+                const withdrawFee = this.safeDict (feeData, 'withdraw');
                 if ((depositFee !== undefined) && (depositFee !== null)) {
                     const depositFeeData: Dict = {
                         'fixed': this.safeNumber (depositFee, 'fixed'),
@@ -2544,7 +2544,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const marketIds = Object.keys (response);
-        let results: List = [];
+        const results: List = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketNew = this.safeMarket (marketId, undefined, '_');
@@ -2554,9 +2554,9 @@ export default class whitebit extends Exchange {
                 results.push (this.extend (order, { 'status': 'closed' }));
             }
         }
-        results = this.sortBy (results, 'timestamp');
-        results = this.filterBySymbolSinceLimit (results, symbolResolved, since, limit);
-        return results as Order[];
+        const sorted = this.sortBy (results, 'timestamp');
+        const filtered = this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit);
+        return filtered as Order[];
     }
 
     parseOrderType (type: Str) {

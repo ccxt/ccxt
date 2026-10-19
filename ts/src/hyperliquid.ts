@@ -4807,19 +4807,19 @@ export default class hyperliquid extends Exchange {
         let vaultAddress: Str = undefined;
         [ vaultAddress, params2 ] = this.handleOptionStringAndParams (params2, 'fetchDepositsWithdrawals', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
-        let deposits: Dict[] = [];
-        if (vaultAddress !== undefined) {
-            for (let i = 0; i < records.length; i++) {
-                const record = records[i];
-                if (this.safeString (record, 'type') === 'vaultDeposit') {
-                    const delta = this.safeDict (record, 'delta', {});
-                    if (delta['vault'] === '0x' + vaultAddress) {
-                        deposits.push (record);
-                    }
+        if (vaultAddress === undefined) {
+            const filtered = this.filterByArray (records, 'type', [ 'deposit' ], false);
+            return this.parseTransactions (filtered, undefined, since, limit);
+        }
+        const deposits: Dict[] = [];
+        for (let i = 0; i < records.length; i++) {
+            const record = records[i];
+            if (this.safeString (record, 'type') === 'vaultDeposit') {
+                const delta = this.safeDict (record, 'delta', {});
+                if (delta['vault'] === '0x' + vaultAddress) {
+                    deposits.push (record);
                 }
             }
-        } else {
-            deposits = this.filterByArray (records, 'type', [ 'deposit' ], false);
         }
         return this.parseTransactions (deposits, undefined, since, limit);
     }
@@ -4878,19 +4878,19 @@ export default class hyperliquid extends Exchange {
         let vaultAddress: Str = undefined;
         [ vaultAddress, params2 ] = this.handleOptionStringAndParams (params2, 'fetchDepositsWithdrawals', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
-        let withdrawals: Dict[] = [];
-        if (vaultAddress !== undefined) {
-            for (let i = 0; i < records.length; i++) {
-                const record = records[i];
-                if (this.safeString (record, 'type') === 'vaultWithdraw') {
-                    const delta = this.safeDict (record, 'delta', {});
-                    if (delta['vault'] === '0x' + vaultAddress) {
-                        withdrawals.push (record);
-                    }
+        if (vaultAddress === undefined) {
+            const filtered = this.filterByArray (records, 'type', [ 'withdraw' ], false);
+            return this.parseTransactions (filtered, undefined, since, limit);
+        }
+        const withdrawals: Dict[] = [];
+        for (let i = 0; i < records.length; i++) {
+            const record = records[i];
+            if (this.safeString (record, 'type') === 'vaultWithdraw') {
+                const delta = this.safeDict (record, 'delta', {});
+                if (delta['vault'] === '0x' + vaultAddress) {
+                    withdrawals.push (record);
                 }
             }
-        } else {
-            withdrawals = this.filterByArray (records, 'type', [ 'withdraw' ], false);
         }
         return this.parseTransactions (withdrawals, undefined, since, limit);
     }

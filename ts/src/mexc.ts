@@ -2405,7 +2405,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    createSpotOrderRequest (market: any, type: Str, side: Str, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    createSpotOrderRequest (market: any, type: Str, side: Str, amount: any, price: Num = undefined, marginMode: Str = undefined, params: Dict = {}) {
         const symbol = market['symbol'];
         if ((type === undefined) || (side === undefined)) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a type and a side argument');
@@ -2479,7 +2479,7 @@ export default class mexc extends Exchange {
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSpotOrder (market: any, type: OrderType, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}): Promise<Order> {
+    async createSpotOrder (market: any, type: OrderType, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2549,7 +2549,7 @@ export default class mexc extends Exchange {
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSwapOrder (market: any, type: any, side: OrderSide, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}): Promise<Order> {
+    async createSwapOrder (market: any, type: any, side: OrderSide, amount: any, price: Num = undefined, marginMode: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

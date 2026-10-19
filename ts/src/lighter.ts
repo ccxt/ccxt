@@ -626,7 +626,7 @@ export default class lighter extends Exchange {
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any): string {
+    signHash (hash: string, privateKey: string): string {
         this.checkRequiredCredentials ();
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
@@ -635,7 +635,7 @@ export default class lighter extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    signL1AndPrepareTxInfo (txInfo: any, message: any, privateKey: any): string {
+    signL1AndPrepareTxInfo (txInfo: any, message: any, privateKey: string): string {
         const hashMessage = this.hashMessage (message);
         const signature = this.signHash (hashMessage, privateKey);
         const decTxInfo = this.parseJson (txInfo);

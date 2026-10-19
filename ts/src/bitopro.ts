@@ -942,7 +942,7 @@ export default class bitopro extends Exchange {
         return this.insertMissingCandles (sparse, timeframeInSeconds, alignedSince, limitResolved) as OHLCV[];
     }
 
-    insertMissingCandles (candles: any, distance: number, since: Int, limit: number) {
+    insertMissingCandles (candles: any[], distance: number, since: Int, limit: number) {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         const length = candles.length;

@@ -1779,7 +1779,7 @@ export default class kraken extends Exchange {
             await this.loadMarkets ();
         }
         const ordersRequests: List = [];
-        let orderSymbols: List = [];
+        const orderSymbols: List = [];
         let symbol: Str = undefined;
         let market: Market = undefined;
         for (let i = 0; i < orders.length; i++) {
@@ -1808,7 +1808,7 @@ export default class kraken extends Exchange {
             const orderRequest = this.orderRequest ('createOrders', marketId, type, req, amount, price, orderParams);
             ordersRequests.push (orderRequest[0]);
         }
-        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        this.marketSymbols (orderSymbols, undefined, false, true, true);
         let response: NullableDict = undefined;
         let request: Dict = {
             'orders': ordersRequests,

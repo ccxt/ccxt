@@ -1404,6 +1404,13 @@ public class BaseExchange {
         if (value instanceof Boolean b) {
             return b;
         }
+        // "true"/"false" strings and 1/0 numbers read as booleans; anything else throws
+        if ("true".equals(value) || ((value instanceof Integer || value instanceof Long || value instanceof Double) && ((Number) value).doubleValue() == 1)) {
+            return true;
+        }
+        if ("false".equals(value) || ((value instanceof Integer || value instanceof Long || value instanceof Double) && ((Number) value).doubleValue() == 0)) {
+            return false;
+        }
         throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a boolean");
     }
 
@@ -6376,7 +6383,7 @@ public Object describe()
             Map<String,Object> market = this.deepExtend(this.safeMarketStructure((Object) null), new HashMap<String, Object>() {{
                 put( "precision", BaseExchange.this.precision );
                 put( "limits", BaseExchange.this.limits );
-            }}, Helpers.GetValue(this.fees, "trading"), valueDefined);
+            }}, (this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), valueDefined);
             if (java.util.Objects.equals(market.get("linear"), true))
             {
                 market.put("subType", "linear");
@@ -6385,7 +6392,7 @@ public Object describe()
                 market.put("subType", "inverse");
             } else
             {
-                Helpers.addElementToObject(market, "subType", null);
+                market.put("subType", null);
             }
             ((List<Object>)values).add(market);
         }
@@ -6732,10 +6739,10 @@ public Object describe()
             {
                 // copy fee to avoid modification by reference
                 Map<String,Object> feeCopy = this.deepExtend(fee);
-                Helpers.addElementToObject(feeCopy, "cost", this.safeNumber(feeCopy, "cost", (Object) null));
+                feeCopy.put("cost", BaseExchange.this.safeNumber(feeCopy, "cost", (Object) null));
                 if (feeCopy.containsKey("rate"))
                 {
-                    Helpers.addElementToObject(feeCopy, "rate", this.safeNumber(feeCopy, "rate", (Object) null));
+                    feeCopy.put("rate", BaseExchange.this.safeNumber(feeCopy, "rate", (Object) null));
                 }
                 ((List<Object>)reducedFees).add(feeCopy);
             }
@@ -6840,10 +6847,10 @@ public Object describe()
             Helpers.addElementToObject(entry, "price", this.safeNumber(entry, "price", (Object) null));
             Helpers.addElementToObject(entry, "cost", this.safeNumber(entry, "cost", (Object) null));
             Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(entry, "fee", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(tradeFee, "cost", this.safeNumber(tradeFee, "cost", (Object) null));
+            tradeFee.put("cost", BaseExchange.this.safeNumber(tradeFee, "cost", (Object) null));
             if (tradeFee.containsKey("rate"))
             {
-                Helpers.addElementToObject(tradeFee, "rate", this.safeNumber(tradeFee, "rate", (Object) null));
+                tradeFee.put("rate", BaseExchange.this.safeNumber(tradeFee, "rate", (Object) null));
             }
             List<Object> entryFees = (List<Object>) this.safeList(entry, "fees", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < (entryFees == null ? 0 : ((List<?>)entryFees).size()); j++)
@@ -9208,7 +9215,7 @@ public Object describe()
         {
             if ((!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
             {
-                Object markets = Helpers.GetValue(this.markets_by_id, marketId);
+                Object markets = (marketId == null || this.markets_by_id == null ? null : ((Map<?, ?>)this.markets_by_id).get(marketId));
                 Integer numMarkets = Helpers.getArrayLength(markets);
                 if ((numMarkets != null && numMarkets == 1))
                 {

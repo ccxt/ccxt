@@ -200,7 +200,7 @@ export default class opinion extends Exchange {
                 const marketType = this.safeInteger (raw, 'marketType');
                 if (marketType === 1) {
                     const event: any = this.parseEvent (raw);
-                    const childMarkets = event['markets'];
+                    const childMarkets = this.safeList (event, 'markets', []);
                     const childMarketsLength = childMarkets.length;
                     for (let ci = 0; ci < childMarketsLength; ci++) {
                         flatMarkets.push (childMarkets[ci] as unknown as Market);

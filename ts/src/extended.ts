@@ -2496,7 +2496,7 @@ export default class extended extends Exchange {
         return result;
     }
 
-    async fetchExtendedAccount (params = {}): Promise<any> {
+    async fetchExtendedAccount (params: Dict = {}): Promise<any> {
         let account = this.safeDict (this.options, 'account');
         if (account !== undefined) {
             return account;
