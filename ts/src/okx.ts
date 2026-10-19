@@ -4535,9 +4535,9 @@ export default class okx extends Exchange {
         const options = this.safeDict (this.options, 'fetchOrder', {});
         const defaultMethod = this.safeString (options, 'method', 'privateGetTradeOrder');
         let method = this.safeString (params, 'method', defaultMethod);
-        const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        const isTrigger = (trigger === true);
-        if (isTrigger) {
+        const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
+        const trailing = this.safeBool (params, 'trailing', false);
+        if (trigger || trailing) {
             method = 'privateGetTradeOrderAlgo';
             if (clientOrderId !== undefined) {
                 request['algoClOrdId'] = clientOrderId;
@@ -4551,7 +4551,7 @@ export default class okx extends Exchange {
                 request['ordId'] = id;
             }
         }
-        const query = this.omit (params, [ 'method', 'clOrdId', 'clientOrderId', 'stop', 'trigger' ]);
+        const query = this.omit (params, [ 'method', 'clOrdId', 'clientOrderId', 'stop', 'trigger', 'trailing' ]);
         let response: Dict;
         if (method === 'privateGetTradeOrderAlgo') {
             response = await this.privateGetTradeOrderAlgo (this.extend (request, query));
