@@ -821,8 +821,13 @@ func parseOrderBookEntries(orderbook map[string]any, key string) [][]float64 {
 				if pair, ok := entry.([]any); ok {
 					var floatPair []float64
 					for _, v := range pair {
-						if num, ok := derefScalar(v).(float64); ok {
+						switch num := derefScalar(v).(type) {
+						case float64:
 							floatPair = append(floatPair, num)
+						case int64:
+							floatPair = append(floatPair, float64(num))
+						case int:
+							floatPair = append(floatPair, float64(num))
 						}
 					}
 					if len(floatPair) >= 2 { // Ensure bid/ask pairs have at least two values
@@ -835,8 +840,13 @@ func parseOrderBookEntries(orderbook map[string]any, key string) [][]float64 {
 			for _, entry := range entries {
 				var floatPair []float64
 				for _, v := range entry {
-					if num, ok := derefScalar(v).(float64); ok {
+					switch num := derefScalar(v).(type) {
+					case float64:
 						floatPair = append(floatPair, num)
+					case int64:
+						floatPair = append(floatPair, float64(num))
+					case int:
+						floatPair = append(floatPair, float64(num))
 					}
 				}
 				if len(floatPair) >= 2 { // Ensure bid/ask pairs have at least two values
@@ -2793,13 +2803,51 @@ func NewDepositWithdrawFeeNetwork(data any) DepositWithdrawFeeNetwork {
 	}
 }
 
+// DepositWithdrawFeeNetworkEntry
+
+type DepositWithdrawFeeNetworkEntry struct {
+	Deposit  *DepositWithdrawFeeNetwork
+	Withdraw *DepositWithdrawFeeNetwork
+}
+
+func NewDepositWithdrawFeeNetworkEntry(data any) DepositWithdrawFeeNetworkEntry {
+	if data == nil {
+		return DepositWithdrawFeeNetworkEntry{}
+	}
+	if syncMap, ok := data.(*sync.Map); ok {
+		data = SafeMapToMap(syncMap)
+	}
+	m, ok := data.(map[string]any)
+	if !ok {
+		return DepositWithdrawFeeNetworkEntry{}
+	}
+	var deposit *DepositWithdrawFeeNetwork
+	if v, ok := m["deposit"]; ok && derefScalar(v) != nil {
+		if depositMap, ok := v.(map[string]any); ok {
+			depositValue := NewDepositWithdrawFeeNetwork(depositMap)
+			deposit = &depositValue
+		}
+	}
+	var withdraw *DepositWithdrawFeeNetwork
+	if v, ok := m["withdraw"]; ok && derefScalar(v) != nil {
+		if withdrawMap, ok := v.(map[string]any); ok {
+			withdrawValue := NewDepositWithdrawFeeNetwork(withdrawMap)
+			withdraw = &withdrawValue
+		}
+	}
+	return DepositWithdrawFeeNetworkEntry{
+		Deposit:  deposit,
+		Withdraw: withdraw,
+	}
+}
+
 // DepositWithdrawFee
 
 type DepositWithdrawFee struct {
 	Info     any
 	Withdraw *DepositWithdrawFeeNetwork
 	Deposit  *DepositWithdrawFeeNetwork
-	Networks map[string]DepositWithdrawFeeNetwork
+	Networks map[string]DepositWithdrawFeeNetworkEntry
 }
 
 func NewDepositWithdrawFee(data any) DepositWithdrawFee {
@@ -2831,12 +2879,12 @@ func NewDepositWithdrawFee(data any) DepositWithdrawFee {
 			deposit = &depositValue
 		}
 	}
-	networks := make(map[string]DepositWithdrawFeeNetwork)
+	networks := make(map[string]DepositWithdrawFeeNetworkEntry)
 	if v, ok := m["networks"]; ok && derefScalar(v) != nil {
 		if networksMap, ok := v.(map[string]any); ok {
 			for key, value := range networksMap {
 				if networkMap, ok := value.(map[string]any); ok {
-					networks[key] = NewDepositWithdrawFeeNetwork(networkMap)
+					networks[key] = NewDepositWithdrawFeeNetworkEntry(networkMap)
 				}
 			}
 		}

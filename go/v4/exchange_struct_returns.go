@@ -894,7 +894,18 @@ func DepositWithdrawFeeToMap(v DepositWithdrawFee) map[string]any {
 	}
 	networks := make(map[string]any, len(v.Networks))
 	for k, n := range v.Networks {
-		networks[k] = StructToMap(n)
+		var netWithdraw any = map[string]any{"fee": nil, "percentage": nil}
+		if n.Withdraw != nil {
+			netWithdraw = StructToMap(*n.Withdraw)
+		}
+		var netDeposit any = map[string]any{"fee": nil, "percentage": nil}
+		if n.Deposit != nil {
+			netDeposit = StructToMap(*n.Deposit)
+		}
+		networks[k] = map[string]any{
+			"withdraw": netWithdraw,
+			"deposit":  netDeposit,
+		}
 	}
 	return map[string]any{
 		"info":     v.Info,
