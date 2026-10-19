@@ -5,497 +5,182 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
-* [fetchTime](#fetchtime)
-* [fetchStatus](#fetchstatus)
-* [fetchMarkets](#fetchmarkets)
-* [fetchCurrencies](#fetchcurrencies)
-* [fetchOrderBook](#fetchorderbook)
-* [fetchTrades](#fetchtrades)
-* [fetchMyTrades](#fetchmytrades)
-* [fetchOHLCV](#fetchohlcv)
-* [fetchTicker](#fetchticker)
-* [fetchTickers](#fetchtickers)
-* [fetchLastPrices](#fetchlastprices)
-* [fetchBalance](#fetchbalance)
-* [fetchDepositAddress](#fetchdepositaddress)
-* [fetchDeposits](#fetchdeposits)
-* [fetchWithdrawals](#fetchwithdrawals)
-* [withdraw](#withdraw)
-* [transfer](#transfer)
-* [fetchAccounts](#fetchaccounts)
-* [fetchLedger](#fetchledger)
-* [createOrder](#createorder)
+* [addMargin](#addmargin)
+* [cancelAllOrders](#cancelallorders)
+* [cancelOrder](#cancelorder)
+* [cancelOrders](#cancelorders)
 * [createMarketBuyOrderWithCost](#createmarketbuyorderwithcost)
+* [createOrder](#createorder)
+* [createOrders](#createorders)
 * [createSpotOrder](#createspotorder)
 * [createSwapOrder](#createswaporder)
-* [createOrders](#createorders)
-* [cancelOrder](#cancelorder)
-* [cancelAllOrders](#cancelallorders)
-* [cancelOrders](#cancelorders)
-* [fetchOrder](#fetchorder)
-* [fetchOpenOrders](#fetchopenorders)
+* [fetchAccounts](#fetchaccounts)
+* [fetchBalance](#fetchbalance)
 * [fetchCanceledAndClosedOrders](#fetchcanceledandclosedorders)
+* [fetchCurrencies](#fetchcurrencies)
+* [fetchDepositAddress](#fetchdepositaddress)
+* [fetchDeposits](#fetchdeposits)
 * [fetchFundingRate](#fetchfundingrate)
-* [fetchFundingRates](#fetchfundingrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
+* [fetchFundingRates](#fetchfundingrates)
+* [fetchLastPrices](#fetchlastprices)
+* [fetchLedger](#fetchledger)
+* [fetchLeverage](#fetchleverage)
+* [fetchLeverageTiers](#fetchleveragetiers)
+* [fetchMarkets](#fetchmarkets)
+* [fetchMyTrades](#fetchmytrades)
+* [fetchOHLCV](#fetchohlcv)
+* [fetchOpenOrders](#fetchopenorders)
+* [fetchOrder](#fetchorder)
+* [fetchOrderBook](#fetchorderbook)
 * [fetchPositions](#fetchpositions)
 * [fetchPositionsForSymbol](#fetchpositionsforsymbol)
-* [fetchLeverage](#fetchleverage)
-* [setLeverage](#setleverage)
-* [setMarginMode](#setmarginmode)
-* [addMargin](#addmargin)
-* [reduceMargin](#reducemargin)
-* [fetchLeverageTiers](#fetchleveragetiers)
+* [fetchStatus](#fetchstatus)
+* [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
+* [fetchTime](#fetchtime)
+* [fetchTrades](#fetchtrades)
 * [fetchTradingFee](#fetchtradingfee)
 * [fetchTradingFees](#fetchtradingfees)
+* [fetchWithdrawals](#fetchwithdrawals)
+* [reduceMargin](#reducemargin)
+* [setLeverage](#setleverage)
+* [setMarginMode](#setmarginmode)
+* [transfer](#transfer)
+* [watchBalance](#watchbalance)
+* [watchMyTrades](#watchmytrades)
 * [watchOHLCV](#watchohlcv)
-* [watchTicker](#watchticker)
-* [watchTrades](#watchtrades)
 * [watchOrderBook](#watchorderbook)
 * [watchOrders](#watchorders)
-* [watchMyTrades](#watchmytrades)
 * [watchPositions](#watchpositions)
-* [watchBalance](#watchbalance)
+* [watchTicker](#watchticker)
+* [watchTrades](#watchtrades)
+* [withdraw](#withdraw)
 
-<a name="fetchTime" id="fetchtime"></a>
+<a name="addMargin" id="addmargin"></a>
 
-### fetchTime{docsify-ignore}
-fetches the current integer timestamp in milliseconds from the exchange server
+### addMargin{docsify-ignore}
+add margin
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/check-server-time  
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | amount of margin to add |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.side | <code>string</code> | Yes | position side, either 'long' or 'short' |
 
 
 ```javascript
-hashkey.fetchTime (params?)
+hashkey.addMargin (symbol, amount, params?)
 ```
 
 
-<a name="fetchStatus" id="fetchstatus"></a>
+<a name="cancelAllOrders" id="cancelallorders"></a>
 
-### fetchStatus{docsify-ignore}
-the latest known information on the availability of the exchange API
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/test-connectivity  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-hashkey.fetchStatus (params?)
-```
-
-
-<a name="fetchMarkets" id="fetchmarkets"></a>
-
-### fetchMarkets{docsify-ignore}
-retrieves data on all markets for the exchange
+### cancelAllOrders{docsify-ignore}
+cancel all open orders
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.symbol | <code>string</code> | No | the id of the market to fetch |
-
-
-```javascript
-hashkey.fetchMarkets (params?)
-```
-
-
-<a name="fetchCurrencies" id="fetchcurrencies"></a>
-
-### fetchCurrencies{docsify-ignore}
-fetches all available currencies on an exchange
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - an associative dictionary of currencies
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-hashkey.fetchCurrencies (params?)
-```
-
-
-<a name="fetchOrderBook" id="fetchorderbook"></a>
-
-### fetchOrderBook{docsify-ignore}
-fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-order-book  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return (maximum value is 200) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-hashkey.fetchOrderBook (symbol, limit?, params?)
-```
-
-
-<a name="fetchTrades" id="fetchtrades"></a>
-
-### fetchTrades{docsify-ignore}
-get the list of most recent trades for a particular symbol
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-recent-trade-list  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch (maximum value is 100) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-hashkey.fetchTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchMyTrades" id="fetchmytrades"></a>
-
-### fetchMyTrades{docsify-ignore}
-fetch all trades made by the user
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://github.com/ccxt/ccxt/wiki/Manual#trade-structure)
+**Returns**: <code>object</code> - response from exchange
 
 **See**
 
-- https://hashkeyglobal-apidoc.readme.io/reference/get-account-trade-list
-- https://hashkeyglobal-apidoc.readme.io/reference/query-futures-trades
-- https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-user
+- https://hashkeyglobal-apidoc.readme.io/reference/cancel-all-open-orders
+- https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | *is mandatory for swap markets* unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch (default 200, max 500) |
+| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | 'spot' or 'swap' - the type of the market to fetch trades for (default 'spot') |
-| params.until | <code>int</code> | No | the latest time in ms to fetch trades for, only supports the last 30 days timeframe |
-| params.fromId | <code>string</code> | No | srarting trade id |
-| params.toId | <code>string</code> | No | ending trade id |
-| params.clientOrderId | <code>string</code> | No | *spot markets only* filter trades by orderId |
-| params.accountId | <code>string</code> | No | account id to fetch the orders from |
+| params.side | <code>string</code> | No | 'buy' or 'sell' |
 
 
 ```javascript
-hashkey.fetchMyTrades (symbol, since?, limit?, params?)
+hashkey.cancelAllOrders (symbol, params?)
 ```
 
 
-<a name="fetchOHLCV" id="fetchohlcv"></a>
+<a name="cancelOrder" id="cancelorder"></a>
 
-### fetchOHLCV{docsify-ignore}
-fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+### cancelOrder{docsify-ignore}
+cancels an open order
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-kline  
+**See**
+
+- https://hashkeyglobal-apidoc.readme.io/reference/cancel-order
+- https://hashkeyglobal-apidoc.readme.io/reference/cancel-futures-order
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.type | <code>string</code> | No | 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot') |
+| params.clientOrderId | <code>string</code> | No | a unique id for the order that can be used as an alternative for the id |
+| params.trigger | <code>bool</code> | No | *swap markets only* true for canceling a trigger order (default false) |
+| params.stop | <code>bool</code> | No | *swap markets only* an alternative for trigger param |
 
 
 ```javascript
-hashkey.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+hashkey.cancelOrder (id, symbol, params?)
 ```
 
 
-<a name="fetchTicker" id="fetchticker"></a>
+<a name="cancelOrders" id="cancelorders"></a>
 
-### fetchTicker{docsify-ignore}
-fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+### cancelOrders{docsify-ignore}
+cancel multiple orders
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change  
+**See**
+
+- https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
+- https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
+| symbol | <code>string</code> | No | unified market symbol (not used by hashkey) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot') |
 
 
 ```javascript
-hashkey.fetchTicker (symbol, params?)
+hashkey.cancelOrders (ids, symbol?, params?)
 ```
 
 
-<a name="fetchTickers" id="fetchtickers"></a>
+<a name="createMarketBuyOrderWithCost" id="createmarketbuyorderwithcost"></a>
 
-### fetchTickers{docsify-ignore}
-fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+### createMarketBuyOrderWithCost{docsify-ignore}
+create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| cost | <code>float</code> | Yes | how much you want to trade in units of the quote currency |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hashkey.fetchTickers (symbols?, params?)
-```
-
-
-<a name="fetchLastPrices" id="fetchlastprices"></a>
-
-### fetchLastPrices{docsify-ignore}
-fetches the last price for multiple markets
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - a dictionary of lastprices structures
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-symbol-price-ticker  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the last prices |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.symbol | <code>string</code> | No | the id of the market to fetch last price for |
-
-
-```javascript
-hashkey.fetchLastPrices (symbols?, params?)
-```
-
-
-<a name="fetchBalance" id="fetchbalance"></a>
-
-### fetchBalance{docsify-ignore}
-query for balance and get the amount of funds available for trading or funds locked in orders
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-account-information  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.accountId | <code>string</code> | No | account ID, for Master Key only |
-| params.type | <code>string</code> | No | 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot') |
-
-
-```javascript
-hashkey.fetchBalance (params?)
-```
-
-
-<a name="fetchDepositAddress" id="fetchdepositaddress"></a>
-
-### fetchDepositAddress{docsify-ignore}
-fetch the deposit address for a currency associated with this account
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code (default is 'USDT') |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.network | <code>string</code> | No | network for fetch deposit address (default is 'ERC20') |
-
-
-```javascript
-hashkey.fetchDepositAddress (code, params?)
-```
-
-
-<a name="fetchDeposits" id="fetchdeposits"></a>
-
-### fetchDeposits{docsify-ignore}
-fetch all deposits made to an account
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-history  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code of the currency transferred |
-| since | <code>int</code> | No | the earliest time in ms to fetch transfers for (default 24 hours ago) |
-| limit | <code>int</code> | No | the maximum number of transfer structures to retrieve (default 50, max 200) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | the latest time in ms to fetch transfers for (default time now) |
-| params.fromId | <code>int</code> | No | starting ID (To be released) |
-
-
-```javascript
-hashkey.fetchDeposits (code, since?, limit?, params?)
-```
-
-
-<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
-
-### fetchWithdrawals{docsify-ignore}
-fetch all withdrawals made from an account
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/withdrawal-records  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code of the currency transferred |
-| since | <code>int</code> | No | the earliest time in ms to fetch transfers for (default 24 hours ago) |
-| limit | <code>int</code> | No | the maximum number of transfer structures to retrieve (default 50, max 200) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | the latest time in ms to fetch transfers for (default time now) |
-
-
-```javascript
-hashkey.fetchWithdrawals (code, since?, limit?, params?)
-```
-
-
-<a name="withdraw" id="withdraw"></a>
-
-### withdraw{docsify-ignore}
-make a withdrawal
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/withdraw  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| amount | <code>float</code> | Yes | the amount to withdraw |
-| address | <code>string</code> | Yes | the address to withdraw to |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
-| params.network | <code>string</code> | No | network for withdraw |
-| params.clientOrderId | <code>string</code> | No | client order id |
-| params.platform | <code>string</code> | No | the platform to withdraw to (hashkey, HashKey HK) |
-
-
-```javascript
-hashkey.withdraw (code, amount, address, params?)
-```
-
-
-<a name="transfer" id="transfer"></a>
-
-### transfer{docsify-ignore}
-transfer currency internally between wallets on the same account
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/new-account-transfer  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| amount | <code>float</code> | Yes | amount to transfer |
-| fromAccount | <code>string</code> | Yes | account id to transfer from |
-| toAccount | <code>string</code> | Yes | account id to transfer to |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.clientOrderId | <code>string</code> | No | a unique id for the transfer |
-| params.remark | <code>string</code> | No | a note for the transfer |
-
-
-```javascript
-hashkey.transfer (code, amount, fromAccount, toAccount, params?)
-```
-
-
-<a name="fetchAccounts" id="fetchaccounts"></a>
-
-### fetchAccounts{docsify-ignore}
-fetch all the accounts associated with a profile
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-hashkey.fetchAccounts (params?)
-```
-
-
-<a name="fetchLedger" id="fetchledger"></a>
-
-### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered the balance of the user
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | No | unified currency code, default is undefined (not used) |
-| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
-| params.flowType | <code>int</code> | No | trade, fee, transfer, deposit, withdrawal |
-| params.accountType | <code>int</code> | No | spot, swap, custody |
-
-
-```javascript
-hashkey.fetchLedger (code?, since?, limit?, params?)
+hashkey.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -535,24 +220,28 @@ hashkey.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
-<a name="createMarketBuyOrderWithCost" id="createmarketbuyorderwithcost"></a>
+<a name="createOrders" id="createorders"></a>
 
-### createMarketBuyOrderWithCost{docsify-ignore}
-create a market buy order by providing the symbol and cost
+### createOrders{docsify-ignore}
+create a list of trade orders (all orders should be of the same symbol)
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
+**See**
+
+- https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
+- https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| cost | <code>float</code> | Yes | how much you want to trade in units of the quote currency |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
+| params | <code>object</code> | No | extra parameters specific to the api endpoint |
 
 
 ```javascript
-hashkey.createMarketBuyOrderWithCost (symbol, cost, params?)
+hashkey.createOrders (orders, params?)
 ```
 
 
@@ -620,178 +309,45 @@ hashkey.createSwapOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
-<a name="createOrders" id="createorders"></a>
+<a name="fetchAccounts" id="fetchaccounts"></a>
 
-### createOrders{docsify-ignore}
-create a list of trade orders (all orders should be of the same symbol)
+### fetchAccounts{docsify-ignore}
+fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
-**See**
-
-- https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
-- https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
-
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
-| params | <code>object</code> | No | extra parameters specific to the api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hashkey.createOrders (orders, params?)
+hashkey.fetchAccounts (params?)
 ```
 
 
-<a name="cancelOrder" id="cancelorder"></a>
+<a name="fetchBalance" id="fetchbalance"></a>
 
-### cancelOrder{docsify-ignore}
-cancels an open order
+### fetchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**
-
-- https://hashkeyglobal-apidoc.readme.io/reference/cancel-order
-- https://hashkeyglobal-apidoc.readme.io/reference/cancel-futures-order
-
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-account-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot') |
-| params.clientOrderId | <code>string</code> | No | a unique id for the order that can be used as an alternative for the id |
-| params.trigger | <code>bool</code> | No | *swap markets only* true for canceling a trigger order (default false) |
-| params.stop | <code>bool</code> | No | *swap markets only* an alternative for trigger param |
+| params.accountId | <code>string</code> | No | account ID, for Master Key only |
+| params.type | <code>string</code> | No | 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot') |
 
 
 ```javascript
-hashkey.cancelOrder (id, symbol, params?)
-```
-
-
-<a name="cancelAllOrders" id="cancelallorders"></a>
-
-### cancelAllOrders{docsify-ignore}
-cancel all open orders
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - response from exchange
-
-**See**
-
-- https://hashkeyglobal-apidoc.readme.io/reference/cancel-all-open-orders
-- https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.side | <code>string</code> | No | 'buy' or 'sell' |
-
-
-```javascript
-hashkey.cancelAllOrders (symbol, params?)
-```
-
-
-<a name="cancelOrders" id="cancelorders"></a>
-
-### cancelOrders{docsify-ignore}
-cancel multiple orders
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**
-
-- https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
-- https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | No | unified market symbol (not used by hashkey) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot') |
-
-
-```javascript
-hashkey.cancelOrders (ids, symbol?, params?)
-```
-
-
-<a name="fetchOrder" id="fetchorder"></a>
-
-### fetchOrder{docsify-ignore}
-fetches information on an order made by the user
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
-
-**See**
-
-- https://hashkeyglobal-apidoc.readme.io/reference/query-order
-- https://hashkeyglobal-apidoc.readme.io/reference/get-futures-order
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | the order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot') |
-| params.clientOrderId | <code>string</code> | No | a unique id for the order that can be used as an alternative for the id |
-| params.accountId | <code>string</code> | No | *spot markets only* account id to fetch the order from |
-| params.trigger | <code>bool</code> | No | *swap markets only* true for fetching a trigger order (default false) |
-| params.stop | <code>bool</code> | No | *swap markets only* an alternative for trigger param |
-
-
-```javascript
-hashkey.fetchOrder (id, symbol, params?)
-```
-
-
-<a name="fetchOpenOrders" id="fetchopenorders"></a>
-
-### fetchOpenOrders{docsify-ignore}
-fetch all unfilled currently open orders
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**
-
-- https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
-- https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
-- https://hashkeyglobal-apidoc.readme.io/reference/sub
-- https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol of the market orders were made in - is mandatory for swap markets |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve - default 500, maximum 1000 |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot') |
-| params.orderId | <code>string</code> | No | *spot markets only* the id of the order to fetch |
-| params.side | <code>string</code> | No | *spot markets only* 'buy' or 'sell' - the side of the orders to fetch |
-| params.fromOrderId | <code>string</code> | No | *swap markets only* the id of the order to start from |
-| params.trigger | <code>bool</code> | No | *swap markets only* true for fetching trigger orders (default false) |
-| params.stop | <code>bool</code> | No | *swap markets only* an alternative for trigger param |
-| params.accountId | <code>string</code> | No | account id to fetch the orders from |
-
-
-```javascript
-hashkey.fetchOpenOrders (symbol?, since?, limit?, params?)
+hashkey.fetchBalance (params?)
 ```
 
 
@@ -831,6 +387,73 @@ hashkey.fetchCanceledAndClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
+<a name="fetchCurrencies" id="fetchcurrencies"></a>
+
+### fetchCurrencies{docsify-ignore}
+fetches all available currencies on an exchange
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - an associative dictionary of currencies
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hashkey.fetchCurrencies (params?)
+```
+
+
+<a name="fetchDepositAddress" id="fetchdepositaddress"></a>
+
+### fetchDepositAddress{docsify-ignore}
+fetch the deposit address for a currency associated with this account
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code (default is 'USDT') |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.network | <code>string</code> | No | network for fetch deposit address (default is 'ERC20') |
+
+
+```javascript
+hashkey.fetchDepositAddress (code, params?)
+```
+
+
+<a name="fetchDeposits" id="fetchdeposits"></a>
+
+### fetchDeposits{docsify-ignore}
+fetch all deposits made to an account
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code of the currency transferred |
+| since | <code>int</code> | No | the earliest time in ms to fetch transfers for (default 24 hours ago) |
+| limit | <code>int</code> | No | the maximum number of transfer structures to retrieve (default 50, max 200) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch transfers for (default time now) |
+| params.fromId | <code>int</code> | No | starting ID (To be released) |
+
+
+```javascript
+hashkey.fetchDeposits (code, since?, limit?, params?)
+```
+
+
 <a name="fetchFundingRate" id="fetchfundingrate"></a>
 
 ### fetchFundingRate{docsify-ignore}
@@ -849,27 +472,6 @@ fetch the current funding rate
 
 ```javascript
 hashkey.fetchFundingRate (symbol, params?)
-```
-
-
-<a name="fetchFundingRates" id="fetchfundingrates"></a>
-
-### fetchFundingRates{docsify-ignore}
-fetch the funding rate for multiple markets
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-hashkey.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -895,6 +497,287 @@ fetches historical funding rate prices
 
 ```javascript
 hashkey.fetchFundingRateHistory (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchFundingRates" id="fetchfundingrates"></a>
+
+### fetchFundingRates{docsify-ignore}
+fetch the funding rate for multiple markets
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hashkey.fetchFundingRates (symbols, params?)
+```
+
+
+<a name="fetchLastPrices" id="fetchlastprices"></a>
+
+### fetchLastPrices{docsify-ignore}
+fetches the last price for multiple markets
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - a dictionary of lastprices structures
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-symbol-price-ticker  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the last prices |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.symbol | <code>string</code> | No | the id of the market to fetch last price for |
+
+
+```javascript
+hashkey.fetchLastPrices (symbols?, params?)
+```
+
+
+<a name="fetchLedger" id="fetchledger"></a>
+
+### fetchLedger{docsify-ignore}
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code, default is undefined (not used) |
+| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+| params.flowType | <code>int</code> | No | trade, fee, transfer, deposit, withdrawal |
+| params.accountType | <code>int</code> | No | spot, swap, custody |
+
+
+```javascript
+hashkey.fetchLedger (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchLeverage" id="fetchleverage"></a>
+
+### fetchLeverage{docsify-ignore}
+fetch the set leverage for a market
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/query-futures-leverage-trade  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hashkey.fetchLeverage (symbol, params?)
+```
+
+
+<a name="fetchLeverageTiers" id="fetchleveragetiers"></a>
+
+### fetchLeverageTiers{docsify-ignore}
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hashkey.fetchLeverageTiers (symbols, params?)
+```
+
+
+<a name="fetchMarkets" id="fetchmarkets"></a>
+
+### fetchMarkets{docsify-ignore}
+retrieves data on all markets for the exchange
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.symbol | <code>string</code> | No | the id of the market to fetch |
+
+
+```javascript
+hashkey.fetchMarkets (params?)
+```
+
+
+<a name="fetchMyTrades" id="fetchmytrades"></a>
+
+### fetchMyTrades{docsify-ignore}
+fetch all trades made by the user
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://github.com/ccxt/ccxt/wiki/Manual#trade-structure)
+
+**See**
+
+- https://hashkeyglobal-apidoc.readme.io/reference/get-account-trade-list
+- https://hashkeyglobal-apidoc.readme.io/reference/query-futures-trades
+- https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-user
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | *is mandatory for swap markets* unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch (default 200, max 500) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap' - the type of the market to fetch trades for (default 'spot') |
+| params.until | <code>int</code> | No | the latest time in ms to fetch trades for, only supports the last 30 days timeframe |
+| params.fromId | <code>string</code> | No | srarting trade id |
+| params.toId | <code>string</code> | No | ending trade id |
+| params.clientOrderId | <code>string</code> | No | *spot markets only* filter trades by orderId |
+| params.accountId | <code>string</code> | No | account id to fetch the orders from |
+
+
+```javascript
+hashkey.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchOHLCV" id="fetchohlcv"></a>
+
+### fetchOHLCV{docsify-ignore}
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-kline  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+hashkey.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="fetchOpenOrders" id="fetchopenorders"></a>
+
+### fetchOpenOrders{docsify-ignore}
+fetch all unfilled currently open orders
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
+- https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+- https://hashkeyglobal-apidoc.readme.io/reference/sub
+- https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the market orders were made in - is mandatory for swap markets |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve - default 500, maximum 1000 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot') |
+| params.orderId | <code>string</code> | No | *spot markets only* the id of the order to fetch |
+| params.side | <code>string</code> | No | *spot markets only* 'buy' or 'sell' - the side of the orders to fetch |
+| params.fromOrderId | <code>string</code> | No | *swap markets only* the id of the order to start from |
+| params.trigger | <code>bool</code> | No | *swap markets only* true for fetching trigger orders (default false) |
+| params.stop | <code>bool</code> | No | *swap markets only* an alternative for trigger param |
+| params.accountId | <code>string</code> | No | account id to fetch the orders from |
+
+
+```javascript
+hashkey.fetchOpenOrders (symbol?, since?, limit?, params?)
+```
+
+
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+fetches information on an order made by the user
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://hashkeyglobal-apidoc.readme.io/reference/query-order
+- https://hashkeyglobal-apidoc.readme.io/reference/get-futures-order
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot') |
+| params.clientOrderId | <code>string</code> | No | a unique id for the order that can be used as an alternative for the id |
+| params.accountId | <code>string</code> | No | *spot markets only* account id to fetch the order from |
+| params.trigger | <code>bool</code> | No | *swap markets only* true for fetching a trigger order (default false) |
+| params.stop | <code>bool</code> | No | *swap markets only* an alternative for trigger param |
+
+
+```javascript
+hashkey.fetchOrder (id, symbol, params?)
+```
+
+
+<a name="fetchOrderBook" id="fetchorderbook"></a>
+
+### fetchOrderBook{docsify-ignore}
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-order-book  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return (maximum value is 200) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hashkey.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -942,135 +825,108 @@ hashkey.fetchPositionsForSymbol (symbol, params?)
 ```
 
 
-<a name="fetchLeverage" id="fetchleverage"></a>
+<a name="fetchStatus" id="fetchstatus"></a>
 
-### fetchLeverage{docsify-ignore}
-fetch the set leverage for a market
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/query-futures-leverage-trade  
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/test-connectivity  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hashkey.fetchLeverage (symbol, params?)
+hashkey.fetchStatus (params?)
 ```
 
 
-<a name="setLeverage" id="setleverage"></a>
+<a name="fetchTicker" id="fetchticker"></a>
 
-### setLeverage{docsify-ignore}
-set the level of leverage for a market
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - response from the exchange
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade  
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| leverage | <code>float</code> | Yes | the rate of leverage |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hashkey.setLeverage (leverage, symbol, params?)
+hashkey.fetchTicker (symbol, params?)
 ```
 
 
-<a name="setMarginMode" id="setmarginmode"></a>
+<a name="fetchTickers" id="fetchtickers"></a>
 
-### setMarginMode{docsify-ignore}
-set margin mode to 'cross' or 'isolated'
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - response from the exchange
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type  
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| marginMode | <code>string</code> | Yes | 'cross' or 'isolated' |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hashkey.setMarginMode (marginMode, symbol, params?)
+hashkey.fetchTickers (symbols?, params?)
 ```
 
 
-<a name="addMargin" id="addmargin"></a>
+<a name="fetchTime" id="fetchtime"></a>
 
-### addMargin{docsify-ignore}
-add margin
+### fetchTime{docsify-ignore}
+fetches the current integer timestamp in milliseconds from the exchange server
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin  
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/check-server-time  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| amount | <code>float</code> | Yes | amount of margin to add |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.side | <code>string</code> | Yes | position side, either 'long' or 'short' |
 
 
 ```javascript
-hashkey.addMargin (symbol, amount, params?)
+hashkey.fetchTime (params?)
 ```
 
 
-<a name="reduceMargin" id="reducemargin"></a>
+<a name="fetchTrades" id="fetchtrades"></a>
 
-### reduceMargin{docsify-ignore}
-remove margin from a position
+### fetchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin  
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-recent-trade-list  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| amount | <code>float</code> | Yes | the amount of margin to remove |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.side | <code>string</code> | Yes | position side, either 'long' or 'short' |
-
-
-```javascript
-hashkey.reduceMargin (symbol, amount, params?)
-```
-
-
-<a name="fetchLeverageTiers" id="fetchleveragetiers"></a>
-
-### fetchLeverageTiers{docsify-ignore}
-retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch (maximum value is 100) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hashkey.fetchLeverageTiers (symbols, params?)
+hashkey.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1119,6 +975,167 @@ hashkey.fetchTradingFees (params?)
 ```
 
 
+<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
+
+### fetchWithdrawals{docsify-ignore}
+fetch all withdrawals made from an account
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/withdrawal-records  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code of the currency transferred |
+| since | <code>int</code> | No | the earliest time in ms to fetch transfers for (default 24 hours ago) |
+| limit | <code>int</code> | No | the maximum number of transfer structures to retrieve (default 50, max 200) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch transfers for (default time now) |
+
+
+```javascript
+hashkey.fetchWithdrawals (code, since?, limit?, params?)
+```
+
+
+<a name="reduceMargin" id="reducemargin"></a>
+
+### reduceMargin{docsify-ignore}
+remove margin from a position
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | the amount of margin to remove |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.side | <code>string</code> | Yes | position side, either 'long' or 'short' |
+
+
+```javascript
+hashkey.reduceMargin (symbol, amount, params?)
+```
+
+
+<a name="setLeverage" id="setleverage"></a>
+
+### setLeverage{docsify-ignore}
+set the level of leverage for a market
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| leverage | <code>float</code> | Yes | the rate of leverage |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hashkey.setLeverage (leverage, symbol, params?)
+```
+
+
+<a name="setMarginMode" id="setmarginmode"></a>
+
+### setMarginMode{docsify-ignore}
+set margin mode to 'cross' or 'isolated'
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marginMode | <code>string</code> | Yes | 'cross' or 'isolated' |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hashkey.setMarginMode (marginMode, symbol, params?)
+```
+
+
+<a name="transfer" id="transfer"></a>
+
+### transfer{docsify-ignore}
+transfer currency internally between wallets on the same account
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/new-account-transfer  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | amount to transfer |
+| fromAccount | <code>string</code> | Yes | account id to transfer from |
+| toAccount | <code>string</code> | Yes | account id to transfer to |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | a unique id for the transfer |
+| params.remark | <code>string</code> | No | a note for the transfer |
+
+
+```javascript
+hashkey.transfer (code, amount, fromAccount, toAccount, params?)
+```
+
+
+<a name="watchBalance" id="watchbalance"></a>
+
+### watchBalance{docsify-ignore}
+watch balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap' - the type of the market to watch balance for (default 'spot') |
+
+
+```javascript
+hashkey.watchBalance (params?)
+```
+
+
+<a name="watchMyTrades" id="watchmytrades"></a>
+
+### watchMyTrades{docsify-ignore}
+watches information on multiple trades made by the user
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market trades were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hashkey.watchMyTrades (symbol, since?, limit?, params?)
+```
+
+
 <a name="watchOHLCV" id="watchohlcv"></a>
 
 ### watchOHLCV{docsify-ignore}
@@ -1141,6 +1158,74 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 hashkey.watchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="watchOrderBook" id="watchorderbook"></a>
+
+### watchOrderBook{docsify-ignore}
+watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return. |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hashkey.watchOrderBook (symbol, limit?, params?)
+```
+
+
+<a name="watchOrders" id="watchorders"></a>
+
+### watchOrders{docsify-ignore}
+watches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hashkey.watchOrders (symbol, since?, limit?, params?)
+```
+
+
+<a name="watchPositions" id="watchpositions"></a>
+
+### watchPositions{docsify-ignore}
+watch all open positions
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols to watch positions for |
+| since | <code>int</code> | No | the earliest time in ms to fetch positions for |
+| limit | <code>int</code> | No | the maximum number of positions to retrieve |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hashkey.watchPositions (symbols?, since?, limit?, params)
 ```
 
 
@@ -1190,114 +1275,29 @@ hashkey.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
-<a name="watchOrderBook" id="watchorderbook"></a>
+<a name="withdraw" id="withdraw"></a>
 
-### watchOrderBook{docsify-ignore}
-watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+### withdraw{docsify-ignore}
+make a withdrawal
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream  
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/withdraw  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return. |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | the amount to withdraw |
+| address | <code>string</code> | Yes | the address to withdraw to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
+| params.network | <code>string</code> | No | network for withdraw |
+| params.clientOrderId | <code>string</code> | No | client order id |
+| params.platform | <code>string</code> | No | the platform to withdraw to (hashkey, HashKey HK) |
 
 
 ```javascript
-hashkey.watchOrderBook (symbol, limit?, params?)
-```
-
-
-<a name="watchOrders" id="watchorders"></a>
-
-### watchOrders{docsify-ignore}
-watches information on multiple orders made by the user
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-hashkey.watchOrders (symbol, since?, limit?, params?)
-```
-
-
-<a name="watchMyTrades" id="watchmytrades"></a>
-
-### watchMyTrades{docsify-ignore}
-watches information on multiple trades made by the user
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market trades were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-hashkey.watchMyTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="watchPositions" id="watchpositions"></a>
-
-### watchPositions{docsify-ignore}
-watch all open positions
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols to watch positions for |
-| since | <code>int</code> | No | the earliest time in ms to fetch positions for |
-| limit | <code>int</code> | No | the maximum number of positions to retrieve |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-hashkey.watchPositions (symbols?, since?, limit?, params)
-```
-
-
-<a name="watchBalance" id="watchbalance"></a>
-
-### watchBalance{docsify-ignore}
-watch balance and get the amount of funds available for trading or funds locked in orders
-
-**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
-
-**See**: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | 'spot' or 'swap' - the type of the market to watch balance for (default 'spot') |
-
-
-```javascript
-hashkey.watchBalance (params?)
+hashkey.withdraw (code, amount, address, params?)
 ```
 

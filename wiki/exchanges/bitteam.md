@@ -5,41 +5,135 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
-* [fetchMarkets](#fetchmarkets)
+* [cancelAllOrders](#cancelallorders)
+* [cancelOrder](#cancelorder)
+* [createOrder](#createorder)
+* [fetchCanceledOrders](#fetchcanceledorders)
+* [fetchClosedOrders](#fetchclosedorders)
 * [fetchCurrencies](#fetchcurrencies)
+* [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
+* [fetchMarkets](#fetchmarkets)
+* [fetchMyTrades](#fetchmytrades)
 * [fetchOHLCV](#fetchohlcv)
+* [fetchOpenOrders](#fetchopenorders)
+* [fetchOrder](#fetchorder)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchOrders](#fetchorders)
-* [fetchOrder](#fetchorder)
-* [fetchOpenOrders](#fetchopenorders)
-* [fetchClosedOrders](#fetchclosedorders)
-* [fetchCanceledOrders](#fetchcanceledorders)
-* [createOrder](#createorder)
-* [cancelOrder](#cancelorder)
-* [cancelAllOrders](#cancelallorders)
-* [fetchTickers](#fetchtickers)
 * [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
 * [fetchTrades](#fetchtrades)
-* [fetchMyTrades](#fetchmytrades)
-* [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 
-<a name="fetchMarkets" id="fetchmarkets"></a>
+<a name="cancelAllOrders" id="cancelallorders"></a>
 
-### fetchMarkets{docsify-ignore}
-retrieves data on all markets for bitteam
+### cancelAllOrders{docsify-ignore}
+cancel open orders of market
 
 **Kind**: instance method of [<code>bitteam</code>](#bitteam)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
 
-**See**: https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs  
+**See**: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchMarkets (params?)
+bitteam.cancelAllOrders (symbol?, params?)
+```
+
+
+<a name="cancelOrder" id="cancelorder"></a>
+
+### cancelOrder{docsify-ignore}
+cancels an open order
+
+**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
+**Returns**: <code>object</code> - An [order structure](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
+
+**See**: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelorder  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitteam.cancelOrder (id, symbol, params?)
+```
+
+
+<a name="createOrder" id="createorder"></a>
+
+### createOrder{docsify-ignore}
+create a trade order
+
+**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
+**Returns**: <code>object</code> - an [order structure](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
+
+**See**: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| type | <code>string</code> | Yes | 'market' or 'limit' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitteam.createOrder (symbol, type, side, amount, price?, params?)
+```
+
+
+<a name="fetchCanceledOrders" id="fetchcanceledorders"></a>
+
+### fetchCanceledOrders{docsify-ignore}
+fetches information on multiple canceled orders made by the user
+
+**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
+**Returns**: <code>object</code> - a list of [order structures](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
+
+**See**: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of canceled order structures to retrieve (default 10) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitteam.fetchCanceledOrders (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchClosedOrders" id="fetchclosedorders"></a>
+
+### fetchClosedOrders{docsify-ignore}
+fetches information on multiple closed orders made by the user
+
+**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
+
+**See**: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of closed order structures to retrieve (default 10) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitteam.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -63,6 +157,72 @@ bitteam.fetchCurrencies (params?)
 ```
 
 
+<a name="fetchDepositsWithdrawals" id="fetchdepositswithdrawals"></a>
+
+### fetchDepositsWithdrawals{docsify-ignore}
+fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
+
+**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
+**Returns**: <code>object</code> - a list of [transaction structure](https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure)
+
+**See**: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiTransactionsofuser  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code for the currency of the deposit/withdrawals |
+| since | <code>int</code> | No | timestamp in ms of the earliest deposit/withdrawal |
+| limit | <code>int</code> | No | max number of deposit/withdrawals to return (default 10) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitteam.fetchDepositsWithdrawals (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchMarkets" id="fetchmarkets"></a>
+
+### fetchMarkets{docsify-ignore}
+retrieves data on all markets for bitteam
+
+**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+**See**: https://bit.team/trade/api/documentation#/CCXT/getTradeApiCcxtPairs  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitteam.fetchMarkets (params?)
+```
+
+
+<a name="fetchMyTrades" id="fetchmytrades"></a>
+
+### fetchMyTrades{docsify-ignore}
+fetch all trades made by the user
+
+**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://github.com/ccxt/ccxt/wiki/Manual#trade-structure)
+
+**See**: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtTradesofuser  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades structures to retrieve (default 10) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitteam.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
 <a name="fetchOHLCV" id="fetchohlcv"></a>
 
 ### fetchOHLCV{docsify-ignore}
@@ -83,6 +243,51 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 bitteam.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="fetchOpenOrders" id="fetchopenorders"></a>
+
+### fetchOpenOrders{docsify-ignore}
+fetch all unfilled currently open orders
+
+**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
+
+**See**: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
+| limit | <code>int</code> | No | the maximum number of open order structures to retrieve (default 10) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitteam.fetchOpenOrders (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+fetches information on an order
+
+**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
+**Returns**: <code>object</code> - An [order structure](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
+
+**See**: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>int</code>, <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | not used by fetchOrder () |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitteam.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -132,162 +337,24 @@ bitteam.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
-<a name="fetchOrder" id="fetchorder"></a>
+<a name="fetchTicker" id="fetchticker"></a>
 
-### fetchOrder{docsify-ignore}
-fetches information on an order
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitteam</code>](#bitteam)  
-**Returns**: <code>object</code> - An [order structure](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure)
 
-**See**: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId  
+**See**: https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| id | <code>int</code>, <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by fetchOrder () |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchOrder (id, symbol, params?)
-```
-
-
-<a name="fetchOpenOrders" id="fetchopenorders"></a>
-
-### fetchOpenOrders{docsify-ignore}
-fetch all unfilled currently open orders
-
-**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
-
-**See**: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
-| limit | <code>int</code> | No | the maximum number of open order structures to retrieve (default 10) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bitteam.fetchOpenOrders (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchClosedOrders" id="fetchclosedorders"></a>
-
-### fetchClosedOrders{docsify-ignore}
-fetches information on multiple closed orders made by the user
-
-**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
-
-**See**: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of closed order structures to retrieve (default 10) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bitteam.fetchClosedOrders (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchCanceledOrders" id="fetchcanceledorders"></a>
-
-### fetchCanceledOrders{docsify-ignore}
-fetches information on multiple canceled orders made by the user
-
-**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
-**Returns**: <code>object</code> - a list of [order structures](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
-
-**See**: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of canceled order structures to retrieve (default 10) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bitteam.fetchCanceledOrders (symbol, since?, limit?, params?)
-```
-
-
-<a name="createOrder" id="createorder"></a>
-
-### createOrder{docsify-ignore}
-create a trade order
-
-**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
-**Returns**: <code>object</code> - an [order structure](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
-
-**See**: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| type | <code>string</code> | Yes | 'market' or 'limit' |
-| side | <code>string</code> | Yes | 'buy' or 'sell' |
-| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bitteam.createOrder (symbol, type, side, amount, price?, params?)
-```
-
-
-<a name="cancelOrder" id="cancelorder"></a>
-
-### cancelOrder{docsify-ignore}
-cancels an open order
-
-**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
-**Returns**: <code>object</code> - An [order structure](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
-
-**See**: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelorder  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by cancelOrder () |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bitteam.cancelOrder (id, symbol, params?)
-```
-
-
-<a name="cancelAllOrders" id="cancelallorders"></a>
-
-### cancelAllOrders{docsify-ignore}
-cancel open orders of market
-
-**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
-
-**See**: https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bitteam.cancelAllOrders (symbol?, params?)
+bitteam.fetchTicker (symbol, params?)
 ```
 
 
@@ -312,27 +379,6 @@ bitteam.fetchTickers (symbols, params?)
 ```
 
 
-<a name="fetchTicker" id="fetchticker"></a>
-
-### fetchTicker{docsify-ignore}
-fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
-**Returns**: <code>object</code> - a [ticker structure](https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure)
-
-**See**: https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bitteam.fetchTicker (symbol, params?)
-```
-
-
 <a name="fetchTrades" id="fetchtrades"></a>
 
 ### fetchTrades{docsify-ignore}
@@ -353,51 +399,5 @@ get the list of most recent trades for a particular symbol
 
 ```javascript
 bitteam.fetchTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchMyTrades" id="fetchmytrades"></a>
-
-### fetchMyTrades{docsify-ignore}
-fetch all trades made by the user
-
-**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://github.com/ccxt/ccxt/wiki/Manual#trade-structure)
-
-**See**: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtTradesofuser  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trades structures to retrieve (default 10) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bitteam.fetchMyTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchDepositsWithdrawals" id="fetchdepositswithdrawals"></a>
-
-### fetchDepositsWithdrawals{docsify-ignore}
-fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
-
-**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure)
-
-**See**: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiTransactionsofuser  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | No | unified currency code for the currency of the deposit/withdrawals |
-| since | <code>int</code> | No | timestamp in ms of the earliest deposit/withdrawal |
-| limit | <code>int</code> | No | max number of deposit/withdrawals to return (default 10) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bitteam.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 

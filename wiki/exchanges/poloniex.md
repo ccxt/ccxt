@@ -5,294 +5,137 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
-* [fetchOHLCV](#fetchohlcv)
-* [fetchMarkets](#fetchmarkets)
-* [fetchTime](#fetchtime)
-* [fetchTickers](#fetchtickers)
-* [fetchCurrencies](#fetchcurrencies)
-* [fetchTicker](#fetchticker)
-* [fetchTrades](#fetchtrades)
-* [fetchMyTrades](#fetchmytrades)
-* [fetchOpenOrders](#fetchopenorders)
-* [fetchClosedOrders](#fetchclosedorders)
+* [addMargin](#addmargin)
+* [cancelAllOrders](#cancelallorders)
+* [cancelOrders](#cancelorders)
+* [createDepositAddress](#createdepositaddress)
 * [createOrder](#createorder)
 * [createOrders](#createorders)
 * [editOrder](#editorder)
-* [cancelOrders](#cancelorders)
-* [cancelAllOrders](#cancelallorders)
-* [fetchOrder](#fetchorder)
-* [fetchOrderTrades](#fetchordertrades)
 * [fetchBalance](#fetchbalance)
-* [fetchTradingFees](#fetchtradingfees)
-* [fetchOrderBook](#fetchorderbook)
-* [createDepositAddress](#createdepositaddress)
+* [fetchClosedOrders](#fetchclosedorders)
+* [fetchCurrencies](#fetchcurrencies)
 * [fetchDepositAddress](#fetchdepositaddress)
-* [transfer](#transfer)
+* [fetchDeposits](#fetchdeposits)
+* [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
+* [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
+* [fetchLeverage](#fetchleverage)
+* [fetchMarkets](#fetchmarkets)
+* [fetchMyTrades](#fetchmytrades)
+* [fetchOHLCV](#fetchohlcv)
+* [fetchOpenOrders](#fetchopenorders)
+* [fetchOrder](#fetchorder)
+* [fetchOrderBook](#fetchorderbook)
+* [fetchOrderTrades](#fetchordertrades)
+* [fetchPositionMode](#fetchpositionmode)
+* [fetchPositions](#fetchpositions)
+* [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
+* [fetchTime](#fetchtime)
+* [fetchTrades](#fetchtrades)
+* [fetchTradingFees](#fetchtradingfees)
 * [fetchTransfer](#fetchtransfer)
 * [fetchTransfers](#fetchtransfers)
-* [withdraw](#withdraw)
-* [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 * [fetchWithdrawals](#fetchwithdrawals)
-* [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
-* [fetchDeposits](#fetchdeposits)
-* [setLeverage](#setleverage)
-* [fetchLeverage](#fetchleverage)
-* [fetchPositionMode](#fetchpositionmode)
-* [setPositionMode](#setpositionmode)
-* [fetchPositions](#fetchpositions)
 * [reduceMargin](#reducemargin)
-* [addMargin](#addmargin)
+* [setLeverage](#setleverage)
+* [setPositionMode](#setpositionmode)
+* [transfer](#transfer)
+* [withdraw](#withdraw)
 
-<a name="fetchOHLCV" id="fetchohlcv"></a>
+<a name="addMargin" id="addmargin"></a>
 
-### fetchOHLCV{docsify-ignore}
-fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**
-
-- https://api-docs.poloniex.com/spot/api/public/market-data#candles
-- https://api-docs.poloniex.com/v3/futures/api/market/get-kline-data
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | timestamp in ms |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
-
-
-```javascript
-poloniex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
-```
-
-
-<a name="fetchMarkets" id="fetchmarkets"></a>
-
-### fetchMarkets{docsify-ignore}
-retrieves data on all markets for poloniex
+### addMargin{docsify-ignore}
+add margin
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
-
-**See**
-
-- https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information
-- https://api-docs.poloniex.com/v3/futures/api/market/get-all-product-info
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-poloniex.fetchMarkets (params?)
-```
-
-
-<a name="fetchTime" id="fetchtime"></a>
-
-### fetchTime{docsify-ignore}
-fetches the current integer timestamp in milliseconds from the exchange server
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
-
-**See**: https://api-docs.poloniex.com/spot/api/public/reference-data#system-timestamp  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-poloniex.fetchTime (params?)
-```
-
-
-<a name="fetchTickers" id="fetchtickers"></a>
-
-### fetchTickers{docsify-ignore}
-fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**
-
-- https://api-docs.poloniex.com/spot/api/public/market-data#ticker
-- https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-poloniex.fetchTickers (symbols, params?)
-```
-
-
-<a name="fetchCurrencies" id="fetchcurrencies"></a>
-
-### fetchCurrencies{docsify-ignore}
-fetches all available currencies on an exchange
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - an associative dictionary of currencies
-
-**See**: https://api-docs.poloniex.com/spot/api/public/reference-data#currencyv2-information  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-poloniex.fetchCurrencies (params?)
-```
-
-
-<a name="fetchTicker" id="fetchticker"></a>
-
-### fetchTicker{docsify-ignore}
-fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**
-
-- https://api-docs.poloniex.com/spot/api/public/market-data#ticker
-- https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-poloniex.fetchTicker (symbol, params?)
-```
-
-
-<a name="fetchTrades" id="fetchtrades"></a>
-
-### fetchTrades{docsify-ignore}
-get the list of most recent trades for a particular symbol
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**
-
-- https://api-docs.poloniex.com/spot/api/public/market-data#trades
-- https://api-docs.poloniex.com/v3/futures/api/market/get-execution-info
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-poloniex.fetchTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchMyTrades" id="fetchmytrades"></a>
-
-### fetchMyTrades{docsify-ignore}
-fetch all trades made by the user
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
-
-**See**
-
-- https://api-docs.poloniex.com/spot/api/private/trade#trade-history
-- https://api-docs.poloniex.com/v3/futures/api/trade/get-execution-details
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
+| amount | <code>float</code> | Yes | amount of margin to add |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-poloniex.fetchMyTrades (symbol, since?, limit?, params?)
+poloniex.addMargin (symbol, amount, params?)
 ```
 
 
-<a name="fetchOpenOrders" id="fetchopenorders"></a>
+<a name="cancelAllOrders" id="cancelallorders"></a>
 
-### fetchOpenOrders{docsify-ignore}
-fetch all unfilled currently open orders
+### cancelAllOrders{docsify-ignore}
+cancel all open orders
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://api-docs.poloniex.com/spot/api/private/order#open-orders
-- https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
-- https://api-docs.poloniex.com/v3/futures/api/trade/get-current-orders
+- https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
+- https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
+- https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
-| limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | set true to fetch trigger orders instead of regular orders |
+| params.trigger | <code>boolean</code> | No | true if canceling trigger orders |
 
 
 ```javascript
-poloniex.fetchOpenOrders (symbol, since?, limit?, params?)
+poloniex.cancelAllOrders (symbol?, params?)
 ```
 
 
-<a name="fetchClosedOrders" id="fetchclosedorders"></a>
+<a name="cancelOrders" id="cancelorders"></a>
 
-### fetchClosedOrders{docsify-ignore}
-fetches information on multiple closed orders made by the user
+### cancelOrders{docsify-ignore}
+cancel multiple orders
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://api-docs.poloniex.com/v3/futures/api/trade/get-order-history  
+**See**
+
+- https://api-docs.poloniex.com/spot/api/private/order#cancel-multiple-orders-by-ids
+- https://api-docs.poloniex.com/v3/futures/api/trade/cancel-multiple-orders
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
+| symbol | <code>string</code> | No | unified market symbol, required for swap markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | timestamp in ms of the latest entry |
+| params.clientOrderIds | <code>Array&lt;string&gt;</code> | No | alternative to ids, cancel by client order ids |
 
 
 ```javascript
-poloniex.fetchClosedOrders (symbol, since?, limit?, params?)
+poloniex.cancelOrders (ids, symbol?, params?)
+```
+
+
+<a name="createDepositAddress" id="createdepositaddress"></a>
+
+### createDepositAddress{docsify-ignore}
+create a currency deposit address
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
+
+**See**: https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code of the currency for the deposit address |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.createDepositAddress (code, params?)
 ```
 
 
@@ -387,57 +230,292 @@ poloniex.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
-<a name="cancelOrders" id="cancelorders"></a>
+<a name="fetchBalance" id="fetchbalance"></a>
 
-### cancelOrders{docsify-ignore}
-cancel multiple orders
+### fetchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
-- https://api-docs.poloniex.com/spot/api/private/order#cancel-multiple-orders-by-ids
-- https://api-docs.poloniex.com/v3/futures/api/trade/cancel-multiple-orders
+- https://api-docs.poloniex.com/spot/api/private/account#all-account-balances
+- https://api-docs.poloniex.com/v3/futures/api/account/balance
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | No | unified market symbol, required for swap markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.clientOrderIds | <code>Array&lt;string&gt;</code> | No | alternative to ids, cancel by client order ids |
 
 
 ```javascript
-poloniex.cancelOrders (ids, symbol?, params?)
+poloniex.fetchBalance (params?)
 ```
 
 
-<a name="cancelAllOrders" id="cancelallorders"></a>
+<a name="fetchClosedOrders" id="fetchclosedorders"></a>
 
-### cancelAllOrders{docsify-ignore}
-cancel all open orders
+### fetchClosedOrders{docsify-ignore}
+fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://api-docs.poloniex.com/v3/futures/api/trade/get-order-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest entry |
+
+
+```javascript
+poloniex.fetchClosedOrders (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchCurrencies" id="fetchcurrencies"></a>
+
+### fetchCurrencies{docsify-ignore}
+fetches all available currencies on an exchange
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>object</code> - an associative dictionary of currencies
+
+**See**: https://api-docs.poloniex.com/spot/api/public/reference-data#currencyv2-information  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.fetchCurrencies (params?)
+```
+
+
+<a name="fetchDepositAddress" id="fetchdepositaddress"></a>
+
+### fetchDepositAddress{docsify-ignore}
+fetch the deposit address for a currency associated with this account
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
+
+**See**: https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.fetchDepositAddress (code, params?)
+```
+
+
+<a name="fetchDeposits" id="fetchdeposits"></a>
+
+### fetchDeposits{docsify-ignore}
+fetch all deposits made to an account
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
+| limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.fetchDeposits (code, since?, limit?, params?)
+```
+
+
+<a name="fetchDepositsWithdrawals" id="fetchdepositswithdrawals"></a>
+
+### fetchDepositsWithdrawals{docsify-ignore}
+fetch history of deposits and withdrawals
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code for the currency of the deposit/withdrawals, default is undefined |
+| since | <code>int</code> | No | timestamp in ms of the earliest deposit/withdrawal, default is undefined |
+| limit | <code>int</code> | No | max number of deposit/withdrawals to return, default is undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.fetchDepositsWithdrawals (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchDepositWithdrawFees" id="fetchdepositwithdrawfees"></a>
+
+### fetchDepositWithdrawFees{docsify-ignore}
+fetch deposit and withdraw fees
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [fees structures](https://docs.ccxt.com/?id=fee-structure)
+
+**See**: https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified currency codes |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.fetchDepositWithdrawFees (codes, params?)
+```
+
+
+<a name="fetchLeverage" id="fetchleverage"></a>
+
+### fetchLeverage{docsify-ignore}
+fetch the set leverage for a market
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
+
+**See**: https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.fetchLeverage (symbol, params?)
+```
+
+
+<a name="fetchMarkets" id="fetchmarkets"></a>
+
+### fetchMarkets{docsify-ignore}
+retrieves data on all markets for poloniex
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
 **See**
 
-- https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
-- https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
-- https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
+- https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information
+- https://api-docs.poloniex.com/v3/futures/api/market/get-all-product-info
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | true if canceling trigger orders |
 
 
 ```javascript
-poloniex.cancelAllOrders (symbol?, params?)
+poloniex.fetchMarkets (params?)
+```
+
+
+<a name="fetchMyTrades" id="fetchmytrades"></a>
+
+### fetchMyTrades{docsify-ignore}
+fetch all trades made by the user
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**
+
+- https://api-docs.poloniex.com/spot/api/private/trade#trade-history
+- https://api-docs.poloniex.com/v3/futures/api/trade/get-execution-details
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+poloniex.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchOHLCV" id="fetchohlcv"></a>
+
+### fetchOHLCV{docsify-ignore}
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**
+
+- https://api-docs.poloniex.com/spot/api/public/market-data#candles
+- https://api-docs.poloniex.com/v3/futures/api/market/get-kline-data
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+poloniex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="fetchOpenOrders" id="fetchopenorders"></a>
+
+### fetchOpenOrders{docsify-ignore}
+fetch all unfilled currently open orders
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://api-docs.poloniex.com/spot/api/private/order#open-orders
+- https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders  // trigger orders
+- https://api-docs.poloniex.com/v3/futures/api/trade/get-current-orders
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
+| limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>boolean</code> | No | set true to fetch trigger orders instead of regular orders |
+
+
+```javascript
+poloniex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -468,74 +546,6 @@ poloniex.fetchOrder (id, symbol, params?)
 ```
 
 
-<a name="fetchOrderTrades" id="fetchordertrades"></a>
-
-### fetchOrderTrades{docsify-ignore}
-fetch all the trades made from a single order
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
-
-**See**: https://api-docs.poloniex.com/spot/api/private/trade#trades-by-order-id  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trades to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-poloniex.fetchOrderTrades (id, symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchBalance" id="fetchbalance"></a>
-
-### fetchBalance{docsify-ignore}
-query for balance and get the amount of funds available for trading or funds locked in orders
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
-
-**See**
-
-- https://api-docs.poloniex.com/spot/api/private/account#all-account-balances
-- https://api-docs.poloniex.com/v3/futures/api/account/balance
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-poloniex.fetchBalance (params?)
-```
-
-
-<a name="fetchTradingFees" id="fetchtradingfees"></a>
-
-### fetchTradingFees{docsify-ignore}
-fetch the trading fees for multiple markets
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
-
-**See**: https://api-docs.poloniex.com/spot/api/private/account#fee-info  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-poloniex.fetchTradingFees (params?)
-```
-
-
 <a name="fetchOrderBook" id="fetchorderbook"></a>
 
 ### fetchOrderBook{docsify-ignore}
@@ -562,69 +572,187 @@ poloniex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
-<a name="createDepositAddress" id="createdepositaddress"></a>
+<a name="fetchOrderTrades" id="fetchordertrades"></a>
 
-### createDepositAddress{docsify-ignore}
-create a currency deposit address
+### fetchOrderTrades{docsify-ignore}
+fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses  
+**See**: https://api-docs.poloniex.com/spot/api/private/trade#trades-by-order-id  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code of the currency for the deposit address |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-poloniex.createDepositAddress (code, params?)
+poloniex.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
-<a name="fetchDepositAddress" id="fetchdepositaddress"></a>
+<a name="fetchPositionMode" id="fetchpositionmode"></a>
 
-### fetchDepositAddress{docsify-ignore}
-fetch the deposit address for a currency associated with this account
+### fetchPositionMode{docsify-ignore}
+fetches the position mode, hedged or one way, hedged is set identically for all linear markets or all inverse markets
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
+**Returns**: <code>object</code> - an object detailing whether the market is in hedged or one-way mode
 
-**See**: https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses  
+**See**: https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
+| symbol | <code>string</code> | No | unified symbol of the market to fetch the position mode for (not used by fetchPositionMode) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-poloniex.fetchDepositAddress (code, params?)
+poloniex.fetchPositionMode (symbol?, params?)
 ```
 
 
-<a name="transfer" id="transfer"></a>
+<a name="fetchPositions" id="fetchpositions"></a>
 
-### transfer{docsify-ignore}
-transfer currency internally between wallets on the same account
+### fetchPositions{docsify-ignore}
+fetch all open positions
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer  
+**See**: https://api-docs.poloniex.com/v3/futures/api/positions/get-current-position  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| amount | <code>float</code> | Yes | amount to transfer |
-| fromAccount | <code>string</code> | Yes | account to transfer from |
-| toAccount | <code>string</code> | Yes | account to transfer to |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.standard | <code>boolean</code> | No | whether to fetch standard contract positions |
+
+
+```javascript
+poloniex.fetchPositions (symbols, params?)
+```
+
+
+<a name="fetchTicker" id="fetchticker"></a>
+
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**
+
+- https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+- https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-poloniex.transfer (code, amount, fromAccount, toAccount, params?)
+poloniex.fetchTicker (symbol, params?)
+```
+
+
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**
+
+- https://api-docs.poloniex.com/spot/api/public/market-data#ticker
+- https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.fetchTickers (symbols, params?)
+```
+
+
+<a name="fetchTime" id="fetchtime"></a>
+
+### fetchTime{docsify-ignore}
+fetches the current integer timestamp in milliseconds from the exchange server
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
+
+**See**: https://api-docs.poloniex.com/spot/api/public/reference-data#system-timestamp  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.fetchTime (params?)
+```
+
+
+<a name="fetchTrades" id="fetchtrades"></a>
+
+### fetchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**
+
+- https://api-docs.poloniex.com/spot/api/public/market-data#trades
+- https://api-docs.poloniex.com/v3/futures/api/market/get-execution-info
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.fetchTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
+
+**See**: https://api-docs.poloniex.com/spot/api/private/account#fee-info  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.fetchTradingFees (params?)
 ```
 
 
@@ -674,53 +802,6 @@ poloniex.fetchTransfers (code?, since?, limit?, params?)
 ```
 
 
-<a name="withdraw" id="withdraw"></a>
-
-### withdraw{docsify-ignore}
-make a withdrawal
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://api-docs.poloniex.com/spot/api/private/wallet#withdraw-currency  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| amount | <code>float</code> | Yes | the amount to withdraw |
-| address | <code>string</code> | Yes | the address to withdraw to |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
-
-
-```javascript
-poloniex.withdraw (code, amount, address, params?)
-```
-
-
-<a name="fetchDepositsWithdrawals" id="fetchdepositswithdrawals"></a>
-
-### fetchDepositsWithdrawals{docsify-ignore}
-fetch history of deposits and withdrawals
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | No | unified currency code for the currency of the deposit/withdrawals, default is undefined |
-| since | <code>int</code> | No | timestamp in ms of the earliest deposit/withdrawal, default is undefined |
-| limit | <code>int</code> | No | max number of deposit/withdrawals to return, default is undefined |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-poloniex.fetchDepositsWithdrawals (code?, since?, limit?, params?)
-```
-
-
 <a name="fetchWithdrawals" id="fetchwithdrawals"></a>
 
 ### fetchWithdrawals{docsify-ignore}
@@ -744,47 +825,24 @@ poloniex.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
-<a name="fetchDepositWithdrawFees" id="fetchdepositwithdrawfees"></a>
+<a name="reduceMargin" id="reducemargin"></a>
 
-### fetchDepositWithdrawFees{docsify-ignore}
-fetch deposit and withdraw fees
+### reduceMargin{docsify-ignore}
+remove margin from a position
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [fees structures](https://docs.ccxt.com/?id=fee-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
-**See**: https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified currency codes |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | the amount of margin to remove |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-poloniex.fetchDepositWithdrawFees (codes, params?)
-```
-
-
-<a name="fetchDeposits" id="fetchdeposits"></a>
-
-### fetchDeposits{docsify-ignore}
-fetch all deposits made to an account
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
-| limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-poloniex.fetchDeposits (code, since?, limit?, params?)
+poloniex.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -811,48 +869,6 @@ poloniex.setLeverage (leverage, symbol, params?)
 ```
 
 
-<a name="fetchLeverage" id="fetchleverage"></a>
-
-### fetchLeverage{docsify-ignore}
-fetch the set leverage for a market
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
-
-**See**: https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-poloniex.fetchLeverage (symbol, params?)
-```
-
-
-<a name="fetchPositionMode" id="fetchpositionmode"></a>
-
-### fetchPositionMode{docsify-ignore}
-fetches the position mode, hedged or one way, hedged is set identically for all linear markets or all inverse markets
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - an object detailing whether the market is in hedged or one-way mode
-
-**See**: https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified symbol of the market to fetch the position mode for (not used by fetchPositionMode) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-poloniex.fetchPositionMode (symbol?, params?)
-```
-
-
 <a name="setPositionMode" id="setpositionmode"></a>
 
 ### setPositionMode{docsify-ignore}
@@ -875,66 +891,50 @@ poloniex.setPositionMode (hedged, symbol, params?)
 ```
 
 
-<a name="fetchPositions" id="fetchpositions"></a>
+<a name="transfer" id="transfer"></a>
 
-### fetchPositions{docsify-ignore}
-fetch all open positions
+### transfer{docsify-ignore}
+transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://api-docs.poloniex.com/v3/futures/api/positions/get-current-position  
+**See**: https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | amount to transfer |
+| fromAccount | <code>string</code> | Yes | account to transfer from |
+| toAccount | <code>string</code> | Yes | account to transfer to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.standard | <code>boolean</code> | No | whether to fetch standard contract positions |
 
 
 ```javascript
-poloniex.fetchPositions (symbols, params?)
+poloniex.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
-<a name="reduceMargin" id="reducemargin"></a>
+<a name="withdraw" id="withdraw"></a>
 
-### reduceMargin{docsify-ignore}
-remove margin from a position
+### withdraw{docsify-ignore}
+make a withdrawal
 
 **Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
+**See**: https://api-docs.poloniex.com/spot/api/private/wallet#withdraw-currency  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| amount | <code>float</code> | Yes | the amount of margin to remove |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | the amount to withdraw |
+| address | <code>string</code> | Yes | the address to withdraw to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-poloniex.reduceMargin (symbol, amount, params?)
-```
-
-
-<a name="addMargin" id="addmargin"></a>
-
-### addMargin{docsify-ignore}
-add margin
-
-**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| amount | <code>float</code> | Yes | amount of margin to add |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-poloniex.addMargin (symbol, amount, params?)
+poloniex.withdraw (code, amount, address, params?)
 ```
 

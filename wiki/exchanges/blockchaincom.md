@@ -5,137 +5,74 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
-* [fetchMarkets](#fetchmarkets)
-* [fetchOrderBook](#fetchorderbook)
-* [fetchL3OrderBook](#fetchl3orderbook)
-* [fetchTicker](#fetchticker)
-* [fetchTickers](#fetchtickers)
-* [createOrder](#createorder)
-* [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
-* [fetchTradingFees](#fetchtradingfees)
+* [cancelOrder](#cancelorder)
+* [createOrder](#createorder)
+* [fetchBalance](#fetchbalance)
 * [fetchCanceledOrders](#fetchcanceledorders)
 * [fetchClosedOrders](#fetchclosedorders)
-* [fetchOpenOrders](#fetchopenorders)
-* [fetchMyTrades](#fetchmytrades)
-* [fetchDepositAddress](#fetchdepositaddress)
-* [withdraw](#withdraw)
-* [fetchWithdrawals](#fetchwithdrawals)
-* [fetchWithdrawal](#fetchwithdrawal)
-* [fetchDeposits](#fetchdeposits)
 * [fetchDeposit](#fetchdeposit)
-* [fetchBalance](#fetchbalance)
+* [fetchDepositAddress](#fetchdepositaddress)
+* [fetchDeposits](#fetchdeposits)
+* [fetchL3OrderBook](#fetchl3orderbook)
+* [fetchMarkets](#fetchmarkets)
+* [fetchMyTrades](#fetchmytrades)
+* [fetchOpenOrders](#fetchopenorders)
 * [fetchOrder](#fetchorder)
+* [fetchOrderBook](#fetchorderbook)
+* [fetchOrders](#fetchorders)
+* [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
+* [fetchTradingFees](#fetchtradingfees)
+* [fetchWithdrawal](#fetchwithdrawal)
+* [fetchWithdrawals](#fetchwithdrawals)
 * [watchBalance](#watchbalance)
 * [watchOHLCV](#watchohlcv)
+* [watchOrderBook](#watchorderbook)
 * [watchTicker](#watchticker)
 * [watchTrades](#watchtrades)
-* [fetchOrders](#fetchorders)
-* [watchOrderBook](#watchorderbook)
+* [withdraw](#withdraw)
 
-<a name="fetchMarkets" id="fetchmarkets"></a>
+<a name="cancelAllOrders" id="cancelallorders"></a>
 
-### fetchMarkets{docsify-ignore}
-retrieves data on all markets for blockchaincom
+### cancelAllOrders{docsify-ignore}
+cancel all open orders
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://api.blockchain.com/v3/#getsymbols  
+**See**: https://api.blockchain.com/v3/#deleteallorders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-blockchaincom.fetchMarkets (params?)
+blockchaincom.cancelAllOrders (symbol?, params?)
 ```
 
 
-<a name="fetchOrderBook" id="fetchorderbook"></a>
+<a name="cancelOrder" id="cancelorder"></a>
 
-### fetchOrderBook{docsify-ignore}
-fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+### cancelOrder{docsify-ignore}
+cancels an open order
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://api.blockchain.com/v3/#getl3orderbook  
+**See**: https://api.blockchain.com/v3/#deleteorder  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-blockchaincom.fetchOrderBook (symbol, limit?, params?)
-```
-
-
-<a name="fetchL3OrderBook" id="fetchl3orderbook"></a>
-
-### fetchL3OrderBook{docsify-ignore}
-fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-
-**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
-
-**See**: https://api.blockchain.com/v3/#getl3orderbook  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| limit | <code>int</code> | No | max number of orders to return, default is undefined |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blockchaincom.fetchL3OrderBook (symbol, limit?, params?)
-```
-
-
-<a name="fetchTicker" id="fetchticker"></a>
-
-### fetchTicker{docsify-ignore}
-fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: https://api.blockchain.com/v3/#gettickerbysymbol  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blockchaincom.fetchTicker (symbol, params?)
-```
-
-
-<a name="fetchTickers" id="fetchtickers"></a>
-
-### fetchTickers{docsify-ignore}
-fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-
-**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: https://api.blockchain.com/v3/#gettickers  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blockchaincom.fetchTickers (symbols, params?)
+blockchaincom.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -164,58 +101,15 @@ blockchaincom.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
-<a name="cancelOrder" id="cancelorder"></a>
+<a name="fetchBalance" id="fetchbalance"></a>
 
-### cancelOrder{docsify-ignore}
-cancels an open order
-
-**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://api.blockchain.com/v3/#deleteorder  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blockchaincom.cancelOrder (id, symbol, params?)
-```
-
-
-<a name="cancelAllOrders" id="cancelallorders"></a>
-
-### cancelAllOrders{docsify-ignore}
-cancel all open orders
+### fetchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://api.blockchain.com/v3/#deleteallorders  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blockchaincom.cancelAllOrders (symbol?, params?)
-```
-
-
-<a name="fetchTradingFees" id="fetchtradingfees"></a>
-
-### fetchTradingFees{docsify-ignore}
-fetch the trading fees for multiple markets
-
-**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
-
-**See**: https://api.blockchain.com/v3/#getfees  
+**See**: https://api.blockchain.com/v3/#getaccounts  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -223,7 +117,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-blockchaincom.fetchTradingFees (params?)
+blockchaincom.fetchBalance (params?)
 ```
 
 
@@ -273,49 +167,25 @@ blockchaincom.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
-<a name="fetchOpenOrders" id="fetchopenorders"></a>
+<a name="fetchDeposit" id="fetchdeposit"></a>
 
-### fetchOpenOrders{docsify-ignore}
-fetch all unfilled currently open orders
+### fetchDeposit{docsify-ignore}
+fetch information on a deposit
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://api.blockchain.com/v3/#getorders  
+**See**: https://api.blockchain.com/v3/#getdepositbyid  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
-| limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
+| id | <code>string</code> | Yes | deposit id |
+| code | <code>string</code> | Yes | not used by fetchDeposit () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-blockchaincom.fetchOpenOrders (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchMyTrades" id="fetchmytrades"></a>
-
-### fetchMyTrades{docsify-ignore}
-fetch all trades made by the user
-
-**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
-
-**See**: https://api.blockchain.com/v3/#getfills  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blockchaincom.fetchMyTrades (symbol, since?, limit?, params?)
+blockchaincom.fetchDeposit (id, code, params?)
 ```
 
 
@@ -337,75 +207,6 @@ fetch the deposit address for a currency associated with this account
 
 ```javascript
 blockchaincom.fetchDepositAddress (code, params?)
-```
-
-
-<a name="withdraw" id="withdraw"></a>
-
-### withdraw{docsify-ignore}
-make a withdrawal
-
-**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://api.blockchain.com/v3/#createwithdrawal  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| amount | <code>float</code> | Yes | the amount to withdraw |
-| address | <code>string</code> | Yes | the address to withdraw to |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
-
-
-```javascript
-blockchaincom.withdraw (code, amount, address, params?)
-```
-
-
-<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
-
-### fetchWithdrawals{docsify-ignore}
-fetch all withdrawals made from an account
-
-**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://api.blockchain.com/v3/#getwithdrawals  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
-| limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blockchaincom.fetchWithdrawals (code, since?, limit?, params?)
-```
-
-
-<a name="fetchWithdrawal" id="fetchwithdrawal"></a>
-
-### fetchWithdrawal{docsify-ignore}
-fetch data on a currency withdrawal via the withdrawal id
-
-**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://api.blockchain.com/v3/#getwithdrawalbyid  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | withdrawal id |
-| code | <code>string</code> | Yes | not used by blockchaincom.fetchWithdrawal |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blockchaincom.fetchWithdrawal (id, code, params?)
 ```
 
 
@@ -432,37 +233,37 @@ blockchaincom.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
-<a name="fetchDeposit" id="fetchdeposit"></a>
+<a name="fetchL3OrderBook" id="fetchl3orderbook"></a>
 
-### fetchDeposit{docsify-ignore}
-fetch information on a deposit
+### fetchL3OrderBook{docsify-ignore}
+fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://api.blockchain.com/v3/#getdepositbyid  
+**See**: https://api.blockchain.com/v3/#getl3orderbook  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| id | <code>string</code> | Yes | deposit id |
-| code | <code>string</code> | Yes | not used by fetchDeposit () |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| limit | <code>int</code> | No | max number of orders to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-blockchaincom.fetchDeposit (id, code, params?)
+blockchaincom.fetchL3OrderBook (symbol, limit?, params?)
 ```
 
 
-<a name="fetchBalance" id="fetchbalance"></a>
+<a name="fetchMarkets" id="fetchmarkets"></a>
 
-### fetchBalance{docsify-ignore}
-query for balance and get the amount of funds available for trading or funds locked in orders
+### fetchMarkets{docsify-ignore}
+retrieves data on all markets for blockchaincom
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://api.blockchain.com/v3/#getaccounts  
+**See**: https://api.blockchain.com/v3/#getsymbols  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -470,7 +271,53 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-blockchaincom.fetchBalance (params?)
+blockchaincom.fetchMarkets (params?)
+```
+
+
+<a name="fetchMyTrades" id="fetchmytrades"></a>
+
+### fetchMyTrades{docsify-ignore}
+fetch all trades made by the user
+
+**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**: https://api.blockchain.com/v3/#getfills  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blockchaincom.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchOpenOrders" id="fetchopenorders"></a>
+
+### fetchOpenOrders{docsify-ignore}
+fetch all unfilled currently open orders
+
+**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://api.blockchain.com/v3/#getorders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
+| limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blockchaincom.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -493,6 +340,158 @@ fetches information on an order made by the user
 
 ```javascript
 blockchaincom.fetchOrder (id, symbol, params?)
+```
+
+
+<a name="fetchOrderBook" id="fetchorderbook"></a>
+
+### fetchOrderBook{docsify-ignore}
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+
+**See**: https://api.blockchain.com/v3/#getl3orderbook  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blockchaincom.fetchOrderBook (symbol, limit?, params?)
+```
+
+
+<a name="fetchOrders" id="fetchorders"></a>
+
+### fetchOrders{docsify-ignore}
+watches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://exchange.blockchain.com/api/#mass-order-status-request-ordermassstatusrequest  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blockchaincom.fetchOrders (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchTicker" id="fetchticker"></a>
+
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://api.blockchain.com/v3/#gettickerbysymbol  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blockchaincom.fetchTicker (symbol, params?)
+```
+
+
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://api.blockchain.com/v3/#gettickers  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blockchaincom.fetchTickers (symbols, params?)
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets
+
+**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
+
+**See**: https://api.blockchain.com/v3/#getfees  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blockchaincom.fetchTradingFees (params?)
+```
+
+
+<a name="fetchWithdrawal" id="fetchwithdrawal"></a>
+
+### fetchWithdrawal{docsify-ignore}
+fetch data on a currency withdrawal via the withdrawal id
+
+**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://api.blockchain.com/v3/#getwithdrawalbyid  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | withdrawal id |
+| code | <code>string</code> | Yes | not used by blockchaincom.fetchWithdrawal |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blockchaincom.fetchWithdrawal (id, code, params?)
+```
+
+
+<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
+
+### fetchWithdrawals{docsify-ignore}
+fetch all withdrawals made from an account
+
+**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://api.blockchain.com/v3/#getwithdrawals  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
+| limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blockchaincom.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -540,6 +539,29 @@ blockchaincom.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
+<a name="watchOrderBook" id="watchorderbook"></a>
+
+### watchOrderBook{docsify-ignore}
+watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+
+**See**: https://exchange.blockchain.com/api/#l2-order-book  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>objectConstructor</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | accepts l2 or l3 for level 2 or level 3 order book |
+
+
+```javascript
+blockchaincom.watchOrderBook (symbol, limit?, params?)
+```
+
+
 <a name="watchTicker" id="watchticker"></a>
 
 ### watchTicker{docsify-ignore}
@@ -584,48 +606,26 @@ blockchaincom.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
-<a name="fetchOrders" id="fetchorders"></a>
+<a name="withdraw" id="withdraw"></a>
 
-### fetchOrders{docsify-ignore}
-watches information on multiple orders made by the user
+### withdraw{docsify-ignore}
+make a withdrawal
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://exchange.blockchain.com/api/#mass-order-status-request-ordermassstatusrequest  
+**See**: https://api.blockchain.com/v3/#createwithdrawal  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | the amount to withdraw |
+| address | <code>string</code> | Yes | the address to withdraw to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-blockchaincom.fetchOrders (symbol, since?, limit?, params?)
-```
-
-
-<a name="watchOrderBook" id="watchorderbook"></a>
-
-### watchOrderBook{docsify-ignore}
-watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-
-**Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
-
-**See**: https://exchange.blockchain.com/api/#l2-order-book  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
-| params | <code>objectConstructor</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | accepts l2 or l3 for level 2 or level 3 order book |
-
-
-```javascript
-blockchaincom.watchOrderBook (symbol, limit?, params?)
+blockchaincom.withdraw (code, amount, address, params?)
 ```
 

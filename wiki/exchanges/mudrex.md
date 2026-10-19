@@ -5,204 +5,95 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
-* [fetchOHLCV](#fetchohlcv)
-* [fetchMarkOHLCV](#fetchmarkohlcv)
-* [fetchTicker](#fetchticker)
-* [fetchTickers](#fetchtickers)
-* [fetchMarkets](#fetchmarkets)
-* [fetchBalance](#fetchbalance)
-* [fetchLeverage](#fetchleverage)
-* [setLeverage](#setleverage)
+* [addMargin](#addmargin)
+* [cancelOrder](#cancelorder)
+* [closePosition](#closeposition)
 * [createOrder](#createorder)
 * [editOrder](#editorder)
-* [cancelOrder](#cancelorder)
+* [fetchBalance](#fetchbalance)
+* [fetchClosedOrders](#fetchclosedorders)
+* [fetchLeverage](#fetchleverage)
+* [fetchMarkets](#fetchmarkets)
+* [fetchMarkOHLCV](#fetchmarkohlcv)
+* [fetchMyTrades](#fetchmytrades)
+* [fetchOHLCV](#fetchohlcv)
+* [fetchOpenOrders](#fetchopenorders)
 * [fetchOrder](#fetchorder)
 * [fetchOrders](#fetchorders)
-* [fetchOpenOrders](#fetchopenorders)
-* [fetchClosedOrders](#fetchclosedorders)
 * [fetchPositions](#fetchpositions)
 * [fetchPositionsHistory](#fetchpositionshistory)
-* [closePosition](#closeposition)
-* [addMargin](#addmargin)
+* [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
 * [reduceMargin](#reducemargin)
-* [fetchMyTrades](#fetchmytrades)
+* [setLeverage](#setleverage)
 * [transfer](#transfer)
 
-<a name="fetchOHLCV" id="fetchohlcv"></a>
+<a name="addMargin" id="addmargin"></a>
 
-### fetchOHLCV{docsify-ignore}
-fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-
-**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**: https://docs.trade.mudrex.com/docs/historical-kline  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
-| params.price | <code>string</code> | No | "mark" to fetch mark price candles |
-
-
-```javascript
-mudrex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
-```
-
-
-<a name="fetchMarkOHLCV" id="fetchmarkohlcv"></a>
-
-### fetchMarkOHLCV{docsify-ignore}
-fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+### addMargin{docsify-ignore}
+add margin to a position
 
 **Kind**: instance method of [<code>mudrex</code>](#mudrex)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**: https://docs.trade.mudrex.com/docs  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-mudrex.fetchMarkOHLCV (symbol, timeframe, since?, limit?, params?)
-```
-
-
-<a name="fetchTicker" id="fetchticker"></a>
-
-### fetchTicker{docsify-ignore}
-fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
-
-**See**: https://docs.trade.mudrex.com/docs  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-mudrex.fetchTicker (symbol, params?)
-```
-
-
-<a name="fetchTickers" id="fetchtickers"></a>
-
-### fetchTickers{docsify-ignore}
-fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-
-**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
-
-**See**: https://docs.trade.mudrex.com/docs  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-mudrex.fetchTickers (symbols?, params?)
-```
-
-
-<a name="fetchMarkets" id="fetchmarkets"></a>
-
-### fetchMarkets{docsify-ignore}
-retrieves data on all markets for the exchange
-
-**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
-
-**See**: https://docs.trade.mudrex.com/docs  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-mudrex.fetchMarkets (params?)
-```
-
-
-<a name="fetchBalance" id="fetchbalance"></a>
-
-### fetchBalance{docsify-ignore}
-query for balance and get the amount of funds available for trading or funds locked in orders
-
-**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
-
-**See**: https://docs.trade.mudrex.com/docs  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | 'swap' (default) or 'spot' - which wallet balance to fetch |
-| params.trade_currency | <code>string</code> | No | the settlement currency to query the balance for |
-
-
-```javascript
-mudrex.fetchBalance (params?)
-```
-
-
-<a name="fetchLeverage" id="fetchleverage"></a>
-
-### fetchLeverage{docsify-ignore}
-fetch the set leverage for a market
-
-**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
 
 **See**: https://docs.trade.mudrex.com/docs  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | amount of margin to add |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.position_id | <code>string</code> | No | the id of the position to add margin to, resolved from the symbol if not provided |
 
 
 ```javascript
-mudrex.fetchLeverage (symbol, params?)
+mudrex.addMargin (symbol, amount, params?)
 ```
 
 
-<a name="setLeverage" id="setleverage"></a>
+<a name="cancelOrder" id="cancelorder"></a>
 
-### setLeverage{docsify-ignore}
-set the level of leverage for a market
+### cancelOrder{docsify-ignore}
+cancels an open order
 
 **Kind**: instance method of [<code>mudrex</code>](#mudrex)  
-**Returns**: <code>object</code> - response from the exchange
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
 **See**: https://docs.trade.mudrex.com/docs  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| leverage | <code>float</code> | Yes | the rate of leverage |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | No | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.marginType | <code>string</code> | No | 'ISOLATED' (default) or 'CROSSED' |
 
 
 ```javascript
-mudrex.setLeverage (leverage, symbol, params?)
+mudrex.cancelOrder (id, symbol?, params?)
+```
+
+
+<a name="closePosition" id="closeposition"></a>
+
+### closePosition{docsify-ignore}
+closes an open position for a market
+
+**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://docs.trade.mudrex.com/docs  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified CCXT market symbol |
+| side | <code>string</code> | No | 'buy' or 'sell', not required by mudrex |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.position_id | <code>string</code> | No | the id of the position to close, resolved from the symbol if not provided |
+| params.amount | <code>float</code> | No | the amount to close for a partial close, closes the whole position if not provided |
+
+
+```javascript
+mudrex.closePosition (symbol, side?, params?)
 ```
 
 
@@ -267,25 +158,187 @@ mudrex.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
-<a name="cancelOrder" id="cancelorder"></a>
+<a name="fetchBalance" id="fetchbalance"></a>
 
-### cancelOrder{docsify-ignore}
-cancels an open order
+### fetchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>mudrex</code>](#mudrex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
 **See**: https://docs.trade.mudrex.com/docs  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | No | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'swap' (default) or 'spot' - which wallet balance to fetch |
+| params.trade_currency | <code>string</code> | No | the settlement currency to query the balance for |
+
+
+```javascript
+mudrex.fetchBalance (params?)
+```
+
+
+<a name="fetchClosedOrders" id="fetchclosedorders"></a>
+
+### fetchClosedOrders{docsify-ignore}
+fetches information on multiple closed orders made by the user
+
+**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://docs.trade.mudrex.com/docs  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-mudrex.cancelOrder (id, symbol?, params?)
+mudrex.fetchClosedOrders (symbol?, since?, limit?, params?)
+```
+
+
+<a name="fetchLeverage" id="fetchleverage"></a>
+
+### fetchLeverage{docsify-ignore}
+fetch the set leverage for a market
+
+**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+
+**See**: https://docs.trade.mudrex.com/docs  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+mudrex.fetchLeverage (symbol, params?)
+```
+
+
+<a name="fetchMarkets" id="fetchmarkets"></a>
+
+### fetchMarkets{docsify-ignore}
+retrieves data on all markets for the exchange
+
+**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+**See**: https://docs.trade.mudrex.com/docs  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+mudrex.fetchMarkets (params?)
+```
+
+
+<a name="fetchMarkOHLCV" id="fetchmarkohlcv"></a>
+
+### fetchMarkOHLCV{docsify-ignore}
+fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+
+**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://docs.trade.mudrex.com/docs  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+mudrex.fetchMarkOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="fetchMyTrades" id="fetchmytrades"></a>
+
+### fetchMyTrades{docsify-ignore}
+fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded and each fill's REBATE row is netted into the trade fee
+
+**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+
+**See**: https://docs.trade.mudrex.com/docs/fees  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol, applied client-side because the endpoint has no symbol filter |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for, applied client-side |
+| limit | <code>int</code> | No | the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied, the history ends or the page cap is reached |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trade_currency | <code>string</code> | No | the settlement currency to filter trades by, 'USDT' (default) or 'INR' |
+| params.paginationCalls | <code>int</code> | No | the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades |
+
+
+```javascript
+mudrex.fetchMyTrades (symbol?, since?, limit?, params?)
+```
+
+
+<a name="fetchOHLCV" id="fetchohlcv"></a>
+
+### fetchOHLCV{docsify-ignore}
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://docs.trade.mudrex.com/docs/historical-kline  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
+| params.price | <code>string</code> | No | "mark" to fetch mark price candles |
+
+
+```javascript
+mudrex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="fetchOpenOrders" id="fetchopenorders"></a>
+
+### fetchOpenOrders{docsify-ignore}
+fetch all unfilled currently open orders
+
+**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://docs.trade.mudrex.com/docs  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
+| limit | <code>int</code> | No | the maximum number of open order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+mudrex.fetchOpenOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -331,52 +384,6 @@ fetches information on multiple orders made by the user
 
 ```javascript
 mudrex.fetchOrders (symbol?, since?, limit?, params?)
-```
-
-
-<a name="fetchOpenOrders" id="fetchopenorders"></a>
-
-### fetchOpenOrders{docsify-ignore}
-fetch all unfilled currently open orders
-
-**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
-
-**See**: https://docs.trade.mudrex.com/docs  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
-| limit | <code>int</code> | No | the maximum number of open order structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-mudrex.fetchOpenOrders (symbol?, since?, limit?, params?)
-```
-
-
-<a name="fetchClosedOrders" id="fetchclosedorders"></a>
-
-### fetchClosedOrders{docsify-ignore}
-fetches information on multiple closed orders made by the user
-
-**Kind**: instance method of [<code>mudrex</code>](#mudrex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
-
-**See**: https://docs.trade.mudrex.com/docs  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-mudrex.fetchClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -426,50 +433,45 @@ mudrex.fetchPositionsHistory (symbols?, since?, limit?, params?)
 ```
 
 
-<a name="closePosition" id="closeposition"></a>
+<a name="fetchTicker" id="fetchticker"></a>
 
-### closePosition{docsify-ignore}
-closes an open position for a market
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>mudrex</code>](#mudrex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
 **See**: https://docs.trade.mudrex.com/docs  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified CCXT market symbol |
-| side | <code>string</code> | No | 'buy' or 'sell', not required by mudrex |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.position_id | <code>string</code> | No | the id of the position to close, resolved from the symbol if not provided |
-| params.amount | <code>float</code> | No | the amount to close for a partial close, closes the whole position if not provided |
 
 
 ```javascript
-mudrex.closePosition (symbol, side?, params?)
+mudrex.fetchTicker (symbol, params?)
 ```
 
 
-<a name="addMargin" id="addmargin"></a>
+<a name="fetchTickers" id="fetchtickers"></a>
 
-### addMargin{docsify-ignore}
-add margin to a position
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>mudrex</code>](#mudrex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
 
 **See**: https://docs.trade.mudrex.com/docs  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| amount | <code>float</code> | Yes | amount of margin to add |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.position_id | <code>string</code> | No | the id of the position to add margin to, resolved from the symbol if not provided |
 
 
 ```javascript
-mudrex.addMargin (symbol, amount, params?)
+mudrex.fetchTickers (symbols?, params?)
 ```
 
 
@@ -495,28 +497,26 @@ mudrex.reduceMargin (symbol, amount, params?)
 ```
 
 
-<a name="fetchMyTrades" id="fetchmytrades"></a>
+<a name="setLeverage" id="setleverage"></a>
 
-### fetchMyTrades{docsify-ignore}
-fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded and each fill's REBATE row is netted into the trade fee
+### setLeverage{docsify-ignore}
+set the level of leverage for a market
 
 **Kind**: instance method of [<code>mudrex</code>](#mudrex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>object</code> - response from the exchange
 
-**See**: https://docs.trade.mudrex.com/docs/fees  
+**See**: https://docs.trade.mudrex.com/docs  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol, applied client-side because the endpoint has no symbol filter |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for, applied client-side |
-| limit | <code>int</code> | No | the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied, the history ends or the page cap is reached |
+| leverage | <code>float</code> | Yes | the rate of leverage |
+| symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trade_currency | <code>string</code> | No | the settlement currency to filter trades by, 'USDT' (default) or 'INR' |
-| params.paginationCalls | <code>int</code> | No | the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades |
+| params.marginType | <code>string</code> | No | 'ISOLATED' (default) or 'CROSSED' |
 
 
 ```javascript
-mudrex.fetchMyTrades (symbol?, since?, limit?, params?)
+mudrex.setLeverage (leverage, symbol, params?)
 ```
 
 

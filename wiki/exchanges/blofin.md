@@ -5,283 +5,134 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [cancelOrder](#cancelorder)
+* [cancelOrders](#cancelorders)
+* [closePosition](#closeposition)
+* [createOrder](#createorder)
+* [createOrders](#createorders)
+* [fetchBalance](#fetchbalance)
+* [fetchClosedOrders](#fetchclosedorders)
+* [fetchCurrencies](#fetchcurrencies)
+* [fetchDeposit](#fetchdeposit)
+* [fetchDepositAddress](#fetchdepositaddress)
+* [fetchDeposits](#fetchdeposits)
+* [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
+* [fetchFundingRate](#fetchfundingrate)
+* [fetchFundingRateHistory](#fetchfundingratehistory)
+* [fetchLedger](#fetchledger)
+* [fetchLeverage](#fetchleverage)
+* [fetchLeverages](#fetchleverages)
+* [fetchMarginMode](#fetchmarginmode)
 * [fetchMarkets](#fetchmarkets)
-* [fetchOrderBook](#fetchorderbook)
-* [fetchTicker](#fetchticker)
 * [fetchMarkPrice](#fetchmarkprice)
+* [fetchMyTrades](#fetchmytrades)
+* [fetchOHLCV](#fetchohlcv)
+* [fetchOpenOrders](#fetchopenorders)
+* [fetchOrderBook](#fetchorderbook)
+* [fetchPosition](#fetchposition)
+* [fetchPositionMode](#fetchpositionmode)
+* [fetchPositions](#fetchpositions)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
+* [fetchPositionsHistory](#fetchpositionshistory)
+* [fetchTicker](#fetchticker)
 * [fetchTickers](#fetchtickers)
 * [fetchTrades](#fetchtrades)
-* [fetchOHLCV](#fetchohlcv)
-* [fetchFundingRateHistory](#fetchfundingratehistory)
-* [fetchFundingRate](#fetchfundingrate)
-* [fetchBalance](#fetchbalance)
-* [createOrder](#createorder)
-* [cancelOrder](#cancelorder)
-* [createOrders](#createorders)
-* [fetchOpenOrders](#fetchopenorders)
-* [fetchMyTrades](#fetchmytrades)
-* [fetchDeposits](#fetchdeposits)
-* [fetchWithdrawals](#fetchwithdrawals)
-* [fetchCurrencies](#fetchcurrencies)
-* [fetchDepositAddress](#fetchdepositaddress)
-* [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
-* [fetchDeposit](#fetchdeposit)
 * [fetchWithdrawal](#fetchwithdrawal)
-* [withdraw](#withdraw)
-* [fetchLedger](#fetchledger)
-* [cancelOrders](#cancelorders)
-* [transfer](#transfer)
-* [fetchPosition](#fetchposition)
-* [fetchPositions](#fetchpositions)
-* [fetchPositionsHistory](#fetchpositionshistory)
-* [fetchLeverages](#fetchleverages)
-* [fetchLeverage](#fetchleverage)
+* [fetchWithdrawals](#fetchwithdrawals)
 * [setLeverage](#setleverage)
-* [closePosition](#closeposition)
-* [fetchClosedOrders](#fetchclosedorders)
-* [fetchMarginMode](#fetchmarginmode)
 * [setMarginMode](#setmarginmode)
-* [fetchPositionMode](#fetchpositionmode)
 * [setPositionMode](#setpositionmode)
-* [fetchPositionsADLRank](#fetchpositionsadlrank)
-* [watchTrades](#watchtrades)
-* [watchTradesForSymbols](#watchtradesforsymbols)
-* [watchOrderBook](#watchorderbook)
-* [watchOrderBookForSymbols](#watchorderbookforsymbols)
-* [watchTicker](#watchticker)
-* [watchTickers](#watchtickers)
+* [transfer](#transfer)
+* [watchBalance](#watchbalance)
 * [watchBidsAsks](#watchbidsasks)
+* [watchFundingRate](#watchfundingrate)
 * [watchOHLCV](#watchohlcv)
 * [watchOHLCVForSymbols](#watchohlcvforsymbols)
-* [watchBalance](#watchbalance)
+* [watchOrderBook](#watchorderbook)
+* [watchOrderBookForSymbols](#watchorderbookforsymbols)
 * [watchOrdersForSymbols](#watchordersforsymbols)
 * [watchPositions](#watchpositions)
-* [watchFundingRate](#watchfundingrate)
+* [watchTicker](#watchticker)
+* [watchTickers](#watchtickers)
+* [watchTrades](#watchtrades)
+* [watchTradesForSymbols](#watchtradesforsymbols)
+* [withdraw](#withdraw)
 
-<a name="fetchMarkets" id="fetchmarkets"></a>
+<a name="cancelOrder" id="cancelorder"></a>
 
-### fetchMarkets{docsify-ignore}
-retrieves data on all markets for blofin
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
-
-**See**: https://blofin.com/docs#get-instruments  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blofin.fetchMarkets (params?)
-```
-
-
-<a name="fetchOrderBook" id="fetchorderbook"></a>
-
-### fetchOrderBook{docsify-ignore}
-fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+### cancelOrder{docsify-ignore}
+cancels an open order
 
 **Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
-
-**See**: https://blofin.com/docs#get-order-book  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blofin.fetchOrderBook (symbol, limit?, params?)
-```
-
-
-<a name="fetchTicker" id="fetchticker"></a>
-
-### fetchTicker{docsify-ignore}
-fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: https://blofin.com/docs#get-tickers  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blofin.fetchTicker (symbol, params?)
-```
-
-
-<a name="fetchMarkPrice" id="fetchmarkprice"></a>
-
-### fetchMarkPrice{docsify-ignore}
-fetches mark price for the market
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: https://docs.blofin.com/index.html#get-mark-price  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.subType | <code>string</code> | No | "linear" or "inverse" |
-
-
-```javascript
-blofin.fetchMarkPrice (symbol, params?)
-```
-
-
-<a name="fetchTickers" id="fetchtickers"></a>
-
-### fetchTickers{docsify-ignore}
-fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: https://blofin.com/docs#get-tickers  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blofin.fetchTickers (symbols?, params?)
-```
-
-
-<a name="fetchTrades" id="fetchtrades"></a>
-
-### fetchTrades{docsify-ignore}
-get the list of most recent trades for a particular symbol
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**: https://blofin.com/docs#get-trades  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.paginate | <code>boolean</code> | No | *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times |
-
-
-```javascript
-blofin.fetchTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchOHLCV" id="fetchohlcv"></a>
-
-### fetchOHLCV{docsify-ignore}
-fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**: https://blofin.com/docs#get-candlesticks  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
-
-
-```javascript
-blofin.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
-```
-
-
-<a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
-
-### fetchFundingRateHistory{docsify-ignore}
-fetches historical funding rate prices
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
-
-**See**: https://blofin.com/docs#get-funding-rate-history  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
-| since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
-| params.until | <code>int</code> | No | timestamp in ms of the latest funding rate to fetch |
-
-
-```javascript
-blofin.fetchFundingRateHistory (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchFundingRate" id="fetchfundingrate"></a>
-
-### fetchFundingRate{docsify-ignore}
-fetch the current funding rate
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
-
-**See**: https://blofin.com/docs#get-funding-rate  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blofin.fetchFundingRate (symbol, params?)
-```
-
-
-<a name="fetchBalance" id="fetchbalance"></a>
-
-### fetchBalance{docsify-ignore}
-query for balance and get the amount of funds available for trading or funds locked in orders
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://blofin.com/docs#get-balance
-- https://blofin.com/docs#get-futures-account-balance
+- https://blofin.com/docs#cancel-order
+- https://blofin.com/docs#cancel-tpsl-order
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.accountType | <code>string</code> | No | the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn' |
+| params.trigger | <code>boolean</code> | No | True if cancelling a trigger/conditional |
+| params.tpsl | <code>boolean</code> | No | True if cancelling a tpsl order |
 
 
 ```javascript
-blofin.fetchBalance (params?)
+blofin.cancelOrder (id, symbol, params?)
+```
+
+
+<a name="cancelOrders" id="cancelorders"></a>
+
+### cancelOrders{docsify-ignore}
+cancel multiple orders
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://blofin.com/docs#cancel-multiple-orders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>boolean</code> | No | whether the order is a stop/trigger order |
+
+
+```javascript
+blofin.cancelOrders (ids, symbol, params?)
+```
+
+
+<a name="closePosition" id="closeposition"></a>
+
+### closePosition{docsify-ignore}
+closes open positions for a market
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - [A list of position structures](https://docs.ccxt.com/?id=position-structure)
+
+**See**: https://blofin.com/docs#close-positions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
+| side | <code>string</code> | No | 'buy' or 'sell', leave as undefined in net mode |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | a unique identifier for the order |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', default is 'cross; |
+| params.code | <code>string</code> | No | *required in the case of closing cross MARGIN position for Single-currency margin* margin currency EXCHANGE SPECIFIC PARAMETERS |
+| params.autoCxl | <code>boolean</code> | No | whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false |
+| params.tag | <code>string</code> | No | order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters |
+
+
+```javascript
+blofin.closePosition (symbol, side?, params?)
 ```
 
 
@@ -330,34 +181,6 @@ blofin.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
-<a name="cancelOrder" id="cancelorder"></a>
-
-### cancelOrder{docsify-ignore}
-cancels an open order
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
-
-**See**
-
-- https://blofin.com/docs#cancel-order
-- https://blofin.com/docs#cancel-tpsl-order
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | True if cancelling a trigger/conditional |
-| params.tpsl | <code>boolean</code> | No | True if cancelling a tpsl order |
-
-
-```javascript
-blofin.cancelOrder (id, symbol, params?)
-```
-
-
 <a name="createOrders" id="createorders"></a>
 
 ### createOrders{docsify-ignore}
@@ -376,6 +199,403 @@ create a list of trade orders
 
 ```javascript
 blofin.createOrders (orders, params?)
+```
+
+
+<a name="fetchBalance" id="fetchbalance"></a>
+
+### fetchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**
+
+- https://blofin.com/docs#get-balance
+- https://blofin.com/docs#get-futures-account-balance
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountType | <code>string</code> | No | the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn' |
+
+
+```javascript
+blofin.fetchBalance (params?)
+```
+
+
+<a name="fetchClosedOrders" id="fetchclosedorders"></a>
+
+### fetchClosedOrders{docsify-ignore}
+fetches information on multiple closed orders made by the user
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://blofin.com/docs#get-order-history
+- https://blofin.com/docs#get-tpsl-order-history
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of  orde structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>bool</code> | No | True if fetching trigger or conditional orders |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+blofin.fetchClosedOrders (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchCurrencies" id="fetchcurrencies"></a>
+
+### fetchCurrencies{docsify-ignore}
+fetches all available currencies on an exchange
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - an associative dictionary of currencies
+
+**See**: https://docs.blofin.com/index.html#get-currencies  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchCurrencies (params?)
+```
+
+
+<a name="fetchDeposit" id="fetchdeposit"></a>
+
+### fetchDeposit{docsify-ignore}
+fetch information on a deposit
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+
+**See**: https://docs.blofin.com/index.html#get-deposit-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | deposit id |
+| code | <code>string</code> | No | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchDeposit (id, code?, params?)
+```
+
+
+<a name="fetchDepositAddress" id="fetchdepositaddress"></a>
+
+### fetchDepositAddress{docsify-ignore}
+fetch the deposit address for a currency associated with this account
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+
+**See**: https://docs.blofin.com/index.html#get-deposit-address  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.network | <code>string</code> | No | unified network code, required unless the currency has a single network or a default in options['defaultNetworks'] |
+| params.chain | <code>string</code> | No | the exchange-specific chain id, takes precedence over params.network |
+
+
+```javascript
+blofin.fetchDepositAddress (code, params?)
+```
+
+
+<a name="fetchDeposits" id="fetchdeposits"></a>
+
+### fetchDeposits{docsify-ignore}
+fetch all deposits made to an account
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://blofin.com/docs#get-deposite-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
+| limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+blofin.fetchDeposits (code, since?, limit?, params?)
+```
+
+
+<a name="fetchDepositWithdrawFees" id="fetchdepositwithdrawfees"></a>
+
+### fetchDepositWithdrawFees{docsify-ignore}
+fetch deposit and withdraw fees
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+
+**See**: https://docs.blofin.com/index.html#get-currencies  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchDepositWithdrawFees (codes?, params?)
+```
+
+
+<a name="fetchFundingRate" id="fetchfundingrate"></a>
+
+### fetchFundingRate{docsify-ignore}
+fetch the current funding rate
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://blofin.com/docs#get-funding-rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchFundingRate (symbol, params?)
+```
+
+
+<a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
+
+### fetchFundingRateHistory{docsify-ignore}
+fetches historical funding rate prices
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
+
+**See**: https://blofin.com/docs#get-funding-rate-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
+| since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.until | <code>int</code> | No | timestamp in ms of the latest funding rate to fetch |
+
+
+```javascript
+blofin.fetchFundingRateHistory (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchLedger" id="fetchledger"></a>
+
+### fetchLedger{docsify-ignore}
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
+
+**See**: https://blofin.com/docs#get-funds-transfer-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code, default is undefined |
+| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated' |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+blofin.fetchLedger (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchLeverage" id="fetchleverage"></a>
+
+### fetchLeverage{docsify-ignore}
+fetch the set leverage for a market
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
+
+**See**: https://docs.blofin.com/index.html#get-leverage  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated' |
+
+
+```javascript
+blofin.fetchLeverage (symbol, params?)
+```
+
+
+<a name="fetchLeverages" id="fetchleverages"></a>
+
+### fetchLeverages{docsify-ignore}
+fetch the set leverage for all contract markets
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/?id=leverage-structure)
+
+**See**: https://docs.blofin.com/index.html#get-multiple-leverage  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | a list of unified market symbols, required on blofin |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated' |
+
+
+```javascript
+blofin.fetchLeverages (symbols, params?)
+```
+
+
+<a name="fetchMarginMode" id="fetchmarginmode"></a>
+
+### fetchMarginMode{docsify-ignore}
+fetches the margin mode of a trading pair
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
+
+**See**: https://docs.blofin.com/index.html#get-margin-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the margin mode for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchMarginMode (symbol, params?)
+```
+
+
+<a name="fetchMarkets" id="fetchmarkets"></a>
+
+### fetchMarkets{docsify-ignore}
+retrieves data on all markets for blofin
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+**See**: https://blofin.com/docs#get-instruments  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchMarkets (params?)
+```
+
+
+<a name="fetchMarkPrice" id="fetchmarkprice"></a>
+
+### fetchMarkPrice{docsify-ignore}
+fetches mark price for the market
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://docs.blofin.com/index.html#get-mark-price  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
+
+
+```javascript
+blofin.fetchMarkPrice (symbol, params?)
+```
+
+
+<a name="fetchMyTrades" id="fetchmytrades"></a>
+
+### fetchMyTrades{docsify-ignore}
+fetch all trades made by the user
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**: https://blofin.com/docs#get-trade-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | Timestamp in ms of the latest time to retrieve trades for |
+| params.type | <code>string</code> | No | 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history |
+| params.instId | <code>string</code> | No | *spot markets only* the market id of the spot market to fetch the trade history for (e.g. 'BTC-USDT') |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+blofin.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchOHLCV" id="fetchohlcv"></a>
+
+### fetchOHLCV{docsify-ignore}
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://blofin.com/docs#get-candlesticks  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+blofin.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -409,291 +629,25 @@ blofin.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
-<a name="fetchMyTrades" id="fetchmytrades"></a>
+<a name="fetchOrderBook" id="fetchorderbook"></a>
 
-### fetchMyTrades{docsify-ignore}
-fetch all trades made by the user
+### fetchOrderBook{docsify-ignore}
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://blofin.com/docs#get-trade-history  
+**See**: https://blofin.com/docs#get-order-book  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | Timestamp in ms of the latest time to retrieve trades for |
-| params.type | <code>string</code> | No | 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history |
-| params.instId | <code>string</code> | No | *spot markets only* the market id of the spot market to fetch the trade history for (e.g. 'BTC-USDT') |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
-
-
-```javascript
-blofin.fetchMyTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchDeposits" id="fetchdeposits"></a>
-
-### fetchDeposits{docsify-ignore}
-fetch all deposits made to an account
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://blofin.com/docs#get-deposite-history  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
-| limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
-
-
-```javascript
-blofin.fetchDeposits (code, since?, limit?, params?)
-```
-
-
-<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
-
-### fetchWithdrawals{docsify-ignore}
-fetch all withdrawals made from an account
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://blofin.com/docs#get-withdraw-history  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
-| limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
-
-
-```javascript
-blofin.fetchWithdrawals (code, since?, limit?, params?)
-```
-
-
-<a name="fetchCurrencies" id="fetchcurrencies"></a>
-
-### fetchCurrencies{docsify-ignore}
-fetches all available currencies on an exchange
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - an associative dictionary of currencies
-
-**See**: https://docs.blofin.com/index.html#get-currencies  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-blofin.fetchCurrencies (params?)
-```
-
-
-<a name="fetchDepositAddress" id="fetchdepositaddress"></a>
-
-### fetchDepositAddress{docsify-ignore}
-fetch the deposit address for a currency associated with this account
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
-
-**See**: https://docs.blofin.com/index.html#get-deposit-address  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.network | <code>string</code> | No | unified network code, required unless the currency has a single network or a default in options['defaultNetworks'] |
-| params.chain | <code>string</code> | No | the exchange-specific chain id, takes precedence over params.network |
-
-
-```javascript
-blofin.fetchDepositAddress (code, params?)
-```
-
-
-<a name="fetchDepositWithdrawFees" id="fetchdepositwithdrawfees"></a>
-
-### fetchDepositWithdrawFees{docsify-ignore}
-fetch deposit and withdraw fees
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
-
-**See**: https://docs.blofin.com/index.html#get-currencies  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blofin.fetchDepositWithdrawFees (codes?, params?)
-```
-
-
-<a name="fetchDeposit" id="fetchdeposit"></a>
-
-### fetchDeposit{docsify-ignore}
-fetch information on a deposit
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
-
-**See**: https://docs.blofin.com/index.html#get-deposit-history  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | deposit id |
-| code | <code>string</code> | No | unified currency code |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blofin.fetchDeposit (id, code?, params?)
-```
-
-
-<a name="fetchWithdrawal" id="fetchwithdrawal"></a>
-
-### fetchWithdrawal{docsify-ignore}
-fetch data on a currency withdrawal via the withdrawal id
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
-
-**See**: https://docs.blofin.com/index.html#get-withdraw-history  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | withdrawal id |
-| code | <code>string</code> | No | unified currency code |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.clientId | <code>string</code> | No | look up by the client-supplied id instead, with id set to undefined |
-
-
-```javascript
-blofin.fetchWithdrawal (id, code?, params?)
-```
-
-
-<a name="withdraw" id="withdraw"></a>
-
-### withdraw{docsify-ignore}
-make a withdrawal
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
-
-**See**: https://docs.blofin.com/index.html#withdrawal  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| amount | <code>float</code> | Yes | the amount to withdraw, the withdrawal fee is not included and must be reserved on top |
-| address | <code>string</code> | Yes | the address to withdraw to, or a UID / email / phone number for an internal transfer |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
-| params.network | <code>string</code> | No | the unified network code for on-chain withdrawals, mapped to the exchange's chain name |
-| params.dest | <code>string</code> | No | 'onchain' (default) or 'internal' for an internal transfer |
-| params.addrType | <code>string</code> | No | address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone |
-| params.areaCode | <code>string</code> | No | area code for the phone number, required when address is a phone number |
-| params.clientId | <code>string</code> | No | a client-supplied id of up to 32 case-sensitive alphanumerics |
-
-
-```javascript
-blofin.withdraw (code, amount, address, params?)
-```
-
-
-<a name="fetchLedger" id="fetchledger"></a>
-
-### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered the balance of the user
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
-
-**See**: https://blofin.com/docs#get-funds-transfer-history  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | No | unified currency code, default is undefined |
-| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.marginMode | <code>string</code> | No | 'cross' or 'isolated' |
-| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
-
-
-```javascript
-blofin.fetchLedger (code?, since?, limit?, params?)
-```
-
-
-<a name="cancelOrders" id="cancelorders"></a>
-
-### cancelOrders{docsify-ignore}
-cancel multiple orders
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://blofin.com/docs#cancel-multiple-orders  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | whether the order is a stop/trigger order |
-
-
-```javascript
-blofin.cancelOrders (ids, symbol, params?)
-```
-
-
-<a name="transfer" id="transfer"></a>
-
-### transfer{docsify-ignore}
-transfer currency internally between wallets on the same account
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
-
-**See**: https://blofin.com/docs#funds-transfer  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| amount | <code>float</code> | Yes | amount to transfer |
-| fromAccount | <code>string</code> | Yes | account to transfer from (funding, swap, copy_trading, earn) |
-| toAccount | <code>string</code> | Yes | account to transfer to (funding, swap, copy_trading, earn) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blofin.transfer (code, amount, fromAccount, toAccount, params?)
+blofin.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -719,6 +673,27 @@ blofin.fetchPosition (symbol, params?)
 ```
 
 
+<a name="fetchPositionMode" id="fetchpositionmode"></a>
+
+### fetchPositionMode{docsify-ignore}
+fetchs the position mode, hedged or one way
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - an object detailing whether the market is in hedged or one-way mode
+
+**See**: https://docs.blofin.com/index.html#get-position-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchPositionMode (symbol?, params?)
+```
+
+
 <a name="fetchPositions" id="fetchpositions"></a>
 
 ### fetchPositions{docsify-ignore}
@@ -738,6 +713,27 @@ fetch data on a single open contract trade position
 
 ```javascript
 blofin.fetchPositions (symbols?, params?)
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://docs.blofin.com/index.html#get-positions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchPositionsADLRank (symbols?, params?)
 ```
 
 
@@ -767,47 +763,117 @@ blofin.fetchPositionsHistory (symbols?, since?, limit?, params)
 ```
 
 
-<a name="fetchLeverages" id="fetchleverages"></a>
+<a name="fetchTicker" id="fetchticker"></a>
 
-### fetchLeverages{docsify-ignore}
-fetch the set leverage for all contract markets
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/?id=leverage-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.blofin.com/index.html#get-multiple-leverage  
+**See**: https://blofin.com/docs#get-tickers  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | a list of unified market symbols, required on blofin |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.marginMode | <code>string</code> | No | 'cross' or 'isolated' |
 
 
 ```javascript
-blofin.fetchLeverages (symbols, params?)
+blofin.fetchTicker (symbol, params?)
 ```
 
 
-<a name="fetchLeverage" id="fetchleverage"></a>
+<a name="fetchTickers" id="fetchtickers"></a>
 
-### fetchLeverage{docsify-ignore}
-fetch the set leverage for a market
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.blofin.com/index.html#get-leverage  
+**See**: https://blofin.com/docs#get-tickers  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.marginMode | <code>string</code> | No | 'cross' or 'isolated' |
 
 
 ```javascript
-blofin.fetchLeverage (symbol, params?)
+blofin.fetchTickers (symbols?, params?)
+```
+
+
+<a name="fetchTrades" id="fetchtrades"></a>
+
+### fetchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**: https://blofin.com/docs#get-trades  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.paginate | <code>boolean</code> | No | *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times |
+
+
+```javascript
+blofin.fetchTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchWithdrawal" id="fetchwithdrawal"></a>
+
+### fetchWithdrawal{docsify-ignore}
+fetch data on a currency withdrawal via the withdrawal id
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+
+**See**: https://docs.blofin.com/index.html#get-withdraw-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | withdrawal id |
+| code | <code>string</code> | No | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientId | <code>string</code> | No | look up by the client-supplied id instead, with id set to undefined |
+
+
+```javascript
+blofin.fetchWithdrawal (id, code?, params?)
+```
+
+
+<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
+
+### fetchWithdrawals{docsify-ignore}
+fetch all withdrawals made from an account
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://blofin.com/docs#get-withdraw-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
+| limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+blofin.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -835,83 +901,6 @@ blofin.setLeverage (leverage, symbol, params?)
 ```
 
 
-<a name="closePosition" id="closeposition"></a>
-
-### closePosition{docsify-ignore}
-closes open positions for a market
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>Array&lt;object&gt;</code> - [A list of position structures](https://docs.ccxt.com/?id=position-structure)
-
-**See**: https://blofin.com/docs#close-positions  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
-| side | <code>string</code> | No | 'buy' or 'sell', leave as undefined in net mode |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.clientOrderId | <code>string</code> | No | a unique identifier for the order |
-| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', default is 'cross; |
-| params.code | <code>string</code> | No | *required in the case of closing cross MARGIN position for Single-currency margin* margin currency EXCHANGE SPECIFIC PARAMETERS |
-| params.autoCxl | <code>boolean</code> | No | whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false |
-| params.tag | <code>string</code> | No | order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters |
-
-
-```javascript
-blofin.closePosition (symbol, side?, params?)
-```
-
-
-<a name="fetchClosedOrders" id="fetchclosedorders"></a>
-
-### fetchClosedOrders{docsify-ignore}
-fetches information on multiple closed orders made by the user
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**
-
-- https://blofin.com/docs#get-order-history
-- https://blofin.com/docs#get-tpsl-order-history
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of  orde structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>bool</code> | No | True if fetching trigger or conditional orders |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
-
-
-```javascript
-blofin.fetchClosedOrders (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchMarginMode" id="fetchmarginmode"></a>
-
-### fetchMarginMode{docsify-ignore}
-fetches the margin mode of a trading pair
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
-
-**See**: https://docs.blofin.com/index.html#get-margin-mode  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the margin mode for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blofin.fetchMarginMode (symbol, params?)
-```
-
-
 <a name="setMarginMode" id="setmarginmode"></a>
 
 ### setMarginMode{docsify-ignore}
@@ -931,27 +920,6 @@ set margin mode to 'cross' or 'isolated'
 
 ```javascript
 blofin.setMarginMode (marginMode, symbol?, params?)
-```
-
-
-<a name="fetchPositionMode" id="fetchpositionmode"></a>
-
-### fetchPositionMode{docsify-ignore}
-fetchs the position mode, hedged or one way
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - an object detailing whether the market is in hedged or one-way mode
-
-**See**: https://docs.blofin.com/index.html#get-position-mode  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blofin.fetchPositionMode (symbol?, params?)
 ```
 
 
@@ -977,157 +945,47 @@ blofin.setPositionMode (hedged, symbol?, params?)
 ```
 
 
-<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+<a name="transfer" id="transfer"></a>
 
-### fetchPositionsADLRank{docsify-ignore}
-fetches the auto deleveraging rank and risk percentage for a list of symbols
+### transfer{docsify-ignore}
+transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://docs.blofin.com/index.html#get-positions  
+**See**: https://blofin.com/docs#funds-transfer  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | amount to transfer |
+| fromAccount | <code>string</code> | Yes | account to transfer from (funding, swap, copy_trading, earn) |
+| toAccount | <code>string</code> | Yes | account to transfer to (funding, swap, copy_trading, earn) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-blofin.fetchPositionsADLRank (symbols?, params?)
+blofin.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
-<a name="watchTrades" id="watchtrades"></a>
+<a name="watchBalance" id="watchbalance"></a>
 
-### watchTrades{docsify-ignore}
-get the list of most recent trades for a particular symbol
+### watchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://docs.blofin.com/index.html#ws-trades-channel  
+**See**: https://docs.blofin.com/index.html#ws-account-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-blofin.watchTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="watchTradesForSymbols" id="watchtradesforsymbols"></a>
-
-### watchTradesForSymbols{docsify-ignore}
-get the list of most recent trades for a list of symbols
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**: https://docs.blofin.com/index.html#ws-trades-channel  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blofin.watchTradesForSymbols (symbols, since?, limit?, params?)
-```
-
-
-<a name="watchOrderBook" id="watchorderbook"></a>
-
-### watchOrderBook{docsify-ignore}
-watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
-
-**See**: https://docs.blofin.com/index.html#ws-order-book-channel  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blofin.watchOrderBook (symbol, limit?, params?)
-```
-
-
-<a name="watchOrderBookForSymbols" id="watchorderbookforsymbols"></a>
-
-### watchOrderBookForSymbols{docsify-ignore}
-watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
-
-**See**: https://docs.blofin.com/index.html#ws-order-book-channel  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.depth | <code>string</code> | No | the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50 |
-
-
-```javascript
-blofin.watchOrderBookForSymbols (symbols, limit?, params?)
-```
-
-
-<a name="watchTicker" id="watchticker"></a>
-
-### watchTicker{docsify-ignore}
-watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: https://docs.blofin.com/index.html#ws-tickers-channel  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blofin.watchTicker (symbol, params?)
-```
-
-
-<a name="watchTickers" id="watchtickers"></a>
-
-### watchTickers{docsify-ignore}
-watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-
-**Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: https://docs.blofin.com/index.html#ws-tickers-channel  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-blofin.watchTickers (symbols, params?)
+blofin.watchBalance (params?)
 ```
 
 
@@ -1149,6 +1007,27 @@ watches best bid & ask for symbols
 
 ```javascript
 blofin.watchBidsAsks (symbols, params?)
+```
+
+
+<a name="watchFundingRate" id="watchfundingrate"></a>
+
+### watchFundingRate{docsify-ignore}
+watch the current funding rate
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://docs.blofin.com/index.html#ws-funding-rate-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchFundingRate (symbol, params?)
 ```
 
 
@@ -1198,23 +1077,48 @@ blofin.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 
 
-<a name="watchBalance" id="watchbalance"></a>
+<a name="watchOrderBook" id="watchorderbook"></a>
 
-### watchBalance{docsify-ignore}
-query for balance and get the amount of funds available for trading or funds locked in orders
+### watchOrderBook{docsify-ignore}
+watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://docs.blofin.com/index.html#ws-account-channel  
+**See**: https://docs.blofin.com/index.html#ws-order-book-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-blofin.watchBalance (params?)
+blofin.watchOrderBook (symbol, limit?, params?)
+```
+
+
+<a name="watchOrderBookForSymbols" id="watchorderbookforsymbols"></a>
+
+### watchOrderBookForSymbols{docsify-ignore}
+watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+
+**See**: https://docs.blofin.com/index.html#ws-order-book-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.depth | <code>string</code> | No | the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50 |
+
+
+```javascript
+blofin.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1269,23 +1173,119 @@ blofin.watchPositions (symbols, since?, limit?, params)
 ```
 
 
-<a name="watchFundingRate" id="watchfundingrate"></a>
+<a name="watchTicker" id="watchticker"></a>
 
-### watchFundingRate{docsify-ignore}
-watch the current funding rate
+### watchTicker{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>blofin</code>](#blofin)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.blofin.com/index.html#ws-funding-rate-channel  
+**See**: https://docs.blofin.com/index.html#ws-tickers-channel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-blofin.watchFundingRate (symbol, params?)
+blofin.watchTicker (symbol, params?)
+```
+
+
+<a name="watchTickers" id="watchtickers"></a>
+
+### watchTickers{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://docs.blofin.com/index.html#ws-tickers-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchTickers (symbols, params?)
+```
+
+
+<a name="watchTrades" id="watchtrades"></a>
+
+### watchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**: https://docs.blofin.com/index.html#ws-trades-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="watchTradesForSymbols" id="watchtradesforsymbols"></a>
+
+### watchTradesForSymbols{docsify-ignore}
+get the list of most recent trades for a list of symbols
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**: https://docs.blofin.com/index.html#ws-trades-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.watchTradesForSymbols (symbols, since?, limit?, params?)
+```
+
+
+<a name="withdraw" id="withdraw"></a>
+
+### withdraw{docsify-ignore}
+make a withdrawal
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+
+**See**: https://docs.blofin.com/index.html#withdrawal  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | the amount to withdraw, the withdrawal fee is not included and must be reserved on top |
+| address | <code>string</code> | Yes | the address to withdraw to, or a UID / email / phone number for an internal transfer |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
+| params.network | <code>string</code> | No | the unified network code for on-chain withdrawals, mapped to the exchange's chain name |
+| params.dest | <code>string</code> | No | 'onchain' (default) or 'internal' for an internal transfer |
+| params.addrType | <code>string</code> | No | address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone |
+| params.areaCode | <code>string</code> | No | area code for the phone number, required when address is a phone number |
+| params.clientId | <code>string</code> | No | a client-supplied id of up to 32 case-sensitive alphanumerics |
+
+
+```javascript
+blofin.withdraw (code, amount, address, params?)
 ```
 

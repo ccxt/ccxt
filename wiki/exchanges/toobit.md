@@ -5,81 +5,172 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
-* [fetchStatus](#fetchstatus)
-* [fetchTime](#fetchtime)
-* [fetchCurrencies](#fetchcurrencies)
-* [fetchMarkets](#fetchmarkets)
-* [fetchOrderBook](#fetchorderbook)
-* [fetchTrades](#fetchtrades)
-* [fetchOHLCV](#fetchohlcv)
-* [fetchTickers](#fetchtickers)
-* [fetchLastPrices](#fetchlastprices)
-* [fetchBidsAsks](#fetchbidsasks)
-* [fetchFundingRates](#fetchfundingrates)
-* [fetchFundingRateHistory](#fetchfundingratehistory)
-* [fetchBalance](#fetchbalance)
-* [createOrder](#createorder)
-* [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
+* [cancelOrder](#cancelorder)
 * [cancelOrders](#cancelorders)
-* [fetchOrder](#fetchorder)
-* [fetchOpenOrders](#fetchopenorders)
-* [fetchOrders](#fetchorders)
+* [createOrder](#createorder)
+* [fetchBalance](#fetchbalance)
+* [fetchBidsAsks](#fetchbidsasks)
 * [fetchClosedOrders](#fetchclosedorders)
-* [fetchMyTrades](#fetchmytrades)
-* [transfer](#transfer)
-* [fetchLedger](#fetchledger)
-* [fetchTradingFees](#fetchtradingfees)
-* [fetchDeposits](#fetchdeposits)
-* [fetchWithdrawals](#fetchwithdrawals)
+* [fetchCurrencies](#fetchcurrencies)
 * [fetchDepositAddress](#fetchdepositaddress)
-* [withdraw](#withdraw)
-* [setMarginMode](#setmarginmode)
-* [setLeverage](#setleverage)
+* [fetchDeposits](#fetchdeposits)
+* [fetchFundingRateHistory](#fetchfundingratehistory)
+* [fetchFundingRates](#fetchfundingrates)
+* [fetchLastPrices](#fetchlastprices)
+* [fetchLedger](#fetchledger)
 * [fetchLeverage](#fetchleverage)
+* [fetchMarkets](#fetchmarkets)
+* [fetchMyTrades](#fetchmytrades)
+* [fetchOHLCV](#fetchohlcv)
+* [fetchOpenOrders](#fetchopenorders)
+* [fetchOrder](#fetchorder)
+* [fetchOrderBook](#fetchorderbook)
+* [fetchOrders](#fetchorders)
 * [fetchPositions](#fetchpositions)
-* [watchTrades](#watchtrades)
-* [watchTradesForSymbols](#watchtradesforsymbols)
+* [fetchStatus](#fetchstatus)
+* [fetchTickers](#fetchtickers)
+* [fetchTime](#fetchtime)
+* [fetchTrades](#fetchtrades)
+* [fetchTradingFees](#fetchtradingfees)
+* [fetchWithdrawals](#fetchwithdrawals)
+* [setLeverage](#setleverage)
+* [setMarginMode](#setmarginmode)
+* [transfer](#transfer)
+* [watchBalance](#watchbalance)
+* [watchMyTrades](#watchmytrades)
 * [watchOHLCV](#watchohlcv)
 * [watchOHLCVForSymbols](#watchohlcvforsymbols)
-* [watchTicker](#watchticker)
-* [watchTickers](#watchtickers)
 * [watchOrderBook](#watchorderbook)
 * [watchOrderBookForSymbols](#watchorderbookforsymbols)
-* [watchBalance](#watchbalance)
 * [watchOrders](#watchorders)
-* [watchMyTrades](#watchmytrades)
 * [watchPositions](#watchpositions)
+* [watchTicker](#watchticker)
+* [watchTickers](#watchtickers)
+* [watchTrades](#watchtrades)
+* [watchTradesForSymbols](#watchtradesforsymbols)
+* [withdraw](#withdraw)
 
-<a name="fetchStatus" id="fetchstatus"></a>
+<a name="cancelAllOrders" id="cancelallorders"></a>
 
-### fetchStatus{docsify-ignore}
-the latest known information on the availability of the exchange API
+### cancelAllOrders{docsify-ignore}
+cancel all open orders in a market
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity  
+**See**
+
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-all-open-orders-trade
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-orders-trade
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-toobit.fetchStatus (params?)
+toobit.cancelAllOrders (symbol, params?)
 ```
 
 
-<a name="fetchTime" id="fetchtime"></a>
+<a name="cancelOrder" id="cancelorder"></a>
 
-### fetchTime{docsify-ignore}
-fetches the current integer timestamp in milliseconds from the exchange server
+### cancelOrder{docsify-ignore}
+cancels an open order
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://api-docs.toobit.com/api/spot-market-data.html#check-server-time  
+**See**
+
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-order-trade
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-order-trade
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.cancelOrder (id, symbol, params?)
+```
+
+
+<a name="cancelOrders" id="cancelorders"></a>
+
+### cancelOrders{docsify-ignore}
+cancel multiple orders
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-multiple-orders-trade
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-multiple-orders-trade
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
+| symbol | <code>string</code> | No | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.cancelOrders (ids, symbol?, params?)
+```
+
+
+<a name="createOrder" id="createorder"></a>
+
+### createOrder{docsify-ignore}
+create a trade order
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#new-order-trade
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#new-order-trade
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| type | <code>string</code> | Yes | 'market', 'limit' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.cost | <code>float</code> | No | *spot market buy only* the quote quantity that can be used as an alternative for the amount |
+
+
+```javascript
+toobit.createOrder (symbol, type, side, amount, price?, params?)
+```
+
+
+<a name="fetchBalance" id="fetchbalance"></a>
+
+### fetchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**
+
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#account-information-user-data
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#futures-account-balance-user-data
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -87,7 +178,55 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-toobit.fetchTime (params?)
+toobit.fetchBalance (params?)
+```
+
+
+<a name="fetchBidsAsks" id="fetchbidsasks"></a>
+
+### fetchBidsAsks{docsify-ignore}
+fetches the bid and ask price and volume for multiple markets
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**
+
+- https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
+- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.fetchBidsAsks (symbols?, params?)
+```
+
+
+<a name="fetchClosedOrders" id="fetchclosedorders"></a>
+
+### fetchClosedOrders{docsify-ignore}
+fetches information on multiple closed orders made by the user
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-history-orders-user-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -108,6 +247,170 @@ fetches all available currencies on an exchange
 
 ```javascript
 toobit.fetchCurrencies (params?)
+```
+
+
+<a name="fetchDepositAddress" id="fetchdepositaddress"></a>
+
+### fetchDepositAddress{docsify-ignore}
+fetch the deposit address for a currency associated with this account
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
+
+**See**: https://api-docs.toobit.com/api/spot-wallet.html#deposit-address-user-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.fetchDepositAddress (code, params?)
+```
+
+
+<a name="fetchDeposits" id="fetchdeposits"></a>
+
+### fetchDeposits{docsify-ignore}
+fetch all deposits made to an account
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://api-docs.toobit.com/api/spot-wallet.html#deposit-history-user-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
+| limit | <code>int</code> | No | the maximum number of deposit structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.fetchDeposits (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
+
+### fetchFundingRateHistory{docsify-ignore}
+fetches historical funding rate prices
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
+
+**See**: https://api-docs.toobit.com/api/usdt-m-market-data.html#get-funding-rate-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
+| since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest funding rate to fetch |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+toobit.fetchFundingRateHistory (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchFundingRates" id="fetchfundingrates"></a>
+
+### fetchFundingRates{docsify-ignore}
+fetch the funding rate for multiple markets
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
+
+**See**: https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.fetchFundingRates (symbols, params?)
+```
+
+
+<a name="fetchLastPrices" id="fetchlastprices"></a>
+
+### fetchLastPrices{docsify-ignore}
+fetches the last price for multiple markets
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - a dictionary of lastprices structures
+
+**See**
+
+- https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
+- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the last prices |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.fetchLastPrices (symbols, params?)
+```
+
+
+<a name="fetchLedger" id="fetchledger"></a>
+
+### fetchLedger{docsify-ignore}
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
+
+**See**
+
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#get-account-transaction-history-list-user-data
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-futures-account-transaction-history-list-user-data
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code, default is undefined |
+| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | end time in ms |
+
+
+```javascript
+toobit.fetchLedger (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchLeverage" id="fetchleverage"></a>
+
+### fetchLeverage{docsify-ignore}
+fetch the set leverage for a market
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
+
+**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-the-leverage-multiple-and-position-mode-user-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.fetchLeverage (symbol, params?)
 ```
 
 
@@ -135,56 +438,31 @@ toobit.fetchMarkets (params?)
 ```
 
 
-<a name="fetchOrderBook" id="fetchorderbook"></a>
+<a name="fetchMyTrades" id="fetchmytrades"></a>
 
-### fetchOrderBook{docsify-ignore}
-fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+### fetchMyTrades{docsify-ignore}
+fetch all trades made by the user
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
-- https://api-docs.toobit.com/api/spot-market-data.html#order-book
-- https://api-docs.toobit.com/api/usdt-m-market-data.html#order-book
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#account-trade-list-user-data
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#account-trade-list-user-data
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| symbol | <code>string</code> | No | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch trades for |
 
 
 ```javascript
-toobit.fetchOrderBook (symbol, limit?, params?)
-```
-
-
-<a name="fetchTrades" id="fetchtrades"></a>
-
-### fetchTrades{docsify-ignore}
-get a list of the most recent trades for a particular symbol
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**
-
-- https://api-docs.toobit.com/api/spot-market-data.html#recent-trades-list
-- https://api-docs.toobit.com/api/usdt-m-market-data.html#recent-trades-list
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum number of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.fetchTrades (symbol, since?, limit?, params?)
+toobit.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -220,255 +498,30 @@ toobit.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
-<a name="fetchTickers" id="fetchtickers"></a>
+<a name="fetchOpenOrders" id="fetchopenorders"></a>
 
-### fetchTickers{docsify-ignore}
-fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+### fetchOpenOrders{docsify-ignore}
+fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- https://api-docs.toobit.com/api/spot-market-data.html#_24hr-ticker-price-change-statistics
-- https://api-docs.toobit.com/api/usdt-m-market-data.html#_24hr-ticker-price-change-statistics
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#current-open-orders-user-data
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-current-open-order-user-data
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-toobit.fetchTickers (symbols, params?)
-```
-
-
-<a name="fetchLastPrices" id="fetchlastprices"></a>
-
-### fetchLastPrices{docsify-ignore}
-fetches the last price for multiple markets
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a dictionary of lastprices structures
-
-**See**
-
-- https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the last prices |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.fetchLastPrices (symbols, params?)
-```
-
-
-<a name="fetchBidsAsks" id="fetchbidsasks"></a>
-
-### fetchBidsAsks{docsify-ignore}
-fetches the bid and ask price and volume for multiple markets
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**
-
-- https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.fetchBidsAsks (symbols?, params?)
-```
-
-
-<a name="fetchFundingRates" id="fetchfundingrates"></a>
-
-### fetchFundingRates{docsify-ignore}
-fetch the funding rate for multiple markets
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
-
-**See**: https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.fetchFundingRates (symbols, params?)
-```
-
-
-<a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
-
-### fetchFundingRateHistory{docsify-ignore}
-fetches historical funding rate prices
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
-
-**See**: https://api-docs.toobit.com/api/usdt-m-market-data.html#get-funding-rate-history  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
-| since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | timestamp in ms of the latest funding rate to fetch |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
-
-
-```javascript
-toobit.fetchFundingRateHistory (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchBalance" id="fetchbalance"></a>
-
-### fetchBalance{docsify-ignore}
-query for balance and get the amount of funds available for trading or funds locked in orders
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
-
-**See**
-
-- https://api-docs.toobit.com/api/spot-account-and-trading.html#account-information-user-data
-- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#futures-account-balance-user-data
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.fetchBalance (params?)
-```
-
-
-<a name="createOrder" id="createorder"></a>
-
-### createOrder{docsify-ignore}
-create a trade order
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
-
-**See**
-
-- https://api-docs.toobit.com/api/spot-account-and-trading.html#new-order-trade
-- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#new-order-trade
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| type | <code>string</code> | Yes | 'market', 'limit' |
-| side | <code>string</code> | Yes | 'buy' or 'sell' |
-| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.cost | <code>float</code> | No | *spot market buy only* the quote quantity that can be used as an alternative for the amount |
-
-
-```javascript
-toobit.createOrder (symbol, type, side, amount, price?, params?)
-```
-
-
-<a name="cancelOrder" id="cancelorder"></a>
-
-### cancelOrder{docsify-ignore}
-cancels an open order
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
-
-**See**
-
-- https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-order-trade
-- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-order-trade
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.cancelOrder (id, symbol, params?)
-```
-
-
-<a name="cancelAllOrders" id="cancelallorders"></a>
-
-### cancelAllOrders{docsify-ignore}
-cancel all open orders in a market
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**
-
-- https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-all-open-orders-trade
-- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-orders-trade
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.cancelAllOrders (symbol, params?)
-```
-
-
-<a name="cancelOrders" id="cancelorders"></a>
-
-### cancelOrders{docsify-ignore}
-cancel multiple orders
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**
-
-- https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-multiple-orders-trade
-- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-multiple-orders-trade
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | No | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.cancelOrders (ids, symbol?, params?)
+toobit.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -498,30 +551,29 @@ toobit.fetchOrder (id, symbol, params?)
 ```
 
 
-<a name="fetchOpenOrders" id="fetchopenorders"></a>
+<a name="fetchOrderBook" id="fetchorderbook"></a>
 
-### fetchOpenOrders{docsify-ignore}
-fetches information on multiple orders made by the user
+### fetchOrderBook{docsify-ignore}
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
-- https://api-docs.toobit.com/api/spot-account-and-trading.html#current-open-orders-user-data
-- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-current-open-order-user-data
+- https://api-docs.toobit.com/api/spot-market-data.html#order-book
+- https://api-docs.toobit.com/api/usdt-m-market-data.html#order-book
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-toobit.fetchOpenOrders (symbol, since?, limit?, params?)
+toobit.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -548,54 +600,203 @@ toobit.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
-<a name="fetchClosedOrders" id="fetchclosedorders"></a>
+<a name="fetchPositions" id="fetchpositions"></a>
 
-### fetchClosedOrders{docsify-ignore}
-fetches information on multiple closed orders made by the user
+### fetchPositions{docsify-ignore}
+fetch all open positions
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-history-orders-user-data  
+**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-position-user-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-toobit.fetchClosedOrders (symbol, since?, limit?, params?)
+toobit.fetchPositions (symbols, params?)
 ```
 
 
-<a name="fetchMyTrades" id="fetchmytrades"></a>
+<a name="fetchStatus" id="fetchstatus"></a>
 
-### fetchMyTrades{docsify-ignore}
-fetch all trades made by the user
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+
+**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.fetchStatus (params?)
+```
+
+
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
-- https://api-docs.toobit.com/api/spot-account-and-trading.html#account-trade-list-user-data
-- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#account-trade-list-user-data
+- https://api-docs.toobit.com/api/spot-market-data.html#_24hr-ticker-price-change-statistics
+- https://api-docs.toobit.com/api/usdt-m-market-data.html#_24hr-ticker-price-change-statistics
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | the latest time in ms to fetch trades for |
 
 
 ```javascript
-toobit.fetchMyTrades (symbol?, since?, limit?, params?)
+toobit.fetchTickers (symbols, params?)
+```
+
+
+<a name="fetchTime" id="fetchtime"></a>
+
+### fetchTime{docsify-ignore}
+fetches the current integer timestamp in milliseconds from the exchange server
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
+
+**See**: https://api-docs.toobit.com/api/spot-market-data.html#check-server-time  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.fetchTime (params?)
+```
+
+
+<a name="fetchTrades" id="fetchtrades"></a>
+
+### fetchTrades{docsify-ignore}
+get a list of the most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**
+
+- https://api-docs.toobit.com/api/spot-market-data.html#recent-trades-list
+- https://api-docs.toobit.com/api/usdt-m-market-data.html#recent-trades-list
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum number of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.fetchTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
+
+**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-fee-rate-user-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.fetchTradingFees (params?)
+```
+
+
+<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
+
+### fetchWithdrawals{docsify-ignore}
+fetch all withdrawals made from an account
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://api-docs.toobit.com/api/spot-wallet.html#withdrawal-records-user-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
+| limit | <code>int</code> | No | the maximum number of withdrawal structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.fetchWithdrawals (code?, since?, limit?, params?)
+```
+
+
+<a name="setLeverage" id="setleverage"></a>
+
+### setLeverage{docsify-ignore}
+set the level of leverage for a market
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-initial-leverage-trade  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| leverage | <code>float</code> | Yes | the rate of leverage |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.setLeverage (leverage, symbol, params?)
+```
+
+
+<a name="setMarginMode" id="setmarginmode"></a>
+
+### setMarginMode{docsify-ignore}
+set margin mode to 'cross' or 'isolated'
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-margin-type-trade  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marginMode | <code>string</code> | Yes | 'cross' or 'isolated' |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -623,43 +824,19 @@ toobit.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
-<a name="fetchLedger" id="fetchledger"></a>
+<a name="watchBalance" id="watchbalance"></a>
 
-### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered the balance of the user
+### watchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
-- https://api-docs.toobit.com/api/spot-account-and-trading.html#get-account-transaction-history-list-user-data
-- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-futures-account-transaction-history-list-user-data
+- https://api-docs.toobit.com/api/spot-websocket-account.html#payload-account-update
+- https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-balance
 
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | No | unified currency code, default is undefined |
-| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | end time in ms |
-
-
-```javascript
-toobit.fetchLedger (code?, since?, limit?, params?)
-```
-
-
-<a name="fetchTradingFees" id="fetchtradingfees"></a>
-
-### fetchTradingFees{docsify-ignore}
-fetch the trading fees for multiple markets
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
-
-**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-fee-rate-user-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -667,197 +844,23 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-toobit.fetchTradingFees (params?)
+toobit.watchBalance (params?)
 ```
 
 
-<a name="fetchDeposits" id="fetchdeposits"></a>
+<a name="watchMyTrades" id="watchmytrades"></a>
 
-### fetchDeposits{docsify-ignore}
-fetch all deposits made to an account
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://api-docs.toobit.com/api/spot-wallet.html#deposit-history-user-data  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | No | unified currency code |
-| since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
-| limit | <code>int</code> | No | the maximum number of deposit structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.fetchDeposits (code?, since?, limit?, params?)
-```
-
-
-<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
-
-### fetchWithdrawals{docsify-ignore}
-fetch all withdrawals made from an account
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://api-docs.toobit.com/api/spot-wallet.html#withdrawal-records-user-data  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | No | unified currency code |
-| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
-| limit | <code>int</code> | No | the maximum number of withdrawal structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.fetchWithdrawals (code?, since?, limit?, params?)
-```
-
-
-<a name="fetchDepositAddress" id="fetchdepositaddress"></a>
-
-### fetchDepositAddress{docsify-ignore}
-fetch the deposit address for a currency associated with this account
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
-
-**See**: https://api-docs.toobit.com/api/spot-wallet.html#deposit-address-user-data  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.fetchDepositAddress (code, params?)
-```
-
-
-<a name="withdraw" id="withdraw"></a>
-
-### withdraw{docsify-ignore}
-make a withdrawal
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://api-docs.toobit.com/api/spot-wallet.html#withdraw-user-data  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| amount | <code>float</code> | Yes | the amount to withdraw |
-| address | <code>string</code> | Yes | the address to withdraw to |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
-| params.addressType | <code>string</code> | No | recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID |
-
-
-```javascript
-toobit.withdraw (code, amount, address, params?)
-```
-
-
-<a name="setMarginMode" id="setmarginmode"></a>
-
-### setMarginMode{docsify-ignore}
-set margin mode to 'cross' or 'isolated'
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - response from the exchange
-
-**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-margin-type-trade  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| marginMode | <code>string</code> | Yes | 'cross' or 'isolated' |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.setMarginMode (marginMode, symbol, params?)
-```
-
-
-<a name="setLeverage" id="setleverage"></a>
-
-### setLeverage{docsify-ignore}
-set the level of leverage for a market
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - response from the exchange
-
-**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-initial-leverage-trade  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| leverage | <code>float</code> | Yes | the rate of leverage |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.setLeverage (leverage, symbol, params?)
-```
-
-
-<a name="fetchLeverage" id="fetchleverage"></a>
-
-### fetchLeverage{docsify-ignore}
-fetch the set leverage for a market
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
-
-**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-the-leverage-multiple-and-position-mode-user-data  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.fetchLeverage (symbol, params?)
-```
-
-
-<a name="fetchPositions" id="fetchpositions"></a>
-
-### fetchPositions{docsify-ignore}
-fetch all open positions
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
-
-**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-position-user-data  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.fetchPositions (symbols, params?)
-```
-
-
-<a name="watchTrades" id="watchtrades"></a>
-
-### watchTrades{docsify-ignore}
-watches information on multiple trades made in a market
+### watchMyTrades{docsify-ignore}
+watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams  
+**See**
+
+- https://api-docs.toobit.com/api/spot-websocket-account.html#payload-ticket-push
+- https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-trade-update
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -865,34 +868,11 @@ watches information on multiple trades made in a market
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.unifiedMargin | <code>boolean</code> | No | use unified margin account |
 
 
 ```javascript
-toobit.watchTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="watchTradesForSymbols" id="watchtradesforsymbols"></a>
-
-### watchTradesForSymbols{docsify-ignore}
-get the list of most recent trades for a list of symbols
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**: https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.name | <code>string</code> | No | the name of the method to call, 'trade' or 'aggTrade', default is 'trade' |
-
-
-```javascript
-toobit.watchTradesForSymbols (symbols, since?, limit?, params?)
+toobit.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -948,56 +928,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 toobit.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
-```
-
-
-<a name="watchTicker" id="watchticker"></a>
-
-### watchTicker{docsify-ignore}
-watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**
-
-- https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
-- https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.watchTicker (symbol, params?)
-```
-
-
-<a name="watchTickers" id="watchtickers"></a>
-
-### watchTickers{docsify-ignore}
-watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**
-
-- https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
-- https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.watchTickers (symbols, params?)
 ```
 
 
@@ -1057,30 +987,6 @@ toobit.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
-<a name="watchBalance" id="watchbalance"></a>
-
-### watchBalance{docsify-ignore}
-query for balance and get the amount of funds available for trading or funds locked in orders
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
-
-**See**
-
-- https://api-docs.toobit.com/api/spot-websocket-account.html#payload-account-update
-- https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-balance
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-toobit.watchBalance (params?)
-```
-
-
 <a name="watchOrders" id="watchorders"></a>
 
 ### watchOrders{docsify-ignore}
@@ -1108,34 +1014,6 @@ toobit.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
-<a name="watchMyTrades" id="watchmytrades"></a>
-
-### watchMyTrades{docsify-ignore}
-watches information on multiple trades made by the user
-
-**Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
-
-**See**
-
-- https://api-docs.toobit.com/api/spot-websocket-account.html#payload-ticket-push
-- https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-trade-update
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market trades were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.unifiedMargin | <code>boolean</code> | No | use unified margin account |
-
-
-```javascript
-toobit.watchMyTrades (symbol, since?, limit?, params?)
-```
-
-
 <a name="watchPositions" id="watchpositions"></a>
 
 ### watchPositions{docsify-ignore}
@@ -1156,5 +1034,127 @@ watch all open positions
 
 ```javascript
 toobit.watchPositions (symbols?, since?, limit?, params)
+```
+
+
+<a name="watchTicker" id="watchticker"></a>
+
+### watchTicker{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**
+
+- https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+- https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.watchTicker (symbol, params?)
+```
+
+
+<a name="watchTickers" id="watchtickers"></a>
+
+### watchTickers{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**
+
+- https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+- https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.watchTickers (symbols, params?)
+```
+
+
+<a name="watchTrades" id="watchtrades"></a>
+
+### watchTrades{docsify-ignore}
+watches information on multiple trades made in a market
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**: https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market trades were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+toobit.watchTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="watchTradesForSymbols" id="watchtradesforsymbols"></a>
+
+### watchTradesForSymbols{docsify-ignore}
+get the list of most recent trades for a list of symbols
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**: https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.name | <code>string</code> | No | the name of the method to call, 'trade' or 'aggTrade', default is 'trade' |
+
+
+```javascript
+toobit.watchTradesForSymbols (symbols, since?, limit?, params?)
+```
+
+
+<a name="withdraw" id="withdraw"></a>
+
+### withdraw{docsify-ignore}
+make a withdrawal
+
+**Kind**: instance method of [<code>toobit</code>](#toobit)  
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://api-docs.toobit.com/api/spot-wallet.html#withdraw-user-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | the amount to withdraw |
+| address | <code>string</code> | Yes | the address to withdraw to |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
+| params.addressType | <code>string</code> | No | recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID |
+
+
+```javascript
+toobit.withdraw (code, amount, address, params?)
 ```
 

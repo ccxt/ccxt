@@ -5,246 +5,72 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
-* [fetchMarkets](#fetchmarkets)
-* [fetchTicker](#fetchticker)
-* [fetchTickers](#fetchtickers)
-* [fetchTradingFees](#fetchtradingfees)
-* [fetchOrderBook](#fetchorderbook)
-* [fetchTrades](#fetchtrades)
-* [fetchOHLCV](#fetchohlcv)
-* [fetchBalance](#fetchbalance)
-* [fetchOpenOrders](#fetchopenorders)
-* [fetchClosedOrders](#fetchclosedorders)
+* [cancelAllOrders](#cancelallorders)
+* [cancelOrder](#cancelorder)
 * [createOrder](#createorder)
 * [createOrders](#createorders)
-* [cancelOrder](#cancelorder)
-* [cancelAllOrders](#cancelallorders)
-* [fetchOrder](#fetchorder)
-* [fetchOrders](#fetchorders)
-* [fetchMyTrades](#fetchmytrades)
+* [editOrder](#editorder)
+* [fetchBalance](#fetchbalance)
+* [fetchClosedOrders](#fetchclosedorders)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [fetchDeposits](#fetchdeposits)
-* [fetchWithdrawals](#fetchwithdrawals)
-* [fetchTransactions](#fetchtransactions)
-* [fetchStatus](#fetchstatus)
-* [editOrder](#editorder)
-* [withdraw](#withdraw)
 * [fetchLedger](#fetchledger)
+* [fetchMarkets](#fetchmarkets)
+* [fetchMyTrades](#fetchmytrades)
+* [fetchOHLCV](#fetchohlcv)
+* [fetchOpenOrders](#fetchopenorders)
+* [fetchOrder](#fetchorder)
+* [fetchOrderBook](#fetchorderbook)
+* [fetchOrders](#fetchorders)
+* [fetchStatus](#fetchstatus)
+* [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
+* [fetchTrades](#fetchtrades)
+* [fetchTradingFees](#fetchtradingfees)
+* [fetchTransactions](#fetchtransactions)
+* [fetchWithdrawals](#fetchwithdrawals)
+* [withdraw](#withdraw)
 
-<a name="fetchMarkets" id="fetchmarkets"></a>
+<a name="cancelAllOrders" id="cancelallorders"></a>
 
-### fetchMarkets{docsify-ignore}
-Retrieves data on all markets for foxbit.
+### cancelAllOrders{docsify-ignore}
+Cancel all open orders or all open orders for a specific market.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_index  
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-foxbit.fetchMarkets (params?)
+foxbit.cancelAllOrders (symbol?, params?)
 ```
 
 
-<a name="fetchTicker" id="fetchticker"></a>
+<a name="cancelOrder" id="cancelorder"></a>
 
-### fetchTicker{docsify-ignore}
-Get last 24 hours ticker information, in real-time, for given market.
+### cancelOrder{docsify-ignore}
+Cancel open orders.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_ticker  
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-foxbit.fetchTicker (symbol, params?)
-```
-
-
-<a name="fetchTickers" id="fetchtickers"></a>
-
-### fetchTickers{docsify-ignore}
-Retrieve the ticker data of all markets.
-
-**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_tickers  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-foxbit.fetchTickers (symbols, params?)
-```
-
-
-<a name="fetchTradingFees" id="fetchtradingfees"></a>
-
-### fetchTradingFees{docsify-ignore}
-fetch the trading fees for multiple markets
-
-**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
-
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Member-Info/operation/MembersController_listTradingFees  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-foxbit.fetchTradingFees (params?)
-```
-
-
-<a name="fetchOrderBook" id="fetchorderbook"></a>
-
-### fetchOrderBook{docsify-ignore}
-Exports a copy of the order book of a specific market.
-
-**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
-
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findOrderbook  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return, the maximum is 100 |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-foxbit.fetchOrderBook (symbol, limit?, params?)
-```
-
-
-<a name="fetchTrades" id="fetchtrades"></a>
-
-### fetchTrades{docsify-ignore}
-Retrieve the trades of a specific market.
-
-**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_publicTrades  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-foxbit.fetchTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchOHLCV" id="fetchohlcv"></a>
-
-### fetchOHLCV{docsify-ignore}
-Fetch historical candlestick data containing the open, high, low, and close price, and the volume of a market.
-
-**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findCandlesticks  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-foxbit.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
-```
-
-
-<a name="fetchBalance" id="fetchbalance"></a>
-
-### fetchBalance{docsify-ignore}
-Query for balance and get the amount of funds available for trading or funds locked in orders.
-
-**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
-
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Account/operation/AccountsController_all  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-foxbit.fetchBalance (params?)
-```
-
-
-<a name="fetchOpenOrders" id="fetchopenorders"></a>
-
-### fetchOpenOrders{docsify-ignore}
-Fetch all unfilled currently open orders.
-
-**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
-| limit | <code>int</code> | No | the maximum number of open order structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-foxbit.fetchOpenOrders (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchClosedOrders" id="fetchclosedorders"></a>
-
-### fetchClosedOrders{docsify-ignore}
-Fetch all currently closed orders.
-
-**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-foxbit.fetchClosedOrders (symbol, since?, limit?, params?)
+foxbit.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -298,75 +124,56 @@ foxbit.createOrders (orders, params?)
 ```
 
 
-<a name="cancelOrder" id="cancelorder"></a>
+<a name="editOrder" id="editorder"></a>
 
-### cancelOrder{docsify-ignore}
-Cancel open orders.
+### editOrder{docsify-ignore}
+Simultaneously cancel an existing order and create a new one.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel  
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancelReplace  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| type | <code>string</code> | Yes | 'market' or 'limit' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
+| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, used as stop_price on stop market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-foxbit.cancelOrder (id, symbol, params?)
+foxbit.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
-<a name="cancelAllOrders" id="cancelallorders"></a>
+<a name="fetchBalance" id="fetchbalance"></a>
 
-### cancelAllOrders{docsify-ignore}
-Cancel all open orders or all open orders for a specific market.
+### fetchBalance{docsify-ignore}
+Query for balance and get the amount of funds available for trading or funds locked in orders.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel  
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Account/operation/AccountsController_all  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-foxbit.cancelAllOrders (symbol?, params?)
+foxbit.fetchBalance (params?)
 ```
 
 
-<a name="fetchOrder" id="fetchorder"></a>
+<a name="fetchClosedOrders" id="fetchclosedorders"></a>
 
-### fetchOrder{docsify-ignore}
-Get an order by ID.
-
-**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_findByOrderId  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id |  | Yes |  |
-| symbol | <code>string</code> | Yes | it is not used in the foxbit API |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-foxbit.fetchOrder (id, symbol, params?)
-```
-
-
-<a name="fetchOrders" id="fetchorders"></a>
-
-### fetchOrders{docsify-ignore}
-fetches information on multiple orders made by the user
+### fetchClosedOrders{docsify-ignore}
+Fetch all currently closed orders.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
@@ -379,35 +186,10 @@ fetches information on multiple orders made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.state | <code>string</code> | No | Enum: ACTIVE, CANCELED, FILLED, PARTIALLY_CANCELED, PARTIALLY_FILLED |
-| params.side | <code>string</code> | No | Enum: BUY, SELL |
 
 
 ```javascript
-foxbit.fetchOrders (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchMyTrades" id="fetchmytrades"></a>
-
-### fetchMyTrades{docsify-ignore}
-Trade history queries will only have data available for the last 3 months, in descending order (most recents trades first).
-
-**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
-
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/TradesController_all  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-foxbit.fetchMyTrades (symbol, since?, limit?, params?)
+foxbit.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -456,26 +238,290 @@ foxbit.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
-<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
+<a name="fetchLedger" id="fetchledger"></a>
 
-### fetchWithdrawals{docsify-ignore}
-Fetch all withdrawals made from an account.
+### fetchLedger{docsify-ignore}
+fetch the history of changes, actions done by the user or operations that altered balance of the user
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-structure)
 
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_listWithdrawals  
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Account/operation/AccountsController_getTransactions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | No | unified currency code |
-| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
-| limit | <code>int</code> | No | the maximum number of withdrawal structures to retrieve |
+| code | <code>string</code> | Yes | unified currency code, default is undefined |
+| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-foxbit.fetchWithdrawals (code?, since?, limit?, params?)
+foxbit.fetchLedger (code, since?, limit?, params?)
+```
+
+
+<a name="fetchMarkets" id="fetchmarkets"></a>
+
+### fetchMarkets{docsify-ignore}
+Retrieves data on all markets for foxbit.
+
+**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_index  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+foxbit.fetchMarkets (params?)
+```
+
+
+<a name="fetchMyTrades" id="fetchmytrades"></a>
+
+### fetchMyTrades{docsify-ignore}
+Trade history queries will only have data available for the last 3 months, in descending order (most recents trades first).
+
+**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/TradesController_all  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+foxbit.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchOHLCV" id="fetchohlcv"></a>
+
+### fetchOHLCV{docsify-ignore}
+Fetch historical candlestick data containing the open, high, low, and close price, and the volume of a market.
+
+**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findCandlesticks  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+foxbit.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="fetchOpenOrders" id="fetchopenorders"></a>
+
+### fetchOpenOrders{docsify-ignore}
+Fetch all unfilled currently open orders.
+
+**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
+| limit | <code>int</code> | No | the maximum number of open order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+foxbit.fetchOpenOrders (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+Get an order by ID.
+
+**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_findByOrderId  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id |  | Yes |  |
+| symbol | <code>string</code> | Yes | it is not used in the foxbit API |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+foxbit.fetchOrder (id, symbol, params?)
+```
+
+
+<a name="fetchOrderBook" id="fetchorderbook"></a>
+
+### fetchOrderBook{docsify-ignore}
+Exports a copy of the order book of a specific market.
+
+**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findOrderbook  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return, the maximum is 100 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+foxbit.fetchOrderBook (symbol, limit?, params?)
+```
+
+
+<a name="fetchOrders" id="fetchorders"></a>
+
+### fetchOrders{docsify-ignore}
+fetches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_listOrders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.state | <code>string</code> | No | Enum: ACTIVE, CANCELED, FILLED, PARTIALLY_CANCELED, PARTIALLY_FILLED |
+| params.side | <code>string</code> | No | Enum: BUY, SELL |
+
+
+```javascript
+foxbit.fetchOrders (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchStatus" id="fetchstatus"></a>
+
+### fetchStatus{docsify-ignore}
+The latest known information on the availability of the exchange API.
+
+**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+
+**See**: https://status.foxbit.com/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+foxbit.fetchStatus (params?)
+```
+
+
+<a name="fetchTicker" id="fetchticker"></a>
+
+### fetchTicker{docsify-ignore}
+Get last 24 hours ticker information, in real-time, for given market.
+
+**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_ticker  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+foxbit.fetchTicker (symbol, params?)
+```
+
+
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+Retrieve the ticker data of all markets.
+
+**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_tickers  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+foxbit.fetchTickers (symbols, params?)
+```
+
+
+<a name="fetchTrades" id="fetchtrades"></a>
+
+### fetchTrades{docsify-ignore}
+Retrieve the trades of a specific market.
+
+**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_publicTrades  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+foxbit.fetchTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets
+
+**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
+
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Member-Info/operation/MembersController_listTradingFees  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+foxbit.fetchTradingFees (params?)
 ```
 
 
@@ -506,49 +552,26 @@ foxbit.fetchTransactions (code?, since?, limit?, params?)
 ```
 
 
-<a name="fetchStatus" id="fetchstatus"></a>
+<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
 
-### fetchStatus{docsify-ignore}
-The latest known information on the availability of the exchange API.
+### fetchWithdrawals{docsify-ignore}
+Fetch all withdrawals made from an account.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://status.foxbit.com/  
+**See**: https://docs.foxbit.com.br/rest/v3/#tag/Withdrawal/operation/WithdrawalsController_listWithdrawals  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
+| limit | <code>int</code> | No | the maximum number of withdrawal structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-foxbit.fetchStatus (params?)
-```
-
-
-<a name="editOrder" id="editorder"></a>
-
-### editOrder{docsify-ignore}
-Simultaneously cancel an existing order and create a new one.
-
-**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancelReplace  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| type | <code>string</code> | Yes | 'market' or 'limit' |
-| side | <code>string</code> | Yes | 'buy' or 'sell' |
-| amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, used as stop_price on stop market orders |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-foxbit.editOrder (id, symbol, type, side, amount, price?, params?)
+foxbit.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -573,28 +596,5 @@ Make a withdrawal.
 
 ```javascript
 foxbit.withdraw (code, amount, address, params?)
-```
-
-
-<a name="fetchLedger" id="fetchledger"></a>
-
-### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered balance of the user
-
-**Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-structure)
-
-**See**: https://docs.foxbit.com.br/rest/v3/#tag/Account/operation/AccountsController_getTransactions  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code, default is undefined |
-| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entrys to return, default is undefined |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-foxbit.fetchLedger (code, since?, limit?, params?)
 ```
 

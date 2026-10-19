@@ -5,292 +5,126 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
-* [fetchTime](#fetchtime)
-* [fetchStatus](#fetchstatus)
-* [fetchCurrencies](#fetchcurrencies)
-* [fetchMarkets](#fetchmarkets)
-* [fetchTicker](#fetchticker)
-* [fetchTickers](#fetchtickers)
-* [fetchOrderBook](#fetchorderbook)
-* [fetchTrades](#fetchtrades)
-* [fetchOHLCV](#fetchohlcv)
-* [fetchBalance](#fetchbalance)
-* [fetchPosition](#fetchposition)
-* [fetchPositions](#fetchpositions)
+* [addMargin](#addmargin)
+* [cancelAllOrders](#cancelallorders)
+* [cancelOrder](#cancelorder)
+* [closeAllPositions](#closeallpositions)
 * [createOrder](#createorder)
 * [editOrder](#editorder)
-* [cancelOrder](#cancelorder)
-* [cancelAllOrders](#cancelallorders)
-* [fetchOrder](#fetchorder)
-* [fetchOpenOrders](#fetchopenorders)
+* [fetchBalance](#fetchbalance)
 * [fetchClosedOrders](#fetchclosedorders)
-* [fetchMyTrades](#fetchmytrades)
-* [fetchLedger](#fetchledger)
+* [fetchCurrencies](#fetchcurrencies)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRates](#fetchfundingrates)
-* [addMargin](#addmargin)
-* [reduceMargin](#reducemargin)
-* [fetchOpenInterest](#fetchopeninterest)
-* [fetchLeverage](#fetchleverage)
-* [setLeverage](#setleverage)
-* [fetchSettlementHistory](#fetchsettlementhistory)
 * [fetchGreeks](#fetchgreeks)
-* [closeAllPositions](#closeallpositions)
+* [fetchLedger](#fetchledger)
+* [fetchLeverage](#fetchleverage)
 * [fetchMarginMode](#fetchmarginmode)
-* [setMarginMode](#setmarginmode)
+* [fetchMarkets](#fetchmarkets)
+* [fetchMyTrades](#fetchmytrades)
+* [fetchOHLCV](#fetchohlcv)
+* [fetchOpenInterest](#fetchopeninterest)
+* [fetchOpenOrders](#fetchopenorders)
 * [fetchOption](#fetchoption)
+* [fetchOrder](#fetchorder)
+* [fetchOrderBook](#fetchorderbook)
+* [fetchPosition](#fetchposition)
+* [fetchPositions](#fetchpositions)
 * [fetchPositionsADLRank](#fetchpositionsadlrank)
+* [fetchSettlementHistory](#fetchsettlementhistory)
+* [fetchStatus](#fetchstatus)
+* [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
+* [fetchTime](#fetchtime)
+* [fetchTrades](#fetchtrades)
+* [reduceMargin](#reducemargin)
+* [setLeverage](#setleverage)
+* [setMarginMode](#setmarginmode)
 
-<a name="fetchTime" id="fetchtime"></a>
+<a name="addMargin" id="addmargin"></a>
 
-### fetchTime{docsify-ignore}
-fetches the current integer timestamp in milliseconds from the exchange server
+### addMargin{docsify-ignore}
+add margin
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
+**See**: https://docs.delta.exchange/#add-remove-position-margin  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | amount of margin to add |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-delta.fetchTime (params?)
+delta.addMargin (symbol, amount, params?)
 ```
 
 
-<a name="fetchStatus" id="fetchstatus"></a>
+<a name="cancelAllOrders" id="cancelallorders"></a>
 
-### fetchStatus{docsify-ignore}
-the latest known information on the availability of the exchange API
+### cancelAllOrders{docsify-ignore}
+cancel all open orders in a market
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
+**See**: https://docs.delta.exchange/#cancel-all-open-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market to cancel orders in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-delta.fetchStatus (params?)
+delta.cancelAllOrders (symbol, params?)
 ```
 
 
-<a name="fetchCurrencies" id="fetchcurrencies"></a>
+<a name="cancelOrder" id="cancelorder"></a>
 
-### fetchCurrencies{docsify-ignore}
-fetches all available currencies on an exchange
+### cancelOrder{docsify-ignore}
+cancels an open order
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - an associative dictionary of currencies
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.delta.exchange/#get-list-of-all-assets  
+**See**: https://docs.delta.exchange/#cancel-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-delta.fetchCurrencies (params?)
+delta.cancelOrder (id, symbol, params?)
 ```
 
 
-<a name="fetchMarkets" id="fetchmarkets"></a>
+<a name="closeAllPositions" id="closeallpositions"></a>
 
-### fetchMarkets{docsify-ignore}
-retrieves data on all markets for delta
+### closeAllPositions{docsify-ignore}
+closes all open positions for a market type
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+**Returns**: <code>Array&lt;object&gt;</code> - A list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://docs.delta.exchange/#get-list-of-products  
+**See**: https://docs.delta.exchange/#close-all-positions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user_id | <code>int</code> | No | the users id |
 
 
 ```javascript
-delta.fetchMarkets (params?)
-```
-
-
-<a name="fetchTicker" id="fetchticker"></a>
-
-### fetchTicker{docsify-ignore}
-fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-delta.fetchTicker (symbol, params?)
-```
-
-
-<a name="fetchTickers" id="fetchtickers"></a>
-
-### fetchTickers{docsify-ignore}
-fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: https://docs.delta.exchange/#get-tickers-for-products  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-delta.fetchTickers (symbols, params?)
-```
-
-
-<a name="fetchOrderBook" id="fetchorderbook"></a>
-
-### fetchOrderBook{docsify-ignore}
-fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
-
-**See**: https://docs.delta.exchange/#get-l2-orderbook  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-delta.fetchOrderBook (symbol, limit?, params?)
-```
-
-
-<a name="fetchTrades" id="fetchtrades"></a>
-
-### fetchTrades{docsify-ignore}
-get the list of most recent trades for a particular symbol
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**: https://docs.delta.exchange/#get-public-trades  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-delta.fetchTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchOHLCV" id="fetchohlcv"></a>
-
-### fetchOHLCV{docsify-ignore}
-fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**: https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>string</code> | No | timestamp in ms of the latest candle to fetch |
-
-
-```javascript
-delta.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
-```
-
-
-<a name="fetchBalance" id="fetchbalance"></a>
-
-### fetchBalance{docsify-ignore}
-query for balance and get the amount of funds available for trading or funds locked in orders
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
-
-**See**: https://docs.delta.exchange/#get-wallet-balances  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-delta.fetchBalance (params?)
-```
-
-
-<a name="fetchPosition" id="fetchposition"></a>
-
-### fetchPosition{docsify-ignore}
-fetch data on a single open contract trade position
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
-
-**See**: https://docs.delta.exchange/#get-position  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market the position is held in, default is undefined |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-delta.fetchPosition (symbol, params?)
-```
-
-
-<a name="fetchPositions" id="fetchpositions"></a>
-
-### fetchPositions{docsify-ignore}
-fetch all open positions
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
-
-**See**: https://docs.delta.exchange/#get-margined-positions  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-delta.fetchPositions (symbols, params?)
+delta.closeAllPositions (params?)
 ```
 
 
@@ -346,96 +180,23 @@ delta.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
-<a name="cancelOrder" id="cancelorder"></a>
+<a name="fetchBalance" id="fetchbalance"></a>
 
-### cancelOrder{docsify-ignore}
-cancels an open order
+### fetchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://docs.delta.exchange/#cancel-order  
+**See**: https://docs.delta.exchange/#get-wallet-balances  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-delta.cancelOrder (id, symbol, params?)
-```
-
-
-<a name="cancelAllOrders" id="cancelallorders"></a>
-
-### cancelAllOrders{docsify-ignore}
-cancel all open orders in a market
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://docs.delta.exchange/#cancel-all-open-orders  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market to cancel orders in |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-delta.cancelAllOrders (symbol, params?)
-```
-
-
-<a name="fetchOrder" id="fetchorder"></a>
-
-### fetchOrder{docsify-ignore}
-fetches information on an order made by the user
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
-
-**See**
-
-- https://docs.delta.exchange/#get-order-by-id
-- https://docs.delta.exchange/#get-order-by-client-oid
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | the order id |
-| symbol | <code>string</code> | No | unified symbol of the market the order was made in |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.clientOrderId | <code>string</code> | No | client order id of the order |
-
-
-```javascript
-delta.fetchOrder (id, symbol?, params?)
-```
-
-
-<a name="fetchOpenOrders" id="fetchopenorders"></a>
-
-### fetchOpenOrders{docsify-ignore}
-fetch all unfilled currently open orders
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://docs.delta.exchange/#get-active-orders  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
-| limit | <code>int</code> | No | the maximum number of open order structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-delta.fetchOpenOrders (symbol, since?, limit?, params?)
+delta.fetchBalance (params?)
 ```
 
 
@@ -462,49 +223,23 @@ delta.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
-<a name="fetchMyTrades" id="fetchmytrades"></a>
+<a name="fetchCurrencies" id="fetchcurrencies"></a>
 
-### fetchMyTrades{docsify-ignore}
-fetch all trades made by the user
+### fetchCurrencies{docsify-ignore}
+fetches all available currencies on an exchange
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+**Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://docs.delta.exchange/#get-user-fills-by-filters  
+**See**: https://docs.delta.exchange/#get-list-of-all-assets  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-delta.fetchMyTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchLedger" id="fetchledger"></a>
-
-### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered the balance of the user
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
-
-**See**: https://docs.delta.exchange/#get-wallet-transactions  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | No | unified currency code, default is undefined |
-| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-delta.fetchLedger (code?, since?, limit?, params?)
+delta.fetchCurrencies (params?)
 ```
 
 
@@ -571,68 +306,47 @@ delta.fetchFundingRates (symbols, params?)
 ```
 
 
-<a name="addMargin" id="addmargin"></a>
+<a name="fetchGreeks" id="fetchgreeks"></a>
 
-### addMargin{docsify-ignore}
-add margin
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
-
-**See**: https://docs.delta.exchange/#add-remove-position-margin  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| amount | <code>float</code> | Yes | amount of margin to add |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-delta.addMargin (symbol, amount, params?)
-```
-
-
-<a name="reduceMargin" id="reducemargin"></a>
-
-### reduceMargin{docsify-ignore}
-remove margin from a position
+### fetchGreeks{docsify-ignore}
+fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
-
-**See**: https://docs.delta.exchange/#add-remove-position-margin  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| amount | <code>float</code> | Yes | the amount of margin to remove |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-delta.reduceMargin (symbol, amount, params?)
-```
-
-
-<a name="fetchOpenInterest" id="fetchopeninterest"></a>
-
-### fetchOpenInterest{docsify-ignore}
-retrieves the open interest of a derivative market
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
+**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
 
 **See**: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | exchange specific parameters |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch greeks for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-delta.fetchOpenInterest (symbol, params?)
+delta.fetchGreeks (symbol, params?)
+```
+
+
+<a name="fetchLedger" id="fetchledger"></a>
+
+### fetchLedger{docsify-ignore}
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
+
+**See**: https://docs.delta.exchange/#get-wallet-transactions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code, default is undefined |
+| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -657,25 +371,269 @@ delta.fetchLeverage (symbol, params?)
 ```
 
 
-<a name="setLeverage" id="setleverage"></a>
+<a name="fetchMarginMode" id="fetchmarginmode"></a>
 
-### setLeverage{docsify-ignore}
-set the level of leverage for a market
+### fetchMarginMode{docsify-ignore}
+fetches the margin mode of a trading pair
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - response from the exchange
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
 
-**See**: https://docs.delta.exchange/#change-order-leverage  
+**See**: https://docs.delta.exchange/#get-user  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| leverage | <code>float</code> | Yes | the rate of leverage |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the margin mode for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchMarginMode (symbol, params?)
+```
+
+
+<a name="fetchMarkets" id="fetchmarkets"></a>
+
+### fetchMarkets{docsify-ignore}
+retrieves data on all markets for delta
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+**See**: https://docs.delta.exchange/#get-list-of-products  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchMarkets (params?)
+```
+
+
+<a name="fetchMyTrades" id="fetchmytrades"></a>
+
+### fetchMyTrades{docsify-ignore}
+fetch all trades made by the user
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**: https://docs.delta.exchange/#get-user-fills-by-filters  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchOHLCV" id="fetchohlcv"></a>
+
+### fetchOHLCV{docsify-ignore}
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://docs.delta.exchange/#delta-exchange-api-v2-historical-ohlc-candles-sparklines  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>string</code> | No | timestamp in ms of the latest candle to fetch |
+
+
+```javascript
+delta.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="fetchOpenInterest" id="fetchopeninterest"></a>
+
+### fetchOpenInterest{docsify-ignore}
+retrieves the open interest of a derivative market
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | exchange specific parameters |
+
+
+```javascript
+delta.fetchOpenInterest (symbol, params?)
+```
+
+
+<a name="fetchOpenOrders" id="fetchopenorders"></a>
+
+### fetchOpenOrders{docsify-ignore}
+fetch all unfilled currently open orders
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.delta.exchange/#get-active-orders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
+| limit | <code>int</code> | No | the maximum number of open order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchOpenOrders (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchOption" id="fetchoption"></a>
+
+### fetchOption{docsify-ignore}
+fetches option data that is commonly found in an option chain
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/?id=option-chain-structure)
+
+**See**: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-delta.setLeverage (leverage, symbol, params?)
+delta.fetchOption (symbol, params?)
+```
+
+
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+fetches information on an order made by the user
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://docs.delta.exchange/#get-order-by-id
+- https://docs.delta.exchange/#get-order-by-client-oid
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | the order id |
+| symbol | <code>string</code> | No | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | client order id of the order |
+
+
+```javascript
+delta.fetchOrder (id, symbol?, params?)
+```
+
+
+<a name="fetchOrderBook" id="fetchorderbook"></a>
+
+### fetchOrderBook{docsify-ignore}
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+
+**See**: https://docs.delta.exchange/#get-l2-orderbook  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchOrderBook (symbol, limit?, params?)
+```
+
+
+<a name="fetchPosition" id="fetchposition"></a>
+
+### fetchPosition{docsify-ignore}
+fetch data on a single open contract trade position
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
+
+**See**: https://docs.delta.exchange/#get-position  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market the position is held in, default is undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchPosition (symbol, params?)
+```
+
+
+<a name="fetchPositions" id="fetchpositions"></a>
+
+### fetchPositions{docsify-ignore}
+fetch all open positions
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
+
+**See**: https://docs.delta.exchange/#get-margined-positions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchPositions (symbols, params?)
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://docs.delta.exchange/#get-margined-positions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchPositionsADLRank (symbols?, params?)
 ```
 
 
@@ -702,66 +660,150 @@ delta.fetchSettlementHistory (symbol, since?, limit?, params?)
 ```
 
 
-<a name="fetchGreeks" id="fetchgreeks"></a>
+<a name="fetchStatus" id="fetchstatus"></a>
 
-### fetchGreeks{docsify-ignore}
-fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchStatus (params?)
+```
+
+
+<a name="fetchTicker" id="fetchticker"></a>
+
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch greeks for |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-delta.fetchGreeks (symbol, params?)
+delta.fetchTicker (symbol, params?)
 ```
 
 
-<a name="closeAllPositions" id="closeallpositions"></a>
+<a name="fetchTickers" id="fetchtickers"></a>
 
-### closeAllPositions{docsify-ignore}
-closes all open positions for a market type
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;object&gt;</code> - A list of [position structures](https://docs.ccxt.com/?id=position-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.delta.exchange/#close-all-positions  
+**See**: https://docs.delta.exchange/#get-tickers-for-products  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.fetchTickers (symbols, params?)
+```
+
+
+<a name="fetchTime" id="fetchtime"></a>
+
+### fetchTime{docsify-ignore}
+fetches the current integer timestamp in milliseconds from the exchange server
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.user_id | <code>int</code> | No | the users id |
 
 
 ```javascript
-delta.closeAllPositions (params?)
+delta.fetchTime (params?)
 ```
 
 
-<a name="fetchMarginMode" id="fetchmarginmode"></a>
+<a name="fetchTrades" id="fetchtrades"></a>
 
-### fetchMarginMode{docsify-ignore}
-fetches the margin mode of a trading pair
+### fetchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://docs.delta.exchange/#get-user  
+**See**: https://docs.delta.exchange/#get-public-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the margin mode for |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-delta.fetchMarginMode (symbol, params?)
+delta.fetchTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="reduceMargin" id="reducemargin"></a>
+
+### reduceMargin{docsify-ignore}
+remove margin from a position
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+
+**See**: https://docs.delta.exchange/#add-remove-position-margin  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | the amount of margin to remove |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.reduceMargin (symbol, amount, params?)
+```
+
+
+<a name="setLeverage" id="setleverage"></a>
+
+### setLeverage{docsify-ignore}
+set the level of leverage for a market
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://docs.delta.exchange/#change-order-leverage  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| leverage | <code>float</code> | Yes | the rate of leverage |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+delta.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -785,47 +827,5 @@ set margin mode to 'isolated' or 'portfolio'
 
 ```javascript
 delta.setMarginMode (marginMode, symbol?, params?)
-```
-
-
-<a name="fetchOption" id="fetchoption"></a>
-
-### fetchOption{docsify-ignore}
-fetches option data that is commonly found in an option chain
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/?id=option-chain-structure)
-
-**See**: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-delta.fetchOption (symbol, params?)
-```
-
-
-<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
-
-### fetchPositionsADLRank{docsify-ignore}
-fetches the auto deleveraging rank and risk percentage for a list of symbols
-
-**Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
-
-**See**: https://docs.delta.exchange/#get-margined-positions  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-delta.fetchPositionsADLRank (symbols?, params?)
 ```
 

@@ -5,344 +5,125 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
-* [fetchStatus](#fetchstatus)
-* [fetchTime](#fetchtime)
-* [fetchMarkets](#fetchmarkets)
-* [fetchCurrencies](#fetchcurrencies)
-* [fetchTradingFee](#fetchtradingfee)
-* [fetchTradingFees](#fetchtradingfees)
-* [fetchOrderBook](#fetchorderbook)
-* [fetchTicker](#fetchticker)
-* [fetchTickers](#fetchtickers)
-* [fetchOHLCV](#fetchohlcv)
-* [fetchTrades](#fetchtrades)
-* [fetchMyTrades](#fetchmytrades)
-* [fetchBalance](#fetchbalance)
-* [createOrder](#createorder)
-* [cancelOrder](#cancelorder)
+* [addMargin](#addmargin)
 * [cancelAllOrders](#cancelallorders)
+* [cancelOrder](#cancelorder)
+* [closePosition](#closeposition)
+* [createOrder](#createorder)
+* [fetchBalance](#fetchbalance)
+* [fetchCurrencies](#fetchcurrencies)
+* [fetchLeverage](#fetchleverage)
+* [fetchLeverages](#fetchleverages)
+* [fetchMarkets](#fetchmarkets)
+* [fetchMyTrades](#fetchmytrades)
+* [fetchOHLCV](#fetchohlcv)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchOrder](#fetchorder)
-* [closePosition](#closeposition)
-* [fetchLeverages](#fetchleverages)
-* [fetchLeverage](#fetchleverage)
-* [setLeverage](#setleverage)
+* [fetchOrderBook](#fetchorderbook)
 * [fetchPositions](#fetchpositions)
-* [addMargin](#addmargin)
+* [fetchStatus](#fetchstatus)
+* [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
+* [fetchTime](#fetchtime)
+* [fetchTrades](#fetchtrades)
+* [fetchTradingFee](#fetchtradingfee)
+* [fetchTradingFees](#fetchtradingfees)
 * [reduceMargin](#reducemargin)
+* [setLeverage](#setleverage)
 
-<a name="fetchStatus" id="fetchstatus"></a>
+<a name="addMargin" id="addmargin"></a>
 
-### fetchStatus{docsify-ignore}
-the latest known information on the availability of the exchange API
+### addMargin{docsify-ignore}
+add margin
 
 **Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+
+**See**: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | amount of margin to add |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint. |
+| params.positionId | <code>string</code> | No | PositionId of the order to add margin. |
+| params.timestamp | <code>string</code> | No | Tiemstamp. |
+
+
+```javascript
+zebpay.addMargin (symbol, amount, params?)
+```
+
+
+<a name="cancelAllOrders" id="cancelallorders"></a>
+
+### cancelAllOrders{docsify-ignore}
+cancels all open orders
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified symbol of the market the orders were made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.timestamp | <code>int</code> | No | the timestamp of the request in ms |
+
+
+```javascript
+zebpay.cancelAllOrders (symbol?, params?)
+```
+
+
+<a name="cancelOrder" id="cancelorder"></a>
+
+### cancelOrder{docsify-ignore}
+cancels an open order
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
-- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#system-status
-- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-status
+- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-order
+- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-cancel-order
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.timestamp | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-zebpay.fetchStatus (params?)
+zebpay.cancelOrder (id, symbol, params?)
 ```
 
 
-<a name="fetchTime" id="fetchtime"></a>
+<a name="closePosition" id="closeposition"></a>
 
-### fetchTime{docsify-ignore}
-fetches the current integer timestamp in milliseconds from the poloniexfutures server
+### closePosition{docsify-ignore}
+closes open positions for a market
 
 **Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the poloniexfutures server
+**Returns**: <code>Array&lt;object&gt;</code> - [A list of position structures](https://docs.ccxt.com/?id=position-structure)
 
-**See**
-
-- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
-- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
-
+**See**: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
+| side | <code>string</code> | Yes | not used by kucoinfutures closePositions |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.positionId | <code>string</code> | No | client order id of the order |
 
 
 ```javascript
-zebpay.fetchTime (params?)
-```
-
-
-<a name="fetchMarkets" id="fetchmarkets"></a>
-
-### fetchMarkets{docsify-ignore}
-retrieves data on all markets for zebpay
-
-**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
-
-**See**
-
-- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
-- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-zebpay.fetchMarkets (params?)
-```
-
-
-<a name="fetchCurrencies" id="fetchcurrencies"></a>
-
-### fetchCurrencies{docsify-ignore}
-fetches all available currencies on an exchange
-
-**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - an associative dictionary of currencies
-
-**See**: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-coin-settings  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-zebpay.fetchCurrencies (params?)
-```
-
-
-<a name="fetchTradingFee" id="fetchtradingfee"></a>
-
-### fetchTradingFee{docsify-ignore}
-fetch the trading fees for a market
-
-**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
-
-**See**
-
-- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-exchange-fee
-- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fee-single-symbol
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.side | <code>object</code> | No | side to fetch trading fee |
-
-
-```javascript
-zebpay.fetchTradingFee (symbol, params?)
-```
-
-
-<a name="fetchTradingFees" id="fetchtradingfees"></a>
-
-### fetchTradingFees{docsify-ignore}
-fetch the trading fees for multiple markets
-
-**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
-
-**See**: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-zebpay.fetchTradingFees (params?)
-```
-
-
-<a name="fetchOrderBook" id="fetchorderbook"></a>
-
-### fetchOrderBook{docsify-ignore}
-fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-
-**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
-
-**See**
-
-- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
-- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-order-book
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return. |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-zebpay.fetchOrderBook (symbol, limit?, params?)
-```
-
-
-<a name="fetchTicker" id="fetchticker"></a>
-
-### fetchTicker{docsify-ignore}
-fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**
-
-- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-ticker
-- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-24hr-ticker
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-zebpay.fetchTicker (symbol, params?)
-```
-
-
-<a name="fetchTickers" id="fetchtickers"></a>
-
-### fetchTickers{docsify-ignore}
-fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-
-**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-all-tickers  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-zebpay.fetchTickers (symbols, params?)
-```
-
-
-<a name="fetchOHLCV" id="fetchohlcv"></a>
-
-### fetchOHLCV{docsify-ignore}
-fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-
-**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**
-
-- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-klinescandlesticks
-- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#-get-k-lines-ohlcv-data
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch. Swap: 1–1000, omit for 1000 |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch (inclusive). Swap: requires since |
-| params.endtime | <code>int</code> | No | the latest time in ms to fetch orders for |
-| params.priceType | <code>string</code> | No | *swap only* LTP (default) or MARK_PRICE |
-
-
-```javascript
-zebpay.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
-```
-
-
-<a name="fetchTrades" id="fetchtrades"></a>
-
-### fetchTrades{docsify-ignore}
-get the list of most recent trades for a particular symbol
-
-**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**
-
-- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-recent-trades
-- https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-aggregate-trades
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-zebpay.fetchTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchMyTrades" id="fetchmytrades"></a>
-
-### fetchMyTrades{docsify-ignore}
-get the list of most recent trades for a particular symbol
-
-**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**: https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-trade-history  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-zebpay.fetchMyTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchBalance" id="fetchbalance"></a>
-
-### fetchBalance{docsify-ignore}
-query for balance and get the amount of funds available for trading or funds locked in orders
-
-**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
-
-**See**
-
-- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-account-balance
-- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/wallet.md#get-wallet-balance
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-zebpay.fetchBalance (params?)
+zebpay.closePosition (symbol, side, params?)
 ```
 
 
@@ -380,52 +161,167 @@ zebpay.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
-<a name="cancelOrder" id="cancelorder"></a>
+<a name="fetchBalance" id="fetchbalance"></a>
 
-### cancelOrder{docsify-ignore}
-cancels an open order
+### fetchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
-- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-order
-- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-cancel-order
+- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-account-balance
+- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/wallet.md#get-wallet-balance
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.timestamp | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-zebpay.cancelOrder (id, symbol, params?)
+zebpay.fetchBalance (params?)
 ```
 
 
-<a name="cancelAllOrders" id="cancelallorders"></a>
+<a name="fetchCurrencies" id="fetchcurrencies"></a>
 
-### cancelAllOrders{docsify-ignore}
-cancels all open orders
+### fetchCurrencies{docsify-ignore}
+fetches all available currencies on an exchange
 
 **Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders  
+**See**: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-coin-settings  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified symbol of the market the orders were made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.timestamp | <code>int</code> | No | the timestamp of the request in ms |
 
 
 ```javascript
-zebpay.cancelAllOrders (symbol?, params?)
+zebpay.fetchCurrencies (params?)
+```
+
+
+<a name="fetchLeverage" id="fetchleverage"></a>
+
+### fetchLeverage{docsify-ignore}
+fetch the set leverage for a market
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
+
+**See**: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#get-user-leverage-single-symbol  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+zebpay.fetchLeverage (symbol, params?)
+```
+
+
+<a name="fetchLeverages" id="fetchleverages"></a>
+
+### fetchLeverages{docsify-ignore}
+fetch the set leverage for all contract and margin markets
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/?id=leverage-structure)
+
+**See**: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-all-user-leverages  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+zebpay.fetchLeverages (symbols?, params?)
+```
+
+
+<a name="fetchMarkets" id="fetchmarkets"></a>
+
+### fetchMarkets{docsify-ignore}
+retrieves data on all markets for zebpay
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+**See**
+
+- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
+- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+zebpay.fetchMarkets (params?)
+```
+
+
+<a name="fetchMyTrades" id="fetchmytrades"></a>
+
+### fetchMyTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**: https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-trade-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+zebpay.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchOHLCV" id="fetchohlcv"></a>
+
+### fetchOHLCV{docsify-ignore}
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**
+
+- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-klinescandlesticks
+- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#-get-k-lines-ohlcv-data
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch. Swap: 1–1000, omit for 1000 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch (inclusive). Swap: requires since |
+| params.endtime | <code>int</code> | No | the latest time in ms to fetch orders for |
+| params.priceType | <code>string</code> | No | *swap only* LTP (default) or MARK_PRICE |
+
+
+```javascript
+zebpay.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -484,90 +380,29 @@ zebpay.fetchOrder (id, symbol, params?)
 ```
 
 
-<a name="closePosition" id="closeposition"></a>
+<a name="fetchOrderBook" id="fetchorderbook"></a>
 
-### closePosition{docsify-ignore}
-closes open positions for a market
+### fetchOrderBook{docsify-ignore}
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>Array&lt;object&gt;</code> - [A list of position structures](https://docs.ccxt.com/?id=position-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position  
+**See**
+
+- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
+- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-order-book
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
-| side | <code>string</code> | Yes | not used by kucoinfutures closePositions |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.positionId | <code>string</code> | No | client order id of the order |
-
-
-```javascript
-zebpay.closePosition (symbol, side, params?)
-```
-
-
-<a name="fetchLeverages" id="fetchleverages"></a>
-
-### fetchLeverages{docsify-ignore}
-fetch the set leverage for all contract and margin markets
-
-**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/?id=leverage-structure)
-
-**See**: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-all-user-leverages  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return. |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-zebpay.fetchLeverages (symbols?, params?)
-```
-
-
-<a name="fetchLeverage" id="fetchleverage"></a>
-
-### fetchLeverage{docsify-ignore}
-fetch the set leverage for a market
-
-**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
-
-**See**: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#get-user-leverage-single-symbol  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-zebpay.fetchLeverage (symbol, params?)
-```
-
-
-<a name="setLeverage" id="setleverage"></a>
-
-### setLeverage{docsify-ignore}
-set the level of leverage for a market
-
-**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - response from the exchange
-
-**See**: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-update-user-leverage  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| leverage | <code>float</code> | Yes | the rate of leverage |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-zebpay.setLeverage (leverage, symbol, params?)
+zebpay.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -592,27 +427,170 @@ zebpay.fetchPositions (symbols, params?)
 ```
 
 
-<a name="addMargin" id="addmargin"></a>
+<a name="fetchStatus" id="fetchstatus"></a>
 
-### addMargin{docsify-ignore}
-add margin
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
-**See**: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position  
+**See**
+
+- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#system-status
+- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-status
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| amount | <code>float</code> | Yes | amount of margin to add |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint. |
-| params.positionId | <code>string</code> | No | PositionId of the order to add margin. |
-| params.timestamp | <code>string</code> | No | Tiemstamp. |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-zebpay.addMargin (symbol, amount, params?)
+zebpay.fetchStatus (params?)
+```
+
+
+<a name="fetchTicker" id="fetchticker"></a>
+
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**
+
+- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-ticker
+- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-24hr-ticker
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+zebpay.fetchTicker (symbol, params?)
+```
+
+
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-all-tickers  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+zebpay.fetchTickers (symbols, params?)
+```
+
+
+<a name="fetchTime" id="fetchtime"></a>
+
+### fetchTime{docsify-ignore}
+fetches the current integer timestamp in milliseconds from the poloniexfutures server
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the poloniexfutures server
+
+**See**
+
+- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
+- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+zebpay.fetchTime (params?)
+```
+
+
+<a name="fetchTrades" id="fetchtrades"></a>
+
+### fetchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**
+
+- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-recent-trades
+- https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-aggregate-trades
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+zebpay.fetchTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchTradingFee" id="fetchtradingfee"></a>
+
+### fetchTradingFee{docsify-ignore}
+fetch the trading fees for a market
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+
+**See**
+
+- [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-exchange-fee
+- [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fee-single-symbol
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.side | <code>object</code> | No | side to fetch trading fee |
+
+
+```javascript
+zebpay.fetchTradingFee (symbol, params?)
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+
+**See**: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+zebpay.fetchTradingFees (params?)
 ```
 
 
@@ -637,5 +615,27 @@ add margin
 
 ```javascript
 zebpay.reduceMargin (symbol, amount, params?)
+```
+
+
+<a name="setLeverage" id="setleverage"></a>
+
+### setLeverage{docsify-ignore}
+set the level of leverage for a market
+
+**Kind**: instance method of [<code>zebpay</code>](#zebpay)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-update-user-leverage  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| leverage | <code>float</code> | Yes | the rate of leverage |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+zebpay.setLeverage (leverage, symbol, params?)
 ```
 
