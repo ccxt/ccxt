@@ -564070,8 +564070,10 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
     getMarketTypeByUrl(url) {
         const findBy = {
             'op-': 'option',
+            '/ws/options/': 'option',
             'delivery': 'future',
-            'fx': 'swap'
+            'fx': 'swap',
+            '/ws/futures/': 'swap'
         };
         const keys = Object.keys(findBy);
         for(let i = 0; i < keys.length; i++){
