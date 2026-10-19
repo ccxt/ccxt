@@ -126,6 +126,9 @@ type IFetchPosition interface { // W30
 type IFetchOpenInterest interface { // W30
 	FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OpenInterest]
 }
+type IFetchStatus interface { // W4
+	FetchStatusAsync(optionalArgs ...any) <-chan AsyncResult[Status]
+}
 type IFetchTradingFee interface { // W3
 	FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[TradingFeeInterface]
 }
@@ -285,7 +288,6 @@ type ICoreExchange interface {
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	FetchStatusAsync(optionalArgs ...any) <-chan AsyncResult[Status]
 	FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]LastPrice]
 	ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest
 	FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
