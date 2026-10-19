@@ -2331,8 +2331,8 @@ func (this *BaseExchange) UnlockLastNonce() bool {
 
 // FetchOutcome is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges override it (kalshi resolves a single outcome on demand).
-func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any])
+func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[PredictionOutcome] {
+	ch := make(chan AsyncResult[PredictionOutcome])
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)

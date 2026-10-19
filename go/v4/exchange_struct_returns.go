@@ -1232,6 +1232,17 @@ func PredictionSettlementsToList(s []PredictionSettlement) []any {
 	return StructListToList(s, PredictionSettlementToMap)
 }
 
+func PredictionOutcomeFromMap(data any) PredictionOutcome {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return PredictionOutcome{}
+	}
+	return NewPredictionOutcome(m)
+}
+func PredictionOutcomeToMap(v PredictionOutcome) map[string]any {
+	return StructToMap(v)
+}
+
 func MarketInterfaceFromMap(data any) MarketInterface {
 	m, ok := data.(map[string]any)
 	if !ok {

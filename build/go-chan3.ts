@@ -1310,12 +1310,12 @@ export const GO_CHAN3_EXTRA_STRUCTS: string[] = [
     'MarketInterface', 'Currency', 'Currencies',
     'PredictionTicker', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition',
     'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest',
-    'PredictionEvent', 'PredictionSettlement',
+    'PredictionEvent', 'PredictionSettlement', 'PredictionOutcome',
 ];
 
 export const GO_CHAN3_SHARED_PRED_STRUCTS = new Set<string> ([
     'Account', 'Balance', 'Balances', 'LeverageTiers', 'LeverageTier', 'MarginLoan',
-    'MarketInterface', 'Currency', 'Currencies', 'PredictionEvent',
+    'MarketInterface', 'Currency', 'Currencies', 'PredictionEvent', 'PredictionOutcome',
 ]);
 
 function goChan3IsPredOnlyStruct (t: string): boolean {
