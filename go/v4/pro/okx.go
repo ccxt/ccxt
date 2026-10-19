@@ -3532,6 +3532,34 @@ func (this *Okx) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]any], optional
 	ch <- ccxt.AsyncResult[[]any]{Value: resolved}
 	return nil
 }
+func (this *Okx) HandleCancelOrders(client any, message map[string]any) {
+	//
+	//    {
+	//        "id": "1512",
+	//        "op": "batch-cancel-orders",
+	//        "data": [
+	//            {
+	//                "clOrdId": "",
+	//                "ordId": "2510789768709120",
+	//                "sCode": "0",
+	//                "sMsg": ""
+	//            }
+	//        ],
+	//        "code": "0",
+	//        "msg": ""
+	//    }
+	//
+	var messageHash *string = this.SafeString(message, "id")
+	var args any = this.SafeList(message, "data", []any{})
+	args = this.FilterBy(args, "sCode", "0")
+	if this.IsEmpty(args) {
+		var method *string = this.SafeString(message, "op")
+		var stringMsg string = this.Json(message)
+		this.HandleErrors(1, "", client.(ccxt.ClientInterface).GetUrl(), method, map[string]any{}, stringMsg, message, map[string]any{}, map[string]any{})
+	}
+	var orders any = this.ParseOrders(args, nil, nil, nil)
+	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+}
 func (this *Okx) HandleCancelAllOrders(client any, message map[string]any) {
 	//
 	//    {
@@ -3698,15 +3726,16 @@ func (this *Okx) HandleMessage(client any, message any) {
 	var event *string = this.SafeString2(message, "event", "op")
 	if event != nil {
 		var methods map[string]any = map[string]any{
-			"login":              this.HandleAuthenticate,
-			"subscribe":          this.HandleSubscriptionStatus,
-			"unsubscribe":        this.HandleUnsubscription,
-			"order":              this.HandlePlaceOrders,
-			"batch-orders":       this.HandlePlaceOrders,
-			"amend-order":        this.HandlePlaceOrders,
-			"batch-amend-orders": this.HandlePlaceOrders,
-			"cancel-order":       this.HandlePlaceOrders,
-			"mass-cancel":        this.HandleCancelAllOrders,
+			"login":               this.HandleAuthenticate,
+			"subscribe":           this.HandleSubscriptionStatus,
+			"unsubscribe":         this.HandleUnsubscription,
+			"order":               this.HandlePlaceOrders,
+			"batch-orders":        this.HandlePlaceOrders,
+			"amend-order":         this.HandlePlaceOrders,
+			"batch-amend-orders":  this.HandlePlaceOrders,
+			"cancel-order":        this.HandlePlaceOrders,
+			"batch-cancel-orders": this.HandleCancelOrders,
+			"mass-cancel":         this.HandleCancelAllOrders,
 		}
 		var method any = this.SafeValue(methods, event)
 		if !ccxt.IsEqual(method, nil) {
@@ -3780,6 +3809,10 @@ func (this *Okx) HandleUnsubscriptionOHLCV(client any, symbol any, channel any) 
 	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("multi:", channel), ":"), symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	// watchOHLCV subscribes through subscribe () under channel:marketId
+	if !ccxt.IsEqual(symbol, nil) {
+		this.CleanUnsubscription(ccxt.AsClient(client), ccxt.Add(ccxt.Add(channel, ":"), this.MarketId(symbol)), nil)
+	}
 	if (!ccxt.IsEqual(symbol, nil)) && (timeframe != nil) && (ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		ccxt.Remove(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	}
