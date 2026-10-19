@@ -1,6 +1,5 @@
 {
     "SetMargin": "MarginModification",
-    "ModifyMarginHelper": "MarginModification",
     "TransferClassic": "TransferEntry",
     "TransferIn": "TransferEntry",
     "TransferOut": "TransferEntry",
