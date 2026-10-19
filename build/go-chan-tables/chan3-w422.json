@@ -1,0 +1,8 @@
+{
+    "FetchCurrencyById": "map[string]any",
+    "FetchFundingLimits": "map[string]any",
+    "FetchPublicTransactionFees": "map[string]any",
+    "FetchPrivateTransactionFees": "map[string]any",
+    "FetchBorrowRateHistories": "map[string]any",
+    "FetchConvertCurrencies": "map[string]any"
+}

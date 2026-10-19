@@ -1,0 +1,6 @@
+{
+    "FetchOrderBook": "OrderBook",
+    "FetchL2OrderBook": "OrderBook",
+    "FetchL3OrderBook": "OrderBookL3",
+    "FetchOrderBooks": "map[string]OrderBook"
+}

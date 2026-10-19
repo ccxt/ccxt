@@ -1,0 +1,4 @@
+{
+    "Predictfun.WatchWalletEvents": "map[string]any",
+    "Gate.RequestPrivate": "map[string]any"
+}

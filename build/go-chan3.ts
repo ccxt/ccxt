@@ -558,7 +558,7 @@ function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number, ta
             decls += (w[1] === ':=') ? 1 : 0;
             const binds = fnMasked.match (new RegExp ('\\n\\t+' + w[2] + ' := <-this\\.(\\w+)\\(', 'g')) || [];
             const stub = (binds.length === 1) ? /<-this\.(\w+)\($/.exec (binds[0]) : null;
-            const fwds = fnMasked.match (new RegExp ('\\n\\t+' + w[2] + ' := <-(?:this|this\\.Exchange|this\\.DerivedExchange)\\.(\\w+)Async\\(', 'g')) || [];
+            const fwds = fnMasked.match (new RegExp ('\\n\\t+' + w[2] + ' := <-(?:this|this\\.Exchange|this\\.DerivedExchange)(?:\\.\\((?:ccxt\\.)?I\\w+\\))?\\.(\\w+)Async\\(', 'g')) || [];
             const fwd = (fwds.length === 1) ? /\.(\w+)Async\($/.exec (fwds[0]) : null;
             // a forward of a tabled AsyncResult[T] core (Value) or of an EndpointResult[T] carrier (Raw is the same value)
             const fwdLookup = ((fwd !== null) && (table !== undefined) && (w[3] === 'Value')) ? goChan3Lookup (table, receiver, fwd[1]) : undefined;
@@ -1592,7 +1592,13 @@ export function goChan3StructPass (content: string, table: Map<string, string>):
                 edits.push ({ 'start': at, 'end': end, 'text': (sendIn[1] === 'map[string]any') ? asMap : box });
                 continue;
             }
-            if (/^\t+var \w+ map\[string\]any = $/.test (before) || /(?:^|[^\w.])(?:ccxt\.)?(?:MapTyped|MapOrEmpty)\($/.test (before)) {
+            const shortMap = /^\t+(\w+) :?= $/.exec (before);
+            const [ fs0 ] = goChan3Func (masked, at);
+            const isMapLocal = (shortMap !== null) && (
+                new RegExp ('\\n\\t+ch <- (?:ccxt\\.)?AsyncResult\\[map\\[string\\]any\\]\\{Value: ' + shortMap[1] + '\\b').test (masked.substring (end, fe0)) ||
+                new RegExp ('\\n\\t+var ' + shortMap[1] + ' map\\[string\\]any\\b').test (masked.substring (fs0, at))
+            );
+            if (/^\t+var \w+ map\[string\]any = $/.test (before) || /(?:^|[^\w.])(?:ccxt\.)?(?:MapTyped|MapOrEmpty)\($/.test (before) || isMapLocal) {
                 edits.push ({ 'start': at, 'end': end, 'text': asMap });
                 continue;
             }

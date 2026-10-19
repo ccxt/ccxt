@@ -1,0 +1,8 @@
+{
+    "FetchPrivateTradingFee": "TradingFeeInterface",
+    "FetchPublicTradingFee": "TradingFeeInterface",
+    "FetchPrivateTradingFees": "map[string]TradingFeeInterface",
+    "FetchPublicTradingFees": "map[string]TradingFeeInterface",
+    "FetchCrossBorrowRates": "map[string]CrossBorrowRate",
+    "FetchDepositAddressesByNetwork": "map[string]DepositAddress"
+}

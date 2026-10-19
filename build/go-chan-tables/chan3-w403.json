@@ -1,0 +1,8 @@
+{
+    "EditSpotOrder": "Order",
+    "FetchContractOrder": "Order",
+    "FetchOrderDefault": "Order",
+    "FetchOrderSupplement": "Order",
+    "FetchSpotOrder": "Order",
+    "FetchUtaOrder": "Order"
+}

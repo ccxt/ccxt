@@ -1,0 +1,6 @@
+{
+    "CancelAllContractOrders": "[]Order",
+    "CancelAllSpotOrders": "[]Order",
+    "CancelOrdersWithClientOrderIds": "[]Order",
+    "FetchClosedContractOrders": "[]Order"
+}

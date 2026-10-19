@@ -1,0 +1,7 @@
+{
+    "FetchRawActiveMarkets": "[]any",
+    "FetchRawMarketsByTags": "[]any",
+    "FetchRawMarketsBySearch": "[]any",
+    "FetchRawMarketsList": "[]any",
+    "FetchRawMarketsPaged": "[]any"
+}

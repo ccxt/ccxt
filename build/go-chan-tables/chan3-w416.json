@@ -1,0 +1,7 @@
+{
+    "LoadAccountInfos": "bool",
+    "LoadCurrencyNetworks": "bool",
+    "LoadMigrationStatus": "bool",
+    "LoadMultiSignAddress": "*string",
+    "ReduceMargin": "map[string]any"
+}

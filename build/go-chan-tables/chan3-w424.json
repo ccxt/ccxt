@@ -1,0 +1,5 @@
+{
+    "EditOrderRequest": "map[string]any",
+    "CancelAllOrdersRequest": "map[string]any",
+    "CancelOrdersRequest": "map[string]any"
+}

@@ -1,0 +1,7 @@
+{
+    "CreateSpotOrder": "Order",
+    "CreateSwapOrder": "Order",
+    "CreateTwapOrder": "Order",
+    "CreateUtaOrder": "Order",
+    "EditContractOrder": "Order"
+}
