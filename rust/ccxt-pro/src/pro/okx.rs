@@ -248,6 +248,7 @@ impl OkxCore {
             "handle_balance_and_position" => { self.handle_balance_and_position(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_cancel_all_orders" => { self.handle_cancel_all_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_cancel_orders" => { self.handle_cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_delta" => { self.handle_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_deltas" => { self.handle_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -3475,6 +3476,46 @@ impl OkxCore {
     Value::Null
 }
 
+    pub fn handle_cancel_orders(&self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        //
+        //    {
+        //        "id": "1512",
+        //        "op": "batch-cancel-orders",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "2510789768709120",
+        //                "sCode": "0",
+        //                "sMsg": ""
+        //            }
+        //        ],
+        //        "code": "0",
+        //        "msg": ""
+        //    }
+        //
+        let mut messageHash: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut args: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
+        args = self.filter_by(args.clone(), Value::Str("sCode".into()), Value::Str("0".into()), &[]);
+        if self.is_empty(args.clone()).as_bool() == Some(true) {
+            let mut method: Value = (match __pro_message.get("op").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+            let mut stringMsg: Value = json_stringify(&message);
+            self.handle_errors(Value::Int(1), Value::Str("".into()), client.as_map().and_then(|__m| __m.get("url")).cloned().unwrap_or(Value::Null), method, Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            }), stringMsg, message, Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            }), Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            }));
+        }
+        let mut orders: Value = self.parse_orders(args, &[Value::Null, Value::Null, Value::Null]);
+        client.resolve(&[orders, messageHash]);
+}
+
     pub fn handle_cancel_all_orders(&self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
@@ -3650,6 +3691,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("amend-order".to_string(), Value::Str("handle_place_orders".into()).clone());
                     m.insert("batch-amend-orders".to_string(), Value::Str("handle_place_orders".into()).clone());
                     m.insert("cancel-order".to_string(), Value::Str("handle_place_orders".into()).clone());
+                    m.insert("batch-cancel-orders".to_string(), Value::Str("handle_cancel_orders".into()).clone());
                     m.insert("mass-cancel".to_string(), Value::Str("handle_cancel_all_orders".into()).clone());
                 m
             });
@@ -3727,7 +3769,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("multi:".into()), channel).into()), Value::Str(":".into())).into()), symbol).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
-        self.clean_unsubscription(client, subMessageHash, messageHash, &[]);
+        self.clean_unsubscription(client.clone(), subMessageHash, messageHash, &[]);
+        // watchOHLCV subscribes through subscribe () under channel:marketId
+        if (symbol != Value::Null) {
+            let __ws_arg_6 = self.market_id(symbol.clone());
+            self.clean_unsubscription(client, Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), __ws_arg_6).into()), Value::Null, &[]);
+        }
         if (symbol != Value::Null) && (timeframe != Value::Null) && (in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
             remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
         }
