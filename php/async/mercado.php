@@ -801,22 +801,22 @@ class mercado extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a $withdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -839,7 +839,7 @@ class mercado extends Exchange {
             if ($code === 'XRP') {
                 if ($tagWithdrawTag === null) {
                     if (!(is_array($paramsWithdrawTag) && array_key_exists('destination_tag' ?? '', $paramsWithdrawTag))) {
-                        throw new ArgumentsRequired($this->id . ' withdraw() requires a tag argument or destination_tag parameter to withdraw ' . $code);
+                        throw new ArgumentsRequired($this->id . ' withdraw() requires a tag or destination_tag parameter to withdraw ' . $code);
                     }
                 } else {
                     $request['destination_tag'] = $tagWithdrawTag;
@@ -1066,14 +1066,15 @@ class mercado extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/';
         $query = $this->omit($params, $this->extract_params($path));
-        $isPublic = ($api === 'public') || ($api === 'v4Public') || ($api === 'v4PublicNet');
+        $isPublic = ($apiName === 'public') || ($apiName === 'v4Public') || ($apiName === 'v4PublicNet');
         $privateBody = null;
         $privateHeaders = null;
         if ($isPublic) {
@@ -1099,11 +1100,11 @@ class mercado extends Exchange {
         }
         $requestBody = $privateBody;
         if ($isPublic) {
-            $requestBody = $body;
+            $requestBody = null;
         }
         $requestHeaders = $privateHeaders;
         if ($isPublic) {
-            $requestHeaders = $headers;
+            $requestHeaders = null;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }

@@ -741,7 +741,10 @@ public class Latoken extends LatokenApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> response = (this.privateGetAuthAccount(parameters)).join();
+            String defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
+            String type = this.safeString(parameters, "type", defaultType);
+            Map<String, Object> paramsOmitted = this.omit(parameters, "type");
+            List<Object> response = (this.privateGetAuthAccount(paramsOmitted)).join();
             //
             //     [
             //         {
@@ -770,8 +773,6 @@ public class Latoken extends LatokenApi
                 put( "datetime", null );
             }};
             Object maxTimestamp = null;
-            String defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
-            String type = this.safeString(parameters, "type", defaultType);
             Map<String, Object> types = (Map<String, Object>) this.safeDict(this.options, "types", new HashMap<String, Object>() {{}});
             String accountType = this.safeString(types, type, type);
             Map<String,Object> balancesByType = this.groupBy(response, "type");
@@ -1527,7 +1528,7 @@ public class Latoken extends LatokenApi
             }
             List<Object> response = null;
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", (Object) null);
-            Map<String, Object> paramsOmitted = this.omit(parameters, "stop");
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2216,10 +2217,11 @@ public class Latoken extends LatokenApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
         String request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         String requestString = request;
         Object query = this.omit(parameters, this.extractParams(path));
@@ -2231,7 +2233,7 @@ public class Latoken extends LatokenApi
                 requestString = (requestString + ("?" + urlencodedQuery));
             }
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String auth = ((java.util.Objects.requireNonNullElse(method, "GET") + request) + urlencodedQuery);
@@ -2243,7 +2245,7 @@ public class Latoken extends LatokenApi
             }};
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
-                ((Map<String, Object>)requestHeaders).put("Content-Type", "application/json");
+                requestHeaders.put("Content-Type", "application/json");
                 requestBody = this.json(query);
             }
         }

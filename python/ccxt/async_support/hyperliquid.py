@@ -1293,11 +1293,18 @@ class hyperliquid(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.dex]: perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
         :returns dict[]: an array of objects representing market data
         """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
         request = {
             'type': 'metaAndAssetCtxs',
         }
+        dexName = self.get_dex_from_symbols('fetchFundingRates', symbolsNormalized)
+        if dexName is not None:
+            request['dex'] = dexName
         response = await self.publicPostInfo(self.extend(request, params))
         #
         #     [
@@ -1340,7 +1347,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 self.safe_dict(assetCtxs, i, {})
             )
             result.append(data)
-        return self.parse_funding_rates(result, symbols)
+        return self.parse_funding_rates(result, symbolsNormalized)
 
     def parse_funding_rate(self, info: object, market: Market = None) -> FundingRate:
         #
@@ -3575,16 +3582,15 @@ class hyperliquid(Exchange, ImplicitAPI):
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             return None
-        dexName = None
-        for i in range(0, symbolsLength):
-            if dexName is None:
-                market = self.market(symbols[i])
-                dexName = self.get_dex_from_hip3_symbol(market)
-            else:
-                market = self.market(symbols[i])
-                currentDexName = self.get_dex_from_hip3_symbol(market)
-                if currentDexName != dexName:
-                    raise NotSupported(self.id + ' ' + methodName + ' only supports fetching positions for one DEX at a time for HIP3 markets')
+        # the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
+        # so a mix of main-dex and HIP-3 symbols throws instead of silently dropping one side
+        firstMarket = self.market(symbols[0])
+        dexName = self.get_dex_from_hip3_symbol(firstMarket)
+        for i in range(1, symbolsLength):
+            market = self.market(symbols[i])
+            currentDexName = self.get_dex_from_hip3_symbol(market)
+            if currentDexName != dexName:
+                raise NotSupported(self.id + ' ' + methodName + ' only supports symbols from one DEX at a time for HIP3 markets')
         return dexName
 
     async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
@@ -3713,6 +3719,11 @@ class hyperliquid(Exchange, ImplicitAPI):
         else:
             initialMargin = marginUsed
         percentage = Precise.string_mul(Precise.string_div(absRawUnrealizedPnl, marginUsed), '100')
+        positionValueString = self.safe_string(entry, 'positionValue')
+        markPriceString = Precise.string_div(positionValueString, size)
+        marginString = None
+        if isIsolated:
+            marginString = initialMargin
         return self.safe_position({
             'info': position,
             'id': None,
@@ -3725,9 +3736,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             'contracts': self.parse_number(size),
             'contractSize': None,
             'entryPrice': self.safe_number(entry, 'entryPx'),
-            'markPrice': None,
-            'notional': self.safe_number(entry, 'positionValue'),
+            'markPrice': self.parse_number(markPriceString),
+            'notional': self.parse_number(positionValueString),
             'leverage': self.safe_number(leverage, 'value'),
+            'positionMargin': self.parse_number(marginString),
             'collateral': self.parse_number(marginUsed),
             'initialMargin': self.parse_number(initialMargin),
             'maintenanceMargin': None,
@@ -3736,6 +3748,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'unrealizedPnl': self.parse_number(rawUnrealizedPnl),
             'liquidationPrice': self.safe_number(entry, 'liquidationPx'),
             'marginMode': marginMode,
+            'marginRatio': None,
             'percentage': self.parse_number(percentage),
         })
 
@@ -4065,7 +4078,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'status': self.safe_string(transfer, 'status', 'ok'),
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal(only support USDC)
 
@@ -4075,8 +4088,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param str [params.vaultAddress]: vault address withdraw from
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
@@ -4497,12 +4510,17 @@ class hyperliquid(Exchange, ImplicitAPI):
         Retrieves the open interest for a list of symbols
         :param str[] [symbols]: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
+        :param str [params.dex]: perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
-        swapMarkets = await self.fetch_swap_markets()
+        request = {}
+        dexName = self.get_dex_from_symbols('fetchOpenInterests', symbolsNormalized)
+        if dexName is not None:
+            request['dex'] = dexName
+        swapMarkets = await self.fetch_swap_markets(self.extend(request, params))
         return self.parse_open_interests(swapMarkets, symbolsNormalized)
 
     async def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
@@ -4766,8 +4784,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(apiUrl) + '/' + path
@@ -4775,15 +4794,15 @@ class hyperliquid(Exchange, ImplicitAPI):
         postHeaders = {
             'Content-Type': 'application/json',
         }
-        requestHeaders = headers
+        requestHeaders = None
         if isPost:
             requestHeaders = postHeaders
-        requestBody = body
+        requestBody = None
         if isPost:
             requestBody = self.json(params)
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
         if ('byType' in config) and ('type' in params):
             type = params['type']
             byType = config['byType']

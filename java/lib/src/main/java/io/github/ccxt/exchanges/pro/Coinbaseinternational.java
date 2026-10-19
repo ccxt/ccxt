@@ -12,6 +12,7 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRates;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -293,7 +294,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "channel", "LEVEL1");
+            Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "channel", "LEVEL1");
             String channel = channelparamsChannelVariable.first();
             Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
             return (this.subscribe(((String)channel), new ArrayList<String>(Arrays.asList(symbol)), paramsChannel)).join();
@@ -336,7 +337,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "channel", "LEVEL1");
+            Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "channel", "LEVEL1");
             var channel = ((List<Object>) channelparamsChannelVariable).get(0);
             Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
             Object ticker = (this.subscribe(channel, symbols, paramsChannel)).join();

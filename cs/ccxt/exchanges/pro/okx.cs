@@ -403,6 +403,10 @@ public partial class okx : ccxt.okx
     public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
         string? symbolValue = this.symbol(symbol);
         Dictionary<string, object> fr = ccxt.BaseExchange.FromFundingRates(await this.WatchFundingRates(new List<object>() {symbolValue}, parameters));
         return ccxt.BaseExchange.ToFundingRate((fr != null && symbolValue != null && fr.ContainsKey(symbolValue) ? fr[symbolValue] : null));
@@ -510,6 +514,10 @@ public partial class okx : ccxt.okx
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
         (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTicker", "channel", "tickers");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
@@ -578,6 +586,10 @@ public partial class okx : ccxt.okx
     public async override Task<ccxt.Ticker> WatchMarkPrice(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
         (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchMarkPrice", "channel", "mark-price");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
@@ -1470,6 +1482,28 @@ public partial class okx : ccxt.okx
             { "args", topics },
         };
         string? url = this.getUrl(depth, "public");
+        var client = this.client(url);
+        List<object> resyncTopics = new List<object>() {};
+        List<object> resyncHashes = new List<object>() {};
+        bool resyncNeeded = false;
+        for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
+        {
+            if ((this.safeString(client.subscriptions, messageHashes[i]) == "resync"))
+            {
+                // okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
+                resyncTopics.Add((topics != null && i < topics.Count ? topics[i] : null));
+                resyncHashes.Add(("unsubscribe:orderbook:" + ((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null))));
+                resyncNeeded = true;
+            }
+        }
+        if (resyncNeeded)
+        {
+            Dictionary<string, object> unsubscribeRequest = new Dictionary<string, object>() {
+                { "op", "unsubscribe" },
+                { "args", resyncTopics },
+            };
+            await this.watchMultiple(url, resyncHashes, unsubscribeRequest, resyncHashes);
+        }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultiple(url, messageHashes, request, messageHashes));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -1762,8 +1796,8 @@ public partial class okx : ccxt.okx
                     this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
                     if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                     {
-                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
-                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
+                        ((IDictionary<string,object>)client.subscriptions)[(string)messageHash] = "resync";
                         break;
                     }
                     client.resolve(orderbook, messageHash);

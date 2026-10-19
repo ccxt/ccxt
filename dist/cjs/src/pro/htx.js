@@ -830,7 +830,12 @@ class htx extends htx$1["default"] {
         const market = this.market(symbol);
         const limit = this.safeInteger(subscription, 'limit');
         if (symbol !== undefined) {
-            this.orderbooks[symbol] = this.orderBook({}, limit);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook['nonce'] = undefined;
+            orderbook.cache = [];
         }
         if (market['spot'] === true) {
             this.spawn(this.watchOrderBookSnapshot, client, message, subscription);

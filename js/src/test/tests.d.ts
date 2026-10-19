@@ -74,10 +74,13 @@ declare class testMainClass {
     assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
     varToString(obj?: any): string;
     assertStaticRequestOutput(exchange: any, type: Str, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): boolean;
+    assertStaticIsolatedPosition(exchange: Exchange, entry: any): boolean;
+    assertStaticIsolatedPositions(exchange: Exchange, method: string, output: any): boolean;
     assertStaticResponseOutput(exchange: Exchange, skipKeys: string[], computedResult: any, storedResult: any): void;
     sanitizeDataInput(input: any): List | undefined;
     testRequestStatically(exchange: any, method: string, data: Dict, type: Str, skipKeys: string[]): Promise<boolean>;
     testResponseStatically(exchange: any, method: string, skipKeys: string[], data: Dict): Promise<boolean>;
+    wsRequestWasSent(exchange: any, url: string, id: string): boolean;
     injectWsMessages(exchange: any, url: string, messages: List, sequential?: boolean): Promise<boolean>;
     watchAndAssertSequence(exchange: any, url: string, method: string, input: any, skipKeys: string[], expectedResults: List): Promise<boolean>;
     assertWsSentMessages(exchange: any, url: string, data: Dict): void;

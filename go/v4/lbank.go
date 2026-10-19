@@ -374,13 +374,10 @@ func (this *Lbank) Describe() any {
 			},
 			"networks": map[string]any{
 				"ERC20":   "erc20",
-				"ETH":     "erc20",
 				"TRC20":   "trc20",
-				"TRX":     "trc20",
 				"OMNI":    "omni",
 				"ASA":     "asa",
 				"BEP20":   "bep20(bsc)",
-				"BSC":     "bep20(bsc)",
 				"HT":      "heco",
 				"BNB":     "bep2",
 				"BTC":     "btc",
@@ -1993,7 +1990,7 @@ func (this *Lbank) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...an
 	//    }
 	//
 	var balanceResponse any = func() any {
-		if response == nil {
+		if IsEqual(response, nil) {
 			return map[string]any{}
 		}
 		return response
@@ -2149,11 +2146,11 @@ func (this *Lbank) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], sy
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes164715 map[string]any = r1.Value
-	if retRes164715 == nil {
+	var retRes164415 map[string]any = r1.Value
+	if retRes164415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes164715}
+		ch <- AsyncResult[any]{Value: retRes164415}
 	}
 	return nil
 }
@@ -2487,11 +2484,11 @@ func (this *Lbank) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes193219 map[string]any = r1.Value
-		if retRes193219 == nil {
+		var retRes192919 map[string]any = r1.Value
+		if retRes192919 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes193219}
+			ch <- AsyncResult[map[string]any]{Value: retRes192919}
 		}
 		return nil
 	}
@@ -2500,11 +2497,11 @@ func (this *Lbank) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes193415 map[string]any = r2.Value
-	if retRes193415 == nil {
+	var retRes193115 map[string]any = r2.Value
+	if retRes193115 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes193415}
+		ch <- AsyncResult[map[string]any]{Value: retRes193115}
 	}
 	return nil
 }
@@ -3035,9 +3032,14 @@ func (this *Lbank) GetNetworkCodeForCurrency(currencyCode any, params any) any {
 	var defaultNetworks map[string]any = SafeMapTyped(this.Options, "defaultNetworks")
 	var defaultNetwork *string = this.SafeStringUpper(defaultNetworks, currencyCode)
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
-	var network *string = this.SafeStringUpper(params, "network", defaultNetwork) // this line allows the user to specify either ERC20 or ETH
-	network = this.SafeString(networks, network, network)                         // handle ERC20>ETH alias
-	return network
+	var networkParam *string = this.SafeStringUpper(params, "network", defaultNetwork) // accepts unified codes and aliases
+	var networkCode *string = func() *string {
+		if networkParam != nil {
+			return this.SafeString(this.NetworkAliases, networkParam, networkParam)
+		}
+		return nil
+	}()
+	return this.SafeString(networks, networkCode, networkCode)
 }
 
 /**
@@ -3179,6 +3181,9 @@ func (this *Lbank) fetchDepositAddressSupplementBody(ch chan EndpointResult[map[
 	}
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper(params, "network")
+	if network != nil {
+		network = this.SafeString(this.NetworkAliases, network, network)
+	}
 	network = this.SafeString(networks, network, network)
 	var paramsOmitted map[string]any = func() map[string]any {
 		if network != nil {
@@ -3230,8 +3235,8 @@ func (this *Lbank) fetchDepositAddressSupplementBody(ch chan EndpointResult[map[
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Lbank) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -3242,14 +3247,12 @@ func (this *Lbank) WithdrawAsync(code string, amount any, address any, optionalA
 func (this *Lbank) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -3268,10 +3271,13 @@ func (this *Lbank) withdrawBody(ch chan EndpointResult[map[string]any], code str
 		"amount":  amount,
 		"fee":     fee,
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["memo"] = tagWithdrawTag
 	}
 	var network *string = this.SafeStringUpper2(paramsOmitted, "network", "networkName")
+	if network != nil {
+		network = this.SafeString(this.NetworkAliases, network, network)
+	}
 	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"network", "networkName"})
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var networkId *string = this.SafeString(networks, network, network)
@@ -4113,16 +4119,12 @@ func (this *Lbank) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	return result
 }
 func (this *Lbank) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
@@ -4200,8 +4202,8 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Lbank) ConvertSecretToPem(secret any) any {
@@ -4950,8 +4952,8 @@ func (this *Lbank) FetchDepositAddressSupplement(code string, options ...FetchDe
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Lbank) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -4961,7 +4963,7 @@ func (this *Lbank) Withdraw(code string, amount float64, address string, options
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

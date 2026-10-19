@@ -1300,8 +1300,9 @@ class p2b(Exchange, ImplicitAPI):
             'trades': None,
         }, marketResolved)
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = baseApiUrl
@@ -1310,7 +1311,7 @@ class p2b(Exchange, ImplicitAPI):
         if method == 'GET':
             if len(paramsOmitted) > 0:
                 url += '?' + self.urlencode(paramsOmitted)
-        if api == 'private':
+        if apiName == 'private':
             paramsOmitted['request'] = '/api/v2/' + path
             # p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             # the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
@@ -1324,7 +1325,7 @@ class p2b(Exchange, ImplicitAPI):
             }
             bodyJson = self.json(paramsOmitted)
             return {'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

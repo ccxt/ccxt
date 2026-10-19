@@ -2041,7 +2041,7 @@ class bullish(Exchange, ImplicitAPI):
             currency = self.currency(code)
         return self.parse_transactions(data, currency, since, limit)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2050,8 +2050,8 @@ class bullish(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str [tag]:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param str params['timestamp']: the timestamp of the withdrawal request(mandatory)
         :param str params['nonce']: the nonce of the withdrawal request(mandatory)
         :param str params['network']: network for withdraw(mandatory)
@@ -2329,7 +2329,7 @@ class bullish(Exchange, ImplicitAPI):
             # some currencies have multiple networks
             if network is None:
                 # use default network if not specified and multiple are available
-                network = self.default_network_code(code)
+                network = self.safe_string(self.safe_dict(self.options, 'defaultNetworks', {}), code, self.safe_string(self.options, 'defaultNetwork'))
             if network is not None:
                 # find the entry that matches the network or return first entry if not found and user did not specify a network
                 for i in range(0, len(safeResponse)):
@@ -2849,16 +2849,17 @@ class bullish(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }, market)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        requestHeaders = None
+        requestBody = None
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + endpoint
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             nonce = str(self.microseconds())
             timestamp = str(self.get_timestamp())

@@ -89,27 +89,27 @@ func (this *Binance) DescribeData() any {
 		"urls": map[string]any{
 			"test": map[string]any{
 				"ws": map[string]any{
-					"spot":     "wss://stream.testnet.binance.vision/ws",
-					"margin":   "wss://stream.testnet.binance.vision/ws",
-					"future":   "wss://fstream.binancefuture.com/ws",
-					"delivery": "wss://dstream.binancefuture.com/ws",
+					"spot":    "wss://stream.testnet.binance.vision/ws",
+					"margin":  "wss://stream.testnet.binance.vision/ws",
+					"linear":  "wss://fstream.binancefuture.com/ws",
+					"inverse": "wss://dstream.binancefuture.com/ws",
 					"ws-api": map[string]any{
-						"spot":     "wss://ws-api.testnet.binance.vision/ws-api/v3",
-						"future":   "wss://testnet.binancefuture.com/ws-fapi/v1",
-						"delivery": "wss://testnet.binancefuture.com/ws-dapi/v1",
+						"spot":    "wss://ws-api.testnet.binance.vision/ws-api/v3",
+						"linear":  "wss://testnet.binancefuture.com/ws-fapi/v1",
+						"inverse": "wss://testnet.binancefuture.com/ws-dapi/v1",
 					},
 				},
 			},
 			"demo": map[string]any{
 				"ws": map[string]any{
-					"spot":     "wss://demo-stream.binance.com/ws",
-					"margin":   "wss://demo-stream.binance.com/ws",
-					"future":   "wss://fstream.binancefuture.com/ws",
-					"delivery": "wss://dstream.binancefuture.com/ws",
+					"spot":    "wss://demo-stream.binance.com/ws",
+					"margin":  "wss://demo-stream.binance.com/ws",
+					"linear":  "wss://fstream.binancefuture.com/ws",
+					"inverse": "wss://dstream.binancefuture.com/ws",
 					"ws-api": map[string]any{
-						"spot":     "wss://demo-ws-api.binance.com/ws-api/v3",
-						"future":   "wss://testnet.binancefuture.com/ws-fapi/v1",
-						"delivery": "wss://testnet.binancefuture.com/ws-dapi/v1",
+						"spot":    "wss://demo-ws-api.binance.com/ws-api/v3",
+						"linear":  "wss://testnet.binancefuture.com/ws-fapi/v1",
+						"inverse": "wss://testnet.binancefuture.com/ws-dapi/v1",
 					},
 				},
 			},
@@ -117,16 +117,16 @@ func (this *Binance) DescribeData() any {
 				"ws": map[string]any{
 					"spot":          "wss://stream.binance.com:9443/ws",
 					"margin":        "wss://stream.binance.com:9443/ws",
-					"future":        "wss://fstream.binance.com/ws",
-					"delivery":      "wss://dstream.binance.com/ws",
+					"linear":        "wss://fstream.binance.com/ws",
+					"inverse":       "wss://dstream.binance.com/ws",
 					"stock":         "wss://nbstream.binance.com/equity/ws",
 					"option":        "wss://fstream.binance.com/public/ws",
 					"optionMarket":  "wss://fstream.binance.com/market/ws",
 					"optionPrivate": "wss://fstream.binance.com/private/ws",
 					"ws-api": map[string]any{
-						"spot":     "wss://ws-api.binance.com:443/ws-api/v3",
-						"future":   "wss://ws-fapi.binance.com/ws-fapi/v1",
-						"delivery": "wss://ws-dapi.binance.com/ws-dapi/v1",
+						"spot":    "wss://ws-api.binance.com:443/ws-api/v3",
+						"linear":  "wss://ws-fapi.binance.com/ws-fapi/v1",
+						"inverse": "wss://ws-dapi.binance.com/ws-dapi/v1",
 					},
 					"papi": "wss://fstream.binance.com/pm/ws",
 				},
@@ -141,8 +141,8 @@ func (this *Binance) DescribeData() any {
 			"streamLimits": map[string]any{
 				"spot":         50,
 				"margin":       50,
-				"future":       50,
-				"delivery":     50,
+				"linear":       50,
+				"inverse":      50,
 				"stock":        50,
 				"option":       50,
 				"optionMarket": 50,
@@ -150,8 +150,8 @@ func (this *Binance) DescribeData() any {
 			"subscriptionLimitByStream": map[string]any{
 				"spot":         200,
 				"margin":       200,
-				"future":       200,
-				"delivery":     200,
+				"linear":       200,
+				"inverse":      200,
 				"stock":        200,
 				"option":       200,
 				"optionMarket": 200,
@@ -265,7 +265,7 @@ func (this *Binance) GetWsUrl(typeVar any, category any) any {
 		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), typeVar)
 	}
 	var baseUrl any = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), typeVar)
-	if ccxt.IsEqual(typeVar, "future") {
+	if ccxt.IsEqual(typeVar, "linear") {
 		// skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
 		// const firstProtocol = baseUrl.indexOf ('://')
 		// if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
@@ -296,7 +296,7 @@ func (this *Binance) GetPrivateWsUrl(typeVar any, listenKey any) any {
 	if ccxt.IsEqual(listenKey, nil) {
 		panic(ccxt.AuthenticationError(this.Id + " getPrivateWsUrl() requires a listenKey from authenticate()"))
 	}
-	if ccxt.IsEqual(typeVar, "future") {
+	if ccxt.IsEqual(typeVar, "linear") {
 		return ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, "private"), "?listenKey="), listenKey)
 	}
 	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), typeVar)
@@ -942,9 +942,9 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	} else if firstMarket["contract"] == true {
 		typeVar = ccxt.SafeStringPtr(func() string {
 			if firstMarket["linear"] == true {
-				return "future"
+				return "linear"
 			}
-			return "delivery"
+			return "inverse"
 		}())
 	}
 	var name string = "depth"
@@ -959,7 +959,7 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	watchOrderBookRateOption, paramsRate := this.HandleOptionStringAndParams(params, "watchOrderBookForSymbols", "watchOrderBookRate", "100")
 	var watchOrderBookRate any = watchOrderBookRateOption
 	rpi, paramsRpi := this.HandleOptionBoolAndParams(paramsRate, "watchOrderBookForSymbols", "rpi", false)
-	if rpi && (typeVar != nil && *typeVar == "future") {
+	if rpi && (typeVar != nil && *typeVar == "linear") {
 		name = "rpiDepth"
 		watchOrderBookRate = "500"
 	}
@@ -1052,9 +1052,9 @@ func (this *Binance) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[any
 	} else if firstMarket["contract"] == true {
 		typeVar = ccxt.SafeStringPtr(func() string {
 			if firstMarket["linear"] == true {
-				return "future"
+				return "linear"
 			}
-			return "delivery"
+			return "inverse"
 		}())
 	}
 	var name string = "depth"
@@ -1176,7 +1176,7 @@ func (this *Binance) fetchOrderBookWsBody(ch chan ccxt.AsyncResult[any], symbol 
 		payload["limit"] = limit
 	}
 	var marketType any = this.GetMarketType("fetchOrderBookWs", market, params)
-	if !ccxt.IsEqual(marketType, "future") {
+	if !ccxt.IsEqual(marketType, "linear") {
 		panic(ccxt.BadRequest(this.Id + " fetchOrderBookWs only supports swap markets"))
 	}
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), marketType)
@@ -1295,7 +1295,7 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[any], c
 					continue
 				}
 				var pu *int64 = this.SafeInteger(messageItem, "pu")
-				if typeVar != nil && *typeVar == "future" {
+				if typeVar != nil && *typeVar == "linear" {
 					// 4. Drop any event where u is < lastUpdateId in the snapshot
 					if ccxt.IsLessThan(u, ccxt.GetValue(orderbook, "nonce")) {
 						continue
@@ -1490,10 +1490,12 @@ func (this *Binance) HandleOrderBookSubscription(client any, message any, subscr
 			}
 			return nil
 		}()
-		if ccxt.InOp(this.Orderbooks, symbol) {
-			ccxt.Remove(this.Orderbooks, symbol)
+		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 		}
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		ccxt.AddElementToObject(orderbook, "nonce", nil)
+		orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 		var symbolSubscription map[string]any = this.Extend(subscription, map[string]any{
 			"symbol": symbol,
 		})
@@ -1604,9 +1606,9 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]any], 
 	} else if firstMarket["contract"] == true {
 		typeVar = ccxt.SafeStringPtr(func() string {
 			if firstMarket["linear"] == true {
-				return "future"
+				return "linear"
 			}
-			return "delivery"
+			return "inverse"
 		}())
 	}
 	var messageHashes []any = []any{}
@@ -1721,9 +1723,9 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[any], 
 	} else if firstMarket["contract"] == true {
 		typeVar = ccxt.SafeStringPtr(func() string {
 			if firstMarket["linear"] == true {
-				return "future"
+				return "linear"
 			}
-			return "delivery"
+			return "inverse"
 		}())
 	}
 	var subMessageHashes []any = []any{}
@@ -1925,7 +1927,7 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//         "Q": "0.00000000"
 	//     }
 	//
-	// private watchMyTrades future/delivery
+	// private watchMyTrades linear/inverse
 	//
 	//     {
 	//         "s": "BTCUSDT",
@@ -2251,9 +2253,9 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[any], sym
 	} else if firstMarket["contract"] == true {
 		typeVar = ccxt.SafeStringPtr(func() string {
 			if firstMarket["linear"] == true {
-				return "future"
+				return "linear"
 			}
-			return "delivery"
+			return "inverse"
 		}())
 		wsUrlType = typeVar
 	}
@@ -2378,9 +2380,9 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[any], s
 	} else if firstMarket["contract"] == true {
 		typeVar = ccxt.SafeStringPtr(func() string {
 			if firstMarket["linear"] == true {
-				return "future"
+				return "linear"
 			}
-			return "delivery"
+			return "inverse"
 		}())
 		wsUrlType = typeVar
 	}
@@ -2595,7 +2597,7 @@ func (this *Binance) fetchTickerWsBody(ch chan ccxt.AsyncResult[any], symbol str
 		"symbol": market["id"],
 	}
 	var typeVar any = this.GetMarketType("fetchTickerWs", market, params)
-	if !ccxt.IsEqual(typeVar, "future") {
+	if !ccxt.IsEqual(typeVar, "linear") {
 		panic(ccxt.BadRequest(this.Id + " fetchTickerWs only supports swap markets"))
 	}
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
@@ -2668,7 +2670,7 @@ func (this *Binance) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[any], symbol stri
 	}
 	var market map[string]any = this.Market(symbol)
 	var marketType any = this.GetMarketType("fetchOHLCVWs", market, params)
-	if (!ccxt.IsEqual(marketType, "spot")) && (!ccxt.IsEqual(marketType, "future")) {
+	if (!ccxt.IsEqual(marketType, "spot")) && (!ccxt.IsEqual(marketType, "linear")) {
 		panic(ccxt.BadRequest(this.Id + " fetchOHLCVWs only supports spot or swap markets"))
 	}
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), marketType)
@@ -3353,9 +3355,9 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 			return "option"
 		}()
 	} else if this.IsLinear(marketType, subType) {
-		rawMarketType = "future"
+		rawMarketType = "linear"
 	} else if this.IsInverse(marketType, subType) {
-		rawMarketType = "delivery"
+		rawMarketType = "inverse"
 	} else if marketType != nil && *marketType == "spot" {
 		rawMarketType = marketType
 	} else {
@@ -3691,7 +3693,7 @@ func (this *Binance) HandleTickerWs(client any, message map[string]any) {
 	//
 	var messageHash *string = this.SafeString(message, "id")
 	var result map[string]any = this.SafeDictMap(message, "result", map[string]any{})
-	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(result, "future"))
+	var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(result, "contract"))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Binance) HandleBidsAsks(client any, message any) {
@@ -3901,8 +3903,6 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan ccxt.A
 
 		return nil
 	}
-	client.(ccxt.ClientInterface).Future(messageHash) // created ahead of the request below, so concurrent callers can find it
-	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), marketType, true)
 	var requestId int64 = this.RequestId(url)
 	var requestHash string = strconv.FormatInt(requestId, 10)
 	var message map[string]any = map[string]any{
@@ -3915,6 +3915,10 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan ccxt.A
 		"method":       this.HandleUserDataStreamSubscribe,
 		"subscription": marketType,
 	}
+	// created right before the request, after the signing above: concurrent callers find it, and in
+	// the threaded ports the ack can not arrive between this future and the request one watch () adds
+	client.(ccxt.ClientInterface).Future(messageHash)
+	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), marketType, true)
 
 	{
 		func(this *Binance) (ret_ any) {
@@ -4261,14 +4265,14 @@ func (this *Binance) authenticateBody(ch chan ccxt.AsyncResult[any], optionalArg
 						panic(r4.Err)
 					}
 					response = r4.Value
-				} else if typeVar != nil && *typeVar == "future" {
+				} else if typeVar != nil && *typeVar == "linear" {
 
 					r5 := <-this.FapiPrivatePostListenKey(paramsOmitted)
 					if r5.Err != nil {
 						panic(r5.Err)
 					}
 					response = r5.Raw
-				} else if typeVar != nil && *typeVar == "delivery" {
+				} else if typeVar != nil && *typeVar == "inverse" {
 
 					r6 := <-this.DapiPrivatePostListenKey(paramsOmitted)
 					if r6.Err != nil {
@@ -4344,16 +4348,16 @@ func (this *Binance) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[any], optio
 	var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleSubTypeAndParams("keepAliveListenKey", nil, paramsPortfolioMargin)), 0))
 	if (typeVar == nil || *typeVar != "option") && (typeVar == nil || *typeVar != "stock") {
 		// guard options first: isLinear returns true for linear-settled options (subType='linear')
-		// which would incorrectly convert type='option' to 'future'.
+		// which would incorrectly convert type='option' to 'linear'.
 		// stock needs the same exemption: with a defaultSubType of 'linear' -
 		// always on binanceusdm, common on mixed instances - isLinear keys off
-		// subType alone and would flip 'stock' to 'future' - the stock branch
+		// subType alone and would flip 'stock' to 'linear' - the stock branch
 		// below would never run, and the bucket lookup would renew the
 		// FUTURES listen key while the stock key silently expires
 		if this.IsLinear(typeVar, subType) {
-			typeVar = ccxt.SafeStringPtr("future")
+			typeVar = ccxt.SafeStringPtr("linear")
 		} else if this.IsInverse(typeVar, subType) {
-			typeVar = ccxt.SafeStringPtr("delivery")
+			typeVar = ccxt.SafeStringPtr("inverse")
 		}
 	}
 	// For margin, token renewal is handled by renewListenToken method
@@ -4429,13 +4433,13 @@ func (this *Binance) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[any], optio
 				if r1.Err != nil {
 					panic(r1.Err)
 				}
-			} else if typeVar != nil && *typeVar == "future" {
+			} else if typeVar != nil && *typeVar == "linear" {
 
 				r2 := <-this.FapiPrivatePutListenKey(this.Extend(request, paramsOmitted))
 				if r2.Err != nil {
 					panic(r2.Err)
 				}
-			} else if typeVar != nil && *typeVar == "delivery" {
+			} else if typeVar != nil && *typeVar == "inverse" {
 
 				r3 := <-this.DapiPrivatePutListenKey(this.Extend(request, paramsOmitted))
 				if r3.Err != nil {
@@ -4558,7 +4562,7 @@ func (this *Binance) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[any], clie
  * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-information-user_data
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+ * @param {string|undefined} [params.type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding', use params.subType 'inverse' for COIN-M
  * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
  * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
  * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
@@ -4582,7 +4586,7 @@ func (this *Binance) fetchBalanceWsBody(ch chan ccxt.AsyncResult[any], optionalA
 		}
 	}
 	var typeVar any = this.GetMarketType("fetchBalanceWs", nil, params)
-	if (!ccxt.IsEqual(typeVar, "spot")) && (!ccxt.IsEqual(typeVar, "future")) && (!ccxt.IsEqual(typeVar, "delivery")) {
+	if (!ccxt.IsEqual(typeVar, "spot")) && (!ccxt.IsEqual(typeVar, "linear")) && (!ccxt.IsEqual(typeVar, "inverse")) {
 		panic(ccxt.BadRequest(this.Id + " fetchBalanceWs only supports spot or swap markets"))
 	}
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
@@ -4710,11 +4714,11 @@ func (this *Binance) fetchPositionWsBody(ch chan ccxt.EndpointResult[[]any], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes346715 []any = r.Value
-	if retRes346715 == nil {
+	var retRes347115 []any = r.Value
+	if retRes347115 == nil {
 		ch <- ccxt.EndpointResult[[]any]{}
 	} else {
-		ch <- ccxt.EndpointResult[[]any]{Value: retRes346715, Raw: retRes346715}
+		ch <- ccxt.EndpointResult[[]any]{Value: retRes347115, Raw: retRes347115}
 	}
 	return nil
 }
@@ -4769,9 +4773,9 @@ func (this *Binance) fetchPositionsWsBody(ch chan ccxt.AsyncResult[[]any], optio
 	if (symbolsNormalized == nil) && (ccxt.IsEqual(typeVar, "spot")) {
 		// when symbols aren't provide
 		// we shouldn't rely on the defaultType
-		typeVar = "future"
+		typeVar = "linear"
 	}
-	if (!ccxt.IsEqual(typeVar, "future")) && (!ccxt.IsEqual(typeVar, "delivery")) {
+	if (!ccxt.IsEqual(typeVar, "linear")) && (!ccxt.IsEqual(typeVar, "inverse")) {
 		panic(ccxt.BadRequest(this.Id + " fetchPositionsWs only supports swap markets"))
 	}
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
@@ -4969,7 +4973,7 @@ func (this *Binance) HandleBalance(client any, message any) {
 	//         ]
 	//     }
 	//
-	// future/delivery
+	// linear/inverse
 	//
 	//     {
 	//         "e": "ACCOUNT_UPDATE",            // Event Type
@@ -5071,7 +5075,7 @@ func (this *Binance) GetAccountTypeFromSubscriptions(subscriptions any) any {
 	var accountType any = ""
 	for i := 0; i < ccxt.GetArrayLength(subscriptions); i++ {
 		var subscription *string = ccxt.SafeStringPtr(ccxt.GetValue(subscriptions, i))
-		if (subscription != nil && *subscription == "spot") || (subscription != nil && *subscription == "margin") || (subscription != nil && *subscription == "future") || (subscription != nil && *subscription == "delivery") || (subscription != nil && *subscription == "option") {
+		if (subscription != nil && *subscription == "spot") || (subscription != nil && *subscription == "margin") || (subscription != nil && *subscription == "linear") || (subscription != nil && *subscription == "inverse") || (subscription != nil && *subscription == "option") {
 			accountType = ccxt.DerefScalar(subscription)
 			break
 		}
@@ -5095,9 +5099,9 @@ func (this *Binance) ResolveAuthType(methodName string, optionalArgs ...any) any
 	var typeVar *string = marketType
 	if (typeVar == nil || *typeVar != "option") && (typeVar == nil || *typeVar != "stock") {
 		if this.IsLinear(typeVar, subType) {
-			typeVar = ccxt.SafeStringPtr("future")
+			typeVar = ccxt.SafeStringPtr("linear")
 		} else if this.IsInverse(typeVar, subType) {
-			typeVar = ccxt.SafeStringPtr("delivery")
+			typeVar = ccxt.SafeStringPtr("inverse")
 		}
 	}
 	// sites consuming every element unpack this; the two that skip subType
@@ -5114,9 +5118,9 @@ func (this *Binance) GetMarketType(method any, market any, optionalArgs ...any) 
 	paramsMarketType = ccxt.MapTyped(ccxt.GetValue(typeVarparamsMarketTypeVariable, 1))
 	var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleSubTypeAndParams(method, market, paramsMarketType)), 0))
 	if this.IsLinear(typeVar, subType) {
-		typeVar = "future"
+		typeVar = "linear"
 	} else if this.IsInverse(typeVar, subType) {
-		typeVar = "delivery"
+		typeVar = "inverse"
 	}
 	return typeVar
 }
@@ -5160,7 +5164,7 @@ func (this *Binance) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any],
 	}
 	var market map[string]any = this.Market(symbol)
 	var marketType any = this.GetMarketType("createOrderWs", market, params)
-	if (!ccxt.IsEqual(marketType, "spot")) && (!ccxt.IsEqual(marketType, "future")) && (!ccxt.IsEqual(marketType, "delivery")) {
+	if (!ccxt.IsEqual(marketType, "spot")) && (!ccxt.IsEqual(marketType, "linear")) && (!ccxt.IsEqual(marketType, "inverse")) {
 		panic(ccxt.BadRequest(this.Id + " createOrderWs only supports spot or swap markets"))
 	}
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), marketType)
@@ -5358,7 +5362,7 @@ func (this *Binance) editOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], i
 	}
 	var market map[string]any = this.Market(symbol)
 	var marketType any = this.GetMarketType("editOrderWs", market, params)
-	if (!ccxt.IsEqual(marketType, "spot")) && (!ccxt.IsEqual(marketType, "future")) && (!ccxt.IsEqual(marketType, "delivery")) {
+	if (!ccxt.IsEqual(marketType, "spot")) && (!ccxt.IsEqual(marketType, "linear")) && (!ccxt.IsEqual(marketType, "inverse")) {
 		panic(ccxt.BadRequest(this.Id + " editOrderWs only supports spot or swap markets"))
 	}
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), marketType)
@@ -5367,7 +5371,7 @@ func (this *Binance) editOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], i
 	}
 	var requestId int64 = this.RequestId(url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
-	var isSwap bool = ((ccxt.IsEqual(marketType, "future")) || (ccxt.IsEqual(marketType, "delivery")))
+	var isSwap bool = ((ccxt.IsEqual(marketType, "linear")) || (ccxt.IsEqual(marketType, "inverse")))
 	var payload any = map[string]any{}
 	if ccxt.IsEqual(marketType, "spot") {
 		payload = this.EditSpotOrderRequest(id, symbol, typeVar, side, amount, price, params)
@@ -5725,7 +5729,7 @@ func (this *Binance) fetchOrderWsBody(ch chan ccxt.AsyncResult[any], id string, 
 	}
 	var market map[string]any = this.Market(symbol)
 	var typeVar any = this.GetMarketType("fetchOrderWs", market, params)
-	if (!ccxt.IsEqual(typeVar, "spot")) && (!ccxt.IsEqual(typeVar, "future")) && (!ccxt.IsEqual(typeVar, "delivery")) {
+	if (!ccxt.IsEqual(typeVar, "spot")) && (!ccxt.IsEqual(typeVar, "linear")) && (!ccxt.IsEqual(typeVar, "inverse")) {
 		panic(ccxt.BadRequest(this.Id + " fetchOrderWs only supports spot or swap markets"))
 	}
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
@@ -6367,6 +6371,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
 		timeInForce = ccxt.SafeStringPtr("PO")
 	}
+	var postOnly bool = (orderType != nil && *orderType == "limit_maker") || (timeInForce != nil && *timeInForce == "PO")
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":                order,
 		"symbol":              symbol,
@@ -6378,7 +6383,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 		"lastUpdateTimestamp": lastUpdateTimestamp,
 		"type":                this.ParseOrderTypeByMarket(orderType, marketType),
 		"timeInForce":         timeInForce,
-		"postOnly":            nil,
+		"postOnly":            postOnly,
 		"reduceOnly":          this.SafeBool(order, "R"),
 		"side":                this.SafeStringLower(order, "S"),
 		"price":               this.SafeString(order, "p"),
@@ -6742,17 +6747,17 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]any], optiona
 	// spot and margin have no positions - whatever still RESOLVES to spot
 	// or margin after the helper falls through to the derivatives stream
 	// matching the subType. requests a defaultSubType already rewrote
-	// arrive here as future or delivery and pass untouched, which lands on
+	// arrive here as future or inverse and pass untouched, which lands on
 	// the same stream the old raw-type ordering produced in every case
 	if (ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(typeVar, "margin")) {
 		typeVar = func() string {
 			if subType == "inverse" {
-				return "delivery"
+				return "inverse"
 			}
-			return "future"
+			return "linear"
 		}()
 	}
-	// 'option' stays as 'option', don't redirect to 'future' - the helper's
+	// 'option' stays as 'option', don't redirect to 'linear' - the helper's
 	// guard finally makes this comment true
 	var marketTypeObject map[string]any = map[string]any{}
 	marketTypeObject["type"] = typeVar
@@ -7102,7 +7107,7 @@ func (this *Binance) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[[]any], option
 	}
 	var market map[string]any = this.Market(symbol)
 	var typeVar any = this.GetMarketType("fetchMyTradesWs", market, params)
-	if (!ccxt.IsEqual(typeVar, "spot")) && (!ccxt.IsEqual(typeVar, "future")) {
+	if (!ccxt.IsEqual(typeVar, "spot")) && (!ccxt.IsEqual(typeVar, "linear")) {
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" fetchMyTradesWs does not support ", typeVar), " markets")))
 	}
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
@@ -7182,7 +7187,7 @@ func (this *Binance) fetchTradesWsBody(ch chan ccxt.AsyncResult[any], symbol str
 	}
 	var market map[string]any = this.Market(symbol)
 	var typeVar any = this.GetMarketType("fetchTradesWs", market, params)
-	if (!ccxt.IsEqual(typeVar, "spot")) && (!ccxt.IsEqual(typeVar, "future")) {
+	if (!ccxt.IsEqual(typeVar, "spot")) && (!ccxt.IsEqual(typeVar, "linear")) {
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" fetchTradesWs does not support ", typeVar), " markets")))
 	}
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "ws-api"), typeVar)
@@ -7408,8 +7413,8 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes560832 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes560832, tradeFee)
+							retRes561332 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes561332, tradeFee)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {
@@ -8655,7 +8660,7 @@ func (this *Binance) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.T
  * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-information-user_data
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+ * @param {string|undefined} [params.type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding', use params.subType 'inverse' for COIN-M
  * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
  * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
  * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status

@@ -466,7 +466,7 @@ func (this *ExchangeTyped) Withdraw(code string, amount float64, address string,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.Exchange.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.Exchange.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
@@ -768,7 +768,7 @@ func (this *ExchangeTyped) Fetch2(path string, config map[string]any, options ..
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.Exchange.Fetch2Async(path, opts.Api, opts.Method, opts.Params, opts.Headers, opts.Body, config)
+	r := <-this.Exchange.Fetch2Async(path, opts.Api, opts.Method, opts.Params, config)
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
@@ -1741,7 +1741,7 @@ func (this *ExchangeTyped) WithdrawWs(code string, amount float64, address strin
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.Exchange.WithdrawWsAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.Exchange.WithdrawWsAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
@@ -2012,7 +2012,7 @@ func (this *ExchangeTyped) WatchMarkPrices(options ...WatchMarkPricesOptions) (T
 	var res Tickers = NewTickers(r.Value)
 	return res, nil
 }
-func (this *ExchangeTyped) FetchL3OrderBook(symbol string, options ...FetchL3OrderBookOptions) (OrderBook, error) {
+func (this *ExchangeTyped) FetchL3OrderBook(symbol string, options ...FetchL3OrderBookOptions) (OrderBookL3, error) {
 
 	opts := FetchL3OrderBookOptionsStruct{}
 
@@ -2021,9 +2021,9 @@ func (this *ExchangeTyped) FetchL3OrderBook(symbol string, options ...FetchL3Ord
 	}
 	r := <-this.Exchange.FetchL3OrderBookAsync(symbol, opts.Limit, opts.Params)
 	if r.Err != nil {
-		return OrderBook{}, r.Err
+		return OrderBookL3{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Raw)
+	var res OrderBookL3 = NewOrderBookL3(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
@@ -3820,7 +3820,7 @@ func (this *BaseExchangeTyped) Withdraw(code string, amount float64, address str
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.BaseExchange.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.BaseExchange.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
@@ -4122,7 +4122,7 @@ func (this *BaseExchangeTyped) Fetch2(path string, config map[string]any, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.BaseExchange.Fetch2Async(path, opts.Api, opts.Method, opts.Params, opts.Headers, opts.Body, config)
+	r := <-this.BaseExchange.Fetch2Async(path, opts.Api, opts.Method, opts.Params, config)
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
@@ -5095,7 +5095,7 @@ func (this *BaseExchangeTyped) WithdrawWs(code string, amount float64, address s
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.BaseExchange.WithdrawWsAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.BaseExchange.WithdrawWsAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

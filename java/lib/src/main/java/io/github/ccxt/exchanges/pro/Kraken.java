@@ -1180,9 +1180,27 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         } else
         {
             // snapshot
-            Integer depth = ((List<?>)a).size();
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, depth));
+            Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
+            // size the book from the subscribed depth (10 by default), not from
+            // the level count of this snapshot: a thin market's snapshot can
+            // carry fewer levels than the subscription and must not cap the book
+            Long limit = this.safeInteger(subscription, "limit", 10);
+            Object asksLength = ((List<?>)a).size();
+            Object depth = (((Helpers.isGreaterThan(asksLength, limit)))) ? asksLength : limit;
+            Map<String, Object> depths = (Map<String, Object>) this.safeDict(this.options, "wsOrderBookDepths", new HashMap<String, Object>() {{}});
+            Long storedDepth = this.safeInteger(depths, symbol);
+            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || (!Helpers.isEqual(storedDepth, depth)))
+            {
+                // rebuild only on the first snapshot or when the depth changes,
+                // e.g. a re-subscription with a different limit
+                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, depth));
+                depths.put((String)symbol, depth);
+                Helpers.addElementToObject(this.options, "wsOrderBookDepths", depths);
+            }
+            // reset in place so that references held by users keep receiving
+            // updates after a reconnect snapshot (a new object would orphan them)
             orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
+            Helpers.callDynamically(orderbook, "reset", new Object[]{new HashMap<String, Object>() {{}}});
             List<String> keys = new ArrayList<String>(Arrays.asList("asks", "bids"));
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {

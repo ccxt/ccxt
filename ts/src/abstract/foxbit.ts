@@ -8,34 +8,110 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    v3PublicGetCurrencies (params?: {}): Promise<Dict>;
-    v3PublicGetMarkets (params?: {}): Promise<Dict>;
-    v3PublicGetMarketsTicker24hr (params?: {}): Promise<Dict>;
-    v3PublicGetMarketsMarketOrderbook (params?: {}): Promise<Dict>;
-    v3PublicGetMarketsMarketCandlesticks (params?: {}): Promise<List>;
-    v3PublicGetMarketsMarketTradesHistory (params?: {}): Promise<Dict>;
-    v3PublicGetMarketsMarketTicker24hr (params?: {}): Promise<Dict>;
-    v3PublicGetMarketsSparklineWindow (params?: {}): Promise<Dict>;
-    v3PublicGetTravelRuleOperationReasons (params?: {}): Promise<Dict>;
-    v3PrivateGetAccounts (params?: {}): Promise<Dict>;
-    v3PrivateGetAccountsSymbolTransactions (params?: {}): Promise<Dict>;
-    v3PrivateGetOrders (params?: {}): Promise<Dict>;
-    v3PrivateGetOrdersByOrderIdId (params?: {}): Promise<Dict>;
-    v3PrivateGetTrades (params?: {}): Promise<Dict>;
-    v3PrivateGetDepositsAddress (params?: {}): Promise<Dict>;
-    v3PrivateGetDeposits (params?: {}): Promise<Dict>;
-    v3PrivateGetWithdrawals (params?: {}): Promise<Dict>;
-    v3PrivateGetMeFeesTrading (params?: {}): Promise<Dict>;
-    v3PrivateGetPrimeDeskExecutionsQuoteId (params?: {}): Promise<Dict>;
-    v3PrivatePostOrders (params?: {}): Promise<Dict>;
-    v3PrivatePostOrdersBatch (params?: {}): Promise<Dict>;
-    v3PrivatePostOrdersCancelReplace (params?: {}): Promise<Dict>;
-    v3PrivatePostWithdrawals (params?: {}): Promise<Dict>;
-    v3PrivatePostDepositsDepositSnTravelRule (params?: {}): Promise<Dict>;
-    v3PrivatePutOrdersCancel (params?: {}): Promise<Dict>;
-    statusPublicGetStatus (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    v3PublicGetCurrencies (params = {}): Promise<Dict> {
+        return this.request ('currencies', [ 'v3', 'public' ], 'GET', params, { 'cost': 5 });
+    }
 
-export default Exchange
+    v3PublicGetMarkets (params = {}): Promise<Dict> {
+        return this.request ('markets', [ 'v3', 'public' ], 'GET', params, { 'cost': 5 });
+    }
+
+    v3PublicGetMarketsTicker24hr (params = {}): Promise<Dict> {
+        return this.request ('markets/ticker/24hr', [ 'v3', 'public' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PublicGetMarketsMarketOrderbook (params = {}): Promise<Dict> {
+        return this.request ('markets/{market}/orderbook', [ 'v3', 'public' ], 'GET', params, { 'cost': 6 });
+    }
+
+    v3PublicGetMarketsMarketCandlesticks (params = {}): Promise<List> {
+        return this.request ('markets/{market}/candlesticks', [ 'v3', 'public' ], 'GET', params, { 'cost': 12 });
+    }
+
+    v3PublicGetMarketsMarketTradesHistory (params = {}): Promise<Dict> {
+        return this.request ('markets/{market}/trades/history', [ 'v3', 'public' ], 'GET', params, { 'cost': 12 });
+    }
+
+    v3PublicGetMarketsMarketTicker24hr (params = {}): Promise<Dict> {
+        return this.request ('markets/{market}/ticker/24hr', [ 'v3', 'public' ], 'GET', params, { 'cost': 15 });
+    }
+
+    v3PublicGetMarketsSparklineWindow (params = {}): Promise<Dict> {
+        return this.request ('markets/sparkline/{window}', [ 'v3', 'public' ], 'GET', params, { 'cost': 20 });
+    }
+
+    v3PublicGetTravelRuleOperationReasons (params = {}): Promise<Dict> {
+        return this.request ('travel_rule/operation_reasons', [ 'v3', 'public' ], 'GET', params, { 'cost': 30 });
+    }
+
+    v3PrivateGetAccounts (params = {}): Promise<Dict> {
+        return this.request ('accounts', [ 'v3', 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    v3PrivateGetAccountsSymbolTransactions (params = {}): Promise<Dict> {
+        return this.request ('accounts/{symbol}/transactions', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'v3', 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    v3PrivateGetOrdersByOrderIdId (params = {}): Promise<Dict> {
+        return this.request ('orders/by-order-id/{id}', [ 'v3', 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    v3PrivateGetTrades (params = {}): Promise<Dict> {
+        return this.request ('trades', [ 'v3', 'private' ], 'GET', params, { 'cost': 6 });
+    }
+
+    v3PrivateGetDepositsAddress (params = {}): Promise<Dict> {
+        return this.request ('deposits/address', [ 'v3', 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    v3PrivateGetDeposits (params = {}): Promise<Dict> {
+        return this.request ('deposits', [ 'v3', 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    v3PrivateGetWithdrawals (params = {}): Promise<Dict> {
+        return this.request ('withdrawals', [ 'v3', 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    v3PrivateGetMeFeesTrading (params = {}): Promise<Dict> {
+        return this.request ('me/fees/trading', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetPrimeDeskExecutionsQuoteId (params = {}): Promise<Dict> {
+        return this.request ('prime_desk/executions/{quote_id}', [ 'v3', 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    v3PrivatePostOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'v3', 'private' ], 'POST', params, { 'cost': 2 });
+    }
+
+    v3PrivatePostOrdersBatch (params = {}): Promise<Dict> {
+        return this.request ('orders/batch', [ 'v3', 'private' ], 'POST', params, { 'cost': 7.5 });
+    }
+
+    v3PrivatePostOrdersCancelReplace (params = {}): Promise<Dict> {
+        return this.request ('orders/cancel-replace', [ 'v3', 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    v3PrivatePostWithdrawals (params = {}): Promise<Dict> {
+        return this.request ('withdrawals', [ 'v3', 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    v3PrivatePostDepositsDepositSnTravelRule (params = {}): Promise<Dict> {
+        return this.request ('deposits/{deposit_sn}/travel_rule', [ 'v3', 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    v3PrivatePutOrdersCancel (params = {}): Promise<Dict> {
+        return this.request ('orders/cancel', [ 'v3', 'private' ], 'PUT', params, { 'cost': 2 });
+    }
+
+    statusPublicGetStatus (params = {}): Promise<Dict> {
+        return this.request ('status', [ 'status', 'public' ], 'GET', params, { 'cost': 30 });
+    }
+}
+
+export default Exchange;

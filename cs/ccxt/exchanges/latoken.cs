@@ -698,7 +698,10 @@ public partial class latoken : Exchange
         {
             await this.loadMarkets();
         }
-        List<object> response = await this.privateGetAuthAccount(parameters);
+        string? defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
+        string? type = this.safeString(parameters, "type", defaultType);
+        object paramsOmitted = this.omit(parameters, "type");
+        List<object> response = await this.privateGetAuthAccount(paramsOmitted);
         //
         //     [
         //         {
@@ -727,8 +730,6 @@ public partial class latoken : Exchange
             { "datetime", null },
         };
         object maxTimestamp = null;
-        string? defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
-        string? type = this.safeString(parameters, "type", defaultType);
         IDictionary<string, object> types = this.safeDict(this.options, "types", new Dictionary<string, object>() {});
         string? accountType = this.safeString(types, type, type);
         Dictionary<string, object> balancesByType = this.groupBy(response, "type");
@@ -1434,7 +1435,7 @@ public partial class latoken : Exchange
         }
         List<object> response = null;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        object paramsOmitted = this.omit(parameters, "stop");
+        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2087,13 +2088,14 @@ public partial class latoken : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
+        object apiName = getValue(api, 0);
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         string request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         string requestString = request;
         object query = this.omit(parameters, this.extractParams(path));
@@ -2105,7 +2107,7 @@ public partial class latoken : Exchange
                 requestString = requestString + ("?" + urlencodedQuery);
             }
         }
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string auth = ((method + request) + urlencodedQuery);
@@ -2117,7 +2119,7 @@ public partial class latoken : Exchange
             };
             if ((method == "POST"))
             {
-                ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/json";
+                requestHeaders["Content-Type"] = "application/json";
                 requestBody = this.json(query);
             }
         }

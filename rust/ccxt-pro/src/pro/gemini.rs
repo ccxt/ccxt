@@ -31,7 +31,9 @@ impl GeminiCore {
     pub fn init(&mut self) {
         let described = GeminiCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -158,6 +160,9 @@ impl crate::exchange::DerivedExchange for GeminiCore {
     }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
+    }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
@@ -505,8 +510,8 @@ impl GeminiCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_331: bool = true;
-                while { if !__for_first_331 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_331 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+                let mut __for_first_335: bool = true;
+                while { if !__for_first_335 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_335 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
                 let mut trade: Value = self.parse_ws_trade(trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
                 stored.append(trade);
             }
@@ -525,8 +530,8 @@ impl GeminiCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_332: bool = true;
-                while { if !__for_first_332 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_332 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+                let mut __for_first_336: bool = true;
+                while { if !__for_first_336 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_336 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
                 let mut marketId: Value = crate::value::get_value_k(&trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), "symbol");
                 let mut market: Value = self.safe_market(&[to_lower(&marketId)]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -545,8 +550,8 @@ impl GeminiCore {
             let mut symbols: Value = object_keys(&storesForSymbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_333: bool = true;
-                while { if !__for_first_333 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_333 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+                let mut __for_first_337: bool = true;
+                while { if !__for_first_337 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_337 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut stored: Value = get_value(&storesForSymbols, &symbol);
                 let mut stored: Value = get_value(&storesForSymbols, &symbol);
@@ -664,8 +669,8 @@ impl GeminiCore {
         let mut changesLength: Value = Value::Int(changes.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_334: bool = true;
-            while { if !__for_first_334 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_334 = false; i.as_f64().unwrap_or(f64::NAN) < changesLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_338: bool = true;
+            while { if !__for_first_338 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_338 = false; i.as_f64().unwrap_or(f64::NAN) < changesLength.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(changesLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             let mut parsed: Value = self.parse_ohlcv(get_value(&changes, &index), &[market.clone()]);
             stored.append(parsed);
@@ -735,21 +740,41 @@ impl GeminiCore {
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
-        // let orderbook = this.safeValue (this.orderbooks, symbol);
         if !(in_op(&self.orderbooks, &symbol)) {
-            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-        }  else if isInitial {
-            // handle https://github.com/ccxt/ccxt/issues/29210
-            if (in_op(&self.orderbooks, &symbol)) {
-                remove(&mut self.orderbooks, &symbol);
-            }
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+        if isInitial {
+            // the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
+            let mut bidsSnapshot: Value = Value::from(vec![]);
+            let mut asksSnapshot: Value = Value::from(vec![]);
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_339: bool = true;
+                while { if !__for_first_339 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_339 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
+                let mut delta: Value = changes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut bidAsk: Value = Value::from(vec![self.safe_number(delta.clone(), Value::Int(1), &[]), self.safe_number(delta.clone(), Value::Int(2), &[])]);
+                if (self.safe_string(delta.clone(), Value::Int(0), &[]).as_str() == Some("buy")) {
+                    append_to_array(&mut bidsSnapshot, bidAsk.clone());
+                }  else {
+                    append_to_array(&mut asksSnapshot, bidAsk);
+                }
+            }
+            }
+            let mut snapshot: Value = self.parse_order_book(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("bids".to_string(), bidsSnapshot);
+                    m.insert("asks".to_string(), asksSnapshot);
+                m
+            }), symbol.clone(), &[]);
+            orderbook.reset(snapshot);
+            client.resolve(&[orderbook.clone(), messageHash.clone()]);
+            return;
+        }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_335: bool = true;
-            while { if !__for_first_335 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_335 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
+            let mut __for_first_340: bool = true;
+            while { if !__for_first_340 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_340 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
             let mut delta: Value = changes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut price: Value = self.safe_number(delta.clone(), Value::Int(1), &[]);
             let mut size: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
@@ -849,8 +874,8 @@ impl GeminiCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidsasks:".into()), symbol).into());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_336: bool = true;
-            while { if !__for_first_336 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_336 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBidAskChanges.len() as i64) as f64) } {
+            let mut __for_first_341: bool = true;
+            while { if !__for_first_341 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_341 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBidAskChanges.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(rawBidAskChanges.clone(), i.clone(), &[]);
             let mut rawSide: Option<String> = self.safe_string_k(entry.clone(), "side", &[]).as_str().map(str::to_owned);
             let mut price: Value = self.safe_number_k(entry.clone(), "price", &[]);
@@ -901,8 +926,8 @@ impl GeminiCore {
         let mut marketIds: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_337: bool = true;
-            while { if !__for_first_337 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_337 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_342: bool = true;
+            while { if !__for_first_342 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_342 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", itemHashName, Value::Str(":".into())).into()), symbol).into());
             append_to_array(&mut messageHashes, messageHash);
@@ -957,8 +982,8 @@ impl GeminiCore {
         let mut asks: Value = get_value(&orderbook, &Value::Str("asks".into()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_338: bool = true;
-            while { if !__for_first_338 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_338 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrderBookChanges.len() as i64) as f64) } {
+            let mut __for_first_343: bool = true;
+            while { if !__for_first_343 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_343 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrderBookChanges.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(rawOrderBookChanges.clone(), i.clone(), &[]);
             let mut price: Value = self.safe_number_k(entry.clone(), "price", &[]);
             let mut size: Value = self.safe_number_k(entry.clone(), "remaining", &[]);
@@ -1125,8 +1150,8 @@ impl GeminiCore {
         let mut orders: Value = self.orders.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_339: bool = true;
-            while { if !__for_first_339 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_339 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
+            let mut __for_first_344: bool = true;
+            while { if !__for_first_344 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_344 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
             let mut order: Value = self.parse_ws_order(message.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             orders.append(order);
         }
@@ -1306,8 +1331,8 @@ impl GeminiCore {
             let mut eventsLength: f64 = ((events.len() as i64) as f64);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_340: bool = true;
-                while { if !__for_first_340 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_340 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
+                let mut __for_first_345: bool = true;
+                while { if !__for_first_345 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_345 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
                 let mut event: Value = events.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut eventType: Option<String> = self.safe_string_k(event.clone(), "type", &[]).as_str().map(str::to_owned);
                 let mut isOrderBook: bool = (eventType.as_deref() == Some("change")) && (in_op(&event, &Value::Str("side".into()))) && self.in_array(crate::value::get_value_k(&event, "side"), Value::from(vec![Value::Str("ask".into()), Value::Str("bid".into())])).as_bool() == Some(true);

@@ -80,7 +80,7 @@ export default class bitfinex extends bitfinexRest {
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
     handleMyTrade(client: Client, message: any[], subscription?: Dict): void;
     handleTrades(client: Client, message: any[], subscription: Dict): void;
-    parseWsTrade(trade: any, market?: Market): Trade;
+    parseWsTrade(tradeResult: Dict, market?: Market): Trade;
     handleTicker(client: Client, message: any[], subscription: Dict): void;
     parseWsTicker(ticker: List, market?: Market): Ticker;
     /**

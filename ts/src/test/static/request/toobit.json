@@ -3,6 +3,49 @@
     "skipKeys": [ "timestamp", "signature", "newClientOrderId", "clientOrderId" ],
     "outputType": "urlencoded",
     "methods": {
+        "fetchIndexOHLCV": [
+            {
+                "description": "fetchIndexOHLCV with since",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api.toobit.com/quote/v1/index/klines?symbol=BTCUSDT&interval=1h&from=1789760220000&to=1789771020000&limit=3",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1789760220000,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "fetchMarkOHLCV with until",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api.toobit.com/quote/v1/markPrice/klines?symbol=BTC-SWAP-USDT&interval=1h&to=1789771000000&limit=3",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    3,
+                    {
+                        "until": 1789771000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchMarkOHLCV with since",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api.toobit.com/quote/v1/markPrice/klines?symbol=BTC-SWAP-USDT&interval=1h&from=1789760220000&to=1789771020000&limit=3",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1789760220000,
+                    3
+                ],
+                "output": null
+            }
+        ],
         "withdraw": [
             {
                 "description": "withdraw USDT on SOL",
@@ -12,11 +55,10 @@
                     "USDT",
                     10.1,
                     "8vW5Fpyeyae8fGQMfQEUmPpyyGetYwBtasuKvRVsWpyc",
-                    null,
                     {
-                        "network": "SOL"
+                      "network": "SOL"
                     }
-                ],
+                  ],
                 "output": "coin=USDT&address=8vW5Fpyeyae8fGQMfQEUmPpyyGetYwBtasuKvRVsWpyc&quantity=10.1&chainType=SOL&clientOrderId=1766511589&recvWindow=5000&timestamp=1766511589371123&signature=55c38a209d641464634455ea8e84caa227a29cf7b1a126adfd4a15e07e85f607"
             },
             {
@@ -27,11 +69,10 @@
                     "USDT",
                     10.1,
                     "TEhmKXCPgX64yjRTTxNKKzYFXzuMFwsPQX",
-                    null,
                     {
-                        "network": "TRC20"
+                      "network": "TRC20"
                     }
-                ],
+                  ],
                 "output": "coin=USDT&address=TEhmKXCPgX64yjRTTxNKKzYFXzuMFwsPQX&quantity=10.1&chainType=TRX&clientOrderId=1766511589&recvWindow=5000&timestamp=1766511589371123&signature=55c38a209d641464634455ea8e84caa227a29cf7b1a126adfd4a15e07e85f607"
             }
         ],

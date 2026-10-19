@@ -512,7 +512,11 @@ class gate(ccxt.async_support.gate):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         if symbol is not None:
-            self.orderbooks[symbol] = self.order_book({}, limit)
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book({}, limit)
+            orderbook = self.orderbooks[symbol]
+            orderbook['nonce'] = None
+            orderbook.cache = []
 
     def handle_new_spot_order_book(self, client: Client, message: dict):
         #
@@ -657,7 +661,8 @@ class gate(ccxt.async_support.gate):
             self.handle_book_delta(storedOrderBook, delta)
         else:
             del client.subscriptions[messageHash]
-            del self.orderbooks[symbol]
+            storedOrderBook['nonce'] = None
+            storedOrderBook.cache = []
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
             if checksum is True:
                 error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))

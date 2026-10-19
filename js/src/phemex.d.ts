@@ -1,5 +1,5 @@
 import Exchange from './abstract/phemex.js';
-import type { TransferEntry, Balances, Currency, CurrencyInterface, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, NullableDict, List, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL } from './base/types.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, List, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL } from './base/types.js';
 /**
  * @class phemex
  * @augments Exchange
@@ -378,7 +378,7 @@ export default class phemex extends Exchange {
      */
     fetchLeverageTiers(symbols?: Strings, params?: Dict): Promise<LeverageTiers>;
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     /**
      * @method
      * @name phemex#setLeverage
@@ -444,12 +444,12 @@ export default class phemex extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.network] unified network code
      * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name phemex#fetchOpenInterest

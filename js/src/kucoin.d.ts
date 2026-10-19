@@ -1,5 +1,5 @@
 import Exchange from './abstract/kucoin.js';
-import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, NullableDict, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositWithdrawFee, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, DepositAddresses } from './base/types.js';
+import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositWithdrawFee, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, DepositAddresses } from './base/types.js';
 /**
  * @class kucoin
  * @augments Exchange
@@ -1006,11 +1006,11 @@ export default class kucoin extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     parseTransactionStatus(status: Str): string | undefined;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
@@ -1184,7 +1184,7 @@ export default class kucoin extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: Str;
         rate: Num;
@@ -1612,7 +1612,7 @@ export default class kucoin extends Exchange {
      * @returns {boolean} true if unified account is enabled, false otherwise
      */
     isUTAEnabled(params?: Dict): Promise<boolean>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @method

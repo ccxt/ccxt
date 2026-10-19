@@ -2566,8 +2566,8 @@ func (this *Coinsph) ParseTradingFee(fee any, optionalArgs ...any) map[string]an
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address not used by withdraw ()
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Coinsph) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -2578,16 +2578,17 @@ func (this *Coinsph) WithdrawAsync(code string, amount any, address any, optiona
 func (this *Coinsph) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	var tagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	var tag *string = SafeStringPtr(tagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagparamsWithdrawTagVariable[1])
 	var options map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var warning *bool = this.SafeBool(options, "warning", true)
 	if warning != nil && *warning == true {
 		panic(InvalidAddress(this.Id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account"))
 	}
-	var networkCode *string = this.SafeString(params, "network")
+	var networkCode *string = this.SafeString(paramsWithdrawTag, "network")
 	var networkId any = func() any {
 		if networkCode == nil {
 			return nil
@@ -2614,7 +2615,7 @@ func (this *Coinsph) withdrawBody(ch chan EndpointResult[map[string]any], code s
 	if tag != nil {
 		request["withdrawOrderId"] = tag
 	}
-	var paramsOmitted map[string]any = this.OmitDict(params, "network")
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "network")
 
 	r1 := <-this.PrivatePostOpenapiWalletV1WithdrawApply(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -2675,11 +2676,11 @@ func (this *Coinsph) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 		request["limit"] = limit
 	}
 
-	listEp2526 := <-this.PrivateGetOpenapiWalletV1DepositHistory(this.Extend(request, params))
-	if listEp2526.Err != nil {
-		panic(listEp2526.Err)
+	listEp2527 := <-this.PrivateGetOpenapiWalletV1DepositHistory(this.Extend(request, params))
+	if listEp2527.Err != nil {
+		panic(listEp2527.Err)
 	}
-	var response []any = listEp2526.Value
+	var response []any = listEp2527.Value
 
 	//
 	// [
@@ -2761,11 +2762,11 @@ func (this *Coinsph) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 		request["limit"] = limit
 	}
 
-	listEp2605 := <-this.PrivateGetOpenapiWalletV1WithdrawHistory(this.Extend(request, params))
-	if listEp2605.Err != nil {
-		panic(listEp2605.Err)
+	listEp2606 := <-this.PrivateGetOpenapiWalletV1WithdrawHistory(this.Extend(request, params))
+	if listEp2606.Err != nil {
+		panic(listEp2606.Err)
 	}
-	var response []any = listEp2605.Value
+	var response []any = listEp2606.Value
 
 	//
 	// [
@@ -2875,15 +2876,15 @@ func (this *Coinsph) ParseTransaction(transaction any, optionalArgs ...any) map[
 			"cost":     feeCost,
 		}
 	}
-	var network *string = this.SafeString(transaction, "network")
-	var internal bool = (network != nil && *network == "Internal")
+	var networkId *string = this.SafeString(transaction, "network")
+	var internal bool = (networkId != nil && *networkId == "Internal")
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"txid":        txid,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     network,
+		"network":     this.NetworkIdToCode(networkId, code),
 		"address":     address,
 		"addressTo":   address,
 		"addressFrom": nil,
@@ -3032,24 +3033,21 @@ func (this *Coinsph) ParseArrayParam(array any, key any) any {
 	return urlEncodedParam
 }
 func (this *Coinsph) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var endpoint string = this.ImplodeParams(path, params)
 	var url any = *apiUrl + "/" + endpoint
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		AddElementToObject(query, "timestamp", this.Milliseconds())
 		var recvWindow *int64 = this.SafeInteger(query, "recvWindow")
@@ -3068,7 +3066,7 @@ func (this *Coinsph) Sign(path string, optionalArgs ...any) any {
 		return map[string]any{
 			"url":     url,
 			"method":  method,
-			"body":    body,
+			"body":    nil,
 			"headers": signedHeaders,
 		}
 	}
@@ -3079,8 +3077,8 @@ func (this *Coinsph) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Coinsph) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
@@ -3586,8 +3584,8 @@ func (this *Coinsph) FetchTradingFees(params ...any) (TradingFees, error) {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address not used by withdraw ()
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Coinsph) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -3597,7 +3595,7 @@ func (this *Coinsph) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

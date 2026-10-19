@@ -325,7 +325,10 @@ class bittrade(ccxt.async_support.bittrade):
         symbol = self.safe_string(subscription, 'symbol')
         messageHash = self.safe_string(subscription, 'messageHash')
         timestamp = self.safe_integer(message, 'ts')
-        orderbook = self.orderbooks[symbol]
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            # the book was removed (unwatch/cleanCache) before the snapshot arrived
+            return
         data = self.safe_dict(message, 'data')
         snapshot = self.parse_order_book(data, symbol)
         snapshot['nonce'] = self.safe_integer(data, 'seqNum')
@@ -444,7 +447,10 @@ class bittrade(ccxt.async_support.bittrade):
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         symbol = self.safe_symbol(marketId)
-        orderbook = self.orderbooks[symbol]
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            # no active subscription holds a book for this symbol, drop the delta
+            return
         if orderbook['nonce'] is None:
             orderbook.cache.append(message)
         else:
@@ -456,9 +462,11 @@ class bittrade(ccxt.async_support.bittrade):
         if symbol is None:
             return
         limit = self.safe_integer(subscription, 'limit')
-        if symbol in self.orderbooks:
-            del self.orderbooks[symbol]
-        self.orderbooks[symbol] = self.order_book({}, limit)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({}, limit)
+        orderbook = self.orderbooks[symbol]
+        orderbook['nonce'] = None
+        orderbook.cache = []
         # watch the snapshot in a separate async call
         self.spawn(self.watch_order_book_snapshot, client, message, subscription)
 
@@ -563,8 +571,12 @@ class bittrade(ccxt.async_support.bittrade):
             subscription = self.safe_dict(subscriptionsById, id)
             if subscription is not None:
                 errorCode = self.safe_string(message, 'err-code')
+                errorMessage = self.safe_string(message, 'err-msg')
+                feedback = self.id + ' ' + self.json(message)
                 try:
-                    self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.json(message))
+                    self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                    raise ExchangeError(feedback)
                 except Exception as e:
                     messageHash = self.safe_string(subscription, 'messageHash')
                     client.reject(e, messageHash)

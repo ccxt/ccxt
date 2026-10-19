@@ -537,9 +537,9 @@ class mexc(Exchange, ImplicitAPI):
                     },
                 },
                 'defaultType': 'spot',  # spot, swap
-                'defaultNetwork': 'ETH',
+                'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
-                    'ETH': 'ETH',
+                    'ETH': 'ERC20',
                     'USDT': 'ERC20',
                     'USDC': 'ERC20',
                     'BTC': 'BTC',
@@ -739,9 +739,9 @@ class mexc(Exchange, ImplicitAPI):
                     # OKB <> OKT (for usdt it's exception) for OKC, PMEER, FLARE, STRD, ZEL, FUND, "NONE", CRING, FREETON, QTZ  (probably unique network is meant), HT, BSC(RACAV1), BSC(RACAV2), AMBROSUS, BAJUN, NOM. their individual info is at https://www.mexc.com/api/platform/asset/spot/{COINNAME}
                 },
                 'networksById': {
-                    'BNB Smart Chain(BEP20-RACAV1)': 'BSC',
-                    'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
-                    'BNB Smart Chain(BEP20)': 'BSC',
+                    'BNB Smart Chain(BEP20-RACAV1)': 'BEP20',
+                    'BNB Smart Chain(BEP20-RACAV2)': 'BEP20',
+                    'BNB Smart Chain(BEP20)': 'BEP20',
                     'Ethereum(ERC20)': 'ERC20',
                     # TODO: unified names undecided for PEPE COIN BSC, SMART BLOCKCHAIN, f(x)Core, Syscoin Rollux, Syscoin UTXO,
                     # zkSync Era, zkSync Lite, Darwinia Smart Chain, Arbitrum One(ARB-Bridged), Optimism(OP-Bridged), Polygon(MATIC-Bridged)
@@ -2008,7 +2008,10 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            tickers = self.safe_list(response, 'data', [])
+            if isSingularMarket:
+                tickers = self.safe_dict(response, 'data', {})  # when queried with a symbol, "data" holds a single ticker object, like in fetchTicker
+            else:
+                tickers = self.safe_list(response, 'data', [])
         # when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if isSingularMarket:
             tickers = [tickers]
@@ -2133,6 +2136,15 @@ class mexc(Exchange, ImplicitAPI):
             ask = self.safe_string(ticker, 'ask1')
             baseVolume = self.safe_string(ticker, 'volume24')
             quoteVolume = self.safe_string(ticker, 'amount24')
+            contractSize = self.safe_string(marketResolved, 'contractSize')
+            if (isSwap is True) and (contractSize is not None):
+                # volume24 counts contracts, amount24 is in the settle currency
+                contractVolume = Precise.string_mul(baseVolume, contractSize)
+                if marketResolved['inverse'] is True:
+                    baseVolume = quoteVolume
+                    quoteVolume = contractVolume
+                else:
+                    baseVolume = contractVolume
             high = self.safe_string(ticker, 'high24Price')
             low = self.safe_string(ticker, 'lower24Price')
             changeValue = self.safe_string(ticker, 'riseFallValue')
@@ -2277,7 +2289,7 @@ class mexc(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         if market['spot'] is not True:
-            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
+            raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
         req = {
             'cost': cost,
         }
@@ -2529,7 +2541,10 @@ class mexc(Exchange, ImplicitAPI):
             request['triggerType'] = self.safe_integer(paramsOmitted, 'triggerType', 1)
             request['executeCycle'] = self.safe_integer(paramsOmitted, 'executeCycle', 1)
             request['trend'] = self.safe_integer(paramsOmitted, 'trend', 1)
-            request['orderType'] = self.safe_integer(paramsOmitted, 'orderType', 1)
+            planOrderType = orderType
+            if orderType == 6:
+                planOrderType = 5  # 6 (convert to current price) does not exist for trigger orders, 5 is their market type
+            request['orderType'] = self.safe_integer(paramsOmitted, 'orderType', planOrderType)
             response = self.contractPrivatePostPlanorderPlace(self.extend(request, paramsOmitted))
         else:
             response = self.contractPrivatePostOrderCreate(self.extend(request, paramsOmitted))
@@ -2543,7 +2558,12 @@ class mexc(Exchange, ImplicitAPI):
         # {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
         #
         data = self.safe_dict(response, 'data')
-        return self.safe_order({'id': self.safe_string(data, 'orderId'), 'timestamp': self.safe_integer(data, 'ts')}, market)
+        id = None
+        if data is None:
+            id = self.safe_string(response, 'data')  # planorder/place answers with the bare trigger order id
+        else:
+            id = self.safe_string(data, 'orderId')
+        return self.safe_order({'id': id, 'timestamp': self.safe_integer(data, 'ts')}, market)
 
     def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
@@ -2922,7 +2942,7 @@ class mexc(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         marketType, query = self.handle_market_type_and_params('fetchOrdersByIds', market, params)
         if marketType == 'spot':
-            raise BadRequest(self.id + ' fetchOrdersByIds() is not supported for ' + marketType)
+            raise NotSupported(self.id + ' fetchOrdersByIds() is not supported for ' + marketType)
         else:
             request['order_ids'] = ','.join(ids)
             response = self.contractPrivateGetOrderBatchQuery(self.extend(request, query))
@@ -2975,6 +2995,7 @@ class mexc(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: set to True for fetching trigger orders
         :param str [params.marginMode]: only 'isolated' is supported, for spot-margin trading
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -3046,11 +3067,19 @@ class mexc(Exchange, ImplicitAPI):
             #
             return self.parse_orders(response, market, since, limit)
         else:
+            trigger = self.safe_bool_2(paramsMarketType, 'stop', 'trigger')
+            swapParams = self.omit(paramsMarketType, ['stop', 'trigger'])
             if limit is None:
                 request['page_size'] = 100  # max
-            swapResponse = self.contractPrivateGetOrderListOpenOrders(self.extend(request, paramsMarketType))
-            data = self.safe_list(swapResponse, 'data', [])
-            return self.parse_orders(data, market, since, limit, paramsMarketType)
+            data = []
+            if trigger is True:
+                request['states'] = 1  # untriggered
+                triggerResponse = self.contractPrivateGetPlanorderListOrders(self.extend(request, swapParams))
+                data = self.safe_list(triggerResponse, 'data', [])
+            else:
+                swapResponse = self.contractPrivateGetOrderListOpenOrders(self.extend(request, swapParams))
+                data = self.safe_list(swapResponse, 'data', [])
+            return self.parse_orders(data, market, since, limit, swapParams)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -3109,6 +3138,7 @@ class mexc(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.trigger]: set to True for canceling trigger orders
         :param str [params.marginMode]: only 'isolated' is supported for spot-margin trading
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -3174,14 +3204,19 @@ class mexc(Exchange, ImplicitAPI):
             #     ]
             #
         else:
-            # TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
+            trigger = self.safe_bool_2(query, 'stop', 'trigger')
             method = self.safe_string(self.options, 'cancelOrder', 'contractPrivatePostOrderCancel')  # contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = self.safe_string(query, 'method', method)
+            if trigger is True:
+                method = 'contractPrivatePostPlanorderCancel'
             response: dict
             if method == 'contractPrivatePostOrderCancel':
                 response = self.contractPrivatePostOrderCancel([id])  # the request cannot be changed or extended. This is the only way to send.
             elif method == 'contractPrivatePostPlanorderCancel':
-                response = self.contractPrivatePostPlanorderCancel([id])  # the request cannot be changed or extended. This is the only way to send.
+                if symbol is None:
+                    raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument for trigger orders')
+                cancelRequest = {'symbol': self.safe_string(market, 'id'), 'orderId': id}
+                response = self.contractPrivatePostPlanorderCancel([cancelRequest])  # the request cannot be changed or extended. This is the only way to send.
             else:
                 raise NotSupported(self.id + ' cancelOrder() not support self method')
             #
@@ -3197,6 +3232,8 @@ class mexc(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
+            if method == 'contractPrivatePostPlanorderCancel':
+                return self.safe_order({'id': id, 'symbol': self.safe_string(market, 'symbol'), 'info': response}, market)  # planorder/cancel answers without data, failures are raised by handleErrors
             data = self.safe_value(response, 'data')
             order = self.safe_dict(data, 0)
             errorMsg = self.safe_string(order, 'errorMsg', '')
@@ -3220,7 +3257,7 @@ class mexc(Exchange, ImplicitAPI):
         market = self.market(symbol) if (symbol is not None) else None
         marketType = self.handle_market_type_and_params('cancelOrders', market, params)
         if marketType == 'spot':
-            raise BadRequest(self.id + ' cancelOrders() is not supported for ' + marketType)
+            raise NotSupported(self.id + ' cancelOrders() is not supported for ' + marketType)
         else:
             response = self.contractPrivatePostOrderCancel(ids)  # the request cannot be changed or extended. The only way to send.
             #
@@ -3562,7 +3599,7 @@ class mexc(Exchange, ImplicitAPI):
             'PARTIALLY_FILLED': 'open',
             'PARTIALLY_CANCELED': 'canceled',
             # contracts v1
-            # '1': 'uninformed', // TODO: wt?
+            '1': 'open',  # regular: uninformed, trigger: untriggered
             '2': 'open',
             '3': 'closed',
             '4': 'canceled',
@@ -3689,7 +3726,7 @@ class mexc(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         if market['spot'] is not True:
-            raise BadRequest(self.id + ' fetchTradingFee() supports spot markets only')
+            raise NotSupported(self.id + ' fetchTradingFee() supports spot markets only')
         request = {
             'symbol': market['id'],
         }
@@ -4594,7 +4631,8 @@ class mexc(Exchange, ImplicitAPI):
         #        coin: "USDT",
         #        network: "BNB Smart Chain(BEP20)",
         #        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        #        memo:  null
+        #        memo:  null,
+        #        netWork: "BSC"
         #    }
         #
         address = self.safe_string(depositAddress, 'address')
@@ -4647,7 +4685,8 @@ class mexc(Exchange, ImplicitAPI):
         #            coin: "USDT",
         #            network: "BNB Smart Chain(BEP20)",
         #            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        #            memo:  null
+        #            memo:  null,
+        #            netWork: "BSC"
         #        }
         #        ...
         #    ]
@@ -4782,7 +4821,7 @@ class mexc(Exchange, ImplicitAPI):
         #         "memo": "xxyy1122",
         #         "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         #         "updateTime": "1664805621000",
-        #         "netWork: "TRX"
+        #         "netWork": "TRX"
         #     }
         # ]
         #
@@ -4839,7 +4878,7 @@ class mexc(Exchange, ImplicitAPI):
         #       "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         #       "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         #       "updateTime": "1664882799000",
-        #       "netWork: "MATIC"
+        #       "netWork": "MATIC"
         #     }
         # ]
         #
@@ -4862,7 +4901,7 @@ class mexc(Exchange, ImplicitAPI):
         #     "memo": "xxyy1122",
         #     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         #     "updateTime": "1664805621000",
-        #     "netWork: "TRX"
+        #     "netWork": "TRX"
         # }
         #
         # fetchWithdrawals
@@ -4884,7 +4923,7 @@ class mexc(Exchange, ImplicitAPI):
         #     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         #     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         #     "updateTime": "1664882799000",
-        #     "netWork: "MATIC"
+        #     "netWork": "MATIC"
         #   }
         #
         # withdraw
@@ -5128,24 +5167,34 @@ class mexc(Exchange, ImplicitAPI):
         symbol = marketResolved['symbol']
         contracts = self.safe_string(position, 'holdVol')
         entryPrice = self.safe_number(position, 'openAvgPrice')
-        initialMargin = self.safe_string(position, 'im')
+        initialMargin = self.omit_zero(self.safe_string(position, 'im'))
+        unrealizedPnl = self.safe_string(position, 'unRealizedPnl')
         rawSide = self.safe_string(position, 'positionType')
         side = 'long' if (rawSide == '1') else 'short'
-        openType = self.safe_string(position, 'margin_mode')
+        openType = self.safe_string_2(position, 'openType', 'margin_mode')
         marginType = 'isolated' if (openType == '1') else 'cross'
+        collateralString = None
+        marginString = None
+        if (marginType == 'isolated') and (initialMargin is not None):
+            # im is the margin mexc holds in the position; funding settles to the available balance
+            collateralString = initialMargin
+            marginString = collateralString
+            if unrealizedPnl is not None:
+                collateralString = Precise.string_add(collateralString, unrealizedPnl)
         leverage = self.safe_number(position, 'leverage')
-        liquidationPrice = self.safe_number(position, 'liquidatePrice')
+        liquidationPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'liquidatePrice')))
         timestamp = self.safe_integer(position, 'updateTime')
         return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
-            'contractSize': None,
+            'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'entryPrice': entryPrice,
-            'collateral': None,
+            'positionMargin': self.parse_number(marginString),
+            'collateral': self.parse_number(collateralString),
             'side': side,
-            'unrealizedPnl': None,
+            'unrealizedPnl': self.parse_number(unrealizedPnl),
             'leverage': self.parse_number(leverage),
             'percentage': None,
             'marginMode': marginType,
@@ -5200,9 +5249,7 @@ class mexc(Exchange, ImplicitAPI):
             #
             data = self.safe_dict(response, 'data', {})
             return self.parse_transfer(data)
-        elif marketType == 'swap':
-            raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
-        raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
+        raise NotSupported(self.id + ' fetchTransfer() is not supported for ' + marketType)
 
     def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
@@ -5452,7 +5499,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -5462,8 +5509,8 @@ class mexc(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param dict [params.internal]: False by default, set to True for an "internal transfer"
         :param dict [params.toAccountType]: skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
@@ -5471,7 +5518,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        tagResolved, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagResolved, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         internal = self.safe_bool(paramsWithdrawTag, 'internal', False)
         if internal is True:
             paramsInternal = self.omit(paramsWithdrawTag, 'internal')
@@ -5494,7 +5541,7 @@ class mexc(Exchange, ImplicitAPI):
         network = self.safe_string_2(paramsWithdrawTag, 'network', 'netWork')  # this line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
         network = self.network_code_to_id(network, self.safe_string(currency, 'code'))
-        self.check_address(address)
+        self.check_address(address, code, tagResolved)
         request = {
             'coin': currency['id'],
             'address': address,
@@ -5920,7 +5967,7 @@ class mexc(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         if market['spot'] is True:
-            raise BadSymbol(self.id + ' setMarginMode() supports contract markets only')
+            raise NotSupported(self.id + ' setMarginMode() supports contract markets only')
         marginModeLower = marginMode.lower()
         if marginModeLower != 'isolated' and marginModeLower != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
@@ -5946,9 +5993,9 @@ class mexc(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        requestHeaders = None
+        requestBody = None
         section = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
         pathValue = self.implode_params(path, params)

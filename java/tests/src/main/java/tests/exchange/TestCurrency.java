@@ -72,6 +72,10 @@ public class TestCurrency extends BaseTest {
         Object networks = exchange.safeDict(entry, "networks", new HashMap<String, Object>() {{}});
         List<String> networkKeys = new ArrayList<String>(((Map<String, Object>)networks).keySet());
         Integer networkKeysLength = ((List<?>)networkKeys).size();
+        for (var i = 0; (networkKeysLength != null && i < networkKeysLength); i++)
+        {
+            TestSharedMethods.AssertUnifiedNetworkCode(exchange, skippedProperties, method, entry, (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i)));
+        }
         if (java.util.Objects.equals(networkKeysLength, 0) && (Helpers.inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))
         {
             return;

@@ -785,7 +785,11 @@ class htx(ccxt.async_support.htx):
         market = self.market(symbol)
         limit = self.safe_integer(subscription, 'limit')
         if symbol is not None:
-            self.orderbooks[symbol] = self.order_book({}, limit)
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book({}, limit)
+            orderbook = self.orderbooks[symbol]
+            orderbook['nonce'] = None
+            orderbook.cache = []
         if market['spot'] is True:
             self.spawn(self.watch_order_book_snapshot, client, message, subscription)
 

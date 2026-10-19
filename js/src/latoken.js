@@ -576,7 +576,10 @@ export default class latoken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this.privateGetAuthAccount(params);
+        const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString(params, 'type', defaultType);
+        const paramsOmitted = this.omit(params, 'type');
+        const response = await this.privateGetAuthAccount(paramsOmitted);
         //
         //     [
         //         {
@@ -605,8 +608,6 @@ export default class latoken extends Exchange {
             'datetime': undefined,
         };
         let maxTimestamp = undefined;
-        const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString(params, 'type', defaultType);
         const types = this.safeDict(this.options, 'types', {});
         const accountType = this.safeString(types, type, type);
         const balancesByType = this.groupBy(response, 'type');
@@ -1257,7 +1258,7 @@ export default class latoken extends Exchange {
         }
         let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
-        const paramsOmitted = this.omit(params, 'stop');
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         const market = this.market(symbol);
         const request = {
@@ -1869,9 +1870,10 @@ export default class latoken extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const request = '/' + this.version + '/' + this.implodeParams(path, params);
         let requestString = request;
         const query = this.omit(params, this.extractParams(path));
@@ -1881,7 +1883,7 @@ export default class latoken extends Exchange {
                 requestString += '?' + urlencodedQuery;
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const auth = method + request + urlencodedQuery;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);

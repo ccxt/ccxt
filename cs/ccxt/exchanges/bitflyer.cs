@@ -1117,11 +1117,11 @@ public partial class bitflyer : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkAddress(address);
@@ -1408,15 +1408,16 @@ public partial class bitflyer : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         string? bodySigned = null;
         Dictionary<string, object> headersSigned = null;
         object request = (("/" + this.version) + "/");
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             request = add(request, "me/");
         }
@@ -1435,7 +1436,7 @@ public partial class bitflyer : Exchange
         }
         object baseUrl = this.implodeHostname(apiUrl);
         string? url = ((string)add(baseUrl, request));
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
@@ -1456,8 +1457,8 @@ public partial class bitflyer : Exchange
                 { "Content-Type", "application/json" },
             };
         }
-        object headersResolved = ((headersSigned == null)) ? headers : headersSigned;
-        object bodyResolved = ((bodySigned == null)) ? body : bodySigned;
+        Dictionary<string, object> headersResolved = headersSigned;
+        string? bodyResolved = bodySigned;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

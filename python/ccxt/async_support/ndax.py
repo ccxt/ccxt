@@ -2496,24 +2496,24 @@ class ndax(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         # this method required login, password and twofa key
         sessionToken = self.safe_string(self.options, 'sessionToken')
         if sessionToken is None:
             raise AuthenticationError(self.id + ' call signIn() method to obtain a session token')
         if self.twofa is None:
             raise AuthenticationError(self.id + ' withdraw() requires exchange.twofa credentials')
-        self.check_address(address)
+        self.check_address(address, code, tagWithdrawTag)
         omsId = self.safe_integer(self.options, 'omsId', 1)
         if self.markets is None:
             await self.load_markets()
@@ -2587,15 +2587,16 @@ class ndax(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         bodySigned = None
         headersSigned = None
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
+        if apiName == 'public':
             if path == 'Authenticate':
                 auth = self.login + ':' + self.password
                 auth64 = self.string_to_base64(auth)
@@ -2613,7 +2614,7 @@ class ndax(Exchange, ImplicitAPI):
                     query = self.omit(query, 'pending2faToken')
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        elif api == 'private':
+        elif apiName == 'private':
             self.check_required_credentials()
             sessionToken = self.safe_string(self.options, 'sessionToken')
             if sessionToken is None:
@@ -2636,8 +2637,8 @@ class ndax(Exchange, ImplicitAPI):
             else:
                 if len(query) > 0:
                     url += '?' + self.urlencode(query)
-        headersResolved = headers if (headersSigned is None) else headersSigned
-        bodyResolved = body if (bodySigned is None) else bodySigned
+        headersResolved = headersSigned
+        bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

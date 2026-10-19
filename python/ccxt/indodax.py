@@ -227,7 +227,7 @@ class indodax(Exchange, ImplicitAPI):
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'networks': {
                     'XLM': 'Stellar Token',
-                    'BSC': 'bep20',
+                    'BEP20': 'bep20',
                     'TRC20': 'trc20',
                     'MATIC': 'polygon',
                     # 'BEP2': 'bep2',
@@ -1216,7 +1216,7 @@ class indodax(Exchange, ImplicitAPI):
             transactions = self.array_concat(withdraws, deposits)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1225,12 +1225,12 @@ class indodax(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -1439,14 +1439,15 @@ class indodax(Exchange, ImplicitAPI):
                     }
         return result
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl
         privateBody = None
         privateHeaders = None
-        isPublic = (api == 'public')
+        isPublic = (apiName == 'public')
         if isPublic:
             query = self.omit(params, self.extract_params(path))
             requestPath = '/' + self.implode_params(path, params)
@@ -1467,10 +1468,10 @@ class indodax(Exchange, ImplicitAPI):
             }
         requestBody = privateBody
         if isPublic:
-            requestBody = body
+            requestBody = None
         requestHeaders = privateHeaders
         if isPublic:
-            requestHeaders = headers
+            requestHeaders = None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

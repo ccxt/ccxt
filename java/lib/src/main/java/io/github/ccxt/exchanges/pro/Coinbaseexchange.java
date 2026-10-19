@@ -1108,13 +1108,13 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         Long limit = this.safeInteger(subscription, "limit");
         if (java.util.Objects.equals(type, "snapshot"))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+            {
+                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList())));
-            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList())));
-            orderbook.put("timestamp", null);
-            orderbook.put("datetime", null);
-            orderbook.put("symbol", symbol);
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, (Long) null, "bids", "asks", 0, 1, 2);
+            orderbook.reset(snapshot);
             client.resolve(orderbook, messageHash);
         } else if (java.util.Objects.equals(type, "l2update"))
         {

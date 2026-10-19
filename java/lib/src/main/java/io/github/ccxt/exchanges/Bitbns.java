@@ -1510,7 +1510,7 @@ public class Bitbns extends BitbnsApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String address = this.safeString(data, "token");
             String tag = this.safeString(data, "tag");
-            this.checkAddress(address);
+            this.checkAddress(address, (String) null, (String) null);
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", code );
@@ -1527,22 +1527,23 @@ public class Bitbns extends BitbnsApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object urls = this.urls;
-        if (!(((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(java.util.Objects.requireNonNullElse(api, "www"))))
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        if (!(((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(apiName)))
         {
-            throw new ExchangeError((((this.id + " does not have a testnet/sandbox URL for ") + java.util.Objects.requireNonNullElse(api, "www")) + " endpoints")) ;
+            throw new ExchangeError((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
         }
-        if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "www"), "www"))
+        if (!java.util.Objects.equals(apiName, "www"))
         {
             this.checkRequiredCredentials(true);
         }
         Map<String, Object> apiKeyHeaders = new HashMap<String, Object>() {{
             put( "X-BITBNS-APIKEY", Bitbns.this.apiKey );
         }};
-        Object requestHeaders = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "www"), "www")))) ? apiKeyHeaders : headers;
-        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "www"));
+        Object requestHeaders = (((!java.util.Objects.equals(apiName, "www")))) ? apiKeyHeaders : null;
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1557,7 +1558,7 @@ public class Bitbns extends BitbnsApi
         {
             postBody = this.json(query);
         }
-        String requestBody = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? postBody : body;
+        String requestBody = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))) ? postBody : null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             if ((queryLength != null && queryLength > 0))

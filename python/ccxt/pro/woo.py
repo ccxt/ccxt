@@ -90,7 +90,7 @@ class woo(ccxt.async_support.woo):
 
     async def watch_public(self, messageHash: str, message: dict):
         urlUid = ''
-        if self.uid != '':
+        if (self.uid is not None) and (self.uid != ''):
             urlUid = '/' + self.uid
         url = self.safe_string(self.urls['api']['ws'], 'public') + urlUid
         requestId = self.request_id(url)
@@ -102,7 +102,7 @@ class woo(ccxt.async_support.woo):
 
     async def unwatch_public(self, subHash: str, symbol: Str, topic: str, params={}) -> object:
         urlUid = ''
-        if self.uid != '':
+        if (self.uid is not None) and (self.uid != ''):
             urlUid = '/' + self.uid
         url = self.safe_string(self.urls['api']['ws'], 'public') + urlUid
         requestId = self.request_id(url)
@@ -145,7 +145,7 @@ class woo(ccxt.async_support.woo):
         market = self.market(symbol)
         topic = market['id'] + '@' + method
         urlUid = ''
-        if self.uid != '':
+        if (self.uid is not None) and (self.uid != ''):
             urlUid = '/' + self.uid
         url = self.safe_string(self.urls['api']['ws'], 'public') + urlUid
         requestId = self.request_id(url)
@@ -254,9 +254,13 @@ class woo(ccxt.async_support.woo):
         symbol = self.safe_string(subscription, 'symbol')  # watchOrderBook
         if symbol is None:
             return
-        if symbol in self.orderbooks:
-            del self.orderbooks[symbol]
-        self.orderbooks[symbol] = self.order_book({}, limit)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({}, limit)
+        orderbook = self.orderbooks[symbol]
+        # handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
+        orderbook['timestamp'] = None
+        orderbook['datetime'] = None
+        orderbook.cache = []
         self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
     async def fetch_order_book_snapshot(self, client: Client, message: dict, subscription: dict):

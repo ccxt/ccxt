@@ -1922,7 +1922,7 @@ class cryptocom(Exchange, ImplicitAPI):
             address = addressString
         return [address, tag]
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1931,11 +1931,12 @@ class cryptocom(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         currency = self.safe_currency(code)  # for instance, USDC is not inferred from markets but it's still available
@@ -2041,12 +2042,14 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        network = self.safe_string_upper(params, 'network')
+        networkParam = self.safe_string_upper(params, 'network')
         paramsOmitted = self.omit(params, ['network'])
         depositAddressesRaw = await self.fetch_deposit_addresses_by_network(code, paramsOmitted)
         depositAddresses = depositAddressesRaw
-        if network in depositAddresses:
-            return depositAddresses[network]
+        if networkParam is not None:
+            network = self.safe_string(self.networkAliases, networkParam, networkParam)
+            if network in depositAddresses:
+                return depositAddresses[network]
         keys = list(depositAddresses.keys())
         return depositAddresses[keys[0]]
 
@@ -3397,9 +3400,9 @@ class cryptocom(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        requestHeaders = None
+        requestBody = None
         type = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
         apiUrl = self.safe_string(self.urls['api'], type)

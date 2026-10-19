@@ -597,7 +597,10 @@ class latoken extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $response = Async\await($this->privateGetAuthAccount($params));
+        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $paramsOmitted = $this->omit($params, 'type');
+        $response = Async\await($this->privateGetAuthAccount($paramsOmitted));
         //
         //     [
         //         {
@@ -626,8 +629,6 @@ class latoken extends Exchange {
             'datetime' => null,
         );
         $maxTimestamp = null;
-        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
         $types = $this->safe_dict($this->options, 'types', array());
         $accountType = $this->safe_string($types, $type, $type);
         $balancesByType = $this->group_by($response, 'type');
@@ -1321,7 +1322,7 @@ class latoken extends Exchange {
             Async\await($this->load_markets());
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
-        $paramsOmitted = $this->omit($params, 'stop');
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         $market = $this->market($symbol);
         $request = array(
@@ -1961,9 +1962,10 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $requestHeaders = null;
+        $requestBody = null;
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $requestString = $request;
         $query = $this->omit($params, $this->extract_params($path));
@@ -1973,7 +1975,7 @@ class latoken extends Exchange {
                 $requestString .= '?' . $urlencodedQuery;
             }
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $auth = $method . $request . $urlencodedQuery;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');

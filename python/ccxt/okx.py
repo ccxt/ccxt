@@ -1195,15 +1195,11 @@ class okx(Exchange, ImplicitAPI):
                 'networks': {
                     'BTC': 'Bitcoin',
                     'BTCLIGHTNING': 'Lightning',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'BRC20': 'BRC20',
-                    'ETH': 'ERC20',
                     'ERC20': 'ERC20',
-                    'TRX': 'TRC20',
                     'TRC20': 'TRC20',
                     'CRC20': 'Crypto',
-                    'CRONOS': 'Crypto',
                     'ACA': 'Acala',
                     'ALGO': 'Algorand',
                     'APT': 'Aptos',
@@ -1437,7 +1433,12 @@ class okx(Exchange, ImplicitAPI):
                         'trailing': True,
                         'iceberg': True,  # todo implement
                         'leverage': False,
-                        'selfTradePrevention': True,  # todo implement
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': True,
+                            'EXPIRE_TAKER': True,
+                            'EXPIRE_BOTH': True,
+                            'NONE': False,  # okx enforces stp at the account level, it cannot be turned off
+                        },
                         'marketBuyByCost': True,
                         'marketBuyRequiresPrice': False,
                     },
@@ -3356,6 +3357,26 @@ class okx(Exchange, ImplicitAPI):
                     slOrdPxReq = self.price_to_precision(symbol, slOrdPx)
                 request['slOrdPx'] = slOrdPxReq
                 request['slTriggerPxType'] = slTriggerPxType
+        # unified stp
+        selfTradePrevention = None
+        selfTradePrevention, orderParams = self.handle_option_and_params(orderParams, 'createOrder', 'selfTradePrevention')
+        if selfTradePrevention is not None:
+            stpModes = {
+                'EXPIRE_MAKER': 'cancel_maker',
+                'EXPIRE_TAKER': 'cancel_taker',
+                'EXPIRE_BOTH': 'cancel_both',
+            }
+            selfTradePreventionUpper = selfTradePrevention.upper()
+            if selfTradePreventionUpper == 'NONE':
+                raise NotSupported(self.id + ' createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order')
+            stpMode = self.safe_string(stpModes, selfTradePreventionUpper, selfTradePrevention.lower())
+            algoOrderTypes = self.safe_dict(self.options, 'algoOrderTypes', {})
+            requestOrdType = self.safe_string(request, 'ordType')
+            if (requestOrdType is not None) and (requestOrdType in algoOrderTypes):
+                raise NotSupported(self.id + ' createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint')
+            if (stpMode == 'cancel_both') and (requestOrdType == 'fok'):
+                raise InvalidOrder(self.id + ' createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders')
+            request['stpMode'] = stpMode
         if clientOrderId is None:
             brokerId = self.safe_string(self.options, 'brokerId')
             if brokerId is not None:
@@ -3397,6 +3418,7 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated', the default is 'cross'
         :param bool [params.rpiTakerAccess]: True to a taker order match against retail price improvement liquidity
         :param bool [params.rpiPxRound]: *rpi orders only* True to round the price outward to the nearest placeable non-crossing level
+        :param str [params.selfTradePrevention]: set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -5298,7 +5320,7 @@ class okx(Exchange, ImplicitAPI):
         first = self.safe_string(keys, 0, '')
         return self.safe_dict(response, first)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -5307,12 +5329,12 @@ class okx(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -5329,7 +5351,9 @@ class okx(Exchange, ImplicitAPI):
         network = self.safe_string(paramsWithdrawTag, 'network')  # this line allows the user to specify either ERC20 or ETH
         if network is not None:
             networks = self.safe_dict(self.options, 'networks', {})
-            network = self.safe_string(networks, network.upper(), network)  # handle ETH>ERC20 alias
+            networkUpper = network.upper()
+            networkKey = self.safe_string(self.networkAliases, networkUpper, networkUpper)
+            network = self.safe_string(networks, networkKey, network)  # resolve aliases to the unified key
             request['chain'] = currency['id'] + '-' + network
         omitKeys = ['fee']
         if network is not None:
@@ -6078,12 +6102,17 @@ class okx(Exchange, ImplicitAPI):
         leverageString = self.safe_string(position, 'lever')
         initialMarginPercentage = None
         collateralString = None
+        marginString = None
         if marginMode == 'cross':
             initialMarginString = self.safe_string(position, 'imr')
-            collateralString = Precise.string_add(initialMarginString, unrealizedPnlString)
+            collateralString = Precise.string_add(initialMarginString, unrealizedPnlString) if (unrealizedPnlString is not None) else initialMarginString
         elif marginMode == 'isolated':
             initialMarginPercentage = Precise.string_div('1', leverageString)
-            collateralString = self.safe_string(position, 'margin')
+            isolatedMarginString = self.omit_zero(self.safe_string(position, 'margin'))
+            if isolatedMarginString is not None:
+                initialMarginString = isolatedMarginString
+                marginString = isolatedMarginString
+                collateralString = Precise.string_add(isolatedMarginString, unrealizedPnlString) if (unrealizedPnlString is not None) else isolatedMarginString
         maintenanceMarginString = self.safe_string(position, 'mmr')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
         maintenanceMarginPercentageString = Precise.string_div(maintenanceMarginString, notionalString)
@@ -6096,8 +6125,25 @@ class okx(Exchange, ImplicitAPI):
             else:
                 initialMarginString = Precise.string_div(Precise.string_div(Precise.string_mul(contractsAbs, contractSizeString), entryPriceString), leverageString)
         rounder = '0.00005'  # round to closest 0.01%
-        maintenanceMarginPercentage = self.parse_number(Precise.string_div(Precise.string_add(maintenanceMarginPercentageString, rounder), '1', 4))
-        liquidationPrice = self.safe_number(position, 'liqPx')
+        maintenanceMarginPercentage = self.parse_number(Precise.string_div(Precise.string_add(maintenanceMarginPercentageString, rounder), '1', 4)) if (maintenanceMarginPercentageString is not None) else None
+        liquidationPriceString = self.omit_zero(self.safe_string(position, 'liqPx'))
+        if (liquidationPriceString is None) and (marginMode == 'isolated') and (initialMarginString is not None) and (entryPriceString is not None) and (contractsAbs is not None) and Precise.string_gt(contractsAbs, '0') and (contractSizeString is not None) and (maintenanceMarginPercentage is not None):
+            takerFeeRate = self.safe_string(marketResolved, 'taker', '0.0005')
+            mmpWithFee = Precise.string_add(self.number_to_string(maintenanceMarginPercentage), takerFeeRate)
+            totalSize = Precise.string_mul(contractsAbs, contractSizeString)
+            if marketResolved['inverse'] is True:
+                invEntry = Precise.string_div(totalSize, entryPriceString)
+                denom = Precise.string_add(invEntry, initialMarginString) if (side == 'long') else Precise.string_sub(invEntry, initialMarginString)
+                numFactor = Precise.string_add('1', mmpWithFee) if (side == 'long') else Precise.string_sub('1', mmpWithFee)
+                if (denom is not None) and Precise.string_gt(denom, '0'):
+                    liquidationPriceString = Precise.string_div(Precise.string_mul(totalSize, numFactor), denom)
+            else:
+                marginPerUnit = Precise.string_div(initialMarginString, totalSize)
+                num = Precise.string_sub(entryPriceString, marginPerUnit) if (side == 'long') else Precise.string_add(entryPriceString, marginPerUnit)
+                denom = Precise.string_sub('1', mmpWithFee) if (side == 'long') else Precise.string_add('1', mmpWithFee)
+                if (denom is not None) and Precise.string_gt(denom, '0'):
+                    liquidationPriceString = Precise.string_div(num, denom)
+        liquidationPrice = self.parse_number(liquidationPriceString) if ((liquidationPriceString is not None) and Precise.string_gt(liquidationPriceString, '0')) else None
         percentageString = self.safe_string(position, 'uplRatio')
         percentage = self.parse_number(Precise.string_mul(percentageString, '100'))
         timestamp = self.safe_integer(position, 'cTime')
@@ -6124,6 +6170,7 @@ class okx(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': self.safe_integer(position, 'uTime'),
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'positionMargin': self.parse_number(marginString),
             'collateral': self.parse_number(collateralString),
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
@@ -6380,7 +6427,8 @@ class okx(Exchange, ImplicitAPI):
         transfers = self.safe_list(response, 'data', [])
         return self.parse_transfers(transfers, currency, since, limit, params)
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         isArray = isinstance(params, list)
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -6392,10 +6440,10 @@ class okx(Exchange, ImplicitAPI):
         hasJsonBody = False
         jsonBody = None
         # const type = this.getPathAuthenticationType (path);
-        if api == 'public':
+        if apiName == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        elif api == 'private':
+        elif apiName == 'private':
             self.check_required_credentials()
             # inject id in implicit api call
             if method == 'POST' and (path == 'trade/batch-orders' or path == 'trade/order-algo' or path == 'trade/order'):
@@ -6436,10 +6484,10 @@ class okx(Exchange, ImplicitAPI):
                 privateHeaders['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             privateHeaders['OK-ACCESS-SIGN'] = signature
-        requestBody = body
+        requestBody = None
         if hasJsonBody:
             requestBody = jsonBody
-        requestHeaders = privateHeaders if (api == 'private') else headers
+        requestHeaders = privateHeaders if (apiName == 'private') else None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
@@ -7289,8 +7337,8 @@ class okx(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         type = 'MARGIN' if (market['spot'] is True) else self.convert_to_instrument_type(market['type'])
-        uly = self.safe_string(market['info'], 'uly')
-        if (uly is None) or (uly == ''):
+        instFamily = self.safe_string(market['info'], 'instFamily')
+        if (instFamily is None) or (instFamily == ''):
             if type != 'MARGIN':
                 raise BadRequest(self.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol)
         # cross as default marginMode
@@ -7299,7 +7347,7 @@ class okx(Exchange, ImplicitAPI):
         request = {
             'instType': type,
             'tdMode': marginMode,
-            'uly': uly,
+            'instFamily': instFamily,
         }
         if type == 'MARGIN':
             request['instId'] = market['id']

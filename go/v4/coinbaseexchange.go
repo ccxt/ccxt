@@ -597,7 +597,7 @@ func (this *Coinbaseexchange) Describe() any {
 		"options": map[string]any{
 			"networks": map[string]any{
 				"BTC":      "bitcoin",
-				"ETH":      "ethereum",
+				"ERC20":    "ethereum",
 				"SOL":      "solana",
 				"ARBITRUM": "arbitrum",
 				"AVAXC":    "avacchain",
@@ -2436,8 +2436,8 @@ func (this *Coinbaseexchange) fetchPaymentMethodsBody(ch chan AsyncResult[any], 
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Coinbaseexchange) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -2448,14 +2448,12 @@ func (this *Coinbaseexchange) WithdrawAsync(code string, amount any, address any
 func (this *Coinbaseexchange) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -2485,7 +2483,7 @@ func (this *Coinbaseexchange) withdrawBody(ch chan EndpointResult[map[string]any
 		response = r2.Value
 	} else {
 		request["crypto_address"] = address
-		if tagWithdrawTag != nil {
+		if !IsEqual(tagWithdrawTag, nil) {
 			request["destination_tag"] = tagWithdrawTag
 		}
 
@@ -2667,11 +2665,11 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[any], optional
 		return params
 	}()
 
-	listEp2489 := <-this.PrivateGetAccountsIdLedger(this.Extend(request, paramsUntil))
-	if listEp2489.Err != nil {
-		panic(listEp2489.Err)
+	listEp2487 := <-this.PrivateGetAccountsIdLedger(this.Extend(request, paramsUntil))
+	if listEp2487.Err != nil {
+		panic(listEp2487.Err)
 	}
-	var response []any = listEp2489.Value
+	var response []any = listEp2487.Value
 	var entries []any = this.ToArray(response)
 	for i := 0; i < len(entries); i++ {
 		AddElementToObject(GetValue(entries, i), "currency", code)
@@ -2745,11 +2743,11 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[a
 	var response []any = nil
 	if id == nil {
 
-		listEp2557 := <-this.PrivateGetTransfers(this.Extend(request, params))
-		if listEp2557.Err != nil {
-			panic(listEp2557.Err)
+		listEp2555 := <-this.PrivateGetTransfers(this.Extend(request, params))
+		if listEp2555.Err != nil {
+			panic(listEp2555.Err)
 		}
-		var transfers []any = listEp2557.Value
+		var transfers []any = listEp2555.Value
 		//
 		//    [
 		//        {
@@ -2787,11 +2785,11 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[a
 		}
 	} else {
 
-		listEp2595 := <-this.PrivateGetAccountsIdTransfers(this.Extend(request, params))
-		if listEp2595.Err != nil {
-			panic(listEp2595.Err)
+		listEp2593 := <-this.PrivateGetAccountsIdTransfers(this.Extend(request, params))
+		if listEp2593.Err != nil {
+			panic(listEp2593.Err)
 		}
-		var accountTransfers []any = listEp2595.Value
+		var accountTransfers []any = listEp2593.Value
 		//
 		//    [
 		//        {
@@ -3078,18 +3076,15 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan AsyncResult[any],
 	return nil
 }
 func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var requestHeaders map[string]any = nil
+	var requestBody any = nil
 	var request string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {
@@ -3097,12 +3092,12 @@ func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) any {
 			request += "?" + this.Urlencode(query)
 		}
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = this.ImplodeHostname(apiUrl) + request
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var payload any = ""
@@ -3172,20 +3167,16 @@ func (this *Coinbaseexchange) RequestAsync(path any, optionalArgs ...any) <-chan
 func (this *Coinbaseexchange) requestBody(ch chan AsyncResult[any], path any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var config map[string]any = GetArgMap(optionalArgs, 5, map[string]any{})
+	var config map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = config
 
-	r := <-this.Fetch2Async(path, api, method, params, headers, body, config)
+	r := <-this.Fetch2Async(path, api, method, params, config)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -3699,8 +3690,8 @@ func (this *Coinbaseexchange) FetchPaymentMethods(params ...any) ([]map[string]a
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Coinbaseexchange) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -3710,7 +3701,7 @@ func (this *Coinbaseexchange) Withdraw(code string, amount float64, address stri
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

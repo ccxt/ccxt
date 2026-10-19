@@ -390,10 +390,10 @@ class coinbaseexchange extends Exchange {
                 'networks' => array(
                     'BTC' => 'bitcoin',
                     // LIGHTNING unsupported
-                    'ETH' => 'ethereum',
-                    // TRON unsupported
+                    'ERC20' => 'ethereum',
+                    // TRC20 unsupported
                     'SOL' => 'solana',
-                    // BSC unsupported
+                    // BEP20 unsupported
                     'ARBITRUM' => 'arbitrum',
                     'AVAXC' => 'avacchain',
                     'MATIC' => 'polygon',
@@ -401,7 +401,7 @@ class coinbaseexchange extends Exchange {
                     'SUI' => 'sui',
                     'OP' => 'optimism',
                     'NEAR' => 'near',
-                    // CRONOS unsupported
+                    // CRC20 unsupported
                     // GNO unsupported
                     'APT' => 'aptos',
                     // SCROLL unsupported
@@ -1709,7 +1709,7 @@ class coinbaseexchange extends Exchange {
         return $this->privateGetPaymentMethods($params);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1719,12 +1719,12 @@ class coinbaseexchange extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2171,9 +2171,10 @@ class coinbaseexchange extends Exchange {
         );
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $requestHeaders = null;
+        $requestBody = null;
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
@@ -2181,12 +2182,12 @@ class coinbaseexchange extends Exchange {
                 $request .= '?' . $this->urlencode($query);
             }
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $this->implode_hostname($apiUrl) . $request;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $payload = '';
@@ -2229,8 +2230,8 @@ class coinbaseexchange extends Exchange {
         return null;
     }
 
-    public function request(string $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
-        $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
+    public function request(string $path, array $api = array('public'), $method = 'GET', $params = array(), array $config = array()) {
+        $response = $this->fetch2($path, $api, $method, $params, $config);
         if (gettype($response) !== 'string') {
             if (is_array($response) && array_key_exists('message' ?? '', $response)) {
                 throw new ExchangeError($this->id . ' ' . $this->json($response));

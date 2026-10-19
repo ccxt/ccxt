@@ -588,7 +588,12 @@ class gate extends \ccxt\async\gate {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         if ($symbol !== null) {
-            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            }
+            $orderbook = $this->orderbooks[$symbol];
+            $orderbook['nonce'] = null;
+            $orderbook->cache = array();
         }
     }
 
@@ -745,7 +750,8 @@ class gate extends \ccxt\async\gate {
             $this->handle_book_delta($storedOrderBook, $delta);
         } else {
             unset($client->subscriptions[$messageHash]);
-            unset($this->orderbooks[$symbol]);
+            $storedOrderBook['nonce'] = null;
+            $storedOrderBook->cache = array();
             $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
             if ($checksum === true) {
                 $error = new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));

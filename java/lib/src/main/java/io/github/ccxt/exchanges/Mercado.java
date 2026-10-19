@@ -937,19 +937,19 @@ public class Mercado extends MercadoApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -980,7 +980,7 @@ public class Mercado extends MercadoApi
                     {
                         if (!(((Map<?, ?>)paramsWithdrawTag).containsKey("destination_tag")))
                         {
-                            throw new ArgumentsRequired(((this.id + " withdraw() requires a tag argument or destination_tag parameter to withdraw ") + code)) ;
+                            throw new ArgumentsRequired(((this.id + " withdraw() requires a tag or destination_tag parameter to withdraw ") + code)) ;
                         }
                     } else
                     {
@@ -1234,16 +1234,17 @@ public class Mercado extends MercadoApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + "/");
         Object query = this.omit(parameters, this.extractParams(path));
-        Boolean isPublic = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v4Public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v4PublicNet"));
+        Boolean isPublic = (java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "v4Public")) || (java.util.Objects.equals(apiName, "v4PublicNet"));
         String privateBody = null;
         Map<String, Object> privateHeaders = null;
         if (Boolean.TRUE.equals(isPublic))
@@ -1273,12 +1274,12 @@ public class Mercado extends MercadoApi
         String requestBody = privateBody;
         if (Boolean.TRUE.equals(isPublic))
         {
-            requestBody = body;
+            requestBody = null;
         }
-        Object requestHeaders = privateHeaders;
+        Map<String, Object> requestHeaders = privateHeaders;
         if (Boolean.TRUE.equals(isPublic))
         {
-            requestHeaders = headers;
+            requestHeaders = null;
         }
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();

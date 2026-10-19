@@ -455,20 +455,36 @@ public partial class gemini : ccxt.gemini
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook:" + symbol);
-        // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
-        } else if (isInitial)
-        {
-            // handle https://github.com/ccxt/ccxt/issues/29210
-            if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
-            {
-                ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
-            }
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        if (isInitial)
+        {
+            // the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
+            List<object> bidsSnapshot = new List<object>() {};
+            List<object> asksSnapshot = new List<object>() {};
+            for (int i = 0; i < changes.Count; i++)
+            {
+                object delta = changes[i];
+                List<object> bidAsk = new List<object> {this.safeNumber(delta, 1), this.safeNumber(delta, 2)};
+                if ((this.safeString(delta, 0) == "buy"))
+                {
+                    bidsSnapshot.Add(bidAsk);
+                } else
+                {
+                    asksSnapshot.Add(bidAsk);
+                }
+            }
+            ccxt.OrderBook snapshot = this.parseOrderBook(new Dictionary<string, object>() {
+                { "bids", bidsSnapshot },
+                { "asks", asksSnapshot },
+            }, symbol);
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
+            client.resolve(orderbook, messageHash);
+            return;
+        }
         for (int i = 0; i < changes.Count; i++)
         {
             object delta = changes[i];

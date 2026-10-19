@@ -567,8 +567,8 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes | the secondary withdrawal destination address |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.generation | <code>int</code> | No | if you want to use the API generation 1 or 2, default is 2 |
 | params.network | <code>string</code> | No | the blockchain network to withdraw on, for example BTC or DASH |
 | params.destination | <code>string</code> | No | secondary address destination for specific currencies, can alternatively use the tag argument |
@@ -584,7 +584,7 @@ make a withdrawal
 
 
 ```javascript
-bithumb.withdraw (code, amount, address, tag, params?)
+bithumb.withdraw (code, amount, address, params?)
 ```
 
 

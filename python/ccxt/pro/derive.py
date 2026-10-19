@@ -4,12 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Bool, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide
+from ccxt.base.types import Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import UnsubscribeError
+from ccxt.base.precise import Precise
 
 
 class derive(ccxt.async_support.derive):
@@ -17,25 +18,25 @@ class derive(ccxt.async_support.derive):
     def describe(self) -> object:
         return self.deep_extend(super(derive, self).describe(), {
             'has': {
-                'ws': False,
-                'watchBalance': False,
+                'ws': True,
+                'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': False,
-                'watchBidsAsks': False,
+                'watchBidsAsks': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
-                'watchPositions': False,
+                'watchPositions': True,
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.lyra.finance/ws',
+                    'ws': 'wss://api.derive.xyz/v3/ws',
                 },
                 'test': {
-                    'ws': 'wss://api-demo.lyra.finance/ws',
+                    'ws': 'wss://testnet.api.derive.xyz/v3/ws',
                 },
             },
             'options': {
@@ -75,7 +76,7 @@ class derive(ccxt.async_support.derive):
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
 
-        https://docs.derive.xyz/reference/orderbook-instrument_name-group-depth
+        https://docs.derive.xyz/api-reference/channels/orderbook
 
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -141,7 +142,7 @@ class derive(ccxt.async_support.derive):
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
 
-        https://docs.derive.xyz/reference/ticker-instrument_name-interval
+        https://docs.derive.xyz/api-reference/channels/tickerslim
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -151,7 +152,7 @@ class derive(ccxt.async_support.derive):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        topic = 'ticker_slim.' + market['id'] + '.100'  # the venue deprecated the fat ticker channel in favor of ticker_slim
+        topic = 'ticker_slim.' + market['id'] + '.100'  # v3 removed the fat ticker channel, ticker_slim is the only ticker feed
         request = {
             'method': 'subscribe',
             'params': {
@@ -167,105 +168,132 @@ class derive(ccxt.async_support.derive):
         }
         return await self.watch_public(topic, request, subscription)
 
+    async def un_watch_ticker(self, symbol: str, params: dict = {}) -> object:
+        """
+        unsubscribe from the ticker channel; note that the bid ask feed of the same symbol shares the channel and stops as well
+
+        https://docs.derive.xyz/api-reference/channels/tickerslim
+
+        :param str symbol: unified symbol of the market to unwatch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        topic = 'ticker_slim.' + market['id'] + '.100'
+        messageHash = 'unwatch' + topic
+        request = {
+            'method': 'unsubscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        }
+        subscription = {
+            'name': topic,
+        }
+        return await self.un_watch_public(messageHash, request, subscription)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+        """
+        watches best bid & ask for symbols; the data is sourced from the same ticker_slim channel the ticker uses
+
+        https://docs.derive.xyz/api-reference/channels/tickerslim
+
+        :param str[] symbols: unified symbols of the markets to fetch the bids and asks for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsResolved = self.market_symbols(symbols, None, False)
+        topics = []
+        messageHashes = []
+        for i in range(0, len(symbolsResolved)):
+            market = self.market(symbolsResolved[i])
+            topics.append('ticker_slim.' + market['id'] + '.100')
+            messageHashes.append('bidask:' + market['symbol'])
+        url = self.urls['api']['ws']
+        requestId = self.request_id(url)
+        request = {
+            'method': 'subscribe',
+            'params': {
+                'channels': topics,
+            },
+            'id': requestId,
+        }
+        subscription = {
+            'id': requestId,
+            'method': 'subscribe',
+        }
+        ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscription)
+        if self.newUpdates:
+            result = {}
+            result[ticker['symbol']] = ticker
+            return result
+        return self.filter_by_array(self.bidsasks, 'symbol', symbolsResolved)
+
     def handle_ticker(self, client: Client, message: dict) -> dict:
         #
-        # {
-        #     method: 'subscription',
-        #     params: {
-        #       channel: 'ticker.BTC-PERP.100',
-        #       data: {
-        #         timestamp: 1738485104439,
-        #         instrument_ticker: {
-        #           instrument_type: 'perp',
-        #           instrument_name: 'BTC-PERP',
-        #           scheduled_activation: 1701840228,
-        #           scheduled_deactivation: '9223372036854775807',
-        #           is_active: true,
-        #           tick_size: '0.1',
-        #           minimum_amount: '0.01',
-        #           maximum_amount: '10000',
-        #           amount_step: '0.001',
-        #           mark_price_fee_rate_cap: '0',
-        #           maker_fee_rate: '0.0001',
-        #           taker_fee_rate: '0.0003',
-        #           base_fee: '0.1',
-        #           base_currency: 'BTC',
-        #           quote_currency: 'USD',
-        #           option_details: null,
-        #           perp_details: {
-        #             index: 'BTC-USD',
-        #             max_rate_per_hour: '0.004',
-        #             min_rate_per_hour: '-0.004',
-        #             static_interest_rate: '0.0000125',
-        #             aggregate_funding: '10581.779418721074588722',
-        #             funding_rate: '0.000024792239208858'
-        #           },
-        #           erc20_details: null,
-        #           base_asset_address: '0xDBa83C0C654DB1cd914FA2710bA743e925B53086',
-        #           base_asset_sub_id: '0',
-        #           pro_rata_fraction: '0',
-        #           fifo_min_allocation: '0',
-        #           pro_rata_amount_step: '0.1',
-        #           best_ask_amount: '0.131',
-        #           best_ask_price: '99898.6',
-        #           best_bid_amount: '0.056',
-        #           best_bid_price: '99889.1',
-        #           five_percent_bid_depth: '11.817',
-        #           five_percent_ask_depth: '9.116',
-        #           option_pricing: null,
-        #           index_price: '99883.8',
-        #           mark_price: '99897.52408421244763303548098',
-        #           stats: {
-        #             contract_volume: '92.395',
-        #             num_trades: '2924',
-        #             open_interest: '33.743468027373780786',
-        #             high: '102320.4',
-        #             low: '99064.3',
-        #             percent_change: '-0.021356',
-        #             usd_change: '-2178'
-        #           },
-        #           timestamp: 1738485165881,
-        #           min_price: '97939.1',
-        #           max_price: '101895.2'
+        #     {
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "ticker_slim.BTC-PERP.100",
+        #             "data": {
+        #                 "timestamp": 1790879819285,
+        #                 "instrument_ticker": {
+        #                     "t": 1790879819268,
+        #                     "A": "0.278",
+        #                     "a": "84214.6",
+        #                     "B": "0.213",
+        #                     "b": "84205.4",
+        #                     "f": "0.000012500",
+        #                     "option_pricing": null,
+        #                     "I": "84210.9",
+        #                     "M": "84210.2",
+        #                     "stats": {
+        #                         "c": "16.41",
+        #                         "v": "1377350.271",
+        #                         "pr": "1377095.872",
+        #                         "n": 98,
+        #                         "oi": "0",
+        #                         "h": "84282",
+        #                         "l": "83661.8",
+        #                         "p": "0"
+        #                     },
+        #                     "minp": "82526.1",
+        #                     "maxp": "85894.9"
+        #                 }
+        #             }
         #         }
-        #       }
         #     }
-        # }
         #
         params = self.safe_dict(message, 'params')
         rawData = self.safe_dict(params, 'data')
         data = self.safe_dict(rawData, 'instrument_ticker', {})
-        topic = self.safe_string(params, 'channel')
-        ticker = None
-        if topic is not None and topic.startswith('ticker_slim'):
-            # the slim payload uses short keys and does not carry the instrument name,
-            # so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
-            parts = topic.split('.')
-            marketId = self.safe_string(parts, 1)
-            market = self.safe_market(marketId)
-            stats = self.safe_dict(data, 'stats', {})
-            ticker = self.safe_ticker({
-                'symbol': market['symbol'],
-                'timestamp': self.safe_integer(data, 't'),
-                'datetime': self.iso8601(self.safe_integer(data, 't')),
-                'bid': self.safe_string(data, 'b'),
-                'bidVolume': self.safe_string(data, 'B'),
-                'ask': self.safe_string(data, 'a'),
-                'askVolume': self.safe_string(data, 'A'),
-                'high': self.safe_string(stats, 'h'),
-                'low': self.safe_string(stats, 'l'),
-                'baseVolume': self.safe_string(stats, 'c'),
-                'quoteVolume': self.safe_string(stats, 'v'),
-                'percentage': self.safe_string(stats, 'p'),
-                'markPrice': self.safe_string(data, 'M'),
-                'indexPrice': self.safe_string(data, 'I'),
-                'info': rawData,
-            }, market)
-        else:
-            ticker = self.parse_ticker(data)
+        topic = self.safe_string(params, 'channel', '')
+        # the slim payload does not carry the instrument name, so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
+        parts = topic.split('.')
+        marketId = self.safe_string(parts, 1)
+        market = self.safe_market(marketId)
+        ticker = self.parse_ticker(data, market)
         tickerSymbol = ticker['symbol']
         if tickerSymbol is not None:
             self.tickers[tickerSymbol] = ticker
+            bidAsk = self.safe_ticker({
+                'symbol': tickerSymbol,
+                'timestamp': self.safe_integer(ticker, 'timestamp'),
+                'datetime': self.safe_string(ticker, 'datetime'),
+                'bid': self.safe_number(ticker, 'bid'),
+                'bidVolume': self.safe_number(ticker, 'bidVolume'),
+                'ask': self.safe_number(ticker, 'ask'),
+                'askVolume': self.safe_number(ticker, 'askVolume'),
+                'info': data,
+            }, market)
+            self.bidsasks[tickerSymbol] = bidAsk
+            client.resolve(bidAsk, 'bidask:' + tickerSymbol)
         client.resolve(ticker, topic)
         return message
 
@@ -342,34 +370,50 @@ class derive(ccxt.async_support.derive):
         symbol = market['symbol']
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
-        if topic in client.subscriptions:
-            del client.subscriptions[topic]
-        error = UnsubscribeError(self.id + ' orderbook ' + symbol)
-        client.reject(error, topic)
-        client.resolve(error, 'unwatch' + topic)
+        self.clean_unsubscription(client, topic, 'unwatch' + topic)
 
     def handle_trades_un_subscription(self, client: Client, topic: str):
         parsedTopic = topic.split('.')
         marketId = self.safe_string(parsedTopic, 1)
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        if symbol in self.orderbooks:
+        if symbol in self.trades:
             del self.trades[symbol]
-        if topic in client.subscriptions:
-            del client.subscriptions[topic]
-        error = UnsubscribeError(self.id + ' trades ' + symbol)
-        client.reject(error, topic)
-        client.resolve(error, 'unwatch' + topic)
+        self.clean_unsubscription(client, topic, 'unwatch' + topic)
+
+    def handle_ticker_un_subscription(self, client: Client, topic: str):
+        parsedTopic = topic.split('.')
+        marketId = self.safe_string(parsedTopic, 1)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        if symbol in self.tickers:
+            del self.tickers[symbol]
+        if symbol in self.bidsasks:
+            del self.bidsasks[symbol]
+        # the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
+        bidAskHash = 'bidask:' + symbol
+        if bidAskHash in client.futures:
+            error = UnsubscribeError(self.id + ' ' + bidAskHash)
+            client.reject(error, bidAskHash)
+        self.clean_unsubscription(client, topic, 'unwatch' + topic)
+
+    def handle_orders_un_subscription(self, client: Client, topic: str):
+        self.orders = None
+        self.clean_unsubscription(client, topic, 'unwatch' + topic, True)
+
+    def handle_my_trades_un_subscription(self, client: Client, topic: str):
+        self.myTrades = None
+        self.clean_unsubscription(client, topic, 'unwatch' + topic, True)
 
     def handle_un_subscribe(self, client: Client, message: dict) -> dict:
         #
-        # {
-        #     id: 1,
-        #     result: {
-        #       status: { 'orderbook.BTC-PERP.10.10': 'ok' },
-        #       remaining_subscriptions: []
+        #     {
+        #         "id": 1,
+        #         "result": {
+        #             "status": { "orderbook.BTC-PERP.10.10": "ok" },
+        #             "remaining_subscriptions": []
+        #         }
         #     }
-        # }
         #
         result = self.safe_dict(message, 'result')
         status = self.safe_dict(result, 'status')
@@ -377,17 +421,25 @@ class derive(ccxt.async_support.derive):
             topics = list(status.keys())
             for i in range(0, len(topics)):
                 topic = topics[i]
-                if topic.find('orderbook') >= 0:
+                parsedTopic = topic.split('.')
+                suffix = self.safe_string(parsedTopic, 1)
+                if topic.find('orderbook') == 0:
                     self.handle_order_book_un_subscription(client, topic)
-                elif topic.find('trades') >= 0:
+                elif topic.find('ticker_slim') == 0:
+                    self.handle_ticker_un_subscription(client, topic)
+                elif topic.find('trades') == 0:
                     self.handle_trades_un_subscription(client, topic)
+                elif suffix == 'orders':
+                    self.handle_orders_un_subscription(client, topic)
+                elif suffix == 'trades':
+                    self.handle_my_trades_un_subscription(client, topic)
         return message
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
-        https://docs.derive.xyz/reference/trades-instrument_name
+        https://docs.derive.xyz/api-reference/channels/tradesbyinstrument
 
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
@@ -423,7 +475,7 @@ class derive(ccxt.async_support.derive):
         #
         params = self.safe_dict(message, 'params')
         data = self.safe_dict(params, 'data', {})
-        topic = self.safe_value(params, 'channel')
+        topic = self.safe_string(params, 'channel', '')
         parsedTopic = topic.split('.')
         marketId = self.safe_string(parsedTopic, 1)
         market = self.safe_market(marketId)
@@ -447,9 +499,11 @@ class derive(ccxt.async_support.derive):
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             requestId = self.request_id(url)
-            now = str(self.milliseconds())
+            now = self.number_to_string(self.nonce())
             signature = self.signMessage(now, self.privateKey)
             deriveWalletAddress = self.safe_string(self.options, 'deriveWalletAddress')
+            if (deriveWalletAddress is None) or (deriveWalletAddress == ''):
+                deriveWalletAddress = self.walletAddress  # v3: the owner wallet is the user's own EOA
             request = {
                 'id': requestId,
                 'method': 'public/login',
@@ -484,7 +538,7 @@ class derive(ccxt.async_support.derive):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
 
-        https://docs.derive.xyz/reference/subaccount_id-orders
+        https://docs.derive.xyz/api-reference/channels/subaccountorders
 
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -579,13 +633,13 @@ class derive(ccxt.async_support.derive):
                 orders = self.safe_dict(cachedOrders.hashmap, symbol, {})
                 order = None if (orderId is None) else self.safe_dict(orders, orderId)
                 if order is not None:
-                    fee = self.safe_value(order, 'fee')
+                    fee = self.safe_dict(order, 'fee')
                     if fee is not None:
                         parsed['fee'] = fee
                     fees = self.safe_list(order, 'fees')
                     if fees is not None:
                         parsed['fees'] = fees
-                    parsed['trades'] = self.safe_value(order, 'trades')
+                    parsed['trades'] = self.safe_list(order, 'trades')
                     parsed['timestamp'] = self.safe_integer(order, 'timestamp')
                     parsed['datetime'] = self.safe_string(order, 'datetime')
                 cachedOrders.append(parsed)
@@ -594,10 +648,40 @@ class derive(ccxt.async_support.derive):
                     client.resolve(self.orders, messageHashSymbol)
         client.resolve(self.orders, topic)
 
+    async def un_watch_orders(self, symbol: Str = None, params: dict = {}) -> object:
+        """
+        unsubscribe from the orders channel
+
+        https://docs.derive.xyz/api-reference/channels/subaccountorders
+
+        :param str [symbol]: not used by derive unWatchOrders, the whole subaccount channel is unsubscribed
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subaccount_id]: *required* the subaccount id
+        :returns any: status of the unwatch request
+        """
+        if self.markets is None:
+            await self.load_markets()
+        subaccountId, paramsDeriveSubaccountId = self.handleDeriveSubaccountId('unWatchOrders', params)
+        topic = self.number_to_string(subaccountId) + '.orders'
+        messageHash = 'unwatch' + topic
+        request = {
+            'method': 'unsubscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        }
+        subscription = {
+            'name': topic,
+        }
+        message = self.extend(request, paramsDeriveSubaccountId)
+        return await self.un_watch_public(messageHash, message, subscription)
+
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
-        https://docs.derive.xyz/reference/subaccount_id-trades
+        https://docs.derive.xyz/api-reference/channels/subaccounttrades
 
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -641,16 +725,248 @@ class derive(ccxt.async_support.derive):
         if myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             myTrades = ArrayCacheBySymbolById(limit)
+            self.myTrades = myTrades
         params = self.safe_dict(message, 'params')
         topic = self.safe_string(params, 'channel')
         rawTrades = self.safe_list(params, 'data', [])
         for i in range(0, len(rawTrades)):
-            trade = self.parse_trade(message)
+            trade = self.parse_trade(rawTrades[i])
             myTrades.append(trade)
             client.resolve(myTrades, topic)
             if topic is not None:
-                messageHash = topic + self.safe_string(trade, 'symbol', '')
+                messageHash = topic + ':' + self.safe_string(trade, 'symbol', '')
                 client.resolve(myTrades, messageHash)
+
+    async def un_watch_my_trades(self, symbol: Str = None, params: dict = {}) -> object:
+        """
+        unsubscribe from the my trades channel
+
+        https://docs.derive.xyz/api-reference/channels/subaccounttrades
+
+        :param str [symbol]: not used by derive unWatchMyTrades, the whole subaccount channel is unsubscribed
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subaccount_id]: *required* the subaccount id
+        :returns any: status of the unwatch request
+        """
+        if self.markets is None:
+            await self.load_markets()
+        subaccountId, paramsDeriveSubaccountId = self.handleDeriveSubaccountId('unWatchMyTrades', params)
+        topic = self.number_to_string(subaccountId) + '.trades'
+        messageHash = 'unwatch' + topic
+        request = {
+            'method': 'unsubscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        }
+        subscription = {
+            'name': topic,
+        }
+        message = self.extend(request, paramsDeriveSubaccountId)
+        return await self.un_watch_public(messageHash, message, subscription)
+
+    async def watch_balance(self, params: dict = {}) -> Balances:
+        """
+        watches balance updates for a single subaccount, the returned structure is scoped to the watched subaccount
+
+        https://docs.derive.xyz/api-reference/channels/subaccountbalances
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subaccount_id]: *required* the subaccount id
+        :param boolean [params.fetchBalanceSnapshot]: default True, the channel only streams changed totals, so an initial snapshot is loaded over rest before subscribing
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        fetchSnapshot, paramsSnapshot = self.handle_option_bool_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        subaccountId, paramsDeriveSubaccountId = self.handleDeriveSubaccountId('watchBalance', paramsSnapshot)
+        if self.balance is None:
+            emptyBalances = {}
+            self.balance = emptyBalances
+        # the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
+        subaccountIdKey = self.number_to_string(subaccountId)
+        if fetchSnapshot and not (subaccountIdKey in self.balance):
+            snapshotRequest = {
+                'subaccount_id': subaccountId,
+            }
+            snapshotParams = self.extend(snapshotRequest, paramsDeriveSubaccountId)
+            snapshot = await self.fetch_balance(snapshotParams)
+            emptyBalance = {}  # hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
+            seeded = self.extend(snapshot, emptyBalance)  # the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
+            self.balance[subaccountIdKey] = seeded
+        topic = self.number_to_string(subaccountId) + '.balances'
+        request = {
+            'method': 'subscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        }
+        subscription = {
+            'name': topic,
+            'params': paramsDeriveSubaccountId,
+        }
+        message = self.extend(request, paramsDeriveSubaccountId)
+        return await self.watch_private(topic, message, subscription)
+
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
+        """
+        watch all open positions; the sizes stream over the balances channel, while entry price, pnl and margin fields stay from the rest snapshot until the next one
+
+        https://docs.derive.xyz/api-reference/channels/subaccountbalances
+
+        :param str[] [symbols]: list of unified market symbols to watch positions for
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum number of positions to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subaccount_id]: *required* the subaccount id
+        :param boolean [params.fetchPositionsSnapshot]: default True, the channel only streams size changes, so an initial snapshot is loaded over rest before subscribing
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsResolved = self.market_symbols(symbols, None, True)
+        fetchSnapshot, paramsSnapshot = self.handle_option_bool_and_params(params, 'watchPositions', 'fetchPositionsSnapshot', True)
+        subaccountId, paramsDeriveSubaccountId = self.handleDeriveSubaccountId('watchPositions', paramsSnapshot)
+        if self.positions is None:
+            emptyCaches = {}
+            self.positions = emptyCaches
+            emptySnapshots = {}
+            self.options['loadedPositionsSnapshots'] = emptySnapshots
+        # the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
+        subaccountIdKey = self.number_to_string(subaccountId)
+        if not (subaccountIdKey in self.positions):
+            self.positions[subaccountIdKey] = ArrayCacheBySymbolBySide()
+        loadedSnapshots = self.safe_dict(self.options, 'loadedPositionsSnapshots', {})
+        if fetchSnapshot and not (subaccountIdKey in loadedSnapshots):
+            snapshotRequest = {
+                'subaccount_id': subaccountId,
+            }
+            snapshotParams = self.extend(snapshotRequest, paramsDeriveSubaccountId)
+            positionsSnapshot = await self.fetch_positions(None, snapshotParams)
+            cache = self.positions[subaccountIdKey]
+            for i in range(0, len(positionsSnapshot)):
+                cache.append(positionsSnapshot[i])
+            loadedSnapshots[subaccountIdKey] = True
+            self.options['loadedPositionsSnapshots'] = loadedSnapshots
+        topic = self.number_to_string(subaccountId) + '.balances'
+        messageHash = 'positions:' + topic
+        request = {
+            'method': 'subscribe',
+            'params': {
+                'channels': [
+                    topic,
+                ],
+            },
+        }
+        subscription = {
+            'name': topic,
+            'params': paramsDeriveSubaccountId,
+        }
+        message = self.extend(request, paramsDeriveSubaccountId)
+        newPositions = await self.watch_private(messageHash, message, subscription)
+        if self.newUpdates:
+            return newPositions
+        return self.filter_by_symbols_since_limit(self.positions[subaccountIdKey], symbolsResolved, since, limit, True)
+
+    def handle_position_delta(self, subaccountIdKey: str, entry: dict) -> Position:
+        marketId = self.safe_string(entry, 'name')
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        newSize = self.safe_string(entry, 'new_balance', '0')
+        isShort = Precise.string_lt(newSize, '0')
+        side = 'short' if isShort else 'long'
+        contracts = Precise.string_abs(newSize)
+        cache = self.positions[subaccountIdKey]
+        symbolPositions = self.safe_dict(cache.hashmap, symbol, {})
+        # a fill through zero flattens the opposite side first
+        oppositeSide = 'long' if isShort else 'short'
+        opposite = self.safe_dict(symbolPositions, oppositeSide)
+        if opposite is not None:
+            oppositeContracts = self.safe_string(opposite, 'contracts')
+            if (oppositeContracts is not None) and (oppositeContracts != '0'):
+                opposite['contracts'] = self.parse_number('0')
+                opposite['lastUpdateTimestamp'] = self.milliseconds()
+                cache.append(opposite)
+        position = self.safe_dict(symbolPositions, side)
+        if position is None:
+            # the position is freshly opened by the current fill, so the local clock approximates the open time
+            timestamp = self.milliseconds()
+            position = self.safe_position({
+                'symbol': symbol,
+                'side': side,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': entry,
+            })
+        position['contracts'] = self.parse_number(contracts)
+        position['side'] = side
+        position['lastUpdateTimestamp'] = self.milliseconds()
+        position['info'] = entry
+        cache.append(position)
+        return position
+
+    def handle_balance(self, client: Client, message: dict):
+        #
+        #     {
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "86815.balances",
+        #             "data": [
+        #                 {
+        #                     "name": "USDC",
+        #                     "new_balance": "8427.545482",
+        #                     "previous_balance": "8428.545482",
+        #                     "update_type": "trade"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        params = self.safe_dict(message, 'params')
+        topic = self.safe_string(params, 'channel')
+        topicParts = topic.split('.')
+        subaccountIdKey = self.safe_string(topicParts, 0)
+        data = self.safe_list(params, 'data', [])
+        if self.balance is None:
+            self.balance = {}
+        subBalance = self.safe_dict(self.balance, subaccountIdKey)
+        if subBalance is None:
+            emptySubBalance = {}
+            subBalance = emptySubBalance
+        updated = False
+        positionUpdates = []
+        for i in range(0, len(data)):
+            entry = self.safe_dict(data, i, {})
+            name = self.safe_string(entry, 'name', '')
+            if name.find('-') >= 0:
+                # position deltas carry instrument names and do not belong into the balance structure
+                if (self.positions is not None) and (subaccountIdKey in self.positions):
+                    position = self.handle_position_delta(subaccountIdKey, entry)
+                    positionUpdates.append(position)
+                continue
+            code = self.safe_currency_code(name)
+            if code is None:
+                continue
+            account = self.safe_dict(subBalance, code)
+            if account is None:
+                account = self.account()
+            # the channel and the balance state are both subaccount-scoped, so the streamed new_balance is the authoritative absolute total
+            account['total'] = self.safe_string(entry, 'new_balance')
+            # the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
+            account['free'] = None
+            account['used'] = None
+            subBalance[code] = account
+            updated = True
+        if updated:
+            self.balance[subaccountIdKey] = self.safe_balance(subBalance)
+            client.resolve(self.balance[subaccountIdKey], topic)
+        positionUpdatesLength = len(positionUpdates)
+        if positionUpdatesLength > 0:
+            client.resolve(positionUpdates, 'positions:' + topic)
 
     def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
@@ -689,6 +1005,7 @@ class derive(ccxt.async_support.derive):
             'trades': self.handle_trade,
             'orders': self.handle_order,
             'mytrades': self.handle_my_trade,
+            'balances': self.handle_balance,
         }
         event = None
         params = self.safe_dict(message, 'params')
@@ -696,9 +1013,9 @@ class derive(ccxt.async_support.derive):
             channel = self.safe_string(params, 'channel')
             if channel is not None:
                 parsedChannel = channel.split('.')
-                if (channel.find('orders') >= 0) or channel.find('trades') > 0:
+                if (channel.find('orders') >= 0) or (channel.find('trades') > 0) or (channel.find('balances') > 0):
                     event = self.safe_string(parsedChannel, 1)
-                    # {subaccounr_id}.trades
+                    # {subaccount_id}.trades
                     if event == 'trades':
                         event = 'mytrades'
                 else:
@@ -709,14 +1026,27 @@ class derive(ccxt.async_support.derive):
             return
         if 'id' in message:
             id = self.safe_string(message, 'id')
-            subscriptionsById = self.index_by(client.subscriptions, 'id')
-            subscription = {} if (id is None) else self.safe_dict(subscriptionsById, id, {})
-            if 'method' in subscription:
-                if self.safe_string(subscription, 'method') == 'public/login':
+            # the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
+            subscriptionKeys = list(client.subscriptions.keys())
+            matched = False
+            for i in range(0, len(subscriptionKeys)):
+                subscription = self.safe_dict(client.subscriptions, subscriptionKeys[i], {})
+                subscriptionId = self.safe_string(subscription, 'id')
+                if (subscriptionId is not None) and (subscriptionId == id):
+                    matched = True
+                    subscriptionMethod = self.safe_string(subscription, 'method')
+                    if subscriptionMethod == 'public/login':
+                        self.handle_auth(client, message)
+                    elif subscriptionMethod == 'unsubscribe':
+                        self.handle_un_subscribe(client, message)
+                    # could handleSubscribe
+            if not matched:
+                loginResult = self.safe_list(message, 'result')
+                if loginResult is not None:
+                    # the login acknowledgement is the only id reply whose result is a bare list (the subaccount ids)
+                    # in java the acknowledgement can arrive before the subscription record is stored
+                    # so the shape serves as the routing fallback when the id scan finds nothing
                     self.handle_auth(client, message)
-                elif self.safe_string(subscription, 'method') == 'unsubscribe':
-                    self.handle_un_subscribe(client, message)
-                # could handleSubscribe
 
     def handle_auth(self, client: Client, message: dict):
         #
@@ -727,7 +1057,8 @@ class derive(ccxt.async_support.derive):
         #
         messageHash = 'authenticated'
         ids = self.safe_list(message, 'result', [])
-        if len(ids) > 0:
+        idsLength = len(ids)
+        if idsLength > 0:
             # client.resolve (message, messageHash);
             future = self.safe_value(client.futures, 'authenticated')
             future.resolve(True)

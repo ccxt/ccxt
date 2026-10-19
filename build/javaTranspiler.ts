@@ -2649,7 +2649,6 @@ class NewTranspiler {
             'loadOrderBook',
             'fetchCurrencies',
             'loadMarketsHelper',
-            'createNetworksByIdObject',
             'setMarketsFromExchange',
             'setLastRequest',
             'setLastRestRequestTimestamp',

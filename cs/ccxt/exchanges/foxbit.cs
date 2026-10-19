@@ -245,7 +245,7 @@ public partial class foxbit : Exchange
                     { "cardano", "ADA" },
                     { "cosmos", "ATOM" },
                     { "dogecoin", "DOGE" },
-                    { "erc20", "ETH" },
+                    { "erc20", "ERC20" },
                     { "hedera", "HBAR" },
                     { "litecoin", "LTC" },
                     { "near", "NEAR" },
@@ -269,7 +269,7 @@ public partial class foxbit : Exchange
                     { "ADA", "cardano" },
                     { "ATOM", "cosmos" },
                     { "DOGE", "dogecoin" },
-                    { "ETH", "erc20" },
+                    { "ERC20", "erc20" },
                     { "HBAR", "hedera" },
                     { "LTC", "litecoin" },
                     { "NEAR", "near" },
@@ -1756,16 +1756,17 @@ public partial class foxbit : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
+        this.checkAddress(address, code, tagWithdrawTag);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1932,6 +1933,15 @@ public partial class foxbit : Exchange
         IDictionary<string, object> bestBid = this.safeDict(best, "bid");
         IDictionary<string, object> lastTrade = this.safeDict(ticker, "last_trade");
         string? lastPrice = this.safeString(lastTrade, "price");
+        string? change = this.safeString(rolling_24h, "price_change");
+        string? percentage = this.safeString(rolling_24h, "price_change_percent");
+        // never-traded markets report all-zero placeholders instead of omitting the values
+        if (Precise.stringEq(lastPrice, "0"))
+        {
+            lastPrice = null;
+            change = null;
+            percentage = null;
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", this.parseDate(this.safeString(lastTrade, "date")) },
@@ -1947,8 +1957,8 @@ public partial class foxbit : Exchange
             { "close", lastPrice },
             { "last", lastPrice },
             { "previousClose", null },
-            { "change", this.safeString(rolling_24h, "price_change") },
-            { "percentage", this.safeString(rolling_24h, "price_change_percent") },
+            { "change", change },
+            { "percentage", percentage },
             { "average", null },
             { "baseVolume", this.safeString(rolling_24h, "volume") },
             { "quoteVolume", this.safeString(rolling_24h, "quote_volume") },
@@ -2140,7 +2150,7 @@ public partial class foxbit : Exchange
             { "txid", this.safeString(cryptoDetails, "transaction_id") },
             { "timestamp", timestamp },
             { "datetime", datetime },
-            { "network", this.safeString(transaction, "network_code") },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network_code"), currencyCode) },
             { "address", address },
             { "addressTo", address },
             { "addressFrom", null },
@@ -2238,7 +2248,7 @@ public partial class foxbit : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2284,12 +2294,12 @@ public partial class foxbit : Exchange
                 }
             }
         }
-        object requestBody = body;
+        string? requestBody = null;
         if ((method == "POST") || (method == "PUT"))
         {
             requestBody = this.json(paramsOmitted);
         }
-        object bodyToSignature = "";
+        string? bodyToSignature = "";
         if ((requestBody != null))
         {
             bodyToSignature = requestBody;
@@ -2302,7 +2312,7 @@ public partial class foxbit : Exchange
         if ((urlPath is "private"))
         {
             this.checkRequiredCredentials();
-            string preHash = ((((this.numberToString(timestamp) + method) + fullPath) + (signatureQuery)) + (bodyToSignature));
+            string preHash = ((((this.numberToString(timestamp) + method) + fullPath) + (signatureQuery)) + bodyToSignature);
             string signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
             headersValue["X-FB-ACCESS-KEY"] = this.apiKey;
             headersValue["X-FB-ACCESS-TIMESTAMP"] = this.numberToString(timestamp);

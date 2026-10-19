@@ -12,7 +12,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
                 { "options", new Dictionary<string, object>() {
-                    { "defaultType", "valueFromOptions" },
+                    { "defaultType", "option" },
                     { "fetchX", new Dictionary<string, object>() {
                         { "defaultType", "valueFromMethodOptions" },
                     } },
@@ -61,7 +61,7 @@ public partial class BaseTest
             var marketType5params5Variable = exchange.handleMarketTypeAndParams("fetchY", null, new Dictionary<string, object>() {}, null);
             var marketType5 = ((IList<object>) marketType5params5Variable)[0];
             var params5 = ((IList<object>) marketType5params5Variable)[1];
-            Assert(isEqual(marketType5, "valueFromOptions"));
+            Assert(isEqual(marketType5, "option"));
             //
             // case #6, should prevail: spot (because hardcoded in base)
             //
@@ -72,28 +72,6 @@ public partial class BaseTest
             Assert(isEqual(marketType6, "spot"));
             // fake Assertion to avoid unused vars
             Assert((params1 != null) || (params2 != null) || (params3 != null) || (params4 != null) || (params5 != null) || (params6 != null));
-        }
-        public void helperTestHandleNetworkRequest()
-        {
-            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
-                { "id", "sampleexchange" },
-                { "options", new Dictionary<string, object>() {
-                    { "networks", new Dictionary<string, object>() {
-                        { "XYZ", "Xyz" },
-                    } },
-                } },
-            });
-            exchange.currencies = exchange.createSafeDictionary(); // todo: initialize in C# base files
-            string currencyCode = "ETH"; // todo: in future with complex cases
-            // no-case
-            var request1params1Variable = exchange.handleRequestNetwork(new Dictionary<string, object>() {
-            { "network", "XYZ" },
-        }, new Dictionary<string, object>() {}, "chain_id", currencyCode, false);
-            var request1 = ((IList<object>) request1params1Variable)[0];
-            var params1 = ((IList<object>) request1params1Variable)[1];
-            Assert(!(inOp(params1, "network")));
-            Assert(inOp(request1, "chain_id"));
-            Assert(isEqual(getValue(request1, "chain_id"), "Xyz"));
         }
         public void helperTestHandleTypedOptions()
         {
@@ -131,7 +109,6 @@ public partial class BaseTest
         public void testHandleMethods()
         {
             helperTestHandleMarketTypeAndParams();
-            helperTestHandleNetworkRequest();
             helperTestHandleTypedOptions();
         }
 }

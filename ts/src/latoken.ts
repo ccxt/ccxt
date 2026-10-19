@@ -581,7 +581,10 @@ export default class latoken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const response = await this.privateGetAuthAccount (params);
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const paramsOmitted: Dict = this.omit (params, 'type');
+        const response = await this.privateGetAuthAccount (paramsOmitted);
         //
         //     [
         //         {
@@ -610,8 +613,6 @@ export default class latoken extends Exchange {
             'datetime': undefined,
         };
         let maxTimestamp: Int = undefined;
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
         const types = this.safeDict (this.options, 'types', {});
         const accountType = this.safeString (types, type, type);
         const balancesByType = this.groupBy (response, 'type');
@@ -1270,7 +1271,7 @@ export default class latoken extends Exchange {
         }
         let response: Dict;
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
-        const paramsOmitted: Dict = this.omit (params, 'stop');
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         const market = this.market (symbol);
         const request: Dict = {
@@ -1884,9 +1885,10 @@ export default class latoken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestHeaders: NullableDict = headers;
-        let requestBody: Str = body;
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let requestString = request;
         const query = this.omit (params, this.extractParams (path));
@@ -1896,7 +1898,7 @@ export default class latoken extends Exchange {
                 requestString += '?' + urlencodedQuery;
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const auth = method + request + urlencodedQuery;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha512);

@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -183,17 +184,17 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 parameters.put("params", new HashMap<String, Object>() {{}});
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+            Pair<String, Map<String, Object>> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
             String bookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.first();
             Map<String, Object> paramsBookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType), "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+            Pair<String, Map<String, Object>> bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType), "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
             String bookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.first();
             Map<String, Object> paramsBookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.second();
             Helpers.addElementToObject(Helpers.GetValue(paramsBookSubscriptionType2, "params"), "bookSubscriptionType", bookSubscriptionType2);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType2), "watchOrderBook", "bookUpdateFrequency", (String) null);
+            Pair<String, Map<String, Object>> bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType2), "watchOrderBook", "bookUpdateFrequency", (String) null);
             String bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.first();
             Map<String, Object> paramsBookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookUpdateFrequency), "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
+            Pair<String, Map<String, Object>> bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookUpdateFrequency), "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
             String bookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.first();
             Map<String, Object> paramsBookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.second();
             if (!java.util.Objects.equals(bookUpdateFrequency2, null))
@@ -246,17 +247,17 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 parameters.put("params", new HashMap<String, Object>() {{}});
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+            Pair<String, Map<String, Object>> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
             String bookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.first();
             Map<String, Object> paramsBookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType), "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+            Pair<String, Map<String, Object>> bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType), "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
             String bookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.first();
             Map<String, Object> paramsBookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.second();
             Helpers.addElementToObject(Helpers.GetValue(paramsBookSubscriptionType2, "params"), "bookSubscriptionType", bookSubscriptionType2);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType2), "watchOrderBook", "bookUpdateFrequency", (String) null);
+            Pair<String, Map<String, Object>> bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType2), "watchOrderBook", "bookUpdateFrequency", (String) null);
             String bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.first();
             Map<String, Object> paramsBookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.second();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookUpdateFrequency), "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
+            Pair<String, Map<String, Object>> bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookUpdateFrequency), "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
             String bookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.first();
             Map<String, Object> paramsBookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.second();
             if (!java.util.Objects.equals(bookUpdateFrequency2, null))

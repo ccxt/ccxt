@@ -655,6 +655,7 @@ export default class kucoin extends Exchange {
                     '405': NotSupported,
                     '415': NotSupported,
                     '429': RateLimitExceeded,
+                    '429000': RateLimitExceeded, // {"code":"429000","msg":"Too many requests. System-level rate limit exceeded."}
                     '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable,
                     '101030': PermissionDenied, // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
@@ -912,7 +913,7 @@ export default class kucoin extends Exchange {
                 'uta': undefined,
                 'version': 'v1',
                 'symbolSeparator': '-',
-                'fetchMyTradesMethod': 'private_get_fills',
+                'fetchMyTradesMethod': 'privateGetFills',
                 'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
@@ -1132,9 +1133,7 @@ export default class kucoin extends Exchange {
                     'BTC': 'btc',
                     'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'HECO': 'heco',
                     'HRC20': 'heco',
@@ -3713,7 +3712,7 @@ export default class kucoin extends Exchange {
         return {
             'info': response,
             'currency': currencyId,
-            'network': this.safeString (data, 'chain'),
+            'network': this.networkIdToCode (this.safeString (data, 'chain'), code),
             'address': address,
             'tag': this.safeString (data, 'memo'),
         } as DepositAddress;
@@ -5206,7 +5205,7 @@ export default class kucoin extends Exchange {
             request['clientOid'] = clientOrderId;
         } else {
             if (id === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument or clientOrderId parameter');
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument or clientOrderId parameter');
             }
             request['orderId'] = id;
         }
@@ -6863,14 +6862,14 @@ export default class kucoin extends Exchange {
             } else {
                 response = await this.privateGetHfFills (this.extend (request, paramsRequest));
             }
-        } else if (method === 'private_get_fills') {
+        } else if ((method === 'privateGetFills') || (method === 'private_get_fills')) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if (since !== undefined) {
                 // only returns trades up to one week after the since param
                 request['startAt'] = since;
             }
             response = await this.privateGetFills (this.extend (request, paramsRequest));
-        } else if (method === 'private_get_limit_fills') {
+        } else if ((method === 'privateGetLimitFills') || (method === 'private_get_limit_fills')) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
@@ -7648,16 +7647,16 @@ export default class kucoin extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        this.checkAddress (address);
+        this.checkAddress (address, code, tagWithdrawTag);
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
@@ -9233,9 +9232,9 @@ export default class kucoin extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         const versions = this.safeDict (this.options, 'versions', {});
-        const apiVersions = this.safeDict (versions, api, {});
+        const apiVersions = this.safeDict (versions, api[0], {});
         const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
         const version = this.safeString (params, 'version', defaultVersion);
@@ -10896,6 +10895,25 @@ export default class kucoin extends Exchange {
         if (crossMode !== undefined) {
             marginMode = (crossMode === true) ? 'cross' : 'isolated';
         }
+        let collateralString = this.safeString (position, 'maintMargin');
+        let marginString: Str = undefined;
+        if ((collateralString === undefined) && (marginMode === 'isolated')) {
+            let posMargin = this.safeString (position, 'posMargin');
+            if (posMargin === undefined) {
+                const posComm = this.safeString (position, 'posComm');
+                const posCross = this.safeString (position, 'posCross');
+                if ((initialMargin !== undefined) && (posComm !== undefined)) {
+                    posMargin = Precise.stringAdd (initialMargin, posComm);
+                    if (posCross !== undefined) {
+                        posMargin = Precise.stringAdd (posMargin, posCross);
+                    }
+                }
+            }
+            if (posMargin !== undefined) {
+                marginString = posMargin;
+                collateralString = (unrealisedPnl !== undefined) ? Precise.stringAdd (posMargin, unrealisedPnl) : posMargin;
+            }
+        }
         let lastUpdateTimestamp = this.safeInteger (position, 'closeTime');
         if (lastUpdateTimestamp === undefined) {
             if ('closingTime' in position) {
@@ -10926,7 +10944,8 @@ export default class kucoin extends Exchange {
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
             'lastPrice': this.safeNumber (position, 'closePrice'),
-            'collateral': this.safeNumber (position, 'maintMargin'),
+            'positionMargin': this.parseNumber (marginString),
+            'collateral': this.parseNumber (collateralString),
             'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
@@ -11717,43 +11736,41 @@ export default class kucoin extends Exchange {
         return uta;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
         //                                ↑                 ↑
         //
         const versions = this.safeDict (this.options, 'versions', {});
-        const apiVersions = this.safeDict (versions, api, {});
+        const apiVersions = this.safeDict (versions, apiName, {});
         const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
         const version = this.safeString (params, 'version', defaultVersion);
         const paramsOmitted: Dict = this.omit (params, 'version');
         let endpoint = '/api/' + version + '/' + this.implodeParams (path, paramsOmitted);
-        if (api === 'utaV2') {
+        if (apiName === 'utaV2') {
             endpoint = '/api/ua/v2/' + this.implodeParams (path, paramsOmitted);
         }
-        if (api === 'webExchange') {
+        if (apiName === 'webExchange') {
             endpoint = '/' + this.implodeParams (path, paramsOmitted);
         }
-        if (api === 'earn') {
+        if (apiName === 'earn') {
             endpoint = '/api/v1/' + this.implodeParams (path, paramsOmitted);
         }
         let isUtaPrivate = false;
-        if ((api === 'uta') || (api === 'utaPrivate')) {
+        if ((apiName === 'uta') || (apiName === 'utaPrivate')) {
             endpoint = '/api/ua/v1/' + this.implodeParams (path, paramsOmitted);
-            if (api === 'utaPrivate') {
+            if (apiName === 'utaPrivate') {
                 isUtaPrivate = true;
             }
         }
         const query = this.omit (paramsOmitted, this.extractParams (path));
         let endpart = '';
-        let headersBase: NullableDict = {};
-        if (headers !== undefined) {
-            headersBase = headers;
-        }
-        let bodyJson: Str = body;
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const headersBase: NullableDict = {};
+        let bodyJson: Str = undefined;
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -11771,10 +11788,10 @@ export default class kucoin extends Exchange {
             }
         }
         let headersResult: NullableDict = headersBase;
-        const isFuturePrivate = (api === 'futuresPrivate');
-        const isPrivate = (api === 'private');
-        const isBroker = (api === 'broker');
-        const isEarn = (api === 'earn');
+        const isFuturePrivate = (apiName === 'futuresPrivate');
+        const isPrivate = (apiName === 'private');
+        const isBroker = (apiName === 'broker');
+        const isEarn = (apiName === 'earn');
         if (isPrivate || isFuturePrivate || isBroker || isEarn || isUtaPrivate) {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();

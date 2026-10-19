@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -628,11 +629,11 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String depth = "100";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "depth", depth);
+            Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "depth", depth);
             String depthOption = depthOptionparamsDepthVariable.first();
             Map<String, Object> paramsDepth = depthOptionparamsDepthVariable.second();
             String frequency = "100ms";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> frequencyOptionparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "frequency", frequency);
+            Pair<String, Map<String, Object>> frequencyOptionparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "frequency", frequency);
             String frequencyOption = frequencyOptionparamsFrequencyVariable.first();
             Map<String, Object> paramsFrequency = frequencyOptionparamsFrequencyVariable.second();
             String channelSuffix = "";
@@ -676,11 +677,11 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String depth = "100";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "depth", depth);
+            Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "depth", depth);
             String depthOption = depthOptionparamsDepthVariable.first();
             Map<String, Object> paramsDepth = depthOptionparamsDepthVariable.second();
             String frequency = "100ms";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> frequencyOptionparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "frequency", frequency);
+            Pair<String, Map<String, Object>> frequencyOptionparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "frequency", frequency);
             String frequencyOption = frequencyOptionparamsFrequencyVariable.first();
             Map<String, Object> paramsFrequency = frequencyOptionparamsFrequencyVariable.second();
             String channelSuffix = "";

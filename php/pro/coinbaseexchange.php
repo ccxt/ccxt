@@ -980,13 +980,12 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
         $limit = $this->safe_integer($subscription, 'limit');
         if ($type === 'snapshot') {
-            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            }
             $orderbook = $this->orderbooks[$symbol];
-            $this->handle_deltas($orderbook['asks'], $this->safe_list($message, 'asks', array()));
-            $this->handle_deltas($orderbook['bids'], $this->safe_list($message, 'bids', array()));
-            $orderbook['timestamp'] = null;
-            $orderbook['datetime'] = null;
-            $orderbook['symbol'] = $symbol;
+            $snapshot = $this->parse_order_book($message, $symbol);
+            $orderbook->reset($snapshot);
             $client->resolve($orderbook, $messageHash);
         } elseif ($type === 'l2update') {
             $orderbook = $this->orderbooks[$symbol];

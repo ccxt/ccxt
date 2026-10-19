@@ -479,7 +479,11 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	if ccxt.IsEqual(orderbook, nil) {
+		// the book was removed (unwatch/cleanCache) before the snapshot arrived
+		return
+	}
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol)
 	snapshot["nonce"] = this.SafeInteger(data, "seqNum")
@@ -642,7 +646,11 @@ func (this *Bittrade) HandleOrderBook(client any, message map[string]any) {
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var symbol *string = this.SafeSymbol(marketId)
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+	if ccxt.IsEqual(orderbook, nil) {
+		// no active subscription holds a book for this symbol, drop the delta
+		return
+	}
 	if ccxt.IsEqual(ccxt.GetValue(orderbook, "nonce"), nil) {
 		ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), message)
 	} else {
@@ -656,10 +664,12 @@ func (this *Bittrade) HandleOrderBookSubscription(client any, message map[string
 		return
 	}
 	var limit *int64 = this.SafeInteger(subscription, "limit")
-	if ccxt.InOp(this.Orderbooks, symbol) {
-		ccxt.Remove(this.Orderbooks, symbol)
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 	}
-	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	ccxt.AddElementToObject(orderbook, "nonce", nil)
+	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 	// watch the snapshot in a separate async call
 	this.Spawn(this.WatchOrderBookSnapshotAsync, client, message, subscription)
 }
@@ -784,6 +794,8 @@ func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
 		var subscription any = this.SafeDict(subscriptionsById, id)
 		if subscription != nil {
 			var errorCode *string = this.SafeString(message, "err-code")
+			var errorMessage *string = this.SafeString(message, "err-msg")
+			var feedback string = this.Id + " " + this.Json(message)
 
 			{
 				func(this *Bittrade) (ret_ any) {
@@ -805,8 +817,10 @@ func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
 						}
 					}()
 					// try block:
-					this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, this.Json(message))
-					return nil
+					this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
+					this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
+					panic(ccxt.ExchangeError(feedback))
+
 				}(this)
 
 			}

@@ -578,7 +578,10 @@ class latoken(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        response = await self.privateGetAuthAccount(params)
+        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
+        type = self.safe_string(params, 'type', defaultType)
+        paramsOmitted = self.omit(params, 'type')
+        response = await self.privateGetAuthAccount(paramsOmitted)
         #
         #     [
         #         {
@@ -607,8 +610,6 @@ class latoken(Exchange, ImplicitAPI):
             'datetime': None,
         }
         maxTimestamp = None
-        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
         types = self.safe_dict(self.options, 'types', {})
         accountType = self.safe_string(types, type, type)
         balancesByType = self.group_by(response, 'type')
@@ -1218,7 +1219,7 @@ class latoken(Exchange, ImplicitAPI):
             await self.load_markets()
         response: dict
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
-        paramsOmitted = self.omit(params, 'stop')
+        paramsOmitted = self.omit(params, ['stop', 'trigger'])
         # privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         market = self.market(symbol)
         request = {
@@ -1795,9 +1796,10 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        requestHeaders = None
+        requestBody = None
         request = '/' + self.version + '/' + self.implode_params(path, params)
         requestString = request
         query = self.omit(params, self.extract_params(path))
@@ -1805,7 +1807,7 @@ class latoken(Exchange, ImplicitAPI):
         if method == 'GET':
             if len(query) > 0:
                 requestString += '?' + urlencodedQuery
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             auth = method + request + urlencodedQuery
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)

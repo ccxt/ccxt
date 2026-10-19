@@ -352,10 +352,10 @@ class mexc(ccxt.async_support.mexc):
 
     def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         # protobuf ticker
-        # "bidprice": "93387.28",  // Best bid price
-        # "bidquantity": "3.73485", // Best bid quantity
-        # "askprice": "93387.29", // Best ask price
-        # "askquantity": "7.669875" // Best ask quantity
+        # "bidPrice": "93387.28",  // Best bid price
+        # "bidQuantity": "3.73485", // Best bid quantity
+        # "askPrice": "93387.29", // Best ask price
+        # "askQuantity": "7.669875" // Best ask quantity
         #
         # spot
         #
@@ -774,7 +774,11 @@ class mexc(ccxt.async_support.mexc):
         parts = msg.split('@')
         marketId = self.safe_string(parts, 2)
         symbol = self.safe_symbol(marketId)
-        self.orderbooks[symbol] = self.order_book({})
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
+        orderbook['nonce'] = None
+        orderbook.cache = []
 
     def get_cache_index(self, orderbook: object, cache: object) -> float:
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible
@@ -832,12 +836,13 @@ class mexc(ccxt.async_support.mexc):
         #            ]
         #         ],
         #         "end":4895965272,
-        #         "begin":4895965271
+        #         "begin":4895965271,
+        #         "version":4895965272
         #      },
         #      "symbol":"BTC_USDT",
         #      "ts":1651239652372
         #  }
-        # protofbuf
+        # protobuf
         # {
         #      "channel":"spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT",
         #      "symbol":"BTCUSDT",
@@ -1392,7 +1397,7 @@ class mexc(ccxt.async_support.mexc):
         #        "s":1,
         #        "i":"e03a5c7441e44ed899466a7140b71391",
         #    }
-        # protofbuf spot order
+        # protobuf spot order
         # {
         #     "id":"C02__583905164440776704043",
         #     "price":"0.001053",

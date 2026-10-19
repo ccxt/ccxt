@@ -213,7 +213,7 @@ export default class bit2c extends Exchange {
             },
             'options': {
                 'fetchTrades': {
-                    'method': 'public_get_exchanges_pair_trades',
+                    'method': 'publicGetExchangesPairTrades',
                 },
             },
             'features': {
@@ -480,7 +480,7 @@ export default class bit2c extends Exchange {
         }
         const market = this.market(symbol);
         const optionValue = this.safeString(this.options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
-        const method = this.handleOption('fetchTrades', 'method', optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        const method = this.handleOption('fetchTrades', 'method', optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         const request = {
             'pair': market['id'],
         };
@@ -491,7 +491,7 @@ export default class bit2c extends Exchange {
             request['limit'] = limit; // max 100000
         }
         let responseList = [];
-        if (method === 'public_get_exchanges_pair_trades') {
+        if ((method === 'publicGetExchangesPairTrades') || (method === 'public_get_exchanges_pair_trades')) {
             const response = await this.publicGetExchangesPairTrades(this.extend(request, params));
             //
             //     [
@@ -1047,7 +1047,7 @@ export default class bit2c extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiUrl = this.safeString(this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -1055,7 +1055,7 @@ export default class bit2c extends Exchange {
         let url = apiUrl + '/' + this.implodeParams(path, params);
         let requestBody = undefined;
         let requestHeaders = undefined;
-        if (api === 'public') {
+        if (api[0] === 'public') {
             url += '.json';
         }
         else {
@@ -1081,8 +1081,8 @@ export default class bit2c extends Exchange {
                 'sign': signature,
             };
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

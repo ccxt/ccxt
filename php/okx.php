@@ -1165,15 +1165,11 @@ class okx extends Exchange {
                 'networks' => array(
                     'BTC' => 'Bitcoin',
                     'BTCLIGHTNING' => 'Lightning',
-                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'BRC20' => 'BRC20',
-                    'ETH' => 'ERC20',
                     'ERC20' => 'ERC20',
-                    'TRX' => 'TRC20',
                     'TRC20' => 'TRC20',
                     'CRC20' => 'Crypto',
-                    'CRONOS' => 'Crypto',
                     'ACA' => 'Acala',
                     'ALGO' => 'Algorand',
                     'APT' => 'Aptos',
@@ -1407,7 +1403,12 @@ class okx extends Exchange {
                         'trailing' => true,
                         'iceberg' => true, // todo implement
                         'leverage' => false,
-                        'selfTradePrevention' => true, // todo implement
+                        'selfTradePrevention' => array(
+                            'EXPIRE_MAKER' => true,
+                            'EXPIRE_TAKER' => true,
+                            'EXPIRE_BOTH' => true,
+                            'NONE' => false, // okx enforces stp at the account level, it cannot be turned off
+                        ),
                         'marketBuyByCost' => true,
                         'marketBuyRequiresPrice' => false,
                     ),
@@ -3490,6 +3491,30 @@ class okx extends Exchange {
                 $request['slTriggerPxType'] = $slTriggerPxType;
             }
         }
+        // unified stp
+        $selfTradePrevention = null;
+        list($selfTradePrevention, $orderParams) = $this->handle_option_and_params($orderParams, 'createOrder', 'selfTradePrevention');
+        if ($selfTradePrevention !== null) {
+            $stpModes = array(
+                'EXPIRE_MAKER' => 'cancel_maker',
+                'EXPIRE_TAKER' => 'cancel_taker',
+                'EXPIRE_BOTH' => 'cancel_both',
+            );
+            $selfTradePreventionUpper = strtoupper($selfTradePrevention);
+            if ($selfTradePreventionUpper === 'NONE') {
+                throw new NotSupported($this->id . ' createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order');
+            }
+            $stpMode = $this->safe_string($stpModes, $selfTradePreventionUpper, strtolower($selfTradePrevention));
+            $algoOrderTypes = $this->safe_dict($this->options, 'algoOrderTypes', array());
+            $requestOrdType = $this->safe_string($request, 'ordType');
+            if (($requestOrdType !== null) && (is_array($algoOrderTypes) && array_key_exists($requestOrdType ?? '', $algoOrderTypes))) {
+                throw new NotSupported($this->id . ' createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint');
+            }
+            if (($stpMode === 'cancel_both') && ($requestOrdType === 'fok')) {
+                throw new InvalidOrder($this->id . ' createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders');
+            }
+            $request['stpMode'] = $stpMode;
+        }
         if ($clientOrderId === null) {
             $brokerId = $this->safe_string($this->options, 'brokerId');
             if ($brokerId !== null) {
@@ -3534,6 +3559,7 @@ class okx extends Exchange {
          * @param {string} [$params->marginMode] 'cross' or 'isolated', the default is 'cross'
          * @param {bool} [$params->rpiTakerAccess] true to $a taker $order match against retail $price improvement liquidity
          * @param {bool} [$params->rpiPxRound] *rpi orders only* true to round the $price outward to the nearest placeable non-crossing level
+         * @param {string} [$params->selfTradePrevention] set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         if ($this->markets === null) {
@@ -5560,7 +5586,7 @@ class okx extends Exchange {
         return $this->safe_dict($response, $first);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -5569,12 +5595,12 @@ class okx extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for $currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=$transaction-structure $transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -5593,7 +5619,9 @@ class okx extends Exchange {
         $network = $this->safe_string($paramsWithdrawTag, 'network'); // this line allows the user to specify either ERC20 or ETH
         if ($network !== null) {
             $networks = $this->safe_dict($this->options, 'networks', array());
-            $network = $this->safe_string($networks, strtoupper($network), $network); // handle ETH>ERC20 alias
+            $networkUpper = strtoupper($network);
+            $networkKey = $this->safe_string($this->networkAliases, $networkUpper, $networkUpper);
+            $network = $this->safe_string($networks, $networkKey, $network); // resolve aliases to the unified key
             $request['chain'] = $currency['id'] . '-' . $network;
         }
         $omitKeys = array( 'fee' );
@@ -6397,12 +6425,18 @@ class okx extends Exchange {
         $leverageString = $this->safe_string($position, 'lever');
         $initialMarginPercentage = null;
         $collateralString = null;
+        $marginString = null;
         if ($marginMode === 'cross') {
             $initialMarginString = $this->safe_string($position, 'imr');
-            $collateralString = Precise::string_add($initialMarginString, $unrealizedPnlString);
+            $collateralString = ($unrealizedPnlString !== null) ? Precise::string_add($initialMarginString, $unrealizedPnlString) : $initialMarginString;
         } elseif ($marginMode === 'isolated') {
             $initialMarginPercentage = Precise::string_div('1', $leverageString);
-            $collateralString = $this->safe_string($position, 'margin');
+            $isolatedMarginString = $this->omit_zero($this->safe_string($position, 'margin'));
+            if ($isolatedMarginString !== null) {
+                $initialMarginString = $isolatedMarginString;
+                $marginString = $isolatedMarginString;
+                $collateralString = ($unrealizedPnlString !== null) ? Precise::string_add($isolatedMarginString, $unrealizedPnlString) : $isolatedMarginString;
+            }
         }
         $maintenanceMarginString = $this->safe_string($position, 'mmr');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
@@ -6418,8 +6452,29 @@ class okx extends Exchange {
             }
         }
         $rounder = '0.00005'; // round to closest 0.01%
-        $maintenanceMarginPercentage = $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentageString, $rounder), '1', 4));
-        $liquidationPrice = $this->safe_number($position, 'liqPx');
+        $maintenanceMarginPercentage = ($maintenanceMarginPercentageString !== null) ? $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentageString, $rounder), '1', 4)) : null;
+        $liquidationPriceString = $this->omit_zero($this->safe_string($position, 'liqPx'));
+        if (($liquidationPriceString === null) && ($marginMode === 'isolated') && ($initialMarginString !== null) && ($entryPriceString !== null) && ($contractsAbs !== null) && Precise::string_gt($contractsAbs, '0') && ($contractSizeString !== null) && ($maintenanceMarginPercentage !== null)) {
+            $takerFeeRate = $this->safe_string($marketResolved, 'taker', '0.0005');
+            $mmpWithFee = Precise::string_add($this->number_to_string($maintenanceMarginPercentage), $takerFeeRate);
+            $totalSize = Precise::string_mul($contractsAbs, $contractSizeString);
+            if ($marketResolved['inverse'] === true) {
+                $invEntry = Precise::string_div($totalSize, $entryPriceString);
+                $denom = ($side === 'long') ? Precise::string_add($invEntry, $initialMarginString) : Precise::string_sub($invEntry, $initialMarginString);
+                $numFactor = ($side === 'long') ? Precise::string_add('1', $mmpWithFee) : Precise::string_sub('1', $mmpWithFee);
+                if (($denom !== null) && Precise::string_gt($denom, '0')) {
+                    $liquidationPriceString = Precise::string_div(Precise::string_mul($totalSize, $numFactor), $denom);
+                }
+            } else {
+                $marginPerUnit = Precise::string_div($initialMarginString, $totalSize);
+                $num = ($side === 'long') ? Precise::string_sub($entryPriceString, $marginPerUnit) : Precise::string_add($entryPriceString, $marginPerUnit);
+                $denom = ($side === 'long') ? Precise::string_sub('1', $mmpWithFee) : Precise::string_add('1', $mmpWithFee);
+                if (($denom !== null) && Precise::string_gt($denom, '0')) {
+                    $liquidationPriceString = Precise::string_div($num, $denom);
+                }
+            }
+        }
+        $liquidationPrice = (($liquidationPriceString !== null) && Precise::string_gt($liquidationPriceString, '0')) ? $this->parse_number($liquidationPriceString) : null;
         $percentageString = $this->safe_string($position, 'uplRatio');
         $percentage = $this->parse_number(Precise::string_mul($percentageString, '100'));
         $timestamp = $this->safe_integer($position, 'cTime');
@@ -6446,6 +6501,7 @@ class okx extends Exchange {
             'lastUpdateTimestamp' => $this->safe_integer($position, 'uTime'),
             'maintenanceMargin' => $maintenanceMargin,
             'maintenanceMarginPercentage' => $maintenanceMarginPercentage,
+            'positionMargin' => $this->parse_number($marginString),
             'collateral' => $this->parse_number($collateralString),
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
@@ -6717,7 +6773,8 @@ class okx extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
@@ -6730,11 +6787,11 @@ class okx extends Exchange {
         $hasJsonBody = false;
         $jsonBody = null;
         // const type = this.getPathAuthenticationType (path);
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } elseif ($api === 'private') {
+        } elseif ($apiName === 'private') {
             $this->check_required_credentials();
             // inject id in implicit api call
             if ($method === 'POST' && ($path === 'trade/batch-orders' || $path === 'trade/order-algo' || $path === 'trade/order')) {
@@ -6784,11 +6841,11 @@ class okx extends Exchange {
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
             $privateHeaders['OK-ACCESS-SIGN'] = $signature;
         }
-        $requestBody = $body;
+        $requestBody = null;
         if ($hasJsonBody) {
             $requestBody = $jsonBody;
         }
-        $requestHeaders = ($api === 'private') ? $privateHeaders : $headers;
+        $requestHeaders = ($apiName === 'private') ? $privateHeaders : null;
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
@@ -7702,8 +7759,8 @@ class okx extends Exchange {
         }
         $market = $this->market($symbol);
         $type = ($market['spot'] === true) ? 'MARGIN' : $this->convert_to_instrument_type($market['type']);
-        $uly = $this->safe_string($market['info'], 'uly');
-        if (($uly === null) || ($uly === '')) {
+        $instFamily = $this->safe_string($market['info'], 'instFamily');
+        if (($instFamily === null) || ($instFamily === '')) {
             if ($type !== 'MARGIN') {
                 throw new BadRequest($this->id . ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' . $symbol);
             }
@@ -7714,7 +7771,7 @@ class okx extends Exchange {
         $request = array(
             'instType' => $type,
             'tdMode' => $marginMode,
-            'uly' => $uly,
+            'instFamily' => $instFamily,
         );
         if ($type === 'MARGIN') {
             $request['instId'] = $market['id'];

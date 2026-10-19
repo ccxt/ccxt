@@ -85,7 +85,7 @@ public partial class woo : ccxt.woo
     public async virtual Task<object> watchPublic(object messageHash, IDictionary<string, object> message)
     {
         string urlUid = "";
-        if (!isEqual(this.uid, ""))
+        if (((this.uid != null)) && (!isEqual(this.uid, "")))
         {
             urlUid = ("/" + this.uid);
         }
@@ -102,7 +102,7 @@ public partial class woo : ccxt.woo
     {
         parameters ??= new Dictionary<string, object>();
         string urlUid = "";
-        if (!isEqual(this.uid, ""))
+        if (((this.uid != null)) && (!isEqual(this.uid, "")))
         {
             urlUid = ("/" + this.uid);
         }
@@ -156,7 +156,7 @@ public partial class woo : ccxt.woo
         Dictionary<string, object> market = this.market(symbol);
         string? topic = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method));
         string urlUid = "";
-        if (!isEqual(this.uid, ""))
+        if (((this.uid != null)) && (!isEqual(this.uid, "")))
         {
             urlUid = ("/" + this.uid);
         }
@@ -303,11 +303,15 @@ public partial class woo : ccxt.woo
         {
             return;
         }
-        if (((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol)))
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        // handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
+        orderbook["timestamp"] = null;
+        orderbook["datetime"] = null;
+        (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
         this.spawn(this.fetchOrderBookSnapshot, new object[] { client, message, subscription});
     }
 

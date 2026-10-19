@@ -3868,14 +3868,12 @@ export default class predictfun extends Exchange {
      * @name predictfun#sign
      * @description builds the request URL and attaches the API key header required by every endpoint
      * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the API group and access level
+     * @param {string[]} [api] the API group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path, api = 'predictfun', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['predictfun'], method = 'GET', params = {}) {
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
         // the testnet is the exception, it is served without an API key at all
@@ -3884,7 +3882,7 @@ export default class predictfun extends Exchange {
         if ((apiKey === undefined) && !sandboxMode) {
             throw new AuthenticationError(this.id + ' sign() requires the "apiKey" credential for all endpoints');
         }
-        const apiGroup = typeof api === 'string' ? api : api[0];
+        const apiGroup = api[0];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['predictfun']);
         let url = baseUrl + '/' + this.implodeParams(path, params);
@@ -3894,7 +3892,7 @@ export default class predictfun extends Exchange {
                 url += '?' + this.urlencode(query);
             }
         }
-        const existingHeaders = (headers !== undefined) ? headers : {};
+        const existingHeaders = {};
         const headersValue = existingHeaders;
         const authHeaders = {};
         if ((apiKey !== undefined) && (!sandboxMode)) {
@@ -3930,7 +3928,7 @@ export default class predictfun extends Exchange {
         if ((jwtToken !== undefined) && this.inArray(path, walletPaths)) {
             authHeaders['Authorization'] = 'Bearer ' + jwtToken;
         }
-        let bodyValue = body;
+        let bodyValue = undefined;
         if (method !== 'GET') {
             if (!sandboxMode) {
                 this.checkRequiredCredentials();

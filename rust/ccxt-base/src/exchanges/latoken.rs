@@ -30,7 +30,9 @@ impl LatokenCore {
     pub fn init(&mut self) {
         let described = LatokenCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -837,8 +839,8 @@ impl LatokenCore {
         let mut rawMarkets: Value = self.to_array(response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_885: bool = true;
-            while { if !__for_first_885 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_885 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawMarkets.len() as i64) as f64) } {
+            let mut __for_first_894: bool = true;
+            while { if !__for_first_894 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_894 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawMarkets.len() as i64) as f64) } {
             let mut market: Value = rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
             // the exchange shows them inverted
@@ -1006,7 +1008,10 @@ impl LatokenCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut response: Value = self.private_get_auth_account(&[params.clone()]).await;
+        let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]);
+        let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType]);
+        let mut paramsOmitted: Value = self.omit(params, Value::Str("type".into()), &[]);
+        let mut response: Value = self.private_get_auth_account(&[paramsOmitted]).await;
         //
         //     [
         //         {
@@ -1037,8 +1042,6 @@ impl LatokenCore {
             m
         });
         let mut maxTimestamp: Value = Value::Null;
-        let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]);
-        let mut type_var: Value = self.safe_string_k(params, "type", &[defaultType]);
         let mut types: Value = self.safe_dict_k(self.options.clone(), "types", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1048,8 +1051,8 @@ impl LatokenCore {
         let mut balances: Value = self.safe_list(balancesByType, accountType, &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_886: bool = true;
-            while { if !__for_first_886 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_886 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            let mut __for_first_895: bool = true;
+            while { if !__for_first_895 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_895 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut timestamp: Value = self.safe_integer_k(balance.clone(), "timestamp", &[]);
@@ -1137,8 +1140,8 @@ impl LatokenCore {
         let mut bids: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_887: bool = true;
-            while { if !__for_first_887 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_887 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawAsks.len() as i64) as f64) } {
+            let mut __for_first_896: bool = true;
+            while { if !__for_first_896 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_896 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawAsks.len() as i64) as f64) } {
             let mut askEntry: Value = rawAsks.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut askQuantity: Value = self.safe_string_k(askEntry.clone(), "quantity", &[]);
             if is_true(&crate::precise::Precise::stringGt(&askQuantity, &Value::Str("0".into()))) {
@@ -1148,8 +1151,8 @@ impl LatokenCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_888: bool = true;
-            while { if !__for_first_888 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_888 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBids.len() as i64) as f64) } {
+            let mut __for_first_897: bool = true;
+            while { if !__for_first_897 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_897 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBids.len() as i64) as f64) } {
             let mut bidEntry: Value = rawBids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut bidQuantity: Value = self.safe_string_k(bidEntry.clone(), "quantity", &[]);
             if is_true(&crate::precise::Precise::stringGt(&bidQuantity, &Value::Str("0".into()))) {
@@ -1745,7 +1748,7 @@ impl LatokenCore {
         }
         let mut response: Value = Value::Null;
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("stop".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
@@ -2356,16 +2359,17 @@ impl LatokenCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut requestHeaders: Value = headers;
-        let mut requestBody: Value = body;
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestHeaders: Value = Value::Null;
+        let mut requestBody: Value = Value::Null;
         let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut requestString: Value = request.clone();
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
@@ -2375,7 +2379,7 @@ impl LatokenCore {
                 requestString = Value::Str(format!("{}{}", requestString, Value::Str(format!("{}{}", Value::Str("?".into()), urlencodedQuery).into())).into());
             }
         }
-        if (api.as_str() == Some("private")) {
+        if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, request).into()), urlencodedQuery).into());
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);

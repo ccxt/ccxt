@@ -274,10 +274,7 @@ export default class kraken extends Exchange {
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
-                'networks': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
-                },
+                'networks': {},
                 'depositMethods': {
                     '1INCH': '1inch' + ' ' + '(1INCH)',
                     'AAVE': 'Aave',
@@ -3357,8 +3354,9 @@ export default class kraken extends Exchange {
         }
         const currency = this.currency (code);
         let network = this.safeStringUpper (params, 'network');
-        const networks = this.safeDict (this.options, 'networks', {});
-        network = this.safeString (networks, network, network); // support ETH > ERC20 aliases
+        if (network !== undefined) {
+            network = this.safeString (this.networkAliases, network, network);
+        }
         const paramsOmitted: Dict = this.omit (params, 'network');
         let codeResolved = code;
         if ((code === 'USDT') && (network === 'TRC20')) {
@@ -3440,12 +3438,13 @@ export default class kraken extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const tagAndParams = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const tagAndParams = this.handleParamString (params, 'tag');
+        const tagWithdrawTag: Str = tagAndParams[0];
         const paramsWithdrawTag: Dict = tagAndParams[1];
         if ('key' in paramsWithdrawTag) {
             await this.loadMarkets ();
@@ -3457,7 +3456,7 @@ export default class kraken extends Exchange {
             };
             if (address !== undefined && address !== '') {
                 request['address'] = address;
-                this.checkAddress (address);
+                this.checkAddress (address, code, tagWithdrawTag);
             }
             const response = await this.privatePostWithdraw (this.extend (request, paramsWithdrawTag));
             //
@@ -3692,14 +3691,15 @@ export default class kraken extends Exchange {
         };
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = '/' + this.version + '/' + api + '/' + path;
-        if (api === 'public') {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        let url = '/' + this.version + '/' + apiName + '/' + path;
+        if (apiName === 'public') {
             if (Object.keys (params).length > 0) {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + this.urlencodeNested (params);
             }
-        } else if (api === 'private') {
+        } else if (apiName === 'private') {
             const price = this.safeString (params, 'price');
             let isTriggerPercent = false;
             if (price !== undefined) {
@@ -3733,7 +3733,7 @@ export default class kraken extends Exchange {
             } else {
                 headersSigned['Content-Type'] = 'application/x-www-form-urlencoded';
             }
-            const baseApiUrl = this.safeString (this.urls['api'], api);
+            const baseApiUrl = this.safeString (this.urls['api'], apiName);
             if (baseApiUrl === undefined) {
                 throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
             }
@@ -3742,11 +3742,11 @@ export default class kraken extends Exchange {
         } else {
             url = '/' + path;
         }
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        return { 'url': apiUrl + url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': apiUrl + url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     override nonce (): number {

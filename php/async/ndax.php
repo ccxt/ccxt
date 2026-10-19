@@ -2713,21 +2713,21 @@ class ndax extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         // this method required login, password and twofa key
         $sessionToken = $this->safe_string($this->options, 'sessionToken');
         if ($sessionToken === null) {
@@ -2736,7 +2736,7 @@ class ndax extends Exchange {
         if ($this->twofa === null) {
             throw new AuthenticationError($this->id . ' withdraw() requires exchange.twofa credentials');
         }
-        $this->check_address($address);
+        $this->check_address($address, $code, $tagWithdrawTag);
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2817,16 +2817,17 @@ class ndax extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $bodySigned = null;
         $headersSigned = null;
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if ($path === 'Authenticate') {
                 $auth = $this->login . ':' . $this->password;
                 $auth64 = base64_encode($auth);
@@ -2847,7 +2848,7 @@ class ndax extends Exchange {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } elseif ($api === 'private') {
+        } elseif ($apiName === 'private') {
             $this->check_required_credentials();
             $sessionToken = $this->safe_string($this->options, 'sessionToken');
             if ($sessionToken === null) {
@@ -2874,8 +2875,8 @@ class ndax extends Exchange {
                 }
             }
         }
-        $headersResolved = ($headersSigned === null) ? $headers : $headersSigned;
-        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
+        $headersResolved = $headersSigned;
+        $bodyResolved = $bodySigned;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

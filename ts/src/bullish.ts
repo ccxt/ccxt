@@ -2131,14 +2131,14 @@ export default class bullish extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.timestamp the timestamp of the withdrawal request (mandatory)
      * @param {string} params.nonce the nonce of the withdrawal request (mandatory)
      * @param {string} params.network network for withdraw (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         // todo check this method properly
         const currency = this.currency (code);
@@ -2424,7 +2424,7 @@ export default class bullish extends Exchange {
             // some currencies have multiple networks
             if (network === undefined) {
                 // use default network if not specified and multiple are available
-                network = this.defaultNetworkCode (code);
+                network = this.safeString (this.safeDict (this.options, 'defaultNetworks', {}), code, this.safeString (this.options, 'defaultNetwork'));
             }
             if (network !== undefined) {
                 // find the entry that matches the network or return first entry if not found and user did not specify a network
@@ -2979,17 +2979,18 @@ export default class bullish extends Exchange {
         }, market);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestHeaders: NullableDict = headers;
-        let requestBody: Str = body;
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + endpoint;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.microseconds ().toString ();
             const timestamp = this.getTimestamp ().toString ();

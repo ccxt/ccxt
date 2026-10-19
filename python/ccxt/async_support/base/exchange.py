@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.85'
+__version__ = '4.5.88'
 
 # -----------------------------------------------------------------------------
 
@@ -822,7 +822,7 @@ class BaseExchange(SyncExchange):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}):
         raise NotSupported(self.id + ' transfer() is not supported yet')
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}):
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}):
         raise NotSupported(self.id + ' withdraw() is not supported yet')
 
     async def create_deposit_address(self, code: str, params: dict = {}):
@@ -995,7 +995,7 @@ class BaseExchange(SyncExchange):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
-    async def fetch2(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
+    async def fetch2(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             await self.throttle(cost)
@@ -1012,7 +1012,7 @@ class BaseExchange(SyncExchange):
                 fetchData = {'request': None, 'response': {'body': None}, 'error': None}
             try:
                 self.set_last_rest_request_timestamp()
-                request = self.sign(path, api, method, paramsMaxRetriesOnFailureDelay, headers, body)
+                request = self.sign(path, api, method, paramsMaxRetriesOnFailureDelay)
                 if fetchData is not None:
                     fetchData['request'] = request
                 self.set_last_request(request)
@@ -1038,8 +1038,8 @@ class BaseExchange(SyncExchange):
                     raise e
         return None  # this line is never reached, but exists for c# value return requirement
 
-    async def request(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
-        return await self.fetch2(path, api, method, params, headers, body, config)
+    async def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
+        return await self.fetch2(path, api, method, params, config)
 
     async def load_accounts(self, reload=False, params: dict = {}):
         if reload:
@@ -1681,14 +1681,14 @@ class BaseExchange(SyncExchange):
         """
         raise NotSupported(self.id + ' unWatchOHLCV () is not supported yet')
 
-    async def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}):
+    async def withdraw_ws(self, code: str, amount: float, address: str, params: dict = {}):
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         raise NotSupported(self.id + ' withdrawWs () is not supported yet')

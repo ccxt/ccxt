@@ -2791,7 +2791,7 @@ class woofipro(Exchange, ImplicitAPI):
     def sign_message(self, message: object, privateKey: str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2800,8 +2800,8 @@ class woofipro(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
@@ -3290,7 +3290,7 @@ class woofipro(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, section: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
@@ -3347,8 +3347,8 @@ class woofipro(Exchange, ImplicitAPI):
                 secret = parts[1]
             signature = self.eddsa(self.encode(auth), self.base58_to_binary(secret), 'ed25519')
             requestHeaders['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))
-        bodyResult = body if (requestBody is None) else requestBody
-        headersResult = headers if (requestHeaders is None) else requestHeaders
+        bodyResult = requestBody
+        headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

@@ -1942,7 +1942,12 @@ public partial class paradex : Exchange
         //
         Int64? timestamp = this.safeInteger(order, "created_at");
         string? orderId = this.safeString(order, "id");
-        string? clientOrderId = ((string)this.omitZero(this.safeString(order, "client_id")));
+        // a client id is free text, omitZero would drop every non-numeric one in php
+        string? clientOrderId = this.safeString(order, "client_id");
+        if (clientOrderId == "")
+        {
+            clientOrderId = null;
+        }
         string? marketId = this.safeString(order, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
@@ -2990,9 +2995,11 @@ public partial class paradex : Exchange
         //                 "realized_pnl": "0",
         //                 "unrealized_pnl": "-2.39677214",
         //                 "unrealized_funding_pnl": "-0.11214013",
+        //                 "leverage": "5",
         //                 "cost": "648.39960537",
         //                 "cost_usd": "648.529",
         //                 "cached_funding_index": "35202.1002351",
+        //                 "created_at": 1718947571560,
         //                 "last_updated_at": 1718950074249,
         //                 "last_fill_id": "1718947571560201703986670001",
         //                 "seq_no": 1718950074249176253,
@@ -3019,9 +3026,11 @@ public partial class paradex : Exchange
         //         "realized_pnl": "0",
         //         "unrealized_pnl": "-2.39677214",
         //         "unrealized_funding_pnl": "-0.11214013",
+        //         "leverage": "5",
         //         "cost": "648.39960537",
         //         "cost_usd": "648.529",
         //         "cached_funding_index": "35202.1002351",
+        //         "created_at": 1718947571560,
         //         "last_updated_at": 1718950074249,
         //         "last_fill_id": "1718947571560201703986670001",
         //         "seq_no": 1718950074249176253,
@@ -3032,33 +3041,33 @@ public partial class paradex : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? side = this.safeStringLower(position, "side");
-        string? quantity = this.safeString(position, "size");
-        if (side != "long")
-        {
-            quantity = Precise.stringMul("-1", quantity);
-        }
-        Int64? timestamp = this.safeInteger(position, "time");
+        // side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        string? quantity = Precise.stringAbs(this.safeString(position, "size"));
+        Int64? timestamp = this.safeInteger(position, "created_at");
         double? liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
+        // cost_usd is signed by side, the unified notional is a magnitude
+        string? notionalString = Precise.stringAbs(this.safeString(position, "cost_usd"));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "id") },
             { "symbol", symbol },
             { "entryPrice", this.safeNumber(position, "average_entry_price") },
             { "markPrice", null },
-            { "notional", null },
-            { "collateral", this.safeNumber(position, "cost") },
+            { "notional", this.parseNumber(notionalString) },
+            { "collateral", null },
             { "unrealizedPnl", this.safeNumber(position, "unrealized_pnl") },
             { "side", side },
             { "contracts", this.parseNumber(quantity) },
             { "contractSize", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
+            { "lastUpdateTimestamp", this.safeInteger(position, "last_updated_at") },
             { "hedged", null },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
             { "initialMargin", null },
             { "initialMarginPercentage", null },
-            { "leverage", null },
+            { "leverage", this.safeNumber(position, "leverage") },
             { "liquidationPrice", liquidationPrice },
             { "marginRatio", null },
             { "marginMode", null },
@@ -4012,11 +4021,12 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object version = this.version;
         object pathValue = path;
         if ((path.IndexOf("v2/", StringComparison.Ordinal) == 0))
@@ -4034,13 +4044,13 @@ public partial class paradex : Exchange
         }
         string url = ((this.implodeHostname(baseApiUrl) + "/") + this.implodeParams(pathValue, parameters));
         object query = this.omit(parameters, this.extractParams(pathValue));
-        if ((api is "public"))
+        if ((apiName is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
-        } else if ((api is "private"))
+        } else if ((apiName is "private"))
         {
             Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {
                 { "Accept", "application/json" },
@@ -4093,7 +4103,7 @@ public partial class paradex : Exchange
             //         url += '?' + this.urlencode (query);
             //     }
             // }
-            object bodyResolved = ((privateBody != null)) ? privateBody : body;
+            string? bodyResolved = privateBody;
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
@@ -4104,8 +4114,8 @@ public partial class paradex : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

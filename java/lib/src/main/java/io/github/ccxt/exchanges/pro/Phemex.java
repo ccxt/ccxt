@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -370,7 +371,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Boolean usePerpetualApi = java.util.Objects.equals(this.safeString(paramsMarketType, "settle"), "USDT");
@@ -964,7 +965,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                     put( "settle", "USDT" );
                 }};
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, this.extend(parameters, settleRequest), (String) null);
+            Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, this.extend(parameters, settleRequest), (String) null);
             var type = ((List<Object>) typeparamsTypeVariable).get(0);
             Map<String, Object> paramsType = typeparamsTypeVariable.second();
             if (java.util.Objects.equals(symbolResolved, null))
@@ -1156,7 +1157,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                     put( "settle", "USDT" );
                 }};
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, this.extend(parameters, settleRequest), (String) null);
+            Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, this.extend(parameters, settleRequest), (String) null);
             var type = ((List<Object>) typeparamsTypeVariable).get(0);
             Map<String, Object> paramsType = typeparamsTypeVariable.second();
             Boolean isUSDTSettled = java.util.Objects.equals(this.safeString(paramsType, "settle"), "USDT");
