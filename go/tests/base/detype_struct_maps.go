@@ -43,6 +43,22 @@ func init() {
 		reflect.TypeOf(ccxt.Account{}),
 		reflect.TypeOf(ccxt.OrderBook{}),
 		reflect.TypeOf(ccxt.OrderBookL3{}),
+		reflect.TypeOf(ccxt.MarginLoan{}),
+		reflect.TypeOf(ccxt.Balance{}),
+		reflect.TypeOf(ccxt.Precision{}),
+		reflect.TypeOf(ccxt.Limits{}),
+		reflect.TypeOf(ccxt.MinMax{}),
+		reflect.TypeOf(ccxt.PredictionTicker{}),
+		reflect.TypeOf(ccxt.PredictionOrder{}),
+		reflect.TypeOf(ccxt.PredictionTrade{}),
+		reflect.TypeOf(ccxt.PredictionPosition{}),
+		reflect.TypeOf(ccxt.PredictionTradingFee{}),
+		reflect.TypeOf(ccxt.PredictionOpenInterest{}),
+		reflect.TypeOf(ccxt.PredictionEvent{}),
+		reflect.TypeOf(ccxt.PredictionMarket{}),
+		reflect.TypeOf(ccxt.PredictionOutcome{}),
+		reflect.TypeOf(ccxt.PredictionFees{}),
+		reflect.TypeOf(ccxt.PredictionSettlement{}),
 	} {
 		detypedStructs[t] = true
 	}

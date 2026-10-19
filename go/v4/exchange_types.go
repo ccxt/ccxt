@@ -1016,7 +1016,8 @@ type Balances struct {
 	Free      map[string]*float64
 	Used      map[string]*float64
 	Total     map[string]*float64
-	Info      map[string]any
+	Debt      map[string]*float64
+	Info      any
 	Timestamp *int64
 	Datetime  *string
 }
@@ -1090,14 +1091,28 @@ func NewBalances(balancesData2 any) Balances {
 		}
 	}
 
+	// Handle "debt" balances
+	var debtBalances map[string]*float64
+	if debtData, ok := balancesData["debt"].(map[string]any); ok {
+		debtBalances = make(map[string]*float64, len(debtData))
+		for key, value := range debtData {
+			if value == nil {
+				debtBalances[key] = nil
+			} else if floatValue, ok := derefScalar(value).(float64); ok {
+				debtBalances[key] = &floatValue
+			}
+		}
+	}
+
 	// Extract "info"
-	info := GetInfo(balancesData) // Assuming GetInfo is implemented
+	info := SafeValue(balancesData, "info", nil)
 
 	return Balances{
 		Balances:  balancesMap,
 		Free:      freeBalances,
 		Used:      usedBalances,
 		Total:     totalBalances,
+		Debt:      debtBalances,
 		Info:      info,
 		Timestamp: SafeInt64Typed(balancesData, "timestamp"),
 		Datetime:  SafeStringTyped(balancesData, "datetime"),
@@ -2155,7 +2170,7 @@ type MarginLoan struct {
 	Symbol    *string
 	Timestamp *int64
 	Datetime  *string
-	Info      map[string]any
+	Info      any
 }
 
 func NewMarginLoan(data any) MarginLoan {
@@ -2166,7 +2181,7 @@ func NewMarginLoan(data any) MarginLoan {
 		Symbol:    SafeStringTyped(data, "symbol"),
 		Timestamp: SafeInt64Typed(data, "timestamp"),
 		Datetime:  SafeStringTyped(data, "datetime"),
-		Info:      GetInfo(data),
+		Info:      SafeValue(data, "info", nil),
 	}
 }
 

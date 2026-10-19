@@ -485,6 +485,15 @@ func DetypeForComparison(value any) any {
 	if dwf, isDwf := value.(ccxt.DepositWithdrawFee); isDwf {
 		return ccxt.DepositWithdrawFeeToMap(dwf)
 	}
+	if bals, isBals := value.(ccxt.Balances); isBals {
+		return ccxt.BalancesToMap(bals)
+	}
+	if lt, isLt := value.(ccxt.LeverageTiers); isLt {
+		return ccxt.LeverageTiersToMap(lt)
+	}
+	if pob, isPob := value.(ccxt.PredictionOrderBook); isPob {
+		return ccxt.PredictionOrderBookToMap(pob)
+	}
 	rv := reflect.ValueOf(value)
 	switch rv.Kind() {
 	case reflect.Struct:
@@ -508,7 +517,7 @@ func DetypeForComparison(value any) any {
 				fv = fv.Elem()
 			}
 			detyped := DetypeForComparison(fv.Interface())
-			if fv.Kind() == reflect.Struct {
+			if fv.Kind() == reflect.Struct && fv.Type() == reflect.TypeOf(ccxt.Fee{}) {
 				if m, isMap := detyped.(map[string]any); isMap {
 					vacant := true
 					for _, mv := range m {
@@ -546,7 +555,7 @@ func DetypeForComparison(value any) any {
 		}
 		return out
 	case reflect.Slice:
-		if k := rv.Type().Elem().Kind(); rv.IsNil() || (k != reflect.Struct && k != reflect.Interface && k != reflect.Map) {
+		if k := rv.Type().Elem().Kind(); rv.IsNil() || (k != reflect.Struct && k != reflect.Interface && k != reflect.Map && k != reflect.String) {
 			return value
 		}
 		out := make([]any, rv.Len())
