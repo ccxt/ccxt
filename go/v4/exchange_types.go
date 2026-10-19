@@ -1825,7 +1825,7 @@ type Account struct {
 
 func NewAccount(data any) Account {
 	return Account{
-		Info: SafeValue(data, "info"),
+		Info: SafeValue(data, "info", nil),
 		Name: SafeStringTyped(data, "name"),
 		Id:   SafeStringTyped(data, "id"),
 		Type: SafeStringTyped(data, "type"),
@@ -2174,7 +2174,7 @@ func NewStatus(data any) Status {
 		Updated: SafeInt64Typed(data, "updated"),
 		Eta:     SafeInt64Typed(data, "eta"),
 		Url:     SafeStringTyped(data, "url"),
-		Info:    SafeValue(data, "info"),
+		Info:    SafeValue(data, "info", nil),
 	}
 }
 
@@ -2185,7 +2185,7 @@ type PositionModeInfo struct {
 
 func NewPositionModeInfo(data any) PositionModeInfo {
 	return PositionModeInfo{
-		Info:   SafeValue(data, "info"),
+		Info:   SafeValue(data, "info", nil),
 		Hedged: SafeBoolTyped(data, "hedged"),
 	}
 }
@@ -2813,7 +2813,7 @@ func NewDepositWithdrawFee(data any) DepositWithdrawFee {
 	if !ok {
 		return DepositWithdrawFee{}
 	}
-	info := SafeValue(m, "info")
+	info := SafeValue(m, "info", nil)
 	if info == nil {
 		info = m
 	}
