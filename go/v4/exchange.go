@@ -525,16 +525,16 @@ func (this *BaseExchange) Throttle(cost any) <-chan bool {
 }
 
 // base fetchMarkets (ts/src/base/Exchange.ts): the loaded markets as a list, [] before loadMarkets
-func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any], 1)
+func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]map[string]any] {
+	ch := make(chan AsyncResult[[]map[string]any], 1)
 	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		if this.Markets == nil {
-			ch <- AsyncResult[[]any]{Value: []any{}}
+			ch <- AsyncResult[[]map[string]any]{Value: []map[string]any{}}
 			return
 		}
-		ch <- AsyncResult[[]any]{Value: this.ToArray(this.Markets)}
+		ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.ToArray(this.Markets))}
 	}()
 	return ch
 }
