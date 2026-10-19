@@ -1223,6 +1223,8 @@ class toobit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.price]: "mark" or "index" for mark price and index price candles
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
@@ -1232,17 +1234,29 @@ class toobit(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        if since is not None:
-            request['startTime'] = since
         until = self.safe_integer(params, 'until')
-        if until is not None:
-            request['endTime'] = until
         paramsOmitted = self.omit(params, 'until') if (until is not None) else params
+        endpoint, paramsPrice = self.handle_option_string_and_params(paramsOmitted, 'fetchOHLCV', 'price')
+        isPriceKlines = (endpoint == 'index') or (endpoint == 'mark')
+        startKey = 'startTime'
+        endKey = 'endTime'
+        if isPriceKlines:
+            startKey = 'from'
+            endKey = 'to'
+        if since is not None:
+            request[startKey] = since
+        if until is not None:
+            request[endKey] = until
+        elif isPriceKlines and (since is not None):
+            # mark and index klines walk backwards from `to` and ignore a lone `from`
+            duration = self.parse_timeframe(timeframe)
+            requestedLimit = 2000 if (limit is None) else limit  # exchange default
+            request['to'] = self.sum(since, duration * requestedLimit * 1000)
         if limit is not None:
             request['limit'] = limit
         response = []
-        endpoint, paramsPrice = self.handle_option_string_and_params(paramsOmitted, 'fetchOHLCV', 'price')
         if endpoint == 'index':
+            request['symbol'] = self.safe_string(market['info'], 'indexToken')  # index klines take the index id instead of the market id
             response = await self.commonGetQuoteV1IndexKlines(self.extend(request, paramsPrice))
             #
             #     {
@@ -1312,6 +1326,8 @@ class toobit(Exchange, ImplicitAPI):
         candles = []
         if isinstance(response, list):
             candles = response
+        else:
+            candles = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
