@@ -57,6 +57,7 @@ export default class okx extends Exchange {
                 'createTrailingPercentOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'editOrders': true,
                 'fetchAccounts': true,
                 'fetchAllGreeks': true,
                 'fetchBalance': true,
@@ -105,7 +106,7 @@ export default class okx extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMarkPrice': true,
                 'fetchMarkPrices': true,
-                'fetchMySettlementHistory': false,
+                'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -942,10 +943,10 @@ export default class okx extends Exchange {
                     '51500': ExchangeError, // Either order price or amount is required
                     '51501': ExchangeError, // Maximum {0} orders can be modified
                     '51502': InsufficientFunds, // Order modification failed for insufficient margin or balance
-                    '51503': ExchangeError, // Order modification failed as the order does not exist
+                    '51503': OrderNotFound, // Order modification failed as the order does not exist
                     '51506': ExchangeError, // Order modification unavailable for the order type
                     '51508': ExchangeError, // Orders are not allowed to be modified during the call auction
-                    '51509': ExchangeError, // Modification failed as the order has been canceled
+                    '51509': OrderNotFound, // Modification failed as the order has been canceled
                     '51510': ExchangeError, // Modification failed as the order has been completed
                     '51511': ExchangeError, // Modification failed as the order price did not meet the requirement for Post Only
                     '51600': ExchangeError, // Status not found
@@ -3577,7 +3578,7 @@ export default class okx extends Exchange {
         let request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let method = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
         const requestOrdType = this.safeString (request, 'ordType');
-        if ((requestOrdType === 'trigger') || (requestOrdType === 'conditional') || (requestOrdType === 'move_order_stop') || (type === 'move_order_stop') || (type === 'oco') || (type === 'iceberg') || (type === 'twap')) {
+        if ((requestOrdType === 'trigger') || (requestOrdType === 'conditional') || (requestOrdType === 'move_order_stop') || (requestOrdType === 'oco') || (type === 'move_order_stop') || (type === 'oco') || (type === 'iceberg') || (type === 'twap')) {
             method = 'privatePostTradeOrderAlgo';
         }
         if ((method !== 'privatePostTradeOrder') && (method !== 'privatePostTradeOrderAlgo') && (method !== 'privatePostTradeBatchOrders')) {
@@ -3661,7 +3662,7 @@ export default class okx extends Exchange {
         return this.parseOrders (data);
     }
 
-    editOrderRequest (id: string, symbol: Str, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Dict {
+    editOrderRequest (id: Str, symbol: Str, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         const request: Dict = {
             'instId': market['id'],
@@ -3823,6 +3824,66 @@ export default class okx extends Exchange {
         order['type'] = type;
         order['side'] = side;
         return order;
+    }
+
+    /**
+     * @method
+     * @name okx#editOrders
+     * @description edit a list of trade orders
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-amend-multiple-orders
+     * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async editOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const ordersRequests: List = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = this.safeDict (orders, i);
+            const symbol = this.safeString (rawOrder, 'symbol');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' editOrders() requires a symbol for each order');
+            }
+            const id = this.safeString (rawOrder, 'id');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const clientOrderId = this.safeString2 (orderParams, 'clientOrderId', 'clOrdId');
+            if ((id === undefined) && (clientOrderId === undefined)) {
+                throw new ArgumentsRequired (this.id + ' editOrders() requires an id or params.clientOrderId for each order');
+            }
+            const type = this.safeString (rawOrder, 'type', '');
+            if ((type === 'trigger') || (type === 'conditional') || (type === 'move_order_stop') || (type === 'oco') || (type === 'iceberg') || (type === 'twap')) {
+                throw new NotSupported (this.id + ' editOrders() does not support algo orders, use editOrder() instead');
+            }
+            const side = this.safeString (rawOrder, 'side', '');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
+            const extendedParams = this.extend (orderParams, params); // the request body is a list, so common params are merged into each order
+            const orderRequest = this.editOrderRequest (id, symbol, type, side, amount, price, extendedParams);
+            ordersRequests.push (orderRequest);
+        }
+        const response = await this.privatePostTradeAmendBatchOrders (ordersRequests);
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "clOrdId": "",
+        //                 "ordId": "12344",
+        //                 "ts": "1695190491421",
+        //                 "reqId": "b12344",
+        //                 "sCode": "0",
+        //                 "sMsg": ""
+        //             }
+        //         ],
+        //         "inTime": "1695190491421339",
+        //         "msg": "",
+        //         "outTime": "1695190491423240"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []) as List;
+        return this.parseOrders (data);
     }
 
     /**
@@ -8557,7 +8618,7 @@ export default class okx extends Exchange {
         }
         const request: Dict = {
             'instType': this.convertToInstrumentType (type),
-            'uly': market['baseId'] + '-' + market['quoteId'],
+            'instFamily': this.safeString (market['info'], 'instFamily'),
         };
         if (since !== undefined) {
             request['before'] = since - 1;
@@ -8585,8 +8646,64 @@ export default class okx extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'data', []);
-        const settlements = this.parseSettlements (data, market);
+        // rows cover every contract of the instrument family, including expired ids missing from markets
+        const settlements = this.parseSettlements (data, undefined);
         const sorted = this.sortBy (settlements, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit);
+    }
+
+    /**
+     * @method
+     * @name okx#fetchMySettlementHistory
+     * @description fetches historical settlement records of the user, derived from delivery and exercise account bills
+     * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+     * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
+     * @param {string} [symbol] unified market symbol of the settlement history
+     * @param {int} [since] timestamp in ms
+     * @param {int} [limit] number of records, max 100
+     * @param {object} [params] exchange specific params
+     * @param {string} [params.method] 'privateGetAccountBillsArchive' (default, last 3 months) or 'privateGetAccountBills' (last 7 days)
+     * @param {int} [params.until] timestamp in ms of the latest record to fetch
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+     */
+    async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
+        const request: Dict = {
+            'type': '3', // delivery
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instId'] = market['id'];
+            request['instType'] = this.convertToInstrumentType (market['type']);
+        }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let method: Str = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchMySettlementHistory', 'method', 'privateGetAccountBillsArchive');
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, 'until');
+        }
+        let response: Dict = {};
+        if (method === 'privateGetAccountBills') {
+            response = await this.privateGetAccountBills (this.extend (request, params));
+        } else {
+            response = await this.privateGetAccountBillsArchive (this.extend (request, params));
+        }
+        const data: List = this.safeList (response, 'data', []);
+        const result: List = [];
+        for (let i = 0; i < data.length; i++) {
+            result.push (this.parseSettlement (data[i], market));
+        }
+        const sorted = this.sortBy (result, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);
     }
 
@@ -8598,13 +8715,29 @@ export default class okx extends Exchange {
         //         "type": "exercised"
         //     }
         //
-        const marketId = this.safeString (settlement, 'insId');
+        // fetchMySettlementHistory (account bills, type 3 delivery)
+        //
+        //     {
+        //         "instId": "BTC-USD-241227",
+        //         "instType": "FUTURES",
+        //         "px": "94012.3",
+        //         "sz": "1",
+        //         "pnl": "0.0001",
+        //         "fee": "0",
+        //         "ccy": "BTC",
+        //         "type": "3",
+        //         "subType": "14",
+        //         "ts": "1735286400000"
+        //     }
+        //
+        const marketId = this.safeString2 (settlement, 'insId', 'instId');
+        const timestamp = this.safeInteger (settlement, 'ts');
         return {
             'info': settlement,
             'symbol': this.safeSymbol (marketId, market),
             'price': this.safeNumber (settlement, 'px'),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         };
     }
 
