@@ -1,12 +1,10 @@
 {
   "Bybit.GetUrlByMarketType": "*string",
-  "FetchMarketsWs": "[]any",
   "FetchOrderBookWs": "OrderBookInterface",
   "GetListenKey": "*string",
   "Kucoin.GetUtaUrl": "*string",
   "Negotiate": "*string",
   "Poloniex.TradeRequest": "[]any",
-  "SubscribeWatchTickersAndBidsAsks": "map[string]any",
   "WatchExecuteRequest": "map[string]any",
   "WatchHeartbeat": "map[string]any",
   "WatchOrderBookSnapshot": "OrderBookInterface",

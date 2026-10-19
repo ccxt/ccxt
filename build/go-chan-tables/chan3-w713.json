@@ -1,0 +1,5 @@
+{
+  "Aster.ModifyMarginHelper": "MarginModification",
+  "Aster.AddMargin": "MarginModification",
+  "Aster.ReduceMargin": "MarginModification"
+}

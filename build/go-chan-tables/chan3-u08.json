@@ -1,4 +1,3 @@
 {
-    "FetchCurrencies": "map[string]any",
-    "FetchMarkets": "[]any"
+  "FetchCurrencies": "map[string]any"
 }

@@ -1,0 +1,5 @@
+{
+  "FetchMarketsFromAPI": "[]map[string]any",
+  "FetchMarketsFromWeb": "[]map[string]any",
+  "FetchUSDTMarkets": "[]map[string]any"
+}

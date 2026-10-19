@@ -1,0 +1,5 @@
+{
+  "Hitbtc.ModifyMarginHelper": "MarginModification",
+  "Hitbtc.AddMargin": "MarginModification",
+  "Hitbtc.ReduceMargin": "MarginModification"
+}

@@ -1,0 +1,5 @@
+{
+  "Gate.ModifyMarginHelper": "MarginModification",
+  "Gate.AddMargin": "MarginModification",
+  "Gate.ReduceMargin": "MarginModification"
+}

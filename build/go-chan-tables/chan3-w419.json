@@ -1,7 +1,1 @@
-{
-    "FetchMarketsFromAPI": "[]any",
-    "FetchMarketsFromWeb": "[]any",
-    "FetchUSDTMarkets": "[]any",
-    "FetchMarketsV1": "[]any",
-    "FetchMarketsV2": "[]any"
-}
+{}

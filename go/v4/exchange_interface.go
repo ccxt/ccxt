@@ -286,7 +286,7 @@ type ICoreExchange interface {
 	Unique(obj any) []any
 	FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64]
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]map[string]any]
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances]
 	FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]LastPrice]
 	ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest
@@ -494,7 +494,7 @@ type IDerivedExchange interface {
 	FetchFundingIntervalsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]FundingRate]
 	FetchDepositsWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction]
 	ParseMarginModification(data any, optionalArgs ...any) map[string]any
-	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]map[string]any]
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[[]Account]
 	SetSandboxMode(enabled any)

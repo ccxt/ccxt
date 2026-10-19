@@ -1,0 +1,5 @@
+{
+  "Delta.ModifyMarginHelper": "MarginModification",
+  "Delta.AddMargin": "MarginModification",
+  "Delta.ReduceMargin": "MarginModification"
+}

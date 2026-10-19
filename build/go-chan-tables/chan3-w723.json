@@ -1,0 +1,5 @@
+{
+  "Poloniex.ModifyMarginHelper": "MarginModification",
+  "Poloniex.AddMargin": "MarginModification",
+  "Poloniex.ReduceMargin": "MarginModification"
+}

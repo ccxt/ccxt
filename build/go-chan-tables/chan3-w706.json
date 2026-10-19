@@ -1,0 +1,5 @@
+{
+  "FetchInverseSwapMarkets": "[]map[string]any",
+  "FetchMarketsByTypeAndSubType": "[]map[string]any",
+  "FetchSwapAndFutureMarkets": "[]map[string]any"
+}

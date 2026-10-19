@@ -1,7 +1,1 @@
-{
-    "FetchContractMarkets": "[]any",
-    "FetchDefaultMarkets": "[]any",
-    "FetchFutureMarkets": "[]any",
-    "FetchHip3Markets": "[]any",
-    "FetchMarketsByTypeAndSubType": "[]any"
-}
+{}

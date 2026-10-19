@@ -1,0 +1,5 @@
+{
+  "Okx.ModifyMarginHelper": "MarginModification",
+  "Okx.AddMargin": "MarginModification",
+  "Okx.ReduceMargin": "MarginModification"
+}
