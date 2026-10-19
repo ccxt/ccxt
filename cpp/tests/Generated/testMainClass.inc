@@ -3840,6 +3840,12 @@ virtual ccxt::any initOfflineExchange(ccxt::any exchangeName,
     ::setValue(options, std::string("apiKey"), std::string(""));
     ::setValue(options, std::string("secret"), std::string(""));
   }
+  if (isTrue(isEqual(exchangeName, std::string("backpack")))) {
+    // Ed25519 requires a base64-encoded 32-byte seed, not the generic dummy
+    // secret.
+    ::setValue(options, std::string("secret"),
+               std::string("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="));
+  }
   ccxt::any exchange = initExchange(exchangeName, options, isWs);
   if (isTrue(!isEqual(currencies, ccxt::any{}))) {
     setProperty(exchange, std::string("currencies"), currencies);

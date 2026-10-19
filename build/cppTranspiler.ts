@@ -1573,7 +1573,7 @@ class CppTranspilerDriver {
         // (e.g. delay(d, this->loadOrderBook, ...) where loadOrderBook is
         // Exchange's own), so the whole class surface is scanned
         let source = fs.readFileSync ('./ts/src/' + sourceDir + '/' + id + '.ts').toString ();
-        for (const fragment of [ BASE_METHODS_FILE, TRADING_METHODS_FILE ]) {
+        for (const fragment of [ BASE_METHODS_FILE, TRADING_METHODS_FILE, './ts/src/base/Exchange.ts' ]) {
             if (fs.existsSync (fragment)) {
                 source += '\n' + fs.readFileSync (fragment).toString ();
             }
