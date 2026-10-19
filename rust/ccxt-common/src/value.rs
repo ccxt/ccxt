@@ -238,7 +238,11 @@ impl Value {
     pub fn len(&self) -> usize {
         match self {
             Value::Arr(a)   => a.len(),
-            Value::Dict(m)  => m.len(),
+            // Cache handles (a book's `cache`, ArrayCache markers) are one-key
+            // marker dicts whose `.length` means the backing store. The checker
+            // lowers `typedBook.cache.length` to a bare `len()`, so unwrap here
+            // exactly as `get_array_length` does.
+            Value::Dict(m)  => book_cache_len_of(m).or_else(|| cache_len_of_marker(m)).unwrap_or(m.len()),
             Value::Str(s)   => s.chars().count(),
             _               => 0,
         }
@@ -2165,5 +2169,30 @@ mod json_int_precision_tests {
         assert_eq!(crate::runtime::get_value(&p, &Value::Str("a".into())), Value::Int(42));
         assert_eq!(crate::runtime::get_value(&p, &Value::Str("b".into())), Value::Int(-7));
         assert_eq!(crate::runtime::get_value(&p, &Value::Str("c".into())), Value::Float(1.5));
+    }
+}
+
+#[cfg(test)]
+mod value_len_tests {
+    use super::*;
+
+    #[test]
+    fn len_of_book_cache_handle_reports_backing_store() {
+        // `typedBook.cache.length` lowers to `Value::len()` on the handle dict;
+        // it must report the registry-backed store, not the handle's one key.
+        let id = -424242; // private id, never handed out to a registered book
+        let handle = book_cache_handle(id);
+        assert_eq!(handle.len(), 0);
+        book_cache_push(id, Value::Int(1));
+        book_cache_push(id, Value::Int(2));
+        assert_eq!(handle.len(), 2);
+    }
+
+    #[test]
+    fn len_of_plain_dict_still_counts_keys() {
+        let mut m = HashMap::new();
+        m.insert("a".to_string(), Value::Int(1));
+        m.insert("b".to_string(), Value::Int(2));
+        assert_eq!(Value::Dict(Arc::new(m)).len(), 2);
     }
 }

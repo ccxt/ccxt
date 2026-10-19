@@ -1,0 +1,1147 @@
+{
+    "exchange": "backpack",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOrderBook": [
+            {
+                "description": "watch order book spot stock",
+                "input": [
+                    "SPCX.US/USDC"
+                ],
+                "url": "wss://ws.backpack.exchange",
+                "messages": [
+                    {
+                        "data": {
+                            "E": "1792231923981842",
+                            "T": "1792231923980849",
+                            "U": 58515296,
+                            "a": [],
+                            "b": [
+                                [
+                                    "145.73",
+                                    "0.00"
+                                ]
+                            ],
+                            "e": "depth",
+                            "s": "SPCX.US_USDC",
+                            "u": 58515296
+                        },
+                        "stream": "depth.SPCX.US_USDC"
+                    },
+                    {
+                        "data": {
+                            "E": "1792231923985036",
+                            "T": "1792231923984820",
+                            "U": 58515297,
+                            "a": [],
+                            "b": [
+                                [
+                                    "145.72",
+                                    "1.59"
+                                ]
+                            ],
+                            "e": "depth",
+                            "s": "SPCX.US_USDC",
+                            "u": 58515297
+                        },
+                        "stream": "depth.SPCX.US_USDC"
+                    }
+                ],
+                "httpResponse": {
+                    "asks": [
+                        [
+                            "145.82",
+                            "1.41"
+                        ],
+                        [
+                            "145.89",
+                            "3.85"
+                        ],
+                        [
+                            "145.9",
+                            "1.75"
+                        ],
+                        [
+                            "145.97",
+                            "3.29"
+                        ],
+                        [
+                            "146.07",
+                            "3.03"
+                        ],
+                        [
+                            "146.08",
+                            "25.27"
+                        ],
+                        [
+                            "146.09",
+                            "6.85"
+                        ],
+                        [
+                            "146.11",
+                            "6.85"
+                        ],
+                        [
+                            "146.13",
+                            "6.85"
+                        ],
+                        [
+                            "146.15",
+                            "6.85"
+                        ],
+                        [
+                            "146.18",
+                            "6.85"
+                        ],
+                        [
+                            "146.21",
+                            "6.85"
+                        ],
+                        [
+                            "146.25",
+                            "6.85"
+                        ],
+                        [
+                            "146.29",
+                            "6.85"
+                        ],
+                        [
+                            "146.33",
+                            "6.85"
+                        ],
+                        [
+                            "146.37",
+                            "30.02"
+                        ],
+                        [
+                            "146.41",
+                            "6.85"
+                        ],
+                        [
+                            "146.67",
+                            "22.83"
+                        ],
+                        [
+                            "147.21",
+                            "57.78"
+                        ],
+                        [
+                            "147.41",
+                            "44.11"
+                        ],
+                        [
+                            "148.59",
+                            "96.64"
+                        ]
+                    ],
+                    "bids": [
+                        [
+                            "90",
+                            "0.01"
+                        ],
+                        [
+                            "91.11",
+                            "0.01"
+                        ],
+                        [
+                            "92.22",
+                            "0.01"
+                        ],
+                        [
+                            "93.33",
+                            "0.01"
+                        ],
+                        [
+                            "94.44",
+                            "0.01"
+                        ],
+                        [
+                            "95.56",
+                            "0.01"
+                        ],
+                        [
+                            "96.67",
+                            "0.01"
+                        ],
+                        [
+                            "97.78",
+                            "0.01"
+                        ],
+                        [
+                            "98.89",
+                            "0.01"
+                        ],
+                        [
+                            "100",
+                            "0.01"
+                        ],
+                        [
+                            "143.34",
+                            "95.97"
+                        ],
+                        [
+                            "144.48",
+                            "106.21"
+                        ],
+                        [
+                            "145.05",
+                            "22.77"
+                        ],
+                        [
+                            "145.21",
+                            "24.99"
+                        ],
+                        [
+                            "145.41",
+                            "14.56"
+                        ],
+                        [
+                            "145.53",
+                            "3.81"
+                        ],
+                        [
+                            "145.55",
+                            "3.91"
+                        ],
+                        [
+                            "145.67",
+                            "15.77"
+                        ],
+                        [
+                            "145.72",
+                            "1.59"
+                        ]
+                    ],
+                    "lastUpdateId": "58515297",
+                    "timestamp": 1792231925407518
+                },
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "depth.SPCX.US_USDC"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                145.72,
+                                1.59
+                            ],
+                            [
+                                145.67,
+                                15.77
+                            ],
+                            [
+                                145.55,
+                                3.91
+                            ],
+                            [
+                                145.53,
+                                3.81
+                            ],
+                            [
+                                145.41,
+                                14.56
+                            ],
+                            [
+                                145.21,
+                                24.99
+                            ],
+                            [
+                                145.05,
+                                22.77
+                            ],
+                            [
+                                144.48,
+                                106.21
+                            ],
+                            [
+                                143.34,
+                                95.97
+                            ],
+                            [
+                                100,
+                                0.01
+                            ],
+                            [
+                                98.89,
+                                0.01
+                            ],
+                            [
+                                97.78,
+                                0.01
+                            ],
+                            [
+                                96.67,
+                                0.01
+                            ],
+                            [
+                                95.56,
+                                0.01
+                            ],
+                            [
+                                94.44,
+                                0.01
+                            ],
+                            [
+                                93.33,
+                                0.01
+                            ],
+                            [
+                                92.22,
+                                0.01
+                            ],
+                            [
+                                91.11,
+                                0.01
+                            ],
+                            [
+                                90,
+                                0.01
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                145.82,
+                                1.41
+                            ],
+                            [
+                                145.89,
+                                3.85
+                            ],
+                            [
+                                145.9,
+                                1.75
+                            ],
+                            [
+                                145.97,
+                                3.29
+                            ],
+                            [
+                                146.07,
+                                3.03
+                            ],
+                            [
+                                146.08,
+                                25.27
+                            ],
+                            [
+                                146.09,
+                                6.85
+                            ],
+                            [
+                                146.11,
+                                6.85
+                            ],
+                            [
+                                146.13,
+                                6.85
+                            ],
+                            [
+                                146.15,
+                                6.85
+                            ],
+                            [
+                                146.18,
+                                6.85
+                            ],
+                            [
+                                146.21,
+                                6.85
+                            ],
+                            [
+                                146.25,
+                                6.85
+                            ],
+                            [
+                                146.29,
+                                6.85
+                            ],
+                            [
+                                146.33,
+                                6.85
+                            ],
+                            [
+                                146.37,
+                                30.02
+                            ],
+                            [
+                                146.41,
+                                6.85
+                            ],
+                            [
+                                146.67,
+                                22.83
+                            ],
+                            [
+                                147.21,
+                                57.78
+                            ],
+                            [
+                                147.41,
+                                44.11
+                            ],
+                            [
+                                148.59,
+                                96.64
+                            ]
+                        ],
+                        "timestamp": 1792231925407,
+                        "datetime": "2026-10-17T10:12:05.407Z",
+                        "nonce": 58515297,
+                        "symbol": "SPCX.US/USDC"
+                    }
+                ]
+            }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "watch OHLCV spot stock",
+                "input": [
+                    "SPCX.US/USDC"
+                ],
+                "url": "wss://ws.backpack.exchange",
+                "messages": [
+                    {
+                        "data": {
+                            "E": "1792230780070614",
+                            "e": "kline",
+                            "s": "SPCX.US_USDC",
+                            "T": "2026-10-17T09:53:00",
+                            "X": true,
+                            "c": null,
+                            "h": null,
+                            "l": null,
+                            "n": 0,
+                            "o": null,
+                            "t": "2026-10-17T09:52:00",
+                            "v": null
+                        },
+                        "stream": "kline.1m.SPCX.US_USDC"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "kline.1m.SPCX.US_USDC"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1792230780000,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null
+                        ]
+                    ]
+                ]
+            }
+        ],
+        "watchBidsAsks": [
+            {
+                "description": "watch bids asks spot stock RFQ",
+                "input": [
+                    [
+                        "AAPL.US.RFQ/USDC"
+                    ]
+                ],
+                "url": "wss://ws.backpack.exchange",
+                "messages": [
+                    {
+                        "data": {
+                            "e": "stockIndicativeQuote",
+                            "symbol": "AAPL",
+                            "bid": null,
+                            "ask": null,
+                            "estimatedBid": null,
+                            "estimatedAsk": null,
+                            "session": null,
+                            "minQuantity": null,
+                            "maxQuantity": null,
+                            "stepSize": null,
+                            "reason": "noActiveSession",
+                            "timestamp": 1792232221624
+                        },
+                        "stream": "stockIndicativeQuote.AAPL"
+                    },
+                    {
+                        "data": {
+                            "e": "stockIndicativeQuote",
+                            "symbol": "AAPL",
+                            "bid": null,
+                            "ask": null,
+                            "estimatedBid": null,
+                            "estimatedAsk": null,
+                            "session": null,
+                            "minQuantity": null,
+                            "maxQuantity": null,
+                            "stepSize": null,
+                            "reason": "noActiveSession",
+                            "timestamp": 1792232222624
+                        },
+                        "stream": "stockIndicativeQuote.AAPL"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "stockIndicativeQuote.AAPL"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "AAPL.US.RFQ/USDC": {
+                            "symbol": "AAPL.US.RFQ/USDC",
+                            "timestamp": 1792232221624,
+                            "datetime": "2026-10-17T10:17:01.624Z",
+                            "bid": null,
+                            "ask": null,
+                            "info": {
+                                "e": "stockIndicativeQuote",
+                                "symbol": "AAPL",
+                                "bid": null,
+                                "ask": null,
+                                "estimatedBid": null,
+                                "estimatedAsk": null,
+                                "session": null,
+                                "minQuantity": null,
+                                "maxQuantity": null,
+                                "stepSize": null,
+                                "reason": "noActiveSession",
+                                "timestamp": 1792232221624
+                            },
+                            "bidVolume": null,
+                            "askVolume": null,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "AAPL.US.RFQ/USDC": {
+                            "symbol": "AAPL.US.RFQ/USDC",
+                            "timestamp": 1792232222624,
+                            "datetime": "2026-10-17T10:17:02.624Z",
+                            "bid": null,
+                            "ask": null,
+                            "info": {
+                                "e": "stockIndicativeQuote",
+                                "symbol": "AAPL",
+                                "bid": null,
+                                "ask": null,
+                                "estimatedBid": null,
+                                "estimatedAsk": null,
+                                "session": null,
+                                "minQuantity": null,
+                                "maxQuantity": null,
+                                "stepSize": null,
+                                "reason": "noActiveSession",
+                                "timestamp": 1792232222624
+                            },
+                            "bidVolume": null,
+                            "askVolume": null,
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "watch bids asks spot stock",
+                "input": [
+                    [
+                        "SPCX.US/USDC"
+                    ]
+                ],
+                "url": "wss://ws.backpack.exchange",
+                "messages": [
+                    {
+                        "data": {
+                            "A": "3.78",
+                            "B": "13.72",
+                            "E": "1792230709976413",
+                            "T": "1792230709976214",
+                            "a": "145.89",
+                            "b": "145.73",
+                            "e": "bookTicker",
+                            "s": "SPCX.US_USDC",
+                            "u": 58514605
+                        },
+                        "stream": "bookTicker.SPCX.US_USDC"
+                    },
+                    {
+                        "data": {
+                            "A": "1.82",
+                            "B": "13.72",
+                            "E": "1792230709979354",
+                            "T": "1792230709979097",
+                            "a": "145.83",
+                            "b": "145.73",
+                            "e": "bookTicker",
+                            "s": "SPCX.US_USDC",
+                            "u": 58514606
+                        },
+                        "stream": "bookTicker.SPCX.US_USDC"
+                    },
+                    {
+                        "data": {
+                            "A": "1.82",
+                            "B": "15.71",
+                            "E": "1792230709979774",
+                            "T": "1792230709979378",
+                            "a": "145.83",
+                            "b": "145.73",
+                            "e": "bookTicker",
+                            "s": "SPCX.US_USDC",
+                            "u": 58514607
+                        },
+                        "stream": "bookTicker.SPCX.US_USDC"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "bookTicker.SPCX.US_USDC"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "SPCX.US/USDC": {
+                            "symbol": "SPCX.US/USDC",
+                            "timestamp": 1792230709976,
+                            "datetime": "2026-10-17T09:51:49.976Z",
+                            "ask": 145.89,
+                            "askVolume": 3.78,
+                            "bid": 145.73,
+                            "bidVolume": 13.72,
+                            "info": {
+                                "A": "3.78",
+                                "B": "13.72",
+                                "E": "1792230709976413",
+                                "T": "1792230709976214",
+                                "a": "145.89",
+                                "b": "145.73",
+                                "e": "bookTicker",
+                                "s": "SPCX.US_USDC",
+                                "u": 58514605
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "SPCX.US/USDC": {
+                            "symbol": "SPCX.US/USDC",
+                            "timestamp": 1792230709979,
+                            "datetime": "2026-10-17T09:51:49.979Z",
+                            "ask": 145.83,
+                            "askVolume": 1.82,
+                            "bid": 145.73,
+                            "bidVolume": 13.72,
+                            "info": {
+                                "A": "1.82",
+                                "B": "13.72",
+                                "E": "1792230709979354",
+                                "T": "1792230709979097",
+                                "a": "145.83",
+                                "b": "145.73",
+                                "e": "bookTicker",
+                                "s": "SPCX.US_USDC",
+                                "u": 58514606
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "SPCX.US/USDC": {
+                            "symbol": "SPCX.US/USDC",
+                            "timestamp": 1792230709979,
+                            "datetime": "2026-10-17T09:51:49.979Z",
+                            "ask": 145.83,
+                            "askVolume": 1.82,
+                            "bid": 145.73,
+                            "bidVolume": 15.71,
+                            "info": {
+                                "A": "1.82",
+                                "B": "15.71",
+                                "E": "1792230709979774",
+                                "T": "1792230709979378",
+                                "a": "145.83",
+                                "b": "145.73",
+                                "e": "bookTicker",
+                                "s": "SPCX.US_USDC",
+                                "u": 58514607
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchTickers": [
+            {
+                "description": "watch tickers spot stock RFQ",
+                "input": [
+                    [
+                        "AAPL.US.RFQ/USDC"
+                    ]
+                ],
+                "url": "wss://ws.backpack.exchange",
+                "messages": [
+                    {
+                        "data": {
+                            "E": "1792232162104530",
+                            "V": "20609628151.1288469089",
+                            "c": "342.68",
+                            "e": "externalTicker",
+                            "h": "350.066",
+                            "l": "340.521",
+                            "n": 35385,
+                            "o": "342.293",
+                            "s": "AAPL.US_USDC",
+                            "v": "59886724.926604"
+                        },
+                        "stream": "externalTicker.AAPL.US_USDC"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "externalTicker.AAPL.US_USDC"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "AAPL.US.RFQ/USDC": {
+                            "symbol": "AAPL.US.RFQ/USDC",
+                            "timestamp": 1792232162104,
+                            "datetime": "2026-10-17T10:16:02.104Z",
+                            "high": 350.066,
+                            "low": 340.521,
+                            "bid": null,
+                            "bidVolume": null,
+                            "ask": null,
+                            "askVolume": null,
+                            "vwap": 344.1435172216815,
+                            "open": 342.293,
+                            "close": 342.68,
+                            "last": 342.68,
+                            "previousClose": null,
+                            "change": 0.387,
+                            "percentage": 0.1130610325072379,
+                            "average": 342.4865,
+                            "baseVolume": 59886724.926604,
+                            "quoteVolume": 20609628151.128845,
+                            "info": {
+                                "E": "1792232162104530",
+                                "V": "20609628151.1288469089",
+                                "c": "342.68",
+                                "e": "externalTicker",
+                                "h": "350.066",
+                                "l": "340.521",
+                                "n": 35385,
+                                "o": "342.293",
+                                "s": "AAPL.US_USDC",
+                                "v": "59886724.926604"
+                            },
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "watch tickers spot stock",
+                "input": [
+                    [
+                        "SPCX.US/USDC"
+                    ]
+                ],
+                "url": "wss://ws.backpack.exchange",
+                "messages": [
+                    {
+                        "data": {
+                            "E": "1792230652102407",
+                            "V": "85934.0727",
+                            "c": "145.64",
+                            "e": "ticker",
+                            "h": "151.33",
+                            "l": "144.6",
+                            "n": 207,
+                            "o": "151.33",
+                            "s": "SPCX.US_USDC",
+                            "v": "589.2"
+                        },
+                        "stream": "ticker.SPCX.US_USDC"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "ticker.SPCX.US_USDC"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "SPCX.US/USDC": {
+                            "symbol": "SPCX.US/USDC",
+                            "timestamp": 1792230652102,
+                            "datetime": "2026-10-17T09:50:52.102Z",
+                            "high": 151.33,
+                            "low": 144.6,
+                            "bid": null,
+                            "bidVolume": null,
+                            "ask": null,
+                            "askVolume": null,
+                            "vwap": 145.8487316700611,
+                            "open": 151.33,
+                            "close": 145.64,
+                            "last": 145.64,
+                            "previousClose": null,
+                            "change": -5.69,
+                            "percentage": -3.7599947135399456,
+                            "average": 148.48,
+                            "baseVolume": 589.2,
+                            "quoteVolume": 85934.0727,
+                            "info": {
+                                "E": "1792230652102407",
+                                "V": "85934.0727",
+                                "c": "145.64",
+                                "e": "ticker",
+                                "h": "151.33",
+                                "l": "144.6",
+                                "n": 207,
+                                "o": "151.33",
+                                "s": "SPCX.US_USDC",
+                                "v": "589.2"
+                            },
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "watch ticker spot stock RFQ",
+                "input": [
+                    "AAPL.US.RFQ/USDC"
+                ],
+                "url": "wss://ws.backpack.exchange",
+                "messages": [
+                    {
+                        "data": {
+                            "E": "1792232137105780",
+                            "V": "20610164262.1711910609",
+                            "c": "342.68",
+                            "e": "externalTicker",
+                            "h": "350.066",
+                            "l": "340.521",
+                            "n": 35419,
+                            "o": "342.244",
+                            "s": "AAPL.US_USDC",
+                            "v": "59888291.339392"
+                        },
+                        "stream": "externalTicker.AAPL.US_USDC"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "externalTicker.AAPL.US_USDC"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "AAPL.US.RFQ/USDC",
+                        "timestamp": 1792232137105,
+                        "datetime": "2026-10-17T10:15:37.105Z",
+                        "high": 350.066,
+                        "low": 340.521,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 344.1434678002692,
+                        "open": 342.244,
+                        "close": 342.68,
+                        "last": 342.68,
+                        "previousClose": null,
+                        "change": 0.436,
+                        "percentage": 0.1273944904804759,
+                        "average": 342.462,
+                        "baseVolume": 59888291.339392,
+                        "quoteVolume": 20610164262.171192,
+                        "info": {
+                            "E": "1792232137105780",
+                            "V": "20610164262.1711910609",
+                            "c": "342.68",
+                            "e": "externalTicker",
+                            "h": "350.066",
+                            "l": "340.521",
+                            "n": 35419,
+                            "o": "342.244",
+                            "s": "AAPL.US_USDC",
+                            "v": "59888291.339392"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "watch ticker spot stock",
+                "input": [
+                    "SPCX.US/USDC"
+                ],
+                "url": "wss://ws.backpack.exchange",
+                "messages": [
+                    {
+                        "data": {
+                            "E": "1792230623101572",
+                            "V": "85934.0727",
+                            "c": "145.64",
+                            "e": "ticker",
+                            "h": "151.33",
+                            "l": "144.6",
+                            "n": 207,
+                            "o": "151.33",
+                            "s": "SPCX.US_USDC",
+                            "v": "589.2"
+                        },
+                        "stream": "ticker.SPCX.US_USDC"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "ticker.SPCX.US_USDC"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "SPCX.US/USDC",
+                        "timestamp": 1792230623101,
+                        "datetime": "2026-10-17T09:50:23.101Z",
+                        "high": 151.33,
+                        "low": 144.6,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 145.8487316700611,
+                        "open": 151.33,
+                        "close": 145.64,
+                        "last": 145.64,
+                        "previousClose": null,
+                        "change": -5.69,
+                        "percentage": -3.7599947135399456,
+                        "average": 148.48,
+                        "baseVolume": 589.2,
+                        "quoteVolume": 85934.0727,
+                        "info": {
+                            "E": "1792230623101572",
+                            "V": "85934.0727",
+                            "c": "145.64",
+                            "e": "ticker",
+                            "h": "151.33",
+                            "l": "144.6",
+                            "n": 207,
+                            "o": "151.33",
+                            "s": "SPCX.US_USDC",
+                            "v": "589.2"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "watch orders spot stock",
+                "sentSkipKeys": [ "signature" ],
+                "input": [
+                    "SPCX.US/USDC"
+                ],
+                "url": "wss://ws.backpack.exchange",
+                "messages": [
+                    {
+                        "data": {
+                            "E": "1792229657600859",
+                            "O": "USER",
+                            "Q": "1.2000",
+                            "S": "Bid",
+                            "T": "1792229657596135",
+                            "V": "RejectTaker",
+                            "X": "New",
+                            "Z": "0",
+                            "e": "orderAccepted",
+                            "f": "GTC",
+                            "i": "70592684154",
+                            "o": "LIMIT",
+                            "p": "120.00",
+                            "q": "0.01",
+                            "r": false,
+                            "s": "SPCX.US_USDC",
+                            "t": null,
+                            "y": false,
+                            "z": "0"
+                        },
+                        "stream": "account.orderUpdate.SPCX.US_USDC"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "account.orderUpdate.SPCX.US_USDC"
+                        ],
+                        "signature": [
+                            "key",
+                            "signature",
+                            "1792229635700",
+                            "5000"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "70592684154",
+                            "clientOrderId": null,
+                            "timestamp": 1792229657600,
+                            "datetime": "2026-10-17T09:34:17.600Z",
+                            "lastTradeTimestamp": null,
+                            "status": "open",
+                            "symbol": "SPCX.US/USDC",
+                            "type": "limit",
+                            "timeInForce": "GTC",
+                            "side": "buy",
+                            "price": 120,
+                            "stopPrice": null,
+                            "triggerPrice": null,
+                            "average": null,
+                            "amount": 0.01,
+                            "cost": 0,
+                            "filled": null,
+                            "remaining": null,
+                            "fee": null,
+                            "trades": [],
+                            "info": {
+                                "E": "1792229657600859",
+                                "O": "USER",
+                                "Q": "1.2000",
+                                "S": "Bid",
+                                "T": "1792229657596135",
+                                "V": "RejectTaker",
+                                "X": "New",
+                                "Z": "0",
+                                "e": "orderAccepted",
+                                "f": "GTC",
+                                "i": "70592684154",
+                                "o": "LIMIT",
+                                "p": "120.00",
+                                "q": "0.01",
+                                "r": false,
+                                "s": "SPCX.US_USDC",
+                                "t": null,
+                                "y": false,
+                                "z": "0"
+                            },
+                            "fees": [],
+                            "lastUpdateTimestamp": null,
+                            "postOnly": false,
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ]
+            }
+        ]
+  }
+}
