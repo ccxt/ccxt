@@ -451,6 +451,10 @@ export {
     Exchange,
     BaseExchange,
     PredictionExchange,
+    /**
+     * Map of exchange IDs to Exchange constructor classes (`Record<string, typeof Exchange>`).
+     * To get an array of all available exchange ID strings, use `ccxt.exchanges`.
+     */
     exchanges,
     pro,
     prediction,

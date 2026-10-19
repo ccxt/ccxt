@@ -247,16 +247,30 @@ JavaScript version of CCXT works in both Node and web browsers. Requires ES6 and
 npm install ccxt
 ```
 
-```JavaScript
-//cjs
-var ccxt = require ('ccxt')
-console.log (ccxt.exchanges) // print all available exchanges
+```javascript
+// cjs
+const ccxt = require ('ccxt');
+console.log (ccxt.version, ccxt.exchanges); // print all available exchanges
 ```
-```Javascript
-//esm
-import {version, exchanges} from 'ccxt';
-console.log(version, Object.keys(exchanges));
+```javascript
+// esm
+import ccxt from 'ccxt';
+console.log (ccxt.version, ccxt.exchanges); // print all available exchanges
 ```
+
+Or with named imports:
+
+```javascript
+import { version, binance } from 'ccxt';
+console.log (version);
+const exchange = new binance ();
+```
+
+> [!NOTE]
+> - `ccxt.exchanges` (default import) is an `Array<string>` containing all available exchange IDs (e.g. `['binance', 'kraken', ...]`).
+> - The named import `import { exchanges } from 'ccxt'` is a dictionary object (`Record<string, typeof Exchange>`) mapping each exchange ID to its constructor class.
+> - In certain CommonJS bundling setups, named `exchanges` may resolve to `ccxt.exchanges` (the array of IDs). For consistency across all runtimes and bundlers, use `ccxt.exchanges` directly rather than calling `Object.keys(exchanges)`.
+
 
 ### JavaScript (for use with the `<script>` tag):
 
