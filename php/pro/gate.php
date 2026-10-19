@@ -112,6 +112,13 @@ class gate extends \ccxt\async\gate {
                 ),
             ),
             'options' => array(
+                'ws' => array(
+                    'options' => array(
+                        'headers' => array(
+                            'X-Gate-Size-Decimal' => '1', // contract sizes are pushed as decimal strings instead of rounded-down integers
+                        ),
+                    ),
+                ),
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
                 'watchTradesSubscriptions' => array(),
@@ -1801,8 +1808,8 @@ class gate extends \ccxt\async\gate {
             } elseif ($event === 'finish') {
                 $status = $this->safe_string($parsed, 'status');
                 if ($status === null) {
-                    $left = $this->safe_integer($info, 'left');
-                    $parsed['status'] = ($left === 0) ? 'closed' : 'canceled';
+                    $left = $this->safe_string($info, 'left');
+                    $parsed['status'] = Precise::string_equals($left, '0') ? 'closed' : 'canceled';
                 }
             }
             $stored->append($parsed);

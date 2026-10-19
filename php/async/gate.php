@@ -1747,6 +1747,15 @@ class gate extends Exchange {
             $contractSize = '1'; // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         }
         $status = $this->safe_string($market, 'status', 'trading'); // or "suspend"
+        $amountPrecision = $this->parse_number('1');
+        $enableDecimal = $this->safe_bool($market, 'enable_decimal', false);
+        $orderSizeMin = $this->safe_string($market, 'order_size_min');
+        $swap = $marketType === 'swap';
+        $minAmount = $this->parse_number($orderSizeMin);
+        if ($swap && $enableDecimal && ($orderSizeMin !== null) && ($minAmount !== null) && Precise::string_gt($orderSizeMin, '0')) {
+            $amountPrecision = $minAmount;
+        }
+        $active = ($status === 'trading');
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -1759,10 +1768,10 @@ class gate extends Exchange {
             'type' => $marketType,
             'spot' => false,
             'margin' => false,
-            'swap' => $marketType === 'swap',
-            'future' => $marketType === 'future',
+            'swap' => $swap,
+            'future' => ($marketType === 'future'),
             'option' => false,
-            'active' => $status === 'trading',
+            'active' => $active,
             'contract' => true,
             'linear' => $isLinear,
             'inverse' => !$isLinear,
@@ -1774,7 +1783,7 @@ class gate extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $this->parse_number('1'), // all contracts have this step size
+                'amount' => $amountPrecision,
                 'price' => $this->safe_number($market, 'order_price_round'),
             ),
             'limits' => array(
@@ -1783,7 +1792,7 @@ class gate extends Exchange {
                     'max' => $this->safe_number($market, 'leverage_max'),
                 ),
                 'amount' => array(
-                    'min' => $this->safe_number($market, 'order_size_min'),
+                    'min' => $minAmount,
                     'max' => $this->safe_number($market, 'order_size_max'),
                 ),
                 'price' => array(
@@ -4761,6 +4770,21 @@ class gate extends Exchange {
         return $this->parse_orders($response);
     }
 
+    public function is_gate_futures_contract_with_decimal_size(array $market): bool {
+        $info = $this->safe_dict($market, 'info', array());
+        $isSwap = $this->safe_bool($market, 'swap', false);
+        $enableDecimal = $this->safe_bool($info, 'enable_decimal', false);
+        return $isSwap && $enableDecimal;
+    }
+
+    public function get_gate_futures_signed_amount(?string $symbol, ?string $side, ?float $amount): ?string {
+        $amountString = $this->amount_to_precision($symbol, $amount);
+        if ($side === 'sell') {
+            return Precise::string_neg($amountString);
+        }
+        return $amountString;
+    }
+
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a type argument');
@@ -4812,18 +4836,23 @@ class gate extends Exchange {
             $priceResolved = 0;
         }
         $contractAmount = 0;
+        $signedAmount = null;
+        $useGateFuturesDecimalSize = false;
         if ($contract === true) {
             $isClose = $this->safe_bool($query, 'close');
             if ($isClose !== true) {
-                $amountToPrecision = $this->amount_to_precision($symbol, $amount);
-                $signedAmount = $amountToPrecision;
-                if ($side === 'sell') {
-                    $signedAmount = Precise::string_neg($amountToPrecision);
+                $signedAmount = $this->get_gate_futures_signed_amount($symbol, $side, $amount);
+                $useGateFuturesDecimalSize = $this->is_gate_futures_contract_with_decimal_size($market);
+                if (!$useGateFuturesDecimalSize) {
+                    $contractAmount = intval($signedAmount);
                 }
-                $contractAmount = intval($signedAmount);
             }
         }
         $amountResolved = ($contract === true) ? $contractAmount : $amount;
+        $sizeRequest = $amountResolved;
+        if ($useGateFuturesDecimalSize) {
+            $sizeRequest = $signedAmount;
+        }
         $request = null;
         $nonTriggerOrder = !$isTpsl && ($trigger === null);
         if ($nonTriggerOrder) {
@@ -4831,7 +4860,7 @@ class gate extends Exchange {
                 // contract order
                 $request = array(
                     'contract' => $market['id'], // filled in prepareRequest above
-                    'size' => $amountResolved, // int64, positive = bid, negative = ask
+                    'size' => $sizeRequest, // int64 (decimal string on enable_decimal markets), positive = bid, negative = ask
                     // 'iceberg': 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                     // 'close': false, // true to close the position, with size set to 0
                     // 'reduce_only': false, // St as true to be reduce-only order
@@ -4928,7 +4957,7 @@ class gate extends Exchange {
                 $request = array(
                     'initial' => array(
                         'contract' => $market['id'],
-                        'size' => $amountResolved, // positive = buy, negative = sell, set to 0 to close the position
+                        // positive = buy, negative = sell, set to 0 to close the position
                         // 'price': (price === 0) ? '0' : this.priceToPrecision (symbol, price), // set to 0 to use market price
                         // 'close': false, // set to true if trying to close the position
                         // 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
@@ -4937,6 +4966,11 @@ class gate extends Exchange {
                     ),
                     'settle' => $market['settleId'],
                 );
+                if ($useGateFuturesDecimalSize) {
+                    $request['initial']['amount'] = $signedAmount; // FuturesInitialOrder.amount takes precedence over size
+                } else {
+                    $request['initial']['size'] = $amountResolved;
+                }
                 if ($type === 'market') {
                     $request['initial']['price'] = '0';
                 } else {
@@ -5075,10 +5109,11 @@ class gate extends Exchange {
             if ($market['spot'] === true) {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
             } else {
-                if ($side === 'sell') {
-                    $request['size'] = $this->parse_to_numeric(Precise::string_neg($this->amount_to_precision($symbol, $amount)));
+                $signedAmount = $this->get_gate_futures_signed_amount($symbol, $side, $amount);
+                if ($this->is_gate_futures_contract_with_decimal_size($market)) {
+                    $request['size'] = $signedAmount;
                 } else {
-                    $request['size'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+                    $request['size'] = $this->parse_to_numeric($signedAmount);
                 }
             }
         }
@@ -7420,8 +7455,14 @@ class gate extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        $bodyResolved = $bodyJson;
         $headersResolved = $signedHeaders;
+        if ($type === 'futures') {
+            if ($headersResolved === null) {
+                $headersResolved = array();
+            }
+            $headersResolved['X-Gate-Size-Decimal'] = '1';
+        }
+        $bodyResolved = $bodyJson;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
