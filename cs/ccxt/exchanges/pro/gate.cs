@@ -2588,8 +2588,10 @@ public partial class gate : ccxt.gate
     {
         Dictionary<string, object> findBy = new Dictionary<string, object>() {
             { "op-", "option" },
+            { "/ws/options/", "option" },
             { "delivery", "future" },
             { "fx", "swap" },
+            { "/ws/futures/", "swap" },
         };
         List<object> keys = new List<object>(findBy.Keys);
         for (int i = 0; i < keys.Count; i++)
