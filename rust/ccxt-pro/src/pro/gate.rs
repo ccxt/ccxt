@@ -3077,8 +3077,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut findBy: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op-".to_string(), Value::Str("option".into()));
+                m.insert("/ws/options/".to_string(), Value::Str("option".into()));
                 m.insert("delivery".to_string(), Value::Str("future".into()));
                 m.insert("fx".to_string(), Value::Str("swap".into()));
+                m.insert("/ws/futures/".to_string(), Value::Str("swap".into()));
             m
         });
         let mut keys: Value = object_keys(&findBy);
