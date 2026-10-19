@@ -8685,18 +8685,17 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchMySettlementHistory', 'method', 'privateGetAccountBillsArchive');
-        const until = this.safeInteger (params, 'until');
+        const [ method, paramsMethod ] = this.handleOptionAndParams (params, 'fetchMySettlementHistory', 'method', 'privateGetAccountBillsArchive');
+        const until = this.safeInteger (paramsMethod, 'until');
         if (until !== undefined) {
             request['end'] = until;
-            params = this.omit (params, 'until');
         }
+        const query = this.omit (paramsMethod, 'until');
         let response: Dict = {};
         if (method === 'privateGetAccountBills') {
-            response = await this.privateGetAccountBills (this.extend (request, params));
+            response = await this.privateGetAccountBills (this.extend (request, query));
         } else {
-            response = await this.privateGetAccountBillsArchive (this.extend (request, params));
+            response = await this.privateGetAccountBillsArchive (this.extend (request, query));
         }
         const data: List = this.safeList (response, 'data', []);
         const result: List = [];
