@@ -1927,12 +1927,21 @@ export function goChan3StructListPass (content: string, table: Map<string, strin
         const open = m.index + m[0].length - 1;
         const close = goChanClose (masked, open);
         const args = masked.substring (open + 1, close - 1);
+        const [ fs0 ] = goChan3Func (masked, m.index);
+        const fnPre = masked.substring (fs0, m.index);
         const pallLists = (predictionFile || goChan3PredictionScope (masked, m.index)) ? predLists : regLists;
         const encRecv = goChan3EnclosingReceiver (masked, m.index);
-        const calls = [ ...args.matchAll (new RegExp ('(?<![\\w.])(?:this|this\\.DerivedExchange|this\\.Exchange|this\\.BaseExchange)(?:\\.\\((?:ccxt\\.)?I\\w+\\))?\\.(\\w+)Async\\(', 'g')) ];
+        const callRe = new RegExp ('(?<![\\w.])(?:this|this\\.DerivedExchange|this\\.Exchange|this\\.BaseExchange)(?:\\.\\((?:ccxt\\.)?I\\w+\\))?\\.(\\w+)Async\\(', 'g');
+        const mnames = [ ...args.matchAll (callRe) ].map ((c) => c[1]);
+        for (const id of args.split (',').map ((s) => s.trim ()).filter ((s) => /^\w+$/.test (s))) {
+            const dm = new RegExp ('\\n\\t+' + id + ' := (?:this|this\\.DerivedExchange|this\\.Exchange|this\\.BaseExchange)(?:\\.\\((?:ccxt\\.)?I\\w+\\))?\\.(\\w+)Async\\(').exec (fnPre);
+            if (dm !== null) {
+                mnames.push (dm[1]);
+            }
+        }
         const lookupPall = (mname: string) => ((encRecv !== undefined) ? pallLists.get (encRecv + '.' + mname) : undefined) ?? pallLists.get (mname);
-        const ts = new Set (calls.map ((c) => lookupPall (c[1])));
-        if (!calls.some ((c) => lookupPall (c[1]) !== undefined)) {
+        const ts = new Set (mnames.map ((mname) => lookupPall (mname)));
+        if (!mnames.some ((mname) => lookupPall (mname) !== undefined)) {
             continue;
         }
         if ((ts.size !== 1) || ts.has (undefined)) {
