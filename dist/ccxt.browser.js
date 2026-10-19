@@ -445110,8 +445110,8 @@ class modetrade extends _abstract_modetrade_js__rspack_import_0/* ["default"] */
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -446374,6 +446374,136 @@ class modetrade extends _abstract_modetrade_js__rspack_import_0/* ["default"] */
         }
         const sorted = this.sortBy(rates, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
+    }
+    parseTicker(ticker, market = undefined) {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "display_symbol_name": "BTC",
+        //         "broker_id": null,
+        //         "status": "ACTIVE",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "sum_unitary_funding": 27744.3,
+        //         "est_funding_rate": 0.00008318,
+        //         "last_funding_rate": 0.0000394,
+        //         "next_funding_time": 1792281600000,
+        //         "open_interest": 42.65602,
+        //         "is_pretge": false,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        const marketId = this.safeString(ticker, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(ticker, 'timestamp');
+        return this.safeTicker({
+            'symbol': marketResolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeString(ticker, '24h_high'),
+            'low': this.safeString(ticker, '24h_low'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString(ticker, '24h_open'),
+            'close': this.safeString(ticker, '24h_close'),
+            'last': this.safeString(ticker, '24h_close'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString(ticker, '24h_volume'),
+            'quoteVolume': this.safeString(ticker, '24h_amount'),
+            'indexPrice': this.safeString(ticker, 'index_price'),
+            'markPrice': this.safeString(ticker, 'mark_price'),
+            'info': ticker
+        }, marketResolved);
+    }
+    /**
+     * @method
+     * @name modetrade#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */ async fetchTicker(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id']
+        };
+        const response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDC",
+        //             "24h_close": 81518.1
+        //         },
+        //         "timestamp": 1792270455082
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const ticker = this.extend({
+            'timestamp': timestamp
+        }, data);
+        return this.parseTicker(ticker, market);
+    }
+    /**
+     * @method
+     * @name modetrade#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */ async fetchTickers(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
+        const response = await this.v1PublicGetPublicFutures(params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "PERP_BTC_USDC",
+        //                     "24h_close": 81518.1
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1792270455518
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'rows', []);
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const result = [];
+        for(let i = 0; i < rows.length; i++){
+            const row = rows[i];
+            const marketId = this.safeString(row, 'symbol', '');
+            if (this.markets_by_id === undefined || !(marketId in this.markets_by_id)) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            }
+            const ticker = this.extend({
+                'timestamp': timestamp
+            }, row);
+            result.push(this.parseTicker(ticker));
+        }
+        return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
     parseIncome(income, market = undefined) {
         //
@@ -620412,6 +620542,8 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */ async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -620422,20 +620554,33 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
             'symbol': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe)
         };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
         const until = this.safeInteger(params, 'until');
-        if (until !== undefined) {
-            request['endTime'] = until;
-        }
         const paramsOmitted = until !== undefined ? this.omit(params, 'until') : params;
+        const [endpoint, paramsPrice] = this.handleOptionStringAndParams(paramsOmitted, 'fetchOHLCV', 'price');
+        const isPriceKlines = endpoint === 'index' || endpoint === 'mark';
+        let startKey = 'startTime';
+        let endKey = 'endTime';
+        if (isPriceKlines) {
+            startKey = 'from';
+            endKey = 'to';
+        }
+        if (since !== undefined) {
+            request[startKey] = since;
+        }
+        if (until !== undefined) {
+            request[endKey] = until;
+        } else if (isPriceKlines && since !== undefined) {
+            // mark and index klines walk backwards from `to` and ignore a lone `from`
+            const duration = this.parseTimeframe(timeframe);
+            const requestedLimit = limit === undefined ? 2000 : limit; // exchange default
+            request['to'] = this.sum(since, duration * requestedLimit * 1000);
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         let response = [];
-        const [endpoint, paramsPrice] = this.handleOptionStringAndParams(paramsOmitted, 'fetchOHLCV', 'price');
         if (endpoint === 'index') {
+            request['symbol'] = this.safeString(market['info'], 'indexToken'); // index klines take the index id instead of the market id
             response = await this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice));
         //
         //     {
@@ -620506,6 +620651,8 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
         let candles = [];
         if (Array.isArray(response)) {
             candles = response;
+        } else {
+            candles = this.safeList(response, 'data', []);
         }
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
