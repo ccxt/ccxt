@@ -2183,7 +2183,7 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 			if fetched.Err != nil {
 				panic(fetched.Err)
 			}
-			orderBook := fetched.Value
+			orderBook := OrderBookToMap(fetched.Value)
 			cache := (*orderBookInterface.GetCache()).([]any)
 			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
 			if index >= 0 {

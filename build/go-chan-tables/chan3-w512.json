@@ -1,0 +1,4 @@
+{
+    "FetchEvent": "PredictionEvent",
+    "FetchRawEventByTicker": "PredictionEvent"
+}

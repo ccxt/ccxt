@@ -1,0 +1,5 @@
+{
+    "Prediction.FetchOHLCV": "[]OHLCV",
+    "Prediction.WatchOHLCV": "[]OHLCV",
+    "Prediction.FetchStatus": "Status"
+}

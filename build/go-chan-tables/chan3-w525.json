@@ -1,0 +1,4 @@
+{
+    "Prediction.FetchMyTrades": "[]PredictionTrade",
+    "Prediction.FetchOrderTrades": "[]PredictionTrade"
+}

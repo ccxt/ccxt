@@ -1,0 +1,4 @@
+{
+    "CreateAmmOrder": "PredictionOrder",
+    "CreateOrderbookOrder": "PredictionOrder"
+}
