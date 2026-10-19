@@ -1,4 +1,4 @@
 {
-  "GetAssetHistoryRows": "[]map[string]any",
-  "RequestWalletHistoryRows": "[]map[string]any"
+  "GetAssetHistoryRows": "[]any",
+  "RequestWalletHistoryRows": "[]any"
 }

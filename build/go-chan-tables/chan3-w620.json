@@ -1,4 +1,4 @@
 {
-  "FetchPaginatedCallCursor": "[]map[string]any",
-  "FetchPaginatedCallDeterministic": "[]map[string]any"
+  "FetchPaginatedCallCursor": "[]any",
+  "FetchPaginatedCallDeterministic": "[]any"
 }
