@@ -3129,7 +3129,13 @@ export default class bingx extends Exchange {
                 collateralString = (unrealizedPnlString !== undefined) ? Precise.stringAdd (initialMarginString, unrealizedPnlString) : initialMarginString;
             }
         }
-        const timestamp = this.safeInteger (position, 'openTime');
+        const timestamp = this.safeInteger2 (position, 'openTime', 'createTime');
+        const positionSide = this.safeString (position, 'positionSide');
+        let hedged: Bool = undefined;
+        if (positionSide !== undefined) {
+            hedged = (positionSide !== 'BOTH');
+        }
+        const percentageString = this.safeString (position, 'pnlRatio');
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'positionId'),
@@ -3140,13 +3146,13 @@ export default class bingx extends Exchange {
             'entryPrice': this.safeNumber2 (position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
             'realizedPnl': this.safeNumber (position, 'realisedProfit'),
-            'percentage': undefined,
+            'percentage': this.parseNumber (Precise.stringMul (percentageString, '100')),
             'contracts': this.safeNumber (position, 'positionAmt'),
             'contractSize': undefined,
             'markPrice': this.safeNumber (position, 'markPrice'),
             'lastPrice': undefined,
             'side': this.safeStringLower (position, 'positionSide'),
-            'hedged': undefined,
+            'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': this.safeInteger (position, 'updateTime'),
