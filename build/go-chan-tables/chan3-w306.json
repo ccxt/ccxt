@@ -1,0 +1,13 @@
+{
+    "CreateOrderWithTakeProfitAndStopLossWs": "Order",
+    "CreatePostOnlyOrderWs": "Order",
+    "CreateReduceOnlyOrderWs": "Order",
+    "CreateStopOrderWs": "Order",
+    "CreateStopLimitOrderWs": "Order",
+    "CreateStopMarketOrderWs": "Order",
+    "CreateStopLossOrderWs": "Order",
+    "CreateTakeProfitOrderWs": "Order",
+    "CreateTriggerOrderWs": "Order",
+    "CreateTrailingAmountOrderWs": "Order",
+    "CreateTrailingPercentOrderWs": "Order"
+}

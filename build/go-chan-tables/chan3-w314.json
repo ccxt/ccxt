@@ -1,0 +1,7 @@
+{
+    "CreateOrders": "[]Order",
+    "CreateContractOrders": "[]Order",
+    "CreateSpotOrders": "[]Order",
+    "CreateUtaOrders": "[]Order",
+    "EditOrders": "[]Order"
+}

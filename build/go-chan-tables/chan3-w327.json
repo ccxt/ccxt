@@ -1,0 +1,5 @@
+{
+    "FetchOpenInterestHistory": "[]OpenInterest",
+    "FetchDerivativesOpenInterestHistory": "[]OpenInterest",
+    "FetchConvertTradeHistory": "[]Conversion"
+}

@@ -1,0 +1,8 @@
+{
+    "WatchTrades": "[]Trade",
+    "WatchTradesForSymbols": "[]Trade",
+    "WatchMyTrades": "[]Trade",
+    "WatchMyTradesForSymbols": "[]Trade",
+    "FetchTradesWs": "[]Trade",
+    "FetchMyTradesWs": "[]Trade"
+}

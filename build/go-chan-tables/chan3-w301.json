@@ -1,0 +1,10 @@
+{
+    "CreateLimitOrder": "Order",
+    "CreateLimitBuyOrder": "Order",
+    "CreateLimitSellOrder": "Order",
+    "CreateMarketOrder": "Order",
+    "CreateMarketBuyOrder": "Order",
+    "CreateMarketSellOrder": "Order",
+    "CreatePostOnlyOrder": "Order",
+    "CreateReduceOnlyOrder": "Order"
+}

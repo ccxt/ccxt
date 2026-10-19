@@ -1,0 +1,9 @@
+{
+    "FetchContractOHLCV": "[]OHLCV",
+    "FetchIndexOHLCV": "[]OHLCV",
+    "FetchMarkOHLCV": "[]OHLCV",
+    "FetchPremiumIndexOHLCV": "[]OHLCV",
+    "FetchSpotOHLCV": "[]OHLCV",
+    "FetchOptionOHLCV": "[]OHLCV",
+    "FetchUTAOHLCV": "[]OHLCV"
+}

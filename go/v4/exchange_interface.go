@@ -39,10 +39,10 @@ type IEditOrder interface {
 	EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type IEditOrderWithClientOrderId interface {
-	EditOrderWithClientOrderIdAsync(clientOrderId string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	EditOrderWithClientOrderIdAsync(clientOrderId string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type ICancelOrderWithClientOrderId interface {
-	CancelOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	CancelOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type ICancelOrdersWithClientOrderIds interface {
 	CancelOrdersWithClientOrderIdsAsync(clientOrderIds any, optionalArgs ...any) <-chan EndpointResult[[]any]
@@ -57,7 +57,7 @@ type IFetchOrder interface {
 	FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type IFetchOrderWithClientOrderId interface {
-	FetchOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	FetchOrderWithClientOrderIdAsync(clientOrderId string, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type IFetchPositions interface {
 	FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]Position]
@@ -69,40 +69,40 @@ type IWatchTicker interface {
 	WatchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker]
 }
 type IWatchTickers interface {
-	WatchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	WatchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker]
 }
 type IFetchTickers interface {
 	FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker]
 }
 type ICancelOrderWs interface {
-	CancelOrderWsAsync(id string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	CancelOrderWsAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type ICreateOrderWs interface {
-	CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type IFetchOrdersWs interface {
-	FetchOrdersWsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchOrdersWsAsync(optionalArgs ...any) <-chan AsyncResult[[]Order]
 }
 type IFetchTickersWs interface {
-	FetchTickersWsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	FetchTickersWsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker]
 }
 type IFetchPositionsHistory interface {
-	FetchPositionsHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchPositionsHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]Position]
 }
 type IFetchBidsAsks interface {
-	FetchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	FetchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker]
 }
 type IWatchBidsAsks interface {
-	WatchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	WatchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker]
 }
 type IWatchOrderBookForSymbols interface {
 	WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface]
 }
 type IWatchPosition interface {
-	WatchPositionAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	WatchPositionAsync(optionalArgs ...any) <-chan AsyncResult[Position]
 }
 type IWatchTradesForSymbols interface {
-	WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]Trade]
 }
 
 type IFetchTrades interface { // W28
@@ -124,31 +124,31 @@ type IFetchOpenInterest interface { // W30
 	FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OpenInterest]
 }
 type IFetchTradingFee interface { // W3
-	FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[TradingFeeInterface]
 }
 type IFetchMyTrades interface { // W3
-	FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade]
 }
 type ICreateOrders interface { // W3
-	CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]any]
+	CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order]
 }
 type ICancelOrders interface { // W3
-	CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]any]
+	CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order]
 }
 type IWatchMyTrades interface { // W3
-	WatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade]
 }
 type IWatchOHLCV interface { // W3
-	WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV]
 }
 type IWatchOrders interface { // W3
-	WatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order]
 }
 type IWatchPositions interface { // W3
-	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]Position]
 }
 type IWatchTrades interface { // W3
-	WatchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade]
 }
 type IBaseExchange interface {
 	SetEnableRateLimit(rateLimit bool)
@@ -284,9 +284,9 @@ type ICoreExchange interface {
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
-	FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]LastPrice]
 	ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest
-	FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
 	ParseLiquidation(liquidation any, optionalArgs ...any) any
 	FetchGreeksAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Greeks]
 	ParseGreeks(greeks any, optionalArgs ...any) Greeks
@@ -294,12 +294,12 @@ type ICoreExchange interface {
 	FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]MarginMode]
 	FetchOptionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Option]
-	FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]MarginModification]
 	FetchConvertCurrenciesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchConvertQuoteAsync(fromCode string, toCode string, optionalArgs ...any) <-chan AsyncResult[Conversion]
 	CreateConvertTradeAsync(id string, fromCode string, toCode string, optionalArgs ...any) <-chan AsyncResult[Conversion]
 	FetchConvertTradeAsync(id string, optionalArgs ...any) <-chan AsyncResult[Conversion]
-	FetchConvertTradeHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchConvertTradeHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]Conversion]
 	SetFetchResponse(fetchResponse any)
 	SetFetchResponseByUrl(responsesByUrl any)
 	Init(params map[string]any)
@@ -312,23 +312,23 @@ type ICoreExchange interface {
 	OmitZero(v any) any
 	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarginMode]
-	FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]LeverageTier]
 	SafeCurrency(currencyId any, optionalArgs ...any) map[string]any
 	Parse8601(datetime2 any) *int64
 	Iso8601(ts2 any) *string
-	FetchTransactionsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
-	FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
-	FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchTransactionsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction]
+	FetchTransfersAsync(optionalArgs ...any) <-chan AsyncResult[[]TransferEntry]
+	FetchFundingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]FundingHistory]
 	FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]TradingFeeInterface]
 	FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[[]LedgerEntry]
 	ArrayConcat(aa, bb any) []any
 	FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
-	FetchBorrowInterestAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
-	FetchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchBorrowInterestAsync(optionalArgs ...any) <-chan AsyncResult[[]BorrowInterest]
+	FetchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
 	FetchLedgerEntryAsync(id string, optionalArgs ...any) <-chan AsyncResult[LedgerEntry]
-	FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]FundingRateHistory]
 	FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any]
-	FetchOpenInterestHistoryAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchOpenInterestHistoryAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OpenInterest]
 	FetchOpenInterestsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]OpenInterest]
 	FetchOrderBooksAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction]
@@ -398,12 +398,12 @@ type ICoreExchange interface {
 	// WS methods
 	FetchBalanceWsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	// FetchCurrenciesWs(optionalArgs ...any) <-chan AsyncResult[any]
-	FetchDepositsWsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchDepositsWsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction]
 	// FetchMarketsWs(optionalArgs ...any) <-chan AsyncResult[any]
-	FetchOHLCVWsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
-	FetchOrdersByStatusWsAsync(status string, optionalArgs ...any) <-chan AsyncResult[[]any]
-	FetchTradingFeesWsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	FetchWithdrawalsWsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchOHLCVWsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV]
+	FetchOrdersByStatusWsAsync(status string, optionalArgs ...any) <-chan AsyncResult[[]Order]
+	FetchTradingFeesWsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]TradingFeeInterface]
+	FetchWithdrawalsWsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction]
 	UnWatchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[bool]
@@ -418,13 +418,13 @@ type ICoreExchange interface {
 	UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[bool]
 	UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[bool]
 	WatchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	WatchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
-	WatchLiquidationsForSymbolsAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]any]
-	WatchMyLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any]
-	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
+	WatchLiquidationsForSymbolsAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
+	WatchMyLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
+	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
 	WatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface]
-	WithdrawWsAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+	WithdrawWsAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction]
 	Close(cleanInstanceCache ...any) []error
 	CleanWsData()
 	CleanRestData()
@@ -488,8 +488,8 @@ type IDerivedExchange interface {
 	ParseFundingRateHistory(info any, optionalArgs ...any) any
 	ParseFundingRate(contract any, optionalArgs ...any) FundingRate
 	FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]FundingRate]
-	FetchFundingIntervalsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	FetchDepositsWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchFundingIntervalsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]FundingRate]
+	FetchDepositsWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction]
 	ParseMarginModification(data any, optionalArgs ...any) map[string]any
 	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
@@ -503,10 +503,10 @@ type IDerivedExchange interface {
 	OnError(client any, err any)
 	OnClose(client any, err any)
 	OnConnected(client any, err any)
-	WatchLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]any]
-	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]any]
+	WatchLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
+	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
 	ParseWsTrade(trade any, optionalArgs ...any) any
-	FetchPositionsADLRankAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
+	FetchPositionsADLRankAsync(optionalArgs ...any) <-chan AsyncResult[[]ADL]
 	ParseADLRank(info any, optionalArgs ...any) map[string]any
 	FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchOpenInterestsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]OpenInterest]

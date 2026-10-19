@@ -1,0 +1,13 @@
+{
+    "CreateOrderWs": "Order",
+    "CancelOrderWs": "Order",
+    "EditOrderWs": "Order",
+    "FetchOrderWs": "Order",
+    "CreateLimitOrderWs": "Order",
+    "CreateLimitBuyOrderWs": "Order",
+    "CreateLimitSellOrderWs": "Order",
+    "CreateMarketOrderWs": "Order",
+    "CreateMarketBuyOrderWs": "Order",
+    "CreateMarketSellOrderWs": "Order",
+    "CreateMarketOrderWithCostWs": "Order"
+}

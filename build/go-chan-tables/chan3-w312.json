@@ -1,0 +1,7 @@
+{
+    "WatchTickers": "map[string]Ticker",
+    "WatchBidsAsks": "map[string]Ticker",
+    "WatchMarkPrices": "map[string]Ticker",
+    "WatchUtaTickers": "map[string]Ticker",
+    "FetchTickersWs": "map[string]Ticker"
+}

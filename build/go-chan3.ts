@@ -593,6 +593,16 @@ function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number, ta
             declAt = o.index + name.length + 1;
             continue;
         }
+        const safeDictInit = /^ any = (this\.SafeDict(2|N)?\(.*\))\s*$/.exec (after);
+        if (/^\t+var $/.test (lead) && (safeDictInit !== null) && (goChanClose (safeDictInit[1], safeDictInit[1].indexOf ('(')) === safeDictInit[1].length)) {
+            decls++;
+            types.add ('map[string]any');
+            declAt = o.index + name.length + 1;
+            const sdAt = o.index + name.length + ' any = this.'.length;
+            const sdLen = 'SafeDict'.length + (safeDictInit[2] || '').length;
+            edits.push ({ 'start': bodyStart + sdAt, 'end': bodyStart + sdAt + sdLen, 'text': 'SafeDict' + (safeDictInit[2] || '') + 'Map' });
+            continue;
+        }
         if ((/^\t+$/.test (lead) && /^ = nil\s*$/.test (after)) || /^ [!=]= nil\b/.test (after)) {
             nilable = true;
             continue;

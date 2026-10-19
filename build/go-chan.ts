@@ -22,7 +22,6 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'DepositAddressesToList': '[]any', 'TransferEntriesToList': '[]any', 'OpenInterestsToList': '[]any', 'ConversionsToList': '[]any', 'LiquidationsToList': '[]any', 'BorrowInterestsToList': '[]any', 'FundingHistoriesToList': '[]any', 'FundingRateHistoriesToList': '[]any', 'LeverageTiersToList': '[]any', 'MarginModificationsToList': '[]any', 'LongShortRatiosToList': '[]any', 'ADLsToList': '[]any', // W3
     ...Object.fromEntries ([ 'ADL', 'CrossBorrowRate', 'IsolatedBorrowRate', 'LastPrice', 'LongShortRatio', 'MarginModification', 'Liquidation', 'BorrowInterest', 'FundingHistory', 'FundingRateHistory', 'LeverageTier' ].map ((t) => [ t + 'ToMap', 'map[string]any' ])), // W3
     ...Object.fromEntries ([ 'Ticker', 'FundingRate', 'OpenInterest', 'TradingFeeInterface', 'Leverage', 'MarginMode', 'IsolatedBorrowRate', 'LastPrice' ].map ((t) => [ t + 'MapToMap', 'map[string]any' ])), // W29+W3
-    'this.SafeDict': 'map[string]any', 'this.SafeDict2': 'map[string]any', 'this.SafeDictN': 'map[string]any', 'this.SafeList': '[]any', 'this.SafeList2': '[]any', 'this.SafeListN': '[]any', // W3
     'MapTyped': 'map[string]any', 'MarketTyped': 'map[string]any', 'ListTyped': '[]any',
     // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
     'this.ApplyEventFetchParams': '[]any',

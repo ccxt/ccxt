@@ -1,0 +1,7 @@
+{
+    "FetchMarkPrice": "Ticker",
+    "FetchTickerWs": "Ticker",
+    "WatchMarkPrice": "Ticker",
+    "FetchFundingInterval": "FundingRate",
+    "WatchFundingRate": "FundingRate"
+}

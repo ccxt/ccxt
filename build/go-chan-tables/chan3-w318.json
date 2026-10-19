@@ -1,0 +1,10 @@
+{
+    "WatchOrders": "[]Order",
+    "WatchOrdersForSymbols": "[]Order",
+    "CreateOrdersWs": "[]Order",
+    "CancelOrdersWs": "[]Order",
+    "CancelAllOrdersWs": "[]Order",
+    "FetchOrdersWs": "[]Order",
+    "FetchOpenOrdersWs": "[]Order",
+    "FetchOrdersByStatusWs": "[]Order"
+}

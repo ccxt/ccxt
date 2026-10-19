@@ -1,0 +1,10 @@
+{
+    "FetchOpenOrdersV2": "[]Order",
+    "FetchOpenSpotOrders": "[]Order",
+    "FetchOpenSwapOrders": "[]Order",
+    "FetchOrdersByIds": "[]Order",
+    "FetchOrdersByStates": "[]Order",
+    "FetchOrdersByType": "[]Order",
+    "FetchOrdersClassic": "[]Order",
+    "FetchOrdersWithMethod": "[]Order"
+}

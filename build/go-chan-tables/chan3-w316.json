@@ -1,0 +1,12 @@
+{
+    "FetchCanceledOrders": "[]Order",
+    "FetchCanceledAndClosedOrders": "[]Order",
+    "FetchUtaCanceledAndClosedOrders": "[]Order",
+    "FetchContractOrders": "[]Order",
+    "FetchOrdersByState": "[]Order",
+    "FetchOrdersByStatus": "[]Order",
+    "FetchContractOrdersByStatus": "[]Order",
+    "FetchSpotOrdersByStatus": "[]Order",
+    "FetchUtaOrdersByStatus": "[]Order",
+    "FetchSpotOrdersByStates": "[]Order"
+}
