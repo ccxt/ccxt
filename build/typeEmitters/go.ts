@@ -116,6 +116,7 @@ const TYPE_OVERRIDES: Record<string, Record<string, string>> = {
     'DepositWithdrawFee': { 'Info': 'any' }, // gochanw4
     'Account': { 'Info': 'any' }, // gochanw4
     'MarginLoan': { 'Info': 'any' }, // gochanw5
+    'MarketInterface': { 'Info': 'any' }, // gochanw8
 };
 
 /** TS string-literal union aliases emitted as Go `type X string` + one const per member. */

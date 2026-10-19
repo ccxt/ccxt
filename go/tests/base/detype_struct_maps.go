@@ -62,6 +62,7 @@ func init() {
 		reflect.TypeOf(ccxt.CurrencyLimits{}),
 		reflect.TypeOf(ccxt.Network{}),
 		reflect.TypeOf(ccxt.MarketMarginModes{}),
+		reflect.TypeOf(ccxt.MarketInterface{}),
 	} {
 		detypedStructs[t] = true
 	}

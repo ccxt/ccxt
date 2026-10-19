@@ -194,7 +194,7 @@ func listValueToTypedSlice(value any) []any {
 
 // MarketInterface struct
 type MarketInterface struct {
-	Info            map[string]any
+	Info            any
 	Market          *string
 	MarketType      *string
 	ExecutionModel  *string
@@ -278,7 +278,7 @@ func NewMarketInterface(data any) MarketInterface {
 	}
 
 	return MarketInterface{
-		Info:            m,
+		Info:            SafeValue(m, "info", nil),
 		Market:          SafeStringTyped(m, "market"),
 		MarketType:      SafeStringTyped(m, "marketType"),
 		ExecutionModel:  SafeStringTyped(m, "executionModel"),

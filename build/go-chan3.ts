@@ -302,8 +302,8 @@ export function goChan3Table (): Map<string, string> {
                     const structs = goChan3StructTypes ();
                     const prevBase = prev.replace (/\?$/, '');
                     const typeBase = type.replace (/\?$/, '');
-                    const prevIsShadowOfType = ((structs.has (type) && (prevBase === 'map[string]any')) || ((goChan3ListElem (type) !== undefined) && (prevBase === '[]any')));
-                    const typeIsShadowOfPrev = ((structs.has (prev) && (typeBase === 'map[string]any')) || ((goChan3ListElem (prev) !== undefined) && (typeBase === '[]any')));
+                    const prevIsShadowOfType = ((structs.has (type) && (prevBase === 'map[string]any')) || ((goChan3ListElem (type) !== undefined) && ((prevBase === '[]any') || ((prevBase === '[]map[string]any') && (typeBase !== '[]map[string]any')))));
+                    const typeIsShadowOfPrev = ((structs.has (prev) && (typeBase === 'map[string]any')) || ((goChan3ListElem (prev) !== undefined) && ((typeBase === '[]any') || ((typeBase === '[]map[string]any') && (prevBase !== '[]map[string]any')))));
                     if (typeIsShadowOfPrev) {
                         continue;
                     }
@@ -1337,6 +1337,7 @@ export const GO_CHAN3_STRUCT_MAPS: Record<string, string> = {
     'CrossBorrowRate': 'CrossBorrowRates', 'OrderBook': 'OrderBooks',
     'Greeks': 'AllGreeks', 'Option': 'OptionChain',
     'PredictionTicker': 'PredictionTickers',
+    'PredictionOutcome': 'PredictionOutcomes', 'PredictionEvent': 'PredictionEvents',
 };
 
 export const GO_CHAN3_STRUCT_MAP_FIELDS: Record<string, string> = {
@@ -1529,12 +1530,53 @@ export function goChan3StructPass (content: string, table: Map<string, string>):
         }
     }
     const inStructCore = (at: number) => coreBodies.find (([ s, e ]) => (at >= s) && (at < e));
+    // PromiseAllTyped of same-T struct channels (shadow `PromiseAllTyped[map[string]any, AsyncResult[map[string]any]](..)`)
+    const promiseArgs: [ number, number ][] = [];
+    const pall = /(?<![\w.])((?:ccxt\.)?PromiseAllTyped)\[map\[string\]any, ((?:ccxt\.)?)AsyncResult\[map\[string\]any\]\]\(/g;
+    for (let m = pall.exec (masked); m !== null; m = pall.exec (masked)) {
+        const open = m.index + m[0].length - 1;
+        const close = goChanClose (masked, open);
+        const args = masked.substring (open + 1, close - 1);
+        const [ fs0 ] = goChan3Func (masked, m.index);
+        const fnPre = masked.substring (fs0, m.index);
+        const pallStructs = (predictionFile || goChan3PredictionScope (masked, m.index)) ? predStructs : regStructs;
+        const encRecv = goChan3EnclosingReceiver (masked, m.index);
+        const callRe = new RegExp ('(?<![\\w.])(?:this|this\\.DerivedExchange|this\\.Exchange|this\\.BaseExchange)(?:\\.\\((?:ccxt\\.)?I\\w+\\))?\\.(\\w+)Async\\(', 'g');
+        const mnames = [ ...args.matchAll (callRe) ].map ((c) => c[1]);
+        for (const id of args.split (',').map ((s) => s.trim ()).filter ((s) => /^\w+$/.test (s))) {
+            const dm = new RegExp ('\\n\\t+' + id + ' := (?:this|this\\.DerivedExchange|this\\.Exchange|this\\.BaseExchange)(?:\\.\\((?:ccxt\\.)?I\\w+\\))?\\.(\\w+)Async\\(').exec (fnPre);
+            if (dm !== null) {
+                mnames.push (dm[1]);
+            }
+        }
+        const lookupPall = (mname: string) => ((encRecv !== undefined) ? pallStructs.get (encRecv + '.' + mname) : undefined) ?? pallStructs.get (mname);
+        const ts = new Set (mnames.map ((mname) => lookupPall (mname)));
+        if (!mnames.some ((mname) => lookupPall (mname) !== undefined)) {
+            continue;
+        }
+        if ((ts.size !== 1) || ts.has (undefined)) {
+            throw new Error ('GOCHAN3: PromiseAllTyped mixes struct channels: ' + args.substring (0, 120));
+        }
+        const st = [ ...ts ][0] as string;
+        const QT = goChan3StructQual (st, q);
+        const QH = q + goChan3StructHelper (st);
+        promiseArgs.push ([ open, close ]);
+        edits.push ({ 'start': m.index, 'end': open, 'text': m[1] + '[' + QT + ', ' + m[2] + 'AsyncResult[' + QT + ']]' });
+        const tail = /^\n(\t+)if (r\d*)\.Err != nil \{\n\t+panic\(\2\.Err\)\n\t+\}\n\t+var \w+ \[\]map\[string\]any = (\2\.Value)\n/.exec (masked.substring (close, close + 400));
+        const lineStart = masked.lastIndexOf ('\n', m.index) + 1;
+        const bind = /^\t+(r\d*) := <-$/.exec (masked.substring (lineStart, m.index));
+        if ((tail === null) || (bind === null) || (bind[1] !== tail[2])) {
+            throw new Error ('GOCHAN3: unshaped PromiseAllTyped read of struct channels');
+        }
+        const valueAt = close + tail[0].length - 1 - tail[3].length;
+        edits.push ({ 'start': valueAt, 'end': valueAt + tail[3].length, 'text': q + 'StructSliceToMaps(' + tail[3] + ', ' + QH + 'ToMap)' });
+    }
     // consumers
     const call = new RegExp ('\\.(' + alt + ')Async\\(', 'g');
     for (let m = call.exec (masked); m !== null; m = call.exec (masked)) {
         const ls = masked.lastIndexOf ('\n', m.index) + 1;
         const line = masked.substring (ls, masked.indexOf ('\n', m.index));
-        if (/^func /.test (line) || /^\t\w+Async\(/.test (line)) {
+        if (/^func /.test (line) || /^\t\w+Async\(/.test (line) || promiseArgs.some (([ s, e ]) => (m.index > s) && (m.index < e))) {
             continue;
         }
         const r = goChan3Receiver (masked, m.index) as { recv: string, start: number };
@@ -1576,6 +1618,9 @@ export function goChan3StructPass (content: string, table: Map<string, string>):
         }
         const bind = /^\t+(\w+) := <-$/.exec (pre);
         if (bind === null) {
+            if (/^\t+\w+ := $/.test (pre)) {
+                continue;   // local promise variable passed to PromiseAllTyped
+            }
             throw new Error ('GOCHAN3: unbound receive of struct channel ' + m[1] + 'Async: ' + line.trim ());
         }
         const name = bind[1];
@@ -1704,6 +1749,47 @@ function goChan3Unendpoint (content: string, table: Map<string, string>): string
             content = content.substring (0, m.index + m[0].length) + fixed + scope.substring (limit) + content.substring (fe);
         }
     }
+    const listPromoteKeys = [ ...table.entries () ].filter (([ k, v ]) => !k.includes ('.') && (goChan3ListElem (v) !== undefined) && (v !== '[]map[string]any') && (v !== '[]string')).map (([ k ]) => k);
+    if (listPromoteKeys.length && (content.indexOf ('AsyncResult[[]map[string]any]') >= 0 || content.indexOf ('MapSliceToList(') >= 0)) {
+        const pAlt = listPromoteKeys.join ('|');
+        if (new RegExp ('(?:' + pAlt + ')Async\\(').test (content)) {
+            const pTramp = new RegExp ('^(func \\(this \\*\\w+\\) (?:' + pAlt + ')Async\\([^\\n]*\\) <-chan ((?:ccxt\\.)?))AsyncResult\\[\\[\\]map\\[string\\]any\\] \\{\\n\\tch := make\\(chan (?:ccxt\\.)?AsyncResult\\[\\[\\]map\\[string\\]any\\], 1\\)\\n(\\tgo this\\.(\\w+)\\(ch(?:, [^\\n]*)?\\)\\n\\treturn ch\\n\\}\\nfunc \\(this \\*\\w+\\) \\4\\(ch chan (?:ccxt\\.)?)AsyncResult\\[\\[\\]map\\[string\\]any\\]', 'gm');
+            content = content.replace (pTramp, '$1AsyncResult[[]any] {\n\tch := make(chan $2AsyncResult[[]any], 1)\n$3AsyncResult[[]any]');
+            const pHead = new RegExp ('\\nfunc \\(this \\*\\w+\\) \\w+\\(ch chan ((?:ccxt\\.)?)AsyncResult\\[\\[\\]any\\]', 'g');
+            for (let m = pHead.exec (content); m !== null; m = pHead.exec (content)) {
+                const q = m[1];
+                const bs = m.index + 1;
+                const be = content.indexOf ('\n}\n', bs) + 3;
+                if (be < 3) continue;
+                const body = content.substring (bs, be);
+                if (body.indexOf ('AsyncResult[[]map[string]any]') < 0) continue;
+                let next = body.replace (/AsyncResult\[\[\]map\[string\]any\]/g, 'AsyncResult[[]any]');
+                const msl = /(?<![\w.])(?:ccxt\.)?MapSliceFromList\(/g;
+                for (let sm = msl.exec (next); sm !== null; sm = msl.exec (next)) {
+                    const open = sm.index + sm[0].length - 1;
+                    const close = goChanClose (next, open);
+                    next = next.substring (0, sm.index) + next.substring (open + 1, close - 1) + next.substring (close);
+                    msl.lastIndex = sm.index;
+                }
+                if (next !== body) {
+                    content = content.substring (0, bs) + next + content.substring (be);
+                    pHead.lastIndex = bs + next.length;
+                }
+            }
+            const pIface = new RegExp ('^(\\t(?:' + pAlt + ')Async\\([^\\n]*\\) <-chan (?:ccxt\\.)?)AsyncResult\\[\\[\\]map\\[string\\]any\\]$', 'gm');
+            content = content.replace (pIface, '$1AsyncResult[[]any]');
+            const pRecv = new RegExp ('^(\\t+)(r\\d*) := <-(?:this|this\\.Exchange|this\\.DerivedExchange|this\\.BaseExchange|this\\.base|exchange)(?:\\.\\([^()\\n]+\\))?\\.(?:' + pAlt + ')Async\\(', 'gm');
+            for (let m = pRecv.exec (content); m !== null; m = pRecv.exec (content)) {
+                const rvar = m[2];
+                content = content
+                    .replace (new RegExp ('(?<![\\w.])(?:ccxt\\.)?MapSliceToList\\(' + rvar + '\\.Value\\)', 'g'), rvar + '.Value')
+                    .replace (new RegExp ('(?<![\\w.])(?:ccxt\\.)?StructListBox\\(' + rvar + '\\.Value, (?:ccxt\\.)?MapElementToMap\\)', 'g'), rvar + '.Value');
+            }
+            content = content
+                .replace (/PromiseAllTyped\[\[\]map\[string\]any, ((?:ccxt\.)?)AsyncResult\[\[\]map\[string\]any\]\]\(/g, 'PromiseAllTyped[[]any, $1AsyncResult[[]any]](')
+                .replace (/(?:ccxt\.)?StructListsToLists\((r\d*\.Value), (?:ccxt\.)?MapElementToMap\)/g, '$1');
+        }
+    }
     return content;
 }
 
@@ -1752,6 +1838,7 @@ export const GO_CHAN3_STRUCT_LISTS: Record<string, { from: string, to: string, r
     'PredictionPosition': { 'from': 'PredictionPositionsFromList', 'to': 'PredictionPositionsToList', 'row': 'PredictionPositionToMap', 'newArray': 'NewPredictionPositionArray' },
     'PredictionEvent': { 'from': 'PredictionEventsFromList', 'to': 'PredictionEventsToList', 'row': 'PredictionEventToMap', 'newArray': 'NewPredictionEventArray' },
     'PredictionSettlement': { 'from': 'PredictionSettlementsFromList', 'to': 'PredictionSettlementsToList', 'row': 'PredictionSettlementToMap', 'newArray': 'NewPredictionSettlementArray' },
+    'MarketInterface': { 'from': 'MarketInterfacesFromList', 'to': 'MarketInterfacesToList', 'row': 'MarketInterfaceToMap', 'newArray': 'NewMarketInterfaceArray' },
     'map[string]any': { 'from': 'MapSliceFromList', 'to': 'MapSliceToList', 'row': 'MapElementToMap', 'newArray': 'NewMapArray' },
     'string': { 'from': 'StringSliceFromList', 'to': 'StringSliceToList', 'row': 'StringElementToAny', 'newArray': 'NewStringArray' },
 };

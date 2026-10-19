@@ -1242,15 +1242,36 @@ func PredictionOutcomeFromMap(data any) PredictionOutcome {
 func PredictionOutcomeToMap(v PredictionOutcome) map[string]any {
 	return StructToMap(v)
 }
+func PredictionOutcomeMapFromMap(data any) map[string]PredictionOutcome {
+	return StructDictFromMap(data, PredictionOutcomeFromMap)
+}
+func PredictionOutcomeMapToMap(d map[string]PredictionOutcome) map[string]any {
+	return StructDictToMap(d, PredictionOutcomeToMap)
+}
+func PredictionEventMapFromMap(data any) map[string]PredictionEvent {
+	return StructDictFromMap(data, PredictionEventFromMap)
+}
+func PredictionEventMapToMap(d map[string]PredictionEvent) map[string]any {
+	return StructDictToMap(d, PredictionEventToMap)
+}
+
+func StructSliceToMaps[T any](v []T, to func(T) map[string]any) []map[string]any {
+	if v == nil {
+		return nil
+	}
+	out := make([]map[string]any, len(v))
+	for i, row := range v {
+		out[i] = StructResultMap(row, to)
+	}
+	return out
+}
 
 func MarketInterfaceFromMap(data any) MarketInterface {
 	m, ok := data.(map[string]any)
 	if !ok {
 		return MarketInterface{}
 	}
-	mi := NewMarketInterface(m)
-	mi.Info = GetInfo(m)
-	return mi
+	return NewMarketInterface(m)
 }
 func MarketInterfaceToMap(mi MarketInterface) map[string]any {
 	m := StructToMap(mi)
@@ -1258,7 +1279,16 @@ func MarketInterfaceToMap(mi MarketInterface) map[string]any {
 	m["quote"] = m["quoteCurrency"]
 	delete(m, "baseCurrency")
 	delete(m, "quoteCurrency")
+	if mi.Quanto == nil {
+		delete(m, "quanto")
+	}
 	return m
+}
+func MarketInterfacesFromList(data any) []MarketInterface {
+	return StructListFromList(data, MarketInterfaceFromMap)
+}
+func MarketInterfacesToList(s []MarketInterface) []any {
+	return StructListToList(s, MarketInterfaceToMap)
 }
 
 func CurrencyFromMap(data any) Currency {
@@ -1356,6 +1386,7 @@ var structListBoxers = map[reflect.Type]func(any) any{
 	reflect.TypeOf([]PredictionPosition(nil)):   func(v any) any { return PredictionPositionsToList(v.([]PredictionPosition)) },
 	reflect.TypeOf([]PredictionEvent(nil)):      func(v any) any { return PredictionEventsToList(v.([]PredictionEvent)) },
 	reflect.TypeOf([]PredictionSettlement(nil)): func(v any) any { return PredictionSettlementsToList(v.([]PredictionSettlement)) },
+	reflect.TypeOf([]MarketInterface(nil)):      func(v any) any { return MarketInterfacesToList(v.([]MarketInterface)) },
 	reflect.TypeOf([]map[string]any(nil)):       func(v any) any { return MapSliceToList(v.([]map[string]any)) },
 	reflect.TypeOf([]string(nil)):               func(v any) any { return StringSliceToList(v.([]string)) },
 }
