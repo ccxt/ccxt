@@ -506,7 +506,10 @@ export default class interactivebrokers extends Exchange {
                     'cryptoAmountIncrement': '0.00000001',
                     'contractAmountIncrement': '1',
                     // coinbase derivatives perp-style futures (COINDERIV), IBKR symbol -> unified base, resolved via trsrv/futures
-                    'swapSymbols': {
+                    // https://investors.interactivebrokers.com/en/index.php?f=26662&hm=us&ex=us&rgt=0&rsk=1&pm=0&rst=101004100808080101
+                    // https://www.interactivebrokers.com/en/pricing/commissions-futures.php?region=americas
+                    'cryptoSwapExchanges': [ 'COINDERIV' ],
+                    'cryptoSwapSymbols': {
                         'BIP': 'BTC', // nano bitcoin, 0.01 BTC
                         'ETP': 'ETH', // nano ether, 0.1 ETH
                         'SLP': 'SOL',
@@ -523,10 +526,27 @@ export default class interactivebrokers extends Exchange {
                         'XLP': 'XLM',
                         'SUP': 'SUI',
                         'PEP': '1000PEPE',
+                        'BIT': 'x',
+                        'ET': 'x',
+                        'GOL': 'x',
+                        'NOL': 'x',
+                        'SLR': 'x',
+                        'ZEC': 'x',
+                        'ENA': 'x',
+                        'HYP': 'x',
+                        'OND': 'x',
+                        'TEK': 'x',
+                        'AVA': 'x',
+                        'BCH': 'x',
+                        'DOG': 'x',
+                        'HYF': 'x',
+                        'LC': 'x',
+                        'NGS': 'x',
+                        'SHB': 'x',
+                        'SUI': 'x',
                     },
-                    'swapExchange': 'COINDERIV',
-                    'cfdExchanges': [ 'IBUSCFD', 'IBCFD' ], // us and non-us cfds, on duplicate symbols the first exchange wins
-                    'cryptoSymbols': [ 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK' ], // resolved via iserver/secdef/search
+                    'cryptoSpotSymbols': [ 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK' ], // resolved via iserver/secdef/search
+                    'cfdExchanges': [ 'IBUSCFD', 'IBCFD' ], // us and non-us cfds, on duplicate symbols the last exchange wins
                     'forexCurrencies': [ 'USD' ], // fx pairs involving these currencies, via iserver/currency/pairs
                     'defaultMinCost': 1,
                 },
@@ -846,14 +866,14 @@ export default class interactivebrokers extends Exchange {
         await this.loadServiceAccounts ();
         // const res1 = await this.privateGetTrsrvSecdef ({conids:'479624278'});
         // const res2 = await this.webapiGetV1ApiTrsrvAllConids ({exchange:'PAXOS'});
-        const res = await this.fetchStockMarkets ();
+        const res = await this.fetchSwapMarkets ();
         return res;
     }
 
     /**
      * @method
      * @name interactivebrokers#fetchMarkets
-     * @description retrieves data on the market types of options.fetchMarkets.types: stocks of options.fetchMarkets.exchanges.STK, crypto of options.fetchMarkets.cryptoSymbols, fx pairs of options.fetchMarkets.forexCurrencies, coinbase derivatives perp-style futures of options.fetchMarkets.swapSymbols (as swap, e.g. BTC/USD:USD) and cfds of options.fetchMarkets.cfdExchanges (as swap, e.g. AAPL/USD:USD), the market id is the IBKR conid
+     * @description retrieves data on the market types of options.fetchMarkets.types: stocks of options.fetchMarkets.exchanges.STK, crypto of options.fetchMarkets.cryptoSpotSymbols, fx pairs of options.fetchMarkets.forexCurrencies, coinbase derivatives perp-style futures of options.fetchMarkets.cryptoSwapSymbols (as swap, e.g. BTC/USD:USD) and cfds of options.fetchMarkets.cfdExchanges (as swap, e.g. AAPL/USD:USD), the market id is the IBKR conid
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-all-conids-by-exchange
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-future-by-symbol
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/search-contract-by-symbol
@@ -1008,10 +1028,10 @@ export default class interactivebrokers extends Exchange {
     async fetchCryptoMarkets (params: Dict = {}): Promise<Market[]> {
         const entries: Dict = {};
         const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const cryptoSymbols = this.safeList (options, 'cryptoSymbols', []);
+        const cryptoSpotSymbols = this.safeList (options, 'cryptoSpotSymbols', []);
         const promises = [];
-        for (let i = 0; i < cryptoSymbols.length; i++) {
-            const cryptoSymbol = cryptoSymbols[i];
+        for (let i = 0; i < cryptoSpotSymbols.length; i++) {
+            const cryptoSymbol = cryptoSpotSymbols[i];
             const searchRequest: Dict = {
                 'symbol': cryptoSymbol,
                 'secType': 'CRYPTO',
@@ -1054,7 +1074,7 @@ export default class interactivebrokers extends Exchange {
     /**
      * @method
      * @name interactivebrokers#fetchSwapMarkets
-     * @description retrieves the coinbase derivatives perp-style futures (COINDERIV) of options.fetchMarkets.swapSymbols
+     * @description retrieves the coinbase derivatives perp-style futures (COINDERIV) of options.fetchMarkets.cryptoSwapSymbols
      * @ignore
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-future-by-symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1063,8 +1083,8 @@ export default class interactivebrokers extends Exchange {
     async fetchSwapMarkets (params: Dict = {}): Promise<Market[]> {
         const entries: Dict = {};
         const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const swapSymbols = this.safeDict (options, 'swapSymbols', {});
-        const symbols = Object.keys (swapSymbols);
+        const cryptoSwapSymbols = this.safeDict (options, 'cryptoSwapSymbols', {});
+        const symbols = Object.keys (cryptoSwapSymbols);
         if (symbols.length === 0) {
             return [];
         }
@@ -1097,13 +1117,14 @@ export default class interactivebrokers extends Exchange {
                 }
             }
         }
-        const swapExchange = this.safeString (options, 'swapExchange', 'COINDERIV');
+        const cryptoSwapExchanges = this.safeList (options, 'cryptoSwapExchanges', []);
         const detailMarkets = await this.fetchWithDetails (entries);
         const result = [];
         for (let i = 0; i < detailMarkets.length; i++) {
             const detail = detailMarkets[i];
             // the symbols can also match unrelated futures on other exchanges
-            if (this.safeString (detail, 'listingExchange') === swapExchange) {
+            const listingExchange = this.safeString (detail, 'listingExchange');
+            if (this.inArray (listingExchange, cryptoSwapExchanges)) {
                 result.push (detail);
             }
         }
@@ -1139,10 +1160,8 @@ export default class interactivebrokers extends Exchange {
             const cfds = responses[i];
             for (let j = 0; j < cfds.length; j++) {
                 const cfd = cfds[j];
-                const conid = this.safeString (cfd, 'conid');
-                if ((conid !== undefined) && !(conid in entries)) {
-                    entries[conid] = cfd;
-                }
+                const conid = this.safeString (cfd, 'conid') as string;
+                entries[conid] = cfd;
             }
         }
         const detailMarkets = await this.fetchWithDetails (entries);
@@ -1277,8 +1296,8 @@ export default class interactivebrokers extends Exchange {
         let base: Str = undefined;
         let contractSize: Str = undefined;
         if (isPerp) {
-            const swapSymbols = this.safeDict (options, 'swapSymbols', {});
-            base = this.safeString (swapSymbols, baseTickerId, baseTickerId);
+            const cryptoSwapSymbols = this.safeDict (options, 'cryptoSwapSymbols', {});
+            base = this.safeString (cryptoSwapSymbols, baseTickerId, baseTickerId);
             contractSize = this.safeString (market, 'multiplier'); // 0.01 BTC for BIP
         } else if (isStock || isCfd) {
             // stock and cfd tickers are not currencies, skip commonCurrencies remapping, 'BRK B' -> 'BRK.B'
