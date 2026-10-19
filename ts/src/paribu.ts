@@ -132,7 +132,7 @@ export default class paribu extends Exchange {
                 'ws': false,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/PARIBU_LOGO_PLACEHOLDER',
+                'logo': 'https://github.com/user-attachments/assets/795b9cab-4f02-4623-b70b-ae12f28b49b1',
                 'api': {
                     'public': 'https://api.paribu.com',
                     'private': 'https://api.paribu.com',
