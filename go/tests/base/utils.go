@@ -476,6 +476,15 @@ func DetypeForComparison(value any) any {
 	if value == nil {
 		return nil
 	}
+	if ob, isOb := value.(ccxt.OrderBook); isOb {
+		return ccxt.OrderBookToMap(ob)
+	}
+	if ob3, isOb3 := value.(ccxt.OrderBookL3); isOb3 {
+		return ccxt.OrderBookL3ToMap(ob3)
+	}
+	if dwf, isDwf := value.(ccxt.DepositWithdrawFee); isDwf {
+		return ccxt.DepositWithdrawFeeToMap(dwf)
+	}
 	rv := reflect.ValueOf(value)
 	switch rv.Kind() {
 	case reflect.Struct:

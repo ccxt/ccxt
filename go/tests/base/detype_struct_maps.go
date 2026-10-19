@@ -37,6 +37,12 @@ func init() {
 		reflect.TypeOf(ccxt.FundingHistory{}),
 		reflect.TypeOf(ccxt.FundingRateHistory{}),
 		reflect.TypeOf(ccxt.LeverageTier{}),
+		reflect.TypeOf(ccxt.Status{}),
+		reflect.TypeOf(ccxt.PositionModeInfo{}),
+		reflect.TypeOf(ccxt.DepositWithdrawFee{}),
+		reflect.TypeOf(ccxt.Account{}),
+		reflect.TypeOf(ccxt.OrderBook{}),
+		reflect.TypeOf(ccxt.OrderBookL3{}),
 	} {
 		detypedStructs[t] = true
 	}

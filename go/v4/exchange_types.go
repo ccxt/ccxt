@@ -825,7 +825,7 @@ func parseOrderBookEntries(orderbook map[string]any, key string) [][]float64 {
 							floatPair = append(floatPair, num)
 						}
 					}
-					if len(floatPair) == 2 { // Ensure bid/ask pairs have two values
+					if len(floatPair) >= 2 { // Ensure bid/ask pairs have at least two values
 						result = append(result, floatPair)
 					}
 				}
@@ -839,7 +839,7 @@ func parseOrderBookEntries(orderbook map[string]any, key string) [][]float64 {
 						floatPair = append(floatPair, num)
 					}
 				}
-				if len(floatPair) == 2 { // Ensure bid/ask pairs have two values
+				if len(floatPair) >= 2 { // Ensure bid/ask pairs have at least two values
 					result = append(result, floatPair)
 				}
 			}
@@ -1819,13 +1819,13 @@ type Account struct {
 	Id   *string
 	Type *string
 	Code *string
-	Info map[string]any
+	Info any
 	Name *string
 }
 
 func NewAccount(data any) Account {
 	return Account{
-		Info: GetInfo(data),
+		Info: SafeValue(data, "info"),
 		Name: SafeStringTyped(data, "name"),
 		Id:   SafeStringTyped(data, "id"),
 		Type: SafeStringTyped(data, "type"),
@@ -2165,7 +2165,7 @@ type Status struct {
 	Updated *int64
 	Eta     *int64
 	Url     *string
-	Info    map[string]any
+	Info    any
 }
 
 func NewStatus(data any) Status {
@@ -2174,18 +2174,18 @@ func NewStatus(data any) Status {
 		Updated: SafeInt64Typed(data, "updated"),
 		Eta:     SafeInt64Typed(data, "eta"),
 		Url:     SafeStringTyped(data, "url"),
-		Info:    GetInfo(data),
+		Info:    SafeValue(data, "info"),
 	}
 }
 
 type PositionModeInfo struct {
-	Info   map[string]any
+	Info   any
 	Hedged *bool
 }
 
 func NewPositionModeInfo(data any) PositionModeInfo {
 	return PositionModeInfo{
-		Info:   GetInfo(data),
+		Info:   SafeValue(data, "info"),
 		Hedged: SafeBoolTyped(data, "hedged"),
 	}
 }
@@ -2796,7 +2796,7 @@ func NewDepositWithdrawFeeNetwork(data any) DepositWithdrawFeeNetwork {
 // DepositWithdrawFee
 
 type DepositWithdrawFee struct {
-	Info     map[string]any
+	Info     any
 	Withdraw *DepositWithdrawFeeNetwork
 	Deposit  *DepositWithdrawFeeNetwork
 	Networks map[string]DepositWithdrawFeeNetwork
@@ -2813,7 +2813,7 @@ func NewDepositWithdrawFee(data any) DepositWithdrawFee {
 	if !ok {
 		return DepositWithdrawFee{}
 	}
-	info := GetInfo(m)
+	info := SafeValue(m, "info")
 	if info == nil {
 		info = m
 	}

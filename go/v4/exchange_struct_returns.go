@@ -513,6 +513,13 @@ func structValueToAny(fv reflect.Value) any {
 		if fv.IsNil() {
 			return nil
 		}
+		if fv.Type().Elem().Kind() == reflect.Struct {
+			out := make(map[string]any, fv.Len())
+			for _, k := range fv.MapKeys() {
+				out[k.String()] = StructToMap(fv.MapIndex(k).Interface())
+			}
+			return out
+		}
 	case reflect.Struct:
 		if structIsVacant(fv) {
 			return nil
@@ -833,6 +840,155 @@ func ADLsFromList(data any) []ADL {
 func ADLsToList(v []ADL) []any {
 	return StructListToList(v, ADLToMap)
 }
+func AccountsFromList(data any) []Account {
+	return StructListFromList(data, AccountFromMap)
+}
+func AccountsToList(v []Account) []any {
+	return StructListToList(v, AccountToMap)
+}
+
+func StatusFromMap(data any) Status {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Status{}
+	}
+	return NewStatus(m)
+}
+func StatusToMap(v Status) map[string]any { return StructToMap(v) }
+
+func PositionModeInfoFromMap(data any) PositionModeInfo {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return PositionModeInfo{}
+	}
+	return NewPositionModeInfo(m)
+}
+func PositionModeInfoToMap(v PositionModeInfo) map[string]any { return StructToMap(v) }
+
+func AccountFromMap(data any) Account {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Account{}
+	}
+	return NewAccount(m)
+}
+func AccountToMap(v Account) map[string]any { return StructToMap(v) }
+
+func DepositWithdrawFeeFromMap(data any) DepositWithdrawFee {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return DepositWithdrawFee{}
+	}
+	res := NewDepositWithdrawFee(m)
+	res.Info = m["info"]
+	return res
+}
+func DepositWithdrawFeeToMap(v DepositWithdrawFee) map[string]any {
+	var withdraw any = map[string]any{"fee": nil, "percentage": nil}
+	if v.Withdraw != nil {
+		withdraw = StructToMap(*v.Withdraw)
+	}
+	var deposit any = map[string]any{"fee": nil, "percentage": nil}
+	if v.Deposit != nil {
+		deposit = StructToMap(*v.Deposit)
+	}
+	networks := make(map[string]any, len(v.Networks))
+	for k, n := range v.Networks {
+		networks[k] = StructToMap(n)
+	}
+	return map[string]any{
+		"info":     v.Info,
+		"withdraw": withdraw,
+		"deposit":  deposit,
+		"networks": networks,
+	}
+}
+func DepositWithdrawFeeMapFromMap(data any) map[string]DepositWithdrawFee {
+	return StructDictFromMap(data, DepositWithdrawFeeFromMap)
+}
+func DepositWithdrawFeeMapToMap(d map[string]DepositWithdrawFee) map[string]any {
+	return StructDictToMap(d, DepositWithdrawFeeToMap)
+}
+func DepositAddressMapFromMap(data any) map[string]DepositAddress {
+	return StructDictFromMap(data, DepositAddressFromMap)
+}
+func DepositAddressMapToMap(d map[string]DepositAddress) map[string]any {
+	return StructDictToMap(d, DepositAddressToMap)
+}
+func CrossBorrowRateMapFromMap(data any) map[string]CrossBorrowRate {
+	return StructDictFromMap(data, CrossBorrowRateFromMap)
+}
+func CrossBorrowRateMapToMap(d map[string]CrossBorrowRate) map[string]any {
+	return StructDictToMap(d, CrossBorrowRateToMap)
+}
+func GreeksMapFromMap(data any) map[string]Greeks {
+	return StructDictFromMap(data, GreeksFromMap)
+}
+func GreeksMapToMap(d map[string]Greeks) map[string]any {
+	return StructDictToMap(d, GreeksToMap)
+}
+func OptionMapFromMap(data any) map[string]Option {
+	return StructDictFromMap(data, OptionFromMap)
+}
+func OptionMapToMap(d map[string]Option) map[string]any {
+	return StructDictToMap(d, OptionToMap)
+}
+
+func OrderBookFromMap(data any) OrderBook {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return OrderBook{}
+	}
+	return NewOrderBook(m)
+}
+func OrderBookToMap(ob OrderBook) map[string]any {
+	m := StructToMap(ob)
+	for _, side := range []string{"bids", "asks"} {
+		rows := ob.Bids
+		if side == "asks" {
+			rows = ob.Asks
+		}
+		list := make([]any, len(rows))
+		for i, row := range rows {
+			entry := make([]any, len(row))
+			for j, v := range row {
+				entry[j] = v
+			}
+			list[i] = entry
+		}
+		m[side] = list
+	}
+	return m
+}
+func OrderBookMapFromMap(data any) map[string]OrderBook {
+	return StructDictFromMap(data, OrderBookFromMap)
+}
+func OrderBookMapToMap(d map[string]OrderBook) map[string]any {
+	return StructDictToMap(d, OrderBookToMap)
+}
+
+func OrderBookL3FromMap(data any) OrderBookL3 {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return OrderBookL3{}
+	}
+	return NewOrderBookL3(m)
+}
+func OrderBookL3ToMap(ob OrderBookL3) map[string]any {
+	m := StructToMap(ob)
+	for _, side := range []string{"bids", "asks"} {
+		rows := ob.Bids
+		if side == "asks" {
+			rows = ob.Asks
+		}
+		list := make([]any, len(rows))
+		for i, row := range rows {
+			list[i] = []any{derefScalar(row.Price), derefScalar(row.Amount), derefScalar(row.OrderId)}
+		}
+		m[side] = list
+	}
+	return m
+}
 
 // structListBoxers: the reflective box (AsyncResult.Boxed) of every list-of-struct channel element type.
 var structListBoxers = map[reflect.Type]func(any) any{
@@ -854,6 +1010,7 @@ var structListBoxers = map[reflect.Type]func(any) any{
 	reflect.TypeOf([]MarginModification(nil)): func(v any) any { return MarginModificationsToList(v.([]MarginModification)) },
 	reflect.TypeOf([]LongShortRatio(nil)):     func(v any) any { return LongShortRatiosToList(v.([]LongShortRatio)) },
 	reflect.TypeOf([]ADL(nil)):                func(v any) any { return ADLsToList(v.([]ADL)) },
+	reflect.TypeOf([]Account(nil)):            func(v any) any { return AccountsToList(v.([]Account)) },
 }
 
 // structListBoxed is the reflective box of a list-of-struct value (ok false for any other value).

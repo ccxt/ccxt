@@ -1065,7 +1065,7 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
             const before = masked.substring (ls, at);
             const after = masked.substring (end, le);
             // a struct channel read already boxed or converted by goChan3StructPass (replay): idempotent
-            if (/(?:^|[^\w.])(?:ccxt\.)?(?:Struct(?:Box|ResultMap|Absent)|\w+From(?:Map|List))\($/.test (before)) {
+            if (/(?:^|[^\w.])(?:ccxt\.)?(?:Struct(?:Box|ResultMap|Absent)|\w+From(?:Map|List)|ToString|ToFloat64|ParseInt)\($/.test (before)) {
                 continue;
             }
             // W28: a list-of-struct read already boxed / a same-T []T send, emitted by goChan3StructListPass (replay)
@@ -1073,8 +1073,8 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
                 continue;
             }
             // W29: a typed map-of-struct wrapper read (`Tickers{Tickers: r.Value}`) emitted by goChan3StructPass (replay)
-            const typedDict = /(?:^|[^\w.])(?:ccxt\.)?(\w+)\{\1: $/.exec (before);
-            if ((typedDict !== null) && (after[0] === '}') && Object.values (GO_CHAN3_STRUCT_MAPS).includes (typedDict[1])) {
+            const typedDict = /(?:^|[^\w.])(?:ccxt\.)?(\w+)\{(\w+): $/.exec (before);
+            if ((typedDict !== null) && (after[0] === '}') && Object.values (GO_CHAN3_STRUCT_MAPS).includes (typedDict[1]) && ((GO_CHAN3_STRUCT_MAP_FIELDS[typedDict[1]] ?? typedDict[1]) === typedDict[2])) {
                 continue;
             }
             // native absent fold or comma-ok nil check already emitted: idempotent
@@ -1090,6 +1090,18 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
                 // ws2 type switch already emitted over an untyped forward (`switch xBox := r.Value.(type)`): box the now-typed value
                 if ((assert[1] === 'type') && /\bswitch \w+ := $/.test (before)) {
                     edits.push ({ 'start': at, 'end': end, 'text': 'any(' + name + '.Value)' });
+                    continue;
+                }
+                if ((type === '*string') && (assert[1] === 'string')) {
+                    edits.push ({ 'start': at, 'end': end + assert[0].length, 'text': q + 'ToString(' + name + '.Value)' });
+                    continue;
+                }
+                if (((type === '*int64') || (type === '*float64')) && (assert[1] === 'float64')) {
+                    edits.push ({ 'start': at, 'end': end + assert[0].length, 'text': q + 'ToFloat64(' + name + '.Value)' });
+                    continue;
+                }
+                if ((type === '*int64') && (assert[1] === 'int64')) {
+                    edits.push ({ 'start': at, 'end': end + assert[0].length, 'text': q + 'ParseInt(' + name + '.Value)' });
                     continue;
                 }
                 if (assert[1] !== goChan3QualType (type, q)) {
@@ -1293,6 +1305,7 @@ export const GO_CHAN3_EXTRA_STRUCTS: string[] = [
     'ADL', 'CrossBorrowRate', 'IsolatedBorrowRate', 'LastPrice', 'LongShortRatio',
     'MarginModification', 'Liquidation', 'BorrowInterest', 'FundingHistory',
     'FundingRateHistory', 'LeverageTier',
+    'Status', 'PositionModeInfo', 'DepositWithdrawFee', 'Account', 'OrderBook', 'OrderBookL3',
 ];
 
 export function goChan3StructTypes (): Set<string> {
@@ -1306,6 +1319,13 @@ export const GO_CHAN3_STRUCT_MAPS: Record<string, string> = {
     'Ticker': 'Tickers', 'FundingRate': 'FundingRates', 'OpenInterest': 'OpenInterests',
     'TradingFeeInterface': 'TradingFees', 'Leverage': 'Leverages', 'MarginMode': 'MarginModes',
     'IsolatedBorrowRate': 'IsolatedBorrowRates', 'LastPrice': 'LastPrices',
+    'DepositWithdrawFee': 'DepositWithdrawFees', 'DepositAddress': 'DepositAddresses',
+    'CrossBorrowRate': 'CrossBorrowRates', 'OrderBook': 'OrderBooks',
+    'Greeks': 'AllGreeks', 'Option': 'OptionChain',
+};
+
+export const GO_CHAN3_STRUCT_MAP_FIELDS: Record<string, string> = {
+    'AllGreeks': 'Greeks', 'OptionChain': 'Chains',
 };
 
 // W29: `map[string]T` -> T (undefined for a single struct)
@@ -1529,7 +1549,9 @@ export function goChan3StructPass (content: string, table: Map<string, string>):
             if (/(?:^|[^\w.])(?:ccxt\.)?Struct(?:Box|ResultMap|Absent)\($/.test (before)) {
                 continue;   // already boxed (replay)
             }
-            if ((elem !== undefined) && before.endsWith (newName.substring (3) + '{' + newName.substring (3) + ': ') && (after[0] === '}')) {
+            const containerName = newName.substring (3);
+            const containerField = GO_CHAN3_STRUCT_MAP_FIELDS[containerName] ?? containerName;
+            if ((elem !== undefined) && before.endsWith (containerName + '{' + containerField + ': ') && (after[0] === '}')) {
                 continue;   // W29 typed wrapper container (replay)
             }
             const assert = /^\.\(([^()]+)\)/.exec (after);
@@ -1545,8 +1567,7 @@ export function goChan3StructPass (content: string, table: Map<string, string>):
                 let text = (wrap[2] === 'MapTyped') ? asMap : box;
                 if (wrap[2] === newName) {
                     // a typed wrapper: the struct itself, or (W29) the container of the typed dict
-                    const container = newName.substring (3);
-                    text = (elem === undefined) ? u[0] : (wrap[1].substring (0, wrap[1].length - wrap[2].length - 1) + container + '{' + container + ': ' + u[0] + '}');
+                    text = (elem === undefined) ? u[0] : (wrap[1].substring (0, wrap[1].length - wrap[2].length - 1) + containerName + '{' + containerField + ': ' + u[0] + '}');
                 }
                 edits.push ({ 'start': at - wrap[1].length, 'end': end + 1, 'text': text });
                 continue;
@@ -1581,8 +1602,62 @@ export function goChan3StructPass (content: string, table: Map<string, string>):
     return edits.length ? goChan3Splice (content, edits) : content;
 }
 
+function goChan3Unendpoint (content: string, table: Map<string, string>): string {
+    const globalKeys = [ ...table.keys () ].filter ((k) => !k.includes ('.'));
+    if (globalKeys.length === 0) {
+        return content;
+    }
+    const alt = globalKeys.join ('|');
+    if (content.indexOf ('EndpointResult[') >= 0) {
+        const tramp = new RegExp ('^(func \\(this \\*\\w+\\) (' + alt + ')Async\\([^\\n]*\\) <-chan ((?:ccxt\\.)?))EndpointResult\\[[^\\n]+\\] \\{\\n\\tch := make\\(chan (?:ccxt\\.)?EndpointResult\\[[^\\n]+\\], 1\\)\\n\\tgo this\\.(\\w+)\\(ch(?:, [^\\n]*)?\\)\\n\\treturn ch\\n\\}\\nfunc \\(this \\*\\w+\\) \\4\\(ch chan (?:ccxt\\.)?EndpointResult\\[[^\\n]+\\]([^\\n]*\\{\\n\\tdefer close\\(ch\\)\\n\\tdefer (?:ccxt\\.)?)ReturnPanicErrorT\\(ch\\)', 'gm');
+        content = content.replace (tramp, (whole, sigPrefix, _m, q, bodyName, mid) => {
+            return sigPrefix + 'AsyncResult[any] {\n\tch := make(chan ' + q + 'AsyncResult[any], 1)\n\tgo this.' + bodyName + whole.substring (whole.indexOf ('(ch'), whole.indexOf ('\n\treturn ch\n}\nfunc ')) + '\n\treturn ch\n}\nfunc ' + whole.substring (whole.indexOf ('\nfunc ') + 6, whole.indexOf ('(ch chan ')) + '(ch chan ' + q + 'AsyncResult[any]' + mid + 'ReturnPanicError(ch)';
+        });
+        const headRe = new RegExp ('\\nfunc \\(this \\*\\w+\\) \\w+\\(ch chan ((?:ccxt\\.)?)AsyncResult\\[any\\]', 'g');
+        for (let m = headRe.exec (content); m !== null; m = headRe.exec (content)) {
+            const q = m[1];
+            const bs = m.index + 1;
+            const be = content.indexOf ('\n}\n', bs) + 3;
+            if (be < 3) continue;
+            const body = content.substring (bs, be);
+            if (body.indexOf ('EndpointResult[') < 0) continue;
+            const next = body
+                .replace (/(\t+)chValue := ([\s\S]*?)\n\1ch <- (?:ccxt\.)?EndpointResult\[[^\n]+\]\{Value: chValue, Raw: chValue\}/g, '$1ch <- ' + q + 'AsyncResult[any]{Value: $2}')
+                .replace (/ch <- (?:ccxt\.)?EndpointResult\[[^\n]+\]\{Value: ([^\n]+), Raw: \1\}/g, 'ch <- ' + q + 'AsyncResult[any]{Value: $1}')
+                .replace (/ch <- (?:ccxt\.)?EndpointResult\[[^\n]+\]\{\}/g, 'ch <- ' + q + 'AsyncResult[any]{Value: nil}');
+            if (next !== body) {
+                content = content.substring (0, bs) + next + content.substring (be);
+                headRe.lastIndex = bs + next.length;
+            }
+        }
+        const iface = new RegExp ('^(\\t(?:' + alt + ')Async\\([^\\n]*\\) <-chan ((?:ccxt\\.)?))EndpointResult\\[[^\\n]+\\]$', 'gm');
+        content = content.replace (iface, '$1AsyncResult[any]');
+    }
+    if (content.indexOf ('EndpointRaw(') >= 0) {
+        const epRaw = new RegExp ('(?<![\\w.])(?:ccxt\\.)?EndpointRaw\\(((?:this|this\\.DerivedExchange|this\\.Exchange|this\\.base)\\.(?:' + alt + ')Async\\([^()\\n]*\\))\\)', 'g');
+        content = content.replace (epRaw, '$1');
+    }
+    const recvRe = new RegExp ('^(\\t+)(r\\d*) := <-(?:this|this\\.Exchange|this\\.DerivedExchange|this\\.base|exchange)(?:\\.\\([^()\\n]+\\))?\\.(?:' + alt + ')Async\\(', 'gm');
+    for (let m = recvRe.exec (content); m !== null; m = recvRe.exec (content)) {
+        const rvar = m[2];
+        const fe = content.indexOf ('\n}\n', m.index);
+        if (fe < 0) continue;
+        const scope = content.substring (m.index + m[0].length, fe);
+        const rebind = new RegExp ('\\n\\t+' + rvar + ' := ').exec (scope);
+        const limit = (rebind === null) ? scope.length : rebind.index;
+        const sub = scope.substring (0, limit);
+        const rawRe = new RegExp ('(?<![\\w.])' + rvar + '\\.Raw\\b', 'g');
+        if (rawRe.test (sub)) {
+            const fixed = sub.replace (rawRe, rvar + '.Value');
+            content = content.substring (0, m.index + m[0].length) + fixed + scope.substring (limit) + content.substring (fe);
+        }
+    }
+    return content;
+}
+
 // the shared pass: retypes tabled cores, their consumers and interface lines (idempotent)
 export function goChan3Pass (content: string, table: Map<string, string> = goChan3Table ()): string {
+    content = goChan3Unendpoint (content, table);
     const shadow = goChan3Shadow (table);
     return goChan3StructListPass (goChan3StructPass (goChan3ResolvedImports (goChan3LowerAbsent (goChan3PassMarked (content, shadow), shadow)), table), table);
 }
@@ -1619,6 +1694,7 @@ export const GO_CHAN3_STRUCT_LISTS: Record<string, { from: string, to: string, r
     'MarginModification': { 'from': 'MarginModificationsFromList', 'to': 'MarginModificationsToList', 'row': 'MarginModificationToMap', 'newArray': 'NewMarginModificationArray' },
     'LongShortRatio': { 'from': 'LongShortRatiosFromList', 'to': 'LongShortRatiosToList', 'row': 'LongShortRatioToMap', 'newArray': 'NewLongShortRatioArray' },
     'ADL': { 'from': 'ADLsFromList', 'to': 'ADLsToList', 'row': 'ADLToMap', 'newArray': 'NewADLArray' },
+    'Account': { 'from': 'AccountsFromList', 'to': 'AccountsToList', 'row': 'AccountToMap', 'newArray': 'NewAccountArray' },
 };
 
 // `[]T` (optionally `[]ccxt.T`) of a list-of-struct channel -> T (undefined otherwise)

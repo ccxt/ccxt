@@ -19,9 +19,9 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'LeverageToMap': 'map[string]any', 'MarginModeToMap': 'map[string]any', 'GreeksToMap': 'map[string]any', 'OptionToMap': 'map[string]any', 'ConversionToMap': 'map[string]any',
     'OHLCVToList': '[]any',
     'TradesToList': '[]any', 'OrdersToList': '[]any', 'OHLCVsToList': '[]any', 'PositionsToList': '[]any', 'TransactionsToList': '[]any', 'LedgerEntriesToList': '[]any', // W28
-    'DepositAddressesToList': '[]any', 'TransferEntriesToList': '[]any', 'OpenInterestsToList': '[]any', 'ConversionsToList': '[]any', 'LiquidationsToList': '[]any', 'BorrowInterestsToList': '[]any', 'FundingHistoriesToList': '[]any', 'FundingRateHistoriesToList': '[]any', 'LeverageTiersToList': '[]any', 'MarginModificationsToList': '[]any', 'LongShortRatiosToList': '[]any', 'ADLsToList': '[]any', // W3
-    ...Object.fromEntries ([ 'ADL', 'CrossBorrowRate', 'IsolatedBorrowRate', 'LastPrice', 'LongShortRatio', 'MarginModification', 'Liquidation', 'BorrowInterest', 'FundingHistory', 'FundingRateHistory', 'LeverageTier' ].map ((t) => [ t + 'ToMap', 'map[string]any' ])), // W3
-    ...Object.fromEntries ([ 'Ticker', 'FundingRate', 'OpenInterest', 'TradingFeeInterface', 'Leverage', 'MarginMode', 'IsolatedBorrowRate', 'LastPrice' ].map ((t) => [ t + 'MapToMap', 'map[string]any' ])), // W29+W3
+    'DepositAddressesToList': '[]any', 'TransferEntriesToList': '[]any', 'OpenInterestsToList': '[]any', 'ConversionsToList': '[]any', 'LiquidationsToList': '[]any', 'BorrowInterestsToList': '[]any', 'FundingHistoriesToList': '[]any', 'FundingRateHistoriesToList': '[]any', 'LeverageTiersToList': '[]any', 'MarginModificationsToList': '[]any', 'LongShortRatiosToList': '[]any', 'ADLsToList': '[]any', 'AccountsToList': '[]any', // W3+W4
+    ...Object.fromEntries ([ 'ADL', 'CrossBorrowRate', 'IsolatedBorrowRate', 'LastPrice', 'LongShortRatio', 'MarginModification', 'Liquidation', 'BorrowInterest', 'FundingHistory', 'FundingRateHistory', 'LeverageTier', 'Status', 'PositionModeInfo', 'DepositWithdrawFee', 'Account', 'OrderBook', 'OrderBookL3' ].map ((t) => [ t + 'ToMap', 'map[string]any' ])), // W3+W4
+    ...Object.fromEntries ([ 'Ticker', 'FundingRate', 'OpenInterest', 'TradingFeeInterface', 'Leverage', 'MarginMode', 'IsolatedBorrowRate', 'LastPrice', 'DepositWithdrawFee', 'DepositAddress', 'CrossBorrowRate', 'OrderBook', 'Greeks', 'Option' ].map ((t) => [ t + 'MapToMap', 'map[string]any' ])), // W29+W3+W4
     'MapTyped': 'map[string]any', 'MarketTyped': 'map[string]any', 'ListTyped': '[]any',
     // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
     'this.ApplyEventFetchParams': '[]any',
@@ -69,11 +69,21 @@ let GO_CHAN_TABLE: Map<string, string> | undefined = undefined;
 export function goChanTable (): Map<string, string> {
     if (GO_CHAN_TABLE === undefined) {
         const table = new Map<string, string> ();
-        // chan3-*.json are AsyncResult[T] tables (build/go-chan3.ts), not EndpointResult carriers
+        const chan3Keys = new Set<string> ();
+        const chan3Files = fs.existsSync (GO_CHAN_TABLE_DIR) ? fs.readdirSync (GO_CHAN_TABLE_DIR).filter ((f) => /^chan3-(?!ws2)/.test (f) && f.endsWith ('.json')) : [];
+        for (const f of chan3Files) {
+            for (const k of Object.keys (JSON.parse (fs.readFileSync (path.join (GO_CHAN_TABLE_DIR, f), 'utf8')))) {
+                chan3Keys.add (k);
+            }
+        }
+        // chan3-*.json are AsyncResult[T] tables (build/go-chan3.ts) and supersede EndpointResult carriers
         const files = fs.existsSync (GO_CHAN_TABLE_DIR) ? fs.readdirSync (GO_CHAN_TABLE_DIR).filter ((f) => f.endsWith ('.json') && !f.startsWith ('chan3-')).sort () : [];
         for (const f of files) {
             const entries = JSON.parse (fs.readFileSync (path.join (GO_CHAN_TABLE_DIR, f), 'utf8'));
             for (const method of Object.keys (entries)) {
+                if (chan3Keys.has (method)) {
+                    continue;
+                }
                 if (table.has (method) && (table.get (method) !== entries[method])) {
                     throw new Error ('GOCHAN: ' + method + ' tabled twice with different types (' + f + ')');
                 }

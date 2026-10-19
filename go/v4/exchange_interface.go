@@ -50,6 +50,9 @@ type ICancelOrdersWithClientOrderIds interface {
 type IFetchL2OrderBook interface {
 	FetchL2OrderBookAsync(symbol string, optionalArgs ...any) <-chan EndpointResult[map[string]any]
 }
+type IFetchOrderBook interface {
+	FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
+}
 type IFetchOpenOrders interface {
 	FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order]
 }
@@ -282,7 +285,6 @@ type ICoreExchange interface {
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]any]
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
-	FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]LastPrice]
 	ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest
@@ -467,7 +469,6 @@ type IDerivedExchange interface {
 	ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[string]any
 	ParseMarketLeverageTiers(info any, optionalArgs ...any) []any
 	FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]MarginMode]
-	FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any
 	FetchLeveragesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Leverage]
 	SafeMarket(optionalArgs ...any) map[string]any
