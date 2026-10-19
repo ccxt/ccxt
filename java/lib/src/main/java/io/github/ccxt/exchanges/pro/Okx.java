@@ -2814,7 +2814,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Pair<String, Map<String, Object>> opparamsOpVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "editOrderWs", "op", "amend-order");
             String op = opparamsOpVariable.first();
             Map<String, Object> paramsOp = opparamsOpVariable.second();
-            Object args = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, paramsOp);
+            Object args = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, paramsOp);
             Map<String, Object> market = this.market(symbol);
             Long instIdCode = this.safeInteger(market, "instIdCode");
             if (!java.util.Objects.equals(instIdCode, null))
@@ -2978,6 +2978,37 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+
+    public void handleCancelOrders(Client client, Map<String, Object> message)
+    {
+        //
+        //    {
+        //        "id": "1512",
+        //        "op": "batch-cancel-orders",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "2510789768709120",
+        //                "sCode": "0",
+        //                "sMsg": ""
+        //            }
+        //        ],
+        //        "code": "0",
+        //        "msg": ""
+        //    }
+        //
+        String messageHash = this.safeString(message, "id");
+        List<Object> args = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        args = this.filterBy(args, "sCode", "0");
+        if (this.isEmpty(args))
+        {
+            String method = this.safeString(message, "op");
+            String stringMsg = this.json(message);
+            this.handleErrors(1, "", client.url, ((String)method), new HashMap<String, Object>() {{}}, stringMsg, message, new HashMap<String, Object>() {{}}, new HashMap<String, Object>() {{}});
+        }
+        List<Object> orders = this.parseOrders(args, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        client.resolve(orders, messageHash);
     }
 
     public void handleCancelAllOrders(Client client, Map<String, Object> message)
@@ -3167,6 +3198,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "amend-order", "handlePlaceOrders");
                 put( "batch-amend-orders", "handlePlaceOrders");
                 put( "cancel-order", "handlePlaceOrders");
+                put( "batch-cancel-orders", "handleCancelOrders");
                 put( "mass-cancel", "handleCancelAllOrders");
             }};
             Object method = this.safeValue(methods, eventVar);
@@ -3251,6 +3283,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String subMessageHash = ((("multi:" + channel) + ":") + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
+        // watchOHLCV subscribes through subscribe () under channel:marketId
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            this.cleanUnsubscription(client, (String) (((channel + ":") + this.marketId((String) (symbol)))), (String) (null), false);
+        }
         if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(timeframe, null)) && (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
         {
             ((Map<String,Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).remove((String)timeframe);
