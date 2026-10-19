@@ -439,7 +439,7 @@ class paradex(Exchange, ImplicitAPI):
                     },
                     'fetchClosedOrders': None,  # todo
                     'fetchOHLCV': {
-                        'limit': None,  # todo by from/to
+                        'limit': 1000,  # todo by from/to
                     },
                 },
                 'swap': {
@@ -840,26 +840,24 @@ class paradex(Exchange, ImplicitAPI):
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'symbol': market['id'],
         }
-        now = self.milliseconds()
+        maxLimit = 1000  # exchange has undocumented limit slightly above, but this is reliable limit
         duration = self.parse_timeframe(timeframe)
-        until = self.safe_integer_2(params, 'until', 'till', now)
         price = self.safe_string(params, 'price')
         if price is not None:
             request['price_kind'] = price
-        paramsOmitted = self.omit(params, ['until', 'till', 'price'])
+        requestUntil, paramsUntil = self.handle_until_option('end_at', request, params)
+        hasEnd = ('end_at' in request)
+        paramsOmitted = self.omit(paramsUntil, ['price'])
+        limitResolved = maxLimit if (limit is None) else min(limit, maxLimit)
         if since is not None:
-            request['start_at'] = since
-            if limit is not None:
-                request['end_at'] = since + duration * (limit + 1) * 1000 - 1
-            else:
-                request['end_at'] = until
+            requestUntil['start_at'] = since
+            if not hasEnd:
+                requestUntil['end_at'] = since + duration * (limitResolved + 1) * 1000 - 1
         else:
-            request['end_at'] = until
-            if limit is not None:
-                request['start_at'] = until - duration * (limit + 1) * 1000 + 1
-            else:
-                request['start_at'] = until - duration * 101 * 1000 + 1
-        response = await self.publicGetMarketsKlines(self.extend(request, paramsOmitted))
+            if not hasEnd:
+                requestUntil['end_at'] = self.milliseconds()
+            requestUntil['start_at'] = requestUntil['end_at'] - duration * (limitResolved + 1) * 1000 + 1
+        response = await self.publicGetMarketsKlines(self.extend(requestUntil, paramsOmitted))
         #
         #     {
         #         "results": [
@@ -1553,7 +1551,10 @@ class paradex(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(order, 'created_at')
         orderId = self.safe_string(order, 'id')
-        clientOrderId = self.omit_zero(self.safe_string(order, 'client_id'))
+        # a client id is free text, omitZero would drop every non-numeric one in php
+        clientOrderId = self.safe_string(order, 'client_id')
+        if clientOrderId == '':
+            clientOrderId = None
         marketId = self.safe_string(order, 'market')
         marketResolved = self.safe_market(marketId, market)
         symbol = marketResolved['symbol']
@@ -2399,9 +2400,11 @@ class paradex(Exchange, ImplicitAPI):
         #                 "realized_pnl": "0",
         #                 "unrealized_pnl": "-2.39677214",
         #                 "unrealized_funding_pnl": "-0.11214013",
+        #                 "leverage": "5",
         #                 "cost": "648.39960537",
         #                 "cost_usd": "648.529",
         #                 "cached_funding_index": "35202.1002351",
+        #                 "created_at": 1718947571560,
         #                 "last_updated_at": 1718950074249,
         #                 "last_fill_id": "1718947571560201703986670001",
         #                 "seq_no": 1718950074249176253,
@@ -2426,9 +2429,11 @@ class paradex(Exchange, ImplicitAPI):
         #         "realized_pnl": "0",
         #         "unrealized_pnl": "-2.39677214",
         #         "unrealized_funding_pnl": "-0.11214013",
+        #         "leverage": "5",
         #         "cost": "648.39960537",
         #         "cost_usd": "648.529",
         #         "cached_funding_index": "35202.1002351",
+        #         "created_at": 1718947571560,
         #         "last_updated_at": 1718950074249,
         #         "last_fill_id": "1718947571560201703986670001",
         #         "seq_no": 1718950074249176253,
@@ -2439,31 +2444,33 @@ class paradex(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market)
         symbol = marketResolved['symbol']
         side = self.safe_string_lower(position, 'side')
-        quantity = self.safe_string(position, 'size')
-        if side != 'long':
-            quantity = Precise.string_mul('-1', quantity)
-        timestamp = self.safe_integer(position, 'time')
+        # side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        quantity = Precise.string_abs(self.safe_string(position, 'size'))
+        timestamp = self.safe_integer(position, 'created_at')
         liquidationPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'liquidation_price')))
+        # cost_usd is signed by side, the unified notional is a magnitude
+        notionalString = Precise.string_abs(self.safe_string(position, 'cost_usd'))
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'id'),
             'symbol': symbol,
             'entryPrice': self.safe_number(position, 'average_entry_price'),
             'markPrice': None,
-            'notional': None,
-            'collateral': self.safe_number(position, 'cost'),
+            'notional': self.parse_number(notionalString),
+            'collateral': None,  # cross margin is held at the account level, the position payload only carries its cost
             'unrealizedPnl': self.safe_number(position, 'unrealized_pnl'),
             'side': side,
             'contracts': self.parse_number(quantity),
             'contractSize': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': self.safe_integer(position, 'last_updated_at'),
             'hedged': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
             'initialMargin': None,
             'initialMarginPercentage': None,
-            'leverage': None,
+            'leverage': self.safe_number(position, 'leverage'),
             'liquidationPrice': liquidationPrice,
             'marginRatio': None,
             'marginMode': None,
@@ -3260,7 +3267,8 @@ class paradex(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         version = self.version
         pathValue = path
         if path.find('v2/') == 0:
@@ -3272,10 +3280,10 @@ class paradex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(baseApiUrl) + '/' + self.implode_params(pathValue, params)
         query = self.omit(params, self.extract_params(pathValue))
-        if api == 'public':
+        if apiName == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        elif api == 'private':
+        elif apiName == 'private':
             privateHeaders = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': self.safe_string(self.options, 'broker', 'CCXT'),
@@ -3318,9 +3326,9 @@ class paradex(Exchange, ImplicitAPI):
             #         url += '?' + this.urlencode (query);
             #     }
             # }
-            bodyResolved = privateBody if (privateBody is not None) else body
+            bodyResolved = privateBody
             return {'url': url, 'method': method, 'body': bodyResolved, 'headers': privateHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

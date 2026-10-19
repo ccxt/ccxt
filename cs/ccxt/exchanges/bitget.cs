@@ -169,7 +169,7 @@ public partial class bitget : Exchange
                     { "uta", "https://api.{hostname}" },
                 } },
                 { "www", "https://www.bitget.com" },
-                { "doc", new List<object>() {"https://www.bitget.com/api-doc/common/intro", "https://www.bitget.com/api-doc/spot/intro", "https://www.bitget.com/api-doc/contract/intro", "https://www.bitget.com/api-doc/broker/intro", "https://www.bitget.com/api-doc/margin/intro", "https://www.bitget.com/api-doc/copytrading/intro", "https://www.bitget.com/api-doc/earn/intro", "https://bitgetlimited.github.io/apidoc/en/mix", "https://bitgetlimited.github.io/apidoc/en/spot", "https://bitgetlimited.github.io/apidoc/en/broker", "https://bitgetlimited.github.io/apidoc/en/margin"} },
+                { "doc", new List<object>() {"https://www.bitget.com/docs/uta/Introduction", "https://www.bitget.com/docs/classic/Introduction"} },
                 { "fees", "https://www.bitget.cc/zh-CN/rate?tab=1" },
                 { "referral", "https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j" },
             } },
@@ -4778,17 +4778,20 @@ public partial class bitget : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        IList<object> tagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tag = (string)tagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagparamsWithdrawTagVariable[1]);
         this.checkAddress(address);
-        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
         IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode == null))
@@ -6491,7 +6494,8 @@ public partial class bitget : Exchange
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
      * @see https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
-     * @see https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
+     * @see https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick
+     * @see https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick-history
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -6499,7 +6503,7 @@ public partial class bitget : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200)
+     * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200, 100 for uta)
      * @param {boolean} [params.useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
@@ -6522,10 +6526,20 @@ public partial class bitget : Exchange
         (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsPaginate, "fetchOHLCV", false);
+        var uta = ((IList<object>) utaparamsUTAVariable)[0];
+        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
+        if ((uta is true))
+        {
+            maxLimitForHistoryEndpoint = 100; // the uta history endpoint rejects a limit above 100
+        }
         if ((paginate == true))
         {
             int limitForPagination = ((useHistoryEndpointForPagination == true)) ? maxLimitForHistoryEndpoint : maxLimitForRecentEndpoint;
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, limitForPagination));
+            Dictionary<string, object> paramsWithUta = this.extend(paramsUTA, new Dictionary<string, object>() {
+                { "uta", uta },
+            });
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsWithUta, limitForPagination));
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -6534,9 +6548,6 @@ public partial class bitget : Exchange
         string? marketType = null;
         object timeframes = null;
         object timeframesOption = this.handleOption("fetchOHLCV", "timeframes");
-        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsPaginate, "fetchOHLCV", false);
-        var uta = ((IList<object>) utaparamsUTAVariable)[0];
-        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
         if ((uta is true))
         {
             timeframes = getValue(timeframesOption, "uta");
@@ -6652,7 +6663,13 @@ public partial class bitget : Exchange
                 }
             }
             request["category"] = productType;
-            response = await this.publicUtaGetV3MarketCandles(this.extend(request, paramsProductType));
+            if (historicalEndpointNeeded)
+            {
+                response = await this.publicUtaGetV3MarketHistoryCandles(this.extend(request, paramsProductType));
+            } else
+            {
+                response = await this.publicUtaGetV3MarketCandles(this.extend(request, paramsProductType));
+            }
         } else if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             // checks if we need history endpoint
@@ -6726,14 +6743,12 @@ public partial class bitget : Exchange
      * @method
      * @name bitget#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Assets
-     * @see https://www.bitget.com/api-doc/contract/account/Get-Account-List
-     * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Assets
-     * @see https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
-     * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
-     * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
-     * @see https://www.bitget.com/api-doc/uta/account/Get-Account
-     * @see https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
+     * @see https://www.bitget.com/docs/catalog/classic-spot-account/classic-spot-account#get-account-assets
+     * @see https://www.bitget.com/docs/catalog/classic-contract-account/classic-contract-account#get-account-list
+     * @see https://www.bitget.com/docs/catalog/classic-margin-cross-account/classic-margin-cross-account#get-cross-account-assets
+     * @see https://www.bitget.com/docs/catalog/classic-margin-isolated-account/classic-margin-isolated-account#get-isolated-account-asset
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-assets
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-funding-assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -6775,7 +6790,7 @@ public partial class bitget : Exchange
                 IDictionary<string, object> results = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 assets = this.safeList(results, "assets", new List<object>() {});
             }
-            return ccxt.BaseExchange.ToBalances(this.parseUtaBalance(assets));
+            return ccxt.BaseExchange.ToBalances(this.parseUtaBalance(assets, response));
         } else if ((marketType == "swap") || (marketType == "future"))
         {
             string? productType = null;
@@ -6893,10 +6908,11 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
     }
 
-    public virtual object parseUtaBalance(object balance)
+    public virtual object parseUtaBalance(object balance, object response = null)
     {
+        object info = ((response != null)) ? response : balance;
         Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "info", balance },
+            { "info", info },
         };
         //
         // uta
@@ -11498,12 +11514,15 @@ public partial class bitget : Exchange
         Int64? timestamp = this.safeIntegerN(position, new List<object>() {"cTime", "ctime", "createdTime"});
         string? marginMode = this.safeString(position, "marginMode");
         string? collateral = null;
+        string? marginString = null;
         string? initialMargin = null;
         string? unrealizedPnl = this.safeString2(position, "unrealizedPL", "unrealisedPnl");
-        string? rawCollateral = this.safeString2(position, "marginSize", "positionBalance");
+        string? rawCollateral = ((string)this.omitZero(this.safeString2(position, "marginSize", "positionBalance")));
         if (marginMode == "isolated")
         {
-            collateral = Precise.stringAdd(rawCollateral, unrealizedPnl);
+            collateral = ((unrealizedPnl != null)) ? Precise.stringAdd(rawCollateral, unrealizedPnl) : rawCollateral;
+            initialMargin = rawCollateral;
+            marginString = rawCollateral;
         } else if (marginMode == "crossed")
         {
             marginMode = "cross";
@@ -11524,7 +11543,7 @@ public partial class bitget : Exchange
         string? contractSize = this.numberToString(contractSizeNumber);
         string? baseAmount = this.safeString2(position, "total", "openTotalPos");
         string? entryPrice = this.safeStringN(position, new List<object>() {"openPriceAvg", "openAvgPrice", "avgPrice"});
-        string? maintenanceMarginPercentage = this.safeString(position, "keepMarginRate");
+        string? maintenanceMarginPercentage = this.safeString2(position, "keepMarginRate", "mmr");
         string? openNotional = Precise.stringMul(entryPrice, baseAmount);
         if ((initialMargin == null))
         {
@@ -11538,9 +11557,10 @@ public partial class bitget : Exchange
         string? markPrice = this.safeString(position, "markPrice");
         string? notional = Precise.stringMul(baseAmount, markPrice);
         string? initialMarginPercentage = Precise.stringDiv(initialMargin, notional);
-        double? liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidationPrice")));
-        string calcTakerFeeRate = "0.0006";
-        string calcTakerFeeMult = "0.9994";
+        string? rawLiquidationPrice = ((string)this.omitZero(this.safeString(position, "liquidationPrice")));
+        double? liquidationPrice = (((rawLiquidationPrice != null)) && Precise.stringGt(rawLiquidationPrice, "0")) ? this.parseNumber(rawLiquidationPrice) : null;
+        string? calcTakerFeeRate = this.safeString(marketResolved, "taker", "0.0006");
+        string? calcTakerFeeMult = Precise.stringSub("1", calcTakerFeeRate);
         if (((liquidationPrice == null)) && (marginMode == "isolated") && Precise.stringGt(baseAmount, "0"))
         {
             string? signedMargin = Precise.stringDiv(rawCollateral, baseAmount);
@@ -11559,7 +11579,11 @@ public partial class bitget : Exchange
             {
                 numerator = Precise.stringMul(numerator, calcTakerFeeMult);
             }
-            liquidationPrice = this.parseNumber(Precise.stringDiv(numerator, mmrMinusOne));
+            string? derivedLiq = Precise.stringDiv(numerator, mmrMinusOne);
+            if (((derivedLiq != null)) && Precise.stringGt(derivedLiq, "0"))
+            {
+                liquidationPrice = this.parseNumber(derivedLiq);
+            }
         }
         string? feeToClose = Precise.stringMul(notional, calcTakerFeeRate);
         string? maintenanceMargin = Precise.stringAdd(Precise.stringMul(maintenanceMarginPercentage, notional), feeToClose);
@@ -11586,11 +11610,12 @@ public partial class bitget : Exchange
             { "lastUpdateTimestamp", this.safeInteger2(position, "utime", "updatedTime") },
             { "maintenanceMargin", this.parseNumber(maintenanceMargin) },
             { "maintenanceMarginPercentage", this.parseNumber(maintenanceMarginPercentage) },
+            { "positionMargin", this.parseNumber(marginString) },
             { "collateral", this.parseNumber(collateral) },
             { "initialMargin", this.parseNumber(initialMargin) },
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },
             { "leverage", this.parseNumber(leverage) },
-            { "marginRatio", this.safeNumber2(position, "marginRatio", "mmr") },
+            { "marginRatio", this.safeNumber(position, "marginRatio") },
             { "stopLossPrice", null },
             { "takeProfitPrice", null },
         });
@@ -11778,8 +11803,10 @@ public partial class bitget : Exchange
      * @name bitget#fetchFundingRates
      * @description fetch the current funding rates for all markets
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
@@ -11802,14 +11829,27 @@ public partial class bitget : Exchange
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
         IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
+        var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchFundingRates", false);
+        var uta = ((IList<object>) utaparamsUTAVariable)[0];
+        var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
         string method = "publicMixGetV2MixMarketTickers";
-        (string?, object) methodOptionparamsMethodVariable = this.handleOptionStringAndParams(paramsProductType, "fetchFundingRates", "method", method);
+        (string?, object) methodOptionparamsMethodVariable = this.handleOptionStringAndParams(paramsUTA, "fetchFundingRates", "method", method);
         string? methodOption = methodOptionparamsMethodVariable.Item1;
         IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodOptionparamsMethodVariable.Item2);
         Dictionary<string, object> response = null;
-        request["productType"] = productType;
-        if ((methodOption == "publicMixGetV2MixMarketTickers"))
+        if ((uta is true))
         {
+            request["category"] = productType;
+            if ((methodOption == "publicMixGetV2MixMarketTickers"))
+            {
+                response = await this.publicUtaGetV3MarketTickers(this.extend(request, paramsMethod));
+            } else if ((methodOption == "publicMixGetV2MixMarketCurrentFundRate"))
+            {
+                response = await this.publicUtaGetV3MarketCurrentFundRate(this.extend(request, paramsMethod));
+            }
+        } else if ((methodOption == "publicMixGetV2MixMarketTickers"))
+        {
+            request["productType"] = productType;
             // {
             //     "code": "00000",
             //     "msg": "success",
@@ -11845,6 +11885,7 @@ public partial class bitget : Exchange
             response = await this.publicMixGetV2MixMarketTickers(this.extend(request, paramsMethod));
         } else if ((methodOption == "publicMixGetV2MixMarketCurrentFundRate"))
         {
+            request["productType"] = productType;
             //
             //     {
             //         "code": "00000",
@@ -11874,8 +11915,10 @@ public partial class bitget : Exchange
      * @name bitget#fetchFundingIntervals
      * @description fetch the funding rate interval for multiple markets
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+     * @see https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
@@ -14409,7 +14452,7 @@ public partial class bitget : Exchange
         return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -14479,7 +14522,7 @@ public partial class bitget : Exchange
                 requestHeaders["Content-Type"] = "application/json";
             }
         }
-        object headersResult = ((requestHeaders == null)) ? headers : requestHeaders;
+        Dictionary<string, object> headersResult = requestHeaders;
         bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (((sandboxMode == true)) && ((path != "v2/public/time")) && ((path != "v3/market/current-fund-rate")))
         {
@@ -14491,10 +14534,10 @@ public partial class bitget : Exchange
             string? productType = this.safeString(parameters, "productType");
             if ((productType != "SCOIN-FUTURES") && (productType != "SUSDT-FUTURES") && (productType != "SUSDC-FUTURES"))
             {
-                ((IDictionary<string,object>)headersResult)["PAPTRADING"] = "1";
+                headersResult["PAPTRADING"] = "1";
             }
         }
-        object bodyResult = ((requestBody == null)) ? body : requestBody;
+        string? bodyResult = requestBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

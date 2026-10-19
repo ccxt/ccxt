@@ -1699,12 +1699,19 @@ class zebpay(Exchange, ImplicitAPI):
         datetime = self.safe_string(position, 'datetime')
         marketId = self.safe_string(position, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        return {
+        marginMode = self.safe_string_lower(position, 'marginMode', 'isolated')
+        initialMargin = self.safe_number(position, 'initialMargin')
+        # isolated positions hold exactly the initial margin posted for them
+        positionMargin = None
+        if marginMode == 'isolated':
+            positionMargin = initialMargin
+        return self.safe_position({
             'info': position,
-            'symbol': marketId,
+            'id': self.safe_string(position, 'id'),
+            'symbol': marketResolved['symbol'],
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
-            'initialMargin': self.safe_number(position, 'initialMargin'),
+            'initialMargin': initialMargin,
             'initialMarginPercentage': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
@@ -1717,11 +1724,12 @@ class zebpay(Exchange, ImplicitAPI):
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'markPrice': None,
+            'positionMargin': positionMargin,
             'collateral': None,
-            'marginMode': 'isolated',
-            'side': self.safe_string(position, 'side'),
+            'marginMode': marginMode,
+            'side': self.safe_string_lower(position, 'side'),
             'percentage': None,
-        }
+        })
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
@@ -1823,7 +1831,7 @@ class zebpay(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         bodySigned = None
         headersSigned = None
         paramsOmitted = self.omit(params, 'defaultType')
@@ -1875,8 +1883,8 @@ class zebpay(Exchange, ImplicitAPI):
                 'X-AUTH-SIGNATURE': signature,
             }
             headersSigned['Content-Type'] = 'application/json'
-        headersResolved = headers if (headersSigned is None) else headersSigned
-        bodyResolved = body if (bodySigned is None) else bodySigned
+        headersResolved = headersSigned
+        bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

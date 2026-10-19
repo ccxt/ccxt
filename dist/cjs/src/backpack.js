@@ -428,7 +428,7 @@ class backpack extends backpack$1["default"] {
                     'BERA': 'Berachain',
                     'BTC': 'Bitcoin',
                     'BCH': 'BitcoinCash',
-                    'BSC': 'Bsc',
+                    'BEP20': 'Bsc',
                     'ADA': 'Cardano',
                     'DOGE': 'Dogecoin',
                     'ECLIPSE': 'Eclipse',
@@ -453,7 +453,7 @@ class backpack extends backpack$1["default"] {
                     'berachain': 'BERA',
                     'bitcoin': 'BTC',
                     'bitcoincash': 'BCH',
-                    'bsc': 'BSC',
+                    'bsc': 'BEP20',
                     'cardano': 'ADA',
                     'dogecoin': 'DOGE',
                     'eclipse': 'ECLIPSE',
@@ -977,6 +977,7 @@ class backpack extends backpack$1["default"] {
         }
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
+        const duration = this.parseTimeframe(timeframe);
         const request = {
             'symbol': market['id'],
             'interval': interval,
@@ -991,7 +992,6 @@ class backpack extends backpack$1["default"] {
             limitResolved = defaultLimit;
         }
         if (since === undefined) {
-            const duration = this.parseTimeframe(timeframe);
             const endTime = (until !== undefined && until !== null && until !== 0) ? this.parseToInt(until / 1000) : this.seconds();
             const windowLimit = (limit === undefined) ? defaultLimit : limit;
             const startTime = endTime - (windowLimit * duration);
@@ -999,6 +999,13 @@ class backpack extends backpack$1["default"] {
         }
         else {
             request['startTime'] = this.parseToInt(since / 1000); // convert milliseconds to seconds
+        }
+        if (until === undefined) {
+            const currentMs = this.seconds(); // default to current time in seconds
+            const windowLimit = (limit === undefined) ? defaultLimit : limit;
+            const windowEnd = this.sum(request['startTime'], windowLimit * duration); // sum (): `+` on a dict value is string concatenation in php
+            const minTimestamp = Math.min(currentMs, windowEnd);
+            request['endTime'] = this.parseToInt(minTimestamp); // default to current time in seconds if until is not specified
         }
         const price = this.safeString(paramsUntil, 'price');
         const paramsOmitted = (price !== undefined) ? this.omit(paramsUntil, 'price') : paramsUntil;
@@ -1507,12 +1514,13 @@ class backpack extends backpack$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1525,7 +1533,7 @@ class backpack extends backpack$1["default"] {
         if (tag !== undefined) {
             request['clientId'] = tag; // memo or tag
         }
-        const [networkCode, query] = this.handleNetworkCodeAndParams(params);
+        const [networkCode, query] = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         const networkId = this.networkCodeToId(networkCode, this.safeString(currency, 'code'));
         if (networkId === undefined) {
             throw new errors.BadRequest(this.id + ' withdraw() requires a network parameter');
@@ -2323,9 +2331,10 @@ class backpack extends backpack$1["default"] {
         }
         return this.milliseconds() - timeDifference;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let endpoint = '/' + path;
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2333,7 +2342,7 @@ class backpack extends backpack$1["default"] {
         const sortedParams = Array.isArray(params) ? params : this.keysort(params);
         let headersSigned = undefined;
         let bodySigned = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const ts = this.nonce().toString();
             const recvWindow = this.safeString2(this.options, 'recvWindow', 'X-Window', '5000');
@@ -2373,9 +2382,9 @@ class backpack extends backpack$1["default"] {
             }
         }
         url += endpoint;
-        const headersResolved = (api === 'private') ? headersSigned : headers;
-        let bodyResolved = body;
-        if ((api === 'private') && (method !== 'GET')) {
+        const headersResolved = (apiName === 'private') ? headersSigned : undefined;
+        let bodyResolved = undefined;
+        if ((apiName === 'private') && (method !== 'GET')) {
             bodyResolved = bodySigned;
         }
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };

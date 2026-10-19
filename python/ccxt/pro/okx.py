@@ -61,10 +61,10 @@ class okx(ccxt.async_support.okx):
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws.okx.com:8443/ws/v5',
+                    'ws': 'wss://ws.okx.com:443/ws/v5',
                 },
                 'test': {
-                    'ws': 'wss://wspap.okx.com:8443/ws/v5',
+                    'ws': 'wss://wspap.okx.com:443/ws/v5',
                 },
             },
             'options': {
@@ -343,6 +343,8 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
+        if self.markets is None:
+            await self.load_markets()
         symbolValue = self.symbol(symbol)
         fr = await self.watch_funding_rates([symbolValue], params)
         return fr[symbolValue]
@@ -428,6 +430,8 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
+        if self.markets is None:
+            await self.load_markets()
         channel, paramsChannel = self.handle_option_string_and_params(params, 'watchTicker', 'channel', 'tickers')
         paramsChannel['channel'] = channel
         market = self.market(symbol)
@@ -479,6 +483,8 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
+        if self.markets is None:
+            await self.load_markets()
         channel, paramsChannel = self.handle_option_string_and_params(params, 'watchMarkPrice', 'channel', 'mark-price')
         paramsChannel['channel'] = channel
         market = self.market(symbol)
@@ -1205,6 +1211,22 @@ class okx(ccxt.async_support.okx):
             'args': topics,
         }
         url = self.get_url(depth, 'public')
+        client = self.client(url)
+        resyncTopics = []
+        resyncHashes = []
+        resyncNeeded = False
+        for i in range(0, len(messageHashes)):
+            if self.safe_string(client.subscriptions, messageHashes[i]) == 'resync':
+                # okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
+                resyncTopics.append(topics[i])
+                resyncHashes.append('unsubscribe:orderbook:' + symbolsNormalized[i])
+                resyncNeeded = True
+        if resyncNeeded:
+            unsubscribeRequest = {
+                'op': 'unsubscribe',
+                'args': resyncTopics,
+            }
+            await self.watch_multiple(url, resyncHashes, unsubscribeRequest, resyncHashes)
         orderbook = await self.watch_multiple(url, messageHashes, request, messageHashes)
         return orderbook.limit()
 
@@ -1453,8 +1475,8 @@ class okx(ccxt.async_support.okx):
                     update = data[i]
                     self.handle_order_book_message(client, update, orderbook, messageHash, market)
                     if not (messageHash in client.subscriptions):
-                        # a nonce gap rejected the future and always cleared the subscription entry, while the book
-                        # removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        # a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
+                        client.subscriptions[messageHash] = 'resync'
                         break
                     client.resolve(orderbook, messageHash)
         elif (channel == 'books5') or (channel == 'bbo-tbt'):

@@ -13,6 +13,7 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -455,7 +456,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("ticker:" + symbolValue);
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTicker", "uta", false);
+            Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTicker", "uta", false);
             Boolean uta = utaparamsUtaVariable.first();
             Map<String, Object> paramsUta = utaparamsUtaVariable.second();
             if (Boolean.TRUE.equals(uta))
@@ -466,7 +467,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             Boolean isFuturesMethod = (Boolean) market.get("contract");
             Object url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
-            io.github.ccxt.base.Pair<String, Map<String, Object>> spotMethodparamsSpotMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUta), "watchTicker", "spotMethod", "/market/snapshot");
+            Pair<String, Map<String, Object>> spotMethodparamsSpotMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUta), "watchTicker", "spotMethod", "/market/snapshot");
             String spotMethod = spotMethodparamsSpotMethodVariable.first();
             Map<String, Object> paramsSpotMethod = spotMethodparamsSpotMethodVariable.second();
             String method = (((java.util.Objects.equals(isFuturesMethod, true)))) ? "/contractMarket/ticker" : spotMethod;
@@ -501,7 +502,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             Boolean isFuturesMethod = (Boolean) market.get("contract");
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "unWatchTicker", "uta", false);
+            Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "unWatchTicker", "uta", false);
             Boolean uta = utaparamsUtaVariable.first();
             Map<String, Object> paramsUta = utaparamsUtaVariable.second();
             Map<String, Object> subscription = new HashMap<String, Object>() {{
@@ -520,7 +521,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             } else
             {
                 Object url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
-                io.github.ccxt.base.Pair<String, Map<String, Object>> spotMethodparamsSpotMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUta), "watchTicker", "spotMethod", "/market/snapshot");
+                Pair<String, Map<String, Object>> spotMethodparamsSpotMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUta), "watchTicker", "spotMethod", "/market/snapshot");
                 String spotMethod = spotMethodparamsSpotMethodVariable.first();
                 Map<String, Object> paramsSpotMethod = spotMethodparamsSpotMethodVariable.second();
                 String method = (((java.util.Objects.equals(isFuturesMethod, true)))) ? "/contractMarket/ticker" : spotMethod;
@@ -560,10 +561,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, false);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchTickers", firstMarket, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchTickers", firstMarket, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "watchTickers", "uta", false);
+            Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "watchTickers", "uta", false);
             Boolean uta = utaparamsUtaVariable.first();
             Map<String, Object> paramsUta = utaparamsUtaVariable.second();
             Object isFuturesMethod = (!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin"));
@@ -572,7 +573,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 throw new ArgumentsRequired((((this.id + " watchTickers() requires a list of symbols for ") + marketType) + " markets and unified trading account (uta)")) ;
             }
             String messageHash = "tickers";
-            io.github.ccxt.base.Pair<String, Map<String, Object>> spotMethodparamsSpotMethodVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsUta), "watchTickers", "method", "spotMethod", "/market/ticker");
+            Pair<String, Map<String, Object>> spotMethodparamsSpotMethodVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsUta), "watchTickers", "method", "spotMethod", "/market/ticker");
             String spotMethod = spotMethodparamsSpotMethodVariable.first();
             Map<String, Object> paramsSpotMethod = spotMethodparamsSpotMethodVariable.second();
             String method = spotMethod;
@@ -1105,7 +1106,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String symbolValue = (String) market.get("symbol");
             String period = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = ((("candles:" + symbolValue) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOHLCV", "uta", false);
+            Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOHLCV", "uta", false);
             Boolean uta = utaparamsUtaVariable.first();
             Map<String, Object> paramsUta = utaparamsUtaVariable.second();
             Object ohlcv = null;
@@ -1164,7 +1165,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             Boolean uta = false;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaOptionparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "unWatchOHLCV", "uta", uta);
+            Pair<Boolean, Map<String, Object>> utaOptionparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "unWatchOHLCV", "uta", uta);
             Boolean utaOption = utaOptionparamsUtaVariable.first();
             var paramsUta = ((List<Object>) utaOptionparamsUtaVariable).get(1);
             String period = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -1341,7 +1342,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return BaseExchange.supplyAsync(() -> {
 
             Boolean uta = false;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaOptionparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTrades", "uta", uta);
+            Pair<Boolean, Map<String, Object>> utaOptionparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTrades", "uta", uta);
             Boolean utaOption = utaOptionparamsUtaVariable.first();
             Map<String, Object> paramsUta = utaOptionparamsUtaVariable.second();
             if (Boolean.TRUE.equals(utaOption))
@@ -1498,7 +1499,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return BaseExchange.supplyAsync(() -> {
 
             Boolean uta = false;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaOptionparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTrades", "uta", uta);
+            Pair<Boolean, Map<String, Object>> utaOptionparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTrades", "uta", uta);
             Boolean utaOption = utaOptionparamsUtaVariable.first();
             Map<String, Object> paramsUta = utaOptionparamsUtaVariable.second();
             if (Boolean.TRUE.equals(utaOption))
@@ -1680,7 +1681,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             // cache the ws level2 stream, fetch the REST snapshot, then replay only the cached deltas whose
             // sequence follows the snapshot; price 0 → skip (bump sequence), size 0 → remove the price level
             //
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrderBook", "uta", false);
+            Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrderBook", "uta", false);
             Boolean uta = utaparamsUtaVariable.first();
             Map<String, Object> paramsUta = utaparamsUtaVariable.second();
             if (Boolean.TRUE.equals(uta))
@@ -1689,7 +1690,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> market = this.market(symbol);
                 String symbolResolved = (String) market.get("symbol");
                 // depth: '1', '5', '50' or 'increment'
-                io.github.ccxt.base.Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUta), "watchOrderBook", "utaDepth", "increment");
+                Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUta), "watchOrderBook", "utaDepth", "increment");
                 String depth = depthparamsDepthVariable.first();
                 Map<String, Object> paramsDepth = depthparamsDepthVariable.second();
                 String messageHash = ((("uta:orderbook:" + symbolResolved) + ":depth:") + depth);
@@ -1736,7 +1737,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
         return BaseExchange.supplyAsync(() -> {
 
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "unWatchOrderBook", "uta", false);
+            Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "unWatchOrderBook", "uta", false);
             Boolean uta = utaparamsUtaVariable.first();
             Map<String, Object> paramsUta = utaparamsUtaVariable.second();
             if (Boolean.TRUE.equals(uta))
@@ -1745,7 +1746,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> market = this.market(symbol);
                 String symbolResolved = (String) market.get("symbol");
                 // depth: '1', '5', '50' or 'increment'
-                io.github.ccxt.base.Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUta), "watchOrderBook", "utaDepth", "increment");
+                Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUta), "watchOrderBook", "utaDepth", "increment");
                 String depth = depthparamsDepthVariable.first();
                 Map<String, Object> paramsDepth = depthparamsDepthVariable.second();
                 Map<String, Object> paramsExtended = this.extend(paramsDepth, new HashMap<String, Object>() {{
@@ -1820,7 +1821,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 optionName = "contractMethod";
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> methodOptionparamsMethodVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "watchOrderBook", optionName, "method", defaultMethod);
+            Pair<String, Map<String, Object>> methodOptionparamsMethodVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "watchOrderBook", optionName, "method", defaultMethod);
             String methodOption = methodOptionparamsMethodVariable.first();
             Map<String, Object> paramsMethod = methodOptionparamsMethodVariable.second();
             String method = methodOption;
@@ -1901,7 +1902,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 optionName = "contractMethod";
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> methodOptionparamsMethodVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsOmitted), "watchOrderBook", optionName, "method", defaultMethod);
+            Pair<String, Map<String, Object>> methodOptionparamsMethodVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsOmitted), "watchOrderBook", optionName, "method", defaultMethod);
             String methodOption = methodOptionparamsMethodVariable.first();
             Map<String, Object> paramsMethod = methodOptionparamsMethodVariable.second();
             String method = methodOption;
@@ -2204,16 +2205,26 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         List<Object> symbols = (List<Object>) this.safeList(subscription, "symbols", (Object) null);
         if (java.util.Objects.equals(symbols, null))
         {
-            String symbol = this.safeString(subscription, "symbol");
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
-        } else
-        {
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
-            {
-                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
-            }
+            symbols = new ArrayList<Object>(Arrays.asList(this.safeString(subscription, "symbol")));
         }
+        Map<String, Object> limits = (Map<String, Object>) this.safeDict(this.options, "orderBookLimits", new HashMap<String, Object>() {{}});
+        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        {
+            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+            Long storedLimit = this.safeInteger(limits, symbol);
+            // reuse the existing book so user-held references keep updating; rebuild only if depth changed
+            if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))) || ((storedLimit == null || limit == null || storedLimit != limit)))
+            {
+                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            } else
+            {
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
+                orderbook.put("nonce", null);
+                Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
+            }
+            Helpers.addElementToObject(limits, symbol, limit);
+        }
+        Helpers.addElementToObject(this.options, "orderBookLimits", limits);
     }
 
     public void handleSubscriptionStatus(Client client, Map<String, Object> message)
@@ -2330,7 +2341,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean utaEnabled = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrders", "uta", utaEnabled);
+            Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrders", "uta", utaEnabled);
             Boolean uta = utaparamsUtaVariable.first();
             Map<String, Object> paramsUta = utaparamsUtaVariable.second();
             Map<String, Object> market = null;
@@ -2361,7 +2372,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 Boolean trigger = (Boolean) this.safeBool2(paramsUta, "stop", "trigger", (Object) null);
                 Map<String, Object> paramsOmitted = this.omit(paramsUta, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, paramsOmitted, (String) null);
+                Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, paramsOmitted, (String) null);
                 String marketType = marketTypeparamsMarketTypeVariable.first();
                 Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
                 Object isFuturesMethod = ((!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin")));
@@ -2808,12 +2819,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 messageHash = ((messageHash + ":") + market.get("symbol"));
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Object isFuturesMethod = ((!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin")));
             Boolean utaEnabled = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "watchMyTrades", "uta", utaEnabled);
+            Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "watchMyTrades", "uta", utaEnabled);
             Boolean uta = utaparamsUtaVariable.first();
             Map<String, Object> paramsUta = utaparamsUtaVariable.second();
             Object trades = null;
@@ -2838,7 +2849,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 {
                     optionName = "contractMethod";
                 }
-                io.github.ccxt.base.Pair<String, Map<String, Object>> topicparamsTopicVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsUta), "watchMyTrades", optionName, "method", defaultTopic);
+                Pair<String, Map<String, Object>> topicparamsTopicVariable = this.handleOptionStringAndParams2((Map<String, Object>) (paramsUta), "watchMyTrades", optionName, "method", defaultTopic);
                 var topic = ((List<Object>) topicparamsTopicVariable).get(0);
                 Map<String, Object> paramsTopic = topicparamsTopicVariable.second();
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3060,7 +3071,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaOptionparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchBalance", "uta", uta);
+            Pair<Boolean, Map<String, Object>> utaOptionparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchBalance", "uta", uta);
             Boolean utaOption = utaOptionparamsUtaVariable.first();
             Map<String, Object> paramsUta = utaOptionparamsUtaVariable.second();
             String defaultType = "spot";
@@ -3395,7 +3406,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> utaOptionparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchPositions", "uta", uta);
+            Pair<Boolean, Map<String, Object>> utaOptionparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchPositions", "uta", uta);
             Boolean utaOption = utaOptionparamsUtaVariable.first();
             Map<String, Object> paramsUta = utaOptionparamsUtaVariable.second();
             String tradeType = "TRADE";

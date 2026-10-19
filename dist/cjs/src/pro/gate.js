@@ -102,6 +102,13 @@ class gate extends gate$1["default"] {
                 },
             },
             'options': {
+                'ws': {
+                    'options': {
+                        'headers': {
+                            'X-Gate-Size-Decimal': '1', // contract sizes are pushed as decimal strings instead of rounded-down integers
+                        },
+                    },
+                },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'watchTradesSubscriptions': {},
@@ -539,7 +546,12 @@ class gate extends gate$1["default"] {
         const symbol = this.safeString(subscription, 'symbol');
         const limit = this.safeInteger(subscription, 'limit');
         if (symbol !== undefined) {
-            this.orderbooks[symbol] = this.orderBook({}, limit);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook['nonce'] = undefined;
+            orderbook.cache = [];
         }
     }
     handleNewSpotOrderBook(client, message) {
@@ -698,7 +710,8 @@ class gate extends gate$1["default"] {
         }
         else {
             delete client.subscriptions[messageHash];
-            delete this.orderbooks[symbol];
+            storedOrderBook['nonce'] = undefined;
+            storedOrderBook.cache = [];
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
             if (checksum === true) {
                 const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
@@ -1691,8 +1704,8 @@ class gate extends gate$1["default"] {
             else if (event === 'finish') {
                 const status = this.safeString(parsed, 'status');
                 if (status === undefined) {
-                    const left = this.safeInteger(info, 'left');
-                    parsed['status'] = (left === 0) ? 'closed' : 'canceled';
+                    const left = this.safeString(info, 'left');
+                    parsed['status'] = Precise["default"].stringEquals(left, '0') ? 'closed' : 'canceled';
                 }
             }
             stored.append(parsed);

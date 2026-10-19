@@ -1387,9 +1387,31 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		ccxt.AddElementToObject(orderbook, "datetime", datetime)
 	} else {
 		// snapshot
-		var depth int = len(a)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, depth))
+		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		// size the book from the subscribed depth (10 by default), not from
+		// the level count of this snapshot: a thin market's snapshot can
+		// carry fewer levels than the subscription and must not cap the book
+		var limit *int64 = this.SafeInteger(subscription, "limit", 10)
+		var asksLength int = len(a)
+		var depth any = func() any {
+			if ccxt.IsGreaterThan(asksLength, limit) {
+				return asksLength
+			}
+			return limit
+		}()
+		var depths any = this.SafeDict(this.Options, "wsOrderBookDepths", map[string]any{})
+		var storedDepth *int64 = this.SafeInteger(depths, symbol)
+		if !(ccxt.InOp(this.Orderbooks, symbol)) || (!ccxt.IsEqual(storedDepth, depth)) {
+			// rebuild only on the first snapshot or when the depth changes,
+			// e.g. a re-subscription with a different limit
+			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, depth))
+			ccxt.AddElementToObject(depths, symbol, depth)
+			this.Options.Store("wsOrderBookDepths", depths)
+		}
+		// reset in place so that references held by users keep receiving
+		// updates after a reconnect snapshot (a new object would orphan them)
 		orderbook = ccxt.GetValue(this.Orderbooks, symbol)
+		orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})
 		var keys []any = []any{"asks", "bids"}
 		for i := 0; i < len(keys); i++ {
 			var key *string = ccxt.SafeStringPtr(func() any {
@@ -1872,9 +1894,9 @@ func (this *Kraken) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes134015 := r.Value
+	retRes135715 := r.Value
 	var resolved []any
-	switch resolvedBox := retRes134015.(type) {
+	switch resolvedBox := retRes135715.(type) {
 	case []any:
 		resolved = resolvedBox
 	case ccxt.IArrayCache:

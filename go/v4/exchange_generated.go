@@ -33,7 +33,7 @@ func (this *BaseExchange) Describe() any {
 			"borrowMargin":                           nil,
 			"cancelAllOrders":                        nil,
 			"cancelAllOrdersWs":                      nil,
-			"cancelOrder":                            true,
+			"cancelOrder":                            nil,
 			"cancelOrderWithClientOrderId":           nil,
 			"cancelOrderWs":                          nil,
 			"cancelOrders":                           nil,
@@ -44,7 +44,7 @@ func (this *BaseExchange) Describe() any {
 			"createDepositAddress":                   nil,
 			"createLimitBuyOrder":                    nil,
 			"createLimitBuyOrderWs":                  nil,
-			"createLimitOrder":                       true,
+			"createLimitOrder":                       nil,
 			"createLimitOrderWs":                     nil,
 			"createLimitSellOrder":                   nil,
 			"createLimitSellOrderWs":                 nil,
@@ -52,15 +52,15 @@ func (this *BaseExchange) Describe() any {
 			"createMarketBuyOrderWs":                 nil,
 			"createMarketBuyOrderWithCost":           nil,
 			"createMarketBuyOrderWithCostWs":         nil,
-			"createMarketOrder":                      true,
-			"createMarketOrderWs":                    true,
+			"createMarketOrder":                      nil,
+			"createMarketOrderWs":                    nil,
 			"createMarketOrderWithCost":              nil,
 			"createMarketOrderWithCostWs":            nil,
 			"createMarketSellOrder":                  nil,
 			"createMarketSellOrderWs":                nil,
 			"createMarketSellOrderWithCost":          nil,
 			"createMarketSellOrderWithCostWs":        nil,
-			"createOrder":                            true,
+			"createOrder":                            nil,
 			"createOrderWs":                          nil,
 			"createOrders":                           nil,
 			"createOrderWithTakeProfitAndStopLoss":   nil,
@@ -92,7 +92,7 @@ func (this *BaseExchange) Describe() any {
 			"editOrderWs":                            nil,
 			"fetchAccounts":                          nil,
 			"fetchADLRank":                           nil,
-			"fetchBalance":                           true,
+			"fetchBalance":                           nil,
 			"fetchBalanceWs":                         nil,
 			"fetchBidsAsks":                          nil,
 			"fetchBorrowInterest":                    nil,
@@ -135,7 +135,7 @@ func (this *BaseExchange) Describe() any {
 			"fetchIsolatedBorrowRates":               nil,
 			"fetchMarginAdjustmentHistory":           nil,
 			"fetchIsolatedPositions":                 nil,
-			"fetchL2OrderBook":                       true,
+			"fetchL2OrderBook":                       nil,
 			"fetchL3OrderBook":                       nil,
 			"fetchLastPrices":                        nil,
 			"fetchLedger":                            nil,
@@ -168,7 +168,7 @@ func (this *BaseExchange) Describe() any {
 			"fetchOptionChain":                       nil,
 			"fetchOrder":                             nil,
 			"fetchOrderWithClientOrderId":            nil,
-			"fetchOrderBook":                         true,
+			"fetchOrderBook":                         nil,
 			"fetchOrderBooks":                        nil,
 			"fetchOrderBookWs":                       nil,
 			"fetchOrders":                            nil,
@@ -191,13 +191,13 @@ func (this *BaseExchange) Describe() any {
 			"fetchPremiumIndexOHLCV":                 nil,
 			"fetchSettlementHistory":                 nil,
 			"fetchStatus":                            nil,
-			"fetchTicker":                            true,
+			"fetchTicker":                            "emulated",
 			"fetchTickerWs":                          nil,
 			"fetchTickers":                           nil,
 			"fetchMarkPrices":                        nil,
 			"fetchTickersWs":                         nil,
 			"fetchTime":                              nil,
-			"fetchTrades":                            true,
+			"fetchTrades":                            nil,
 			"fetchTradesWs":                          nil,
 			"fetchTradingFee":                        nil,
 			"fetchTradingFees":                       nil,
@@ -770,6 +770,10 @@ func (this *BaseExchange) CheckConflictingProxies(proxyAgentSet any, proxyUrlSet
 func (this *BaseExchange) CheckAddress(optionalArgs ...any) any {
 	address := GetArg(optionalArgs, 0, nil)
 	_ = address
+	code := GetArg(optionalArgs, 1, nil)
+	_ = code
+	var tag *string = GetArgStringPtr(optionalArgs, 2, nil)
+	_ = tag
 	if address == nil {
 		panic(InvalidAddress(this.Id + " address is undefined"))
 	}
@@ -778,6 +782,14 @@ func (this *BaseExchange) CheckAddress(optionalArgs ...any) any {
 	var length int = GetArrayLength(uniqChars) // py transpiler trick
 	if (length == 1) || IsLessThan(GetLength(address), this.MinFundingAddressLength) || (GetIndexOf(address, " ") > -1) {
 		panic(InvalidAddress(this.Id + " address is invalid or has less than " + ToString(this.MinFundingAddressLength) + " characters: \"" + ToString(address) + "\""))
+	}
+	if code != nil {
+		var tagRequiredCurrencies any = this.SafeList(this.Options, "withdrawTagRequiredCurrencies", []any{})
+		if this.InArray(code, tagRequiredCurrencies) {
+			if tag == nil {
+				panic(ArgumentsRequired(Add(this.Id+" withdraw() requires params[\"tag\"] for ", code)))
+			}
+		}
 	}
 	return address
 }
@@ -976,16 +988,12 @@ func (this *BaseExchange) EnableDemoTrading(enable any) {
 	this.Options.Store("enableDemoTrading", enable)
 }
 func (this *BaseExchange) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	return map[string]any{
 		"url":     nil,
 		"method":  nil,
@@ -1573,9 +1581,7 @@ func (this *BaseExchange) WithdrawAsync(code string, amount any, address any, op
 func (this *BaseExchange) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " withdraw() is not supported yet"))
 }
@@ -1869,10 +1875,14 @@ func (this *BaseExchange) SafeIntegerOmitZero(obj any, key any, optionalArgs ...
 	}
 	return timestamp
 }
-func (this *BaseExchange) AfterConstruct() {
-	// networks
-	this.CreateNetworksByIdObject()
+func (this *BaseExchange) AfterConstruct(optionalArgs ...any) {
+	// networksById: inverse of options.networks, explicit options.networksById entries win
+	var userConfig map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = userConfig
+	var networkIdsToCodesGenerated any = this.InvertFlatStringDictionary(this.SafeValue(this.Options, "networks", map[string]any{}))
+	this.Options.Store("networksById", this.Extend(networkIdsToCodesGenerated, this.SafeValue(this.Options, "networksById", map[string]any{})))
 	this.FeaturesGenerator()
+	this.HasAutocorrect()
 	// init predefined markets if any
 	if this.Markets != nil {
 		this.SetMarkets(this.Markets)
@@ -1883,6 +1893,35 @@ func (this *BaseExchange) AfterConstruct() {
 	var isSandbox *bool = this.SafeBool2(this.Options, "sandbox", "testnet", false)
 	if isSandbox != nil && *isSandbox == true {
 		this.DerivedExchange.SetSandboxMode(isSandbox)
+	}
+	// compatibility for sandbox/testnet options in userConfig
+	if (this.SafeBool(userConfig, "sandbox", false) != nil && *this.SafeBool(userConfig, "sandbox", false)) || (this.SafeBool(userConfig, "testnet", false) != nil && *this.SafeBool(userConfig, "testnet", false)) {
+		this.DerivedExchange.SetSandboxMode(true)
+	}
+}
+func (this *BaseExchange) HasAutocorrect() {
+	var fallbacks map[string]any = map[string]any{
+		"fetchL2OrderBook":    "fetchOrderBook",
+		"createLimitOrder":    "createOrder",
+		"createMarketOrder":   "createOrder",
+		"createLimitOrderWs":  "createOrderWs",
+		"createMarketOrderWs": "createOrderWs",
+	}
+	var targets []string = nil
+	if fallbacks != nil {
+		targets = make([]string, 0, len(fallbacks))
+		for objectKey := range fallbacks {
+			targets = append(targets, objectKey)
+		}
+	}
+	for i := 0; i < len(targets); i++ {
+		var target string = targets[i]
+		var source any = fallbacks[target]
+		var sourceDefined bool = (InOp(this.Has, source)) && (!IsEqual(GetValue(this.Has, source), nil))
+		var targetDefined bool = (InOp(this.Has, target)) && (!IsEqual(this.Has[target], nil))
+		if sourceDefined && !targetDefined {
+			this.Has[target] = GetValue(this.Has, source)
+		}
 	}
 }
 func (this *BaseExchange) InitRestRateLimiter() {
@@ -2151,40 +2190,9 @@ func (this *BaseExchange) OrderbookChecksumMessage(symbol any) any {
 	}
 	return Add(Add(symbol, " : "), "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false")
 }
-func (this *BaseExchange) CreateNetworksByIdObject() {
-	// automatically generate network-id-to-code mappings
-	var networkIdsToCodesGenerated any = this.InvertFlatStringDictionary(this.SafeValue(this.Options, "networks", map[string]any{}))            // invert defined networks dictionary
-	this.Options.Store("networksById", this.Extend(networkIdsToCodesGenerated, this.SafeValue(this.Options, "networksById", map[string]any{}))) // support manually overriden "networksById" dictionary too
-}
 func (this *BaseExchange) GetDefaultOptions() any {
 	return map[string]any{
-		"defaultNetworkCodeReplacements": map[string]any{
-			"ETH": map[string]any{
-				"primary":   "ETH",
-				"secondary": "ERC20",
-				"default":   "secondary",
-			},
-			"CRO": map[string]any{
-				"primary":   "CRONOS",
-				"secondary": "CRC20",
-				"default":   "secondary",
-			},
-			"TRX": map[string]any{
-				"primary":   "TRX",
-				"secondary": "TRC20",
-				"default":   "secondary",
-			},
-			"BTC": map[string]any{
-				"primary":   "BTC",
-				"secondary": "BRC20",
-				"default":   "primary",
-			},
-		},
-		"backwardSupportedNetworkCodes": map[string]any{
-			"ARB":     "ARBITRUM",
-			"ARBONE":  "ARBITRUM",
-			"ARBNOVA": "ARBITRUM_NOVA",
-		},
+		"withdrawTagRequiredCurrencies": []any{"XRP", "XLM", "EOS", "ATOM", "HBAR", "TON", "KAVA", "STX", "XEM", "IOST", "OSMO", "WAXP"},
 	}
 }
 func (this *BaseExchange) SafeLedgerEntry(entry any, optionalArgs ...any) map[string]any {
@@ -2488,7 +2496,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 	this.Symbols = ObjectKeys(marketsSortedBySymbol)
 	this.Ids = ObjectKeys(marketsSortedById)
 	var numCurrencies int = 0
-	if currencies != nil {
+	if !IsEqual(currencies, nil) {
 		var keys []string = ObjectKeys(currencies)
 		numCurrencies = len(keys)
 	}
@@ -3942,6 +3950,25 @@ func (this *BaseExchange) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...an
 	}
 	return result
 }
+func (this *BaseExchange) ParseOrderBookBidsAsksL3(bidasks any, optionalArgs ...any) any {
+	priceKey := GetArg(optionalArgs, 0, 0)
+	_ = priceKey
+	amountKey := GetArg(optionalArgs, 1, 1)
+	_ = amountKey
+	countOrIdKey := GetArg(optionalArgs, 2, 2)
+	_ = countOrIdKey
+	var bidasksValue []any = this.ToArray(bidasks)
+	var result []any = []any{}
+	for i := 0; i < len(bidasksValue); i++ {
+		result = append(result, this.ParseOrderBookBidAskL3(func() any {
+			if i >= 0 && i < len(bidasksValue) {
+				return DerefScalar(bidasksValue[i])
+			}
+			return nil
+		}(), priceKey, amountKey, countOrIdKey))
+	}
+	return result
+}
 func (this *BaseExchange) FilterByKey(objects any, key any, optionalArgs ...any) any {
 	value := GetArg(optionalArgs, 0, nil)
 	_ = value
@@ -4002,77 +4029,12 @@ func (this *BaseExchange) SafeNetwork(network any) any {
 		},
 	}
 }
-func (this *BaseExchange) PrioritizedNetworkAliases(optionalArgs ...any) any {
-	/**
-	 * @method
-	 * @name Exchange#prioritizedNetworkAliases
-	 * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
-	 *   ---------------------------------
-	 *   | input          | output       |
-	 *   --------------------------------|
-	 *   | ETH & USDC     | ERC20, ETH   |
-	 *   | ERC20 & USDC   | ERC20, ETH   |
-	 *   | ETH & ETH      | ETH, ERC20   |
-	 *   | ERC20 & ETH    | ETH, ERC20   |
-	 *   | ERC20          | ERC20, ETH   |
-	 *   | ETH            | ERC20, ETH   |
-	 *   ---------------------------------
-	 * @param {string} networkCode unified network-code
-	 * @param {string} currencyCode unified currency-code
-	 * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
-	 * @returns {string[]} [preferredChain, alternativeChain]
-	 */
-	networkCode := GetArg(optionalArgs, 0, nil)
-	_ = networkCode
-	currencyCode := GetArg(optionalArgs, 1, nil)
-	_ = currencyCode
-	var allowDefault bool = GetArgBool(optionalArgs, 2, false)
-	_ = allowDefault
-	if networkCode == nil {
-		return nil
-	}
-	var replacements map[string]any = SafeMapTyped(this.Options, "defaultNetworkCodeReplacements")
-	var keys []string = nil
-	if replacements != nil {
-		keys = make([]string, 0, len(replacements))
-		for objectKey := range replacements {
-			keys = append(keys, objectKey)
-		}
-	}
-	for i := 0; i < len(keys); i++ {
-		var baseCoin string = keys[i]
-		var entry any = replacements[baseCoin]
-		var primary any = GetValue(entry, "primary")
-		var secondary any = GetValue(entry, "secondary")
-		if !IsEqual(networkCode, primary) && !IsEqual(networkCode, secondary) {
-			continue
-		}
-		// pick which form goes first in the returned pair
-		var preferPrimary bool = false
-		if IsEqual(currencyCode, baseCoin) {
-			preferPrimary = true // mainnet currency uses primary chain
-		} else if currencyCode != nil {
-			preferPrimary = false // any other (token) currency uses secondary chain
-		} else if allowDefault == true {
-			preferPrimary = (IsEqual(GetValue(entry, "default"), "primary"))
-		} else {
-			preferPrimary = (IsEqual(networkCode, primary)) // keep user input first
-		}
-		return func() any {
-			if preferPrimary {
-				return []any{primary, secondary}
-			}
-			return []any{secondary, primary}
-		}()
-	}
-	return []any{networkCode, networkCode}
-}
 func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
 	/**
 	 * @ignore
 	 * @method
 	 * @name exchange#networkCodeToId
-	 * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+	 * @description tries to convert the provided networkCode (a unified network code or one of its aliases) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
 	 * @param {string} networkCode unified network code
 	 * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
 	 * @returns {string|undefined} exchange-specific network id
@@ -4082,24 +4044,20 @@ func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) 
 	if IsEqual(networkCode, nil) {
 		return nil
 	}
+	var unifiedCode *string = this.SafeString(this.NetworkAliases, networkCode, networkCode)
 	var networkIdsByCodes map[string]any = SafeMapTyped(this.Options, "networks")
-	// try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-	var chainPair any = this.PrioritizedNetworkAliases(networkCode, currencyCode, false)
-	var preferredChain any = func() any {
-		if IsEqual(chainPair, nil) {
-			return networkCode
-		}
-		return GetValue(chainPair, 0)
-	}()
-	var alternativeChain any = func() any {
-		if IsEqual(chainPair, nil) {
-			return networkCode
-		}
-		return GetValue(chainPair, 1)
-	}()
-	var networkId *string = this.SafeString2(networkIdsByCodes, preferredChain, alternativeChain)
+	var networkId *string = this.SafeString(networkIdsByCodes, unifiedCode)
 	if networkId != nil {
 		return networkId
+	}
+	// options.networks may still be keyed by an alias of the unified code
+	var aliases any = this.NetworkAliases
+	var aliasKeys []string = ObjectKeys(aliases)
+	for i := 0; i < len(aliasKeys); i++ {
+		var alias string = aliasKeys[i]
+		if (IsEqual(GetValue(aliases, alias), unifiedCode)) && (func() bool { _, ok := networkIdsByCodes[alias]; return ok }()) {
+			return networkIdsByCodes[alias]
+		}
 	}
 	// fall back to scanning loaded currencies
 	var currenciesToCheck any = []any{}
@@ -4110,14 +4068,20 @@ func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) 
 	}
 	for i := 0; i < GetArrayLength(currenciesToCheck); i++ {
 		var networks map[string]any = SafeMapTyped(GetValue(currenciesToCheck, i), "networks")
-		if InOp(networks, networkCode) {
-			return this.SafeString(GetValue(networks, networkCode), "id")
+		if func() bool {
+			if unifiedCode == nil {
+				return false
+			}
+			_, ok := networks[*unifiedCode]
+			return ok
+		}() {
+			return this.SafeString(func() any {
+				if unifiedCode == nil {
+					return nil
+				}
+				return networks[*unifiedCode]
+			}(), "id")
 		}
-	}
-	// before returning the original input, try to match if it's backward-maintained networkCode
-	var oldCodes map[string]any = SafeMapTyped(this.Options, "backwardSupportedNetworkCodes")
-	if InOp(oldCodes, networkCode) {
-		return this.NetworkCodeToId(GetValue(oldCodes, networkCode), currencyCode)
 	}
 	return networkCode
 }
@@ -4139,34 +4103,14 @@ func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) *string {
 		return SafeStringPtr(nil)
 	}
 	var networkCodesByIds map[string]any = SafeMapTyped(this.Options, "networksById")
-	var networkCode *string = this.SafeString(networkCodesByIds, networkId, networkId)
-	var chainPair any = this.PrioritizedNetworkAliases(networkCode, currencyCode, true)
-	if IsEqual(chainPair, nil) {
-		return SafeStringPtr(networkCode)
-	}
-	var preferredChain *string = SafeStringPtr(GetValue(chainPair, 0))
-	var alternativeChain *string = SafeStringPtr(GetValue(chainPair, 1))
-	// when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
-	// it disambiguates them — trust the direct id→code inversion instead of guessing
-	if currencyCode == nil {
-		var networkIdsByCodes map[string]any = SafeMapTyped(this.Options, "networks")
-		if (func() bool {
-			if preferredChain == nil {
-				return false
-			}
-			_, ok := networkIdsByCodes[*preferredChain]
-			return ok
-		}()) && (func() bool {
-			if alternativeChain == nil {
-				return false
-			}
-			_, ok := networkIdsByCodes[*alternativeChain]
-			return ok
-		}()) {
-			return SafeStringPtr(networkCode)
+	var mappedCode *string = this.SafeString(networkCodesByIds, networkId)
+	var networkCode *string = func() *string {
+		if mappedCode == nil {
+			return networkId
 		}
-	}
-	return SafeStringPtr(preferredChain)
+		return mappedCode
+	}()
+	return SafeStringPtr(this.SafeString(this.NetworkAliases, networkCode, networkCode))
 }
 func (this *BaseExchange) HandleNetworkCodeAndParams(params any) []any {
 	var networkCodeInParams *string = this.SafeString2(params, "networkCode", "network")
@@ -4178,27 +4122,6 @@ func (this *BaseExchange) HandleNetworkCodeAndParams(params any) []any {
 	}()
 	// if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
 	return []any{networkCodeInParams, paramsOmitted}
-}
-func (this *BaseExchange) DefaultNetworkCode(currencyCode any) any {
-	var defaultNetworkCode any = nil
-	var defaultNetworks map[string]any = SafeMapTyped(this.Options, "defaultNetworks")
-	if InOp(defaultNetworks, currencyCode) {
-		// if currency had set its network in "defaultNetworks", use it
-		defaultNetworkCode = GetValue(defaultNetworks, currencyCode)
-	} else {
-		// otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-		var defaultNetwork *string = this.SafeString(this.Options, "defaultNetwork")
-		if defaultNetwork != nil {
-			defaultNetworkCode = defaultNetwork
-		}
-	}
-	return defaultNetworkCode
-}
-func (this *BaseExchange) SelectNetworkCodeFromUnifiedNetworks(currencyCode any, networkCode any, indexedNetworkEntries any) any {
-	return this.SelectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, true)
-}
-func (this *BaseExchange) SelectNetworkIdFromRawNetworks(currencyCode any, networkCode any, indexedNetworkEntries any) any {
-	return this.SelectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, false)
 }
 func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode any, networkCode any, indexedNetworkEntries any, optionalArgs ...any) any {
 	// this method is used against raw & unparse network entries, which are just indexed by network id
@@ -4232,14 +4155,14 @@ func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode any, network
 			panic(NotSupported(Add(this.Id+" - no networks were returned for ", currencyCode)))
 		} else {
 			// if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-			var defaultNetworkCode any = this.DefaultNetworkCode(currencyCode)
+			var defaultNetworkCode *string = this.SafeString(this.SafeDict(this.Options, "defaultNetworks", map[string]any{}), currencyCode, this.SafeString(this.Options, "defaultNetwork"))
 			var defaultNetworkId any = func() any {
 				if isIndexedByUnifiedNetworkCode == true {
 					return defaultNetworkCode
 				}
 				return this.NetworkCodeToId(defaultNetworkCode, currencyCode)
 			}()
-			if defaultNetworkId == nil {
+			if IsEqual(defaultNetworkId, nil) {
 				panic(ExchangeError(this.Id + " selectNetworkKeyFromNetworks() missing defaultNetworkId"))
 			}
 			if InOp(indexedNetworkEntries, defaultNetworkId) {
@@ -4269,6 +4192,30 @@ func (this *BaseExchange) ParseOrderBook(orderbook any, symbol any, optionalArgs
 
 	var asks any = this.DerivedExchange.ParseOrderBookBidsAsks(this.SafeValue(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
 	PanicOnError(asks)
+	return map[string]any{
+		"symbol":    symbol,
+		"bids":      this.SortBy(bids, 0, true),
+		"asks":      this.SortBy(asks, 0),
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+		"nonce":     nil,
+	}
+}
+func (this *BaseExchange) ParseOrderBookL3(orderbook any, symbol any, optionalArgs ...any) map[string]any {
+	var timestamp *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
+	_ = timestamp
+	var bidsKey string = GetArgString(optionalArgs, 1, "bids")
+	_ = bidsKey
+	var asksKey string = GetArgString(optionalArgs, 2, "asks")
+	_ = asksKey
+	priceKey := GetArg(optionalArgs, 3, 0)
+	_ = priceKey
+	amountKey := GetArg(optionalArgs, 4, 1)
+	_ = amountKey
+	countOrIdKey := GetArg(optionalArgs, 5, 2)
+	_ = countOrIdKey
+	var bids any = this.ParseOrderBookBidsAsksL3(this.SafeValue(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
+	var asks any = this.ParseOrderBookBidsAsksL3(this.SafeValue(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
 	return map[string]any{
 		"symbol":    symbol,
 		"bids":      this.SortBy(bids, 0, true),
@@ -4387,17 +4334,6 @@ func (this *BaseExchange) loadTradingLimitsBody(ch chan AsyncResult[any], option
 }
 func (this *BaseExchange) SafePosition(position any) any {
 	// simplified version of: /pull/12765/
-	var unrealizedPnlString *string = this.SafeString(position, "unrealizedPnl")
-	var initialMarginString *string = this.SafeString(position, "initialMargin")
-	//
-	// PERCENTAGE
-	//
-	var percentage any = this.SafeValue(position, "percentage")
-	if (IsEqual(percentage, nil)) && (unrealizedPnlString != nil) && (initialMarginString != nil) {
-		// as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
-		var percentageString *string = Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100")
-		AddElementToObject(position, "percentage", this.ParseNumber(percentageString))
-	}
 	// if contractSize is undefined get from market
 	var contractSize *float64 = this.SafeNumber(position, "contractSize")
 	var symbol *string = this.SafeString(position, "symbol")
@@ -4408,6 +4344,339 @@ func (this *BaseExchange) SafePosition(position any) any {
 	if (contractSize == nil) && !IsEqual(market, nil) {
 		contractSize = this.SafeNumber(market, "contractSize")
 		AddElementToObject(position, "contractSize", contractSize)
+	}
+	var isInverse bool = (!IsEqual(market, nil)) && (this.SafeBool(market, "inverse", false) != nil && *this.SafeBool(market, "inverse", false))
+	var side *string = this.SafeString(position, "side")
+	var marginMode *string = this.SafeString(position, "marginMode")
+	var unrealizedPnlString *string = this.SafeString(position, "unrealizedPnl")
+	var initialMarginString *string = this.SafeString(position, "initialMargin")
+	var maintenanceMarginString *string = this.SafeString(position, "maintenanceMargin")
+	var collateralString any = this.SafeString(position, "collateral")
+	var entryPriceString any = this.SafeString(position, "entryPrice")
+	var liquidationPriceString any = this.SafeString(position, "liquidationPrice")
+	var contractsString any = this.SafeString(position, "contracts")
+	var contractSizeString any = this.SafeString(position, "contractSize")
+	// margin is the amount held in the position (excludes unrealized pnl), collateral = margin + unrealizedPnl
+	var marginString any = this.SafeString(position, "positionMargin")
+	if (IsEqual(marginString, nil)) && (marginMode != nil && *marginMode == "isolated") && (!IsEqual(collateralString, nil)) {
+		var derivedMargin any = collateralString
+		if (unrealizedPnlString != nil) && !Precise.StringEq(collateralString, initialMarginString) {
+			derivedMargin = Precise.StringSub(collateralString, unrealizedPnlString)
+		}
+		if Precise.StringGt(derivedMargin, "0") {
+			marginString = derivedMargin
+			AddElementToObject(position, "positionMargin", this.ParseNumber(derivedMargin))
+		}
+	}
+	if IsEqual(marginString, nil) {
+		AddElementToObject(position, "positionMargin", nil) // keep the unified key present across all exchanges
+	}
+	if (IsEqual(collateralString, nil)) && (!IsEqual(marginString, nil)) && (unrealizedPnlString != nil) {
+		collateralString = Precise.StringAdd(marginString, unrealizedPnlString)
+		AddElementToObject(position, "collateral", this.ParseNumber(collateralString))
+	}
+	if marginMode != nil && *marginMode == "isolated" {
+		var entryMarginString any = marginString
+		if (IsEqual(entryMarginString, nil)) && (IsEqual(collateralString, nil)) {
+			entryMarginString = initialMarginString
+		}
+		var hasEntryMargin bool = (!IsEqual(entryMarginString, nil)) && Precise.StringGt(entryMarginString, "0")
+		var hasEntryPrice bool = (!IsEqual(entryPriceString, nil)) && Precise.StringGt(entryPriceString, "0")
+		var hasLiqPrice bool = (!IsEqual(liquidationPriceString, nil)) && Precise.StringGt(liquidationPriceString, "0")
+		var hasContracts bool = (!IsEqual(contractsString, nil)) && Precise.StringGt(contractsString, "0")
+		var hasContractSize bool = (!IsEqual(contractSizeString, nil)) && Precise.StringGt(contractSizeString, "0")
+		var hasMm bool = (maintenanceMarginString != nil) && Precise.StringGt(maintenanceMarginString, "0")
+		var priceDiff *string = nil
+		if hasEntryPrice && hasLiqPrice {
+			if isInverse {
+				var invEntry *string = Precise.StringDiv("1", entryPriceString)
+				var invLiq *string = Precise.StringDiv("1", liquidationPriceString)
+				if side != nil && *side == "long" {
+					priceDiff = Precise.StringSub(invLiq, invEntry)
+				} else if side != nil && *side == "short" {
+					priceDiff = Precise.StringSub(invEntry, invLiq)
+				} else {
+					priceDiff = Precise.StringAbs(Precise.StringSub(invEntry, invLiq))
+				}
+			} else {
+				if side != nil && *side == "long" {
+					priceDiff = Precise.StringSub(entryPriceString, liquidationPriceString)
+				} else if side != nil && *side == "short" {
+					priceDiff = Precise.StringSub(liquidationPriceString, entryPriceString)
+				} else {
+					priceDiff = Precise.StringAbs(Precise.StringSub(entryPriceString, liquidationPriceString))
+				}
+			}
+		}
+		var hasPriceDiff bool = (priceDiff != nil) && Precise.StringGt(priceDiff, "0")
+		if (maintenanceMarginString == nil) && hasEntryMargin && hasPriceDiff && hasContracts && hasContractSize {
+			var lossFromEntry *string = Precise.StringMul(priceDiff, Precise.StringMul(contractsString, contractSizeString))
+			var derivedMm *string = Precise.StringSub(entryMarginString, lossFromEntry)
+			if Precise.StringGt(derivedMm, "0") {
+				maintenanceMarginString = derivedMm
+				AddElementToObject(position, "maintenanceMargin", this.ParseNumber(derivedMm))
+			}
+		} else if (IsEqual(collateralString, nil)) && (initialMarginString == nil) && hasMm && hasPriceDiff && hasContracts && hasContractSize {
+			var lossFromEntry *string = Precise.StringMul(priceDiff, Precise.StringMul(contractsString, contractSizeString))
+			var derivedEntryMargin *string = Precise.StringAdd(maintenanceMarginString, lossFromEntry)
+			if Precise.StringGt(derivedEntryMargin, "0") {
+				initialMarginString = derivedEntryMargin
+				AddElementToObject(position, "initialMargin", this.ParseNumber(derivedEntryMargin))
+				marginString = derivedEntryMargin
+				AddElementToObject(position, "positionMargin", this.ParseNumber(derivedEntryMargin))
+				var derivedCollateral any = func() any {
+					if unrealizedPnlString != nil {
+						return Precise.StringAdd(derivedEntryMargin, unrealizedPnlString)
+					}
+					return derivedEntryMargin
+				}()
+				if Precise.StringGt(derivedCollateral, "0") {
+					collateralString = derivedCollateral
+					AddElementToObject(position, "collateral", this.ParseNumber(derivedCollateral))
+				}
+			}
+		} else if (IsEqual(liquidationPriceString, nil)) && hasEntryMargin && hasMm && hasEntryPrice && hasContracts && hasContractSize && ((side != nil && *side == "long") || (side != nil && *side == "short")) {
+			var marginBuffer *string = Precise.StringSub(entryMarginString, maintenanceMarginString)
+			var totalSize *string = Precise.StringMul(contractsString, contractSizeString)
+			if Precise.StringGt(marginBuffer, "0") && Precise.StringGt(totalSize, "0") {
+				var bufferPerUnit *string = Precise.StringDiv(marginBuffer, totalSize)
+				var derivedLp any = nil
+				if isInverse {
+					var invEntry *string = Precise.StringDiv("1", entryPriceString)
+					var invLp *string = func() *string {
+						if side != nil && *side == "long" {
+							return Precise.StringAdd(invEntry, bufferPerUnit)
+						}
+						return Precise.StringSub(invEntry, bufferPerUnit)
+					}()
+					if Precise.StringGt(invLp, "0") {
+						derivedLp = Precise.StringDiv("1", invLp)
+					}
+				} else {
+					derivedLp = func() any {
+						if side != nil && *side == "long" {
+							return Precise.StringSub(entryPriceString, bufferPerUnit)
+						}
+						return Precise.StringAdd(entryPriceString, bufferPerUnit)
+					}()
+				}
+				if (derivedLp != nil) && Precise.StringGt(derivedLp, "0") {
+					liquidationPriceString = derivedLp
+					AddElementToObject(position, "liquidationPrice", this.ParseNumber(derivedLp))
+				}
+			}
+		} else if (IsEqual(entryPriceString, nil)) && hasEntryMargin && hasMm && hasLiqPrice && hasContracts && hasContractSize && ((side != nil && *side == "long") || (side != nil && *side == "short")) {
+			var marginBuffer *string = Precise.StringSub(entryMarginString, maintenanceMarginString)
+			var totalSize *string = Precise.StringMul(contractsString, contractSizeString)
+			if Precise.StringGt(marginBuffer, "0") && Precise.StringGt(totalSize, "0") {
+				var bufferPerUnit *string = Precise.StringDiv(marginBuffer, totalSize)
+				var derivedEp any = nil
+				if isInverse {
+					var invLp *string = Precise.StringDiv("1", liquidationPriceString)
+					var invEp *string = func() *string {
+						if side != nil && *side == "long" {
+							return Precise.StringSub(invLp, bufferPerUnit)
+						}
+						return Precise.StringAdd(invLp, bufferPerUnit)
+					}()
+					if Precise.StringGt(invEp, "0") {
+						derivedEp = Precise.StringDiv("1", invEp)
+					}
+				} else {
+					derivedEp = func() any {
+						if side != nil && *side == "long" {
+							return Precise.StringAdd(liquidationPriceString, bufferPerUnit)
+						}
+						return Precise.StringSub(liquidationPriceString, bufferPerUnit)
+					}()
+				}
+				if (derivedEp != nil) && Precise.StringGt(derivedEp, "0") {
+					entryPriceString = derivedEp
+					AddElementToObject(position, "entryPrice", this.ParseNumber(derivedEp))
+				}
+			}
+		} else if (IsEqual(contractsString, nil)) && hasEntryMargin && hasMm && hasPriceDiff && hasContractSize {
+			var marginBuffer *string = Precise.StringSub(entryMarginString, maintenanceMarginString)
+			var denom *string = Precise.StringMul(priceDiff, contractSizeString)
+			if Precise.StringGt(marginBuffer, "0") && Precise.StringGt(denom, "0") {
+				var derivedContracts *string = Precise.StringDiv(marginBuffer, denom)
+				if Precise.StringGt(derivedContracts, "0") {
+					contractsString = derivedContracts
+					AddElementToObject(position, "contracts", this.ParseNumber(derivedContracts))
+				}
+			}
+		} else if (IsEqual(contractSizeString, nil)) && hasEntryMargin && hasMm && hasPriceDiff && hasContracts {
+			var marginBuffer *string = Precise.StringSub(entryMarginString, maintenanceMarginString)
+			var denom *string = Precise.StringMul(priceDiff, contractsString)
+			if Precise.StringGt(marginBuffer, "0") && Precise.StringGt(denom, "0") {
+				var derivedContractSize *string = Precise.StringDiv(marginBuffer, denom)
+				if Precise.StringGt(derivedContractSize, "0") {
+					contractSizeString = derivedContractSize
+					AddElementToObject(position, "contractSize", this.ParseNumber(derivedContractSize))
+				}
+			}
+		}
+	}
+	//
+	// POSITION-LOCAL DERIVATIONS (CROSS & ISOLATED)
+	//
+	var isZeroPosition bool = (!IsEqual(contractsString, nil)) && Precise.StringEq(contractsString, "0")
+	if !isZeroPosition {
+		var notionalString any = this.SafeString(position, "notional")
+		var markPriceString any = this.SafeString(position, "markPrice")
+		var lastPriceString *string = this.SafeString(position, "lastPrice")
+		var hasContracts bool = (!IsEqual(contractsString, nil)) && Precise.StringGt(contractsString, "0")
+		var hasContractSize bool = (!IsEqual(contractSizeString, nil)) && Precise.StringGt(contractSizeString, "0")
+		var hasMarkPrice bool = (!IsEqual(markPriceString, nil)) && Precise.StringGt(markPriceString, "0")
+		var hasNotional bool = (!IsEqual(notionalString, nil)) && Precise.StringGt(notionalString, "0")
+		// 1. notional <-> markPrice / contracts / contractSize
+		if (IsEqual(notionalString, nil)) && hasMarkPrice && hasContracts && hasContractSize {
+			var totalSize *string = Precise.StringMul(contractsString, contractSizeString)
+			var derivedNotional any = func() any {
+				if isInverse {
+					return Precise.StringDiv(totalSize, markPriceString)
+				}
+				return Precise.StringMul(totalSize, markPriceString)
+			}()
+			if Precise.StringGt(derivedNotional, "0") {
+				notionalString = derivedNotional
+				AddElementToObject(position, "notional", this.ParseNumber(derivedNotional))
+			}
+		} else if (IsEqual(markPriceString, nil)) && (IsEqual(entryPriceString, nil)) && (lastPriceString == nil) && hasNotional && hasContracts && hasContractSize {
+			var totalSize *string = Precise.StringMul(contractsString, contractSizeString)
+			var derivedMark any = func() any {
+				if isInverse {
+					return Precise.StringDiv(totalSize, notionalString)
+				}
+				return Precise.StringDiv(notionalString, totalSize)
+			}()
+			if Precise.StringGt(derivedMark, "0") {
+				markPriceString = derivedMark
+				AddElementToObject(position, "markPrice", this.ParseNumber(derivedMark))
+			}
+		} else if (IsEqual(contractsString, nil)) && hasNotional && hasMarkPrice && hasContractSize {
+			var derivedContracts any = func() any {
+				if isInverse {
+					return Precise.StringDiv(Precise.StringMul(notionalString, markPriceString), contractSizeString)
+				}
+				return Precise.StringDiv(notionalString, Precise.StringMul(markPriceString, contractSizeString))
+			}()
+			if Precise.StringGt(derivedContracts, "0") {
+				contractsString = derivedContracts
+				AddElementToObject(position, "contracts", this.ParseNumber(derivedContracts))
+			}
+		} else if (IsEqual(contractSizeString, nil)) && hasNotional && hasMarkPrice && hasContracts {
+			var derivedContractSize any = func() any {
+				if isInverse {
+					return Precise.StringDiv(Precise.StringMul(notionalString, markPriceString), contractsString)
+				}
+				return Precise.StringDiv(notionalString, Precise.StringMul(markPriceString, contractsString))
+			}()
+			if Precise.StringGt(derivedContractSize, "0") {
+				contractSizeString = derivedContractSize
+				AddElementToObject(position, "contractSize", this.ParseNumber(derivedContractSize))
+			}
+		}
+		// 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
+		if (unrealizedPnlString == nil) && (!IsEqual(entryPriceString, nil)) && (!IsEqual(markPriceString, nil)) && (!IsEqual(contractsString, nil)) && (!IsEqual(contractSizeString, nil)) {
+			if Precise.StringGt(entryPriceString, "0") && Precise.StringGt(markPriceString, "0") && Precise.StringGt(contractsString, "0") && Precise.StringGt(contractSizeString, "0") {
+				var totalSize *string = Precise.StringMul(contractsString, contractSizeString)
+				var pnlDiff *string = nil
+				if isInverse {
+					var invEntry *string = Precise.StringDiv("1", entryPriceString)
+					var invMark *string = Precise.StringDiv("1", markPriceString)
+					if side != nil && *side == "long" {
+						pnlDiff = Precise.StringSub(invEntry, invMark)
+					} else if side != nil && *side == "short" {
+						pnlDiff = Precise.StringSub(invMark, invEntry)
+					}
+				} else {
+					if side != nil && *side == "long" {
+						pnlDiff = Precise.StringSub(markPriceString, entryPriceString)
+					} else if side != nil && *side == "short" {
+						pnlDiff = Precise.StringSub(entryPriceString, markPriceString)
+					}
+				}
+				if pnlDiff != nil {
+					var candidateUpnl *string = Precise.StringMul(pnlDiff, totalSize)
+					if Precise.StringEq(candidateUpnl, "0") || Precise.StringGe(Precise.StringAbs(candidateUpnl), "0.000001") {
+						unrealizedPnlString = candidateUpnl
+						AddElementToObject(position, "unrealizedPnl", this.ParseNumber(unrealizedPnlString))
+					}
+				}
+			}
+		}
+		// 3. initialMargin <-> initialMarginPercentage <-> leverage / notional
+		var hasValidNotional bool = (!IsEqual(notionalString, nil)) && Precise.StringGt(notionalString, "0")
+		var hasNegativeCollateral bool = (!IsEqual(collateralString, nil)) && Precise.StringLt(collateralString, "0")
+		var initialMarginPercentageString *string = this.SafeString(position, "initialMarginPercentage")
+		var leverageString *string = this.SafeString(position, "leverage")
+		var hasLeverage bool = (leverageString != nil) && Precise.StringGt(leverageString, "0")
+		var hasInitialMargin bool = (initialMarginString != nil) && Precise.StringGt(initialMarginString, "0")
+		var hadInitialMargin bool = (initialMarginString != nil)
+		if (initialMarginPercentageString == nil) && !hasNegativeCollateral && (hasInitialMargin || !hadInitialMargin) {
+			if hasInitialMargin && hasValidNotional {
+				initialMarginPercentageString = Precise.StringDiv(initialMarginString, notionalString)
+			} else if hasLeverage {
+				initialMarginPercentageString = Precise.StringDiv("1", leverageString)
+			}
+			if (initialMarginPercentageString != nil) && Precise.StringGt(initialMarginPercentageString, "0") {
+				AddElementToObject(position, "initialMarginPercentage", this.ParseNumber(initialMarginPercentageString))
+			}
+		}
+		var hasImp bool = (initialMarginPercentageString != nil) && Precise.StringGt(initialMarginPercentageString, "0")
+		if (initialMarginString == nil) && !hasNegativeCollateral && hasValidNotional {
+			if hasLeverage {
+				initialMarginString = Precise.StringDiv(notionalString, leverageString)
+			} else if hasImp {
+				initialMarginString = Precise.StringMul(notionalString, initialMarginPercentageString)
+			}
+			if (initialMarginString != nil) && Precise.StringGt(initialMarginString, "0") {
+				AddElementToObject(position, "initialMargin", this.ParseNumber(initialMarginString))
+			}
+		}
+		if (leverageString == nil) && !hadInitialMargin && hasImp {
+			var derivedLeverage *string = Precise.StringDiv("1", initialMarginPercentageString)
+			if Precise.StringGt(derivedLeverage, "0") && Precise.StringLe(derivedLeverage, "200") {
+				AddElementToObject(position, "leverage", this.ParseNumber(derivedLeverage))
+			}
+		}
+		// 4. maintenanceMargin <-> maintenanceMarginPercentage / notional
+		var maintenanceMarginPercentageString *string = this.SafeString(position, "maintenanceMarginPercentage")
+		var hasValidMm bool = (maintenanceMarginString != nil) && Precise.StringGt(maintenanceMarginString, "0")
+		var hasValidMmp bool = (maintenanceMarginPercentageString != nil) && Precise.StringGt(maintenanceMarginPercentageString, "0")
+		if (maintenanceMarginString == nil) && hasValidNotional && hasValidMmp {
+			var derivedMm *string = Precise.StringMul(notionalString, maintenanceMarginPercentageString)
+			if Precise.StringGt(derivedMm, "0") {
+				maintenanceMarginString = derivedMm
+				AddElementToObject(position, "maintenanceMargin", this.ParseNumber(derivedMm))
+			}
+		} else if (maintenanceMarginPercentageString == nil) && hasValidNotional && hasValidMm {
+			var derivedMmp *string = Precise.StringDiv(maintenanceMarginString, notionalString)
+			if Precise.StringGt(derivedMmp, "0") {
+				maintenanceMarginPercentageString = derivedMmp
+				AddElementToObject(position, "maintenanceMarginPercentage", this.ParseNumber(derivedMmp))
+			}
+		}
+		// 5. marginRatio = maintenanceMargin / collateral
+		var marginRatio any = this.SafeValue(position, "marginRatio")
+		if (IsEqual(marginRatio, nil)) && (maintenanceMarginString != nil) && (!IsEqual(collateralString, nil)) {
+			if Precise.StringGt(maintenanceMarginString, "0") && Precise.StringGt(collateralString, "0") {
+				var derivedMarginRatio *string = Precise.StringDiv(maintenanceMarginString, collateralString, 4)
+				if (derivedMarginRatio != nil) && Precise.StringGt(derivedMarginRatio, "0") {
+					AddElementToObject(position, "marginRatio", this.ParseNumber(derivedMarginRatio))
+				}
+			}
+		}
+	}
+	//
+	// PERCENTAGE
+	//
+	var percentage any = this.SafeValue(position, "percentage")
+	if (IsEqual(percentage, nil)) && (unrealizedPnlString != nil) && (initialMarginString != nil) {
+		// as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+		var percentageString *string = Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100")
+		AddElementToObject(position, "percentage", this.ParseNumber(percentageString))
 	}
 	return position
 }
@@ -4767,40 +5036,6 @@ func (this *BaseExchange) HandleParamBool2(params any, paramName1 any, paramName
 	}()
 	return []any{value, paramsOmitted}
 }
-
-/**
- * @param {object} params - extra parameters
- * @param {object} request - existing dictionary of request
- * @param {string} exchangeSpecificKey - the key for chain id to be set in request
- * @param {object} currencyCode - (optional) existing dictionary of request
- * @param {boolean} isRequired - (optional) whether that param is required to be present
- * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
- */
-func (this *BaseExchange) HandleRequestNetwork(params any, request any, exchangeSpecificKey any, optionalArgs ...any) any {
-	var currencyCode *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = currencyCode
-	var isRequired bool = GetArgBool(optionalArgs, 1, false)
-	_ = isRequired
-	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(func() any {
-		if 0 >= 0 && 0 < len(networkCodeparamsNetworkCodeVariable) {
-			return networkCodeparamsNetworkCodeVariable[0]
-		}
-		return nil
-	}())
-	var paramsNetworkCode map[string]any = MapTyped(func() any {
-		if 1 >= 0 && 1 < len(networkCodeparamsNetworkCodeVariable) {
-			return networkCodeparamsNetworkCodeVariable[1]
-		}
-		return nil
-	}())
-	if networkCode != nil {
-		AddElementToObject(request, exchangeSpecificKey, this.NetworkCodeToId(networkCode, currencyCode))
-	} else if isRequired == true {
-		panic(ArgumentsRequired(this.Id + " - \"network\" param is required for this request"))
-	}
-	return []any{request, paramsNetworkCode}
-}
 func (this *BaseExchange) ResolvePath(path any, params any) any {
 	return []any{this.ImplodeParams(path, params), this.Omit(params, this.ExtractParams(path))}
 }
@@ -4926,17 +5161,13 @@ func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optiona
 	defer ReturnPanicError(ch)
 	chSent := false
 	_ = chSent
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var config map[string]any = GetArgMap(optionalArgs, 5, map[string]any{})
+	var config map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = config
 	if this.EnableRateLimit {
 		var cost any = this.CalculateRateLimiterCost(api, method, path, params, config)
@@ -5002,7 +5233,7 @@ func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optiona
 				// try block:
 				this.SetLastRestRequestTimestamp()
 
-				var request any = this.DerivedExchange.Sign(StringArg(path), api, method, paramsMaxRetriesOnFailureDelay, headers, body)
+				var request any = this.DerivedExchange.Sign(StringArg(path), api, method, paramsMaxRetriesOnFailureDelay)
 				PanicOnError(request)
 				if fetchData != nil {
 					AddElementToObject(fetchData, "request", request)
@@ -5041,20 +5272,16 @@ func (this *BaseExchange) RequestAsync(path any, optionalArgs ...any) <-chan Asy
 func (this *BaseExchange) requestBody(ch chan AsyncResult[any], path any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var config map[string]any = GetArgMap(optionalArgs, 5, map[string]any{})
+	var config map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = config
 
-	r := <-this.Fetch2Async(path, api, method, params, headers, body, config)
+	r := <-this.Fetch2Async(path, api, method, params, config)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -5258,6 +5485,22 @@ func (this *BaseExchange) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) 
 	var price *float64 = this.SafeFloat(bidask, priceKey)
 	var amount *float64 = this.SafeFloat(bidask, amountKey)
 	var countOrId *int64 = this.SafeInteger(bidask, countOrIdKey)
+	var bidAsk []any = []any{price, amount}
+	if countOrId != nil {
+		bidAsk = append(bidAsk, countOrId)
+	}
+	return bidAsk
+}
+func (this *BaseExchange) ParseOrderBookBidAskL3(bidask any, optionalArgs ...any) any {
+	priceKey := GetArg(optionalArgs, 0, 0)
+	_ = priceKey
+	amountKey := GetArg(optionalArgs, 1, 1)
+	_ = amountKey
+	countOrIdKey := GetArg(optionalArgs, 2, 2)
+	_ = countOrIdKey
+	var price *float64 = this.SafeFloat(bidask, priceKey)
+	var amount *float64 = this.SafeFloat(bidask, amountKey)
+	var countOrId *string = this.SafeString(bidask, countOrIdKey)
 	var bidAsk []any = []any{price, amount}
 	if countOrId != nil {
 		bidAsk = append(bidAsk, countOrId)
@@ -5543,11 +5786,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan EndpointResult[map[str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes678415 map[string]any = MapTyped(r.Value)
-	if retRes678415 == nil {
+	var retRes700215 map[string]any = MapTyped(r.Value)
+	if retRes700215 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes678415, Raw: retRes678415}
+		ch <- EndpointResult[map[string]any]{Value: retRes700215, Raw: retRes700215}
 	}
 	return nil
 }
@@ -6606,26 +6849,6 @@ func (this *BaseExchange) IsLeveragedCurrency(currencyCode any, optionalArgs ...
 		}
 	}
 	return false
-}
-func (this *BaseExchange) HandleWithdrawTagAndParams(tag any, params any) []any {
-	var paramsExtended any = params
-	var tagValue any = tag
-	if this.IsDictionary(tag) {
-		paramsExtended = this.Extend(tag, params)
-		tagValue = nil
-	}
-	var tagResolved any = func() any {
-		if IsEqual(tagValue, nil) {
-			return this.SafeString(paramsExtended, "tag")
-		}
-		return tagValue
-	}()
-	var tagFromParams bool = (IsEqual(tagValue, nil)) && (!IsEqual(tagResolved, nil))
-	var paramsOmitted any = paramsExtended
-	if tagFromParams {
-		paramsOmitted = this.Omit(paramsExtended, "tag")
-	}
-	return []any{tagResolved, paramsOmitted}
 }
 func (this *BaseExchange) CostToPrecision(symbol any, cost any) any {
 	if IsEqual(cost, nil) {
@@ -9025,9 +9248,7 @@ func (this *BaseExchange) WithdrawWsAsync(code string, amount any, address strin
 func (this *BaseExchange) withdrawWsBody(ch chan AsyncResult[any], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " withdrawWs () is not supported yet"))
 }
@@ -11594,12 +11815,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan EndpointResult[
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11115, _ := r.Value.([]any)
-	var retRes1022715 []any = listRecv11115
-	if retRes1022715 == nil {
+	listRecv11336, _ := r.Value.([]any)
+	var retRes1042915 []any = listRecv11336
+	if retRes1042915 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- EndpointResult[[]any]{Value: retRes1022715, Raw: retRes1022715}
+		ch <- EndpointResult[[]any]{Value: retRes1042915, Raw: retRes1042915}
 	}
 	return nil
 }

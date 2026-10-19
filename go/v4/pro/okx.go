@@ -66,10 +66,10 @@ func (this *Okx) Describe() any {
 		},
 		"urls": map[string]any{
 			"api": map[string]any{
-				"ws": "wss://ws.okx.com:8443/ws/v5",
+				"ws": "wss://ws.okx.com:443/ws/v5",
 			},
 			"test": map[string]any{
-				"ws": "wss://wspap.okx.com:8443/ws/v5",
+				"ws": "wss://wspap.okx.com:443/ws/v5",
 			},
 		},
 		"options": map[string]any{
@@ -514,13 +514,20 @@ func (this *Okx) watchFundingRateBody(ch chan ccxt.AsyncResult[any], symbol stri
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
 	var symbolValue any = this.Symbol(symbol)
 
-	r := <-this.WatchFundingRatesAsync([]any{symbolValue}, params)
-	if r.Err != nil {
-		panic(r.Err)
+	r1 := <-this.WatchFundingRatesAsync([]any{symbolValue}, params)
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
-	var fr map[string]any = ccxt.MapTyped(r.Value)
+	var fr map[string]any = ccxt.MapTyped(r1.Value)
 
 	ch <- ccxt.AsyncResult[any]{Value: ccxt.GetValue(fr, symbolValue)}
 	return nil
@@ -648,16 +655,23 @@ func (this *Okx) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], symbo
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchTicker", "channel", "tickers")
 	ccxt.AddElementToObject(paramsChannel, "channel", channel)
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 
-	r := <-this.WatchTickersAsync([]any{symbolValue}, paramsChannel)
-	if r.Err != nil {
-		panic(r.Err)
+	r1 := <-this.WatchTickersAsync([]any{symbolValue}, paramsChannel)
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
-	var ticker map[string]any = r.Value
+	var ticker map[string]any = r1.Value
 
 	var resolved map[string]any
 	switch resolvedBox := this.SafeValue(ticker, symbolValue).(type) {
@@ -789,16 +803,23 @@ func (this *Okx) watchMarkPriceBody(ch chan ccxt.AsyncResult[any], symbol string
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchMarkPrice", "channel", "mark-price")
 	ccxt.AddElementToObject(paramsChannel, "channel", channel)
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 
-	r := <-this.WatchMarkPricesAsync([]any{symbolValue}, paramsChannel)
-	if r.Err != nil {
-		panic(r.Err)
+	r1 := <-this.WatchMarkPricesAsync([]any{symbolValue}, paramsChannel)
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
-	var ticker map[string]any = ccxt.MapTyped(r.Value)
+	var ticker map[string]any = ccxt.MapTyped(r1.Value)
 
 	ch <- ccxt.AsyncResult[any]{Value: ccxt.GetValue(ticker, symbolValue)}
 	return nil
@@ -1887,12 +1908,45 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Orde
 		"args": topics,
 	}
 	var url any = this.GetUrl(depth, "public")
-
-	r2 := <-this.WatchMultiple(url, messageHashes, request, messageHashes)
-	if r2.Err != nil {
-		panic(r2.Err)
+	var client ccxt.ClientInterface = this.Client(url)
+	var resyncTopics []any = []any{}
+	var resyncHashes []any = []any{}
+	var resyncNeeded bool = false
+	for i := 0; i < len(messageHashes); i++ {
+		if ccxt.IsEqual(this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), func() any {
+			if i >= 0 && i < len(messageHashes) {
+				return ccxt.DerefScalar(messageHashes[i])
+			}
+			return nil
+		}()), "resync") {
+			// okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
+			resyncTopics = append(resyncTopics, func() any {
+				if i >= 0 && i < len(topics) {
+					return ccxt.DerefScalar(topics[i])
+				}
+				return nil
+			}())
+			resyncHashes = append(resyncHashes, ccxt.Add("unsubscribe:orderbook:", ccxt.GetValue(symbolsNormalized, i)))
+			resyncNeeded = true
+		}
 	}
-	var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
+	if resyncNeeded {
+		var unsubscribeRequest map[string]any = map[string]any{
+			"op":   "unsubscribe",
+			"args": resyncTopics,
+		}
+
+		r2 := <-this.WatchMultiple(url, resyncHashes, unsubscribeRequest, resyncHashes)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+	}
+
+	r3 := <-this.WatchMultiple(url, messageHashes, request, messageHashes)
+	if r3.Err != nil {
+		panic(r3.Err)
+	}
+	var orderbook ccxt.OrderBookInterface = r3.Value.(ccxt.OrderBookInterface)
 
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
 	return nil
@@ -2202,8 +2256,8 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) any {
 				}()
 				this.HandleOrderBookMessage(client, update, orderbook, messageHash, market)
 				if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
-					// a nonce gap rejected the future and always cleared the subscription entry, while the book
-					// removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+					// a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
+					ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, "resync")
 					break
 				}
 				client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

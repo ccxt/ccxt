@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Bool, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Bool, Int, Liquidation, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -25,6 +25,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 'createOrdersWs': True,
                 'editOrderWs': True,
                 'watchBalance': True,
+                'watchMyLiquidations': True,
+                'watchMyLiquidationsForSymbols': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchOrderBook': True,
@@ -487,6 +489,63 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             limitResolved = trades.getLimit(symbolResolved, limit)
         return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved, True)
 
+    def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
+        """
+        watch the private liquidations of a trading pair
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
+        """
+        return self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
+
+    async def watch_my_liquidations_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
+        """
+        watch the private liquidations of a list of trading pairs
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+
+        :param str[] symbols: list of unified market symbols
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
+        """
+        userAddress, paramsValue = self.handlePublicAddress('watchMyLiquidationsForSymbols', params)
+        if self.markets is None:
+            await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols, None, True, True)
+        messageHashes = []
+        if self.is_empty(symbolsNormalized):
+            messageHashes.append('myLiquidations')
+        else:
+            for i in range(0, len(symbolsNormalized)):
+                messageHashes.append('myLiquidations::' + symbolsNormalized[i])
+        url = self.urls['api']['ws']['public']
+        request = {
+            'method': 'subscribe',
+            'subscription': {
+                'type': 'userFills',
+                'user': userAddress,
+            },
+        }
+        message = self.extend(request, paramsValue)
+        if userAddress is None:
+            raise ArgumentsRequired(self.id + ' watchMyLiquidationsForSymbols() requires a user address')
+        # shares the userFills subscription with watchMyTrades
+        subscribeHash = 'subscribe:userFills::' + userAddress.lower()
+        await self.wait_for_pending_unsubscribe(url, 'myTrades')
+        newLiquidations = await self.watch_multiple(url, messageHashes, message, [subscribeHash])
+        if self.newUpdates:
+            return newLiquidations
+        return self.filter_by_symbols_since_limit(self.myLiquidations, symbolsNormalized, since, limit, True)
+
     async def un_watch_my_trades(self, symbol: Str = None, params: dict = {}) -> object:
         """
         unWatches information on multiple trades made by the user
@@ -621,6 +680,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #         }
         #     }
         #
+        # an empty snapshot still seeds the liquidations cache
+        self.handle_my_liquidations(client, message)
         entry = self.safe_dict(message, 'data', {})
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -644,6 +705,47 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         # non-symbol specific
         messageHash = 'myTrades'
         client.resolve(trades, messageHash)
+
+    def handle_my_liquidations(self, client: Client, message: dict):
+        #
+        # userFills message, see handleMyTrades, liquidation fills carry
+        #
+        #     "liquidation": {
+        #         "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+        #         "markPx": "4.69112",
+        #         "method": "market"
+        #     }
+        #
+        entry = self.safe_dict(message, 'data', {})
+        # every subscription starts with a snapshot, a resubscribe replays it
+        isSnapshot = self.safe_bool(entry, 'isSnapshot', False)
+        if isSnapshot or (self.myLiquidations is None):
+            limit = self.safe_integer(self.options, 'myLiquidationsLimit', 1000)
+            self.myLiquidations = ArrayCache(limit)
+        user = self.safe_string_lower(entry, 'user')
+        fills = self.safe_list(entry, 'fills', [])
+        newLiquidations = []
+        for i in range(0, len(fills)):
+            fill = fills[i]
+            liquidation = self.safe_dict(fill, 'liquidation', {})
+            # liquidator fills carry the liquidated counterparty here
+            if self.safe_string_lower(liquidation, 'liquidatedUser') == user:
+                newLiquidations.append(self.parse_liquidation(fill))
+        newLiquidationsLength = len(newLiquidations)
+        if newLiquidationsLength == 0:
+            return
+        cache = self.myLiquidations
+        symbols = {}
+        for i in range(0, newLiquidationsLength):
+            liquidation = newLiquidations[i]
+            cache.append(liquidation)
+            symbols[(liquidation['symbol'])] = True
+        keys = list(symbols.keys())
+        for i in range(0, len(keys)):
+            symbol = keys[i]
+            symbolLiquidations = self.filter_by_symbol(newLiquidations, symbol)
+            client.resolve(symbolLiquidations, 'myLiquidations::' + symbol)
+        client.resolve(newLiquidations, 'myLiquidations')
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1557,6 +1659,9 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         subHash = 'myTrades'
         unSubHash = 'unsubscribe:' + subHash
         self.clean_unsubscription(client, subHash, unSubHash, True)
+        # userFills also feeds watchMyLiquidations
+        self.clean_unsubscription(client, 'myLiquidations', unSubHash, True)
+        self.myLiquidations = None
         # the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         # clear it for the user echoed in the ack so a later watch re-subscribes
         user = self.safe_string_lower(subscription, 'user')

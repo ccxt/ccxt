@@ -421,7 +421,7 @@ class backpack extends Exchange {
                     'BERA' => 'Berachain',
                     'BTC' => 'Bitcoin',
                     'BCH' => 'BitcoinCash',
-                    'BSC' => 'Bsc',
+                    'BEP20' => 'Bsc',
                     'ADA' => 'Cardano',
                     'DOGE' => 'Dogecoin',
                     'ECLIPSE' => 'Eclipse',
@@ -446,7 +446,7 @@ class backpack extends Exchange {
                     'berachain' => 'BERA',
                     'bitcoin' => 'BTC',
                     'bitcoincash' => 'BCH',
-                    'bsc' => 'BSC',
+                    'bsc' => 'BEP20',
                     'cardano' => 'ADA',
                     'dogecoin' => 'DOGE',
                     'eclipse' => 'ECLIPSE',
@@ -979,6 +979,7 @@ class backpack extends Exchange {
         }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $duration = $this->parse_timeframe($timeframe);
         $request = array(
             'symbol' => $market['id'],
             'interval' => $interval,
@@ -993,13 +994,19 @@ class backpack extends Exchange {
             $limitResolved = $defaultLimit;
         }
         if ($since === null) {
-            $duration = $this->parse_timeframe($timeframe);
             $endTime = ($until !== null && $until !== null && $until !== 0) ? $this->parse_to_int($until / 1000) : $this->seconds();
             $windowLimit = ($limit === null) ? $defaultLimit : $limit;
             $startTime = $endTime - ($windowLimit * $duration);
             $request['startTime'] = $startTime;
         } else {
             $request['startTime'] = $this->parse_to_int($since / 1000); // convert milliseconds to seconds
+        }
+        if ($until === null) {
+            $currentMs = $this->seconds(); // default to current time in seconds
+            $windowLimit = ($limit === null) ? $defaultLimit : $limit;
+            $windowEnd = $this->sum($request['startTime'], $windowLimit * $duration); // sum (): `+` on a dict value is string concatenation in php
+            $minTimestamp = min($currentMs, $windowEnd);
+            $request['endTime'] = $this->parse_to_int($minTimestamp); // default to current time in seconds if until is not specified
         }
         $price = $this->safe_string($paramsUntil, 'price');
         $paramsOmitted = ($price !== null) ? $this->omit($paramsUntil, 'price') : $paramsUntil;
@@ -1515,7 +1522,7 @@ class backpack extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1524,11 +1531,12 @@ class backpack extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination $tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} $params->network the network to withdraw on (mandatory)
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
+        list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1541,7 +1549,7 @@ class backpack extends Exchange {
         if ($tag !== null) {
             $request['clientId'] = $tag; // memo or tag
         }
-        list($networkCode, $query) = $this->handle_network_code_and_params($params);
+        list($networkCode, $query) = $this->handle_network_code_and_params($paramsWithdrawTag);
         $networkId = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         if ($networkId === null) {
             throw new BadRequest($this->id . ' withdraw() requires a network parameter');
@@ -2357,9 +2365,10 @@ class backpack extends Exchange {
         return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $endpoint = '/' . $path;
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -2367,7 +2376,7 @@ class backpack extends Exchange {
         $sortedParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) ? $params : $this->keysort($params);
         $headersSigned = null;
         $bodySigned = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $ts = (string) $this->nonce();
             $recvWindow = $this->safe_string_2($this->options, 'recvWindow', 'X-Window', '5000');
@@ -2406,9 +2415,9 @@ class backpack extends Exchange {
             }
         }
         $url .= $endpoint;
-        $headersResolved = ($api === 'private') ? $headersSigned : $headers;
-        $bodyResolved = $body;
-        if (($api === 'private') && ($method !== 'GET')) {
+        $headersResolved = ($apiName === 'private') ? $headersSigned : null;
+        $bodyResolved = null;
+        if (($apiName === 'private') && ($method !== 'GET')) {
             $bodyResolved = $bodySigned;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );

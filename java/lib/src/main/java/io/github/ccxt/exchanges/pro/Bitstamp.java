@@ -925,7 +925,13 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String marketId = this.safeString(parts, 3);
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+        {
+            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+        }
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+        orderbook.put("nonce", null);
+        Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
     }
 
     public void handleSubscriptionStatus(Client client, Map<String, Object> message)

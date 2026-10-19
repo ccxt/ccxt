@@ -2597,12 +2597,12 @@ class ndax extends ndax$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         // this method required login, password and twofa key
         const sessionToken = this.safeString(this.options, 'sessionToken');
         if (sessionToken === undefined) {
@@ -2611,7 +2611,7 @@ class ndax extends ndax$1["default"] {
         if (this.twofa === undefined) {
             throw new errors.AuthenticationError(this.id + ' withdraw() requires exchange.twofa credentials');
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         const omsId = this.safeInteger(this.options, 'omsId', 1);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -2690,16 +2690,17 @@ class ndax extends ndax$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let bodySigned = undefined;
         let headersSigned = undefined;
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + this.implodeParams(path, params);
         let query = this.omit(params, this.extractParams(path));
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (path === 'Authenticate') {
                 const auth = this.login + ':' + this.password;
                 const auth64 = this.stringToBase64(auth);
@@ -2722,7 +2723,7 @@ class ndax extends ndax$1["default"] {
                 url += '?' + this.urlencode(query);
             }
         }
-        else if (api === 'private') {
+        else if (apiName === 'private') {
             this.checkRequiredCredentials();
             const sessionToken = this.safeString(this.options, 'sessionToken');
             if (sessionToken === undefined) {
@@ -2751,8 +2752,8 @@ class ndax extends ndax$1["default"] {
                 }
             }
         }
-        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

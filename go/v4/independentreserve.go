@@ -395,20 +395,20 @@ func (this *Independentreserve) Describe() any {
 				"PEPE":   "Ethereum",
 			},
 			"networks": map[string]any{
-				"BTC":  "Bitcoin",
-				"ETH":  "Ethereum",
-				"BCH":  "BitcoinCash",
-				"LTC":  "Litecoin",
-				"XRP":  "XrpLedger",
-				"EOS":  "EosIo",
-				"XLM":  "Stellar",
-				"ETC":  "EthereumClassic",
-				"BSV":  "BitcoinSV",
-				"DOGE": "Dogecoin",
-				"DOT":  "Polkadot",
-				"ADA":  "Cardano",
-				"SOL":  "Solana",
-				"TRX":  "Tron",
+				"BTC":   "Bitcoin",
+				"ERC20": "Ethereum",
+				"BCH":   "BitcoinCash",
+				"LTC":   "Litecoin",
+				"XRP":   "XrpLedger",
+				"EOS":   "EosIo",
+				"XLM":   "Stellar",
+				"ETC":   "EthereumClassic",
+				"BSV":   "BitcoinSV",
+				"DOGE":  "Dogecoin",
+				"DOT":   "Polkadot",
+				"ADA":   "Cardano",
+				"SOL":   "Solana",
+				"TRC20": "Tron",
 			},
 		},
 	})
@@ -523,7 +523,10 @@ func (this *Independentreserve) fetchMarketsBody(ch chan AsyncResult[any], optio
 					},
 				},
 				"created": nil,
-				"info":    id,
+				"info": map[string]any{
+					"primaryCurrencyCode":   baseId,
+					"secondaryCurrencyCode": quoteId,
+				},
 			})
 		}
 	}
@@ -1249,11 +1252,11 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan AsyncResult[any], o
 		}
 	}
 
-	listEp1175 := <-this.PrivatePostGetBrokerageFees(params)
-	if listEp1175.Err != nil {
-		panic(listEp1175.Err)
+	listEp1178 := <-this.PrivatePostGetBrokerageFees(params)
+	if listEp1178.Err != nil {
+		panic(listEp1178.Err)
 	}
-	var response []any = listEp1175.Value
+	var response []any = listEp1178.Value
 	//
 	//     [
 	//         {
@@ -1508,8 +1511,8 @@ func (this *Independentreserve) ParseDepositAddress(depositAddress any, optional
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
@@ -1523,13 +1526,12 @@ func (this *Independentreserve) WithdrawAsync(code string, amount any, address a
 func (this *Independentreserve) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -1543,7 +1545,7 @@ func (this *Independentreserve) withdrawBody(ch chan EndpointResult[map[string]a
 		"withdrawalAddress":   address,
 		"amount":              this.CurrencyToPrecision(code, amount),
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["destinationTag"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
@@ -1639,22 +1641,19 @@ func (this *Independentreserve) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Independentreserve) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + path
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			url += "?" + this.Urlencode(params)
 		}
@@ -1690,10 +1689,11 @@ func (this *Independentreserve) Sign(path string, optionalArgs ...any) any {
 			"headers": signedHeaders,
 		}
 	}
+	var headers map[string]any = map[string]any{}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
+		"body":    nil,
 		"headers": headers,
 	}
 }
@@ -2016,8 +2016,8 @@ func (this *Independentreserve) FetchDepositAddress(code string, options ...Fetc
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
@@ -2030,7 +2030,7 @@ func (this *Independentreserve) Withdraw(code string, amount float64, address st
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

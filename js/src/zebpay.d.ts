@@ -1,5 +1,5 @@
 import Exchange from './abstract/zebpay.js';
-import type { Balances, Currencies, CurrencyInterface, Dict, Int, int, Leverage, Leverages, MarginModification, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Status, Position } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, Dict, Int, int, Leverage, Leverages, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Status, Position } from './base/types.js';
 /**
  * @class zebpay
  * @augments Exchange
@@ -321,33 +321,11 @@ export default class zebpay extends Exchange {
     fetchSpotMarkets(params?: Dict): Promise<Market[]>;
     fetchSwapMarkets(params?: Dict): Promise<Market[]>;
     parseBalance(response: any): Balances;
-    parsePosition(position: Dict, market?: Market): {
-        info: Dict;
-        symbol: Str;
-        timestamp: number | undefined;
-        datetime: Str;
-        initialMargin: Num;
-        initialMarginPercentage: undefined;
-        maintenanceMargin: undefined;
-        maintenanceMarginPercentage: undefined;
-        entryPrice: Num;
-        notional: Num;
-        leverage: Num;
-        unrealizedPnl: undefined;
-        contracts: Num;
-        contractSize: Num;
-        marginRatio: undefined;
-        liquidationPrice: Num;
-        markPrice: undefined;
-        collateral: undefined;
-        marginMode: string;
-        side: Str;
-        percentage: undefined;
-    };
+    parsePosition(position: Dict, market?: Market): Position;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseMarginModification(info: Dict, market?: Market): MarginModification;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

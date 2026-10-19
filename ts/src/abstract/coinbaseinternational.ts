@@ -8,134 +8,385 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicPostAuth (params?: {}): Promise<Dict>;
-    publicGetDisableHeartbeat (params?: {}): Promise<Dict>;
-    publicGetGetAnnouncements (params?: {}): Promise<Dict>;
-    publicGetGetBlockRfqTrades (params?: {}): Promise<Dict>;
-    publicGetGetBookSummaryByCurrency (params?: {}): Promise<Dict>;
-    publicGetGetBookSummaryByInstrument (params?: {}): Promise<Dict>;
-    publicGetGetComboDetails (params?: {}): Promise<Dict>;
-    publicGetGetComboIds (params?: {}): Promise<Dict>;
-    publicGetGetCombos (params?: {}): Promise<Dict>;
-    publicGetGetContractSize (params?: {}): Promise<Dict>;
-    publicGetGetCurrencies (params?: {}): Promise<Dict>;
-    publicGetGetDeliveryPrices (params?: {}): Promise<Dict>;
-    publicGetGetExpirations (params?: {}): Promise<Dict>;
-    publicGetGetFundingChartData (params?: {}): Promise<Dict>;
-    publicGetGetFundingRateHistory (params?: {}): Promise<Dict>;
-    publicGetGetFundingRateValue (params?: {}): Promise<Dict>;
-    publicGetGetHistoricalVolatility (params?: {}): Promise<Dict>;
-    publicGetGetIndexChartData (params?: {}): Promise<Dict>;
-    publicGetGetIndexPrice (params?: {}): Promise<Dict>;
-    publicGetGetIndexPriceNames (params?: {}): Promise<Dict>;
-    publicGetGetInstrument (params?: {}): Promise<Dict>;
-    publicGetGetInstruments (params?: {}): Promise<Dict>;
-    publicGetGetLastSettlementsByCurrency (params?: {}): Promise<Dict>;
-    publicGetGetLastSettlementsByInstrument (params?: {}): Promise<Dict>;
-    publicGetGetLastTradesByCurrency (params?: {}): Promise<Dict>;
-    publicGetGetLastTradesByCurrencyAndTime (params?: {}): Promise<Dict>;
-    publicGetGetLastTradesByInstrument (params?: {}): Promise<Dict>;
-    publicGetGetLastTradesByInstrumentAndTime (params?: {}): Promise<Dict>;
-    publicGetGetMarkPriceHistory (params?: {}): Promise<Dict>;
-    publicGetGetOrderBook (params?: {}): Promise<Dict>;
-    publicGetGetOrderBookByInstrumentId (params?: {}): Promise<Dict>;
-    publicGetGetSupportedIndexNames (params?: {}): Promise<Dict>;
-    publicGetGetTime (params?: {}): Promise<Dict>;
-    publicGetGetTradeVolumes (params?: {}): Promise<Dict>;
-    publicGetGetTradingviewChartData (params?: {}): Promise<Dict>;
-    publicGetGetVolatilityIndexData (params?: {}): Promise<Dict>;
-    publicGetHello (params?: {}): Promise<Dict>;
-    publicGetSetHeartbeat (params?: {}): Promise<Dict>;
-    publicGetStatus (params?: {}): Promise<Dict>;
-    publicGetSubscribe (params?: {}): Promise<Dict>;
-    publicGetTest (params?: {}): Promise<Dict>;
-    publicGetTicker (params?: {}): Promise<Dict>;
-    publicGetTickersByCurrency (params?: {}): Promise<Dict>;
-    publicGetUnsubscribe (params?: {}): Promise<Dict>;
-    publicGetUnsubscribeAll (params?: {}): Promise<Dict>;
-    privateGetAcceptBlockRfq (params?: {}): Promise<Dict>;
-    privateGetAddBlockRfqQuote (params?: {}): Promise<Dict>;
-    privateGetApproveBlockTrade (params?: {}): Promise<Dict>;
-    privateGetBuy (params?: {}): Promise<Dict>;
-    privateGetCancel (params?: {}): Promise<Dict>;
-    privateGetCancelAll (params?: {}): Promise<Dict>;
-    privateGetCancelAllBlockRfqQuotes (params?: {}): Promise<Dict>;
-    privateGetCancelAllByCurrency (params?: {}): Promise<Dict>;
-    privateGetCancelAllByCurrencyPair (params?: {}): Promise<Dict>;
-    privateGetCancelAllByInstrument (params?: {}): Promise<Dict>;
-    privateGetCancelAllByKindOrType (params?: {}): Promise<Dict>;
-    privateGetCancelBlockRfq (params?: {}): Promise<Dict>;
-    privateGetCancelBlockRfqQuote (params?: {}): Promise<Dict>;
-    privateGetCancelBlockRfqTrigger (params?: {}): Promise<Dict>;
-    privateGetCancelByLabel (params?: {}): Promise<Dict>;
-    privateGetChangeMarginModel (params?: {}): Promise<Dict>;
-    privateGetClosePosition (params?: {}): Promise<Dict>;
-    privateGetCreateBlockRfq (params?: {}): Promise<Dict>;
-    privateGetCreateCombo (params?: {}): Promise<Dict>;
-    privateGetDisableCancelOnDisconnect (params?: {}): Promise<Dict>;
-    privateGetEdit (params?: {}): Promise<Dict>;
-    privateGetEditBlockRfqQuote (params?: {}): Promise<Dict>;
-    privateGetEditByLabel (params?: {}): Promise<Dict>;
-    privateGetEnableCancelOnDisconnect (params?: {}): Promise<Dict>;
-    privateGetExecuteBlockTrade (params?: {}): Promise<Dict>;
-    privateGetGetAccessLog (params?: {}): Promise<Dict>;
-    privateGetGetAccountSummaries (params?: {}): Promise<Dict>;
-    privateGetGetAccountSummary (params?: {}): Promise<Dict>;
-    privateGetGetBlockRfqMakers (params?: {}): Promise<Dict>;
-    privateGetGetBlockRfqQuotes (params?: {}): Promise<Dict>;
-    privateGetGetBlockRfqUserInfo (params?: {}): Promise<Dict>;
-    privateGetGetBlockRfqs (params?: {}): Promise<Dict>;
-    privateGetGetBlockTrade (params?: {}): Promise<Dict>;
-    privateGetGetBlockTradeRequests (params?: {}): Promise<Dict>;
-    privateGetGetBlockTrades (params?: {}): Promise<Dict>;
-    privateGetGetBrokerTradeRequests (params?: {}): Promise<Dict>;
-    privateGetGetBrokerTrades (params?: {}): Promise<Dict>;
-    privateGetGetCancelOnDisconnect (params?: {}): Promise<Dict>;
-    privateGetGetLegPrices (params?: {}): Promise<Dict>;
-    privateGetGetLeverage (params?: {}): Promise<Dict>;
-    privateGetGetMargins (params?: {}): Promise<Dict>;
-    privateGetGetMaxOrderSize (params?: {}): Promise<Dict>;
-    privateGetGetOpenOrders (params?: {}): Promise<Dict>;
-    privateGetGetOpenOrdersByCurrency (params?: {}): Promise<Dict>;
-    privateGetGetOpenOrdersByInstrument (params?: {}): Promise<Dict>;
-    privateGetGetOpenOrdersByLabel (params?: {}): Promise<Dict>;
-    privateGetGetOrderHistoryByCurrency (params?: {}): Promise<Dict>;
-    privateGetGetOrderHistoryByInstrument (params?: {}): Promise<Dict>;
-    privateGetGetOrderMarginByIds (params?: {}): Promise<Dict>;
-    privateGetGetOrderState (params?: {}): Promise<Dict>;
-    privateGetGetOrderStateByLabel (params?: {}): Promise<Dict>;
-    privateGetGetPmeParams (params?: {}): Promise<Dict>;
-    privateGetGetPosition (params?: {}): Promise<Dict>;
-    privateGetGetPositions (params?: {}): Promise<Dict>;
-    privateGetGetRiskProfile (params?: {}): Promise<Dict>;
-    privateGetGetSettlementHistoryByCurrency (params?: {}): Promise<Dict>;
-    privateGetGetSettlementHistoryByInstrument (params?: {}): Promise<Dict>;
-    privateGetGetSubaccounts (params?: {}): Promise<Dict>;
-    privateGetGetSubaccountsDetails (params?: {}): Promise<Dict>;
-    privateGetGetTradingLimits (params?: {}): Promise<Dict>;
-    privateGetGetTransactionLog (params?: {}): Promise<Dict>;
-    privateGetGetTriggerOrderHistory (params?: {}): Promise<Dict>;
-    privateGetGetUserLocks (params?: {}): Promise<Dict>;
-    privateGetGetUserTradesByCurrency (params?: {}): Promise<Dict>;
-    privateGetGetUserTradesByCurrencyAndTime (params?: {}): Promise<Dict>;
-    privateGetGetUserTradesByInstrument (params?: {}): Promise<Dict>;
-    privateGetGetUserTradesByInstrumentAndTime (params?: {}): Promise<Dict>;
-    privateGetGetUserTradesByOrder (params?: {}): Promise<Dict>;
-    privateGetInvalidateBlockTradeSignature (params?: {}): Promise<Dict>;
-    privateGetLogout (params?: {}): Promise<Dict>;
-    privateGetPmeSimulate (params?: {}): Promise<Dict>;
-    privateGetRejectBlockTrade (params?: {}): Promise<Dict>;
-    privateGetSell (params?: {}): Promise<Dict>;
-    privateGetSetLeverage (params?: {}): Promise<Dict>;
-    privateGetSimulateBlockTrade (params?: {}): Promise<Dict>;
-    privateGetSimulatePortfolio (params?: {}): Promise<Dict>;
-    privateGetSubscribe (params?: {}): Promise<Dict>;
-    privateGetSubmitTransferBetweenSubaccounts (params?: {}): Promise<Dict>;
-    privateGetUnsubscribe (params?: {}): Promise<Dict>;
-    privateGetUnsubscribeAll (params?: {}): Promise<Dict>;
-    privateGetVerifyBlockTrade (params?: {}): Promise<Dict>;
+abstract class Exchange extends _Exchange {
+    v2PublicPostAuth (params = {}): Promise<Dict> {
+        return this.request ('auth', [ 'v2', 'public' ], 'POST', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetDisableHeartbeat (params = {}): Promise<Dict> {
+        return this.request ('disable_heartbeat', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetAnnouncements (params = {}): Promise<Dict> {
+        return this.request ('get_announcements', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetBlockRfqTrades (params = {}): Promise<Dict> {
+        return this.request ('get_block_rfq_trades', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetBookSummaryByCurrency (params = {}): Promise<Dict> {
+        return this.request ('get_book_summary_by_currency', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetBookSummaryByInstrument (params = {}): Promise<Dict> {
+        return this.request ('get_book_summary_by_instrument', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetComboDetails (params = {}): Promise<Dict> {
+        return this.request ('get_combo_details', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetComboIds (params = {}): Promise<Dict> {
+        return this.request ('get_combo_ids', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetCombos (params = {}): Promise<Dict> {
+        return this.request ('get_combos', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetContractSize (params = {}): Promise<Dict> {
+        return this.request ('get_contract_size', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetCurrencies (params = {}): Promise<Dict> {
+        return this.request ('get_currencies', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetDeliveryPrices (params = {}): Promise<Dict> {
+        return this.request ('get_delivery_prices', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetExpirations (params = {}): Promise<Dict> {
+        return this.request ('get_expirations', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetFundingChartData (params = {}): Promise<Dict> {
+        return this.request ('get_funding_chart_data', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetFundingRateHistory (params = {}): Promise<Dict> {
+        return this.request ('get_funding_rate_history', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetFundingRateValue (params = {}): Promise<Dict> {
+        return this.request ('get_funding_rate_value', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetHistoricalVolatility (params = {}): Promise<Dict> {
+        return this.request ('get_historical_volatility', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetIndexChartData (params = {}): Promise<Dict> {
+        return this.request ('get_index_chart_data', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetIndexPrice (params = {}): Promise<Dict> {
+        return this.request ('get_index_price', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetIndexPriceNames (params = {}): Promise<Dict> {
+        return this.request ('get_index_price_names', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetInstrument (params = {}): Promise<Dict> {
+        return this.request ('get_instrument', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetInstruments (params = {}): Promise<Dict> {
+        return this.request ('get_instruments', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetLastSettlementsByCurrency (params = {}): Promise<Dict> {
+        return this.request ('get_last_settlements_by_currency', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetLastSettlementsByInstrument (params = {}): Promise<Dict> {
+        return this.request ('get_last_settlements_by_instrument', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetLastTradesByCurrency (params = {}): Promise<Dict> {
+        return this.request ('get_last_trades_by_currency', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetLastTradesByCurrencyAndTime (params = {}): Promise<Dict> {
+        return this.request ('get_last_trades_by_currency_and_time', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetLastTradesByInstrument (params = {}): Promise<Dict> {
+        return this.request ('get_last_trades_by_instrument', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetLastTradesByInstrumentAndTime (params = {}): Promise<Dict> {
+        return this.request ('get_last_trades_by_instrument_and_time', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetMarkPriceHistory (params = {}): Promise<Dict> {
+        return this.request ('get_mark_price_history', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetOrderBook (params = {}): Promise<Dict> {
+        return this.request ('get_order_book', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetOrderBookByInstrumentId (params = {}): Promise<Dict> {
+        return this.request ('get_order_book_by_instrument_id', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetSupportedIndexNames (params = {}): Promise<Dict> {
+        return this.request ('get_supported_index_names', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetTime (params = {}): Promise<Dict> {
+        return this.request ('get_time', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetTradeVolumes (params = {}): Promise<Dict> {
+        return this.request ('get_trade_volumes', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetTradingviewChartData (params = {}): Promise<Dict> {
+        return this.request ('get_tradingview_chart_data', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetGetVolatilityIndexData (params = {}): Promise<Dict> {
+        return this.request ('get_volatility_index_data', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetHello (params = {}): Promise<Dict> {
+        return this.request ('hello', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetSetHeartbeat (params = {}): Promise<Dict> {
+        return this.request ('set_heartbeat', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetStatus (params = {}): Promise<Dict> {
+        return this.request ('status', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetSubscribe (params = {}): Promise<Dict> {
+        return this.request ('subscribe', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetTest (params = {}): Promise<Dict> {
+        return this.request ('test', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetTicker (params = {}): Promise<Dict> {
+        return this.request ('ticker', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetTickersByCurrency (params = {}): Promise<Dict> {
+        return this.request ('tickers_by_currency', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetUnsubscribe (params = {}): Promise<Dict> {
+        return this.request ('unsubscribe', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PublicGetUnsubscribeAll (params = {}): Promise<Dict> {
+        return this.request ('unsubscribe_all', [ 'v2', 'public' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetAcceptBlockRfq (params = {}): Promise<Dict> {
+        return this.request ('accept_block_rfq', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetAddBlockRfqQuote (params = {}): Promise<Dict> {
+        return this.request ('add_block_rfq_quote', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetApproveBlockTrade (params = {}): Promise<Dict> {
+        return this.request ('approve_block_trade', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetBuy (params = {}): Promise<Dict> {
+        return this.request ('buy', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetCancel (params = {}): Promise<Dict> {
+        return this.request ('cancel', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetCancelAll (params = {}): Promise<Dict> {
+        return this.request ('cancel_all', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetCancelAllBlockRfqQuotes (params = {}): Promise<Dict> {
+        return this.request ('cancel_all_block_rfq_quotes', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetCancelAllByCurrency (params = {}): Promise<Dict> {
+        return this.request ('cancel_all_by_currency', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetCancelAllByCurrencyPair (params = {}): Promise<Dict> {
+        return this.request ('cancel_all_by_currency_pair', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetCancelAllByInstrument (params = {}): Promise<Dict> {
+        return this.request ('cancel_all_by_instrument', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetCancelAllByKindOrType (params = {}): Promise<Dict> {
+        return this.request ('cancel_all_by_kind_or_type', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetCancelBlockRfq (params = {}): Promise<Dict> {
+        return this.request ('cancel_block_rfq', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetCancelBlockRfqQuote (params = {}): Promise<Dict> {
+        return this.request ('cancel_block_rfq_quote', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetCancelBlockRfqTrigger (params = {}): Promise<Dict> {
+        return this.request ('cancel_block_rfq_trigger', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetCancelByLabel (params = {}): Promise<Dict> {
+        return this.request ('cancel_by_label', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetChangeMarginModel (params = {}): Promise<Dict> {
+        return this.request ('change_margin_model', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetClosePosition (params = {}): Promise<Dict> {
+        return this.request ('close_position', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetCreateBlockRfq (params = {}): Promise<Dict> {
+        return this.request ('create_block_rfq', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetCreateCombo (params = {}): Promise<Dict> {
+        return this.request ('create_combo', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetDisableCancelOnDisconnect (params = {}): Promise<Dict> {
+        return this.request ('disable_cancel_on_disconnect', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetEdit (params = {}): Promise<Dict> {
+        return this.request ('edit', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetEditBlockRfqQuote (params = {}): Promise<Dict> {
+        return this.request ('edit_block_rfq_quote', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetEditByLabel (params = {}): Promise<Dict> {
+        return this.request ('edit_by_label', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetEnableCancelOnDisconnect (params = {}): Promise<Dict> {
+        return this.request ('enable_cancel_on_disconnect', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetExecuteBlockTrade (params = {}): Promise<Dict> {
+        return this.request ('execute_block_trade', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetAccessLog (params = {}): Promise<Dict> {
+        return this.request ('get_access_log', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetAccountSummaries (params = {}): Promise<Dict> {
+        return this.request ('get_account_summaries', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetAccountSummary (params = {}): Promise<Dict> {
+        return this.request ('get_account_summary', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetBlockRfqMakers (params = {}): Promise<Dict> {
+        return this.request ('get_block_rfq_makers', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetBlockRfqQuotes (params = {}): Promise<Dict> {
+        return this.request ('get_block_rfq_quotes', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetBlockRfqUserInfo (params = {}): Promise<Dict> {
+        return this.request ('get_block_rfq_user_info', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetBlockRfqs (params = {}): Promise<Dict> {
+        return this.request ('get_block_rfqs', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetBlockTrade (params = {}): Promise<Dict> {
+        return this.request ('get_block_trade', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetBlockTradeRequests (params = {}): Promise<Dict> {
+        return this.request ('get_block_trade_requests', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetBlockTrades (params = {}): Promise<Dict> {
+        return this.request ('get_block_trades', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetBrokerTradeRequests (params = {}): Promise<Dict> {
+        return this.request ('get_broker_trade_requests', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetBrokerTrades (params = {}): Promise<Dict> {
+        return this.request ('get_broker_trades', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetCancelOnDisconnect (params = {}): Promise<Dict> {
+        return this.request ('get_cancel_on_disconnect', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetLegPrices (params = {}): Promise<Dict> {
+        return this.request ('get_leg_prices', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetLeverage (params = {}): Promise<Dict> {
+        return this.request ('get_leverage', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetMargins (params = {}): Promise<Dict> {
+        return this.request ('get_margins', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetMaxOrderSize (params = {}): Promise<Dict> {
+        return this.request ('get_max_order_size', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('get_open_orders', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetOpenOrdersByCurrency (params = {}): Promise<Dict> {
+        return this.request ('get_open_orders_by_currency', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetOpenOrdersByInstrument (params = {}): Promise<Dict> {
+        return this.request ('get_open_orders_by_instrument', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetOpenOrdersByLabel (params = {}): Promise<Dict> {
+        return this.request ('get_open_orders_by_label', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetOrderHistoryByCurrency (params = {}): Promise<Dict> {
+        return this.request ('get_order_history_by_currency', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetOrderHistoryByInstrument (params = {}): Promise<Dict> {
+        return this.request ('get_order_history_by_instrument', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetOrderMarginByIds (params = {}): Promise<Dict> {
+        return this.request ('get_order_margin_by_ids', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetOrderState (params = {}): Promise<Dict> {
+        return this.request ('get_order_state', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetOrderStateByLabel (params = {}): Promise<Dict> {
+        return this.request ('get_order_state_by_label', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetPmeParams (params = {}): Promise<Dict> {
+        return this.request ('get_pme_params', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetPosition (params = {}): Promise<Dict> {
+        return this.request ('get_position', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetPositions (params = {}): Promise<Dict> {
+        return this.request ('get_positions', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetRiskProfile (params = {}): Promise<Dict> {
+        return this.request ('get_risk_profile', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetSettlementHistoryByCurrency (params = {}): Promise<Dict> {
+        return this.request ('get_settlement_history_by_currency', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetSettlementHistoryByInstrument (params = {}): Promise<Dict> {
+        return this.request ('get_settlement_history_by_instrument', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetSubaccounts (params = {}): Promise<Dict> {
+        return this.request ('get_subaccounts', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetSubaccountsDetails (params = {}): Promise<Dict> {
+        return this.request ('get_subaccounts_details', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetTradingLimits (params = {}): Promise<Dict> {
+        return this.request ('get_trading_limits', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetTransactionLog (params = {}): Promise<Dict> {
+        return this.request ('get_transaction_log', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 10 });
+    }
+    v2PrivateGetGetTriggerOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('get_trigger_order_history', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetUserLocks (params = {}): Promise<Dict> {
+        return this.request ('get_user_locks', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetUserTradesByCurrency (params = {}): Promise<Dict> {
+        return this.request ('get_user_trades_by_currency', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetUserTradesByCurrencyAndTime (params = {}): Promise<Dict> {
+        return this.request ('get_user_trades_by_currency_and_time', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetUserTradesByInstrument (params = {}): Promise<Dict> {
+        return this.request ('get_user_trades_by_instrument', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetUserTradesByInstrumentAndTime (params = {}): Promise<Dict> {
+        return this.request ('get_user_trades_by_instrument_and_time', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetGetUserTradesByOrder (params = {}): Promise<Dict> {
+        return this.request ('get_user_trades_by_order', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetInvalidateBlockTradeSignature (params = {}): Promise<Dict> {
+        return this.request ('invalidate_block_trade_signature', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetLogout (params = {}): Promise<Dict> {
+        return this.request ('logout', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetPmeSimulate (params = {}): Promise<Dict> {
+        return this.request ('pme/simulate', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetRejectBlockTrade (params = {}): Promise<Dict> {
+        return this.request ('reject_block_trade', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetSell (params = {}): Promise<Dict> {
+        return this.request ('sell', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetSetLeverage (params = {}): Promise<Dict> {
+        return this.request ('set_leverage', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetSimulateBlockTrade (params = {}): Promise<Dict> {
+        return this.request ('simulate_block_trade', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetSimulatePortfolio (params = {}): Promise<Dict> {
+        return this.request ('simulate_portfolio', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetSubscribe (params = {}): Promise<Dict> {
+        return this.request ('subscribe', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetSubmitTransferBetweenSubaccounts (params = {}): Promise<Dict> {
+        return this.request ('submit_transfer_between_subaccounts', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetUnsubscribe (params = {}): Promise<Dict> {
+        return this.request ('unsubscribe', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetUnsubscribeAll (params = {}): Promise<Dict> {
+        return this.request ('unsubscribe_all', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
+    v2PrivateGetVerifyBlockTrade (params = {}): Promise<Dict> {
+        return this.request ('verify_block_trade', [ 'v2', 'private' ], 'GET', params, undefined, undefined, { 'cost': 1 });
+    }
 }
-abstract class Exchange extends _Exchange {}
 
-export default Exchange
+export default Exchange;

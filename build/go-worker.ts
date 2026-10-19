@@ -18,6 +18,7 @@ type GoComments = { [exchange: string]: { [method: string]: string } };
 let cachedTranspiler: Transpiler | null = null;
 let cachedConfigKey: string | null = null;
 let goComments: GoComments = {};
+let programCache: ReturnType<typeof Transpiler.createProgramCache> | null = null;
 
 function transformLeadingComment (comment: string): string {
     const commentNameRegex = /@name\s(\w+)#(\w+)/;
@@ -40,7 +41,10 @@ const verbose = !!process.env['CCXT_TRANSPILE_VERBOSE'];
 export default async ({ transpilerConfig, configKey, file, files, roots }: GoWorkerTask) => {
     const key = configKey || JSON.stringify (transpilerConfig);
     if (!cachedTranspiler || cachedConfigKey !== key) {
-        cachedTranspiler = new Transpiler (transpilerConfig);
+        if (!programCache) {
+            programCache = Transpiler.createProgramCache ();
+        }
+        cachedTranspiler = new Transpiler (transpilerConfig, programCache);
         cachedTranspiler.setVerboseMode (false);
         cachedTranspiler.goTranspiler.transformLeadingComment = transformLeadingComment;
         installCcxtGoLocalTypes(cachedTranspiler.goTranspiler, transpilerConfig?.go?.unifiedInt64Params);

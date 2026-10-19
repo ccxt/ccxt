@@ -624,10 +624,8 @@ class xt extends Exchange {
                 'networks' => array(
                     'ERC20' => 'Ethereum',
                     'TRC20' => 'Tron',
-                    'TRX' => 'Tron',
                     'BEP20' => 'BNB Smart Chain',
                     'BEP2' => 'BNB-BEP2',
-                    'ETH' => 'Ethereum',
                     'AVAX' => 'AVAX C-Chain',
                     'GAL' => 'GAL(FT)',
                     'ALEO' => 'ALEO(IOU)',
@@ -2072,9 +2070,27 @@ class xt extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market, '_', $marketType);
         $symbol = $marketResolved['symbol'];
         $timestamp = $this->safe_integer($ticker, 't');
-        $percentage = $this->safe_string_2($ticker, 'cr', 'r');
+        $open = $this->safe_string($ticker, 'o');
+        // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
+        $percentage = $this->safe_string($ticker, 'r');
+        if ($open === null) {
+            $percentage = $this->safe_string_2($ticker, 'cr', 'r');
+        }
         if ($percentage !== null) {
             $percentage = Precise::string_mul($percentage, '100');
+        }
+        $baseVolume = $this->safe_string_2($ticker, 'a', 'q');
+        $quoteVolume = $this->safe_string($ticker, 'v');
+        $contractSize = $this->safe_string($marketResolved, 'contractSize');
+        if (($marketResolved['contract'] === true) && ($contractSize !== null)) {
+            // 'a' counts contracts, 'v' is in the settle currency
+            $contractVolume = Precise::string_mul($baseVolume, $contractSize);
+            if ($marketResolved['inverse'] === true) {
+                $baseVolume = $quoteVolume;
+                $quoteVolume = $contractVolume;
+            } else {
+                $baseVolume = $contractVolume;
+            }
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -2087,15 +2103,15 @@ class xt extends Exchange {
             'ask' => $this->safe_number($ticker, 'ap'),
             'askVolume' => $this->safe_number($ticker, 'aq'),
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'o'),
+            'open' => $open,
             'close' => $this->safe_string($ticker, 'c'),
             'last' => $this->safe_string($ticker, 'c'),
             'previousClose' => null,
-            'change' => $this->safe_number($ticker, 'cv'),
+            'change' => null,
             'percentage' => $this->parse_number($percentage),
             'average' => null,
-            'baseVolume' => $this->safe_number_2($ticker, 'a', 'q'),
-            'quoteVolume' => $this->safe_number($ticker, 'v'),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         ), $marketResolved);
     }
@@ -4442,11 +4458,11 @@ class xt extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit, $params);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -4455,16 +4471,15 @@ class xt extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} [$tag]
          * @param {array} $params extra parameters specific to the exchange API endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
-        $this->check_address($address);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         $networkIdsByCodes = $this->safe_dict($this->options, 'networks', array());
         $networkId = $this->safe_string_2($networkIdsByCodes, $networkCode, $code, $code);
@@ -5005,6 +5020,7 @@ class xt extends Exchange {
          *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         return Async\await($this->fetch_funding_rate($symbol, $params));
@@ -6045,7 +6061,7 @@ class xt extends Exchange {
         return null;
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $request = '/' . $this->implode_params($path, $params);
@@ -6131,7 +6147,7 @@ class xt extends Exchange {
                 $url .= '?' . $urlencoded;
             }
         }
-        $bodyValue = $body;
+        $bodyValue = null;
         if ($signed) {
             $bodyValue = $signedBody;
         }

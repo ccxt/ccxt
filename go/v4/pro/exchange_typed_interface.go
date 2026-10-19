@@ -105,9 +105,6 @@ func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
 	case "coincheck":
 		itf := NewCoincheck(options)
 		return itf
-	case "coinex":
-		itf := NewCoinex(options)
-		return itf
 	case "coinone":
 		itf := NewCoinone(options)
 		return itf

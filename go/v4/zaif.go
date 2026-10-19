@@ -1026,8 +1026,8 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Zaif) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -1038,14 +1038,12 @@ func (this *Zaif) WithdrawAsync(code string, amount any, address any, optionalAr
 func (this *Zaif) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -1062,7 +1060,7 @@ func (this *Zaif) withdrawBody(ch chan EndpointResult[map[string]any], code stri
 		"amount":   amount,
 		"address":  address,
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["message"] = tagWithdrawTag
 	}
 
@@ -1147,31 +1145,28 @@ func (this *Zaif) CustomNonce() any {
 	return ToFixed(nonce, 8)
 }
 func (this *Zaif) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/"
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		url += "api/" + this.Version + "/" + this.ImplodeParams(path, params)
-	} else if api == "fapi" {
+	} else if apiName != nil && *apiName == "fapi" {
 		url += "fapi/" + this.Version + "/" + this.ImplodeParams(path, params)
 	} else {
 		this.CheckRequiredCredentials()
-		if api == "ecapi" {
+		if apiName != nil && *apiName == "ecapi" {
 			url += "ecapi"
-		} else if api == "tlapi" {
+		} else if apiName != nil && *apiName == "tlapi" {
 			url += "tlapi"
 		} else {
 			url += "tapi"
@@ -1196,8 +1191,8 @@ func (this *Zaif) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Zaif) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
@@ -1458,8 +1453,8 @@ func (this *Zaif) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Orde
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Zaif) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -1469,7 +1464,7 @@ func (this *Zaif) Withdraw(code string, amount float64, address string, options 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

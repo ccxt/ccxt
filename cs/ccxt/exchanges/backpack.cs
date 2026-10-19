@@ -562,7 +562,7 @@ public partial class backpack : Exchange
                     { "BERA", "Berachain" },
                     { "BTC", "Bitcoin" },
                     { "BCH", "BitcoinCash" },
-                    { "BSC", "Bsc" },
+                    { "BEP20", "Bsc" },
                     { "ADA", "Cardano" },
                     { "DOGE", "Dogecoin" },
                     { "ECLIPSE", "Eclipse" },
@@ -587,7 +587,7 @@ public partial class backpack : Exchange
                     { "berachain", "BERA" },
                     { "bitcoin", "BTC" },
                     { "bitcoincash", "BCH" },
-                    { "bsc", "BSC" },
+                    { "bsc", "BEP20" },
                     { "cardano", "ADA" },
                     { "dogecoin", "DOGE" },
                     { "eclipse", "ECLIPSE" },
@@ -1144,6 +1144,7 @@ public partial class backpack : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        int duration = this.parseTimeframe(timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", interval },
@@ -1163,7 +1164,6 @@ public partial class backpack : Exchange
         }
         if ((since == null))
         {
-            int duration = this.parseTimeframe(timeframeVar);
             Int64? endTime = (!(until == null) && !(until == null) && !(until == 0)) ? this.parseToInt(((double?)until / 1000)) : this.seconds();
             Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
             object startTime = subtract(endTime, ((windowLimit * duration)));
@@ -1171,6 +1171,14 @@ public partial class backpack : Exchange
         } else
         {
             request["startTime"] = this.parseToInt(((double?)since / 1000)); // convert milliseconds to seconds
+        }
+        if ((until == null))
+        {
+            Int64 currentMs = this.seconds(); // default to current time in seconds
+            Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
+            object windowEnd = this.sum((request != null && request.ContainsKey("startTime") ? request["startTime"] : null), (windowLimit * duration)); // sum (): `+` on a dict value is string concatenation in php
+            object minTimestamp = mathMin(currentMs, windowEnd);
+            request["endTime"] = this.parseToInt(minTimestamp); // default to current time in seconds if until is not specified
         }
         string? price = this.safeString(paramsUntil, "price");
         object paramsOmitted = ((price != null)) ? this.omit(paramsUntil, "price") : paramsUntil;
@@ -1746,14 +1754,17 @@ public partial class backpack : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        IList<object> tagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tag = (string)tagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagparamsWithdrawTagVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1768,7 +1779,7 @@ public partial class backpack : Exchange
         {
             request["clientId"] = tag; // memo or tag
         }
-        (string?, object) networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
+        (string?, object) networkCodequeryVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         string? networkCode = networkCodequeryVariable.Item1;
         IDictionary<string, object> query = ((IDictionary<string, object>)networkCodequeryVariable.Item2);
         string? networkId = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
@@ -2671,13 +2682,14 @@ public partial class backpack : Exchange
         return ((Int64)((object)((this.milliseconds() - timeDifference)))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         string endpoint = ("/" + path);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2686,7 +2698,7 @@ public partial class backpack : Exchange
         object sortedParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? parameters : this.keysort(parameters);
         Dictionary<string, object> headersSigned = null;
         string? bodySigned = null;
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string ts = this.nonce().ToString();
@@ -2732,9 +2744,9 @@ public partial class backpack : Exchange
             }
         }
         url = url + endpoint;
-        object headersResolved = ((api is "private")) ? headersSigned : headers;
-        object bodyResolved = body;
-        if (((api is "private")) && ((method != "GET")))
+        Dictionary<string, object> headersResolved = ((apiName is "private")) ? headersSigned : null;
+        string? bodyResolved = null;
+        if (((apiName is "private")) && ((method != "GET")))
         {
             bodyResolved = bodySigned;
         }

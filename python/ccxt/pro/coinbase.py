@@ -876,11 +876,15 @@ class coinbase(ccxt.async_support.coinbase):
             limit = self.safe_integer(subscription, 'limit')
             type = self.safe_string(event, 'type')
             if type == 'snapshot':
-                self.orderbooks[symbol] = self.order_book({}, limit)
-            # unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if not (symbol in self.orderbooks) and self.orderbooks[symbol] is None:
+                if not (symbol in self.orderbooks):
+                    self.orderbooks[symbol] = self.order_book({}, limit)
+            elif not (symbol in self.orderbooks):
+                # an update can arrive after unWatchOrderBook deleted the orderbook (or before any snapshot)
                 continue
             orderbook = self.orderbooks[symbol]
+            if type == 'snapshot':
+                # reset in place so consumers holding a reference keep receiving updates after a resync
+                orderbook.reset({})
             self.handle_order_book_helper(orderbook, updates)
             orderbook['timestamp'] = self.parse8601(datetime)
             orderbook['datetime'] = datetime

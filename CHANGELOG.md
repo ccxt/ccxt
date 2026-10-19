@@ -1,3 +1,185 @@
+<a id="v4.5.88"></a>
+# [v4.5.88](https://github.com/ccxt/ccxt/releases/tag/v4.5.88) - 2026-10-14
+
+## What's Changed
+* fix(tests): per-process temp file for the php dynamic mock class by [@yzh-pelle](https://github.com/yzh-pelle) in [#30747](https://github.com/ccxt/ccxt/pull/30747)
+* refactor(base): generate implicit api methods statically, remove defineRestApi by [@carlotestor](https://github.com/carlotestor) in [#30832](https://github.com/ccxt/ccxt/pull/30832)
+* refactor(binance)!: remove legacy 'delivery' market type, use unified subType inverse by [@carlotestor](https://github.com/carlotestor) in [#30822](https://github.com/ccxt/ccxt/pull/30822)
+* chore(deps-dev): bump handlebars from 4.7.9 to 4.7.10 by [@dependabot](https://github.com/dependabot)[bot] in [#30827](https://github.com/ccxt/ccxt/pull/30827)
+* refactor: sandbox global prop uniform by [@ttodua](https://github.com/ttodua) in [#30830](https://github.com/ccxt/ccxt/pull/30830)
+* chore(deps): bump rustls from 0.23.40 to 0.23.45 in /rust by [@dependabot](https://github.com/dependabot)[bot] in [#30825](https://github.com/ccxt/ccxt/pull/30825)
+* fix(derive, apex, deepcoin): set has flags to false for unimplemented methods by [@mikeua](https://github.com/mikeua) in [#30819](https://github.com/ccxt/ccxt/pull/30819)
+* feat(paradex): SBE binary market data over websockets by [@amayvs](https://github.com/amayvs) in [#30840](https://github.com/ccxt/ccxt/pull/30840)
+* chore(deps): bump sharp from 0.35.4 to 0.35.5 in /examples/ts/nextjs-page-router by [@dependabot](https://github.com/dependabot)[bot] in [#30826](https://github.com/ccxt/ccxt/pull/30826)
+* fix(pacifica): use the funding payout as the funding history amount by [@rayBastard](https://github.com/rayBastard) in [#30809](https://github.com/ccxt/ccxt/pull/30809)
+* fix: wrong method names in error messages (htx, kucoin, gate, bitvavo, mexc) by [@mikeua](https://github.com/mikeua) in [#30769](https://github.com/ccxt/ccxt/pull/30769)
+* feat(derive): migrate to api v3 by [@yzh-pelle](https://github.com/yzh-pelle) in [#30733](https://github.com/ccxt/ccxt/pull/30733)
+* fix(coinbase): follow v3 account cursor in fetchBalance by [@carlotestor](https://github.com/carlotestor) in [#30772](https://github.com/ccxt/ccxt/pull/30772)
+* fix(derive): align withdraw signature with the base class by [@carlosmiei](https://github.com/carlosmiei) in [#30845](https://github.com/ccxt/ccxt/pull/30845)
+* fix(lighter): resolve the grouped-order expiry once for every leg by [@carlosmiei](https://github.com/carlosmiei) in [#30847](https://github.com/ccxt/ccxt/pull/30847)
+* docs: drop snake_case implicit method names from TypeScript docs by [@carlotestor](https://github.com/carlotestor) in [#30849](https://github.com/ccxt/ccxt/pull/30849)
+* chore: revert version due to failed release by [@carlosmiei](https://github.com/carlosmiei) in [#30850](https://github.com/ccxt/ccxt/pull/30850)
+
+## New Contributors
+* [@mikeua](https://github.com/mikeua) made their first contribution in [#30819](https://github.com/ccxt/ccxt/pull/30819)
+* [@amayvs](https://github.com/amayvs) made their first contribution in [#30840](https://github.com/ccxt/ccxt/pull/30840)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.87...v4.5.88
+
+[Changes][v4.5.88]
+
+
+<a id="v4.5.87"></a>
+# [v4.5.87](https://github.com/ccxt/ccxt/releases/tag/v4.5.87) - 2026-10-13
+
+## What's Changed
+* fix(binance): fetchOpenInterestHistory for inverse markets by [@izzetemredemir](https://github.com/izzetemredemir) in [#30824](https://github.com/ccxt/ccxt/pull/30824)
+* chore(rust): rename ccxt-core crate to ccxt-common by [@carlosmiei](https://github.com/carlosmiei) in [#30828](https://github.com/ccxt/ccxt/pull/30828)
+* fix(java): binance ws tests by [@carlosmiei](https://github.com/carlosmiei) in [#30829](https://github.com/ccxt/ccxt/pull/30829)
+
+## New Contributors
+* [@izzetemredemir](https://github.com/izzetemredemir) made their first contribution in [#30824](https://github.com/ccxt/ccxt/pull/30824)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.86...v4.5.87
+
+[Changes][v4.5.87]
+
+
+<a id="v4.5.86"></a>
+# [v4.5.86](https://github.com/ccxt/ccxt/releases/tag/v4.5.86) - 2026-10-13
+
+## What's Changed
+* refactor(okx,myokx,okxus): change 8443 to 443 port for WS by [@ttodua](https://github.com/ttodua) in [#30715](https://github.com/ccxt/ccxt/pull/30715)
+* docs(bitget): replace dead doc links in urls.doc and fetchBalance by [@rayBastard](https://github.com/rayBastard) in [#30702](https://github.com/ccxt/ccxt/pull/30702)
+* fix(bingx): parse spot TAKE_STOP orders by [@AresArtemius](https://github.com/AresArtemius) in [#30713](https://github.com/ccxt/ccxt/pull/30713)
+* fix(lighter): cancel only the given market in cancelAllOrders by [@rayBastard](https://github.com/rayBastard) in [#30712](https://github.com/ccxt/ccxt/pull/30712)
+* fix(deepcoin): max limit ohlcv by [@ttodua](https://github.com/ttodua) in [#30680](https://github.com/ccxt/ccxt/pull/30680)
+* fix(revolut): fetchOHLCV limit by [@ttodua](https://github.com/ttodua) in [#30683](https://github.com/ccxt/ccxt/pull/30683)
+* feat(pacifica): add fetchDeposits and fetchWithdrawals by [@rayBastard](https://github.com/rayBastard) in [#30697](https://github.com/ccxt/ccxt/pull/30697)
+* fix(paradex): fetchOHLCV start/end/etc by [@ttodua](https://github.com/ttodua) in [#30686](https://github.com/ccxt/ccxt/pull/30686)
+* fix(okx): static ws tests by [@ttodua](https://github.com/ttodua) in [#30726](https://github.com/ccxt/ccxt/pull/30726)
+* chore: add wstests in package.json by [@ttodua](https://github.com/ttodua) in [#30725](https://github.com/ccxt/ccxt/pull/30725)
+* chore(deps): next 16.3.8 (GHSA-vcvr-r3jv-pc5j), urllib3 2.8.0 by [@kroitor](https://github.com/kroitor) in [#30721](https://github.com/ccxt/ccxt/pull/30721)
+* fix(bingx): route inverse swap transfers to the Coin-M account by [@AresArtemius](https://github.com/AresArtemius) in [#30730](https://github.com/ccxt/ccxt/pull/30730)
+* fix(extended): check builder by [@ttodua](https://github.com/ttodua) in [#30727](https://github.com/ccxt/ccxt/pull/30727)
+* doc: fix gb amount by [@ttodua](https://github.com/ttodua) in [#30728](https://github.com/ccxt/ccxt/pull/30728)
+* fix(bingx): honour the cancelReplaceMode param in editOrder by [@AresArtemius](https://github.com/AresArtemius) in [#30729](https://github.com/ccxt/ccxt/pull/30729)
+* fix(backpack): fetchOHLCV fixes - since/until & limit by [@ttodua](https://github.com/ttodua) in [#30684](https://github.com/ccxt/ccxt/pull/30684)
+* chore(bingx): remove the offline copy-trading endpoints by [@AresArtemius](https://github.com/AresArtemius) in [#30679](https://github.com/ccxt/ccxt/pull/30679)
+* chore(deps): piscina 4.9.4 (GHSA-67c8-pqhq-4rmx) by [@kroitor](https://github.com/kroitor) in [#30735](https://github.com/ccxt/ccxt/pull/30735)
+* fix(bitget): keep full uta account response in fetchBalance info by [@carlotestor](https://github.com/carlotestor) in [#30700](https://github.com/ccxt/ccxt/pull/30700)
+* fix(python): stop Future.race stacking _swallow on pending losers by [@carlotestor](https://github.com/carlotestor) in [#30732](https://github.com/ccxt/ccxt/pull/30732)
+* fix(latoken): map the invalid API key and UNAUTHORIZED replies to AuthenticationError by [@rayBastard](https://github.com/rayBastard) in [#30741](https://github.com/ccxt/ccxt/pull/30741)
+* feat(pacifica): add fetchTradingFees by [@rayBastard](https://github.com/rayBastard) in [#30739](https://github.com/ccxt/ccxt/pull/30739)
+* fix!(coinex): delist by [@ttodua](https://github.com/ttodua) in [#30737](https://github.com/ccxt/ccxt/pull/30737)
+* fix(binance): cancelOrderWs cancels conditional orders on dated futures by [@Garbsener](https://github.com/Garbsener) in [#30742](https://github.com/ccxt/ccxt/pull/30742)
+* fix(latoken): resolve ticker symbols from the currency ids in parseTicker by [@rayBastard](https://github.com/rayBastard) in [#30746](https://github.com/ccxt/ccxt/pull/30746)
+* fix(binance): portfolio margin -2014/-2015 map to AuthenticationError by [@valar999](https://github.com/valar999) in [#30749](https://github.com/ccxt/ccxt/pull/30749)
+* fix(bitget): route uta fetchOHLCV to history-candles for old windows by [@rayBastard](https://github.com/rayBastard) in [#30738](https://github.com/ccxt/ccxt/pull/30738)
+* docs(blog): add Meet CCXT Terminal launch post by [@kroitor](https://github.com/kroitor) in [#30748](https://github.com/ccxt/ccxt/pull/30748)
+* chore(python): losely pin orjson and certifi by [@xmatthias](https://github.com/xmatthias) in [#30755](https://github.com/ccxt/ccxt/pull/30755)
+* fix(binance): migrate pm um conditional orders to algo api + docs links by [@yzh-pelle](https://github.com/yzh-pelle) in [#30753](https://github.com/ccxt/ccxt/pull/30753)
+* fix(bitget): route uta fetchFundingRates to v3 current-fund-rate by [@rayBastard](https://github.com/rayBastard) in [#30752](https://github.com/ccxt/ccxt/pull/30752)
+* fix(bingx): parse deposit and withdrawal status by direction by [@AresArtemius](https://github.com/AresArtemius) in [#30745](https://github.com/ccxt/ccxt/pull/30745)
+* feat(hyperliquid): add fetchMyLiquidations and watchMyLiquidations by [@rayBastard](https://github.com/rayBastard) in [#30758](https://github.com/ccxt/ccxt/pull/30758)
+* perf(rust,transpiler): optimize build memory, compile time and iteration   speed by [@Penivera](https://github.com/Penivera) in [#30723](https://github.com/ccxt/ccxt/pull/30723)
+* chore(deps): bump proxy-addr from 2.0.7 to 2.0.8 in /mcp by [@dependabot](https://github.com/dependabot)[bot] in [#30763](https://github.com/ccxt/ccxt/pull/30763)
+* chore(deps): bump multidict from 6.7.1 to 6.9.1 by [@dependabot](https://github.com/dependabot)[bot] in [#30764](https://github.com/ccxt/ccxt/pull/30764)
+* chore(deps): bump rustls from 0.23.43 to 0.23.45 in /examples/rust/comparison-ccxt-binance-rs by [@dependabot](https://github.com/dependabot)[bot] in [#30760](https://github.com/ccxt/ccxt/pull/30760)
+* chore(deps): bump source-map-js from 1.2.1 to 1.2.2 in /examples/ts/nextjs-page-router by [@dependabot](https://github.com/dependabot)[bot] in [#30780](https://github.com/ccxt/ccxt/pull/30780)
+* chore(deps): bump source-map-js from 1.2.1 to 1.2.2 in /docs/website by [@dependabot](https://github.com/dependabot)[bot] in [#30781](https://github.com/ccxt/ccxt/pull/30781)
+* chore(deps): bump @modelcontextprotocol/sdk from 1.29.0 to 1.31.0 in /mcp by [@dependabot](https://github.com/dependabot)[bot] in [#30778](https://github.com/ccxt/ccxt/pull/30778)
+* fix(mexc): place, list and cancel swap trigger orders by [@rayBastard](https://github.com/rayBastard) in [#30795](https://github.com/ccxt/ccxt/pull/30795)
+* chore(mexc): correct stale response-shape comments by [@rayBastard](https://github.com/rayBastard) in [#30576](https://github.com/ccxt/ccxt/pull/30576)
+* fix(cs): index object[] in GetValue without copying it by [@carlotestor](https://github.com/carlotestor) in [#30775](https://github.com/ccxt/ccxt/pull/30775)
+* Batch 3 PRs: [#30666](https://github.com/ccxt/ccxt/issues/30666), [#30659](https://github.com/ccxt/ccxt/issues/30659), [#30434](https://github.com/ccxt/ccxt/issues/30434) by [@carlotestor](https://github.com/carlotestor) in [#30705](https://github.com/ccxt/ccxt/pull/30705)
+* fix(latoken): omit the trigger and type params from signed private requests by [@rayBastard](https://github.com/rayBastard) in [#30797](https://github.com/ccxt/ccxt/pull/30797)
+* fix(kucoin): map 429000 to RateLimitExceeded by [@AresArtemius](https://github.com/AresArtemius) in [#30796](https://github.com/ccxt/ccxt/pull/30796)
+* fix(bingx): send the trailing activation price by [@AresArtemius](https://github.com/AresArtemius) in [#30788](https://github.com/ccxt/ccxt/pull/30788)
+* fix(krakenfutures): send 'since' in fetchCanceledOrders by [@geographybuff](https://github.com/geographybuff) in [#30787](https://github.com/ccxt/ccxt/pull/30787)
+* fix(order-router): keep pytest from collecting test_order_router helpers by [@carlotestor](https://github.com/carlotestor) in [#30800](https://github.com/ccxt/ccxt/pull/30800)
+* Batch 8 PRs: [#30792](https://github.com/ccxt/ccxt/issues/30792), [#30783](https://github.com/ccxt/ccxt/issues/30783), [#30766](https://github.com/ccxt/ccxt/issues/30766), [#30754](https://github.com/ccxt/ccxt/issues/30754) by [@carlotestor](https://github.com/carlotestor) in [#30801](https://github.com/ccxt/ccxt/pull/30801)
+* chore: drop woo and htx from certified exchanges, place gate above okx by [@carlotestor](https://github.com/carlotestor) in [#30806](https://github.com/ccxt/ccxt/pull/30806)
+* fix(pro): reset existing orderbook in place instead of replacing it by [@carlotestor](https://github.com/carlotestor) in [#30804](https://github.com/ccxt/ccxt/pull/30804)
+* java: move Pair to io.github.ccxt.types, import by simple name by [@carlotestor](https://github.com/carlotestor) in [#30807](https://github.com/ccxt/ccxt/pull/30807)
+* Batch 8 PRs: [#30790](https://github.com/ccxt/ccxt/issues/30790), [#30785](https://github.com/ccxt/ccxt/issues/30785), [#30776](https://github.com/ccxt/ccxt/issues/30776), [#30757](https://github.com/ccxt/ccxt/issues/30757) by [@carlotestor](https://github.com/carlotestor) in [#30802](https://github.com/ccxt/ccxt/pull/30802)
+* perf(go): go-local-types transpile -50% by [@carlotestor](https://github.com/carlotestor) in [#30808](https://github.com/ccxt/ccxt/pull/30808)
+* fix(binance): order id injection update by [@yzh-pelle](https://github.com/yzh-pelle) in [#30756](https://github.com/ccxt/ccxt/pull/30756)
+* fix(luno): watchOrderBook update by [@yzh-pelle](https://github.com/yzh-pelle) in [#30453](https://github.com/ccxt/ccxt/pull/30453)
+* Batch 8 PRs: [#30793](https://github.com/ccxt/ccxt/issues/30793), [#30789](https://github.com/ccxt/ccxt/issues/30789), [#30784](https://github.com/ccxt/ccxt/issues/30784), [#30767](https://github.com/ccxt/ccxt/issues/30767) by [@carlotestor](https://github.com/carlotestor) in [#30803](https://github.com/ccxt/ccxt/pull/30803)
+* refactor(base)!: drop withdraw tag argument, validate params['tag'] in checkAddress by [@carlotestor](https://github.com/carlotestor) in [#30677](https://github.com/ccxt/ccxt/pull/30677)
+
+## New Contributors
+* [@Garbsener](https://github.com/Garbsener) made their first contribution in [#30742](https://github.com/ccxt/ccxt/pull/30742)
+* [@valar999](https://github.com/valar999) made their first contribution in [#30749](https://github.com/ccxt/ccxt/pull/30749)
+* [@Penivera](https://github.com/Penivera) made their first contribution in [#30723](https://github.com/ccxt/ccxt/pull/30723)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.85...v4.5.86
+
+[Changes][v4.5.86]
+
+
+<a id="v4.5.85"></a>
+# [v4.5.85](https://github.com/ccxt/ccxt/releases/tag/v4.5.85) - 2026-10-01
+
+## What's Changed
+* fix(rust): send every response through handleErrors and stop fetch swallowing errors by [@mkzung](https://github.com/mkzung) in [#30609](https://github.com/ccxt/ccxt/pull/30609)
+* fix(bybiteu): default to spot markets and spot type by [@carlotestor](https://github.com/carlotestor) in [#30605](https://github.com/ccxt/ccxt/pull/30605)
+* zebpay: update swap fetchOrderBook and fetchOHLCV request params by [@rajasekharzeb](https://github.com/rajasekharzeb) in [#30613](https://github.com/ccxt/ccxt/pull/30613)
+* fix(bullish): keep object identity across ws updates - watchBalance by [@yzh-pelle](https://github.com/yzh-pelle) in [#30595](https://github.com/ccxt/ccxt/pull/30595)
+* chore: granular build for rust by [@carlosmiei](https://github.com/carlosmiei) in [#30619](https://github.com/ccxt/ccxt/pull/30619)
+* chore: dummy change by [@carlosmiei](https://github.com/carlosmiei) in [#30620](https://github.com/ccxt/ccxt/pull/30620)
+* feat(incrementingNonce): nonce/salt updated in multiple exchanges by [@yzh-pelle](https://github.com/yzh-pelle) in [#30558](https://github.com/ccxt/ccxt/pull/30558)
+* chore: try rust build granular by [@carlosmiei](https://github.com/carlosmiei) in [#30621](https://github.com/ccxt/ccxt/pull/30621)
+* chore: try rust granular by [@carlosmiei](https://github.com/carlosmiei) in [#30622](https://github.com/ccxt/ccxt/pull/30622)
+* feat(binance): fx markets subType edits by [@Dan-krm](https://github.com/Dan-krm) in [#30623](https://github.com/ccxt/ccxt/pull/30623)
+* fix(hyperliquid): adjust rl by [@carlosmiei](https://github.com/carlosmiei) in [#30625](https://github.com/ccxt/ccxt/pull/30625)
+* fix(woo): report the executed cost of an order, not the quote it reserved by [@mkzung](https://github.com/mkzung) in [#30606](https://github.com/ccxt/ccxt/pull/30606)
+* fix(bingx): forward spot order history time filters by [@AresArtemius](https://github.com/AresArtemius) in [#30596](https://github.com/ccxt/ccxt/pull/30596)
+* fix(hyperliquid): send buy TWAP orders as buys  by [@carlosmiei](https://github.com/carlosmiei) in [#30650](https://github.com/ccxt/ccxt/pull/30650)
+* fix(coinbaseinternational): fetchOHLCV since calculation by [@ttodua](https://github.com/ttodua) in [#30588](https://github.com/ccxt/ccxt/pull/30588)
+* fix(build): keep php variable-prefix rules out of string literals by [@carlotestor](https://github.com/carlotestor) in [#30657](https://github.com/ccxt/ccxt/pull/30657)
+* Batch 8 PRs: [#30563](https://github.com/ccxt/ccxt/issues/30563), [#30552](https://github.com/ccxt/ccxt/issues/30552), [#30550](https://github.com/ccxt/ccxt/issues/30550), [#30478](https://github.com/ccxt/ccxt/issues/30478) by [@carlotestor](https://github.com/carlotestor) in [#30569](https://github.com/ccxt/ccxt/pull/30569)
+* docs(blog): serve canonical blog URLs from ccxt.com/blog by [@kroitor](https://github.com/kroitor) in [#30653](https://github.com/ccxt/ccxt/pull/30653)
+* fix(lighter): integrator rules compatibility by [@ttodua](https://github.com/ttodua) in [#30628](https://github.com/ccxt/ccxt/pull/30628)
+* fix(bingx): map missing error codes by [@AresArtemius](https://github.com/AresArtemius) in [#30662](https://github.com/ccxt/ccxt/pull/30662)
+* fix(lighter): remove unsupported 1w timeframe by [@rayBastard](https://github.com/rayBastard) in [#30661](https://github.com/ccxt/ccxt/pull/30661)
+* fix(digifinex): fix cancelOrders and swap order parsing by [@yzh-pelle](https://github.com/yzh-pelle) in [#30656](https://github.com/ccxt/ccxt/pull/30656)
+* fix(binance): clientOrderId for swap algo orders by [@yzh-pelle](https://github.com/yzh-pelle) in [#30651](https://github.com/ccxt/ccxt/pull/30651)
+* chore(deps): bump undici and ccxt in /docs/playground by [@dependabot](https://github.com/dependabot)[bot] in [#30674](https://github.com/ccxt/ccxt/pull/30674)
+* chore(deps): bump ip-address from 10.5.0 to 10.7.2 in /mcp by [@dependabot](https://github.com/dependabot)[bot] in [#30675](https://github.com/ccxt/ccxt/pull/30675)
+* fix(binance,bitrue,bitvavo): keep rate-limiter cost numeric by [@carlotestor](https://github.com/carlotestor) in [#30672](https://github.com/ccxt/ccxt/pull/30672)
+* fix(lighter): use the opposite side for attached stopLoss/takeProfit by [@rayBastard](https://github.com/rayBastard) in [#30665](https://github.com/ccxt/ccxt/pull/30665)
+* Batch 10 PRs: [#30646](https://github.com/ccxt/ccxt/issues/30646), [#30627](https://github.com/ccxt/ccxt/issues/30627), [#30617](https://github.com/ccxt/ccxt/issues/30617), [#30607](https://github.com/ccxt/ccxt/issues/30607), [#30580](https://github.com/ccxt/ccxt/issues/30580), [#30583](https://github.com/ccxt/ccxt/issues/30583), [#30590](https://github.com/ccxt/ccxt/issues/30590), [#30626](https://github.com/ccxt/ccxt/issues/30626), [#30658](https://github.com/ccxt/ccxt/issues/30658), [#30660](https://github.com/ccxt/ccxt/issues/30660) by [@carlotestor](https://github.com/carlotestor) in [#30670](https://github.com/ccxt/ccxt/pull/30670)
+* C#: stricter typing — typed locals/params/returns, native bool/string emission (cs-strict campaign) by [@carlotestor](https://github.com/carlotestor) in [#30530](https://github.com/ccxt/ccxt/pull/30530)
+* feat(tests): skipKeys requires key presence, forceCheckKeys re-enables full comparison by [@yzh-pelle](https://github.com/yzh-pelle) in [#30664](https://github.com/ccxt/ccxt/pull/30664)
+* mexc update fees by [@ndubel](https://github.com/ndubel) in [#30690](https://github.com/ccxt/ccxt/pull/30690)
+* chore(deps): bump react/http from 1.11.0 to 1.11.1 by [@kroitor](https://github.com/kroitor) in [#30692](https://github.com/ccxt/ccxt/pull/30692)
+* chore(deps): bump sharp from 0.35.0 to 0.35.4 in docs/playground by [@kroitor](https://github.com/kroitor) in [#30693](https://github.com/ccxt/ccxt/pull/30693)
+* chore(deps): bump sharp from 0.35.0 to 0.35.4 in docs/website by [@kroitor](https://github.com/kroitor) in [#30695](https://github.com/ccxt/ccxt/pull/30695)
+* chore(deps): bump undici from 7.29.0 to 7.29.1 in mcp by [@kroitor](https://github.com/kroitor) in [#30696](https://github.com/ccxt/ccxt/pull/30696)
+* feat(blofin): fetchDepositAddress, fetchCurrencies, fetchDepositWithdrawFees, fetchDeposit, fetchWithdrawal by [@kroitor](https://github.com/kroitor) in [#30703](https://github.com/ccxt/ccxt/pull/30703)
+* fix(lighter): php grouped orders signing by [@rayBastard](https://github.com/rayBastard) in [#30694](https://github.com/ccxt/ccxt/pull/30694)
+* fix(pro): close the ws client when loadOrderBook drops it by [@carlotestor](https://github.com/carlotestor) in [#30704](https://github.com/ccxt/ccxt/pull/30704)
+* feat(go): typed Ticker/OHLCV/Order struct returns and typed ws ticker caches by [@carlotestor](https://github.com/carlotestor) in [#30698](https://github.com/ccxt/ccxt/pull/30698)
+* chore(deps-dev): bump brace-expansion from 1.1.16 to 1.1.21 in /docs/website by [@dependabot](https://github.com/dependabot)[bot] in [#30709](https://github.com/ccxt/ccxt/pull/30709)
+* fix(htx): parseTransaction tolerates the create-withdrawal response without tx-hash by [@kroitor](https://github.com/kroitor) in [#30708](https://github.com/ccxt/ccxt/pull/30708)
+* chore(deps): bump fast-uri from 3.1.7 to 3.1.8 in /mcp by [@dependabot](https://github.com/dependabot)[bot] in [#30710](https://github.com/ccxt/ccxt/pull/30710)
+* chore(deps-dev): bump markdown-it from 14.2.0 to 14.3.2 by [@dependabot](https://github.com/dependabot)[bot] in [#30711](https://github.com/ccxt/ccxt/pull/30711)
+* fix(binance): derivatives updates for the CM-UM integration (changes according to changelog since 2026-06) by [@yzh-pelle](https://github.com/yzh-pelle) in [#30685](https://github.com/ccxt/ccxt/pull/30685)
+* fix(build): run the Java transpiler entry after its pass constants by [@AresArtemius](https://github.com/AresArtemius) in [#30714](https://github.com/ccxt/ccxt/pull/30714)
+* chore(deps): brace-expansion 1.1.21 / 5.0.12 (GHSA-q2hr-2g5m-vwhr) by [@kroitor](https://github.com/kroitor) in [#30718](https://github.com/ccxt/ccxt/pull/30718)
+* chore(deps): bump urllib3 from 2.7.0 to 2.8.0 by [@dependabot](https://github.com/dependabot)[bot] in [#30719](https://github.com/ccxt/ccxt/pull/30719)
+* chore(deps): bump next from 16.3.4 to 16.3.8 in /docs/website by [@dependabot](https://github.com/dependabot)[bot] in [#30720](https://github.com/ccxt/ccxt/pull/30720)
+
+## New Contributors
+* [@rajasekharzeb](https://github.com/rajasekharzeb) made their first contribution in [#30613](https://github.com/ccxt/ccxt/pull/30613)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.84...v4.5.85
+
+[Changes][v4.5.85]
+
+
 <a id="v4.5.84"></a>
 # [v4.5.84](https://github.com/ccxt/ccxt/releases/tag/v4.5.84) - 2026-09-24
 
@@ -14394,6 +14576,10 @@
 [Changes][4.3.22]
 
 
+[v4.5.88]: https://github.com/ccxt/ccxt/compare/v4.5.87...v4.5.88
+[v4.5.87]: https://github.com/ccxt/ccxt/compare/v4.5.86...v4.5.87
+[v4.5.86]: https://github.com/ccxt/ccxt/compare/v4.5.85...v4.5.86
+[v4.5.85]: https://github.com/ccxt/ccxt/compare/v4.5.84...v4.5.85
 [v4.5.84]: https://github.com/ccxt/ccxt/compare/v4.5.83...v4.5.84
 [v4.5.83]: https://github.com/ccxt/ccxt/compare/v4.5.82...v4.5.83
 [v4.5.82]: https://github.com/ccxt/ccxt/compare/v4.5.81...v4.5.82

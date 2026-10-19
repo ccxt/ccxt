@@ -43,7 +43,7 @@ import { WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.
 // ----------------------------------------------------------------------------
 //
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, NullableList, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, NullableList, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses, OrderBookL3 } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
@@ -180,6 +180,50 @@ let SignMode: any = undefined;
 // onJsonResponse regex, hoisted to module scope (shared safely: String.replace resets
 // lastIndex on the global regex) - profiled neutral vs a function-local literal
 // (<2%, within noise, V8 caches the compiled literal anyway), kept hoisted for tidiness
+// snake_case aliases of prototype members, computed once per class as flat [ camel, snake, ... ]
+const aliasPairsCache = new WeakMap<object, string[]> ();
+const unCamelCaseCache = new Map<string, string> ();
+const unCamelCaseCached = (k: string): string => {
+    let snake = unCamelCaseCache.get (k);
+    if (snake === undefined) {
+        snake = unCamelCase (k);
+        unCamelCaseCache.set (k, snake);
+    }
+    return snake;
+};
+const ownerOf = (proto: object, k: string): object | undefined => {
+    for (let o = proto; o !== null; o = Object.getPrototypeOf (o)) {
+        if (Object.prototype.hasOwnProperty.call (o, k)) {
+            return o;
+        }
+    }
+    return undefined;
+};
+const prototypeAliasPairs = (proto: object): string[] => {
+    let pairs = aliasPairsCache.get (proto);
+    if (pairs !== undefined) {
+        return pairs;
+    }
+    pairs = [];
+    for (let o = proto; o !== null; o = Object.getPrototypeOf (o)) {
+        const names = Object.getOwnPropertyNames (o);
+        for (let i = 0; i < names.length; i++) {
+            const k = names[i];
+            const snake = unCamelCaseCached (k);
+            if (snake === k) {
+                continue;
+            }
+            // a class defining both names itself needs no alias
+            const owner = ownerOf (proto, k);
+            if ((owner !== undefined) && (owner === ownerOf (proto, snake))) {
+                continue;
+            }
+            pairs.push (k, snake);
+        }
+    }
+    aliasPairsCache.set (proto, pairs);
+    return pairs;
+};
 const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
 
 // -----------------------------------------------------------------------------
@@ -187,12 +231,11 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  * @class Exchange
  */
 export class BaseExchange {
-    // implicit api methods (defineRestApi) and unCamelCase aliases are attached
-    // dynamically at construction time, so the class is indexable by string
+    // unCamelCase aliases are attached at construction time, so the class is indexable by string
     [key: string]: any;
 
     // this is updated by vss.js when building
-    static ccxtVersion = '4.5.84';
+    static ccxtVersion = '4.5.88';
 
     options: Dict;
 
@@ -246,6 +289,18 @@ export class BaseExchange {
     httpsAgent: any = undefined;
 
     minFundingAddressLength: number = 1;  // used in checkAddress
+    // alias -> unified network code; aliases are accepted as input but never returned
+    networkAliases: Dictionary<string> = {
+        'ETH': 'ERC20',
+        'TRX': 'TRC20',
+        'BSC': 'BEP20',
+        'BSC20': 'BEP20',
+        'CRONOS': 'CRC20',
+        'ARB': 'ARBITRUM',
+        'ARBONE': 'ARBITRUM',
+        'ARBNOVA': 'ARBITRUM_NOVA',
+    };
+
     substituteCommonCurrencyCodes: boolean = true;  // reserved
     quoteJsonNumbers: boolean = true;  // quote json numbers as precise strings when a response carries precision-risky (16+ digit or exponent) numbers
     // eslint-disable-next-line no-unused-vars
@@ -596,17 +651,18 @@ export class BaseExchange {
         this.last_json_response = undefined;
         this.last_request_body = undefined;
         // camelCase and snake_notation support
-        const unCamelCaseProperties = (obj = this) => {
-            if (obj !== null) {
-                const ownPropertyNames = Object.getOwnPropertyNames (obj);
-                for (let i = 0; i < ownPropertyNames.length; i++) {
-                    const k = ownPropertyNames[i];
-                    this[unCamelCase (k)] = this[k];
-                }
-                unCamelCaseProperties (Object.getPrototypeOf (obj));
+        const instanceNames = Object.getOwnPropertyNames (this);
+        for (let i = 0; i < instanceNames.length; i++) {
+            const k = instanceNames[i];
+            const snake = unCamelCaseCached (k);
+            if (snake !== k) {
+                this[snake] = this[k];
             }
-        };
-        unCamelCaseProperties ();
+        }
+        const pairs = prototypeAliasPairs (Object.getPrototypeOf (this));
+        for (let i = 0; i < pairs.length; i += 2) {
+            this[pairs[i + 1]] = this[pairs[i]];
+        }
         // merge constructor overrides to this instance
         const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig));
         for (let i = 0; i < configEntries.length; i++) {
@@ -617,21 +673,8 @@ export class BaseExchange {
                 this[property] = value;
             }
         }
-        // generate old metainfo interface
-        const hasKeys = Object.keys (this.has);
-        for (let i = 0; i < hasKeys.length; i++) {
-            const k = hasKeys[i];
-            this['has' + this.capitalize (k)] = (this.has[k] !== undefined) && (this.has[k] !== false); // converts 'emulated' to true
-        }
-        // generate implicit api
-        if (this.api !== undefined) {
-            this.defineRestApi (this.api, 'request');
-        }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
-        this.afterConstruct ();
-        if ((this.safeBool (userConfig, 'sandbox', false)) || (this.safeBool (userConfig, 'testnet', false))) {
-            this.setSandboxMode (true);
-        }
+        this.afterConstruct (userConfig);
         // exchange specific libs
         this.loadExchangeSpecificFiles ();
     }
@@ -690,57 +733,6 @@ export class BaseExchange {
 
     initThrottler () {
         this.throttler = new Throttler (this.tokenBucket);
-    }
-
-    defineRestApiEndpoint (methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config = {}) {
-        const splitPath = path.split (/[^a-zA-Z0-9]/);
-        const camelcaseSuffix = splitPath.map (this.capitalize).join ('');
-        const underscoreSuffix = splitPath.map ((x: string) => x.trim ().toLowerCase ()).filter ((x: string) => x.length > 0).join ('_');
-        const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('');
-        const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x: string) => x.trim ()).filter ((x: string) => x.length > 0)).join ('_');
-        const camelcase = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix);
-        const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix;
-        const typeArgument = (paths.length > 1) ? paths : paths[0];
-        // handle call costs here
-        const partial = async (params = {}, context = {}) => this[methodName] (path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context);
-        // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
-        this[camelcase] = partial;
-        this[underscore] = partial;
-    }
-
-    defineRestApi (api: any, methodName: any, paths: string[] = []) {
-        const keys = Object.keys (api);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const value = api[key];
-            const uppercaseMethod = key.toUpperCase ();
-            const lowercaseMethod = key.toLowerCase ();
-            const camelcaseMethod = this.capitalize (lowercaseMethod);
-            if (Array.isArray (value)) {
-                for (let k = 0; k < value.length; k++) {
-                    const path = value[k].trim ();
-                    this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths);
-                }
-            // the options HTTP method conflicts with the 'options' API url path
-            // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
-            } else if (key.match (/^(?:get|post|put|delete|head|patch)$/i) !== null) {
-                const endpoints = Object.keys (value);
-                for (let j = 0; j < endpoints.length; j++) {
-                    const endpoint = endpoints[j];
-                    const path = endpoint.trim ();
-                    const config = value[endpoint];
-                    if (typeof config === 'object') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config);
-                    } else if (typeof config === 'number') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { 'cost': config });
-                    } else {
-                        throw new NotSupported (this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
-                    }
-                }
-            } else {
-                this.defineRestApi (value, methodName, paths.concat ([ key ]));
-            }
-        }
     }
 
     log (...args: any[]) {
@@ -1522,7 +1514,7 @@ export class BaseExchange {
             }
             return this.markets;
         }
-        let currencies: Currencies | undefined = undefined;
+        let currencies: any = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ();
@@ -2824,7 +2816,7 @@ export class BaseExchange {
                 'borrowMargin': undefined,
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
-                'cancelOrder': true,
+                'cancelOrder': undefined,
                 'cancelOrderWithClientOrderId': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
@@ -2835,7 +2827,7 @@ export class BaseExchange {
                 'createDepositAddress': undefined,
                 'createLimitBuyOrder': undefined,
                 'createLimitBuyOrderWs': undefined,
-                'createLimitOrder': true,
+                'createLimitOrder': undefined,
                 'createLimitOrderWs': undefined,
                 'createLimitSellOrder': undefined,
                 'createLimitSellOrderWs': undefined,
@@ -2843,15 +2835,15 @@ export class BaseExchange {
                 'createMarketBuyOrderWs': undefined,
                 'createMarketBuyOrderWithCost': undefined,
                 'createMarketBuyOrderWithCostWs': undefined,
-                'createMarketOrder': true,
-                'createMarketOrderWs': true,
+                'createMarketOrder': undefined,
+                'createMarketOrderWs': undefined,
                 'createMarketOrderWithCost': undefined,
                 'createMarketOrderWithCostWs': undefined,
                 'createMarketSellOrder': undefined,
                 'createMarketSellOrderWs': undefined,
                 'createMarketSellOrderWithCost': undefined,
                 'createMarketSellOrderWithCostWs': undefined,
-                'createOrder': true,
+                'createOrder': undefined,
                 'createOrderWs': undefined,
                 'createOrders': undefined,
                 'createOrderWithTakeProfitAndStopLoss': undefined,
@@ -2883,7 +2875,7 @@ export class BaseExchange {
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
                 'fetchADLRank': undefined,
-                'fetchBalance': true,
+                'fetchBalance': undefined,
                 'fetchBalanceWs': undefined,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': undefined,
@@ -2926,7 +2918,7 @@ export class BaseExchange {
                 'fetchIsolatedBorrowRates': undefined,
                 'fetchMarginAdjustmentHistory': undefined,
                 'fetchIsolatedPositions': undefined,
-                'fetchL2OrderBook': true,
+                'fetchL2OrderBook': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
@@ -2959,7 +2951,7 @@ export class BaseExchange {
                 'fetchOptionChain': undefined,
                 'fetchOrder': undefined,
                 'fetchOrderWithClientOrderId': undefined,
-                'fetchOrderBook': true,
+                'fetchOrderBook': undefined,
                 'fetchOrderBooks': undefined,
                 'fetchOrderBookWs': undefined,
                 'fetchOrders': undefined,
@@ -2982,13 +2974,13 @@ export class BaseExchange {
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchSettlementHistory': undefined,
                 'fetchStatus': undefined,
-                'fetchTicker': true,
+                'fetchTicker': 'emulated',
                 'fetchTickerWs': undefined,
                 'fetchTickers': undefined,
                 'fetchMarkPrices': undefined,
                 'fetchTickersWs': undefined,
                 'fetchTime': undefined,
-                'fetchTrades': true,
+                'fetchTrades': undefined,
                 'fetchTradesWs': undefined,
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': undefined,
@@ -3541,7 +3533,7 @@ export class BaseExchange {
         }
     }
 
-    checkAddress (address: Str = undefined): Str {
+    checkAddress (address: Str = undefined, code: Str = undefined, tag: Str = undefined): Str {
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' address is undefined');
         }
@@ -3550,6 +3542,14 @@ export class BaseExchange {
         const length = uniqChars.length; // py transpiler trick
         if (length === 1 || address.length < this.minFundingAddressLength || address.indexOf (' ') > -1) {
             throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + address.toString () + '"');
+        }
+        if (code !== undefined) {
+            const tagRequiredCurrencies = this.safeList (this.options, 'withdrawTagRequiredCurrencies', []);
+            if (this.inArray (code, tagRequiredCurrencies)) {
+                if (tag === undefined) {
+                    throw new ArgumentsRequired (this.id + ' withdraw() requires params["tag"] for ' + code);
+                }
+            }
         }
         return address;
     }
@@ -3703,7 +3703,7 @@ export class BaseExchange {
         this.options['enableDemoTrading'] = enable;
     }
 
-    sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
 
@@ -3948,7 +3948,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' transfer() is not supported yet');
     }
 
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         throw new NotSupported (this.id + ' withdraw() is not supported yet');
     }
 
@@ -4085,10 +4085,12 @@ export class BaseExchange {
         return timestamp;
     }
 
-    afterConstruct () {
-        // networks
-        this.createNetworksByIdObject ();
+    afterConstruct (userConfig: Dict = {}) {
+        // networksById: inverse of options.networks, explicit options.networksById entries win
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {}));
+        this.options['networksById'] = this.extend (networkIdsToCodesGenerated, this.safeValue (this.options, 'networksById', {}));
         this.featuresGenerator ();
+        this.hasAutocorrect ();
         // init predefined markets if any
         if (this.markets !== undefined) {
             this.setMarkets (this.markets);
@@ -4099,6 +4101,30 @@ export class BaseExchange {
         const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
         if (isSandbox === true) {
             this.setSandboxMode (isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if ((this.safeBool (userConfig, 'sandbox', false)) || (this.safeBool (userConfig, 'testnet', false))) {
+            this.setSandboxMode (true);
+        }
+    }
+
+    hasAutocorrect () {
+        const fallbacks: Dict = {
+            'fetchL2OrderBook': 'fetchOrderBook',
+            'createLimitOrder': 'createOrder',
+            'createMarketOrder': 'createOrder',
+            'createLimitOrderWs': 'createOrderWs',
+            'createMarketOrderWs': 'createOrderWs',
+        };
+        const targets = Object.keys (fallbacks);
+        for (let i = 0; i < targets.length; i++) {
+            const target = targets[i];
+            const source = fallbacks[target];
+            const sourceDefined = (source in this.has) && (this.has[source] !== undefined);
+            const targetDefined = (target in this.has) && (this.has[target] !== undefined);
+            if (sourceDefined && !targetDefined) {
+                this.has[target] = this.has[source];
+            }
         }
     }
 
@@ -4319,25 +4345,10 @@ export class BaseExchange {
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
 
-    createNetworksByIdObject () {
-        // automatically generate network-id-to-code mappings
-        const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {})); // invert defined networks dictionary
-        this.options['networksById'] = this.extend (networkIdsToCodesGenerated, this.safeValue (this.options, 'networksById', {})); // support manually overriden "networksById" dictionary too
-    }
-
     getDefaultOptions () {
         return {
-            'defaultNetworkCodeReplacements': {
-                'ETH': { 'primary': 'ETH', 'secondary': 'ERC20', 'default': 'secondary' },
-                'CRO': { 'primary': 'CRONOS', 'secondary': 'CRC20', 'default': 'secondary' },
-                'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary' },
-                'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
-            },
-            'backwardSupportedNetworkCodes': {
-                'ARB': 'ARBITRUM',
-                'ARBONE': 'ARBITRUM',
-                'ARBNOVA': 'ARBITRUM_NOVA',
-            },
+            // native-chain withdrawals of these currencies may need a destination tag / memo
+            'withdrawTagRequiredCurrencies': [ 'XRP', 'XLM', 'EOS', 'ATOM', 'HBAR', 'TON', 'KAVA', 'STX', 'XEM', 'IOST', 'OSMO', 'WAXP' ],
         };
     }
 
@@ -4578,7 +4589,7 @@ export class BaseExchange {
         return this.extend (cleanStructure);
     }
 
-    setMarkets (markets: any, currencies = undefined): Dictionary<Market> {
+    setMarkets (markets: any, currencies: any = undefined): Dictionary<Market> {
         const values: Dict[] = [];
         this.markets_by_id = this.createSafeDictionary ();
         // handle marketId conflicts
@@ -5796,6 +5807,15 @@ export class BaseExchange {
         return result;
     }
 
+    parseOrderBookBidsAsksL3 (bidasks: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): any[][] {
+        const bidasksValue: any = this.toArray (bidasks);
+        const result: any[][] = [];
+        for (let i = 0; i < bidasksValue.length; i++) {
+            result.push (this.parseOrderBookBidAskL3 (bidasksValue[i], priceKey, amountKey, countOrIdKey));
+        }
+        return result;
+    }
+
     filterByKey (objects: any, key: IndexType, value: Str = undefined) {
         if (value === undefined) {
             return objects;
@@ -5861,61 +5881,12 @@ export class BaseExchange {
         };
     }
 
-    prioritizedNetworkAliases (networkCode: Str = undefined, currencyCode: Str = undefined, allowDefault = false): Strings {
-        /**
-         * @method
-         * @name Exchange#prioritizedNetworkAliases
-         * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
-         *   ---------------------------------
-         *   | input          | output       |
-         *   --------------------------------|
-         *   | ETH & USDC     | ERC20, ETH   |
-         *   | ERC20 & USDC   | ERC20, ETH   |
-         *   | ETH & ETH      | ETH, ERC20   |
-         *   | ERC20 & ETH    | ETH, ERC20   |
-         *   | ERC20          | ERC20, ETH   |
-         *   | ETH            | ERC20, ETH   |
-         *   ---------------------------------
-         * @param {string} networkCode unified network-code
-         * @param {string} currencyCode unified currency-code
-         * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
-         * @returns {string[]} [preferredChain, alternativeChain]
-         */
-        if (networkCode === undefined) {
-            return undefined;
-        }
-        const replacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
-        const keys = Object.keys (replacements);
-        for (let i = 0; i < keys.length; i++) {
-            const baseCoin = keys[i];
-            const entry = replacements[baseCoin];
-            const primary = entry['primary'];
-            const secondary = entry['secondary'];
-            if (networkCode !== primary && networkCode !== secondary) {
-                continue;
-            }
-            // pick which form goes first in the returned pair
-            let preferPrimary = false;
-            if (currencyCode === baseCoin) {
-                preferPrimary = true; // mainnet currency uses primary chain
-            } else if (currencyCode !== undefined) {
-                preferPrimary = false; // any other (token) currency uses secondary chain
-            } else if (allowDefault) {
-                preferPrimary = (entry['default'] === 'primary');
-            } else {
-                preferPrimary = (networkCode === primary); // keep user input first
-            }
-            return (preferPrimary) ? [ primary, secondary ] : [ secondary, primary ];
-        }
-        return [ networkCode, networkCode ];
-    }
-
     networkCodeToId (networkCode: Str, currencyCode: Str = undefined): Str {
         /**
          * @ignore
          * @method
          * @name exchange#networkCodeToId
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @description tries to convert the provided networkCode (a unified network code or one of its aliases) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
@@ -5923,14 +5894,20 @@ export class BaseExchange {
         if (networkCode === undefined) {
             return undefined;
         }
+        const unifiedCode = this.safeString (this.networkAliases, networkCode, networkCode);
         const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
-        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-        const chainPair = this.prioritizedNetworkAliases (networkCode, currencyCode, false);
-        const preferredChain = (chainPair === undefined) ? networkCode : chainPair[0];
-        const alternativeChain = (chainPair === undefined) ? networkCode : chainPair[1];
-        const networkId = this.safeString2 (networkIdsByCodes, preferredChain, alternativeChain);
+        const networkId = this.safeString (networkIdsByCodes, unifiedCode);
         if (networkId !== undefined) {
             return networkId;
+        }
+        // options.networks may still be keyed by an alias of the unified code
+        const aliases = this.networkAliases;
+        const aliasKeys = Object.keys (aliases);
+        for (let i = 0; i < aliasKeys.length; i++) {
+            const alias = aliasKeys[i];
+            if ((aliases[alias] === unifiedCode) && (alias in networkIdsByCodes)) {
+                return networkIdsByCodes[alias];
+            }
         }
         // fall back to scanning loaded currencies
         let currenciesToCheck: (string | Dict | undefined)[] = [];
@@ -5941,14 +5918,9 @@ export class BaseExchange {
         }
         for (let i = 0; i < currenciesToCheck.length; i++) {
             const networks = this.safeDict (currenciesToCheck[i], 'networks', {});
-            if (networkCode in networks) {
-                return this.safeString (networks[networkCode], 'id');
+            if (unifiedCode in networks) {
+                return this.safeString (networks[unifiedCode], 'id');
             }
-        }
-        // before returning the original input, try to match if it's backward-maintained networkCode
-        const oldCodes = this.safeDict (this.options, 'backwardSupportedNetworkCodes', {});
-        if (networkCode in oldCodes) {
-            return this.networkCodeToId (oldCodes[networkCode], currencyCode);
         }
         return networkCode;
     }
@@ -5967,22 +5939,9 @@ export class BaseExchange {
             return undefined;
         }
         const networkCodesByIds = this.safeDict (this.options, 'networksById', {});
-        const networkCode = this.safeString (networkCodesByIds, networkId, networkId);
-        const chainPair = this.prioritizedNetworkAliases (networkCode, currencyCode, true);
-        if (chainPair === undefined) {
-            return networkCode;
-        }
-        const preferredChain = chainPair[0];
-        const alternativeChain = chainPair[1];
-        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
-        // it disambiguates them — trust the direct id→code inversion instead of guessing
-        if (currencyCode === undefined) {
-            const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
-            if ((preferredChain in networkIdsByCodes) && (alternativeChain in networkIdsByCodes)) {
-                return networkCode;
-            }
-        }
-        return preferredChain;
+        const mappedCode = this.safeString (networkCodesByIds, networkId);
+        const networkCode = (mappedCode === undefined) ? networkId : mappedCode;
+        return this.safeString (this.networkAliases, networkCode, networkCode);
     }
 
     handleNetworkCodeAndParams (params: Dict): [Str, Dict] {
@@ -5990,30 +5949,6 @@ export class BaseExchange {
         const paramsOmitted = (networkCodeInParams !== undefined) ? this.omit (params, [ 'networkCode', 'network' ]) : params;
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
         return [ networkCodeInParams, paramsOmitted ];
-    }
-
-    defaultNetworkCode (currencyCode: string): Str {
-        let defaultNetworkCode: Str = undefined;
-        const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
-        if (currencyCode in defaultNetworks) {
-            // if currency had set its network in "defaultNetworks", use it
-            defaultNetworkCode = defaultNetworks[currencyCode];
-        } else {
-            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            const defaultNetwork = this.safeString (this.options, 'defaultNetwork');
-            if (defaultNetwork !== undefined) {
-                defaultNetworkCode = defaultNetwork;
-            }
-        }
-        return defaultNetworkCode;
-    }
-
-    selectNetworkCodeFromUnifiedNetworks (currencyCode: string, networkCode: any, indexedNetworkEntries: any): Str {
-        return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, true);
-    }
-
-    selectNetworkIdFromRawNetworks (currencyCode: string, networkCode: any, indexedNetworkEntries: any): Str {
-        return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, false);
     }
 
     selectNetworkKeyFromNetworks (currencyCode: string, networkCode: Str, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode = false): Str {
@@ -6041,7 +5976,7 @@ export class BaseExchange {
                 throw new NotSupported (this.id + ' - no networks were returned for ' + currencyCode);
             } else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                const defaultNetworkCode = this.defaultNetworkCode (currencyCode);
+                const defaultNetworkCode = this.safeString (this.safeDict (this.options, 'defaultNetworks', {}), currencyCode, this.safeString (this.options, 'defaultNetwork'));
                 const defaultNetworkId = isIndexedByUnifiedNetworkCode ? defaultNetworkCode : this.networkCodeToId (defaultNetworkCode, currencyCode);
                 if (defaultNetworkId === undefined) {
                     throw new ExchangeError (this.id + ' selectNetworkKeyFromNetworks() missing defaultNetworkId');
@@ -6063,6 +5998,19 @@ export class BaseExchange {
     parseOrderBook (orderbook: object | undefined, symbol: Str, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): OrderBook {
         const bids = this.parseOrderBookBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
         const asks = this.parseOrderBookBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        return {
+            'symbol': symbol,
+            'bids': this.sortBy (bids, 0, true),
+            'asks': this.sortBy (asks, 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        } as any;
+    }
+
+    parseOrderBookL3 (orderbook: object | undefined, symbol: Str, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): OrderBookL3 {
+        const bids = this.parseOrderBookBidsAsksL3 (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseOrderBookBidsAsksL3 (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy (bids, 0, true),
@@ -6142,17 +6090,6 @@ export class BaseExchange {
 
     safePosition (position: Dict): Position {
         // simplified version of: /pull/12765/
-        const unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
-        const initialMarginString = this.safeString (position, 'initialMargin');
-        //
-        // PERCENTAGE
-        //
-        const percentage = this.safeValue (position, 'percentage');
-        if ((percentage === undefined) && (unrealizedPnlString !== undefined) && (initialMarginString !== undefined)) {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
-            const percentageString = Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100');
-            position['percentage'] = this.parseNumber (percentageString);
-        }
         // if contractSize is undefined get from market
         let contractSize = this.safeNumber (position, 'contractSize');
         const symbol = this.safeString (position, 'symbol');
@@ -6163,6 +6100,294 @@ export class BaseExchange {
         if (contractSize === undefined && market !== undefined) {
             contractSize = this.safeNumber (market, 'contractSize');
             position['contractSize'] = contractSize;
+        }
+        const isInverse = (market !== undefined) && this.safeBool (market, 'inverse', false);
+        const side = this.safeString (position, 'side');
+        const marginMode = this.safeString (position, 'marginMode');
+        let unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
+        let initialMarginString = this.safeString (position, 'initialMargin');
+        let maintenanceMarginString = this.safeString (position, 'maintenanceMargin');
+        let collateralString = this.safeString (position, 'collateral');
+        let entryPriceString = this.safeString (position, 'entryPrice');
+        let liquidationPriceString = this.safeString (position, 'liquidationPrice');
+        let contractsString = this.safeString (position, 'contracts');
+        let contractSizeString = this.safeString (position, 'contractSize');
+        // margin is the amount held in the position (excludes unrealized pnl), collateral = margin + unrealizedPnl
+        let marginString = this.safeString (position, 'positionMargin');
+        if ((marginString === undefined) && (marginMode === 'isolated') && (collateralString !== undefined)) {
+            let derivedMargin: Str = collateralString;
+            if ((unrealizedPnlString !== undefined) && !Precise.stringEq (collateralString, initialMarginString)) {
+                derivedMargin = Precise.stringSub (collateralString, unrealizedPnlString);
+            }
+            if (Precise.stringGt (derivedMargin, '0')) {
+                marginString = derivedMargin;
+                position['positionMargin'] = this.parseNumber (derivedMargin);
+            }
+        }
+        if (marginString === undefined) {
+            position['positionMargin'] = undefined; // keep the unified key present across all exchanges
+        }
+        if ((collateralString === undefined) && (marginString !== undefined) && (unrealizedPnlString !== undefined)) {
+            collateralString = Precise.stringAdd (marginString, unrealizedPnlString);
+            position['collateral'] = this.parseNumber (collateralString);
+        }
+        if (marginMode === 'isolated') {
+            let entryMarginString = marginString;
+            if ((entryMarginString === undefined) && (collateralString === undefined)) {
+                entryMarginString = initialMarginString;
+            }
+            const hasEntryMargin = (entryMarginString !== undefined) && Precise.stringGt (entryMarginString, '0');
+            const hasEntryPrice = (entryPriceString !== undefined) && Precise.stringGt (entryPriceString, '0');
+            const hasLiqPrice = (liquidationPriceString !== undefined) && Precise.stringGt (liquidationPriceString, '0');
+            const hasContracts = (contractsString !== undefined) && Precise.stringGt (contractsString, '0');
+            const hasContractSize = (contractSizeString !== undefined) && Precise.stringGt (contractSizeString, '0');
+            const hasMm = (maintenanceMarginString !== undefined) && Precise.stringGt (maintenanceMarginString, '0');
+            let priceDiff: Str = undefined;
+            if (hasEntryPrice && hasLiqPrice) {
+                if (isInverse) {
+                    const invEntry = Precise.stringDiv ('1', entryPriceString);
+                    const invLiq = Precise.stringDiv ('1', liquidationPriceString);
+                    if (side === 'long') {
+                        priceDiff = Precise.stringSub (invLiq, invEntry);
+                    } else if (side === 'short') {
+                        priceDiff = Precise.stringSub (invEntry, invLiq);
+                    } else {
+                        priceDiff = Precise.stringAbs (Precise.stringSub (invEntry, invLiq));
+                    }
+                } else {
+                    if (side === 'long') {
+                        priceDiff = Precise.stringSub (entryPriceString, liquidationPriceString);
+                    } else if (side === 'short') {
+                        priceDiff = Precise.stringSub (liquidationPriceString, entryPriceString);
+                    } else {
+                        priceDiff = Precise.stringAbs (Precise.stringSub (entryPriceString, liquidationPriceString));
+                    }
+                }
+            }
+            const hasPriceDiff = (priceDiff !== undefined) && Precise.stringGt (priceDiff, '0');
+            if ((maintenanceMarginString === undefined) && hasEntryMargin && hasPriceDiff && hasContracts && hasContractSize) {
+                const lossFromEntry = Precise.stringMul (priceDiff, Precise.stringMul (contractsString, contractSizeString));
+                const derivedMm = Precise.stringSub (entryMarginString, lossFromEntry);
+                if (Precise.stringGt (derivedMm, '0')) {
+                    maintenanceMarginString = derivedMm;
+                    position['maintenanceMargin'] = this.parseNumber (derivedMm);
+                }
+            } else if ((collateralString === undefined) && (initialMarginString === undefined) && hasMm && hasPriceDiff && hasContracts && hasContractSize) {
+                const lossFromEntry = Precise.stringMul (priceDiff, Precise.stringMul (contractsString, contractSizeString));
+                const derivedEntryMargin = Precise.stringAdd (maintenanceMarginString, lossFromEntry);
+                if (Precise.stringGt (derivedEntryMargin, '0')) {
+                    initialMarginString = derivedEntryMargin;
+                    position['initialMargin'] = this.parseNumber (derivedEntryMargin);
+                    marginString = derivedEntryMargin;
+                    position['positionMargin'] = this.parseNumber (derivedEntryMargin);
+                    const derivedCollateral = (unrealizedPnlString !== undefined) ? Precise.stringAdd (derivedEntryMargin, unrealizedPnlString) : derivedEntryMargin;
+                    if (Precise.stringGt (derivedCollateral, '0')) {
+                        collateralString = derivedCollateral;
+                        position['collateral'] = this.parseNumber (derivedCollateral);
+                    }
+                }
+            } else if ((liquidationPriceString === undefined) && hasEntryMargin && hasMm && hasEntryPrice && hasContracts && hasContractSize && ((side === 'long') || (side === 'short'))) {
+                const marginBuffer = Precise.stringSub (entryMarginString, maintenanceMarginString);
+                const totalSize = Precise.stringMul (contractsString, contractSizeString);
+                if (Precise.stringGt (marginBuffer, '0') && Precise.stringGt (totalSize, '0')) {
+                    const bufferPerUnit = Precise.stringDiv (marginBuffer, totalSize);
+                    let derivedLp: Str = undefined;
+                    if (isInverse) {
+                        const invEntry = Precise.stringDiv ('1', entryPriceString);
+                        const invLp = (side === 'long') ? Precise.stringAdd (invEntry, bufferPerUnit) : Precise.stringSub (invEntry, bufferPerUnit);
+                        if (Precise.stringGt (invLp, '0')) {
+                            derivedLp = Precise.stringDiv ('1', invLp);
+                        }
+                    } else {
+                        derivedLp = (side === 'long') ? Precise.stringSub (entryPriceString, bufferPerUnit) : Precise.stringAdd (entryPriceString, bufferPerUnit);
+                    }
+                    if ((derivedLp !== undefined) && Precise.stringGt (derivedLp, '0')) {
+                        liquidationPriceString = derivedLp;
+                        position['liquidationPrice'] = this.parseNumber (derivedLp);
+                    }
+                }
+            } else if ((entryPriceString === undefined) && hasEntryMargin && hasMm && hasLiqPrice && hasContracts && hasContractSize && ((side === 'long') || (side === 'short'))) {
+                const marginBuffer = Precise.stringSub (entryMarginString, maintenanceMarginString);
+                const totalSize = Precise.stringMul (contractsString, contractSizeString);
+                if (Precise.stringGt (marginBuffer, '0') && Precise.stringGt (totalSize, '0')) {
+                    const bufferPerUnit = Precise.stringDiv (marginBuffer, totalSize);
+                    let derivedEp: Str = undefined;
+                    if (isInverse) {
+                        const invLp = Precise.stringDiv ('1', liquidationPriceString);
+                        const invEp = (side === 'long') ? Precise.stringSub (invLp, bufferPerUnit) : Precise.stringAdd (invLp, bufferPerUnit);
+                        if (Precise.stringGt (invEp, '0')) {
+                            derivedEp = Precise.stringDiv ('1', invEp);
+                        }
+                    } else {
+                        derivedEp = (side === 'long') ? Precise.stringAdd (liquidationPriceString, bufferPerUnit) : Precise.stringSub (liquidationPriceString, bufferPerUnit);
+                    }
+                    if ((derivedEp !== undefined) && Precise.stringGt (derivedEp, '0')) {
+                        entryPriceString = derivedEp;
+                        position['entryPrice'] = this.parseNumber (derivedEp);
+                    }
+                }
+            } else if ((contractsString === undefined) && hasEntryMargin && hasMm && hasPriceDiff && hasContractSize) {
+                const marginBuffer = Precise.stringSub (entryMarginString, maintenanceMarginString);
+                const denom = Precise.stringMul (priceDiff, contractSizeString);
+                if (Precise.stringGt (marginBuffer, '0') && Precise.stringGt (denom, '0')) {
+                    const derivedContracts = Precise.stringDiv (marginBuffer, denom);
+                    if (Precise.stringGt (derivedContracts, '0')) {
+                        contractsString = derivedContracts;
+                        position['contracts'] = this.parseNumber (derivedContracts);
+                    }
+                }
+            } else if ((contractSizeString === undefined) && hasEntryMargin && hasMm && hasPriceDiff && hasContracts) {
+                const marginBuffer = Precise.stringSub (entryMarginString, maintenanceMarginString);
+                const denom = Precise.stringMul (priceDiff, contractsString);
+                if (Precise.stringGt (marginBuffer, '0') && Precise.stringGt (denom, '0')) {
+                    const derivedContractSize = Precise.stringDiv (marginBuffer, denom);
+                    if (Precise.stringGt (derivedContractSize, '0')) {
+                        contractSizeString = derivedContractSize;
+                        position['contractSize'] = this.parseNumber (derivedContractSize);
+                    }
+                }
+            }
+        }
+        //
+        // POSITION-LOCAL DERIVATIONS (CROSS & ISOLATED)
+        //
+        const isZeroPosition = (contractsString !== undefined) && Precise.stringEq (contractsString, '0');
+        if (!isZeroPosition) {
+            let notionalString = this.safeString (position, 'notional');
+            let markPriceString = this.safeString (position, 'markPrice');
+            const lastPriceString = this.safeString (position, 'lastPrice');
+            const hasContracts = (contractsString !== undefined) && Precise.stringGt (contractsString, '0');
+            const hasContractSize = (contractSizeString !== undefined) && Precise.stringGt (contractSizeString, '0');
+            const hasMarkPrice = (markPriceString !== undefined) && Precise.stringGt (markPriceString, '0');
+            const hasNotional = (notionalString !== undefined) && Precise.stringGt (notionalString, '0');
+            // 1. notional <-> markPrice / contracts / contractSize
+            if ((notionalString === undefined) && hasMarkPrice && hasContracts && hasContractSize) {
+                const totalSize = Precise.stringMul (contractsString, contractSizeString);
+                const derivedNotional = isInverse ? Precise.stringDiv (totalSize, markPriceString) : Precise.stringMul (totalSize, markPriceString);
+                if (Precise.stringGt (derivedNotional, '0')) {
+                    notionalString = derivedNotional;
+                    position['notional'] = this.parseNumber (derivedNotional);
+                }
+            } else if ((markPriceString === undefined) && (entryPriceString === undefined) && (lastPriceString === undefined) && hasNotional && hasContracts && hasContractSize) {
+                const totalSize = Precise.stringMul (contractsString, contractSizeString);
+                const derivedMark = isInverse ? Precise.stringDiv (totalSize, notionalString) : Precise.stringDiv (notionalString, totalSize);
+                if (Precise.stringGt (derivedMark, '0')) {
+                    markPriceString = derivedMark;
+                    position['markPrice'] = this.parseNumber (derivedMark);
+                }
+            } else if ((contractsString === undefined) && hasNotional && hasMarkPrice && hasContractSize) {
+                const derivedContracts = isInverse ? Precise.stringDiv (Precise.stringMul (notionalString, markPriceString), contractSizeString) : Precise.stringDiv (notionalString, Precise.stringMul (markPriceString, contractSizeString));
+                if (Precise.stringGt (derivedContracts, '0')) {
+                    contractsString = derivedContracts;
+                    position['contracts'] = this.parseNumber (derivedContracts);
+                }
+            } else if ((contractSizeString === undefined) && hasNotional && hasMarkPrice && hasContracts) {
+                const derivedContractSize = isInverse ? Precise.stringDiv (Precise.stringMul (notionalString, markPriceString), contractsString) : Precise.stringDiv (notionalString, Precise.stringMul (markPriceString, contractsString));
+                if (Precise.stringGt (derivedContractSize, '0')) {
+                    contractSizeString = derivedContractSize;
+                    position['contractSize'] = this.parseNumber (derivedContractSize);
+                }
+            }
+            // 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
+            if ((unrealizedPnlString === undefined) && (entryPriceString !== undefined) && (markPriceString !== undefined) && (contractsString !== undefined) && (contractSizeString !== undefined)) {
+                if (Precise.stringGt (entryPriceString, '0') && Precise.stringGt (markPriceString, '0') && Precise.stringGt (contractsString, '0') && Precise.stringGt (contractSizeString, '0')) {
+                    const totalSize = Precise.stringMul (contractsString, contractSizeString);
+                    let pnlDiff: Str = undefined;
+                    if (isInverse) {
+                        const invEntry = Precise.stringDiv ('1', entryPriceString);
+                        const invMark = Precise.stringDiv ('1', markPriceString);
+                        if (side === 'long') {
+                            pnlDiff = Precise.stringSub (invEntry, invMark);
+                        } else if (side === 'short') {
+                            pnlDiff = Precise.stringSub (invMark, invEntry);
+                        }
+                    } else {
+                        if (side === 'long') {
+                            pnlDiff = Precise.stringSub (markPriceString, entryPriceString);
+                        } else if (side === 'short') {
+                            pnlDiff = Precise.stringSub (entryPriceString, markPriceString);
+                        }
+                    }
+                    if (pnlDiff !== undefined) {
+                        const candidateUpnl = Precise.stringMul (pnlDiff, totalSize);
+                        if (Precise.stringEq (candidateUpnl, '0') || Precise.stringGe (Precise.stringAbs (candidateUpnl), '0.000001')) {
+                            unrealizedPnlString = candidateUpnl;
+                            position['unrealizedPnl'] = this.parseNumber (unrealizedPnlString);
+                        }
+                    }
+                }
+            }
+            // 3. initialMargin <-> initialMarginPercentage <-> leverage / notional
+            const hasValidNotional = (notionalString !== undefined) && Precise.stringGt (notionalString, '0');
+            const hasNegativeCollateral = (collateralString !== undefined) && Precise.stringLt (collateralString, '0');
+            let initialMarginPercentageString = this.safeString (position, 'initialMarginPercentage');
+            const leverageString = this.safeString (position, 'leverage');
+            const hasLeverage = (leverageString !== undefined) && Precise.stringGt (leverageString, '0');
+            const hasInitialMargin = (initialMarginString !== undefined) && Precise.stringGt (initialMarginString, '0');
+            const hadInitialMargin = (initialMarginString !== undefined);
+            if ((initialMarginPercentageString === undefined) && !hasNegativeCollateral && (hasInitialMargin || !hadInitialMargin)) {
+                if (hasInitialMargin && hasValidNotional) {
+                    initialMarginPercentageString = Precise.stringDiv (initialMarginString, notionalString);
+                } else if (hasLeverage) {
+                    initialMarginPercentageString = Precise.stringDiv ('1', leverageString);
+                }
+                if ((initialMarginPercentageString !== undefined) && Precise.stringGt (initialMarginPercentageString, '0')) {
+                    position['initialMarginPercentage'] = this.parseNumber (initialMarginPercentageString);
+                }
+            }
+            const hasImp = (initialMarginPercentageString !== undefined) && Precise.stringGt (initialMarginPercentageString, '0');
+            if ((initialMarginString === undefined) && !hasNegativeCollateral && hasValidNotional) {
+                if (hasLeverage) {
+                    initialMarginString = Precise.stringDiv (notionalString, leverageString);
+                } else if (hasImp) {
+                    initialMarginString = Precise.stringMul (notionalString, initialMarginPercentageString);
+                }
+                if ((initialMarginString !== undefined) && Precise.stringGt (initialMarginString, '0')) {
+                    position['initialMargin'] = this.parseNumber (initialMarginString);
+                }
+            }
+            if ((leverageString === undefined) && !hadInitialMargin && hasImp) {
+                const derivedLeverage = Precise.stringDiv ('1', initialMarginPercentageString);
+                if (Precise.stringGt (derivedLeverage, '0') && Precise.stringLe (derivedLeverage, '200')) {
+                    position['leverage'] = this.parseNumber (derivedLeverage);
+                }
+            }
+            // 4. maintenanceMargin <-> maintenanceMarginPercentage / notional
+            let maintenanceMarginPercentageString = this.safeString (position, 'maintenanceMarginPercentage');
+            const hasValidMm = (maintenanceMarginString !== undefined) && Precise.stringGt (maintenanceMarginString, '0');
+            const hasValidMmp = (maintenanceMarginPercentageString !== undefined) && Precise.stringGt (maintenanceMarginPercentageString, '0');
+            if ((maintenanceMarginString === undefined) && hasValidNotional && hasValidMmp) {
+                const derivedMm = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
+                if (Precise.stringGt (derivedMm, '0')) {
+                    maintenanceMarginString = derivedMm;
+                    position['maintenanceMargin'] = this.parseNumber (derivedMm);
+                }
+            } else if ((maintenanceMarginPercentageString === undefined) && hasValidNotional && hasValidMm) {
+                const derivedMmp = Precise.stringDiv (maintenanceMarginString, notionalString);
+                if (Precise.stringGt (derivedMmp, '0')) {
+                    maintenanceMarginPercentageString = derivedMmp;
+                    position['maintenanceMarginPercentage'] = this.parseNumber (derivedMmp);
+                }
+            }
+            // 5. marginRatio = maintenanceMargin / collateral
+            const marginRatio = this.safeValue (position, 'marginRatio');
+            if ((marginRatio === undefined) && (maintenanceMarginString !== undefined) && (collateralString !== undefined)) {
+                if (Precise.stringGt (maintenanceMarginString, '0') && Precise.stringGt (collateralString, '0')) {
+                    const derivedMarginRatio = Precise.stringDiv (maintenanceMarginString, collateralString, 4);
+                    if ((derivedMarginRatio !== undefined) && Precise.stringGt (derivedMarginRatio, '0')) {
+                        position['marginRatio'] = this.parseNumber (derivedMarginRatio);
+                    }
+                }
+            }
+        }
+        //
+        // PERCENTAGE
+        //
+        const percentage = this.safeValue (position, 'percentage');
+        if ((percentage === undefined) && (unrealizedPnlString !== undefined) && (initialMarginString !== undefined)) {
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+            const percentageString = Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100');
+            position['percentage'] = this.parseNumber (percentageString);
         }
         return position as Position;
     }
@@ -6373,24 +6598,6 @@ export class BaseExchange {
         return [ value, paramsOmitted ];
     }
 
-    /**
-     * @param {object} params - extra parameters
-     * @param {object} request - existing dictionary of request
-     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
-     * @param {object} currencyCode - (optional) existing dictionary of request
-     * @param {boolean} isRequired - (optional) whether that param is required to be present
-     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
-     */
-    handleRequestNetwork (params: Dict, request: Dict, exchangeSpecificKey: string, currencyCode:Str = undefined, isRequired: boolean = false): Dict[] {
-        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode !== undefined) {
-            request[exchangeSpecificKey] = this.networkCodeToId (networkCode, currencyCode);
-        } else if (isRequired) {
-            throw new ArgumentsRequired (this.id + ' - "network" param is required for this request');
-        }
-        return [ request, paramsNetworkCode ];
-    }
-
     resolvePath (path: any, params: any): any[] {
         return [
             this.implodeParams (path, params),
@@ -6478,7 +6685,7 @@ export class BaseExchange {
         return results;
     }
 
-    async fetch2 (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}): Promise<any> {
+    async fetch2 (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, config: Dict = {}): Promise<any> {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
@@ -6497,7 +6704,7 @@ export class BaseExchange {
             }
             try {
                 this.setLastRestRequestTimestamp ();
-                const request = this.sign (path, api, method, paramsMaxRetriesOnFailureDelay, headers, body);
+                const request = this.sign (path, api, method, paramsMaxRetriesOnFailureDelay);
                 if (fetchData !== undefined) {
                     fetchData['request'] = request;
                 }
@@ -6533,8 +6740,8 @@ export class BaseExchange {
         return undefined; // this line is never reached, but exists for c# value return requirement
     }
 
-    async request (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}): Promise<any> {
-        return await this.fetch2 (path, api, method, params, headers, body, config);
+    async request (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}, config: Dict = {}): Promise<any> {
+        return await this.fetch2 (path, api, method, params, config);
     }
 
     async loadAccounts (reload = false, params: Dict = {}): Promise<Account[]> {
@@ -6649,6 +6856,17 @@ export class BaseExchange {
         const amount = this.safeFloat (bidask, amountKey);
         const countOrId = this.safeInteger (bidask, countOrIdKey);
         const bidAsk = [ price, amount ];
+        if (countOrId !== undefined) {
+            bidAsk.push (countOrId);
+        }
+        return bidAsk;
+    }
+
+    parseOrderBookBidAskL3 (bidask: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2): any[] {
+        const price = this.safeFloat (bidask, priceKey);
+        const amount = this.safeFloat (bidask, amountKey);
+        const countOrId = this.safeString (bidask, countOrIdKey);
+        const bidAsk: any[] = [ price, amount ];
         if (countOrId !== undefined) {
             bidAsk.push (countOrId);
         }
@@ -7107,7 +7325,7 @@ export class BaseExchange {
         return undefined;
     }
 
-    calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         return this.safeValue (config, 'cost', 1);
     }
 
@@ -7474,22 +7692,6 @@ export class BaseExchange {
             }
         }
         return false;
-    }
-
-    handleWithdrawTagAndParams (tag: any, params: Dict): [Str, Dict] {
-        let paramsExtended = params;
-        let tagValue = tag;
-        if (this.isDictionary (tag)) {
-            paramsExtended = this.extend (tag, params);
-            tagValue = undefined;
-        }
-        const tagResolved = (tagValue === undefined) ? this.safeString (paramsExtended, 'tag') : tagValue;
-        const tagFromParams = (tagValue === undefined) && (tagResolved !== undefined);
-        let paramsOmitted = paramsExtended;
-        if (tagFromParams) {
-            paramsOmitted = this.omit (paramsExtended, 'tag');
-        }
-        return [ tagResolved, paramsOmitted ];
     }
 
     costToPrecision (symbol: Str, cost: any): Str {
@@ -9143,7 +9345,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' unWatchOHLCV () is not supported yet');
     }
 
-    async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    async withdrawWs (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         /**
          * @method
          * @name exchange#withdrawWs
@@ -9151,8 +9353,8 @@ export class BaseExchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string} tag
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
         throw new NotSupported (this.id + ' withdrawWs () is not supported yet');
@@ -9484,7 +9686,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' watchMarkPrices () is not supported yet');
     }
 
-    async fetchL3OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+    async fetchL3OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBookL3> {
         throw new BadRequest (this.id + ' fetchL3OrderBook() is not supported yet');
     }
 

@@ -331,7 +331,7 @@ func (this *Bigone) Describe() any {
 				"DOGE":     "Dogecoin",
 				"XEC":      "ECash",
 				"EOS":      "EOS",
-				"ETH":      "Ethereum",
+				"ERC20":    "Ethereum",
 				"ETC":      "EthereumClassic",
 				"ETHW":     "EthereumPow",
 				"FTM":      "Fantom",
@@ -2478,26 +2478,23 @@ func (this *Bigone) Nonce() any {
 	return this.Sum(this.Microseconds()*1000, exchangeTimeCorrection)
 }
 func (this *Bigone) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var bodySigned any = nil
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var bodySigned *string = nil
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var baseUrl string = this.ImplodeHostname(apiUrl)
 	var url string = baseUrl + "/" + this.ImplodeParams(path, params)
 	var headersValue map[string]any = map[string]any{}
-	if (api == "public") || (api == "webExchange") || (api == "contractPublic") {
+	if (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "webExchange") || (apiName != nil && *apiName == "contractPublic") {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
@@ -2517,16 +2514,11 @@ func (this *Bigone) Sign(path string, optionalArgs ...any) any {
 			}
 		} else if method == "POST" {
 			headersValue["Content-Type"] = "application/json"
-			bodySigned = this.Json(query)
+			bodySigned = SafeStringPtr(this.Json(query))
 		}
 	}
 	headersValue["User-Agent"] = "ccxt/" + this.Id + "-" + this.Version
-	var bodyResolved any = func() any {
-		if bodySigned == nil {
-			return body
-		}
-		return bodySigned
-	}()
+	var bodyResolved *string = bodySigned
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -2597,7 +2589,7 @@ func (this *Bigone) fetchDepositAddressBody(ch chan AsyncResult[any], code strin
 		panic(ExchangeError(this.Id + " fetchDepositAddress() returned empty address response"))
 	}
 	var chainsIndexedById map[string]any = this.IndexBy(data, "chain")
-	var selectedNetworkId any = this.SelectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById)
+	var selectedNetworkId any = this.SelectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, false)
 	var addressObject map[string]any = SafeMapTyped(chainsIndexedById, selectedNetworkId)
 	var address *string = this.SafeString(addressObject, "value")
 	var tag *string = this.SafeString(addressObject, "memo")
@@ -2970,8 +2962,8 @@ func (this *Bigone) ParseTransferStatus(status *string) *string {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bigone) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -2982,13 +2974,12 @@ func (this *Bigone) WithdrawAsync(code string, amount any, address any, optional
 func (this *Bigone) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -3002,7 +2993,7 @@ func (this *Bigone) withdrawBody(ch chan EndpointResult[map[string]any], code st
 		"target_address": address,
 		"amount":         this.CurrencyToPrecision(code, amount),
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["memo"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
@@ -3625,8 +3616,8 @@ func (this *Bigone) Transfer(code string, amount float64, fromAccount string, to
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bigone) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -3636,7 +3627,7 @@ func (this *Bigone) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

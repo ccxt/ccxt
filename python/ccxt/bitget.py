@@ -198,17 +198,8 @@ class bitget(Exchange, ImplicitAPI):
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
-                    'https://www.bitget.com/api-doc/common/intro',
-                    'https://www.bitget.com/api-doc/spot/intro',
-                    'https://www.bitget.com/api-doc/contract/intro',
-                    'https://www.bitget.com/api-doc/broker/intro',
-                    'https://www.bitget.com/api-doc/margin/intro',
-                    'https://www.bitget.com/api-doc/copytrading/intro',
-                    'https://www.bitget.com/api-doc/earn/intro',
-                    'https://bitgetlimited.github.io/apidoc/en/mix',
-                    'https://bitgetlimited.github.io/apidoc/en/spot',
-                    'https://bitgetlimited.github.io/apidoc/en/broker',
-                    'https://bitgetlimited.github.io/apidoc/en/margin',
+                    'https://www.bitget.com/docs/uta/Introduction',
+                    'https://www.bitget.com/docs/classic/Introduction',
                 ],
                 'fees': 'https://www.bitget.cc/zh-CN/rate?tab=1',
                 'referral': 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
@@ -3084,7 +3075,7 @@ class bitget(Exchange, ImplicitAPI):
         deposit = self.safe_dict(deposits, 0, {})
         return deposit
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -3094,14 +3085,15 @@ class bitget(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param str [params.chain]: the blockchain network the withdrawal is taking place on
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
+        tag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         self.check_address(address)
-        networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' withdraw() requires a "network" parameter')
         if self.markets is None:
@@ -4553,7 +4545,8 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
         https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
         https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
-        https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
+        https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick
+        https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick-history
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -4562,7 +4555,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :param boolean [params.useHistoryEndpoint]: whether to force to use historical endpoint(it has max limit of 200)
+        :param boolean [params.useHistoryEndpoint]: whether to force to use historical endpoint(it has max limit of 200, 100 for uta)
         :param boolean [params.useHistoryEndpointForPagination]: whether to force to use historical endpoint for pagination(default True)
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.price]: *swap only* "mark"(to fetch mark price candles) or "index"(to fetch index price candles)
@@ -4576,9 +4569,13 @@ class bitget(Exchange, ImplicitAPI):
         useHistoryEndpoint = self.safe_bool(params, 'useHistoryEndpoint', False)
         useHistoryEndpointForPagination = self.safe_bool(params, 'useHistoryEndpointForPagination', True)
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
+        uta, paramsUTA = self.handle_uta_and_params(paramsPaginate, 'fetchOHLCV', False)
+        if uta is True:
+            maxLimitForHistoryEndpoint = 100  # the uta history endpoint rejects a limit above 100
         if paginate:
             limitForPagination = maxLimitForHistoryEndpoint if (useHistoryEndpointForPagination is True) else maxLimitForRecentEndpoint
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, limitForPagination)
+            paramsWithUta = self.extend(paramsUTA, {'uta': uta})
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsWithUta, limitForPagination)
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -4586,7 +4583,6 @@ class bitget(Exchange, ImplicitAPI):
         marketType = None
         timeframes = None
         timeframesOption = self.handle_option('fetchOHLCV', 'timeframes')
-        uta, paramsUTA = self.handle_uta_and_params(paramsPaginate, 'fetchOHLCV', False)
         if uta is True:
             timeframes = timeframesOption['uta']
             request['interval'] = self.safe_string(timeframes, timeframe, timeframe)
@@ -4668,7 +4664,10 @@ class bitget(Exchange, ImplicitAPI):
                 elif priceType == 'index':
                     request['type'] = 'INDEX'
             request['category'] = productType
-            response = self.publicUtaGetV3MarketCandles(self.extend(request, paramsProductType))
+            if historicalEndpointNeeded:
+                response = self.publicUtaGetV3MarketHistoryCandles(self.extend(request, paramsProductType))
+            else:
+                response = self.publicUtaGetV3MarketCandles(self.extend(request, paramsProductType))
         elif market['spot'] is True:
             # checks if we need history endpoint
             if historicalEndpointNeeded:
@@ -4714,14 +4713,12 @@ class bitget(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://www.bitget.com/api-doc/spot/account/Get-Account-Assets
-        https://www.bitget.com/api-doc/contract/account/Get-Account-List
-        https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Assets
-        https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
-        https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
-        https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
-        https://www.bitget.com/api-doc/uta/account/Get-Account
-        https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
+        https://www.bitget.com/docs/catalog/classic-spot-account/classic-spot-account#get-account-assets
+        https://www.bitget.com/docs/catalog/classic-contract-account/classic-contract-account#get-account-list
+        https://www.bitget.com/docs/catalog/classic-margin-cross-account/classic-margin-cross-account#get-cross-account-assets
+        https://www.bitget.com/docs/catalog/classic-margin-isolated-account/classic-margin-isolated-account#get-isolated-account-asset
+        https://www.bitget.com/docs/catalog/account/assets-balance#get-account-assets
+        https://www.bitget.com/docs/catalog/account/assets-balance#get-account-funding-assets
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
@@ -4749,7 +4746,7 @@ class bitget(Exchange, ImplicitAPI):
                 response = self.privateUtaGetV3AccountAssets(self.extend(request, paramsUTA))
                 results = self.safe_dict(response, 'data', {})
                 assets = self.safe_list(results, 'assets', [])
-            return self.parse_uta_balance(assets)
+            return self.parse_uta_balance(assets, response)
         elif (marketType == 'swap') or (marketType == 'future'):
             productType = None
             productType, paramsUTA = self.handle_product_type_and_params(None, paramsUTA)
@@ -4901,8 +4898,9 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_balance(data)
 
-    def parse_uta_balance(self, balance: list[dict]) -> Balances:
-        result = {'info': balance}
+    def parse_uta_balance(self, balance: list[dict], response: dict | None = None) -> Balances:
+        info = response if (response is not None) else balance
+        result = {'info': info}
         #
         # uta
         #
@@ -8685,11 +8683,14 @@ class bitget(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_n(position, ['cTime', 'ctime', 'createdTime'])
         marginMode = self.safe_string(position, 'marginMode')
         collateral = None
+        marginString = None
         initialMargin = None
         unrealizedPnl = self.safe_string_2(position, 'unrealizedPL', 'unrealisedPnl')
-        rawCollateral = self.safe_string_2(position, 'marginSize', 'positionBalance')
+        rawCollateral = self.omit_zero(self.safe_string_2(position, 'marginSize', 'positionBalance'))
         if marginMode == 'isolated':
-            collateral = Precise.string_add(rawCollateral, unrealizedPnl)
+            collateral = Precise.string_add(rawCollateral, unrealizedPnl) if (unrealizedPnl is not None) else rawCollateral
+            initialMargin = rawCollateral
+            marginString = rawCollateral
         elif marginMode == 'crossed':
             marginMode = 'cross'
             initialMargin = rawCollateral
@@ -8705,7 +8706,7 @@ class bitget(Exchange, ImplicitAPI):
         contractSize = self.number_to_string(contractSizeNumber)
         baseAmount = self.safe_string_2(position, 'total', 'openTotalPos')
         entryPrice = self.safe_string_n(position, ['openPriceAvg', 'openAvgPrice', 'avgPrice'])
-        maintenanceMarginPercentage = self.safe_string(position, 'keepMarginRate')
+        maintenanceMarginPercentage = self.safe_string_2(position, 'keepMarginRate', 'mmr')
         openNotional = Precise.string_mul(entryPrice, baseAmount)
         if initialMargin is None:
             initialMargin = Precise.string_div(openNotional, leverage)
@@ -8715,9 +8716,10 @@ class bitget(Exchange, ImplicitAPI):
         markPrice = self.safe_string(position, 'markPrice')
         notional = Precise.string_mul(baseAmount, markPrice)
         initialMarginPercentage = Precise.string_div(initialMargin, notional)
-        liquidationPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'liquidationPrice')))
-        calcTakerFeeRate = '0.0006'
-        calcTakerFeeMult = '0.9994'
+        rawLiquidationPrice = self.omit_zero(self.safe_string(position, 'liquidationPrice'))
+        liquidationPrice = self.parse_number(rawLiquidationPrice) if ((rawLiquidationPrice is not None) and Precise.string_gt(rawLiquidationPrice, '0')) else None
+        calcTakerFeeRate = self.safe_string(marketResolved, 'taker', '0.0006')
+        calcTakerFeeMult = Precise.string_sub('1', calcTakerFeeRate)
         if (liquidationPrice is None) and (marginMode == 'isolated') and Precise.string_gt(baseAmount, '0'):
             signedMargin = Precise.string_div(rawCollateral, baseAmount)
             signedMmp = maintenanceMarginPercentage
@@ -8730,7 +8732,9 @@ class bitget(Exchange, ImplicitAPI):
                 mmrMinusOne = Precise.string_mul(mmrMinusOne, calcTakerFeeMult)
             else:
                 numerator = Precise.string_mul(numerator, calcTakerFeeMult)
-            liquidationPrice = self.parse_number(Precise.string_div(numerator, mmrMinusOne))
+            derivedLiq = Precise.string_div(numerator, mmrMinusOne)
+            if (derivedLiq is not None) and Precise.string_gt(derivedLiq, '0'):
+                liquidationPrice = self.parse_number(derivedLiq)
         feeToClose = Precise.string_mul(notional, calcTakerFeeRate)
         maintenanceMargin = Precise.string_add(Precise.string_mul(maintenanceMarginPercentage, notional), feeToClose)
         percentage = Precise.string_mul(Precise.string_div(unrealizedPnl, initialMargin, 4), '100')
@@ -8756,11 +8760,12 @@ class bitget(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': self.safe_integer_2(position, 'utime', 'updatedTime'),
             'maintenanceMargin': self.parse_number(maintenanceMargin),
             'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentage),
+            'positionMargin': self.parse_number(marginString),
             'collateral': self.parse_number(collateral),
             'initialMargin': self.parse_number(initialMargin),
             'initialMarginPercentage': self.parse_number(initialMarginPercentage),
             'leverage': self.parse_number(leverage),
-            'marginRatio': self.safe_number_2(position, 'marginRatio', 'mmr'),
+            'marginRatio': self.safe_number(position, 'marginRatio'),
             'stopLossPrice': None,
             'takeProfitPrice': None,
         })
@@ -8952,9 +8957,11 @@ class bitget(Exchange, ImplicitAPI):
         fetch the current funding rates for all markets
 
         https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+        https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :param str [params.subType]: *contract only* 'linear', 'inverse'
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param str [params.method]: either(default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
@@ -8968,11 +8975,18 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         request = {}
         productType, paramsProductType = self.handle_product_type_and_params(market, params)
+        uta, paramsUTA = self.handle_uta_and_params(paramsProductType, 'fetchFundingRates', False)
         method = 'publicMixGetV2MixMarketTickers'
-        methodOption, paramsMethod = self.handle_option_string_and_params(paramsProductType, 'fetchFundingRates', 'method', method)
+        methodOption, paramsMethod = self.handle_option_string_and_params(paramsUTA, 'fetchFundingRates', 'method', method)
         response = None
-        request['productType'] = productType
-        if methodOption == 'publicMixGetV2MixMarketTickers':
+        if uta is True:
+            request['category'] = productType
+            if methodOption == 'publicMixGetV2MixMarketTickers':
+                response = self.publicUtaGetV3MarketTickers(self.extend(request, paramsMethod))
+            elif methodOption == 'publicMixGetV2MixMarketCurrentFundRate':
+                response = self.publicUtaGetV3MarketCurrentFundRate(self.extend(request, paramsMethod))
+        elif methodOption == 'publicMixGetV2MixMarketTickers':
+            request['productType'] = productType
             # {
             #     "code": "00000",
             #     "msg": "success",
@@ -9007,6 +9021,7 @@ class bitget(Exchange, ImplicitAPI):
             # }
             response = self.publicMixGetV2MixMarketTickers(self.extend(request, paramsMethod))
         elif methodOption == 'publicMixGetV2MixMarketCurrentFundRate':
+            request['productType'] = productType
             #
             #     {
             #         "code": "00000",
@@ -9034,9 +9049,11 @@ class bitget(Exchange, ImplicitAPI):
         fetch the funding rate interval for multiple markets
 
         https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+        https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :param str [params.productType]: 'USDT-FUTURES'(default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
@@ -11431,7 +11448,7 @@ class bitget(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
         signed = api[0] == 'private'
         endpoint = api[1]
         pathPart = '/api'
@@ -11480,7 +11497,7 @@ class bitget(Exchange, ImplicitAPI):
             }
             if method == 'POST':
                 requestHeaders['Content-Type'] = 'application/json'
-        headersResult = headers if (requestHeaders is None) else requestHeaders
+        headersResult = requestHeaders
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
         if (sandboxMode is True) and (path != 'v2/public/time') and (path != 'v3/market/current-fund-rate'):
             # https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
@@ -11489,5 +11506,5 @@ class bitget(Exchange, ImplicitAPI):
             productType = self.safe_string(params, 'productType')
             if (productType != 'SCOIN-FUTURES') and (productType != 'SUSDT-FUTURES') and (productType != 'SUSDC-FUTURES'):
                 headersResult['PAPTRADING'] = '1'
-        bodyResult = body if (requestBody is None) else requestBody
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}

@@ -438,7 +438,7 @@ export default class paradex extends Exchange {
                     },
                     'fetchClosedOrders': undefined, // todo
                     'fetchOHLCV': {
-                        'limit': undefined, // todo by from/to
+                        'limit': 1000, // todo by from/to
                     },
                 },
                 'swap': {
@@ -848,33 +848,29 @@ export default class paradex extends Exchange {
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
             'symbol': market['id'],
         };
-        const now = this.milliseconds();
+        const maxLimit = 1000; // exchange has undocumented limit slightly above, but this is reliable limit
         const duration = this.parseTimeframe(timeframe);
-        const until = this.safeInteger2(params, 'until', 'till', now);
         const price = this.safeString(params, 'price');
         if (price !== undefined) {
             request['price_kind'] = price;
         }
-        const paramsOmitted = this.omit(params, ['until', 'till', 'price']);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, params);
+        const hasEnd = ('end_at' in request);
+        const paramsOmitted = this.omit(paramsUntil, ['price']);
+        const limitResolved = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
         if (since !== undefined) {
-            request['start_at'] = since;
-            if (limit !== undefined) {
-                request['end_at'] = since + duration * (limit + 1) * 1000 - 1;
-            }
-            else {
-                request['end_at'] = until;
+            requestUntil['start_at'] = since;
+            if (!hasEnd) {
+                requestUntil['end_at'] = since + duration * (limitResolved + 1) * 1000 - 1;
             }
         }
         else {
-            request['end_at'] = until;
-            if (limit !== undefined) {
-                request['start_at'] = until - duration * (limit + 1) * 1000 + 1;
+            if (!hasEnd) {
+                requestUntil['end_at'] = this.milliseconds();
             }
-            else {
-                request['start_at'] = until - duration * 101 * 1000 + 1;
-            }
+            requestUntil['start_at'] = requestUntil['end_at'] - duration * (limitResolved + 1) * 1000 + 1;
         }
-        const response = await this.publicGetMarketsKlines(this.extend(request, paramsOmitted));
+        const response = await this.publicGetMarketsKlines(this.extend(requestUntil, paramsOmitted));
         //
         //     {
         //         "results": [
@@ -1589,7 +1585,11 @@ export default class paradex extends Exchange {
         //
         const timestamp = this.safeInteger(order, 'created_at');
         const orderId = this.safeString(order, 'id');
-        const clientOrderId = this.omitZero(this.safeString(order, 'client_id'));
+        // a client id is free text, omitZero would drop every non-numeric one in php
+        let clientOrderId = this.safeString(order, 'client_id');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
         const marketId = this.safeString(order, 'market');
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = marketResolved['symbol'];
@@ -2504,9 +2504,11 @@ export default class paradex extends Exchange {
         //                 "realized_pnl": "0",
         //                 "unrealized_pnl": "-2.39677214",
         //                 "unrealized_funding_pnl": "-0.11214013",
+        //                 "leverage": "5",
         //                 "cost": "648.39960537",
         //                 "cost_usd": "648.529",
         //                 "cached_funding_index": "35202.1002351",
+        //                 "created_at": 1718947571560,
         //                 "last_updated_at": 1718950074249,
         //                 "last_fill_id": "1718947571560201703986670001",
         //                 "seq_no": 1718950074249176253,
@@ -2531,9 +2533,11 @@ export default class paradex extends Exchange {
         //         "realized_pnl": "0",
         //         "unrealized_pnl": "-2.39677214",
         //         "unrealized_funding_pnl": "-0.11214013",
+        //         "leverage": "5",
         //         "cost": "648.39960537",
         //         "cost_usd": "648.529",
         //         "cached_funding_index": "35202.1002351",
+        //         "created_at": 1718947571560,
         //         "last_updated_at": 1718950074249,
         //         "last_fill_id": "1718947571560201703986670001",
         //         "seq_no": 1718950074249176253,
@@ -2544,32 +2548,33 @@ export default class paradex extends Exchange {
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = marketResolved['symbol'];
         const side = this.safeStringLower(position, 'side');
-        let quantity = this.safeString(position, 'size');
-        if (side !== 'long') {
-            quantity = Precise.stringMul('-1', quantity);
-        }
-        const timestamp = this.safeInteger(position, 'time');
+        // side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        const quantity = Precise.stringAbs(this.safeString(position, 'size'));
+        const timestamp = this.safeInteger(position, 'created_at');
         const liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, 'liquidation_price')));
+        // cost_usd is signed by side, the unified notional is a magnitude
+        const notionalString = Precise.stringAbs(this.safeString(position, 'cost_usd'));
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'id'),
             'symbol': symbol,
             'entryPrice': this.safeNumber(position, 'average_entry_price'),
             'markPrice': undefined,
-            'notional': undefined,
-            'collateral': this.safeNumber(position, 'cost'),
+            'notional': this.parseNumber(notionalString),
+            'collateral': undefined, // cross margin is held at the account level, the position payload only carries its cost
             'unrealizedPnl': this.safeNumber(position, 'unrealized_pnl'),
             'side': side,
             'contracts': this.parseNumber(quantity),
             'contractSize': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'lastUpdateTimestamp': this.safeInteger(position, 'last_updated_at'),
             'hedged': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
-            'leverage': undefined,
+            'leverage': this.safeNumber(position, 'leverage'),
             'liquidationPrice': liquidationPrice,
             'marginRatio': undefined,
             'marginMode': undefined,
@@ -3408,7 +3413,8 @@ export default class paradex extends Exchange {
         const sorted = this.sortBy(rates, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let version = this.version;
         let pathValue = path;
         if (path.indexOf('v2/') === 0) {
@@ -3423,12 +3429,12 @@ export default class paradex extends Exchange {
         }
         let url = this.implodeHostname(baseApiUrl) + '/' + this.implodeParams(pathValue, params);
         const query = this.omit(params, this.extractParams(pathValue));
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
-        else if (api === 'private') {
+        else if (apiName === 'private') {
             const privateHeaders = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': this.safeString(this.options, 'broker', 'CCXT'),
@@ -3477,10 +3483,10 @@ export default class paradex extends Exchange {
             //         url += '?' + this.urlencode (query);
             //     }
             // }
-            const bodyResolved = (privateBody !== undefined) ? privateBody : body;
+            const bodyResolved = privateBody;
             return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

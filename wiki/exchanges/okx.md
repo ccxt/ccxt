@@ -554,6 +554,7 @@ create a trade order
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', the default is 'cross' |
 | params.rpiTakerAccess | <code>bool</code> | No | true to let a taker order match against retail price improvement liquidity |
 | params.rpiPxRound | <code>bool</code> | No | *rpi orders only* true to round the price outward to the nearest placeable non-crossing level |
+| params.selfTradePrevention | <code>string</code> | No | set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders |
 
 
 ```javascript
@@ -996,12 +997,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-okx.withdraw (code, amount, address, tag, params?)
+okx.withdraw (code, amount, address, params?)
 ```
 
 

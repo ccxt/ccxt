@@ -1048,8 +1048,8 @@ func (this *Mercado) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Mercado) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -1060,14 +1060,12 @@ func (this *Mercado) WithdrawAsync(code string, amount any, address any, optiona
 func (this *Mercado) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -1092,9 +1090,9 @@ func (this *Mercado) withdrawBody(ch chan EndpointResult[map[string]any], code s
 			panic(ArgumentsRequired(this.Id + " withdraw() requires tx_fee parameter to withdraw " + code))
 		}
 		if code == "XRP" {
-			if tagWithdrawTag == nil {
+			if IsEqual(tagWithdrawTag, nil) {
 				if _, ok := paramsWithdrawTag["destination_tag"]; !ok {
-					panic(ArgumentsRequired(this.Id + " withdraw() requires a tag argument or destination_tag parameter to withdraw " + code))
+					panic(ArgumentsRequired(this.Id + " withdraw() requires a tag or destination_tag parameter to withdraw " + code))
 				}
 			} else {
 				request["destination_tag"] = tagWithdrawTag
@@ -1428,24 +1426,21 @@ func (this *Mercado) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Mercado) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/"
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var isPublic bool = (api == "public") || (api == "v4Public") || (api == "v4PublicNet")
-	var privateBody *string = nil
+	var isPublic bool = (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "v4Public") || (apiName != nil && *apiName == "v4PublicNet")
+	var privateBody any = nil
 	var privateHeaders any = nil
 	if isPublic {
 		url += this.ImplodeParams(path, params)
@@ -1457,24 +1452,24 @@ func (this *Mercado) Sign(path string, optionalArgs ...any) any {
 		url += this.Version + "/"
 		// mercado requires each tonce to be greater than the previous one
 		var nonce any = this.IncrementingNonce()
-		privateBody = SafeStringPtr(this.Urlencode(this.Extend(map[string]any{
+		privateBody = this.Urlencode(this.Extend(map[string]any{
 			"tapi_method": path,
 			"tapi_nonce":  nonce,
-		}, params)))
-		var auth string = "/tapi/" + this.Version + "/" + "?" + *privateBody
+		}, params))
+		var auth *string = SafeStringPtr(Add("/tapi/"+this.Version+"/"+"?", privateBody))
 		privateHeaders = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
 			"TAPI-ID":      this.ApiKey,
 			"TAPI-MAC":     this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512),
 		}
 	}
-	var requestBody *string = privateBody
+	var requestBody any = privateBody
 	if isPublic {
-		requestBody = body
+		requestBody = nil
 	}
 	var requestHeaders any = privateHeaders
 	if isPublic {
-		requestHeaders = headers
+		requestHeaders = nil
 	}
 	return map[string]any{
 		"url":     url,
@@ -1700,8 +1695,8 @@ func (this *Mercado) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Mercado) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -1711,7 +1706,7 @@ func (this *Mercado) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

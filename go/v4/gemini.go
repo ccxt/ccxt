@@ -2586,8 +2586,8 @@ func (this *Gemini) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Gemini) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -2598,13 +2598,12 @@ func (this *Gemini) WithdrawAsync(code string, amount any, address any, optional
 func (this *Gemini) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagAndParams any = this.HandleWithdrawTagAndParams(tag, params)
-	var paramsWithdrawTag any = GetValue(tagAndParams, 1)
-	this.CheckAddress(address)
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -2706,11 +2705,11 @@ func (this *Gemini) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], optio
 		request["timestamp"] = since
 	}
 
-	listEp2544 := <-this.PrivatePostV1Transfers(this.Extend(request, params))
-	if listEp2544.Err != nil {
-		panic(listEp2544.Err)
+	listEp2543 := <-this.PrivatePostV1Transfers(this.Extend(request, params))
+	if listEp2543.Err != nil {
+		panic(listEp2543.Err)
 	}
-	var response []any = listEp2544.Value
+	var response []any = listEp2543.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(response)}
 	return nil
@@ -2881,11 +2880,11 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[ma
 		"network": networkId,
 	}
 
-	listEp2705 := <-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode))
-	if listEp2705.Err != nil {
-		panic(listEp2705.Err)
+	listEp2704 := <-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode))
+	if listEp2704.Err != nil {
+		panic(listEp2704.Err)
 	}
-	var response []any = listEp2705.Value
+	var response []any = listEp2704.Value
 	var results any = this.ParseDepositAddresses(response, []any{codeValue}, false, map[string]any{
 		"network":  networkCode,
 		"currency": codeValue,
@@ -2898,20 +2897,17 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[ma
 	return nil
 }
 func (this *Gemini) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var url string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var headersSigned any = nil
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var apiKey any = this.ApiKey
 		if GetIndexOf(apiKey, "account") < 0 {
@@ -2938,20 +2934,20 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(query)
 		}
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var fullUrl string = *apiUrl + url
 	var headersResolved any = func() any {
-		if api == "private" {
+		if apiName != nil && *apiName == "private" {
 			return headersSigned
 		}
-		return headers
+		return nil
 	}()
-	var bodyResolved any = body
+	var bodyResolved *string = nil
 	if (method == "POST") || (method == "DELETE") {
-		bodyResolved = this.Json(query)
+		bodyResolved = SafeStringPtr(this.Json(query))
 	}
 	return map[string]any{
 		"url":     fullUrl,
@@ -3575,8 +3571,8 @@ func (this *Gemini) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Gemini) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -3586,7 +3582,7 @@ func (this *Gemini) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

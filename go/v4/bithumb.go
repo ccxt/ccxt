@@ -501,7 +501,7 @@ func (this *Bithumb) Describe() any {
 		},
 		"options": map[string]any{
 			"generation": 2,
-			"fetchTickersGeneration2MaxMarketIdsPerRequest": 300,
+			"fetchTickersGeneration2MaxMarketIdsPerRequest": 200,
 			"createMarketBuyOrderRequiresPrice":             true,
 			"quoteCurrencies": map[string]any{
 				"KRW": map[string]any{
@@ -1116,18 +1116,7 @@ func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var marketId *string = this.SafeString(ticker, "market")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var close *string = this.SafeString2(ticker, "closing_price", "trade_price")
-	var change *string = this.SafeString2(ticker, "signed_change_price", "change_price")
-	var percentage *string = this.SafeString2(ticker, "signed_change_rate", "change_rate")
 	var open *string = this.SafeString(ticker, "opening_price")
-	var nonZeroOpen any = this.OmitZero(open)
-	if (marketId != nil) && (nonZeroOpen != nil) && (close != nil) {
-		var computedChange *string = Precise.StringSub(close, open)
-		// Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-		if (change != nil) && Precise.StringEq(change, "0") && !Precise.StringEq(computedChange, "0") {
-			change = computedChange
-			percentage = nil
-		}
-	}
 	var high *string = this.SafeString2(ticker, "max_price", "high_price")
 	var low *string = this.SafeString2(ticker, "min_price", "low_price")
 	// Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -1152,8 +1141,8 @@ func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"close":         close,
 		"last":          close,
 		"previousClose": this.SafeString(ticker, "prev_closing_price"),
-		"change":        change,
-		"percentage":    percentage,
+		"change":        nil,
+		"percentage":    nil,
 		"average":       nil,
 		"baseVolume":    this.SafeString2(ticker, "units_traded_24H", "acc_trade_volume_24h"),
 		"quoteVolume":   this.SafeString2(ticker, "acc_trade_value_24H", "acc_trade_price_24h"),
@@ -1217,31 +1206,26 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 		}
 		var marketIdsChunks []any = []any{}
 		var promises []any = []any{}
-		if symbols != nil {
-			request["markets"] = Join(marketIds, ",")
-			marketIdsChunks = append(marketIdsChunks, marketIds)
-			promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, paramsGeneration)))
-		} else {
-			var maxMarketIdsPerRequest any = this.SafeInteger(this.Options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300)
-			if (IsEqual(maxMarketIdsPerRequest, nil)) || (IsLessThan(maxMarketIdsPerRequest, 1)) {
-				maxMarketIdsPerRequest = 300
-			}
-			var marketIdsChunk []any = []any{}
-			for i := 0; i < marketIdsLength; i++ {
-				marketIdsChunk = append(marketIdsChunk, func() any {
-					if i >= 0 && i < len(marketIds) {
-						return DerefScalar(marketIds[i])
-					}
-					return nil
-				}())
-				var marketIdsChunkLength int = len(marketIdsChunk)
-				var isLastMarketId bool = (i == (marketIdsLength - 1))
-				if (IsGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId {
-					marketIdsChunks = append(marketIdsChunks, marketIdsChunk)
-					request["markets"] = Join(marketIdsChunk, ",")
-					promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, paramsGeneration)))
-					marketIdsChunk = []any{}
+		// the exchange rejects more than 200 market ids per request
+		var maxMarketIdsPerRequest any = this.SafeInteger(this.Options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200)
+		if (IsEqual(maxMarketIdsPerRequest, nil)) || (IsLessThan(maxMarketIdsPerRequest, 1)) {
+			maxMarketIdsPerRequest = 200
+		}
+		var marketIdsChunk []any = []any{}
+		for i := 0; i < marketIdsLength; i++ {
+			marketIdsChunk = append(marketIdsChunk, func() any {
+				if i >= 0 && i < len(marketIds) {
+					return DerefScalar(marketIds[i])
 				}
+				return nil
+			}())
+			var marketIdsChunkLength int = len(marketIdsChunk)
+			var isLastMarketId bool = (i == (marketIdsLength - 1))
+			if (IsGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId {
+				marketIdsChunks = append(marketIdsChunks, marketIdsChunk)
+				request["markets"] = Join(marketIdsChunk, ",")
+				promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, paramsGeneration)))
+				marketIdsChunk = []any{}
 			}
 		}
 		//
@@ -1289,9 +1273,9 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 				response = GetValue(response, "data")
 			}
 			var expectedMarketId any = nil
-			var marketIdsChunk []any = SafeListTyped(marketIdsChunks, i)
-			var firstMarketId *string = this.SafeString(marketIdsChunk, 0)
-			if (firstMarketId != nil) && (this.SafeString(marketIdsChunk, 1) == nil) {
+			var requestedMarketIds []any = SafeListTyped(marketIdsChunks, i)
+			var firstMarketId *string = this.SafeString(requestedMarketIds, 0)
+			if (firstMarketId != nil) && (this.SafeString(requestedMarketIds, 1) == nil) {
 				expectedMarketId = firstMarketId
 			}
 			var tickers []any = []any{}
@@ -2285,11 +2269,11 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes186415 map[string]any = r1.Value
-	if retRes186415 == nil {
+	var retRes184815 map[string]any = r1.Value
+	if retRes184815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes186415}
+		ch <- AsyncResult[any]{Value: retRes184815}
 	}
 	return nil
 }
@@ -3320,11 +3304,11 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[any], order any,
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes266215 map[string]any = r.Value
-	if retRes266215 == nil {
+	var retRes264615 map[string]any = r.Value
+	if retRes264615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes266215}
+		ch <- AsyncResult[any]{Value: retRes264615}
 	}
 	return nil
 }
@@ -3339,8 +3323,8 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[any], order any,
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag the secondary withdrawal destination address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
  * @param {string} [params.destination] secondary address destination for specific currencies, can alternatively use the tag argument
@@ -3363,9 +3347,7 @@ func (this *Bithumb) WithdrawAsync(code string, amount any, address any, optiona
 func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
@@ -3375,16 +3357,16 @@ func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code s
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "withdraw", "generation", 2)
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, paramsGeneration)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(paramsGeneration, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	paramsWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 1)
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	var network *string = this.SafeString2(paramsWithdrawTag, "network", "net_type")
 	var paramsNetwork any = this.Omit(paramsWithdrawTag, "network")
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
-	var destinationRequest *string = nil
+	var destinationRequest any = nil
 	var requiresDestination bool = ((code == "XRP") || (code == "XMR") || (code == "EOS") || (code == "STEEM") || (code == "TON"))
 	var paramsDestination any = paramsNetwork
 	if requiresDestination {
@@ -3392,9 +3374,9 @@ func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code s
 	}
 	if requiresDestination {
 		var destination *string = this.SafeString2(paramsNetwork, "destination", "secondary_address")
-		if (tagWithdrawTag == nil) && (destination == nil) {
-			panic(ArgumentsRequired(this.Id + " " + code + " withdraw() requires a tag argument or an extra destination param"))
-		} else if tagWithdrawTag != nil {
+		if (IsEqual(tagWithdrawTag, nil)) && (destination == nil) {
+			panic(ArgumentsRequired(this.Id + " " + code + " withdraw() requires a tag or an extra destination param"))
+		} else if !IsEqual(tagWithdrawTag, nil) {
 			destinationRequest = tagWithdrawTag
 		} else {
 			destinationRequest = destination
@@ -3423,9 +3405,9 @@ func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code s
 			}
 			request["address"] = address
 			request["currency"] = currency["id"]
-			request["net_type"] = network
+			request["net_type"] = this.NetworkCodeToId(network, code)
 			request["amount"] = this.NumberToString(amount)
-			if destinationRequest != nil {
+			if !IsEqual(destinationRequest, nil) {
 				request["secondary_address"] = destinationRequest
 			}
 			if receiverType != nil {
@@ -3443,9 +3425,9 @@ func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code s
 		request["currency"] = currency["id"]
 		request["units"] = amount
 		if network != nil {
-			request["net_type"] = network
+			request["net_type"] = this.NetworkCodeToId(network, code)
 		}
-		if destinationRequest != nil {
+		if !IsEqual(destinationRequest, nil) {
 			request["destination"] = destinationRequest
 		}
 		if receiverType != nil {
@@ -3519,7 +3501,7 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) map[
 		"txid":        this.SafeString(transaction, "txid"),
 		"timestamp":   timestamp,
 		"datetime":    datetime,
-		"network":     this.SafeString(transaction, "net_type"),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "net_type"), currencyResolved["code"]),
 		"addressFrom": nil,
 		"address":     nil,
 		"addressTo":   nil,
@@ -3749,22 +3731,22 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 	if code != nil && *code == "KRW" {
 		currency = this.Currency(code)
 
-		listEp3517 := <-this.PrivateGetV1WithdrawsKrw(this.Extend(request, paramsGeneration))
-		if listEp3517.Err != nil {
-			panic(listEp3517.Err)
+		listEp3499 := <-this.PrivateGetV1WithdrawsKrw(this.Extend(request, paramsGeneration))
+		if listEp3499.Err != nil {
+			panic(listEp3499.Err)
 		}
-		response = listEp3517.Value
+		response = listEp3499.Value
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
 			request["currency"] = GetValue(currency, "id")
 		}
 
-		listEp3524 := <-this.PrivateGetV1Withdraws(this.Extend(request, paramsGeneration))
-		if listEp3524.Err != nil {
-			panic(listEp3524.Err)
+		listEp3506 := <-this.PrivateGetV1Withdraws(this.Extend(request, paramsGeneration))
+		if listEp3506.Err != nil {
+			panic(listEp3506.Err)
 		}
-		response = listEp3524.Value
+		response = listEp3506.Value
 	}
 
 	//
@@ -3913,22 +3895,22 @@ func (this *Bithumb) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 	if code != nil && *code == "KRW" {
 		currency = this.Currency(code)
 
-		listEp3663 := <-this.PrivateGetV1DepositsKrw(this.Extend(request, paramsGeneration))
-		if listEp3663.Err != nil {
-			panic(listEp3663.Err)
+		listEp3645 := <-this.PrivateGetV1DepositsKrw(this.Extend(request, paramsGeneration))
+		if listEp3645.Err != nil {
+			panic(listEp3645.Err)
 		}
-		response = listEp3663.Value
+		response = listEp3645.Value
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
 			request["currency"] = GetValue(currency, "id")
 		}
 
-		listEp3670 := <-this.PrivateGetV1Deposits(this.Extend(request, paramsGeneration))
-		if listEp3670.Err != nil {
-			panic(listEp3670.Err)
+		listEp3652 := <-this.PrivateGetV1Deposits(this.Extend(request, paramsGeneration))
+		if listEp3652.Err != nil {
+			panic(listEp3652.Err)
 		}
-		response = listEp3670.Value
+		response = listEp3652.Value
 	}
 
 	//
@@ -3993,7 +3975,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan AsyncResult[any], code str
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " " + code + " createDepositAddress() requires a network parameter"))
 	}
-	request["net_type"] = network
+	request["net_type"] = this.NetworkCodeToId(network, code)
 
 	r1 := <-this.PrivatePostV1DepositsGenerateCoinAddress(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -4054,7 +4036,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " " + code + " fetchDepositAddress() requires a network parameter"))
 	}
-	request["net_type"] = network
+	request["net_type"] = this.NetworkCodeToId(network, code)
 
 	r1 := <-this.PrivateGetV1DepositsCoinAddress(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -4108,11 +4090,11 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan AsyncResult[any], optiona
 		panic(BadRequest(this.Id + " fetchDepositAddresses() is only supported for the generation 2 API"))
 	}
 
-	listEp3833 := <-this.PrivateGetV1DepositsCoinAddresses(paramsGeneration)
-	if listEp3833.Err != nil {
-		panic(listEp3833.Err)
+	listEp3815 := <-this.PrivateGetV1DepositsCoinAddresses(paramsGeneration)
+	if listEp3815.Err != nil {
+		panic(listEp3815.Err)
 	}
-	var response []any = listEp3833.Value
+	var response []any = listEp3815.Value
 
 	//
 	//     [
@@ -4150,7 +4132,7 @@ func (this *Bithumb) ParseDepositAddress(response any, optionalArgs ...any) map[
 	return map[string]any{
 		"info":     response,
 		"currency": code,
-		"network":  this.SafeString(response, "net_type"),
+		"network":  this.NetworkIdToCode(this.SafeString(response, "net_type"), code),
 		"address":  address,
 		"tag":      this.SafeString(response, "secondary_address"),
 	}
@@ -4201,20 +4183,17 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 	return result
 }
 func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestHeaders map[string]any = nil
 	var requestBody any = nil
 	var endpoint string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4223,7 +4202,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 	var queryKeys []string = ObjectKeys(query)
 	var queryKeysLength int = len(queryKeys)
 	var hasQuery bool = (queryKeysLength > 0)
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		requestHeaders = map[string]any{
 			"OPEN-API-PARTNER": "CCXT",
 		}
@@ -4287,18 +4266,8 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 	}
-	var headersResult any = func() any {
-		if requestHeaders != nil {
-			return requestHeaders
-		}
-		return headers
-	}()
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
+	var headersResult any = requestHeaders
+	var bodyResult any = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -4897,8 +4866,8 @@ func (this *Bithumb) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrd
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag the secondary withdrawal destination address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
  * @param {string} [params.destination] secondary address destination for specific currencies, can alternatively use the tag argument
@@ -4920,7 +4889,7 @@ func (this *Bithumb) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

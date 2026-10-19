@@ -3037,6 +3037,7 @@ function ccxtGoCounterCallType (goTranspiler, initializer, printedValue) {
 const CCXT_GO_ANNOTATED_RETURN_NATIVE = {
     'Str': [ '*string', 'string' ],
     'Dict': [ 'map[string]any' ],
+    'ExchangeOptions': [ 'map[string]any' ],
     // `Market` is MarketInterface | undefined: the dict or nil, like a Dict return
     'Market': [ 'map[string]any' ],
     'List': [ '[]any' ],
@@ -3110,7 +3111,7 @@ function ccxtGoAnnotatedReturnTypes (goTranspiler, node) {
     const alias = type?.getAliasSymbol ()?.escapedName;
     const annotation = (node.type !== undefined) ? node.type.getText () : undefined;
     const key = (typeof alias === 'string') ? alias : annotation;
-    if ((key === 'Str') || (key === 'Dict') || (key === 'Market') || (key === 'List') || (key === 'Bool')) {
+    if ((key === 'Str') || (key === 'Dict') || (key === 'ExchangeOptions') || (key === 'Market') || (key === 'List') || (key === 'Bool')) {
         return CCXT_GO_ANNOTATED_RETURN_NATIVE[key];
     }
     const general = ccxtGoGeneralAnnotatedReturnTypes (node, type, key);
@@ -3273,6 +3274,26 @@ function ccxtGoTsSrcImportGraph (fileName) {
     return graph;
 }
 
+// method name -> ts/src files declaring it, built once per import graph
+function ccxtGoTsSrcMethodDeclarers (graph) {
+    if (graph.declarers !== undefined) {
+        return graph.declarers;
+    }
+    const declarers = new Map ();
+    const declRe = /^\s+(?:(?:override|async|public|protected|private|static)\s+)*([A-Za-z_$][\w$]*)\s*\(/gm;
+    for (const [ file, text ] of graph.texts) {
+        let match;
+        declRe.lastIndex = 0;
+        while ((match = declRe.exec (text)) !== null) {
+            const files = declarers.get (match[1]) ?? new Set ();
+            files.add (file);
+            declarers.set (match[1], files);
+        }
+    }
+    graph.declarers = declarers;
+    return declarers;
+}
+
 // true when no other ts/src file that (transitively) imports the declaring file
 // declares a method of the same name; unreadable trees fail closed
 function ccxtGoGeneralAnnotatedMethodIsClosed (node, name) {
@@ -3288,7 +3309,10 @@ function ccxtGoGeneralAnnotatedMethodIsClosed (node, name) {
     if (!graph.texts.has (own)) {
         return false;
     }
-    const declares = new RegExp ('^\\s+(?:(?:override|async|public|protected|private|static)\\s+)*' + name + '\\s*\\(', 'm');
+    const declarers = ccxtGoTsSrcMethodDeclarers (graph).get (name);
+    if (declarers === undefined) {
+        return true;
+    }
     const related = new Map ();
     const relates = (file, depth) => {
         if (related.has (file)) {
@@ -3305,8 +3329,8 @@ function ccxtGoGeneralAnnotatedMethodIsClosed (node, name) {
         related.set (file, result);
         return result;
     };
-    for (const [ file, text ] of graph.texts) {
-        if ((file !== own) && declares.test (text) && relates (file, 0)) {
+    for (const file of declarers) {
+        if ((file !== own) && relates (file, 0)) {
             return false;
         }
     }

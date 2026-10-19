@@ -363,13 +363,10 @@ public partial class lbank : Exchange
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "erc20" },
-                    { "ETH", "erc20" },
                     { "TRC20", "trc20" },
-                    { "TRX", "trc20" },
                     { "OMNI", "omni" },
                     { "ASA", "asa" },
                     { "BEP20", "bep20(bsc)" },
-                    { "BSC", "bep20(bsc)" },
                     { "HT", "heco" },
                     { "BNB", "bep2" },
                     { "BTC", "btc" },
@@ -2526,9 +2523,9 @@ public partial class lbank : Exchange
         IDictionary<string, object> defaultNetworks = this.safeDict(this.options, "defaultNetworks");
         string? defaultNetwork = this.safeStringUpper(defaultNetworks, currencyCode);
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-        string? network = this.safeStringUpper(parameters, "network", defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        return network;
+        string? networkParam = this.safeStringUpper(parameters, "network", defaultNetwork); // accepts unified codes and aliases
+        string? networkCode = ((networkParam != null)) ? this.safeString(this.networkAliases, networkParam, networkParam) : null;
+        return this.safeString(networks, networkCode, networkCode);
     }
 
     /**
@@ -2614,6 +2611,10 @@ public partial class lbank : Exchange
         };
         IDictionary<string, object> networks = this.safeDict(this.options, "networks");
         string? network = this.safeStringUpper(parameters, "network");
+        if ((network != null))
+        {
+            network = this.safeString(this.networkAliases, network, network);
+        }
         network = this.safeString(networks, network, network);
         object paramsOmitted = ((network != null)) ? this.omit(parameters, "network") : parameters;
         if ((network != null))
@@ -2647,17 +2648,17 @@ public partial class lbank : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2678,6 +2679,10 @@ public partial class lbank : Exchange
             request["memo"] = tagWithdrawTag;
         }
         string? network = this.safeStringUpper2(paramsOmitted, "network", "networkName");
+        if ((network != null))
+        {
+            network = this.safeString(this.networkAliases, network, network);
+        }
         Dictionary<string, object> paramsOmitted2 = this.omit(paramsOmitted, new List<object>() {"network", "networkName"});
         IDictionary<string, object> networks = this.safeDict(this.options, "networks");
         string? networkId = this.safeString(networks, network, network);
@@ -3362,9 +3367,9 @@ public partial class lbank : Exchange
         return result;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
@@ -3458,8 +3463,8 @@ public partial class lbank : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

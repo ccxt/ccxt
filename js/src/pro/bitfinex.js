@@ -233,7 +233,7 @@ export default class bitfinex extends bitfinexRest {
         const data = this.safeList(message, 1, []);
         let ohlcvs = [];
         const first = this.safeList(data, 0);
-        if (Array.isArray(first)) {
+        if (first !== undefined) {
             // snapshot
             ohlcvs = data;
         }
@@ -368,7 +368,7 @@ export default class bitfinex extends bitfinexRest {
         //
         const name = 'myTrade';
         const data = this.safeList(message, 2);
-        const trade = this.parseWsTrade(data);
+        const trade = this.parseWsTrade({ 'result': data });
         const symbol = trade['symbol'];
         const market = this.market(symbol);
         const messageHash = name + ':' + market['id'];
@@ -433,7 +433,7 @@ export default class bitfinex extends bitfinexRest {
             const length = trades.length;
             for (let i = 0; i < length; i++) {
                 const index = length - i - 1;
-                const parsed = this.parseWsTrade(trades[index], market);
+                const parsed = this.parseWsTrade({ 'result': trades[index] }, market);
                 stored.append(parsed);
             }
         }
@@ -446,7 +446,7 @@ export default class bitfinex extends bitfinexRest {
                 return;
             }
             const trade = this.safeList(message, 2, []);
-            const parsed = this.parseWsTrade(trade, market);
+            const parsed = this.parseWsTrade({ 'result': trade }, market);
             stored.append(parsed);
         }
         if (channel !== undefined) {
@@ -454,7 +454,7 @@ export default class bitfinex extends bitfinexRest {
             client.resolve(stored, messageHash);
         }
     }
-    parseWsTrade(trade, market = undefined) {
+    parseWsTrade(tradeResult, market = undefined) {
         //
         //    [
         //        1128060969, // id
@@ -497,6 +497,7 @@ export default class bitfinex extends bitfinexRest {
         //       1655110144596
         //    ]
         //
+        const trade = this.safeList(tradeResult, 'result', []);
         const numFields = trade.length;
         const isPublic = numFields <= 8;
         let marketId = undefined;

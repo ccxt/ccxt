@@ -39,7 +39,7 @@ class htx(Exchange, ImplicitAPI):
             'countries': ['CN'],
             'rateLimit': 100,
             'userAgent': self.userAgents['chrome100'],
-            'certified': True,
+            'certified': False,
             'version': 'v1',
             'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
             'pro': True,
@@ -899,7 +899,7 @@ class htx(Exchange, ImplicitAPI):
                     'LTC': 'LTC',
                     'XRP': 'XRP',
                     'XLM': 'XLM',
-                    'CRONOS': 'CRO',
+                    'CRC20': 'CRO',
                     'CRO': 'CRO',
                     'GLMR': 'GLMR',
                     'POLYGON': 'MATIC',
@@ -1975,6 +1975,13 @@ class htx(Exchange, ImplicitAPI):
         close = self.safe_string(ticker, 'close')
         baseVolume = self.safe_string(ticker, 'amount')
         quoteVolume = self.safe_string(ticker, 'vol')
+        marketResolved = self.safe_dict(self.markets, symbol, market)
+        if self.safe_bool(marketResolved, 'contract') is True:
+            # contract tickers count 'vol' in contracts
+            if self.safe_bool(marketResolved, 'linear') is True:
+                quoteVolume = self.safe_string(ticker, 'trade_turnover')
+            else:
+                quoteVolume = Precise.string_mul(quoteVolume, self.safe_string(marketResolved, 'contractSize'))
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -6025,7 +6032,7 @@ class htx(Exchange, ImplicitAPI):
         currency = self.currency(code)
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = await self.fetch_deposit_addresses_by_network(code, paramsOmited)
-        selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
+        selectedNetworkCode = self.select_network_key_from_networks(currency['code'], networkCode, indexedAddresses, True)
         return self.safe_value(indexedAddresses, selectedNetworkCode)
 
     async def fetch_withdraw_addresses(self, code: str, note: Str = None, networkCode: Str = None, params: dict = {}) -> list[DepositAddress]:
@@ -6295,7 +6302,7 @@ class htx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
 
         https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
@@ -6304,14 +6311,14 @@ class htx(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagValue, paramsTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagValue, paramsTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             await self.load_markets()
-        self.check_address(address)
+        self.check_address(address, code, tagValue)
         currency = self.currency(code)
         request = {
             'address': address,  # only supports existing addresses in your withdraw address list
@@ -7071,7 +7078,7 @@ class htx(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         signedHeaders = None
         signedBody = None
         pathString = path
@@ -7082,14 +7089,16 @@ class htx(Exchange, ImplicitAPI):
             query = {}
         else:
             query = self.omit(params, self.extract_params(path))
-        if isinstance(api, str):
+        apiLength = len(api)
+        if apiLength == 1:
             # signing implementation for the old endpoints
-            if (api == 'public') or (api == 'private'):
+            apiName = api[0]
+            if (apiName == 'public') or (apiName == 'private'):
                 url += self.version
-            elif (api == 'v2Public') or (api == 'v2Private'):
+            elif (apiName == 'v2Public') or (apiName == 'v2Private'):
                 url += 'v2'
             url += '/' + self.implode_params(path, params)
-            if api == 'private' or api == 'v2Private':
+            if apiName == 'private' or apiName == 'v2Private':
                 self.check_required_credentials()
                 timestamp = self.ymdhms(self.nonce(), 'T')
                 request = {
@@ -7125,7 +7134,7 @@ class htx(Exchange, ImplicitAPI):
             else:
                 if (query is not None) and (len(query) > 0):
                     url += '?' + self.urlencode(query)
-            baseApiUrl = self.safe_string(self.urls['api'], api)
+            baseApiUrl = self.safe_string(self.urls['api'], apiName)
             if baseApiUrl is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = self.implode_params(baseApiUrl, {
@@ -7207,8 +7216,8 @@ class htx(Exchange, ImplicitAPI):
             url = self.implode_params(baseApiUrl2, {
                 'hostname': finalHostname,
             }) + url
-        headersResolved = signedHeaders if (signedHeaders is not None) else headers
-        bodyResolved = signedBody if (signedBody is not None) else body
+        headersResolved = signedHeaders
+        bodyResolved = signedBody
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
@@ -7779,7 +7788,7 @@ class htx(Exchange, ImplicitAPI):
             elif marketType == 'swap':
                 response = await self.contractPrivatePostSwapApiV1SwapAccountPositionInfo(self.extend(request, query))
             else:
-                raise NotSupported(self.id + ' setLeverage() not support self market type')
+                raise NotSupported(self.id + ' fetchPosition() not support self market type')
             #
             # future, swap
             #

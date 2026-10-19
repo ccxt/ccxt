@@ -100,8 +100,8 @@ export default class modetrade extends Exchange {
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -527,6 +527,7 @@ export default class modetrade extends Exchange {
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
+        //     "status": "ACTIVE",
         //     "quote_min": 123,
         //     "quote_max": 100000,
         //     "quote_tick": 0.1,
@@ -552,6 +553,11 @@ export default class modetrade extends Exchange {
         //   }
         //
         const marketId = this.safeString(market, 'symbol', '');
+        const status = this.safeString(market, 'status');
+        let active = undefined;
+        if (status !== undefined) {
+            active = (status === 'ACTIVE');
+        }
         const parts = marketId.split('_');
         const marketType = 'swap';
         const baseId = this.safeString(parts, 1);
@@ -579,7 +585,7 @@ export default class modetrade extends Exchange {
             'swap': true,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': active,
             'contract': true,
             'linear': true,
             'inverse': false,
@@ -632,6 +638,7 @@ export default class modetrade extends Exchange {
         //       "rows": [
         //         {
         //           "symbol": "PERP_BTC_USDC",
+        //           "status": "ACTIVE",
         //           "quote_min": 123,
         //           "quote_max": 100000,
         //           "quote_tick": 0.1,
@@ -1082,6 +1089,134 @@ export default class modetrade extends Exchange {
         }
         const sorted = this.sortBy(rates, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
+    }
+    parseTicker(ticker, market = undefined) {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "display_symbol_name": "BTC",
+        //         "broker_id": null,
+        //         "status": "ACTIVE",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "sum_unitary_funding": 27744.3,
+        //         "est_funding_rate": 0.00008318,
+        //         "last_funding_rate": 0.0000394,
+        //         "next_funding_time": 1792281600000,
+        //         "open_interest": 42.65602,
+        //         "is_pretge": false,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        const marketId = this.safeString(ticker, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(ticker, 'timestamp');
+        return this.safeTicker({
+            'symbol': marketResolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeString(ticker, '24h_high'),
+            'low': this.safeString(ticker, '24h_low'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString(ticker, '24h_open'),
+            'close': this.safeString(ticker, '24h_close'),
+            'last': this.safeString(ticker, '24h_close'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString(ticker, '24h_volume'),
+            'quoteVolume': this.safeString(ticker, '24h_amount'),
+            'indexPrice': this.safeString(ticker, 'index_price'),
+            'markPrice': this.safeString(ticker, 'mark_price'),
+            'info': ticker,
+        }, marketResolved);
+    }
+    /**
+     * @method
+     * @name modetrade#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTicker(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDC",
+        //             "24h_close": 81518.1
+        //         },
+        //         "timestamp": 1792270455082
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const ticker = this.extend({ 'timestamp': timestamp }, data);
+        return this.parseTicker(ticker, market);
+    }
+    /**
+     * @method
+     * @name modetrade#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTickers(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
+        const response = await this.v1PublicGetPublicFutures(params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "PERP_BTC_USDC",
+        //                     "24h_close": 81518.1
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1792270455518
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'rows', []);
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const result = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const marketId = this.safeString(row, 'symbol', '');
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            }
+            const ticker = this.extend({ 'timestamp': timestamp }, row);
+            result.push(this.parseTicker(ticker));
+        }
+        return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
     parseIncome(income, market = undefined) {
         //
@@ -2705,11 +2840,11 @@ export default class modetrade extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -3035,7 +3170,7 @@ export default class modetrade extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams(path, params);
@@ -3099,7 +3234,7 @@ export default class modetrade extends Exchange {
                     auth += '?' + this.rawencode(paramsSigned);
                 }
                 signedHeaders['content-type'] = 'application/x-www-form-urlencoded';
-                signedBody = (method === 'DELETE') ? '' : body;
+                signedBody = (method === 'DELETE') ? '' : undefined;
             }
             let secret = this.secret;
             if (secret.indexOf('ed25519:') >= 0) {
@@ -3110,7 +3245,7 @@ export default class modetrade extends Exchange {
             signedHeaders['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {

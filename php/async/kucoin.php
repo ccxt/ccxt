@@ -661,6 +661,7 @@ class kucoin extends Exchange {
                     '405' => '\\ccxt\\NotSupported',
                     '415' => '\\ccxt\\NotSupported',
                     '429' => '\\ccxt\\RateLimitExceeded',
+                    '429000' => '\\ccxt\\RateLimitExceeded', // {"code":"429000","msg":"Too many requests. System-level rate limit exceeded."}
                     '500' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error -- We had a problem with our server. Try again later.
                     '503' => '\\ccxt\\ExchangeNotAvailable',
                     '101030' => '\\ccxt\\PermissionDenied', // {"code":"101030","msg":"You haven't yet enabled the margin trading"}
@@ -918,7 +919,7 @@ class kucoin extends Exchange {
                 'uta' => null,
                 'version' => 'v1',
                 'symbolSeparator' => '-',
-                'fetchMyTradesMethod' => 'private_get_fills',
+                'fetchMyTradesMethod' => 'privateGetFills',
                 'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchCurrencies' => array(
@@ -1138,9 +1139,7 @@ class kucoin extends Exchange {
                     'BTC' => 'btc',
                     'BRC20' => 'btc',
                     'BTCNATIVESEGWIT' => 'bech32',
-                    'ETH' => 'eth',
                     'ERC20' => 'eth',
-                    'TRX' => 'trx',
                     'TRC20' => 'trx',
                     'HECO' => 'heco',
                     'HRC20' => 'heco',
@@ -3799,7 +3798,7 @@ class kucoin extends Exchange {
         return array(
             'info' => $response,
             'currency' => $currencyId,
-            'network' => $this->safe_string($data, 'chain'),
+            'network' => $this->network_id_to_code($this->safe_string($data, 'chain'), $code),
             'address' => $address,
             'tag' => $this->safe_string($data, 'memo'),
         );
@@ -5353,7 +5352,7 @@ class kucoin extends Exchange {
             $request['clientOid'] = $clientOrderId;
         } else {
             if ($id === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires an id argument or clientOrderId parameter');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires an id argument or clientOrderId parameter');
             }
             $request['orderId'] = $id;
         }
@@ -7073,14 +7072,14 @@ class kucoin extends Exchange {
             } else {
                 $response = Async\await($this->privateGetHfFills($this->extend($request, $paramsRequest)));
             }
-        } elseif ($method === 'private_get_fills') {
+        } elseif (($method === 'privateGetFills') || ($method === 'private_get_fills')) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if ($since !== null) {
                 // only returns trades up to one week after the since param
                 $request['startAt'] = $since;
             }
             $response = Async\await($this->privateGetFills($this->extend($request, $paramsRequest)));
-        } elseif ($method === 'private_get_limit_fills') {
+        } elseif (($method === 'privateGetLimitFills') || ($method === 'private_get_limit_fills')) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
@@ -7864,11 +7863,11 @@ class kucoin extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -7877,15 +7876,15 @@ class kucoin extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $this->check_address($address);
+        $this->check_address($address, $code, $tagWithdrawTag);
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -9497,9 +9496,9 @@ class kucoin extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         $versions = $this->safe_dict($this->options, 'versions', array());
-        $apiVersions = $this->safe_dict($versions, $api, array());
+        $apiVersions = $this->safe_dict($versions, $api[0], array());
         $methodVersions = $this->safe_dict($apiVersions, $method, array());
         $defaultVersion = $this->safe_string($methodVersions, $path, $this->options['version']);
         $version = $this->safe_string($params, 'version', $defaultVersion);
@@ -11233,6 +11232,25 @@ class kucoin extends Exchange {
         if ($crossMode !== null) {
             $marginMode = ($crossMode === true) ? 'cross' : 'isolated';
         }
+        $collateralString = $this->safe_string($position, 'maintMargin');
+        $marginString = null;
+        if (($collateralString === null) && ($marginMode === 'isolated')) {
+            $posMargin = $this->safe_string($position, 'posMargin');
+            if ($posMargin === null) {
+                $posComm = $this->safe_string($position, 'posComm');
+                $posCross = $this->safe_string($position, 'posCross');
+                if (($initialMargin !== null) && ($posComm !== null)) {
+                    $posMargin = Precise::string_add($initialMargin, $posComm);
+                    if ($posCross !== null) {
+                        $posMargin = Precise::string_add($posMargin, $posCross);
+                    }
+                }
+            }
+            if ($posMargin !== null) {
+                $marginString = $posMargin;
+                $collateralString = ($unrealisedPnl !== null) ? Precise::string_add($posMargin, $unrealisedPnl) : $posMargin;
+            }
+        }
         $lastUpdateTimestamp = $this->safe_integer($position, 'closeTime');
         if ($lastUpdateTimestamp === null) {
             if (is_array($position) && array_key_exists('closingTime' ?? '', $position)) {
@@ -11263,7 +11281,8 @@ class kucoin extends Exchange {
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'lastPrice' => $this->safe_number($position, 'closePrice'),
-            'collateral' => $this->safe_number($position, 'maintMargin'),
+            'positionMargin' => $this->parse_number($marginString),
+            'collateral' => $this->parse_number($collateralString),
             'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => null,
@@ -12103,43 +12122,41 @@ class kucoin extends Exchange {
         return $uta;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
         //                                ↑                 ↑
         //
         $versions = $this->safe_dict($this->options, 'versions', array());
-        $apiVersions = $this->safe_dict($versions, $api, array());
+        $apiVersions = $this->safe_dict($versions, $apiName, array());
         $methodVersions = $this->safe_dict($apiVersions, $method, array());
         $defaultVersion = $this->safe_string($methodVersions, $path, $this->options['version']);
         $version = $this->safe_string($params, 'version', $defaultVersion);
         $paramsOmitted = $this->omit($params, 'version');
         $endpoint = '/api/' . $version . '/' . $this->implode_params($path, $paramsOmitted);
-        if ($api === 'utaV2') {
+        if ($apiName === 'utaV2') {
             $endpoint = '/api/ua/v2/' . $this->implode_params($path, $paramsOmitted);
         }
-        if ($api === 'webExchange') {
+        if ($apiName === 'webExchange') {
             $endpoint = '/' . $this->implode_params($path, $paramsOmitted);
         }
-        if ($api === 'earn') {
+        if ($apiName === 'earn') {
             $endpoint = '/api/v1/' . $this->implode_params($path, $paramsOmitted);
         }
         $isUtaPrivate = false;
-        if (($api === 'uta') || ($api === 'utaPrivate')) {
+        if (($apiName === 'uta') || ($apiName === 'utaPrivate')) {
             $endpoint = '/api/ua/v1/' . $this->implode_params($path, $paramsOmitted);
-            if ($api === 'utaPrivate') {
+            if ($apiName === 'utaPrivate') {
                 $isUtaPrivate = true;
             }
         }
         $query = $this->omit($paramsOmitted, $this->extract_params($path));
         $endpart = '';
         $headersBase = array();
-        if ($headers !== null) {
-            $headersBase = $headers;
-        }
-        $bodyJson = $body;
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $bodyJson = null;
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -12157,10 +12174,10 @@ class kucoin extends Exchange {
             }
         }
         $headersResult = $headersBase;
-        $isFuturePrivate = ($api === 'futuresPrivate');
-        $isPrivate = ($api === 'private');
-        $isBroker = ($api === 'broker');
-        $isEarn = ($api === 'earn');
+        $isFuturePrivate = ($apiName === 'futuresPrivate');
+        $isPrivate = ($apiName === 'private');
+        $isBroker = ($apiName === 'broker');
+        $isEarn = ($apiName === 'earn');
         if ($isPrivate || $isFuturePrivate || $isBroker || $isEarn || $isUtaPrivate) {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce();

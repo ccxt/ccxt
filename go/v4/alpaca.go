@@ -2441,8 +2441,8 @@ func (this *Alpaca) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag a memo for the transaction
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Alpaca) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -2453,14 +2453,12 @@ func (this *Alpaca) WithdrawAsync(code string, amount any, address any, optional
 func (this *Alpaca) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -2470,7 +2468,7 @@ func (this *Alpaca) withdrawBody(ch chan EndpointResult[map[string]any], code st
 	}
 	var currency map[string]any = this.Currency(code)
 	var addressValue any = address
-	if (tagWithdrawTag != nil) && (tagWithdrawTag == nil || *tagWithdrawTag != "") {
+	if (!IsEqual(tagWithdrawTag, nil)) && (tagWithdrawTag != "") {
 		addressValue = Add(Add(address, ":"), tagWithdrawTag)
 	}
 	var request map[string]any = map[string]any{
@@ -2777,7 +2775,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) map[s
 	var addressFrom *string = nil
 	var typeVar *string = nil
 	var amount any = nil
-	var code *string = nil
+	var code any = nil
 	var status *string = nil
 	var comment *string = nil
 	var internal any = nil
@@ -2799,11 +2797,19 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) map[s
 		// currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
 		var activityCurrencyId *string = this.SafeString2(transaction, "symbol", "asset")
 		if activityCurrencyId != nil {
-			code = this.SafeCurrencyCode(activityCurrencyId)
+			if derefPtr := this.SafeCurrencyCode(activityCurrencyId); derefPtr != nil {
+				code = *derefPtr
+			} else {
+				code = nil
+			}
 		} else if (activityType != nil && *activityType == "CSD") || (activityType != nil && *activityType == "CSW") {
-			code = SafeStringPtr("USD")
+			code = "USD"
 		} else {
-			code = this.SafeCurrencyCode(nil, currency)
+			if derefPtr := this.SafeCurrencyCode(nil, currency); derefPtr != nil {
+				code = *derefPtr
+			} else {
+				code = nil
+			}
 		}
 		status = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 		comment = activityType
@@ -2812,14 +2818,18 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) map[s
 		txid = this.SafeString(transaction, "tx_hash")
 		datetime = this.SafeString(transaction, "created_at")
 		timestamp = this.Parse8601(datetime)
-		network = this.SafeString(transaction, "chain")
 		address = this.SafeString(transaction, "to_address")
 		addressTo = this.SafeString(transaction, "to_address")
 		addressFrom = this.SafeString(transaction, "from_address")
 		typeVar = this.ParseTransactionType(this.SafeString(transaction, "direction"))
 		amount = DerefScalar(this.SafeNumber(transaction, "amount"))
 		var currencyId *string = this.SafeString(transaction, "asset")
-		code = this.SafeCurrencyCode(currencyId, currency)
+		if derefPtr := this.SafeCurrencyCode(currencyId, currency); derefPtr != nil {
+			code = *derefPtr
+		} else {
+			code = nil
+		}
+		network = this.NetworkIdToCode(this.SafeString(transaction, "chain"), code)
 		status = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 		var fees *string = this.SafeString(transaction, "fees")
 		var networkFee *string = this.SafeString(transaction, "network_fee")
@@ -3053,47 +3063,35 @@ func (this *Alpaca) ParseBalance(response any) map[string]any {
 	return this.SafeBalance(result).(map[string]any)
 }
 func (this *Alpaca) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], GetValue(api, 0))
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var headersValue any = map[string]any{}
-	if headers != nil {
-		headersValue = headers
-	}
+	var headersValue map[string]any = map[string]any{}
 	if GetValue(api, 1) == "private" {
 		this.CheckRequiredCredentials()
-		AddElementToObject(headersValue, "APCA-API-KEY-ID", this.ApiKey)
-		AddElementToObject(headersValue, "APCA-API-SECRET-KEY", this.Secret)
+		headersValue["APCA-API-KEY-ID"] = this.ApiKey
+		headersValue["APCA-API-SECRET-KEY"] = this.Secret
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var bodyJson any = nil
+	var bodyJson *string = nil
 	if len(ObjectKeys(query)) > 0 {
 		if (method == "GET") || (method == "DELETE") {
 			endpoint += "?" + this.Urlencode(query)
 		} else {
-			bodyJson = this.Json(query)
-			AddElementToObject(headersValue, "Content-Type", "application/json")
+			bodyJson = SafeStringPtr(this.Json(query))
+			headersValue["Content-Type"] = "application/json"
 		}
 	}
 	var url string = this.ImplodeHostname(baseApiUrl) + endpoint
-	var bodyResolved any = func() any {
-		if bodyJson == nil {
-			return body
-		}
-		return bodyJson
-	}()
+	var bodyResolved *string = bodyJson
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -3669,8 +3667,8 @@ func (this *Alpaca) FetchDepositAddress(code string, options ...FetchDepositAddr
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag a memo for the transaction
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Alpaca) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -3680,7 +3678,7 @@ func (this *Alpaca) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

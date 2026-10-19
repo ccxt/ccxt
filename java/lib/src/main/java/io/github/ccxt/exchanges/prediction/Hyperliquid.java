@@ -11,6 +11,7 @@ import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.PredictionEvent;
 import io.github.ccxt.types.PredictionOrder;
 import io.github.ccxt.types.PredictionOrderBook;
@@ -1752,7 +1753,7 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchOpenOrders", (Map<String, Object>) (parameters));
             var userAddress = ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
             var paramsPublicAddress = ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), "fetchOpenOrders", "method", "frontendOpenOrders");
+            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), "fetchOpenOrders", "method", "frontendOpenOrders");
             String method = methodparamsMethodVariable.first();
             Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2668,10 +2669,10 @@ public class Hyperliquid extends HyperliquidApi
 
     public Object handlePublicAddress(Object methodName, Map<String, Object> parameters)
     {
-        io.github.ccxt.base.Pair<String, Map<String, Object>> userAuxparamsUserVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), methodName, "user", "subAccountAddress", (String) null);
+        Pair<String, Map<String, Object>> userAuxparamsUserVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), methodName, "user", "subAccountAddress", (String) null);
         String userAux = userAuxparamsUserVariable.first();
         Map<String, Object> paramsUser = userAuxparamsUserVariable.second();
-        io.github.ccxt.base.Pair<String, Map<String, Object>> userparamsAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUser), (String) (methodName), "address", userAux);
+        Pair<String, Map<String, Object>> userparamsAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsUser), (String) (methodName), "address", userAux);
         String user = userparamsAddressVariable.first();
         Map<String, Object> paramsAddress = userparamsAddressVariable.second();
         if (!java.util.Objects.equals(user, null) && !java.util.Objects.equals(user, ""))
@@ -2699,9 +2700,9 @@ public class Hyperliquid extends HyperliquidApi
         return ((String)normalized).toLowerCase();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "public") instanceof List))) ? (java.util.Objects.requireNonNullElse(api, "public") == null || 0 >= ((List<?>)java.util.Objects.requireNonNullElse(api, "public")).size() ? null : ((List<?>)java.util.Objects.requireNonNullElse(api, "public")).get(0)) : java.util.Objects.requireNonNullElse(api, "public");
+        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         String baseUrl = null;
         if (java.util.Objects.equals(sandboxMode, true))
@@ -2714,8 +2715,8 @@ public class Hyperliquid extends HyperliquidApi
             baseUrl = this.safeString(apiUrls, apiGroup, this.safeString(apiUrls, "public", ""));
         }
         String url = ((baseUrl + "/") + path);
-        Object headersValue = headers;
-        Object bodyValue = body;
+        Map<String, Object> headersValue = null;
+        String bodyValue = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "POST"), "POST"))
         {
             headersValue = new HashMap<String, Object>() {{
@@ -2731,10 +2732,6 @@ public class Hyperliquid extends HyperliquidApi
             h2kMap1.put("headers", headersValue);
             return h2kMap1;
         }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

@@ -270,7 +270,7 @@ func (this *Indodax) Describe() any {
 			"adjustForTimeDifference": false,
 			"networks": map[string]any{
 				"XLM":   "Stellar Token",
-				"BSC":   "bep20",
+				"BEP20": "bep20",
 				"TRC20": "trc20",
 				"MATIC": "polygon",
 			},
@@ -1710,8 +1710,8 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], opti
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Indodax) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -1722,14 +1722,12 @@ func (this *Indodax) WithdrawAsync(code string, amount any, address any, optiona
 func (this *Indodax) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -1751,7 +1749,7 @@ func (this *Indodax) withdrawBody(ch chan EndpointResult[map[string]any], code s
 		"withdraw_address": address,
 		"request_id":       strconv.FormatInt(requestId, 10),
 	}
-	if (tagWithdrawTag != nil) && (tagWithdrawTag == nil || *tagWithdrawTag != "") {
+	if (!IsEqual(tagWithdrawTag, nil)) && (tagWithdrawTag != "") {
 		request["withdraw_memo"] = tagWithdrawTag
 	}
 
@@ -2006,24 +2004,21 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan AsyncResult[any], optiona
 	return nil
 }
 func (this *Indodax) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = apiUrl
 	var privateBody any = nil
 	var privateHeaders any = nil
-	var isPublic bool = (api == "public")
+	var isPublic bool = (apiName != nil && *apiName == "public")
 	if isPublic {
 		var query any = this.Omit(params, this.ExtractParams(path))
 		var requestPath string = "/" + this.ImplodeParams(path, params)
@@ -2046,11 +2041,11 @@ func (this *Indodax) Sign(path string, optionalArgs ...any) any {
 	}
 	var requestBody any = privateBody
 	if isPublic {
-		requestBody = body
+		requestBody = nil
 	}
 	var requestHeaders any = privateHeaders
 	if isPublic {
-		requestHeaders = headers
+		requestHeaders = nil
 	}
 	return map[string]any{
 		"url":     url,
@@ -2496,8 +2491,8 @@ func (this *Indodax) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawal
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Indodax) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -2507,7 +2502,7 @@ func (this *Indodax) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

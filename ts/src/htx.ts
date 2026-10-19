@@ -22,7 +22,7 @@ export default class htx extends Exchange {
             'countries': [ 'CN' ],
             'rateLimit': 100,
             'userAgent': this.userAgents['chrome100'],
-            'certified': true,
+            'certified': false,
             'version': 'v1',
             'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
@@ -882,7 +882,7 @@ export default class htx extends Exchange {
                     'LTC': 'LTC',
                     'XRP': 'XRP',
                     'XLM': 'XLM',
-                    'CRONOS': 'CRO',
+                    'CRC20': 'CRO',
                     'CRO': 'CRO',
                     'GLMR': 'GLMR',
                     'POLYGON': 'MATIC',
@@ -2014,7 +2014,16 @@ export default class htx extends Exchange {
         const open = this.safeString (ticker, 'open');
         const close = this.safeString (ticker, 'close');
         const baseVolume = this.safeString (ticker, 'amount');
-        const quoteVolume = this.safeString (ticker, 'vol');
+        let quoteVolume = this.safeString (ticker, 'vol');
+        const marketResolved = this.safeDict (this.markets, symbol, market);
+        if (this.safeBool (marketResolved, 'contract') === true) {
+            // contract tickers count 'vol' in contracts
+            if (this.safeBool (marketResolved, 'linear') === true) {
+                quoteVolume = this.safeString (ticker, 'trade_turnover');
+            } else {
+                quoteVolume = Precise.stringMul (quoteVolume, this.safeString (marketResolved, 'contractSize'));
+            }
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -6447,7 +6456,7 @@ export default class htx extends Exchange {
         const currency = this.currency (code);
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
-        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
+        const selectedNetworkCode = this.selectNetworkKeyFromNetworks (currency['code'], networkCode, indexedAddresses, true);
         return this.safeValue (indexedAddresses, selectedNetworkCode);
     }
 
@@ -6747,16 +6756,16 @@ export default class htx extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagValue, paramsTag ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagValue, paramsTag ] = this.handleParamString (params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        this.checkAddress (address);
+        this.checkAddress (address, code, tagValue);
         const currency = this.currency (code);
         const request: Dict = {
             'address': address, // only supports existing addresses in your withdraw address list
@@ -7579,7 +7588,7 @@ export default class htx extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         let signedHeaders = undefined;
         let signedBody: Str = undefined;
         const pathString: string = path;
@@ -7591,15 +7600,17 @@ export default class htx extends Exchange {
         } else {
             query = this.omit (params, this.extractParams (path));
         }
-        if (typeof api === 'string') {
+        const apiLength = api.length;
+        if (apiLength === 1) {
             // signing implementation for the old endpoints
-            if ((api === 'public') || (api === 'private')) {
+            const apiName = api[0];
+            if ((apiName === 'public') || (apiName === 'private')) {
                 url += this.version;
-            } else if ((api === 'v2Public') || (api === 'v2Private')) {
+            } else if ((apiName === 'v2Public') || (apiName === 'v2Private')) {
                 url += 'v2';
             }
             url += '/' + this.implodeParams (path, params);
-            if (api === 'private' || api === 'v2Private') {
+            if (apiName === 'private' || apiName === 'v2Private') {
                 this.checkRequiredCredentials ();
                 const timestamp = this.ymdhms (this.nonce (), 'T');
                 let request: Dict = {
@@ -7640,7 +7651,7 @@ export default class htx extends Exchange {
                     url += '?' + this.urlencode (query);
                 }
             }
-            const baseApiUrl = this.safeString (this.urls['api'], api);
+            const baseApiUrl = this.safeString (this.urls['api'], apiName);
             if (baseApiUrl === undefined) {
                 throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
             }
@@ -7738,8 +7749,8 @@ export default class htx extends Exchange {
                 'hostname': finalHostname,
             }) + url;
         }
-        const headersResolved: NullableDict = (signedHeaders !== undefined) ? signedHeaders : headers;
-        const bodyResolved: Str = (signedBody !== undefined) ? signedBody : body;
+        const headersResolved: NullableDict = signedHeaders;
+        const bodyResolved: Str = signedBody;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
@@ -8349,7 +8360,7 @@ export default class htx extends Exchange {
             } else if (marketType === 'swap') {
                 response = await this.contractPrivatePostSwapApiV1SwapAccountPositionInfo (this.extend (request, query));
             } else {
-                throw new NotSupported (this.id + ' setLeverage() not support this market type');
+                throw new NotSupported (this.id + ' fetchPosition() not support this market type');
             }
             //
             // future, swap

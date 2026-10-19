@@ -101,6 +101,13 @@ public partial class gate : ccxt.gate
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "ws", new Dictionary<string, object>() {
+                    { "options", new Dictionary<string, object>() {
+                        { "headers", new Dictionary<string, object>() {
+                            { "X-Gate-Size-Decimal", "1" },
+                        } },
+                    } },
+                } },
                 { "tradesLimit", 1000 },
                 { "OHLCVLimit", 1000 },
                 { "watchTradesSubscriptions", new Dictionary<string, object>() {} },
@@ -618,7 +625,13 @@ public partial class gate : ccxt.gate
         Int64? limit = this.safeInteger(subscription, "limit");
         if ((symbol != null))
         {
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
+            {
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            }
+            ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+            orderbook["nonce"] = null;
+            (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
         }
     }
 
@@ -791,7 +804,8 @@ public partial class gate : ccxt.gate
         } else
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
-            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
+            storedOrderBook["nonce"] = null;
+            (storedOrderBook as ccxt.pro.OrderBook).cache = new List<object>() {};
             bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
             if ((checksum == true))
             {
@@ -1958,8 +1972,8 @@ public partial class gate : ccxt.gate
                 string? status = this.safeString(parsed, "status");
                 if ((status == null))
                 {
-                    Int64? left = this.safeInteger(info, "left");
-                    ((IDictionary<string,object>)parsed)["status"] = ((left == 0)) ? "closed" : "canceled";
+                    string? left = this.safeString(info, "left");
+                    ((IDictionary<string,object>)parsed)["status"] = Precise.stringEquals(left, "0") ? "closed" : "canceled";
                 }
             }
             ccxt.pro.BaseCache.appendTo(stored, parsed);

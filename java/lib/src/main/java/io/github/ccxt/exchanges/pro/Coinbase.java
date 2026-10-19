@@ -1140,14 +1140,20 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             String type = this.safeString(eventVar, "type");
             if (java.util.Objects.equals(type, "snapshot"))
             {
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
-            }
-            // unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) && java.util.Objects.equals(((Map<?, ?>)this.orderbooks).get(symbol), null))
+                if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+                {
+                    Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                }
+            } else if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
                 continue;
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+            if (java.util.Objects.equals(type, "snapshot"))
+            {
+                // reset in place so consumers holding a reference keep receiving updates after a resync
+                orderbook.reset(new HashMap<String, Object>() {{}});
+            }
             this.handleOrderBookHelper(orderbook, updates);
             orderbook.put("timestamp", this.parse8601(datetime));
             orderbook.put("datetime", datetime);

@@ -15,6 +15,7 @@ declare function assertGreaterOrEqual(exchange: Exchange, skippedProperties: obj
 declare function assertLess(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull?: boolean): void;
 declare function assertLessOrEqual(exchange: Exchange, skippedProperties: object, method: Str, entry: object, key: string | number, compareTo: Str, allowNull?: boolean): void;
 declare function assertEqual(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull?: boolean): void;
+declare function assertUnifiedNetworkCode(exchange: Exchange, skippedProperties: object, method: string, entry: object, networkCode: Str): void;
 declare function assertNonEqual(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull?: boolean): void;
 declare function assertInArray(exchange: Exchange, skippedProperties: object, method: string, entry: object | undefined, key: string | number, expectedArray: any[], allowNull?: boolean): void;
 declare function assertFeeStructure(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, allowNull?: boolean): void;
@@ -57,6 +58,7 @@ declare const _default: {
     assertLessOrEqual: typeof assertLessOrEqual;
     assertEqual: typeof assertEqual;
     assertNonEqual: typeof assertNonEqual;
+    assertUnifiedNetworkCode: typeof assertUnifiedNetworkCode;
     assertInteger: typeof assertInteger;
     checkPrecisionAccuracy: typeof checkPrecisionAccuracy;
     fetchBestBidAsk: typeof fetchBestBidAsk;

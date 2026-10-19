@@ -91,12 +91,12 @@ class binance extends \ccxt\async\binance {
                     'ws' => array(
                         'spot' => 'wss://stream.testnet.binance.vision/ws',
                         'margin' => 'wss://stream.testnet.binance.vision/ws',
-                        'future' => 'wss://fstream.binancefuture.com/ws',
-                        'delivery' => 'wss://dstream.binancefuture.com/ws',
+                        'linear' => 'wss://fstream.binancefuture.com/ws',
+                        'inverse' => 'wss://dstream.binancefuture.com/ws',
                         'ws-api' => array(
                             'spot' => 'wss://ws-api.testnet.binance.vision/ws-api/v3',
-                            'future' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
-                            'delivery' => 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                            'linear' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'inverse' => 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         ),
                     ),
                 ),
@@ -104,12 +104,12 @@ class binance extends \ccxt\async\binance {
                     'ws' => array(
                         'spot' => 'wss://demo-stream.binance.com/ws',
                         'margin' => 'wss://demo-stream.binance.com/ws',
-                        'future' => 'wss://fstream.binancefuture.com/ws',
-                        'delivery' => 'wss://dstream.binancefuture.com/ws',
+                        'linear' => 'wss://fstream.binancefuture.com/ws',
+                        'inverse' => 'wss://dstream.binancefuture.com/ws',
                         'ws-api' => array(
                             'spot' => 'wss://demo-ws-api.binance.com/ws-api/v3',
-                            'future' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
-                            'delivery' => 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                            'linear' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'inverse' => 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         ),
                     ),
                 ),
@@ -117,16 +117,16 @@ class binance extends \ccxt\async\binance {
                     'ws' => array(
                         'spot' => 'wss://stream.binance.com:9443/ws',
                         'margin' => 'wss://stream.binance.com:9443/ws',
-                        'future' => 'wss://fstream.binance.com/ws',
-                        'delivery' => 'wss://dstream.binance.com/ws',
+                        'linear' => 'wss://fstream.binance.com/ws',
+                        'inverse' => 'wss://dstream.binance.com/ws',
                         'stock' => 'wss://nbstream.binance.com/equity/ws',
                         'option' => 'wss://fstream.binance.com/public/ws',
                         'optionMarket' => 'wss://fstream.binance.com/market/ws',
                         'optionPrivate' => 'wss://fstream.binance.com/private/ws',
                         'ws-api' => array(
                             'spot' => 'wss://ws-api.binance.com:443/ws-api/v3',
-                            'future' => 'wss://ws-fapi.binance.com/ws-fapi/v1',
-                            'delivery' => 'wss://ws-dapi.binance.com/ws-dapi/v1',
+                            'linear' => 'wss://ws-fapi.binance.com/ws-fapi/v1',
+                            'inverse' => 'wss://ws-dapi.binance.com/ws-dapi/v1',
                         ),
                         'papi' => 'wss://fstream.binance.com/pm/ws',
                     ),
@@ -141,8 +141,8 @@ class binance extends \ccxt\async\binance {
                 'streamLimits' => array(
                     'spot' => 50, // max 1024
                     'margin' => 50, // max 1024
-                    'future' => 50, // max 200
-                    'delivery' => 50, // max 200
+                    'linear' => 50, // max 200
+                    'inverse' => 50, // max 200
                     'stock' => 50,
                     'option' => 50, // max 200
                     'optionMarket' => 50, // max 200
@@ -150,8 +150,8 @@ class binance extends \ccxt\async\binance {
                 'subscriptionLimitByStream' => array(
                     'spot' => 200,
                     'margin' => 200,
-                    'future' => 200,
-                    'delivery' => 200,
+                    'linear' => 200,
+                    'inverse' => 200,
                     'stock' => 200,
                     'option' => 200,
                     'optionMarket' => 200,
@@ -270,7 +270,7 @@ class binance extends \ccxt\async\binance {
             return $this->urls['api']['ws'][$type];
         }
         $baseUrl = $this->urls['api']['ws'][$type];
-        if ($type === 'future') {
+        if ($type === 'linear') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
             // const firstProtocol = baseUrl.indexOf ('://');
             // if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
@@ -303,7 +303,7 @@ class binance extends \ccxt\async\binance {
         if ($listenKey === null) {
             throw new AuthenticationError($this->id . ' getPrivateWsUrl() requires a listenKey from authenticate()');
         }
-        if ($type === 'future') {
+        if ($type === 'linear') {
             return $this->get_ws_url($type, 'private') . '?listenKey=' . $listenKey;
         }
         $wsUrl = $this->safe_string($this->urls['api']['ws'], $type);
@@ -373,8 +373,10 @@ class binance extends \ccxt\async\binance {
         /**
          * watch the public liquidations of a trading pair
          *
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#liquidation-order-streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#market-liquidation-order-streams
          *
          * @param {string} $symbol unified CCXT market $symbol
          * @param {int} [$since] the earliest time in ms to fetch liquidations for
@@ -606,8 +608,10 @@ class binance extends \ccxt\async\binance {
         /**
          * watch the private liquidations of a trading pair
          *
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update // deprecated
+         * @see https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/user-data-streams#event-order-update
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update // deprecated
+         * @see https://developers.binance.com/en/docs/products/derivatives-trading-coin-futures/user-data-streams#event-order-update
          *
          * @param {string} $symbol unified CCXT market $symbol
          * @param {int} [$since] the earliest time in ms to fetch liquidations for
@@ -626,8 +630,10 @@ class binance extends \ccxt\async\binance {
         /**
          * watch the private liquidations of a trading pair
          *
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update // deprecated
+         * @see https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/user-data-streams#event-order-update
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update // deprecated
+         * @see https://developers.binance.com/en/docs/products/derivatives-trading-coin-futures/user-data-streams#event-order-update
          *
          * @param {string[]} $symbols list of unified $market $symbols
          * @param {int} [$since] the earliest time in ms to fetch liquidations for
@@ -733,11 +739,16 @@ class binance extends \ccxt\async\binance {
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#partial-book-depth-streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#diff-book-depth-streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#rpi-diff-book-depth-streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#partial-book-depth-streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#diff-book-depth-streams
          *
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -762,11 +773,16 @@ class binance extends \ccxt\async\binance {
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Partial-Book-Depth-Streams
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams-RPI
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Partial-Book-Depth-Streams
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Partial-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#partial-book-depth-streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#diff-book-depth-streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams-RPI // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#$rpi-diff-book-depth-streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Partial-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#partial-book-depth-streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#diff-book-depth-streams
          *
          * @param {string[]} $symbols unified array of $symbols
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -783,7 +799,7 @@ class binance extends \ccxt\async\binance {
         if ($firstMarket['option'] === true) {
             $type = 'option';
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'delivery';
+            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         $name = 'depth';
         $streamHash = 'multipleOrderbook';
@@ -797,7 +813,7 @@ class binance extends \ccxt\async\binance {
         list($watchOrderBookRateOption, $paramsRate) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'watchOrderBookRate', '100');
         $watchOrderBookRate = $watchOrderBookRateOption;
         list($rpi, $paramsRpi) = $this->handle_option_bool_and_params($paramsRate, 'watchOrderBookForSymbols', 'rpi', false);
-        if ($rpi && $type === 'future') {
+        if ($rpi && $type === 'linear') {
             $name = 'rpiDepth';
             $watchOrderBookRate = '500';
         }
@@ -845,10 +861,14 @@ class binance extends \ccxt\async\binance {
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Partial-Book-Depth-Streams
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Partial-Book-Depth-Streams
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Partial-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#partial-book-depth-streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#diff-book-depth-streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Partial-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#partial-book-depth-streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Diff-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#diff-book-depth-streams
          *
          * @param {string[]} $symbols unified array of $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -863,7 +883,7 @@ class binance extends \ccxt\async\binance {
         if ($firstMarket['option'] === true) {
             $type = 'option';
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'delivery';
+            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         $name = 'depth';
         $streamHash = 'multipleOrderbook';
@@ -909,10 +929,14 @@ class binance extends \ccxt\async\binance {
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#partial-book-depth-streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#diff-book-depth-streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#partial-book-depth-streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#diff-book-depth-streams
          *
          * @param {string} $symbol unified array of symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -948,7 +972,7 @@ class binance extends \ccxt\async\binance {
             $payload['limit'] = $limit;
         }
         $marketType = $this->get_market_type('fetchOrderBookWs', $market, $params);
-        if ($marketType !== 'future') {
+        if ($marketType !== 'linear') {
             throw new BadRequest($this->id . ' fetchOrderBookWs only supports swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
@@ -1038,7 +1062,7 @@ class binance extends \ccxt\async\binance {
                     continue;
                 }
                 $pu = $this->safe_integer($messageItem, 'pu');
-                if ($type === 'future') {
+                if ($type === 'linear') {
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
                     if ($u < $orderbook['nonce']) {
                         continue;
@@ -1218,10 +1242,12 @@ class binance extends \ccxt\async\binance {
         // handle list of symbols
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
-                unset($this->orderbooks[$symbol]);
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
-            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            $orderbook = $this->orderbooks[$symbol];
+            $orderbook['nonce'] = null;
+            $orderbook->cache = array();
             $symbolSubscription = $this->extend($subscription, array( 'symbol' => $symbol ));
             // fetch the snapshot in a separate async call
             $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $symbolSubscription);
@@ -1270,8 +1296,10 @@ class binance extends \ccxt\async\binance {
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-$trades
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-$trades
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Aggregate-Trade-Streams
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Aggregate-Trade-Streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Aggregate-Trade-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#aggregate-trade-streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Aggregate-Trade-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#aggregate-trade-streams
          *
          * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -1300,7 +1328,7 @@ class binance extends \ccxt\async\binance {
         if ($isOption === true) {
             $type = 'option';
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'delivery';
+            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         $messageHashes = array();
         $subParams = array();
@@ -1361,8 +1389,10 @@ class binance extends \ccxt\async\binance {
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Aggregate-Trade-Streams
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Aggregate-Trade-Streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Aggregate-Trade-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#aggregate-trade-streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Aggregate-Trade-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#aggregate-trade-streams
          *
          * @param {string[]} $symbols unified $symbol of the $market to fetch trades for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1389,7 +1419,7 @@ class binance extends \ccxt\async\binance {
         if ($isOption === true) {
             $type = 'option';
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'delivery';
+            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         $subMessageHashes = array();
         $subParams = array();
@@ -1447,8 +1477,10 @@ class binance extends \ccxt\async\binance {
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#aggregate-trade-streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#aggregate-trade-streams
          *
          * @param {string} $symbol unified $symbol of the market to fetch trades for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1468,8 +1500,10 @@ class binance extends \ccxt\async\binance {
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#aggregate-trade-streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#aggregate-trade-streams
          *
          * @param {string} $symbol unified $symbol of the market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -1551,7 +1585,7 @@ class binance extends \ccxt\async\binance {
         //         "Q": "0.00000000"
         //     }
         //
-        // private watchMyTrades future/delivery
+        // private watchMyTrades linear/inverse
         //
         //     {
         //         "s": "BTCUSDT",
@@ -1686,8 +1720,10 @@ class binance extends \ccxt\async\binance {
          * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#kline-candlestick-streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#kline-candlestick-streams
          * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -1725,8 +1761,10 @@ class binance extends \ccxt\async\binance {
          * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#kline-candlestick-streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#kline-candlestick-streams
          * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
          *
          * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
@@ -1777,7 +1815,7 @@ class binance extends \ccxt\async\binance {
             $type = 'option';
             $wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'delivery';
+            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
             $wsUrlType = $type;
         }
         $isSpot = ($type === 'spot');
@@ -1838,8 +1876,10 @@ class binance extends \ccxt\async\binance {
          * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#kline-candlestick-streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#kline-candlestick-streams
          *
          * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1859,7 +1899,7 @@ class binance extends \ccxt\async\binance {
             $type = 'option';
             $wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'delivery';
+            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
             $wsUrlType = $type;
         }
         $isSpot = ($type === 'spot');
@@ -1921,8 +1961,10 @@ class binance extends \ccxt\async\binance {
          * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#kline-candlestick-streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/Kline-Candlestick-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#kline-candlestick-streams
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
@@ -2033,7 +2075,7 @@ class binance extends \ccxt\async\binance {
             'symbol' => $market['id'],
         );
         $type = $this->get_market_type('fetchTickerWs', $market, $params);
-        if ($type !== 'future') {
+        if ($type !== 'linear') {
             throw new BadRequest($this->id . ' fetchTickerWs only supports swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
@@ -2084,7 +2126,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $marketType = $this->get_market_type('fetchOHLCVWs', $market, $params);
-        if ($marketType !== 'spot' && $marketType !== 'future') {
+        if ($marketType !== 'spot' && $marketType !== 'linear') {
             throw new BadRequest($this->id . ' fetchOHLCVWs only supports spot or swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
@@ -2170,10 +2212,12 @@ class binance extends \ccxt\async\binance {
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-$symbol-mini-ticker-stream
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-$tickers-stream
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#individual-$symbol-ticker-streams
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#individual-$symbol-ticker-streams
          * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
          *
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
@@ -2198,7 +2242,8 @@ class binance extends \ccxt\async\binance {
         /**
          * watches a mark price for a specific market
          *
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#mark-price-stream
          *
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2221,7 +2266,8 @@ class binance extends \ccxt\async\binance {
         /**
          * watches the mark price for all markets
          *
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#mark-price-stream-for-all-market
          *
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2249,10 +2295,12 @@ class binance extends \ccxt\async\binance {
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#individual-symbol-ticker-streams
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#individual-symbol-ticker-streams
          * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
          *
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
@@ -2294,10 +2342,12 @@ class binance extends \ccxt\async\binance {
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#individual-symbol-ticker-streams
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#individual-symbol-ticker-streams
          *
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2318,7 +2368,8 @@ class binance extends \ccxt\async\binance {
         /**
          * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          *
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#mark-price-stream
          *
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2335,7 +2386,8 @@ class binance extends \ccxt\async\binance {
         /**
          * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          *
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#mark-price-stream
          *
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2353,7 +2405,8 @@ class binance extends \ccxt\async\binance {
          * unWatches best bid & ask for $symbols
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-book-ticker-streams
-         * @see https://developers.binance.com/docs/derivatives/options-trading/websocket-market-streams/Bookticker
+         * @see https://developers.binance.com/docs/derivatives/options-trading/websocket-market-streams/Bookticker // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/ws-streams/public#individual-symbol-book-ticker-streams
          *
          * @param {string[]} [$symbols] unified $symbols
          * @param {array} [$params] extra parameters
@@ -2368,10 +2421,12 @@ class binance extends \ccxt\async\binance {
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-$symbol-mini-ticker-stream
          * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#individual-$symbol-ticker-streams
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+         * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#individual-$symbol-ticker-streams
          *
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2460,9 +2515,9 @@ class binance extends \ccxt\async\binance {
             // eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
             $rawMarketType = ($isOptionMarkPrice) ? 'optionMarket' : 'option';
         } elseif ($this->isLinear($marketType, $subType)) {
-            $rawMarketType = 'future';
+            $rawMarketType = 'linear';
         } elseif ($this->isInverse($marketType, $subType)) {
-            $rawMarketType = 'delivery';
+            $rawMarketType = 'inverse';
         } elseif ($marketType === 'spot') {
             $rawMarketType = $marketType;
         } else {
@@ -2779,7 +2834,7 @@ class binance extends \ccxt\async\binance {
         //
         $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_dict($message, 'result', array());
-        $ticker = $this->parse_ws_ticker($result, 'future');
+        $ticker = $this->parse_ws_ticker($result, 'contract');
         $client->resolve($ticker, $messageHash);
     }
 
@@ -2967,8 +3022,6 @@ class binance extends \ccxt\async\binance {
             Async\await($client->future($messageHash));
             return;
         }
-        $client->future($messageHash); // created ahead of the request below, so concurrent callers can find it
-        $client->subscriptions[$marketType] = true;
         $requestId = $this->request_id($url);
         $requestHash = (string) $requestId;
         $message = array(
@@ -2981,6 +3034,10 @@ class binance extends \ccxt\async\binance {
             'method' => array($this, 'handle_user_data_stream_subscribe'),
             'subscription' => $marketType,
         );
+        // created right before the request, after the signing above: concurrent callers find it, and in
+        // the threaded ports the ack can not arrive between this future and the request one watch () adds
+        $client->future($messageHash);
+        $client->subscriptions[$marketType] = true;
         try {
             Async\await($this->watch($url, $requestHash, $message, $requestHash, $subscription));
             $client->resolve($marketType, $messageHash);
@@ -3030,7 +3087,8 @@ class binance extends \ccxt\async\binance {
          * @param {boolean} [$params->isIsolated] - whether it is isolated margin
          * @param {number} [$params->validity] - $validity in milliseconds, default 24 hours, max 24 hours
          *
-         * @see array(@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation)
+         * @see array(@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation) // deprecated
+         * @see array(@link https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-api/user-data-streams Binance User Data Stream Documentation)
          *
          * @return Promise<void>
          */
@@ -3211,9 +3269,9 @@ class binance extends \ccxt\async\binance {
                     $response = Async\await($this->sapiPostEquityListenKey($requestParams));
                 } elseif ($isPortfolioMargin) {
                     $response = Async\await($this->papiPostListenKey($paramsOmitted));
-                } elseif ($type === 'future') {
+                } elseif ($type === 'linear') {
                     $response = Async\await($this->fapiPrivatePostListenKey($paramsOmitted));
-                } elseif ($type === 'delivery') {
+                } elseif ($type === 'inverse') {
                     $response = Async\await($this->dapiPrivatePostListenKey($paramsOmitted));
                 } elseif ($type === 'option') {
                     $response = Async\await($this->eapiPrivatePostListenKey($paramsOmitted));
@@ -3268,16 +3326,16 @@ class binance extends \ccxt\async\binance {
         $subType = $this->handle_sub_type_and_params('keepAliveListenKey', null, $paramsPortfolioMargin)[0];
         if ($type !== 'option' && $type !== 'stock') {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
-            // which would incorrectly convert type='option' to 'future'.
+            // which would incorrectly convert type='option' to 'linear'.
             // stock needs the same exemption: with a defaultSubType of 'linear' -
             // always on binanceusdm, common on mixed instances - isLinear keys off
-            // subType alone and would flip 'stock' to 'future' - the stock branch
+            // subType alone and would flip 'stock' to 'linear' - the stock branch
             // below would never run, and the bucket lookup would renew the
             // FUTURES listen key while the stock key silently expires
             if ($this->isLinear($type, $subType)) {
-                $type = 'future';
+                $type = 'linear';
             } elseif ($this->isInverse($type, $subType)) {
-                $type = 'delivery';
+                $type = 'inverse';
             }
         }
         // For margin, token renewal is handled by renewListenToken method
@@ -3305,9 +3363,9 @@ class binance extends \ccxt\async\binance {
                 Async\await($this->sapiPostEquityListenKey($requestParams));
             } elseif ($isPortfolioMargin) {
                 Async\await($this->papiPutListenKey($this->extend($request, $paramsOmitted)));
-            } elseif ($type === 'future') {
+            } elseif ($type === 'linear') {
                 Async\await($this->fapiPrivatePutListenKey($this->extend($request, $paramsOmitted)));
-            } elseif ($type === 'delivery') {
+            } elseif ($type === 'inverse') {
                 Async\await($this->dapiPrivatePutListenKey($this->extend($request, $paramsOmitted)));
             } elseif ($type === 'option') {
                 Async\await($this->eapiPrivatePutListenKey($this->extend($request, $paramsOmitted)));
@@ -3427,7 +3485,7 @@ class binance extends \ccxt\async\binance {
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string|null} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+         * @param {string|null} [$params->type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding', use $params->subType 'inverse' for COIN-M
          * @param {string|null} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
          * @param {string[]|null} [$params->symbols] unified market symbols, only used in isolated margin mode
          * @param {string|null} [$params->method] $method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
@@ -3437,7 +3495,7 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
         }
         $type = $this->get_market_type('fetchBalanceWs', null, $params);
-        if ($type !== 'spot' && $type !== 'future' && $type !== 'delivery') {
+        if ($type !== 'spot' && $type !== 'linear' && $type !== 'inverse') {
             throw new BadRequest($this->id . ' fetchBalanceWs only supports spot or swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
@@ -3579,9 +3637,9 @@ class binance extends \ccxt\async\binance {
         if ($symbolsNormalized === null && ($type === 'spot')) {
             // when symbols aren't provide
             // we shouldn't rely on the defaultType
-            $type = 'future';
+            $type = 'linear';
         }
-        if ($type !== 'future' && $type !== 'delivery') {
+        if ($type !== 'linear' && $type !== 'inverse') {
             throw new BadRequest($this->id . ' fetchPositionsWs only supports swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
@@ -3728,7 +3786,7 @@ class binance extends \ccxt\async\binance {
         //         ]
         //     }
         //
-        // future/delivery
+        // linear/inverse
         //
         //     {
         //         "e": "ACCOUNT_UPDATE",            // Event Type
@@ -3826,7 +3884,7 @@ class binance extends \ccxt\async\binance {
         $accountType = '';
         for ($i = 0; $i < count($subscriptions); $i++) {
             $subscription = $subscriptions[$i];
-            if (($subscription === 'spot') || ($subscription === 'margin') || ($subscription === 'future') || ($subscription === 'delivery') || ($subscription === 'option')) {
+            if (($subscription === 'spot') || ($subscription === 'margin') || ($subscription === 'linear') || ($subscription === 'inverse') || ($subscription === 'option')) {
                 $accountType = $subscription;
                 break;
             }
@@ -3847,9 +3905,9 @@ class binance extends \ccxt\async\binance {
         $type = $marketType;
         if ($type !== 'option' && $type !== 'stock') {
             if ($this->isLinear($type, $subType)) {
-                $type = 'future';
+                $type = 'linear';
             } elseif ($this->isInverse($type, $subType)) {
-                $type = 'delivery';
+                $type = 'inverse';
             }
         }
         // sites consuming every element unpack this; the two that skip subType
@@ -3863,9 +3921,9 @@ class binance extends \ccxt\async\binance {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params($method, $market, $params);
         $subType = $this->handle_sub_type_and_params($method, $market, $paramsMarketType)[0];
         if ($this->isLinear($type, $subType)) {
-            $type = 'future';
+            $type = 'linear';
         } elseif ($this->isInverse($type, $subType)) {
-            $type = 'delivery';
+            $type = 'inverse';
         }
         return $type;
     }
@@ -3898,7 +3956,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $marketType = $this->get_market_type('createOrderWs', $market, $params);
-        if ($marketType !== 'spot' && $marketType !== 'future' && $marketType !== 'delivery') {
+        if ($marketType !== 'spot' && $marketType !== 'linear' && $marketType !== 'inverse') {
             throw new BadRequest($this->id . ' createOrderWs only supports spot or swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
@@ -4067,7 +4125,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $marketType = $this->get_market_type('editOrderWs', $market, $params);
-        if ($marketType !== 'spot' && $marketType !== 'future' && $marketType !== 'delivery') {
+        if ($marketType !== 'spot' && $marketType !== 'linear' && $marketType !== 'inverse') {
             throw new BadRequest($this->id . ' editOrderWs only supports spot or swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
@@ -4076,7 +4134,7 @@ class binance extends \ccxt\async\binance {
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
-        $isSwap = ($marketType === 'future' || $marketType === 'delivery');
+        $isSwap = ($marketType === 'linear' || $marketType === 'inverse');
         $payload = array();
         if ($marketType === 'spot') {
             $payload = $this->editSpotOrderRequest($id, $symbol, $type, $side, $amount, $price, $params);
@@ -4247,7 +4305,7 @@ class binance extends \ccxt\async\binance {
         );
         $isConditional = $this->safe_bool_n($paramsReturnRateLimits, array( 'stop', 'trigger', 'conditional' ));
         $clientOrderId = $this->safe_string_n($paramsReturnRateLimits, array( 'clientAlgoId', 'origClientOrderId', 'clientOrderId' ));
-        $shouldUseAlgoOrder = ($market['linear'] === true) && ($market['swap'] === true) && ($isConditional === true);
+        $shouldUseAlgoOrder = ($market['linear'] === true) && (($market['swap'] === true) || ($market['future'] === true)) && ($isConditional === true);
         if ($clientOrderId !== null) {
             if ($shouldUseAlgoOrder === true) {
                 $payload['clientAlgoId'] = $clientOrderId;
@@ -4348,7 +4406,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $type = $this->get_market_type('fetchOrderWs', $market, $params);
-        if ($type !== 'spot' && $type !== 'future' && $type !== 'delivery') {
+        if ($type !== 'spot' && $type !== 'linear' && $type !== 'inverse') {
             throw new BadRequest($this->id . ' fetchOrderWs only supports spot or swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
@@ -4519,8 +4577,10 @@ class binance extends \ccxt\async\binance {
          *
          * @see https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#order-update
          * @see https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-Order-Update
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update // deprecated
+         * @see https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/user-data-streams#event-order-update
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-Order-Update // deprecated
+         * @see https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/user-data-streams#event-algo-order-update
          * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/user-streams#order-report-stream
          *
          * @param {string} $symbol unified $market $symbol of the $market the $orders were made in
@@ -4818,6 +4878,13 @@ class binance extends \ccxt\async\binance {
         } elseif ($executionType === 'TRADE') {
             $lastTradeTimestamp = $T;
         }
+        $isAlgoOrder = (is_array($order) && array_key_exists('aid' ?? '', $order)); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
+        if ($isAlgoOrder && ($timestamp === null)) {
+            $algoStatus = $this->safe_string($order, 'X');
+            if (($algoStatus === 'NEW') || ($algoStatus === 'CANCELED')) {
+                $timestamp = $T;
+            }
+        }
         $lastUpdateTimestamp = $T;
         $fee = null;
         $feeCost = $this->safe_string($order, 'n');
@@ -4835,16 +4902,17 @@ class binance extends \ccxt\async\binance {
         if (($clientOrderId === null) || (strlen($clientOrderId) === 0)) {
             $clientOrderId = $this->safe_string($order, 'c');
         }
-        $stopPrice = $this->safe_string_n($order, array( 'P', 'sp', 'tp' ));
+        $stopPrice = $this->omit_zero($this->safe_string_n($order, array( 'P', 'sp', 'tp' )));
         $orderType = $this->safe_string_lower($order, 'o');
         // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
         $isTakeProfitType = $this->in_array($orderType, array( 'take_profit', 'take_profit_market', 'take_profit_limit' ));
-        $takeProfitPrice = $isTakeProfitType ? $this->omit_zero($stopPrice) : null;
+        $takeProfitPrice = $isTakeProfitType ? $stopPrice : null;
         $timeInForce = $this->safe_string($order, 'f');
         if ($timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             $timeInForce = 'PO';
         }
+        $postOnly = ($orderType === 'limit_maker') || ($timeInForce === 'PO');
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,
@@ -4856,7 +4924,7 @@ class binance extends \ccxt\async\binance {
             'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'type' => $this->parseOrderTypeByMarket($orderType, $marketType),
             'timeInForce' => $timeInForce,
-            'postOnly' => null,
+            'postOnly' => $postOnly,
             'reduceOnly' => $this->safe_bool($order, 'R'),
             'side' => $this->safe_string_lower($order, 'S'),
             'price' => $this->safe_string($order, 'p'),
@@ -4999,6 +5067,9 @@ class binance extends \ccxt\async\binance {
         $messageValue = $message;
         if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
             $messageValue = $this->safe_dict($message, 'o', $message);
+            if (($e === 'ALGO_UPDATE') && !(is_array($messageValue) && array_key_exists('T' ?? '', $messageValue))) {
+                $messageValue['T'] = $this->safe_integer($message, 'T'); // keep the outer event time, the algo payload carries no timestamps
+            }
         }
         if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
             $oField = $this->safe_value($message, 'o');
@@ -5201,12 +5272,12 @@ class binance extends \ccxt\async\binance {
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
         // matching the subType. requests a defaultSubType already rewrote
-        // arrive here as future or delivery and pass untouched, which lands on
+        // arrive here as future or inverse and pass untouched, which lands on
         // the same stream the old raw-type ordering produced in every case
         if ($type === 'spot' || $type === 'margin') {
-            $type = ($subType === 'inverse') ? 'delivery' : 'future';
+            $type = ($subType === 'inverse') ? 'inverse' : 'linear';
         }
-        // 'option' stays as 'option', don't redirect to 'future' - the helper's
+        // 'option' stays as 'option', don't redirect to 'linear' - the helper's
         // guard finally makes this comment true
         $marketTypeObject = array();
         $marketTypeObject['type'] = $type;
@@ -5489,7 +5560,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $type = $this->get_market_type('fetchMyTradesWs', $market, $params);
-        if ($type !== 'spot' && $type !== 'future') {
+        if ($type !== 'spot' && $type !== 'linear') {
             throw new BadRequest($this->id . ' fetchMyTradesWs does not support ' . $type . ' markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
@@ -5549,7 +5620,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $type = $this->get_market_type('fetchTradesWs', $market, $params);
-        if ($type !== 'spot' && $type !== 'future') {
+        if ($type !== 'spot' && $type !== 'linear') {
             throw new BadRequest($this->id . ' fetchTradesWs does not support ' . $type . ' markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);

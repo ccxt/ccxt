@@ -1701,12 +1701,20 @@ class kucoin(ccxt.async_support.kucoin):
         limit = self.safe_integer(subscription, 'limit')
         symbols = self.safe_list(subscription, 'symbols')
         if symbols is None:
-            symbol = self.safe_string(subscription, 'symbol')
-            self.orderbooks[symbol] = self.order_book({}, limit)
-        else:
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
+            symbols = [self.safe_string(subscription, 'symbol')]
+        limits = self.safe_dict(self.options, 'orderBookLimits', {})
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            storedLimit = self.safe_integer(limits, symbol)
+            # reuse the existing book so user-held references keep updating; rebuild only if depth changed
+            if not (symbol in self.orderbooks) or (storedLimit != limit):
                 self.orderbooks[symbol] = self.order_book({}, limit)
+            else:
+                orderbook = self.orderbooks[symbol]
+                orderbook['nonce'] = None
+                orderbook.cache = []
+            limits[symbol] = limit
+        self.options['orderBookLimits'] = limits
         # moved snapshot initialization to handleOrderBook to fix
         # https://github.com/ccxt/ccxt/issues/6820
         # the general idea is to fetch the snapshot after the first delta

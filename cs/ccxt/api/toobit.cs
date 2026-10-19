@@ -61,10 +61,10 @@ public partial class toobit : Exchange
     }
 
     /// <summary>Calls the commonGetQuoteV1IndexKlines endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> commonGetQuoteV1IndexKlines (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> commonGetQuoteV1IndexKlines (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("commonGetQuoteV1IndexKlines",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("commonGetQuoteV1IndexKlines",parameters);
     }
 
     /// <summary>Calls the commonGetQuoteV1IndexPriceComponents endpoint.</summary>
@@ -75,10 +75,10 @@ public partial class toobit : Exchange
     }
 
     /// <summary>Calls the commonGetQuoteV1MarkPriceKlines endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> commonGetQuoteV1MarkPriceKlines (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> commonGetQuoteV1MarkPriceKlines (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("commonGetQuoteV1MarkPriceKlines",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("commonGetQuoteV1MarkPriceKlines",parameters);
     }
 
     /// <summary>Calls the commonGetQuoteV1MarkPrice endpoint.</summary>

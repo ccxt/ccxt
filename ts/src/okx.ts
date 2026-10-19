@@ -1171,15 +1171,11 @@ export default class okx extends Exchange {
                 'networks': {
                     'BTC': 'Bitcoin',
                     'BTCLIGHTNING': 'Lightning',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'BRC20': 'BRC20',
-                    'ETH': 'ERC20',
                     'ERC20': 'ERC20',
-                    'TRX': 'TRC20',
                     'TRC20': 'TRC20',
                     'CRC20': 'Crypto',
-                    'CRONOS': 'Crypto',
                     'ACA': 'Acala',
                     'ALGO': 'Algorand',
                     'APT': 'Aptos',
@@ -1413,7 +1409,12 @@ export default class okx extends Exchange {
                         'trailing': true,
                         'iceberg': true, // todo implement
                         'leverage': false,
-                        'selfTradePrevention': true, // todo implement
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': true,
+                            'EXPIRE_TAKER': true,
+                            'EXPIRE_BOTH': true,
+                            'NONE': false, // okx enforces stp at the account level, it cannot be turned off
+                        },
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
                     },
@@ -3498,6 +3499,30 @@ export default class okx extends Exchange {
                 request['slTriggerPxType'] = slTriggerPxType;
             }
         }
+        // unified stp
+        let selfTradePrevention: Str = undefined;
+        [ selfTradePrevention, orderParams ] = this.handleOptionAndParams (orderParams, 'createOrder', 'selfTradePrevention');
+        if (selfTradePrevention !== undefined) {
+            const stpModes: Dict = {
+                'EXPIRE_MAKER': 'cancel_maker',
+                'EXPIRE_TAKER': 'cancel_taker',
+                'EXPIRE_BOTH': 'cancel_both',
+            };
+            const selfTradePreventionUpper = selfTradePrevention.toUpperCase ();
+            if (selfTradePreventionUpper === 'NONE') {
+                throw new NotSupported (this.id + ' createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order');
+            }
+            const stpMode = this.safeString (stpModes, selfTradePreventionUpper, selfTradePrevention.toLowerCase ());
+            const algoOrderTypes = this.safeDict (this.options, 'algoOrderTypes', {});
+            const requestOrdType = this.safeString (request, 'ordType');
+            if ((requestOrdType !== undefined) && (requestOrdType in algoOrderTypes)) {
+                throw new NotSupported (this.id + ' createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint');
+            }
+            if ((stpMode === 'cancel_both') && (requestOrdType === 'fok')) {
+                throw new InvalidOrder (this.id + ' createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders');
+            }
+            request['stpMode'] = stpMode;
+        }
         if (clientOrderId === undefined) {
             const brokerId = this.safeString (this.options, 'brokerId');
             if (brokerId !== undefined) {
@@ -3541,6 +3566,7 @@ export default class okx extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
      * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
      * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
+     * @param {string} [params.selfTradePrevention] set unified value for stp, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, other values are forwarded as-is, NONE is not supported, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
@@ -5589,13 +5615,13 @@ export default class okx extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5614,7 +5640,9 @@ export default class okx extends Exchange {
         let network = this.safeString (paramsWithdrawTag, 'network'); // this line allows the user to specify either ERC20 or ETH
         if (network !== undefined) {
             const networks = this.safeDict (this.options, 'networks', {});
-            network = this.safeString (networks, network.toUpperCase (), network); // handle ETH>ERC20 alias
+            const networkUpper = network.toUpperCase ();
+            const networkKey = this.safeString (this.networkAliases, networkUpper, networkUpper);
+            network = this.safeString (networks, networkKey, network); // resolve aliases to the unified key
             request['chain'] = currency['id'] + '-' + network;
         }
         const omitKeys: string[] = [ 'fee' ];
@@ -6419,12 +6447,18 @@ export default class okx extends Exchange {
         const leverageString = this.safeString (position, 'lever');
         let initialMarginPercentage: Str | Num = undefined;
         let collateralString: Str = undefined;
+        let marginString: Str = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString (position, 'imr');
-            collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
+            collateralString = (unrealizedPnlString !== undefined) ? Precise.stringAdd (initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (marginMode === 'isolated') {
             initialMarginPercentage = Precise.stringDiv ('1', leverageString);
-            collateralString = this.safeString (position, 'margin');
+            const isolatedMarginString = this.omitZero (this.safeString (position, 'margin'));
+            if (isolatedMarginString !== undefined) {
+                initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
+                collateralString = (unrealizedPnlString !== undefined) ? Precise.stringAdd (isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
+            }
         }
         const maintenanceMarginString = this.safeString (position, 'mmr');
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
@@ -6440,8 +6474,29 @@ export default class okx extends Exchange {
             }
         }
         const rounder = '0.00005'; // round to closest 0.01%
-        const maintenanceMarginPercentage = this.parseNumber (Precise.stringDiv (Precise.stringAdd (maintenanceMarginPercentageString, rounder), '1', 4));
-        const liquidationPrice = this.safeNumber (position, 'liqPx');
+        const maintenanceMarginPercentage = (maintenanceMarginPercentageString !== undefined) ? this.parseNumber (Precise.stringDiv (Precise.stringAdd (maintenanceMarginPercentageString, rounder), '1', 4)) : undefined;
+        let liquidationPriceString = this.omitZero (this.safeString (position, 'liqPx'));
+        if ((liquidationPriceString === undefined) && (marginMode === 'isolated') && (initialMarginString !== undefined) && (entryPriceString !== undefined) && (contractsAbs !== undefined) && Precise.stringGt (contractsAbs, '0') && (contractSizeString !== undefined) && (maintenanceMarginPercentage !== undefined)) {
+            const takerFeeRate = this.safeString (marketResolved, 'taker', '0.0005');
+            const mmpWithFee = Precise.stringAdd (this.numberToString (maintenanceMarginPercentage), takerFeeRate);
+            const totalSize = Precise.stringMul (contractsAbs, contractSizeString);
+            if (marketResolved['inverse'] === true) {
+                const invEntry = Precise.stringDiv (totalSize, entryPriceString);
+                const denom = (side === 'long') ? Precise.stringAdd (invEntry, initialMarginString) : Precise.stringSub (invEntry, initialMarginString);
+                const numFactor = (side === 'long') ? Precise.stringAdd ('1', mmpWithFee) : Precise.stringSub ('1', mmpWithFee);
+                if ((denom !== undefined) && Precise.stringGt (denom, '0')) {
+                    liquidationPriceString = Precise.stringDiv (Precise.stringMul (totalSize, numFactor), denom);
+                }
+            } else {
+                const marginPerUnit = Precise.stringDiv (initialMarginString, totalSize);
+                const num = (side === 'long') ? Precise.stringSub (entryPriceString, marginPerUnit) : Precise.stringAdd (entryPriceString, marginPerUnit);
+                const denom = (side === 'long') ? Precise.stringSub ('1', mmpWithFee) : Precise.stringAdd ('1', mmpWithFee);
+                if ((denom !== undefined) && Precise.stringGt (denom, '0')) {
+                    liquidationPriceString = Precise.stringDiv (num, denom);
+                }
+            }
+        }
+        const liquidationPrice = ((liquidationPriceString !== undefined) && Precise.stringGt (liquidationPriceString, '0')) ? this.parseNumber (liquidationPriceString) : undefined;
         const percentageString = this.safeString (position, 'uplRatio');
         const percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
         const timestamp = this.safeInteger (position, 'cTime');
@@ -6468,6 +6523,7 @@ export default class okx extends Exchange {
             'lastUpdateTimestamp': this.safeInteger (position, 'uTime'),
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'positionMargin': this.parseNumber (marginString),
             'collateral': this.parseNumber (collateralString),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
@@ -6739,7 +6795,8 @@ export default class okx extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
-    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         const isArray = Array.isArray (params);
         const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -6752,11 +6809,11 @@ export default class okx extends Exchange {
         let hasJsonBody = false;
         let jsonBody: Str = undefined;
         // const type = this.getPathAuthenticationType (path);
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        } else if (apiName === 'private') {
             this.checkRequiredCredentials ();
             // inject id in implicit api call
             if (method === 'POST' && (path === 'trade/batch-orders' || path === 'trade/order-algo' || path === 'trade/order')) {
@@ -6806,11 +6863,11 @@ export default class okx extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'base64');
             privateHeaders['OK-ACCESS-SIGN'] = signature;
         }
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (hasJsonBody) {
             requestBody = jsonBody;
         }
-        const requestHeaders: NullableDict = (api === 'private') ? privateHeaders : headers;
+        const requestHeaders: NullableDict = (apiName === 'private') ? privateHeaders : undefined;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
@@ -7725,8 +7782,8 @@ export default class okx extends Exchange {
         }
         const market = this.market (symbol);
         const type = (market['spot'] === true) ? 'MARGIN' : this.convertToInstrumentType (market['type']);
-        const uly = this.safeString (market['info'], 'uly');
-        if ((uly === undefined) || (uly === '')) {
+        const instFamily = this.safeString (market['info'], 'instFamily');
+        if ((instFamily === undefined) || (instFamily === '')) {
             if (type !== 'MARGIN') {
                 throw new BadRequest (this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
             }
@@ -7737,7 +7794,7 @@ export default class okx extends Exchange {
         const request: Dict = {
             'instType': type,
             'tdMode': marginMode,
-            'uly': uly,
+            'instFamily': instFamily,
         };
         if (type === 'MARGIN') {
             request['instId'] = market['id'];

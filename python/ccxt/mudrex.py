@@ -185,21 +185,20 @@ class mudrex(Exchange, ImplicitAPI):
             },
         })
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         apiUrls = self.safe_dict(self.urls, 'api', {})
-        base = self.safe_string(apiUrls, api)
+        base = self.safe_string(apiUrls, apiName)
         if base is None:
-            raise ExchangeError(self.id + ' unknown API namespace: ' + api)
+            raise ExchangeError(self.id + ' unknown API namespace: ' + apiName)
         url = base + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         requestHeaders = {}
-        if headers is not None:
-            requestHeaders = self.extend({}, headers)
         brokerId = self.safe_string(self.options, 'broker')
         if brokerId is not None:
             requestHeaders['Partner-Id'] = brokerId
         methodUpper = method.upper()
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             requestHeaders['X-Authentication'] = self.secret
             if methodUpper == 'POST' or methodUpper == 'PATCH' or methodUpper == 'DELETE':
@@ -1048,6 +1047,7 @@ class mudrex(Exchange, ImplicitAPI):
             'lastPrice': self.safe_number(position, 'closed_price'),  # exit price for closed positions
             'notional': notional,
             'leverage': self.safe_integer(position, 'leverage'),
+            'positionMargin': self.parse_number(initialMargin),
             'collateral': self.parse_number(initialMargin),
             'initialMargin': self.parse_number(initialMargin),
             'initialMarginPercentage': None,

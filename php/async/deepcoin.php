@@ -104,12 +104,12 @@ class deepcoin extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
-                'fetchPosition' => true,
+                'fetchPosition' => false,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchPositionsForSymbol' => true,
-                'fetchPositionsHistory' => true,
+                'fetchPositionsHistory' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => false,
                 'fetchTicker' => false,
@@ -332,7 +332,7 @@ class deepcoin extends Exchange {
                     'ERC20' => 'ERC20',
                     'TRC20' => 'TRC20',
                     'ARBITRUM' => 'ARBITRUM',
-                    'BSC' => 'BSC(BEP20)',
+                    'BEP20' => 'BSC(BEP20)',
                     'SOL' => 'SOL',
                     'BTC' => 'Bitcoin',
                     'ADA' => 'Cardano',
@@ -605,7 +605,7 @@ class deepcoin extends Exchange {
         ));
     }
 
-    public function set_markets(mixed $markets, $currencies = null) {
+    public function set_markets(mixed $markets, mixed $currencies = null) {
         $result = parent::set_markets($markets, $currencies);
         $symbols = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count($symbols); $i++) {
@@ -691,21 +691,24 @@ class deepcoin extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $maxLimit = 300;
+        $market = $this->market($symbol);
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
+        $price = $this->safe_string($paramsPaginate, 'price');
+        $maxLimit = 300;
+        if ($market['swap'] === true && $price === null) {
+            $maxLimit = 1000;
+        }
         if ($paginate) {
             $paramsExtended = $this->extend($paramsPaginate, array( 'calculateUntil' => true ));
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsExtended, $maxLimit));
         }
-        $market = $this->market($symbol);
-        $price = $this->safe_string($paramsPaginate, 'price');
         $bar = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $request = array(
             'instId' => $market['id'],
             'bar' => $bar,
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, $maxLimit);
         }
         $until = $this->safe_integer($paramsPaginate, 'until');
         if ($until !== null) {
@@ -1278,6 +1281,9 @@ class deepcoin extends Exchange {
         $defaultNetwork = $this->safe_string($defaultNetworks, $code);
         if (($network === null) || ($network === '')) {
             $network = $defaultNetwork;
+        }
+        if ($network !== null) {
+            $network = $this->safe_string($this->networkAliases, $network, $network);
         }
         $paramsOmitted = ($network !== null) ? $this->omit($params, 'network') : $params;
         $addressess = Async\await($this->fetch_deposit_addresses(array( $code ), $paramsOmitted));
@@ -2759,6 +2765,13 @@ class deepcoin extends Exchange {
         $marketId = $this->safe_string($position, 'instId');
         $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($position, 'cTime');
+        $marginMode = $this->safe_string($position, 'mgnMode');
+        $useMargin = $this->safe_number($position, 'useMargin');
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        $positionMargin = null;
+        if ($marginMode === 'isolated') {
+            $positionMargin = $useMargin;
+        }
         return $this->safe_position(array(
             'symbol' => $marketResolved['symbol'],
             'id' => $this->safe_string($position, 'posId'),
@@ -2769,17 +2782,18 @@ class deepcoin extends Exchange {
             'side' => $this->safe_string($position, 'posSide'),
             'notional' => null,
             'leverage' => $this->parse_number($this->omit_zero($this->safe_string($position, 'lever'))),
-            'unrealizedPnl' => null,
+            'unrealizedPnl' => $this->safe_number($position, 'unrealizedProfit'),
             'realizedPnl' => null,
+            'positionMargin' => $positionMargin,
             'collateral' => null,
             'entryPrice' => $this->safe_number($position, 'avgPx'),
             'markPrice' => null,
             'liquidationPrice' => $this->safe_number($position, 'liqPx'),
-            'marginMode' => $this->safe_string($position, 'mgnMode'),
+            'marginMode' => $marginMode,
             'hedged' => true,
-            'maintenanceMargin' => $this->safe_number($position, 'useMargin'),
+            'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
-            'initialMargin' => null,
+            'initialMargin' => $useMargin,
             'initialMarginPercentage' => null,
             'marginRatio' => null,
             'lastUpdateTimestamp' => $this->safe_integer($position, 'uTime'),
@@ -3219,7 +3233,8 @@ class deepcoin extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $requestPath = $path;
         if ($method === 'GET') {
             $query = $this->urlencode($params);
@@ -3227,12 +3242,12 @@ class deepcoin extends Exchange {
                 $requestPath .= '?' . $query;
             }
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $requestPath;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = $this->milliseconds();
             $dateTime = $this->iso8601($timestamp);
@@ -3243,7 +3258,7 @@ class deepcoin extends Exchange {
                 'DC-ACCESS-PASSPHRASE' => $this->password,
                 'appid' => '200103',
             );
-            $requestBody = ($method !== 'GET') ? $this->json($params) : $body;
+            $requestBody = ($method !== 'GET') ? $this->json($params) : null;
             if ($method !== 'GET') {
                 $privateHeaders['Content-Type'] = 'application/json';
                 $payload .= $requestBody;
@@ -3252,7 +3267,7 @@ class deepcoin extends Exchange {
             $privateHeaders['DC-ACCESS-SIGN'] = $signature;
             return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

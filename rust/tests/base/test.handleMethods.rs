@@ -14,7 +14,7 @@ fn helperTestHandleMarketTypeAndParams() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
             m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("defaultType".to_string(), Value::Str("valueFromOptions".into()));
+        m.insert("defaultType".to_string(), Value::Str("option".into()));
         m.insert("fetchX".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("defaultType".to_string(), Value::Str("valueFromMethodOptions".into()));
@@ -81,7 +81,7 @@ fn helperTestHandleMarketTypeAndParams() {
 }), Value::Null]);
     let mut marketType5: Value = marketType5params5Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     let mut params5: Value = marketType5params5Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType5.as_str() == Some("valueFromOptions")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType5.as_str() == Some("option")))));
     //
     // case #6, should prevail: spot (because hardcoded in base)
     //
@@ -95,38 +95,6 @@ fn helperTestHandleMarketTypeAndParams() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(marketType6.as_str() == Some("spot")))));
     // fake assertion to avoid unused vars
     assert!(ccxt::runtime::is_true(&(Value::Bool((params1 != Value::Null) || (params2 != Value::Null) || (params3 != Value::Null) || (params4 != Value::Null) || (params5 != Value::Null) || (params6 != Value::Null)))));
-}
-fn helperTestHandleNetworkRequest() {
-    let mut exchange = crate::tests_support::make_exchange(Value::Map({
-        let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
-            m.insert("options".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("networks".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("XYZ".to_string(), Value::Str("Xyz".into()));
-    m
-}));
-    m
-}));
-        m
-    }));
-    // (set_value on Exchange dropped)
-    let mut currencyCode: Value = Value::Str("ETH".into()); // todo: in future with complex cases
-    // no-case
-    let mut request1params1Variable = exchange.handle_request_network(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("network".to_string(), Value::Str("XYZ".into()));
-    m
-}), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}), Value::Str("chain_id".into()), &[currencyCode.clone(), Value::Bool(false)]);
-    let mut request1: Value = request1params1Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-    let mut params1: Value = request1params1Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params1, Value::Dict(__d) if __d.contains_key("network"))))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(matches!(&request1, Value::Dict(__d) if __d.contains_key("chain_id"))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(request1.as_map().and_then(|__m| __m.get("chain_id")).cloned().unwrap_or(Value::Null).as_str() == Some("Xyz")))));
 }
 fn helperTestHandleTypedOptions() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -179,6 +147,5 @@ fn helperTestHandleTypedOptions() {
 }
 pub fn testHandleMethods() {
     helperTestHandleMarketTypeAndParams();
-    helperTestHandleNetworkRequest();
     helperTestHandleTypedOptions();
 }

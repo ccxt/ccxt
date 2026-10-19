@@ -222,13 +222,17 @@ function installCsharpBooleanReturnCasts (csharp: any) {
 let cachedTranspiler: Transpiler | null = null;
 let cachedConfigKey: string | null = null;
 let rawComments: string[] = [];
+let programCache: ReturnType<typeof Transpiler.createProgramCache> | null = null;
 
 const verbose = !!process.env['CCXT_TRANSPILE_VERBOSE'];
 
 export default async ({ transpilerConfig, configKey, file, files, roots }: CsharpWorkerTask) => {
     const key = configKey || JSON.stringify (transpilerConfig);
     if (!cachedTranspiler || cachedConfigKey !== key) {
-        cachedTranspiler = new Transpiler (transpilerConfig);
+        if (!programCache) {
+            programCache = Transpiler.createProgramCache ();
+        }
+        cachedTranspiler = new Transpiler (transpilerConfig, programCache);
         setupCsharpPrinter (cachedTranspiler);
         // the main thread turns these into C# doc comments — collect the raw ones and let
         // it replay its own transform so the wrapper docs stay identical

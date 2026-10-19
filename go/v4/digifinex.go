@@ -595,16 +595,13 @@ func (this *Digifinex) Describe() any {
 				"AVALANCEC":    "AVAX-CCHAIN",
 				"AVALANCEX":    "AVAX-XCHAIN",
 				"BEP20":        "BEP20",
-				"BSC":          "BEP20",
 				"CARDANO":      "Cardano",
 				"CELO":         "Celo",
 				"CHILIZ":       "Chiliz",
 				"COSMOS":       "COSMOS",
 				"CRC20":        "Crypto.com",
-				"CRONOS":       "Crypto.com",
 				"DOGECOIN":     "DogeChain",
 				"ERC20":        "ERC20",
-				"ETH":          "ERC20",
 				"ETHW":         "ETHW",
 				"IOTA":         "MIOTA",
 				"KLAYTN":       "KLAY",
@@ -621,7 +618,6 @@ func (this *Digifinex) Describe() any {
 				"TERRA":        "Terra",
 				"TON":          "Ton",
 				"TRC20":        "TRC20",
-				"TRX":          "TRC20",
 				"VECHAIN":      "Vechain",
 			},
 			"networksById": map[string]any{
@@ -632,7 +628,7 @@ func (this *Digifinex) Describe() any {
 				"ERC20":      "ERC20",
 				"ETH":        "ERC20",
 				"Polygon":    "POLYGON",
-				"Crypto.com": "CRONOS",
+				"Crypto.com": "CRC20",
 			},
 		},
 		"commonCurrencies": map[string]any{
@@ -786,12 +782,12 @@ func (this *Digifinex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs .
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		listRecv780 := r.Value
-		var retRes58419 []any = listRecv780
-		if retRes58419 == nil {
+		listRecv776 := r.Value
+		var retRes58019 []any = listRecv776
+		if retRes58019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes58419}
+			ch <- AsyncResult[any]{Value: retRes58019}
 		}
 		return nil
 	}
@@ -800,12 +796,12 @@ func (this *Digifinex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs .
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv789 := r1.Value
-	var retRes58615 []any = listRecv789
-	if retRes58615 == nil {
+	listRecv785 := r1.Value
+	var retRes58215 []any = listRecv785
+	if retRes58215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes58615}
+		ch <- AsyncResult[any]{Value: retRes58215}
 	}
 	return nil
 }
@@ -2615,11 +2611,11 @@ func (this *Digifinex) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes198415 map[string]any = r1.Value
-	if retRes198415 == nil {
+	var retRes198015 map[string]any = r1.Value
+	if retRes198015 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes198415}
+		ch <- AsyncResult[any]{Value: retRes198015}
 	}
 	return nil
 }
@@ -2833,12 +2829,12 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[any], ids any, optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		listRecv2669, _ := r1.Value, r1.Value != nil
-		var retRes213119 []any = listRecv2669
-		if retRes213119 == nil {
+		listRecv2665, _ := r1.Value, r1.Value != nil
+		var retRes212719 []any = listRecv2665
+		if retRes212719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes213119}
+			ch <- AsyncResult[any]{Value: retRes212719}
 		}
 		return nil
 	}
@@ -4147,11 +4143,11 @@ func (this *Digifinex) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes311715 []any = r.Value
-	if retRes311715 == nil {
+	var retRes311315 []any = r.Value
+	if retRes311315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes311715}
+		ch <- AsyncResult[any]{Value: retRes311315}
 	}
 	return nil
 }
@@ -4188,11 +4184,11 @@ func (this *Digifinex) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes313215 []any = r.Value
-	if retRes313215 == nil {
+	var retRes312815 []any = r.Value
+	if retRes312815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes313215}
+		ch <- AsyncResult[any]{Value: retRes312815}
 	}
 	return nil
 }
@@ -4252,7 +4248,7 @@ func (this *Digifinex) ParseTransaction(transaction any, optionalArgs ...any) ma
 			"cost":     feeCost,
 		}
 	}
-	var network *string = this.SafeString(transaction, "chain")
+	var network *string = this.NetworkIdToCode(this.SafeString(transaction, "chain"), code)
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,
@@ -4438,8 +4434,8 @@ func (this *Digifinex) transferBody(ch chan AsyncResult[map[string]any], code st
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Digifinex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -4450,14 +4446,12 @@ func (this *Digifinex) WithdrawAsync(code string, amount any, address any, optio
 func (this *Digifinex) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -4471,7 +4465,7 @@ func (this *Digifinex) withdrawBody(ch chan EndpointResult[map[string]any], code
 		"amount":   this.CurrencyToPrecision(code, amount),
 		"currency": currency["id"],
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["memo"] = tagWithdrawTag
 	}
 
@@ -4848,11 +4842,11 @@ func (this *Digifinex) fetchFundingIntervalBody(ch chan AsyncResult[map[string]a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes361115 map[string]any = r.Value
-	if retRes361115 == nil {
+	var retRes360715 map[string]any = r.Value
+	if retRes360715 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes361115}
+		ch <- AsyncResult[map[string]any]{Value: retRes360715}
 	}
 	return nil
 }
@@ -5420,7 +5414,7 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) any {
 			return "isolated"
 		}())
 	} else {
-		marginMode = SafeStringPtr("crossed")
+		marginMode = SafeStringPtr("cross")
 	}
 	var timestamp *int64 = this.SafeInteger(position, "timestamp")
 	var side *string = this.SafeString(position, "side")
@@ -5428,6 +5422,27 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) any {
 		side = SafeStringPtr("long")
 	} else if side != nil && *side == "go_short" {
 		side = SafeStringPtr("short")
+	}
+	var positionMargin *string = this.SafeString(position, "margin")
+	var unrealizedPnl *string = this.SafeString(position, "unrealized_pnl")
+	var collateralString any = nil
+	var marginString *string = nil
+	if marginMode != nil && *marginMode == "isolated" {
+		var isolatedMargin *string = this.SafeString(position, "posi_balance")
+		if isolatedMargin != nil {
+			marginString = isolatedMargin
+			collateralString = func() any {
+				if unrealizedPnl != nil {
+					return Precise.StringAdd(isolatedMargin, unrealizedPnl)
+				}
+				return isolatedMargin
+			}()
+		}
+	}
+	var maintenanceMarginString *string = this.SafeString(position, "maintain_margin")
+	var forceCloseFee any = this.OmitZero(this.SafeString(position, "force_close_fee"))
+	if (maintenanceMarginString != nil) && (forceCloseFee != nil) {
+		maintenanceMarginString = Precise.StringAdd(maintenanceMarginString, forceCloseFee)
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -5437,18 +5452,19 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) any {
 		"marginMode":                  marginMode,
 		"liquidationPrice":            this.SafeNumber(position, "liquidation_price"),
 		"entryPrice":                  this.SafeNumber2(position, "avg_cost", "entry_price"),
-		"unrealizedPnl":               this.SafeNumber(position, "unrealized_pnl"),
-		"contracts":                   this.SafeNumber(position, "avail_position"),
+		"unrealizedPnl":               this.ParseNumber(unrealizedPnl),
+		"contracts":                   this.SafeNumber2(position, "position", "avail_position"),
 		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
-		"markPrice":                   this.SafeNumber(position, "last"),
+		"markPrice":                   this.SafeNumber2(position, "mark_price", "last"),
 		"side":                        side,
 		"hedged":                      nil,
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
-		"maintenanceMargin":           this.SafeNumber(position, "margin"),
+		"maintenanceMargin":           this.ParseNumber(maintenanceMarginString),
 		"maintenanceMarginPercentage": this.SafeNumber(position, "maint_margin_ratio"),
-		"collateral":                  nil,
-		"initialMargin":               nil,
+		"positionMargin":              this.ParseNumber(marginString),
+		"collateral":                  this.ParseNumber(collateralString),
+		"initialMargin":               this.ParseNumber(positionMargin),
 		"initialMarginPercentage":     nil,
 		"leverage":                    this.SafeNumber2(position, "leverage", "leverage_ratio"),
 		"marginRatio":                 this.SafeNumber(position, "margin_ratio"),
@@ -6019,11 +6035,11 @@ func (this *Digifinex) addMarginBody(ch chan AsyncResult[map[string]any], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes450715 map[string]any = MapTyped(r.Value)
-	if retRes450715 == nil {
+	var retRes452015 map[string]any = MapTyped(r.Value)
+	if retRes452015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes450715}
+		ch <- AsyncResult[map[string]any]{Value: retRes452015}
 	}
 	return nil
 }
@@ -6056,11 +6072,11 @@ func (this *Digifinex) reduceMarginBody(ch chan EndpointResult[map[string]any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes452415 map[string]any = MapTyped(r.Value)
-	if retRes452415 == nil {
+	var retRes453715 map[string]any = MapTyped(r.Value)
+	if retRes453715 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes452415, Raw: retRes452415}
+		ch <- EndpointResult[map[string]any]{Value: retRes453715, Raw: retRes453715}
 	}
 	return nil
 }
@@ -6306,10 +6322,6 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var signed bool = (this.SafeString(api, 0) != nil && *this.SafeString(api, 0) == "private")
 	var endpoint *string = this.SafeString(api, 1)
 	var pathPart string = "/swap/v2"
@@ -6354,7 +6366,7 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 		var hasPostBody bool = (method == "POST") && (urlencoded != nil) && (!IsEqual(urlencoded, ""))
-		var requestBody any = body
+		var requestBody any = nil
 		if hasPostBody {
 			requestBody = urlencoded
 		}
@@ -6377,8 +6389,8 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Digifinex) HandleErrors(statusCode any, statusText any, url any, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any {
@@ -7076,8 +7088,8 @@ func (this *Digifinex) Transfer(code string, amount float64, fromAccount string,
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Digifinex) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -7087,7 +7099,7 @@ func (this *Digifinex) Withdraw(code string, amount float64, address string, opt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

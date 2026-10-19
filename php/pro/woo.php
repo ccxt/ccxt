@@ -98,7 +98,7 @@ class woo extends \ccxt\async\woo {
 
     private function do_watch_public(string $messageHash, array $message) {
         $urlUid = '';
-        if ($this->uid !== '') {
+        if (($this->uid !== null) && ($this->uid !== '')) {
             $urlUid = '/' . $this->uid;
         }
         $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
@@ -116,7 +116,7 @@ class woo extends \ccxt\async\woo {
 
     private function do_unwatch_public(string $subHash, ?string $symbol, string $topic, $params = array()) {
         $urlUid = '';
-        if ($this->uid !== '') {
+        if (($this->uid !== null) && ($this->uid !== '')) {
             $urlUid = '/' . $this->uid;
         }
         $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
@@ -167,7 +167,7 @@ class woo extends \ccxt\async\woo {
         $market = $this->market($symbol);
         $topic = $market['id'] . '@' . $method;
         $urlUid = '';
-        if ($this->uid !== '') {
+        if (($this->uid !== null) && ($this->uid !== '')) {
             $urlUid = '/' . $this->uid;
         }
         $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
@@ -296,10 +296,14 @@ class woo extends \ccxt\async\woo {
         if ($symbol === null) {
             return;
         }
-        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
-            unset($this->orderbooks[$symbol]);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
-        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        $orderbook = $this->orderbooks[$symbol];
+        // handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
+        $orderbook['timestamp'] = null;
+        $orderbook['datetime'] = null;
+        $orderbook->cache = array();
         $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
     }
 

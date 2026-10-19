@@ -281,9 +281,7 @@ export default class hollaex extends Exchange {
                 'api-expires': this.parseToInt (this.timeout / 1000),
                 'networks': {
                     'BTC': 'btc',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'XRP': 'xrp',
                     'XLM': 'xlm',
@@ -1552,11 +1550,11 @@ export default class hollaex extends Exchange {
         this.checkAddress (address);
         const currencyId = this.safeString (depositAddress, 'currency');
         const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
-        const network = this.safeString (depositAddress, 'network');
+        const networkId = this.safeString (depositAddress, 'network');
         return {
             'info': depositAddress,
             'currency': currencyResolved['code'],
-            'network': network,
+            'network': this.networkIdToCode (networkId, currencyResolved['code']),
             'address': address,
             'tag': tag,
         } as DepositAddress;
@@ -1628,7 +1626,7 @@ export default class hollaex extends Exchange {
         if (network === undefined) {
             addresses = wallet;
         } else {
-            addresses = this.filterBy (wallet, 'network', network);
+            addresses = this.filterBy (wallet, 'network', this.networkCodeToId (network));
         }
         return this.parseDepositAddresses (addresses, codes, false) as DepositAddress[];
     }
@@ -1917,13 +1915,13 @@ export default class hollaex extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2078,7 +2076,7 @@ export default class hollaex extends Exchange {
         return this.parseDepositWithdrawFees (coins, codes, 'symbol');
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const query = this.omit (params, this.extractParams (path));
         let requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
@@ -2093,7 +2091,7 @@ export default class hollaex extends Exchange {
         const url = apiUrl + requestPath;
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        if (api === 'private') {
+        if (api[0] === 'private') {
             this.checkRequiredCredentials ();
             const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', this.parseToInt (this.timeout / 1000));
             const expires = this.sum (this.seconds (), defaultExpires);
@@ -2113,8 +2111,8 @@ export default class hollaex extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             requestHeaders['api-signature'] = signature;
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
