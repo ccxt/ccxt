@@ -1871,6 +1871,8 @@ class testMainClass:
         if exchange_name == 'grvt':
             options['apiKey'] = ''
             options['secret'] = ''
+        if exchange_name == 'backpack':
+            options['secret'] = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
         exchange = init_exchange(exchange_name, options, is_ws)
         if currencies is not None:
             exchange.currencies = currencies
