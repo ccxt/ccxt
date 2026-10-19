@@ -59,6 +59,9 @@ func init() {
 		reflect.TypeOf(ccxt.PredictionOutcome{}),
 		reflect.TypeOf(ccxt.PredictionFees{}),
 		reflect.TypeOf(ccxt.PredictionSettlement{}),
+		reflect.TypeOf(ccxt.CurrencyLimits{}),
+		reflect.TypeOf(ccxt.Network{}),
+		reflect.TypeOf(ccxt.MarketMarginModes{}),
 	} {
 		detypedStructs[t] = true
 	}

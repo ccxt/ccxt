@@ -494,6 +494,15 @@ func DetypeForComparison(value any) any {
 	if pob, isPob := value.(ccxt.PredictionOrderBook); isPob {
 		return ccxt.PredictionOrderBookToMap(pob)
 	}
+	if mi, isMi := value.(ccxt.MarketInterface); isMi {
+		return ccxt.MarketInterfaceToMap(mi)
+	}
+	if cur, isCur := value.(ccxt.Currency); isCur {
+		return ccxt.CurrencyToMap(cur)
+	}
+	if curs, isCurs := value.(ccxt.Currencies); isCurs {
+		return ccxt.CurrenciesToMap(curs)
+	}
 	rv := reflect.ValueOf(value)
 	switch rv.Kind() {
 	case reflect.Struct:

@@ -1232,6 +1232,93 @@ func PredictionSettlementsToList(s []PredictionSettlement) []any {
 	return StructListToList(s, PredictionSettlementToMap)
 }
 
+func MarketInterfaceFromMap(data any) MarketInterface {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return MarketInterface{}
+	}
+	mi := NewMarketInterface(m)
+	mi.Info = GetInfo(m)
+	return mi
+}
+func MarketInterfaceToMap(mi MarketInterface) map[string]any {
+	m := StructToMap(mi)
+	m["base"] = m["baseCurrency"]
+	m["quote"] = m["quoteCurrency"]
+	delete(m, "baseCurrency")
+	delete(m, "quoteCurrency")
+	return m
+}
+
+func CurrencyFromMap(data any) Currency {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Currency{}
+	}
+	return NewCurrency(m)
+}
+func CurrencyToMap(c Currency) map[string]any {
+	return StructToMap(c)
+}
+
+func CurrenciesFromMap(data any) Currencies {
+	m, ok := data.(map[string]any)
+	if !ok {
+		return Currencies{}
+	}
+	return NewCurrencies(m)
+}
+func CurrenciesToMap(cs Currencies) map[string]any {
+	m := make(map[string]any, len(cs.Currencies)+1)
+	if len(cs.Info) > 0 {
+		m["info"] = cs.Info
+	}
+	for code, cur := range cs.Currencies {
+		m[code] = CurrencyToMap(cur)
+	}
+	return m
+}
+
+func MapSliceFromList(data any) []map[string]any {
+	if data == nil {
+		return nil
+	}
+	return NewMapArray(data)
+}
+func MapSliceToList(s []map[string]any) []any {
+	if s == nil {
+		return nil
+	}
+	out := make([]any, len(s))
+	for i, m := range s {
+		out[i] = m
+	}
+	return out
+}
+func MapElementToMap(m map[string]any) map[string]any {
+	return m
+}
+
+func StringSliceFromList(data any) []string {
+	if data == nil {
+		return nil
+	}
+	return NewStringArray(data)
+}
+func StringSliceToList(s []string) []any {
+	if s == nil {
+		return nil
+	}
+	out := make([]any, len(s))
+	for i, v := range s {
+		out[i] = v
+	}
+	return out
+}
+func StringElementToAny(s string) any {
+	return s
+}
+
 // structListBoxers: the reflective box (AsyncResult.Boxed) of every list-of-struct channel element type.
 var structListBoxers = map[reflect.Type]func(any) any{
 	reflect.TypeOf([]Trade(nil)):                func(v any) any { return TradesToList(v.([]Trade)) },
@@ -1258,19 +1345,22 @@ var structListBoxers = map[reflect.Type]func(any) any{
 	reflect.TypeOf([]PredictionPosition(nil)):   func(v any) any { return PredictionPositionsToList(v.([]PredictionPosition)) },
 	reflect.TypeOf([]PredictionEvent(nil)):      func(v any) any { return PredictionEventsToList(v.([]PredictionEvent)) },
 	reflect.TypeOf([]PredictionSettlement(nil)): func(v any) any { return PredictionSettlementsToList(v.([]PredictionSettlement)) },
+	reflect.TypeOf([]map[string]any(nil)):       func(v any) any { return MapSliceToList(v.([]map[string]any)) },
+	reflect.TypeOf([]string(nil)):               func(v any) any { return StringSliceToList(v.([]string)) },
 }
 
 // structListBoxed is the reflective box of a list-of-struct value (ok false for any other value).
 func structListBoxed(v any) (any, bool) {
 	rv := reflect.ValueOf(v)
-	if !rv.IsValid() || rv.Kind() != reflect.Slice || rv.Type().Elem().Kind() != reflect.Struct {
+	if !rv.IsValid() || rv.Kind() != reflect.Slice {
+		return nil, false
+	}
+	box, ok := structListBoxers[rv.Type()]
+	if !ok {
 		return nil, false
 	}
 	if rv.IsNil() {
 		return nil, true
 	}
-	if box, ok := structListBoxers[rv.Type()]; ok {
-		return box(v), true
-	}
-	return nil, false
+	return box(v), true
 }

@@ -3224,6 +3224,10 @@ func (r AsyncResult[T]) Boxed() any {
 		if c == nil {
 			return nil
 		}
+	case *sync.Map:
+		if c == nil {
+			return nil
+		}
 	}
 	// a list-of-struct channel (AsyncResult[[]Trade], ...) boxes as the []any of maps it replaced
 	if boxed, isList := structListBoxed(r.Value); isList {

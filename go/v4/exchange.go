@@ -34,7 +34,7 @@ type BaseExchange struct {
 	loadMu                 sync.Mutex
 	marketsLoading         bool
 	marketsLoaded          bool
-	loadMarketsSubscribers []chan AsyncResult[any]
+	loadMarketsSubscribers []chan AsyncResult[*sync.Map]
 	Itf                    any
 	DerivedExchange        IDerivedExchange
 	methodCache            sync.Map
@@ -411,26 +411,25 @@ func (this *BaseExchange) InitThrottler() {
   - @param {object} params - Additional exchange-specific parameters for the request.
   - @throws An error if the markets cannot be loaded or prepared.
 */
-func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan AsyncResult[any] {
+func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan AsyncResult[*sync.Map] {
 	reload := GetArg(params, 0, false).(bool)
 	this.loadMu.Lock()
 
 	if this.marketsLoaded && !reload {
-		out := make(chan AsyncResult[any], 1)
-		out <- AsyncResult[any]{Value: this.Markets}
+		out := make(chan AsyncResult[*sync.Map], 1)
+		out <- AsyncResult[*sync.Map]{Value: this.Markets}
 		close(out)
 		this.loadMu.Unlock()
 		return out
 	}
 
-	ch := make(chan AsyncResult[any], 1)
+	ch := make(chan AsyncResult[*sync.Map], 1)
 	this.loadMarketsSubscribers = append(this.loadMarketsSubscribers, ch)
 
 	if !this.marketsLoading || reload {
 		this.marketsLoading = true
 		loaded := <-this.LoadMarketsHelperAsync(params...)
-		// subscribers read the untyped LoadMarkets channel: an absent map stays an untyped nil
-		markets := AsyncResult[any]{Err: loaded.Err}
+		markets := AsyncResult[*sync.Map]{Err: loaded.Err}
 		if loaded.Err == nil && loaded.Value != nil {
 			markets.Value = loaded.Value
 		}
@@ -2183,7 +2182,7 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 			if fetched.Err != nil {
 				panic(fetched.Err)
 			}
-			orderBook := OrderBookToMap(fetched.Value)
+			orderBook := StructBox(fetched.Value, OrderBookToMap)
 			cache := (*orderBookInterface.GetCache()).([]any)
 			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
 			if index >= 0 {
@@ -2367,8 +2366,8 @@ func (this *BaseExchange) SignEvmTransaction(tx any, privateKey any) any {
 
 // FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges (PredictionExchange and its derivatives) override it.
-func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any])
+func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]PredictionEvent] {
+	ch := make(chan AsyncResult[[]PredictionEvent])
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
