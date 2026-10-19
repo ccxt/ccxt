@@ -5,38 +5,65 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
-* [fetchStatus](#fetchstatus)
+* [cancelOrder](#cancelorder)
+* [createOrder](#createorder)
 * [fetchBalance](#fetchbalance)
+* [fetchDeposits](#fetchdeposits)
+* [fetchMyTrades](#fetchmytrades)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchOrderBook](#fetchorderbook)
+* [fetchStatus](#fetchstatus)
 * [fetchTicker](#fetchticker)
-* [fetchMyTrades](#fetchmytrades)
 * [fetchTrades](#fetchtrades)
 * [fetchTradingFees](#fetchtradingfees)
-* [createOrder](#createorder)
-* [cancelOrder](#cancelorder)
-* [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
 * [watchOrderBook](#watchorderbook)
 * [watchTrades](#watchtrades)
 
-<a name="fetchStatus" id="fetchstatus"></a>
+<a name="cancelOrder" id="cancelorder"></a>
 
-### fetchStatus{docsify-ignore}
-the latest known information on the availability of the exchange API
+### cancelOrder{docsify-ignore}
+cancels an open order
 
 **Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://coincheck.com/documents/exchange/api#status-retrieval  
+**See**: https://coincheck.com/documents/exchange/api#order-cancel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-coincheck.fetchStatus (params?)
+coincheck.cancelOrder (id, symbol, params?)
+```
+
+
+<a name="createOrder" id="createorder"></a>
+
+### createOrder{docsify-ignore}
+create a trade order
+
+**Kind**: instance method of [<code>coincheck</code>](#coincheck)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://coincheck.com/documents/exchange/api#order-new  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| type | <code>string</code> | Yes | 'market' or 'limit' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coincheck.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -57,6 +84,52 @@ query for balance and get the amount of funds available for trading or funds loc
 
 ```javascript
 coincheck.fetchBalance (params?)
+```
+
+
+<a name="fetchDeposits" id="fetchdeposits"></a>
+
+### fetchDeposits{docsify-ignore}
+fetch all deposits made to an account
+
+**Kind**: instance method of [<code>coincheck</code>](#coincheck)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://coincheck.com/documents/exchange/api#account-deposits  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
+| limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coincheck.fetchDeposits (code, since?, limit?, params?)
+```
+
+
+<a name="fetchMyTrades" id="fetchmytrades"></a>
+
+### fetchMyTrades{docsify-ignore}
+fetch all trades made by the user
+
+**Kind**: instance method of [<code>coincheck</code>](#coincheck)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**: https://coincheck.com/documents/exchange/api#order-transactions-pagination  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coincheck.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -105,6 +178,26 @@ coincheck.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
+<a name="fetchStatus" id="fetchstatus"></a>
+
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
+
+**Kind**: instance method of [<code>coincheck</code>](#coincheck)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+
+**See**: https://coincheck.com/documents/exchange/api#status-retrieval  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coincheck.fetchStatus (params?)
+```
+
+
 <a name="fetchTicker" id="fetchticker"></a>
 
 ### fetchTicker{docsify-ignore}
@@ -123,29 +216,6 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 coincheck.fetchTicker (symbol, params?)
-```
-
-
-<a name="fetchMyTrades" id="fetchmytrades"></a>
-
-### fetchMyTrades{docsify-ignore}
-fetch all trades made by the user
-
-**Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
-
-**See**: https://coincheck.com/documents/exchange/api#order-transactions-pagination  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-coincheck.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -189,76 +259,6 @@ fetch the trading fees for multiple markets
 
 ```javascript
 coincheck.fetchTradingFees (params?)
-```
-
-
-<a name="createOrder" id="createorder"></a>
-
-### createOrder{docsify-ignore}
-create a trade order
-
-**Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://coincheck.com/documents/exchange/api#order-new  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| type | <code>string</code> | Yes | 'market' or 'limit' |
-| side | <code>string</code> | Yes | 'buy' or 'sell' |
-| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-coincheck.createOrder (symbol, type, side, amount, price?, params?)
-```
-
-
-<a name="cancelOrder" id="cancelorder"></a>
-
-### cancelOrder{docsify-ignore}
-cancels an open order
-
-**Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://coincheck.com/documents/exchange/api#order-cancel  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by cancelOrder () |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-coincheck.cancelOrder (id, symbol, params?)
-```
-
-
-<a name="fetchDeposits" id="fetchdeposits"></a>
-
-### fetchDeposits{docsify-ignore}
-fetch all deposits made to an account
-
-**Kind**: instance method of [<code>coincheck</code>](#coincheck)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://coincheck.com/documents/exchange/api#account-deposits  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
-| limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-coincheck.fetchDeposits (code, since?, limit?, params?)
 ```
 
 

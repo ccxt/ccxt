@@ -5,82 +5,108 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
-* [fetchTime](#fetchtime)
-* [fetchMarkets](#fetchmarkets)
-* [fetchCurrencies](#fetchcurrencies)
+* [cancelAllOrders](#cancelallorders)
+* [cancelOrder](#cancelorder)
+* [createOrder](#createorder)
 * [fetchBalance](#fetchbalance)
-* [fetchOrderBook](#fetchorderbook)
-* [fetchTicker](#fetchticker)
-* [fetchTickers](#fetchtickers)
-* [fetchTrades](#fetchtrades)
-* [fetchTradingFee](#fetchtradingfee)
+* [fetchCurrencies](#fetchcurrencies)
+* [fetchMarkets](#fetchmarkets)
 * [fetchMyTrades](#fetchmytrades)
 * [fetchOpenOrders](#fetchopenorders)
-* [fetchOrders](#fetchorders)
 * [fetchOrder](#fetchorder)
-* [createOrder](#createorder)
-* [cancelOrder](#cancelorder)
-* [cancelAllOrders](#cancelallorders)
+* [fetchOrderBook](#fetchorderbook)
+* [fetchOrders](#fetchorders)
+* [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
+* [fetchTime](#fetchtime)
+* [fetchTrades](#fetchtrades)
+* [fetchTradingFee](#fetchtradingfee)
 * [fetchTransactions](#fetchtransactions)
 * [fetchTransfers](#fetchtransfers)
 * [transfer](#transfer)
 
-<a name="fetchTime" id="fetchtime"></a>
+<a name="cancelAllOrders" id="cancelallorders"></a>
 
-### fetchTime{docsify-ignore}
-fetches the current integer timestamp in milliseconds from the exchange server
+### cancelAllOrders{docsify-ignore}
+cancel all open orders in a market
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://api.latoken.com/doc/v2/#tag/Time/operation/currentTime  
+**See**
+
+- https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
+- https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>boolean</code> | No | true if cancelling trigger orders |
 
 
 ```javascript
-latoken.fetchTime (params?)
+latoken.cancelAllOrders (symbol?, params?)
 ```
 
 
-<a name="fetchMarkets" id="fetchmarkets"></a>
+<a name="cancelOrder" id="cancelorder"></a>
 
-### fetchMarkets{docsify-ignore}
-retrieves data on all markets for latoken
+### cancelOrder{docsify-ignore}
+cancels an open order
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs  
+**See**
+
+- https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
+- https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>boolean</code> | No | true if cancelling a trigger order |
 
 
 ```javascript
-latoken.fetchMarkets (params?)
+latoken.cancelOrder (id, symbol, params?)
 ```
 
 
-<a name="fetchCurrencies" id="fetchcurrencies"></a>
+<a name="createOrder" id="createorder"></a>
 
-### fetchCurrencies{docsify-ignore}
-fetches all available currencies on an exchange
+### createOrder{docsify-ignore}
+create a trade order
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - an associative dictionary of currencies
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://api.latoken.com/doc/v2/#tag/Order/operation/placeOrder
+- https://api.latoken.com/doc/v2/#tag/StopOrder/operation/placeStopOrder  // stop
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| type | <code>string</code> | Yes | 'market' or 'limit' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.triggerPrice | <code>float</code> | No | the price at which a trigger order is triggered at EXCHANGE SPECIFIC PARAMETERS |
+| params.condition | <code>string</code> | No | "GTC", "IOC", or  "FOK" |
+| params.clientOrderId | <code>string</code> | No | [ 0 .. 50 ] characters, client's custom order id (free field for your convenience) |
 
 
 ```javascript
-latoken.fetchCurrencies (params?)
+latoken.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -104,115 +130,42 @@ latoken.fetchBalance (params?)
 ```
 
 
-<a name="fetchOrderBook" id="fetchorderbook"></a>
+<a name="fetchCurrencies" id="fetchcurrencies"></a>
 
-### fetchOrderBook{docsify-ignore}
-fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+### fetchCurrencies{docsify-ignore}
+fetches all available currencies on an exchange
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://api.latoken.com/doc/v2/#tag/Order-Book/operation/getOrderBook  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-latoken.fetchOrderBook (symbol, limit?, params?)
+latoken.fetchCurrencies (params?)
 ```
 
 
-<a name="fetchTicker" id="fetchticker"></a>
+<a name="fetchMarkets" id="fetchmarkets"></a>
 
-### fetchTicker{docsify-ignore}
-fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+### fetchMarkets{docsify-ignore}
+retrieves data on all markets for latoken
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://api.latoken.com/doc/v2/#tag/Ticker/operation/getTicker  
+**See**: https://api.latoken.com/doc/v2/#tag/Pair/operation/getActivePairs  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-latoken.fetchTicker (symbol, params?)
-```
-
-
-<a name="fetchTickers" id="fetchtickers"></a>
-
-### fetchTickers{docsify-ignore}
-fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-
-**Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: https://api.latoken.com/doc/v2/#tag/Ticker/operation/getAllTickers  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-latoken.fetchTickers (symbols, params?)
-```
-
-
-<a name="fetchTrades" id="fetchtrades"></a>
-
-### fetchTrades{docsify-ignore}
-get the list of most recent trades for a particular symbol
-
-**Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByPair  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-latoken.fetchTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchTradingFee" id="fetchtradingfee"></a>
-
-### fetchTradingFee{docsify-ignore}
-fetch the trading fees for a market
-
-**Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
-
-**See**
-
-- https://api.latoken.com/doc/v2/#tag/Trade/operation/getFeeByPair
-- https://api.latoken.com/doc/v2/#tag/Trade/operation/getAuthFeeByPair
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-latoken.fetchTradingFee (symbol, params?)
+latoken.fetchMarkets (params?)
 ```
 
 
@@ -271,6 +224,55 @@ latoken.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+fetches information on an order made by the user
+
+**Kind**: instance method of [<code>latoken</code>](#latoken)  
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
+- https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | No | not used by latoken fetchOrder |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>boolean</code> | No | true if fetching a trigger order |
+
+
+```javascript
+latoken.fetchOrder (id, symbol?, params?)
+```
+
+
+<a name="fetchOrderBook" id="fetchorderbook"></a>
+
+### fetchOrderBook{docsify-ignore}
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>latoken</code>](#latoken)  
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+
+**See**: https://api.latoken.com/doc/v2/#tag/Order-Book/operation/getOrderBook  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+latoken.fetchOrderBook (symbol, limit?, params?)
+```
+
+
 <a name="fetchOrders" id="fetchorders"></a>
 
 ### fetchOrders{docsify-ignore}
@@ -301,115 +303,113 @@ latoken.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
-<a name="fetchOrder" id="fetchorder"></a>
+<a name="fetchTicker" id="fetchticker"></a>
 
-### fetchOrder{docsify-ignore}
-fetches information on an order made by the user
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**
-
-- https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
-- https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
-
+**See**: https://api.latoken.com/doc/v2/#tag/Ticker/operation/getTicker  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | No | not used by latoken fetchOrder |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | true if fetching a trigger order |
 
 
 ```javascript
-latoken.fetchOrder (id, symbol?, params?)
+latoken.fetchTicker (symbol, params?)
 ```
 
 
-<a name="createOrder" id="createorder"></a>
+<a name="fetchTickers" id="fetchtickers"></a>
 
-### createOrder{docsify-ignore}
-create a trade order
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**
-
-- https://api.latoken.com/doc/v2/#tag/Order/operation/placeOrder
-- https://api.latoken.com/doc/v2/#tag/StopOrder/operation/placeStopOrder  // stop
-
+**See**: https://api.latoken.com/doc/v2/#tag/Ticker/operation/getAllTickers  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| type | <code>string</code> | Yes | 'market' or 'limit' |
-| side | <code>string</code> | Yes | 'buy' or 'sell' |
-| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.triggerPrice | <code>float</code> | No | the price at which a trigger order is triggered at EXCHANGE SPECIFIC PARAMETERS |
-| params.condition | <code>string</code> | No | "GTC", "IOC", or  "FOK" |
-| params.clientOrderId | <code>string</code> | No | [ 0 .. 50 ] characters, client's custom order id (free field for your convenience) |
 
 
 ```javascript
-latoken.createOrder (symbol, type, side, amount, price?, params?)
+latoken.fetchTickers (symbols, params?)
 ```
 
 
-<a name="cancelOrder" id="cancelorder"></a>
+<a name="fetchTime" id="fetchtime"></a>
 
-### cancelOrder{docsify-ignore}
-cancels an open order
+### fetchTime{docsify-ignore}
+fetches the current integer timestamp in milliseconds from the exchange server
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
-**See**
-
-- https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
-- https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
-
+**See**: https://api.latoken.com/doc/v2/#tag/Time/operation/currentTime  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | true if cancelling a trigger order |
 
 
 ```javascript
-latoken.cancelOrder (id, symbol, params?)
+latoken.fetchTime (params?)
 ```
 
 
-<a name="cancelAllOrders" id="cancelallorders"></a>
+<a name="fetchTrades" id="fetchtrades"></a>
 
-### cancelAllOrders{docsify-ignore}
-cancel all open orders in a market
+### fetchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>latoken</code>](#latoken)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**: https://api.latoken.com/doc/v2/#tag/Trade/operation/getTradesByPair  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+latoken.fetchTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchTradingFee" id="fetchtradingfee"></a>
+
+### fetchTradingFee{docsify-ignore}
+fetch the trading fees for a market
+
+**Kind**: instance method of [<code>latoken</code>](#latoken)  
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**
 
-- https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
-- https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
+- https://api.latoken.com/doc/v2/#tag/Trade/operation/getFeeByPair
+- https://api.latoken.com/doc/v2/#tag/Trade/operation/getAuthFeeByPair
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in |
+| symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | true if cancelling trigger orders |
 
 
 ```javascript
-latoken.cancelAllOrders (symbol?, params?)
+latoken.fetchTradingFee (symbol, params?)
 ```
 
 

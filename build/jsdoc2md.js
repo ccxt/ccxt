@@ -66,7 +66,11 @@ proTemplateData = proTemplateData.filter (x => x.length > 0)
 // prediction-market exchanges live in their own namespace (js/src/prediction) and
 // extend PredictionExchange; render them separately so their per-exchange docs build too
 const predictionInputFiles = findByExtensionSync('js/src/prediction', 'js')
-let predictionTemplateData = await Promise.all(predictionInputFiles.map (file => jsdoc2md.getTemplateData({ files: file })));
+let predictionTemplateData = await Promise.all(predictionInputFiles.map (async (file) => {
+  const data = await jsdoc2md.getTemplateData({ files: file })
+  data.exchangeId = path.basename (file, '.js')
+  return data
+}));
 predictionTemplateData = predictionTemplateData.filter (x => x.length > 0)
 
 // assign pro classes to REST template data
@@ -81,7 +85,8 @@ proTemplateData.forEach((proData) => {
 // post-#27661 kucoinfutures pro class re-declares kucoinfutures#transfer / #fetchBidsAsks
 // with identical @name). Drop duplicate doclets per exchange so each method renders once on
 // the exchange page (the base-spec grouping already de-dups, but the per-exchange render did not).
-templateData = templateData.map ((data) => {
+// Sort methods alphabetically so related methods (e.g. fetchDeposit, fetchDeposits) group together.
+const sortAndDedupExchangeDoclets = (data) => {
   const seen = new Set ()
   const deduped = data.filter ((doclet) => {
     const key = doclet.id || doclet.longname
@@ -91,9 +96,24 @@ templateData = templateData.map ((data) => {
     seen.add (key)
     return true
   })
-  deduped.exchangeId = data.exchangeId
-  return deduped
-})
+  const classDoclets = []
+  const methodDoclets = []
+  const exchangeId = data.exchangeId || (data[0] && data[0].name)
+  for (const doclet of deduped) {
+    if (doclet.name === exchangeId) {
+      classDoclets.push (doclet)
+    } else {
+      methodDoclets.push (doclet)
+    }
+  }
+  methodDoclets.sort ((a, b) => (a.name || '').localeCompare (b.name || ''))
+  const sorted = [...classDoclets, ...methodDoclets]
+  sorted.exchangeId = data.exchangeId
+  return sorted
+}
+
+templateData = templateData.map (sortAndDedupExchangeDoclets)
+predictionTemplateData = predictionTemplateData.map (sortAndDedupExchangeDoclets)
 
 console.log ('📰 rendering docs for each exchange...')
 const template = fs.readFileSync ('./wiki/spec.hbs', 'utf8')

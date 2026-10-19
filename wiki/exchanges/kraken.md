@@ -5,42 +5,42 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
-* [fetchMarkets](#fetchmarkets)
-* [fetchStatus](#fetchstatus)
-* [fetchCurrencies](#fetchcurrencies)
-* [fetchTradingFee](#fetchtradingfee)
-* [fetchOrderBook](#fetchorderbook)
-* [fetchTickers](#fetchtickers)
-* [fetchTicker](#fetchticker)
-* [fetchOHLCV](#fetchohlcv)
-* [fetchLedger](#fetchledger)
-* [fetchTrades](#fetchtrades)
-* [fetchBalance](#fetchbalance)
-* [createMarketOrderWithCost](#createmarketorderwithcost)
+* [cancelAllOrders](#cancelallorders)
+* [cancelAllOrdersAfter](#cancelallordersafter)
+* [cancelOrder](#cancelorder)
+* [cancelOrders](#cancelorders)
+* [createDepositAddress](#createdepositaddress)
 * [createMarketBuyOrderWithCost](#createmarketbuyorderwithcost)
+* [createMarketOrderWithCost](#createmarketorderwithcost)
 * [createOrder](#createorder)
 * [createOrders](#createorders)
 * [editOrder](#editorder)
-* [fetchOrder](#fetchorder)
-* [fetchOrderTrades](#fetchordertrades)
-* [fetchOrdersByIds](#fetchordersbyids)
-* [fetchMyTrades](#fetchmytrades)
-* [cancelOrder](#cancelorder)
-* [cancelOrders](#cancelorders)
-* [cancelAllOrders](#cancelallorders)
-* [cancelAllOrdersAfter](#cancelallordersafter)
-* [fetchOpenOrders](#fetchopenorders)
+* [fetchBalance](#fetchbalance)
 * [fetchClosedOrders](#fetchclosedorders)
-* [fetchDeposits](#fetchdeposits)
-* [fetchTime](#fetchtime)
-* [fetchWithdrawals](#fetchwithdrawals)
-* [createDepositAddress](#createdepositaddress)
-* [fetchDepositMethods](#fetchdepositmethods)
+* [fetchCurrencies](#fetchcurrencies)
 * [fetchDepositAddress](#fetchdepositaddress)
-* [withdraw](#withdraw)
+* [fetchDepositMethods](#fetchdepositmethods)
+* [fetchDeposits](#fetchdeposits)
+* [fetchLedger](#fetchledger)
+* [fetchMarkets](#fetchmarkets)
+* [fetchMyTrades](#fetchmytrades)
+* [fetchOHLCV](#fetchohlcv)
+* [fetchOpenOrders](#fetchopenorders)
+* [fetchOrder](#fetchorder)
+* [fetchOrderBook](#fetchorderbook)
+* [fetchOrdersByIds](#fetchordersbyids)
+* [fetchOrderTrades](#fetchordertrades)
 * [fetchPositions](#fetchpositions)
-* [transferOut](#transferout)
+* [fetchStatus](#fetchstatus)
+* [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
+* [fetchTime](#fetchtime)
+* [fetchTrades](#fetchtrades)
+* [fetchTradingFee](#fetchtradingfee)
+* [fetchWithdrawals](#fetchwithdrawals)
 * [transfer](#transfer)
+* [transferOut](#transferout)
+* [withdraw](#withdraw)
 
 <a name="kraken" id="kraken"></a>
 
@@ -54,241 +54,134 @@ kraken.kraken ()
 ```
 
 
-<a name="fetchMarkets" id="fetchmarkets"></a>
+<a name="cancelAllOrders" id="cancelallorders"></a>
 
-### fetchMarkets{docsify-ignore}
-retrieves data on all markets for kraken
+### cancelAllOrders{docsify-ignore}
+cancel all open orders
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/api-reference/market-data/get-tradable-asset-pairs  
+**See**: https://docs.kraken.com/api-reference/trading/cancel-all-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kraken.fetchMarkets (params?)
+kraken.cancelAllOrders (symbol?, params?)
 ```
 
 
-<a name="fetchStatus" id="fetchstatus"></a>
+<a name="cancelAllOrdersAfter" id="cancelallordersafter"></a>
 
-### fetchStatus{docsify-ignore}
-the latest known information on the availability of the exchange API
+### cancelAllOrdersAfter{docsify-ignore}
+dead man's switch, cancel all orders after the given timeout
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+**Returns**: <code>object</code> - the api result
 
-**See**: https://docs.kraken.com/api-reference/market-data/get-system-status  
+**See**: https://docs.kraken.com/api-reference/trading/cancel-all-orders-after-x  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| timeout | <code>number</code> | Yes | time in milliseconds, 0 represents cancel the timer |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kraken.fetchStatus (params?)
+kraken.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
-<a name="fetchCurrencies" id="fetchcurrencies"></a>
+<a name="cancelOrder" id="cancelorder"></a>
 
-### fetchCurrencies{docsify-ignore}
-fetches all available currencies on an exchange
+### cancelOrder{docsify-ignore}
+cancels an open order
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an associative dictionary of currencies
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/api-reference/market-data/get-asset-info  
+**See**: https://docs.kraken.com/api-reference/trading/cancel-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | No | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | the orders client order id |
+| params.userref | <code>int</code> | No | the orders user reference id |
 
 
 ```javascript
-kraken.fetchCurrencies (params?)
+kraken.cancelOrder (id, symbol?, params?)
 ```
 
 
-<a name="fetchTradingFee" id="fetchtradingfee"></a>
+<a name="cancelOrders" id="cancelorders"></a>
 
-### fetchTradingFee{docsify-ignore}
-fetch the trading fees for a market
+### cancelOrders{docsify-ignore}
+cancel multiple orders
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/api-reference/account-data/get-trade-volume  
+**See**: https://docs.kraken.com/api-reference/trading/cancel-order-batch  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
+| ids | <code>Array&lt;string&gt;</code> | Yes | open orders transaction ID (txid) or user reference (userref) |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kraken.fetchTradingFee (symbol, params?)
+kraken.cancelOrders (ids, symbol, params?)
 ```
 
 
-<a name="fetchOrderBook" id="fetchorderbook"></a>
+<a name="createDepositAddress" id="createdepositaddress"></a>
 
-### fetchOrderBook{docsify-ignore}
-fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+### createDepositAddress{docsify-ignore}
+create a currency deposit address
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
-**See**: https://docs.kraken.com/api-reference/market-data/get-order-book  
+**See**: https://docs.kraken.com/api-reference/funding/get-deposit-addresses  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| code | <code>string</code> | Yes | unified currency code of the currency for the deposit address |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kraken.fetchOrderBook (symbol, limit?, params?)
+kraken.createDepositAddress (code, params?)
 ```
 
 
-<a name="fetchTickers" id="fetchtickers"></a>
+<a name="createMarketBuyOrderWithCost" id="createmarketbuyorderwithcost"></a>
 
-### fetchTickers{docsify-ignore}
-fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+### createMarketBuyOrderWithCost{docsify-ignore}
+create a market buy order by providing the symbol, side and cost
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/api-reference/market-data/get-ticker-information  
+**See**: https://docs.kraken.com/api-reference/trading/add-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| cost | <code>float</code> | Yes | how much you want to trade in units of the quote currency |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kraken.fetchTickers (symbols, params?)
-```
-
-
-<a name="fetchTicker" id="fetchticker"></a>
-
-### fetchTicker{docsify-ignore}
-fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: https://docs.kraken.com/api-reference/market-data/get-ticker-information  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-kraken.fetchTicker (symbol, params?)
-```
-
-
-<a name="fetchOHLCV" id="fetchohlcv"></a>
-
-### fetchOHLCV{docsify-ignore}
-fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**: https://docs.kraken.com/api-reference/market-data/get-ohlc-data  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
-
-
-```javascript
-kraken.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
-```
-
-
-<a name="fetchLedger" id="fetchledger"></a>
-
-### fetchLedger{docsify-ignore}
-fetch the history of changes, actions done by the user or operations that altered the balance of the user
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
-
-**See**: https://docs.kraken.com/api-reference/account-data/get-ledgers-info  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | No | unified currency code, default is undefined |
-| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
-| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | timestamp in ms of the latest ledger entry |
-| params.end | <code>int</code> | No | timestamp in seconds of the latest ledger entry |
-
-
-```javascript
-kraken.fetchLedger (code?, since?, limit?, params?)
-```
-
-
-<a name="fetchTrades" id="fetchtrades"></a>
-
-### fetchTrades{docsify-ignore}
-get the list of most recent trades for a particular symbol
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**: https://docs.kraken.com/api-reference/market-data/get-recent-trades  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-kraken.fetchTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchBalance" id="fetchbalance"></a>
-
-### fetchBalance{docsify-ignore}
-query for balance and get the amount of funds available for trading or funds locked in orders
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
-
-**See**: https://docs.kraken.com/api-reference/account-data/get-extended-balance  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-kraken.fetchBalance (params?)
+kraken.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -312,28 +205,6 @@ create a market order by providing the symbol, side and cost
 
 ```javascript
 kraken.createMarketOrderWithCost (symbol, side, cost, params?)
-```
-
-
-<a name="createMarketBuyOrderWithCost" id="createmarketbuyorderwithcost"></a>
-
-### createMarketBuyOrderWithCost{docsify-ignore}
-create a market buy order by providing the symbol, side and cost
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://docs.kraken.com/api-reference/trading/add-order  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| cost | <code>float</code> | Yes | how much you want to trade in units of the quote currency |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-kraken.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -428,209 +299,23 @@ kraken.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
-<a name="fetchOrder" id="fetchorder"></a>
+<a name="fetchBalance" id="fetchbalance"></a>
 
-### fetchOrder{docsify-ignore}
-fetches information on an order made by the user
+### fetchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://docs.kraken.com/api-reference/account-data/query-orders-info  
+**See**: https://docs.kraken.com/api-reference/account-data/get-extended-balance  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by kraken fetchOrder |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kraken.fetchOrder (id, symbol, params?)
-```
-
-
-<a name="fetchOrderTrades" id="fetchordertrades"></a>
-
-### fetchOrderTrades{docsify-ignore}
-fetch all the trades made from a single order
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
-
-**See**: https://docs.kraken.com/api-reference/account-data/query-trades-info  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trades to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-kraken.fetchOrderTrades (id, symbol, since?, limit?, params?)
-```
-
-
-<a name="fetchOrdersByIds" id="fetchordersbyids"></a>
-
-### fetchOrdersByIds{docsify-ignore}
-fetch orders by the list of order id
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structure](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://docs.kraken.com/api-reference/account-data/get-closed-orders  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| ids | <code>Array&lt;string&gt;</code> | No | list of order id |
-| symbol | <code>string</code> | No | unified ccxt market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-kraken.fetchOrdersByIds (ids?, symbol?, params?)
-```
-
-
-<a name="fetchMyTrades" id="fetchmytrades"></a>
-
-### fetchMyTrades{docsify-ignore}
-fetch all trades made by the user
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
-
-**See**: https://docs.kraken.com/api-reference/account-data/get-trades-history  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
-| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | timestamp in ms of the latest trade entry |
-| params.end | <code>int</code> | No | timestamp in seconds of the latest trade entry |
-
-
-```javascript
-kraken.fetchMyTrades (symbol, since?, limit?, params?)
-```
-
-
-<a name="cancelOrder" id="cancelorder"></a>
-
-### cancelOrder{docsify-ignore}
-cancels an open order
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://docs.kraken.com/api-reference/trading/cancel-order  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | No | unified symbol of the market the order was made in |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.clientOrderId | <code>string</code> | No | the orders client order id |
-| params.userref | <code>int</code> | No | the orders user reference id |
-
-
-```javascript
-kraken.cancelOrder (id, symbol?, params?)
-```
-
-
-<a name="cancelOrders" id="cancelorders"></a>
-
-### cancelOrders{docsify-ignore}
-cancel multiple orders
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://docs.kraken.com/api-reference/trading/cancel-order-batch  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| ids | <code>Array&lt;string&gt;</code> | Yes | open orders transaction ID (txid) or user reference (userref) |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-kraken.cancelOrders (ids, symbol, params?)
-```
-
-
-<a name="cancelAllOrders" id="cancelallorders"></a>
-
-### cancelAllOrders{docsify-ignore}
-cancel all open orders
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://docs.kraken.com/api-reference/trading/cancel-all-orders  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-kraken.cancelAllOrders (symbol?, params?)
-```
-
-
-<a name="cancelAllOrdersAfter" id="cancelallordersafter"></a>
-
-### cancelAllOrdersAfter{docsify-ignore}
-dead man's switch, cancel all orders after the given timeout
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - the api result
-
-**See**: https://docs.kraken.com/api-reference/trading/cancel-all-orders-after-x  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| timeout | <code>number</code> | Yes | time in milliseconds, 0 represents cancel the timer |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-kraken.cancelAllOrdersAfter (timeout, params?)
-```
-
-
-<a name="fetchOpenOrders" id="fetchopenorders"></a>
-
-### fetchOpenOrders{docsify-ignore}
-fetch all unfilled currently open orders
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://docs.kraken.com/api-reference/account-data/get-open-orders  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
-| limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.clientOrderId | <code>string</code> | No | the orders client order id |
-| params.userref | <code>int</code> | No | the orders user reference id |
-
-
-```javascript
-kraken.fetchOpenOrders (symbol?, since?, limit?, params?)
+kraken.fetchBalance (params?)
 ```
 
 
@@ -660,6 +345,68 @@ kraken.fetchClosedOrders (symbol?, since?, limit?, params?)
 ```
 
 
+<a name="fetchCurrencies" id="fetchcurrencies"></a>
+
+### fetchCurrencies{docsify-ignore}
+fetches all available currencies on an exchange
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>object</code> - an associative dictionary of currencies
+
+**See**: https://docs.kraken.com/api-reference/market-data/get-asset-info  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchCurrencies (params?)
+```
+
+
+<a name="fetchDepositAddress" id="fetchdepositaddress"></a>
+
+### fetchDepositAddress{docsify-ignore}
+fetch the deposit address for a currency associated with this account
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
+
+**See**: https://docs.kraken.com/api-reference/funding/get-deposit-addresses  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchDepositAddress (code, params?)
+```
+
+
+<a name="fetchDepositMethods" id="fetchdepositmethods"></a>
+
+### fetchDepositMethods{docsify-ignore}
+fetch deposit methods for a currency associated with this account
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>object</code> - of deposit methods
+
+**See**: https://docs.kraken.com/api-reference/funding/get-deposit-methods  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchDepositMethods (code, params?)
+```
+
+
 <a name="fetchDeposits" id="fetchdeposits"></a>
 
 ### fetchDeposits{docsify-ignore}
@@ -685,6 +432,299 @@ kraken.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
+<a name="fetchLedger" id="fetchledger"></a>
+
+### fetchLedger{docsify-ignore}
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
+
+**See**: https://docs.kraken.com/api-reference/account-data/get-ledgers-info  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code, default is undefined |
+| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
+| limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest ledger entry |
+| params.end | <code>int</code> | No | timestamp in seconds of the latest ledger entry |
+
+
+```javascript
+kraken.fetchLedger (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchMarkets" id="fetchmarkets"></a>
+
+### fetchMarkets{docsify-ignore}
+retrieves data on all markets for kraken
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+
+**See**: https://docs.kraken.com/api-reference/market-data/get-tradable-asset-pairs  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchMarkets (params?)
+```
+
+
+<a name="fetchMyTrades" id="fetchmytrades"></a>
+
+### fetchMyTrades{docsify-ignore}
+fetch all trades made by the user
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**: https://docs.kraken.com/api-reference/account-data/get-trades-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest trade entry |
+| params.end | <code>int</code> | No | timestamp in seconds of the latest trade entry |
+
+
+```javascript
+kraken.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchOHLCV" id="fetchohlcv"></a>
+
+### fetchOHLCV{docsify-ignore}
+fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://docs.kraken.com/api-reference/market-data/get-ohlc-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+kraken.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="fetchOpenOrders" id="fetchopenorders"></a>
+
+### fetchOpenOrders{docsify-ignore}
+fetch all unfilled currently open orders
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.kraken.com/api-reference/account-data/get-open-orders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
+| limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | the orders client order id |
+| params.userref | <code>int</code> | No | the orders user reference id |
+
+
+```javascript
+kraken.fetchOpenOrders (symbol?, since?, limit?, params?)
+```
+
+
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+fetches information on an order made by the user
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.kraken.com/api-reference/account-data/query-orders-info  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | not used by kraken fetchOrder |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchOrder (id, symbol, params?)
+```
+
+
+<a name="fetchOrderBook" id="fetchorderbook"></a>
+
+### fetchOrderBook{docsify-ignore}
+fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+
+**See**: https://docs.kraken.com/api-reference/market-data/get-order-book  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchOrderBook (symbol, limit?, params?)
+```
+
+
+<a name="fetchOrdersByIds" id="fetchordersbyids"></a>
+
+### fetchOrdersByIds{docsify-ignore}
+fetch orders by the list of order id
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.kraken.com/api-reference/account-data/get-closed-orders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| ids | <code>Array&lt;string&gt;</code> | No | list of order id |
+| symbol | <code>string</code> | No | unified ccxt market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchOrdersByIds (ids?, symbol?, params?)
+```
+
+
+<a name="fetchOrderTrades" id="fetchordertrades"></a>
+
+### fetchOrderTrades{docsify-ignore}
+fetch all the trades made from a single order
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
+
+**See**: https://docs.kraken.com/api-reference/account-data/query-trades-info  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| limit | <code>int</code> | No | the maximum number of trades to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchOrderTrades (id, symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchPositions" id="fetchpositions"></a>
+
+### fetchPositions{docsify-ignore}
+fetch all open positions
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
+
+**See**: https://docs.kraken.com/api-reference/account-data/get-open-positions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | not used by fetchPositions () |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchPositions (symbols?, params?)
+```
+
+
+<a name="fetchStatus" id="fetchstatus"></a>
+
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+
+**See**: https://docs.kraken.com/api-reference/market-data/get-system-status  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchStatus (params?)
+```
+
+
+<a name="fetchTicker" id="fetchticker"></a>
+
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://docs.kraken.com/api-reference/market-data/get-ticker-information  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchTicker (symbol, params?)
+```
+
+
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://docs.kraken.com/api-reference/market-data/get-ticker-information  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchTickers (symbols, params?)
+```
+
+
 <a name="fetchTime" id="fetchtime"></a>
 
 ### fetchTime{docsify-ignore}
@@ -702,6 +742,50 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 ```javascript
 kraken.fetchTime (params?)
+```
+
+
+<a name="fetchTrades" id="fetchtrades"></a>
+
+### fetchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**: https://docs.kraken.com/api-reference/market-data/get-recent-trades  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchTradingFee" id="fetchtradingfee"></a>
+
+### fetchTradingFee{docsify-ignore}
+fetch the trading fees for a market
+
+**Kind**: instance method of [<code>kraken</code>](#kraken)  
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
+
+**See**: https://docs.kraken.com/api-reference/account-data/get-trade-volume  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+kraken.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -731,111 +815,27 @@ kraken.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
-<a name="createDepositAddress" id="createdepositaddress"></a>
+<a name="transfer" id="transfer"></a>
 
-### createDepositAddress{docsify-ignore}
-create a currency deposit address
+### transfer{docsify-ignore}
+transfers currencies between sub-accounts (only spot->swap direction is supported)
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
+**Returns**: a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://docs.kraken.com/api-reference/funding/get-deposit-addresses  
+**See**: https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code of the currency for the deposit address |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| code | <code>string</code> | Yes | Unified currency code |
+| amount | <code>float</code> | Yes | Size of the transfer |
+| fromAccount | <code>string</code> | Yes | 'spot' or 'Spot Wallet' |
+| toAccount | <code>string</code> | Yes | 'swap' or 'Futures Wallet' |
+| params | <code>object</code> | No | Exchange specific parameters |
 
 
 ```javascript
-kraken.createDepositAddress (code, params?)
-```
-
-
-<a name="fetchDepositMethods" id="fetchdepositmethods"></a>
-
-### fetchDepositMethods{docsify-ignore}
-fetch deposit methods for a currency associated with this account
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - of deposit methods
-
-**See**: https://docs.kraken.com/api-reference/funding/get-deposit-methods  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-kraken.fetchDepositMethods (code, params?)
-```
-
-
-<a name="fetchDepositAddress" id="fetchdepositaddress"></a>
-
-### fetchDepositAddress{docsify-ignore}
-fetch the deposit address for a currency associated with this account
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
-
-**See**: https://docs.kraken.com/api-reference/funding/get-deposit-addresses  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-kraken.fetchDepositAddress (code, params?)
-```
-
-
-<a name="withdraw" id="withdraw"></a>
-
-### withdraw{docsify-ignore}
-make a withdrawal
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
-
-**See**: https://docs.kraken.com/api-reference/funding/withdraw-funds  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code |
-| amount | <code>float</code> | Yes | the amount to withdraw |
-| address | <code>string</code> | Yes | the address to withdraw to, not required can be '' or undefined/none/null |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
-
-
-```javascript
-kraken.withdraw (code, amount, address, params?)
-```
-
-
-<a name="fetchPositions" id="fetchpositions"></a>
-
-### fetchPositions{docsify-ignore}
-fetch all open positions
-
-**Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
-
-**See**: https://docs.kraken.com/api-reference/account-data/get-open-positions  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | not used by fetchPositions () |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-kraken.fetchPositions (symbols?, params?)
+kraken.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -861,26 +861,26 @@ kraken.transferOut (code, amount, params?)
 ```
 
 
-<a name="transfer" id="transfer"></a>
+<a name="withdraw" id="withdraw"></a>
 
-### transfer{docsify-ignore}
-transfers currencies between sub-accounts (only spot->swap direction is supported)
+### withdraw{docsify-ignore}
+make a withdrawal
 
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
-**Returns**: a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer  
+**See**: https://docs.kraken.com/api-reference/funding/withdraw-funds  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | Unified currency code |
-| amount | <code>float</code> | Yes | Size of the transfer |
-| fromAccount | <code>string</code> | Yes | 'spot' or 'Spot Wallet' |
-| toAccount | <code>string</code> | Yes | 'swap' or 'Futures Wallet' |
-| params | <code>object</code> | No | Exchange specific parameters |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | the amount to withdraw |
+| address | <code>string</code> | Yes | the address to withdraw to, not required can be '' or undefined/none/null |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-kraken.transfer (code, amount, fromAccount, toAccount, params?)
+kraken.withdraw (code, amount, address, params?)
 ```
 
