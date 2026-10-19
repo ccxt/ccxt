@@ -1109,10 +1109,10 @@ func PredictionOrderToMap(v PredictionOrder) map[string]any {
 	return StructToMap(v)
 }
 func PredictionOrdersFromList(data any) []PredictionOrder {
-	return StructSliceFromList(data, PredictionOrderFromMap)
+	return StructListFromList(data, PredictionOrderFromMap)
 }
 func PredictionOrdersToList(s []PredictionOrder) []any {
-	return StructSliceToList(s, PredictionOrderToMap)
+	return StructListToList(s, PredictionOrderToMap)
 }
 
 func PredictionTradeFromMap(data any) PredictionTrade {
@@ -1126,10 +1126,10 @@ func PredictionTradeToMap(v PredictionTrade) map[string]any {
 	return StructToMap(v)
 }
 func PredictionTradesFromList(data any) []PredictionTrade {
-	return StructSliceFromList(data, PredictionTradeFromMap)
+	return StructListFromList(data, PredictionTradeFromMap)
 }
 func PredictionTradesToList(s []PredictionTrade) []any {
-	return StructSliceToList(s, PredictionTradeToMap)
+	return StructListToList(s, PredictionTradeToMap)
 }
 
 func PredictionPositionFromMap(data any) PredictionPosition {
@@ -1143,10 +1143,10 @@ func PredictionPositionToMap(v PredictionPosition) map[string]any {
 	return StructToMap(v)
 }
 func PredictionPositionsFromList(data any) []PredictionPosition {
-	return StructSliceFromList(data, PredictionPositionFromMap)
+	return StructListFromList(data, PredictionPositionFromMap)
 }
 func PredictionPositionsToList(s []PredictionPosition) []any {
-	return StructSliceToList(s, PredictionPositionToMap)
+	return StructListToList(s, PredictionPositionToMap)
 }
 
 func PredictionOrderBookFromMap(data any) PredictionOrderBook {
@@ -1209,10 +1209,10 @@ func PredictionEventToMap(v PredictionEvent) map[string]any {
 	return StructToMap(v)
 }
 func PredictionEventsFromList(data any) []PredictionEvent {
-	return StructSliceFromList(data, PredictionEventFromMap)
+	return StructListFromList(data, PredictionEventFromMap)
 }
 func PredictionEventsToList(s []PredictionEvent) []any {
-	return StructSliceToList(s, PredictionEventToMap)
+	return StructListToList(s, PredictionEventToMap)
 }
 
 func PredictionSettlementFromMap(data any) PredictionSettlement {
@@ -1226,10 +1226,10 @@ func PredictionSettlementToMap(v PredictionSettlement) map[string]any {
 	return StructToMap(v)
 }
 func PredictionSettlementsFromList(data any) []PredictionSettlement {
-	return StructSliceFromList(data, PredictionSettlementFromMap)
+	return StructListFromList(data, PredictionSettlementFromMap)
 }
 func PredictionSettlementsToList(s []PredictionSettlement) []any {
-	return StructSliceToList(s, PredictionSettlementToMap)
+	return StructListToList(s, PredictionSettlementToMap)
 }
 
 // structListBoxers: the reflective box (AsyncResult.Boxed) of every list-of-struct channel element type.
