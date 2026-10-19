@@ -3254,7 +3254,7 @@ export default class okx extends Exchange {
         const hasTakeProfit = (takeProfit !== undefined);
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
-        const trailingPrice = this.safeString2 (params, 'trailingPrice', 'callbackSpread');
+        const trailingPrice = this.safeStringN (params, [ 'trailingAmount', 'trailingPrice', 'callbackSpread' ]);
         const isTrailingPriceOrder = trailingPrice !== undefined;
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
         const isReduceOnly = (this.safeBool (params, 'reduceOnly', false)) || (closeFraction !== undefined);
@@ -3315,7 +3315,7 @@ export default class okx extends Exchange {
         }
         const isMarketOrder = type === 'market';
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarketOrder, type === 'post_only', paramsReduceOnly);
-        let orderParams: Dict = this.omit (paramsPostOnly, [ 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent' ]);
+        let orderParams: Dict = this.omit (paramsPostOnly, [ 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingPrice' ]);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
         // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
@@ -3696,8 +3696,14 @@ export default class okx extends Exchange {
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         if (isAlgoOrder) {
-            if ((stopLossTriggerPrice === undefined) && (takeProfitTriggerPrice === undefined)) {
-                throw new BadRequest (this.id + ' editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order');
+            const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'newTriggerPx');
+            if (triggerPrice !== undefined) {
+                request['newTriggerPx'] = this.priceToPrecision (symbol, triggerPrice);
+                request['newOrdPx'] = (price === undefined) ? '-1' : this.priceToPrecision (symbol, price);
+                request['newTriggerPxType'] = this.safeString (params, 'newTriggerPxType', 'last');
+            }
+            if ((stopLossTriggerPrice === undefined) && (takeProfitTriggerPrice === undefined) && (triggerPrice === undefined) && (amount === undefined)) {
+                throw new BadRequest (this.id + ' editOrder() requires a triggerPrice, stopLossPrice, takeProfitPrice or amount for editing an algo order');
             }
             if (stopLossTriggerPrice !== undefined) {
                 if (stopLossPrice === undefined) {
@@ -3752,7 +3758,7 @@ export default class okx extends Exchange {
                 request['newPx'] = this.priceToPrecision (symbol, price);
             }
         }
-        const paramsOmitted: Dict = this.omit (params, [ 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit', 'postOnly' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit', 'postOnly', 'triggerPrice' ]);
         return this.extend (request, paramsOmitted);
     }
 
@@ -4452,8 +4458,19 @@ export default class okx extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopLossPrice = this.safeNumber2 (order, 'slTriggerPx', 'slOrdPx');
-        const takeProfitPrice = this.safeNumber2 (order, 'tpTriggerPx', 'tpOrdPx');
+        let stopLossPrice: Num = this.safeNumber2 (order, 'slTriggerPx', 'slOrdPx');
+        let takeProfitPrice: Num = this.safeNumber2 (order, 'tpTriggerPx', 'tpOrdPx');
+        // regular orders carry attached sl/tp inside attachAlgoOrds
+        const attachAlgoOrds = this.safeList (order, 'attachAlgoOrds', []);
+        for (let i = 0; i < attachAlgoOrds.length; i++) {
+            const attached = attachAlgoOrds[i];
+            if (stopLossPrice === undefined) {
+                stopLossPrice = this.safeNumber (attached, 'slTriggerPx');
+            }
+            if (takeProfitPrice === undefined) {
+                takeProfitPrice = this.safeNumber (attached, 'tpTriggerPx');
+            }
+        }
         const reduceOnlyRaw = this.safeString (order, 'reduceOnly');
         let reduceOnly = false;
         if (reduceOnlyRaw !== undefined) {
@@ -6534,27 +6551,8 @@ export default class okx extends Exchange {
         }
         const rounder = '0.00005'; // round to closest 0.01%
         const maintenanceMarginPercentage = (maintenanceMarginPercentageString !== undefined) ? this.parseNumber (Precise.stringDiv (Precise.stringAdd (maintenanceMarginPercentageString, rounder), '1', 4)) : undefined;
-        let liquidationPriceString = this.omitZero (this.safeString (position, 'liqPx'));
-        if ((liquidationPriceString === undefined) && (marginMode === 'isolated') && (initialMarginString !== undefined) && (entryPriceString !== undefined) && (contractsAbs !== undefined) && Precise.stringGt (contractsAbs, '0') && (contractSizeString !== undefined) && (maintenanceMarginPercentage !== undefined)) {
-            const takerFeeRate = this.safeString (marketResolved, 'taker', '0.0005');
-            const mmpWithFee = Precise.stringAdd (this.numberToString (maintenanceMarginPercentage), takerFeeRate);
-            const totalSize = Precise.stringMul (contractsAbs, contractSizeString);
-            if (marketResolved['inverse'] === true) {
-                const invEntry = Precise.stringDiv (totalSize, entryPriceString);
-                const denom = (side === 'long') ? Precise.stringAdd (invEntry, initialMarginString) : Precise.stringSub (invEntry, initialMarginString);
-                const numFactor = (side === 'long') ? Precise.stringAdd ('1', mmpWithFee) : Precise.stringSub ('1', mmpWithFee);
-                if ((denom !== undefined) && Precise.stringGt (denom, '0')) {
-                    liquidationPriceString = Precise.stringDiv (Precise.stringMul (totalSize, numFactor), denom);
-                }
-            } else {
-                const marginPerUnit = Precise.stringDiv (initialMarginString, totalSize);
-                const num = (side === 'long') ? Precise.stringSub (entryPriceString, marginPerUnit) : Precise.stringAdd (entryPriceString, marginPerUnit);
-                const denom = (side === 'long') ? Precise.stringSub ('1', mmpWithFee) : Precise.stringAdd ('1', mmpWithFee);
-                if ((denom !== undefined) && Precise.stringGt (denom, '0')) {
-                    liquidationPriceString = Precise.stringDiv (num, denom);
-                }
-            }
-        }
+        // okx always reports liqPx for open positions; no local estimate (it depends on the account fee tier)
+        const liquidationPriceString = this.omitZero (this.safeString (position, 'liqPx'));
         const liquidationPrice = ((liquidationPriceString !== undefined) && Precise.stringGt (liquidationPriceString, '0')) ? this.parseNumber (liquidationPriceString) : undefined;
         const percentageString = this.safeString (position, 'uplRatio');
         const percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
