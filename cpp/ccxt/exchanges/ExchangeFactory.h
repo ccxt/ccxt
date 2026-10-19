@@ -8,7 +8,7 @@
 // looks exchanges up by id at runtime (the C++ counterpart of C#'s
 // Exchange.DynamicallyCreateInstance).
 
-#include "../base/ExchangeBase.h"
+#include "ccxt/base/ExchangeBase.h"
 
 #include <any>
 #include <functional>

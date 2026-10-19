@@ -14,7 +14,7 @@
 #include "../ccxt/exchanges/ExchangeFactory.h"
 #include "../ccxt/pro/ProExchangeFactory.h"
 #include "../ccxt/prediction/PredictionFactory.h"
-#include "../ccxt/base/ExchangeBase.h"
+#include "ccxt/base/ExchangeBase.h"
 
 #include <chrono>
 #include <filesystem>
