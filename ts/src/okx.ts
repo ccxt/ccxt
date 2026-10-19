@@ -5712,16 +5712,14 @@ export default class okx extends Exchange {
         }
         let fee = this.safeString (paramsWithdrawTag, 'fee');
         if (fee === undefined) {
-            const currencies = await this.fetchCurrencies ();
-            this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
+            // the network fee comes from currencies cached by loadMarkets, the endpoint does not require it
             const networkCodeResolved = this.networkIdToCode (network, this.safeString (currency, 'code'));
-            const targetNetwork = (networkCodeResolved === undefined) ? {} : this.safeDict (currency['networks'], networkCodeResolved, {});
+            const targetNetwork = (networkCodeResolved === undefined) ? {} : this.safeDict (this.safeDict (currency, 'networks', {}), networkCodeResolved, {});
             fee = this.safeString (targetNetwork, 'fee');
-            if (fee === undefined) {
-                throw new ArgumentsRequired (this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
-            }
         }
-        request['fee'] = this.numberToString (fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
+        if (fee !== undefined) {
+            request['fee'] = this.numberToString (fee);
+        }
         const query = this.omit (paramsWithdrawTag, omitKeys);
         const response = await this.privatePostAssetWithdrawal (this.extend (request, query));
         //
