@@ -57,6 +57,19 @@ public:
         this->reduceFees = ccxt::any (true);
         this->quoteJsonNumbers = ccxt::any (true);
         this->minFundingAddressLength = ccxt::any (1);
+        // alias -> unified network code (ts/src/base/Exchange.ts:293): aliases are
+        // accepted as input but never returned. networkCodeToId/networkIdToCode read
+        // it directly, so it must exist even for exchanges that don't declare it.
+        this->networkAliases = ccxt::any (ccxt::dict {
+            { std::string ("ETH"), std::string ("ERC20") },
+            { std::string ("TRX"), std::string ("TRC20") },
+            { std::string ("BSC"), std::string ("BEP20") },
+            { std::string ("BSC20"), std::string ("BEP20") },
+            { std::string ("CRONOS"), std::string ("CRC20") },
+            { std::string ("ARB"), std::string ("ARBITRUM") },
+            { std::string ("ARBONE"), std::string ("ARBITRUM") },
+            { std::string ("ARBNOVA"), std::string ("ARBITRUM_NOVA") },
+        });
         // ws accumulator caches seed to empty dicts (TS constructor, Exchange.ts:578-589):
         // watch handlers setValue into them directly, and a set into an empty ccxt::any
         // is a silent no-op, which dropped every ticker/trade/ohlcv/book update
@@ -145,6 +158,7 @@ public:
         if (key == "timeout")            { this->timeout = value; return; }
         if (key == "markets")            { this->markets = value; return; }
         if (key == "currencies")         { this->currencies = value; return; }
+        if (key == "networkAliases")     { this->networkAliases = value; return; }
         // the static test harness seeds a default accounts list through the
         // constructor config; loadAccounts() must see it or private flows
         // (htx account-id, coinbase deposit addresses) try a live prefetch
@@ -180,9 +194,16 @@ public:
             return awaitValue (this->request (::getValue (endpoint, std::string ("path")),
                                               ::getValue (endpoint, std::string ("api")),
                                               ::getValue (endpoint, std::string ("method")),
-                                              params, ccxt::any {}, ccxt::any {},
+                                              params,
                                               ::getValue (endpoint, std::string ("config"))));
         }).share ();
+    }
+
+    // TS: binaryToString(binary) = this.decode(binary) (ts/src/base/Exchange.ts:862).
+    // The transpiler skips it (decode is hand-written in ExchangeBase), so the stub
+    // delegates; paradex's SBE frame reader calls it on every field.
+    virtual ccxt::any binaryToString (ccxt::any binary) {
+        return this->decode (binary);
     }
 
     // camelCase endpoint name -> { path, api, method, config }, built once from the
@@ -190,6 +211,7 @@ public:
     // cannot add members at runtime, so the same walk fills a lookup table that
     // callEndpoint() reads instead.
     ccxt::any endpointRegistry;
+    ccxt::any networkAliases;
 
     void defineRestApi () {
         this->endpointRegistry = ccxt::any (dict {});
@@ -250,10 +272,16 @@ public:
         }
         const std::string name = prefix + str (this->capitalize (ccxt::any (httpMethod)))
             + str (this->capitalize (ccxt::any (suffix)));
-        // TS passes the whole tier list when nested, otherwise the single tier name
-        const ccxt::any apiArgument = (tiers.size () > 1)
-            ? ccxt::any (paths)
-            : (tiers.empty () ? ccxt::any (std::string ("public")) : tiers[0]);
+        // TS always passes the tier LIST (['public']), never a bare tier name —
+        // binance's sign() now indexes api[0] and looks it up in urls['api'],
+        // so a string tier breaks the check ("public"[0] === 'p').
+        ccxt::any apiArgument;
+        if (!tiers.empty ()) {
+            apiArgument = ccxt::any (paths);
+        } else {
+            list defaultTier { ccxt::any (std::string ("public")) };
+            apiArgument = ccxt::any (defaultTier);
+        }
         ccxt::any_cast<dict> (this->endpointRegistry).set (name, ccxt::any (dict {
             { std::string ("path"),   ccxt::any (path) },
             { std::string ("api"),    apiArgument },
