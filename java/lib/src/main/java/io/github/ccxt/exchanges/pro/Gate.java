@@ -2733,8 +2733,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     {
         Map<String, Object> findBy = new HashMap<String, Object>() {{
             put( "op-", "option" );
+            put( "/ws/options/", "option" );
             put( "delivery", "future" );
             put( "fx", "swap" );
+            put( "/ws/futures/", "swap" );
         }};
         List<String> keys = new ArrayList<String>(findBy.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
