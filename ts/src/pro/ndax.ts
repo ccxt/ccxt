@@ -446,25 +446,26 @@ export default class ndax extends ndaxRest {
         if (orderbook === undefined) {
             return;
         }
-        let timestamp: Int = undefined;
-        let nonce: Int = undefined;
+        // seeded from the first entry so the locals keep a typed initializer (the loop re-reads it as a no-op)
+        let timestamp = this.safeInteger (firstBidAsk, 2);
+        let nonce = this.safeInteger (firstBidAsk, 0);
         for (let i = 0; i < payload.length; i++) {
             const bidask = this.safeList (payload, i);
             if (timestamp === undefined) {
                 timestamp = this.safeInteger (bidask, 2);
             } else {
                 const newTimestamp = this.safeInteger (bidask, 2);
-                const currentTimestampValue = (timestamp === undefined) ? 0 : timestamp;
-                const newTimestampValue = (newTimestamp === undefined) ? 0 : newTimestamp;
-                timestamp = Math.max (currentTimestampValue, newTimestampValue);
+                if ((newTimestamp !== undefined) && (newTimestamp > timestamp)) {
+                    timestamp = newTimestamp;
+                }
             }
             if (nonce === undefined) {
                 nonce = this.safeInteger (bidask, 0);
             } else {
                 const newNonce = this.safeInteger (bidask, 0);
-                const currentNonceValue = (nonce === undefined) ? 0 : nonce;
-                const newNonceValue = (newNonce === undefined) ? 0 : newNonce;
-                nonce = Math.max (currentNonceValue, newNonceValue);
+                if ((newNonce !== undefined) && (newNonce > nonce)) {
+                    nonce = newNonce;
+                }
             }
             // 0 new, 1 update, 2 remove
             const type = this.safeInteger (bidask, 3);

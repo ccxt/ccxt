@@ -1117,7 +1117,7 @@ export default class kraken extends krakenRest {
         const now = this.seconds ();
         const start = this.safeInteger (subscription, 'start');
         const expires = this.safeInteger (subscription, 'expires');
-        const expired = (start !== undefined) && (expires !== undefined) && ((start + expires) <= now);
+        const expired = (start !== undefined) && (expires !== undefined) && (start <= (now - expires));
         if ((subscription === undefined) || expired) {
             // single-flight leader election, see
             // https://github.com/ccxt/ccxt/issues/29393: the staleness gate

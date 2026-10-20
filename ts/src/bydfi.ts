@@ -880,14 +880,16 @@ export default class bydfi extends Exchange {
         if (since === undefined && untilParam === undefined) {
             startTime = now - timeDelta;
             until = now;
-        } else if (untilParam === undefined) {
+        } else if (untilParam !== undefined) {
+            if (since === undefined) {
+                startTime = untilParam - timeDelta;
+            }
+        } else {
             if (since === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since or until argument');
             }
             const sinceEnd: Int = since + timeDelta;
             until = (sinceEnd > now) ? now : sinceEnd;
-        } else if (since === undefined) {
-            startTime = untilParam - timeDelta;
         }
         request['startTime'] = startTime;
         request['endTime'] = until;
@@ -1786,13 +1788,13 @@ export default class bydfi extends Exchange {
         let startTime: Int = since;
         let until: Int = untilParam;
         if (since === undefined) {
-            if (untilParam === undefined) {
+            if (untilParam !== undefined) {
+                // since is undefined but until is defined
+                startTime = untilParam - sevenDays;
+            } else {
                 // both since and until are undefined
                 startTime = now - sevenDays;
                 until = now;
-            } else {
-                // since is undefined but until is defined
-                startTime = untilParam - sevenDays;
             }
         } else if (untilParam === undefined) {
             // until is undefined but since is defined
@@ -2855,13 +2857,13 @@ export default class bydfi extends Exchange {
         let startTime: Int = since;
         let until: Int = untilParam;
         if (since === undefined) {
-            if (untilParam === undefined) {
+            if (untilParam !== undefined) {
+                // since is undefined but until is defined
+                startTime = untilParam - sevenDays;
+            } else {
                 // both since and until are undefined
                 startTime = now - sevenDays;
                 until = now;
-            } else {
-                // since is undefined but until is defined
-                startTime = untilParam - sevenDays;
             }
         } else if (untilParam === undefined) {
             // until is undefined but since is defined

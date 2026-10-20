@@ -179,9 +179,8 @@ export default class opinion extends Exchange {
         // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
         const seenEvents: Dict = {};
         const eventsList: any[] = [];
-        let page = 1;
         let fetchedRawCount = 0;
-        while (true) {
+        for (let page = 1; page <= maxPages; page++) {
             const request: Dict = {
                 'marketType': 2, // all - both standalone binaries and categorical parents
                 'limit': pageLimit,
@@ -219,7 +218,6 @@ export default class opinion extends Exchange {
             if ((rawMarketsLength < pageLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || ((userLimit !== undefined) && (collectedLength >= userLimit))) {
                 break;
             }
-            page = this.sum (page, 1);
         }
         this.setEvents (eventsList);
         const flatMarketsLength = flatMarkets.length;
@@ -420,18 +418,13 @@ export default class opinion extends Exchange {
         }
         const rest = this.omit (params, [ 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ]);
         const pageLimit = this.safeInteger (this.options, 'defaultFetchEventsLimit', 20);
-        const userLimit = this.safeInteger (params, 'limit');
         // bound how many events are actually FETCHED: the user limit when given, otherwise
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
         // label can still hold more than one page
-        let fetchCap = this.safeInteger (this.options, 'maxFetchEventsResults', 100);
-        if (userLimit !== undefined) {
-            fetchCap = userLimit;
-        }
+        const fetchCap = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'maxFetchEventsResults', 100));
         const maxPages = this.safeInteger (this.options, 'maxEventsPages', 50);
         const rawEvents: any[] = [];
-        let page = 1;
-        while (true) {
+        for (let page = 1; page <= maxPages; page++) {
             const remaining = fetchCap - rawEvents.length;
             const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
@@ -455,7 +448,6 @@ export default class opinion extends Exchange {
             if ((pageEventsLength < reqLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || (fetchedRawCount >= fetchCap)) {
                 break;
             }
-            page = this.sum (page, 1);
         }
         const rawEventsLength = rawEvents.length;
         const parsedEvents: any[] = [];

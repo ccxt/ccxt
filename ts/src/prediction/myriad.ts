@@ -2018,7 +2018,8 @@ export default class myriad extends Exchange {
         if (decimals === undefined) {
             throw new ExchangeError (this.id + ' fromWeiWithDecimals() missing decimals');
         }
-        for (let i = 0; i < decimals; i++) {
+        const decimalsCount = this.parseToInt (decimals);
+        for (let i = 0; i < decimalsCount; i++) {
             scale = scale + '0';
         }
         return Precise.stringDiv (decimalString, scale);
@@ -2455,25 +2456,24 @@ export default class myriad extends Exchange {
         const outcomes: Dict[] = this.safeList (raw, 'outcomes', []);
         let price: Num = undefined;
         let change: Num = undefined;
+        // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE percentage from it
+        let previousClose: Num = undefined;
+        let percentage: Num = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const o = this.safeDict (outcomes, i);
             if (this.safeString (o, 'outcomeId', this.safeString (o, 'id')) === outcomeId) {
-                price = this.safeNumber (o, 'price');
-                change = this.safeNumber (o, 'priceChange24h');
+                const priceValue = this.safeNumber (o, 'price');
+                const changeValue = this.safeNumber (o, 'priceChange24h');
+                price = priceValue;
+                change = changeValue;
+                if ((priceValue !== undefined) && (changeValue !== undefined)) {
+                    const previousCloseValue = priceValue - changeValue;
+                    previousClose = previousCloseValue;
+                    if (previousCloseValue !== 0) {
+                        percentage = changeValue / previousCloseValue * 100;
+                    }
+                }
                 break;
-            }
-        }
-        // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
-        // percentage from it — setting percentage = the absolute change (as before) was wrong
-        let previousClose: Num = undefined;
-        let percentage: Num = undefined;
-        if ((price !== undefined) && (change !== undefined)) {
-            const priceValue: number = price;
-            const changeValue: number = change;
-            const previousCloseValue: number = priceValue - changeValue;
-            previousClose = previousCloseValue;
-            if (previousCloseValue !== 0) {
-                percentage = changeValue / previousCloseValue * 100;
             }
         }
         return this.safePredictionTicker ({
@@ -2616,24 +2616,22 @@ export default class myriad extends Exchange {
         //     }
         //
         const outcomes: Dict[] = this.safeList (response, 'outcomes', []);
-        let price: Num = undefined;
-        for (let i = 0; i < outcomes.length; i++) {
-            const o = this.safeDict (outcomes, i);
-            if (this.safeString (o, 'outcomeId', this.safeString (o, 'id')) === outcomeId) {
-                price = this.safeNumber (o, 'price');
-                break;
-            }
-        }
         // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         let bid: Num = undefined;
         let ask: Num = undefined;
-        if (price !== undefined) {
-            const priceValue: number = price;
-            if (priceValue > 0.001) {
-                bid = this.parseNumber (Precise.stringSub (this.numberToString (price), '0.001'));
-            }
-            if (priceValue < 0.999) {
-                ask = this.parseNumber (Precise.stringAdd (this.numberToString (price), '0.001'));
+        for (let i = 0; i < outcomes.length; i++) {
+            const o = this.safeDict (outcomes, i);
+            if (this.safeString (o, 'outcomeId', this.safeString (o, 'id')) === outcomeId) {
+                const price = this.safeNumber (o, 'price');
+                if (price !== undefined) {
+                    if (price > 0.001) {
+                        bid = this.parseNumber (Precise.stringSub (this.numberToString (price), '0.001'));
+                    }
+                    if (0.999 > price) {
+                        ask = this.parseNumber (Precise.stringAdd (this.numberToString (price), '0.001'));
+                    }
+                }
+                break;
             }
         }
         // the synthetic size must be a parsed float, an int literal breaks the typed go wrapper conversion

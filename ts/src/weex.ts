@@ -1629,7 +1629,11 @@ export default class weex extends Exchange {
                 const duration = this.parseTimeframe (timeframe) * 1000;
                 let timeDelta = maxHistoricalLimit * duration;
                 if (limit !== undefined && limit !== null && limit !== 0) {
-                    timeDelta = (limit > 1000) ? 1000 * duration : limit * duration;
+                    if (limit > 1000) {
+                        timeDelta = 1000 * duration;
+                    } else {
+                        timeDelta = limit * duration;
+                    }
                 }
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;

@@ -1800,7 +1800,7 @@ export default class woo extends Exchange {
         }
         let triggerAfter: Int = 0;
         if ((timeout !== undefined) && (timeout > 0)) {
-            triggerAfter = Math.min (timeout, 900000);
+            triggerAfter = (timeout > 900000) ? 900000 : timeout;
         }
         const request: Dict = {
             'triggerAfter': triggerAfter,

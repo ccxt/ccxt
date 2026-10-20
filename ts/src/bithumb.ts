@@ -1464,20 +1464,23 @@ export default class bithumb extends Exchange {
         if (transactionDatetime !== undefined) {
             const parts = transactionDatetime.split (' ');
             const numParts = parts.length;
-            let parsedTimestamp: Int = undefined;
             if (numParts > 1) {
                 const transactionDate = parts[0];
                 let transactionTime = parts[1];
                 if (transactionTime.length < 8) {
                     transactionTime = '0' + transactionTime;
                 }
-                parsedTimestamp = this.parse8601 (transactionDate + ' ' + transactionTime);
+                const kstTimestamp = this.parse8601 (transactionDate + ' ' + transactionTime);
+                timestamp = kstTimestamp;
+                if ((kstTimestamp !== undefined) && (!isGenerationTwo)) {
+                    timestamp = kstTimestamp - 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+                }
             } else {
-                parsedTimestamp = this.safeIntegerProduct (trade, 'transaction_date', 0.001);
-            }
-            timestamp = parsedTimestamp;
-            if ((parsedTimestamp !== undefined) && (!isGenerationTwo)) {
-                timestamp = parsedTimestamp - 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+                const productTimestamp = this.safeIntegerProduct (trade, 'transaction_date', 0.001);
+                timestamp = productTimestamp;
+                if ((productTimestamp !== undefined) && (!isGenerationTwo)) {
+                    timestamp = productTimestamp - 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+                }
             }
         }
         const type = undefined;

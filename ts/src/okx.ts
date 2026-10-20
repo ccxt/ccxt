@@ -2193,14 +2193,16 @@ export default class okx extends Exchange {
         const requestedLimit = (limit === undefined) ? defaultLimit : limit;
         // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
         // including the 5000 that publicGetMarketBooksFull defaults to
-        const limitResolved = (rpi && (requestedLimit > 400)) ? 400 : requestedLimit;
+        const isFullBook = (method === 'publicGetMarketBooksFull');
+        const largeLimit = ((limit === undefined) && isFullBook) || ((limit !== undefined) && (limit > 400));
+        const limitResolved = (rpi && largeLimit) ? 400 : requestedLimit;
         if (limitResolved !== undefined) {
             request['sz'] = limitResolved; // max 400
         }
         let response: Dict;
         if (rpi) {
             response = await this.publicGetMarketBooksRpi (this.extend (request, paramsMethod));
-        } else if ((method === 'publicGetMarketBooksFull') || (limitResolved > 400)) {
+        } else if (isFullBook || largeLimit) {
             response = await this.publicGetMarketBooksFull (this.extend (request, paramsMethod));
         } else {
             response = await this.publicGetMarketBooks (this.extend (request, paramsMethod));
@@ -8277,7 +8279,7 @@ export default class okx extends Exchange {
      */
     handleTradingStatisticsWindow (request: Dict, period: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict[] {
         const maxLimit = 100;
-        const effectiveLimit = ((limit === undefined) || (limit > maxLimit)) ? maxLimit : limit;
+        const effectiveLimit = ((limit === undefined) || (limit > 100)) ? 100 : limit;
         if (limit !== undefined) {
             request['limit'] = effectiveLimit;
         }

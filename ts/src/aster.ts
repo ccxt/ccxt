@@ -3858,15 +3858,12 @@ export default class aster extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeString (marketResolved, 'symbol');
         const leverageString = this.safeString (position, 'leverage');
-        const leverage = (leverageString !== undefined) ? parseInt (leverageString) : undefined;
         const initialMarginString = this.safeString (position, 'initialMargin');
         const initialMargin = this.parseNumber (initialMarginString);
         let initialMarginPercentageString: Str = undefined;
         if (leverageString !== undefined) {
             initialMarginPercentageString = Precise.stringDiv ('1', leverageString, 8);
-            if (leverage === undefined) {
-                throw new ExchangeError (this.id + ' parseAccountPosition() missing leverage');
-            }
+            const leverage = parseInt (leverageString);
             const rational = this.isRoundNumber (1000 % leverage);
             if (!rational) {
                 initialMarginPercentageString = Precise.stringDiv (Precise.stringAdd (initialMarginPercentageString, '1e-8'), '1', 8);

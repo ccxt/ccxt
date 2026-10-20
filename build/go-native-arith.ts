@@ -121,9 +121,12 @@ function goArithKind (scope: GoArithScope, text: string, maskedText: string): Ki
     }
     if (/^[A-Za-z_]\w*$/.test (t) && (t !== 'nil') && (t !== 'true') && (t !== 'false')) {
         const type = goArithDeclaredType (scope.masked, scope.signature, t);
-        if (((type === '*int64') || (type === '*float64')) && (g10kArithPointerIsNonNil (scope, t) || hx4G17PointerNonNil (scope, t, type))) {
+        if (((type === '*int64') || (type === '*float64')) && (g10kArithPointerIsNonNil (scope, t) || hx4G17PointerNonNil (scope, t, type) || hx4G26PointerNonNil (scope, t))) {
             scope.derefs.add (t);
             return (type === '*int64') ? 'i64' : 'f64';
+        }
+        if ((type === undefined) && hx4G26TupleInt64 (scope, t)) {
+            return 'i64';
         }
         return (type === 'int64') ? 'i64' : ((type === 'float64') ? 'f64' : ((type === 'int') ? 'int' : undefined));
     }
@@ -194,7 +197,7 @@ function goArithNative (helper: string, args: string[], kinds: Kind[]): { text: 
         if (bothInt64) {
             return { 'text': '(' + a + ((helper === 'Subtract') ? ' - ' : ' * ') + b + ')', 'kind': 'i64' };
         }
-        return undefined;
+        return hx4G26Native (helper, a, b, ka, kb);
     }
     if (helper === 'Mod') {
         const divisor = goArithIntLiteralValue (b);
@@ -277,7 +280,7 @@ function goArithRewriteFunc (text: string, ownMethods: Set<string>): { text: str
         if ((call.helper === 'OpNeg') && hx4G17NegLiteralCompare (before, masked.slice (after), kinds[0], operands[0], scope)) {
             native.text = '-' + operands[0];
             native.kind = undefined;
-        } else if ((call.helper === 'OpNeg') && (/(==|!=)\s*$/.test (before) || /^\s*(==|!=)/.test (masked.slice (after)))) {
+        } else if (((call.helper === 'OpNeg') || (native.kind === 'f64')) && (/(==|!=)\s*$/.test (before) || /^\s*(==|!=)/.test (masked.slice (after)))) {
             continue;                   // an interface comparison differs from a typed one
         }
         const assertion = /^\.\((\w+)\)/.exec (masked.slice (after));
@@ -336,6 +339,9 @@ export function goNativeArithmetic (content: string): string {
     }
     if (/^func \(this \*\w+\) Sum\(/m.test (masked)) {
         ownMethods.add ('Sum');
+    }
+    for (const m of masked.matchAll (/^func \(this \*\w+\) (HandleOptionIntegerAndParams2?)\(/gm)) {
+        ownMethods.add (m[1]);  // hx4 G26
     }
     const lines = content.split ('\n');
     const out: string[] = [];
@@ -979,6 +985,282 @@ export function hx4G23SelfTest (): string[] {
         if (out.includes (want) !== present) {
             problems.push ('hx4 G23: expected ' + want + ' in ' + out);
         }
+    }
+    return problems;
+}
+
+// hx4 G26
+// Subtract/Multiply on proven non-nil float64 operands and int64-with-int pairs; pointer locals proven
+// non-nil by any `x != nil` conjunct of an enclosing `if` or an earlier `if x == nil [|| ...] { exit }`.
+function hx4G26Native (helper: string, a: string, b: string, ka: Kind, kb: Kind): { text: string, kind: Kind } | undefined {
+    const op = (helper === 'Subtract') ? ' - ' : ' * ';
+    // the helper's int64 result: Multiply converts to b's int kind, Subtract is exact below 2^53
+    if (((ka === 'i64') && (kb === 'int')) || ((ka === 'int') && (kb === 'i64'))) {
+        return { 'text': '(' + ((ka === 'int') ? 'int64(' + a + ')' : a) + op + ((kb === 'int') ? 'int64(' + b + ')' : b) + ')', 'kind': 'i64' };
+    }
+    const floatSide = (k: Kind) => (k === 'f64') || (k === 'flit') || (k === 'ilit');
+    if ((ka !== 'f64') && (kb !== 'f64')) {
+        return undefined;
+    }
+    if (floatSide (ka) && floatSide (kb)) {
+        return { 'text': '(' + a + op + b + ')', 'kind': 'f64' };
+    }
+    // Subtract goes through ToFloat64 on both sides; Multiply(f64, int64) would truncate a to b's kind
+    if ((helper === 'Subtract') || (kb === 'f64')) {
+        return { 'text': '(' + goArithAsFloat (a, ka) + op + goArithAsFloat (b, kb) + ')', 'kind': 'f64' };
+    }
+    return undefined;
+}
+
+function hx4G26Split (cond: string, sep: string): string[] {
+    const parts: string[] = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < cond.length; i++) {
+        const c = cond[i];
+        if (c === '(' || c === '[' || c === '{') { depth++; } else if (c === ')' || c === ']' || c === '}') { depth--; }
+        else if ((depth === 0) && cond.startsWith (sep, i)) { parts.push (cond.slice (start, i)); start = i + sep.length; i += sep.length - 1; }
+    }
+    parts.push (cond.slice (start));
+    return parts.map ((p) => goArithStripParens (p));
+}
+
+// a declared-once, never-rewritten *int64/*float64 local or param that is non-nil at scope.pos
+function hx4G26PointerNonNil (scope: GoArithScope, name: string): boolean {
+    if (!hx4G17SingleWrite (scope, name)) {
+        return false;
+    }
+    const lines = scope.masked.slice (0, scope.pos).split ('\n');
+    const all = scope.masked.split ('\n');
+    const indentOf = (l: string) => l.length - l.replace (/^\t+/, '').length;
+    let indent = indentOf (lines[lines.length - 1]);
+    for (let k = lines.length - 2; k >= 1; k--) {
+        const s = lines[k].trim ();
+        if (s === '') {
+            continue;
+        }
+        const li = indentOf (lines[k]);
+        if (li < indent) {
+            indent = li;
+            if (/^(?:\} else|else)/.test (s) && !/^\} else if /.test (s)) {
+                return false;
+            }
+            const head = /^(?:\} else )?if (.*) \{$/.exec (s);
+            if (head && (head[1].indexOf ('||') < 0) && (head[1].indexOf (';') < 0) && hx4G26Split (head[1], '&&').includes (name + ' != nil')) {
+                return true;
+            }
+            continue;
+        }
+        const exit = /^if (.*) \{$/.exec (s);
+        if ((li === indent) && exit && (exit[1].indexOf ('&&') < 0) && hx4G26Split (exit[1], '||').includes (name + ' == nil')) {
+            let j = k + 1;
+            let last = '';
+            while ((j < all.length) && ((all[j].trim () === '') || (indentOf (all[j]) > li))) {
+                if (all[j].trim () !== '') {
+                    last = all[j].trim ();
+                }
+                j++;
+            }
+            if ((j < all.length) && (all[j].trim () === '}') && /^(?:return\b|continue$|break$|panic\()/.test (last)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// `x, p := this.HandleOptionIntegerAndParams(...)` (base method): x is a plain int64
+function hx4G26TupleInt64 (scope: GoArithScope, name: string): boolean {
+    if ((hx4G23DeclCount (scope.masked, name) !== 1) || !hx4G17SingleWrite (scope, name)) {
+        return false;
+    }
+    const pair = new RegExp ('(?<![\\w.])' + name + ',\\s*\\w+\\s*:=\\s*this\\.(HandleOptionIntegerAndParams2?)\\(').exec (scope.masked);
+    return (pair !== null) && !scope.ownMethods.has (pair[1]) && (pair.index < scope.pos);
+}
+
+export function hx4G26SelfTest (): string[] {
+    const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) F(o any, q *float64) any {\n' + body + '\n}\n';
+    const cases: [ string, string, boolean ][] = [
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tvar c any = nil\n\tif (p != nil) && (a != nil) {\n\t\tc = Multiply(p, a)\n\t}\n\treturn c', 'c = (*p * *a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tvar c any = nil\n\tif (p != nil) || (a != nil) {\n\t\tc = Multiply(p, a)\n\t}\n\treturn c', 'Multiply(p, a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif (p != nil) && (a != nil) {\n\t\tp = this.SafeNumber(o, "x")\n\t\treturn Subtract(p, a)\n\t}\n\treturn nil', 'Subtract(p, a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif p != nil {\n\t} else {\n\t\treturn Subtract(p, a)\n\t}\n\treturn nil', 'Subtract(p, a)', true ],
+        [ '\tif q == nil {\n\t\treturn nil\n\t}\n\tvar r *float64 = this.SafeNumber(o, "r")\n\tvar v any = func() any {\n\t\tif r == nil {\n\t\t\treturn nil\n\t\t}\n\t\treturn ccxt.Multiply(r, 100)\n\t}()\n\treturn ccxt.Subtract(q, 1)', '(*r * 100)', true ],
+        [ '\tif q == nil {\n\t\treturn nil\n\t}\n\treturn ccxt.Subtract(q, 1)', '(*q - 1)', true ],
+        [ '\tvar r *float64 = this.SafeNumber(o, "r")\n\treturn Multiply(r, 100)', 'Multiply(r, 100)', true ],
+        [ '\tvar n int64 = 3\n\tvar r *float64 = this.SafeNumber(o, "r")\n\tif r == nil {\n\t\treturn nil\n\t}\n\treturn Multiply(r, n)', 'Multiply(r, n)', true ],
+        [ '\tvar n int64 = 3\n\tvar r *float64 = this.SafeNumber(o, "r")\n\tif r == nil {\n\t\treturn nil\n\t}\n\treturn Subtract(r, n)', '(*r - float64(n))', true ],
+        [ '\tvar r *float64 = this.SafeNumber(o, "r")\n\tif r == nil {\n\t\treturn nil\n\t}\n\tif Multiply(r, 2) == 0 {\n\t}\n\treturn nil', 'Multiply(r, 2) == 0', true ],
+        [ '\tm, p := this.HandleOptionIntegerAndParams(o, "f", "m", 100)\n\t_ = p\n\tvar page int64 = 2\n\treturn this.SafeInteger(p, "offset", ccxt.Multiply(page, m))', '(page * m)', true ],
+        [ '\tvar page int64 = 2\n\tvar m int = 100\n\treturn Multiply(page, m)', '(page * int64(m))', true ],
+        [ '\tvar page int64 = 2\n\tvar m any = 100\n\treturn Multiply(page, m)', 'Multiply(page, m)', true ],
+    ];
+    const problems: string[] = [];
+    for (const [ body, want, present ] of cases) {
+        const out = goNativeArithmetic (wrap (body));
+        if (out.includes (want) !== present) {
+            problems.push ('hx4 G26: expected ' + want + ' in ' + out);
+        }
+    }
+    return problems;
+}
+
+
+// hx4 G27
+// Ordered comparisons G18/G23 leave: float `<`/`<=` print the helper's own NaN algebra
+// (`IsLessThan = !(a >= b)`, `LE = !(a > b)`), and non-nil BaseExchange numeric fields type.
+const HX4G27_FIELDS: { [name: string]: Kind } = { 'RateLimit': 'f64', 'FetchHistoryCacheSize': 'int', 'MinFundingAddressLength': 'int' };
+
+function hx4G27Native (helper: string, a: string, b: string, ka: Kind, kb: Kind, pa: boolean, pb: boolean, name: string[]): string | undefined {
+    const op: string = { 'IsGreaterThan': '>', 'IsGreaterThanOrEqual': '>=', 'IsLessThan': '<', 'IsLessThanOrEqual': '<=' }[helper];
+    const isLit = (k: Kind) => (k === 'ilit') || (k === 'flit');
+    if ((op === undefined) || (isLit (ka) && isLit (kb))) {
+        return undefined;
+    }
+    const float = (ka === 'f64') || (kb === 'f64') || (ka === 'flit') || (kb === 'flit');
+    if (float && ((ka === 'flit' && kb === 'int') || (kb === 'flit' && ka === 'int'))) {
+        return undefined;
+    }
+    const conv = (x: string, k: Kind, other: Kind) => {
+        if (float && ((k === 'i64') || (k === 'int'))) { return 'float64(' + x + ')'; }
+        if ((k === 'int') && (other === 'i64')) { return 'int64(' + x + ')'; }
+        return x;
+    };
+    const ca = conv (a, ka, kb);
+    const cb = conv (b, kb, ka);
+    let cmp = ca + ' ' + op + ' ' + cb;
+    if (float && (op === '<')) {
+        cmp = '!(' + ca + ' >= ' + cb + ')';
+    } else if (float && (op === '<=')) {
+        cmp = '!(' + ca + ' > ' + cb + ')';
+    }
+    if (!pa && !pb) {
+        return '(' + cmp + ')';
+    }
+    const [ na, nb ] = name;
+    // helper nil table: GT(nil, x) false, GT(x, nil) true, EQ(nil, nil) true
+    const gtOrGe = (op === '>') || (op === '>=');
+    if (pa && pb) {
+        if (op === '>') { return '(' + na + ' != nil && (' + nb + ' == nil || ' + cmp + '))'; }
+        if (op === '<') { return '(' + nb + ' != nil && (' + na + ' == nil || ' + cmp + '))'; }
+        if (op === '>=') { return '(' + nb + ' == nil || (' + na + ' != nil && ' + cmp + '))'; }
+        return '(' + na + ' == nil || (' + nb + ' != nil && ' + cmp + '))';
+    }
+    if (pa) {
+        return gtOrGe ? '(' + na + ' != nil && ' + cmp + ')' : '(' + na + ' == nil || ' + cmp + ')';
+    }
+    return gtOrGe ? '(' + nb + ' == nil || ' + cmp + ')' : '(' + nb + ' != nil && ' + cmp + ')';
+}
+
+function hx4G27RewriteFunc (text: string, ownMethods: Set<string>, fields: Set<string>): string {
+    let masked = goArithMask (text);
+    const nl = masked.indexOf ('\n');
+    const scope: GoArithScope = { 'masked': masked, 'signature': masked.slice (0, nl < 0 ? masked.length : nl), 'known': new Map (), 'ownMethods': ownMethods, 'pos': 0, 'derefs': new Set<string> () };
+    const rx = /(?<![\w.])(?:ccxt\.)?(IsGreaterThanOrEqual|IsLessThanOrEqual|IsGreaterThan|IsLessThan)\(/g;
+    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
+    calls.sort ((x, y) => y.start - x.start);
+    for (const call of calls) {
+        const close = goArithClose (masked, call.open);
+        const spans = (close < 0) ? [] : goArithArgs (masked, call.open, close);
+        if (spans.length !== 2) {
+            continue;
+        }
+        scope.pos = call.start;
+        const args = spans.map (([ s, e ]) => goArithStripParens (text.slice (s, e)));
+        const margs = spans.map (([ s, e ]) => goArithStripParens (masked.slice (s, e)));
+        const isPtr: boolean[] = [];
+        const kinds: (Kind | undefined)[] = [];
+        const ops: string[] = [];
+        for (let i = 0; i < 2; i++) {
+            const x = args[i];
+            const field = /^this\.(\w+)$/.exec (x);
+            const declared = /^[A-Za-z_]\w*$/.test (x) ? goArithDeclaredType (scope.masked, scope.signature, x) : undefined;
+            if (field && fields.has (field[1])) {
+                isPtr.push (false); kinds.push (HX4G27_FIELDS[field[1]]); ops.push (x);
+            } else if ((declared === '*int64') || (declared === '*float64')) {
+                const nonNil = hx4G17PointerNonNil (scope, x, declared) || g10kArithPointerIsNonNil (scope, x);
+                isPtr.push (!nonNil); kinds.push ((declared === '*int64') ? 'i64' : 'f64'); ops.push ('*' + x);
+            } else {
+                isPtr.push (false); kinds.push (hx4G18Kind (scope, x, margs[i])); ops.push (x);
+            }
+        }
+        if (kinds.some ((k) => k === undefined) || (isPtr[0] && !isPtr[1] && !hx4G18Skippable (margs[1])) || (isPtr[1] && !isPtr[0] && !hx4G18Skippable (margs[0]))) {
+            continue;
+        }
+        let native = hx4G27Native (call.helper, ops[0], ops[1], kinds[0] as Kind, kinds[1] as Kind, isPtr[0], isPtr[1], args);
+        if (native === undefined) {
+            continue;
+        }
+        if (/\(\s*$/.test (masked.slice (0, call.start)) && /^\s*\)/.test (masked.slice (close + 1))) {
+            native = native.slice (1, -1);
+        }
+        text = text.slice (0, call.start) + native + text.slice (close + 1);
+        masked = masked.slice (0, call.start) + goArithMask (native) + masked.slice (close + 1);
+        scope.masked = masked;
+    }
+    return text;
+}
+
+export function hx4G27Comparisons (content: string): string {
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?Is(?:Greater|Less)Than/.test (content)) {
+        return content;
+    }
+    const masked = goArithMask (content);
+    const ownMethods = new Set<string> ();
+    for (const name of GO_ARITH_INT64_METHODS) {
+        if (new RegExp ('^func \\(this \\*\\w+\\) ' + name + '\\(', 'm').test (masked)) {
+            ownMethods.add (name);
+        }
+    }
+    // a file that declares its own field / method of that name may shadow the BaseExchange one
+    const fields = new Set<string> (Object.keys (HX4G27_FIELDS).filter ((f) => !new RegExp ('^\\s+' + f + '\\s+[\\w*\\[]|\\) ' + f + '\\(', 'm').test (masked)));
+    const lines = content.split ('\n');
+    const out: string[] = [];
+    let start = -1;
+    for (let k = 0; k < lines.length; k++) {
+        if (start < 0) {
+            if (lines[k].startsWith ('func ') && !lines[k].endsWith ('}')) { start = k; } else { out.push (lines[k]); }
+            continue;
+        }
+        if (lines[k] === '}') {
+            const fn = lines.slice (start, k + 1).join ('\n');
+            // only methods on an exchange receiver (`this`) see BaseExchange fields
+            const own = /^func \(this \*\w+\)/.test (lines[start]) ? fields : new Set<string> ();
+            out.push (hx4G27RewriteFunc (fn, ownMethods, own));
+            start = -1;
+        }
+    }
+    if (start >= 0) {
+        out.push (...lines.slice (start));
+    }
+    return out.join ('\n');
+}
+
+export function hx4G27SelfTest (): string[] {
+    const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) F(o any, n any) any {\n' + body + '\n}\n';
+    const cases: [ string, string, boolean ][] = [
+        [ '\tvar d *float64 = this.SafeNumber(o, 2)\n\tif (d != nil) && IsLessThan(d, 0) {\n\t}\n\treturn nil', '(d != nil) && (!(*d >= 0))', true ],
+        [ '\tvar d *float64 = this.SafeNumber(o, 2)\n\tif ccxt.IsLessThan(d, 0) {\n\t}\n\treturn nil', 'if (d == nil || !(*d >= 0)) {', true ],
+        [ '\tvar a *float64 = this.SafeNumber(o, \"a\")\n\tvar b *float64 = this.SafeNumber(o, \"b\")\n\tif IsLessThan(a, b) {\n\t}\n\treturn nil', 'if (b != nil && (a == nil || !(*a >= *b))) {', true ],
+        [ '\tvar d *float64 = this.SafeNumber(o, 2)\n\tif IsLessThanOrEqual(d, 0) {\n\t}\n\treturn nil', 'if (d == nil || !(*d > 0)) {', true ],
+        [ '\tvar m float64 = 2.5\n\tfor p := 1; ccxt.IsLessThan(p, m); p++ {\n\t}\n\treturn nil', 'for p := 1; (!(float64(p) >= m)); p++ {', true ],
+        [ '\tif IsGreaterThan(this.RateLimit, 0) {\n\t}\n\treturn nil', 'if (this.RateLimit > 0) {', true ],
+        [ '\tif IsLessThan(GetLength(n), this.MinFundingAddressLength) {\n\t}\n\treturn nil', '(GetLength(n) < this.MinFundingAddressLength)', true ],
+        [ '\tif IsLessThan(n, 0.5) {\n\t}\n\treturn nil', 'IsLessThan(n, 0.5)', true ],
+        [ '\tvar d *float64 = this.SafeNumber(o, 2)\n\tif IsLessThan(d, this.Seconds()) {\n\t}\n\treturn nil', 'IsLessThan(d, this.Seconds())', true ],
+        [ '\tif IsGreaterThan(this.Other, 0) {\n\t}\n\treturn nil', 'IsGreaterThan(this.Other, 0)', true ],
+    ];
+    const problems: string[] = [];
+    for (const [ body, want, present ] of cases) {
+        const out = hx4G27Comparisons (wrap (body));
+        if (out.includes (want) !== present) {
+            problems.push ('hx4 G27: expected ' + want + ' in ' + out);
+        }
+    }
+    // a struct that redeclares the field keeps the helper
+    const shadow = hx4G27Comparisons ('// PLEASE DO NOT EDIT THIS FILE\ntype K struct {\n\tRateLimit any\n}\n' + wrap ('\tif IsGreaterThan(this.RateLimit, 0) {\n\t}\n\treturn nil'));
+    if (!shadow.includes ('IsGreaterThan(this.RateLimit, 0)')) {
+        problems.push ('hx4 G27: shadowed field went native: ' + shadow);
     }
     return problems;
 }

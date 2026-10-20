@@ -1734,7 +1734,7 @@ export default class backpack extends backpackRest {
         let hedged: Bool = false;
         let side: Str = 'long';
         if (netQuantity !== undefined) {
-            if (netQuantity < 0) {
+            if (0 > netQuantity) {
                 side = 'short';
             }
         } else {

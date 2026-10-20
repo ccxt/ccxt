@@ -1899,15 +1899,14 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        const maxLimit = 1440;
-        const sinceLimit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
-        const limitResolved = (since !== undefined) ? sinceLimit : limit;
+        const cappedLimit = ((limit === undefined) || (limit > 1440)) ? 1440 : limit;
+        const limitResolved = (since !== undefined) ? cappedLimit : limit;
         if (since !== undefined) {
             const start = this.parseToInt (since / 1000);
             request['start'] = start;
         }
         if (limitResolved !== undefined) {
-            request['limit'] = Math.min (limitResolved, 1440);
+            request['limit'] = cappedLimit;
         }
         const response = await this.v1PublicGetKline (this.extend (request, params));
         //

@@ -3151,7 +3151,7 @@ export default class cryptocom extends Exchange {
         const timestamp = this.safeInteger (contract, 't');
         let fundingTimestamp: Int = undefined;
         if (timestamp !== undefined) {
-            fundingTimestamp = Math.ceil (timestamp / 3600000) * 3600000; // end of the next hour
+            fundingTimestamp = this.parseToInt (Math.ceil (timestamp / 3600000)) * 3600000; // end of the next hour
         }
         return {
             'info': contract,

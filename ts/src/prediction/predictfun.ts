@@ -983,9 +983,8 @@ export default class predictfun extends Exchange {
         }
         const digits = '0123456789';
         const chars = this.stringToCharsArray (text);
-        const charsLength = chars.length;
         let stripped = '';
-        for (let i = 0; i < charsLength; i++) {
+        for (let i = 0; i < chars.length; i++) {
             const ch = chars[i];
             let keep = true;
             if (ch === '$') {
@@ -995,7 +994,7 @@ export default class predictfun extends Exchange {
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
                 const prevIsDigit = (i > 0) && (digits.indexOf (chars[i - 1]) >= 0);
-                const nextIsDigit = ((i + 1) < charsLength) && (digits.indexOf (chars[i + 1]) >= 0);
+                const nextIsDigit = ((i + 1) < chars.length) && (digits.indexOf (chars[i + 1]) >= 0);
                 keep = !(prevIsDigit && nextIsDigit);
             }
             if (keep) {

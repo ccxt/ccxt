@@ -1265,13 +1265,9 @@ export default class pacifica extends Exchange {
         const requestedUntil = this.safeInteger (requestUntil, 'end_time');
         if (requestedUntil === undefined) {
             const durationMillis = this.parseTimeframe (tf) * 1000;
-            let until = since + (defaultMaxLimit * durationMillis) - 1;
-            if (limit !== undefined) {
-                until = since + (limit * durationMillis) - 1;
-            }
-            if (until > nowMillis) {
-                until = nowMillis;
-            }
+            const candleCount: Int = (limit === undefined) ? defaultMaxLimit : limit;
+            const windowEnd: Int = since + (candleCount * durationMillis) - 1;
+            const until: Int = (windowEnd > nowMillis) ? nowMillis : windowEnd;
             requestUntil['end_time'] = until;
         }
         const response = await this.publicGetKline (this.extend (requestUntil, paramsUntil));

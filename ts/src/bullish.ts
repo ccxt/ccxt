@@ -1604,10 +1604,12 @@ export default class bullish extends Exchange {
                 sinceResolved = untilParam - timeDelta;
             }
             if ((since !== undefined) && (untilParam === undefined)) {
-                until = this.sum (since, timeDelta);
                 const now = this.milliseconds ();
-                if ((until as number) > now) {
+                const latestSince = now - timeDelta;
+                if (since > latestSince) {
                     until = now;
+                } else {
+                    until = this.sum (since, timeDelta);
                 }
             }
             const sinceDate = this.iso8601 (sinceResolved);

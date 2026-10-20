@@ -879,11 +879,12 @@ export default class hyperliquid extends Exchange {
             const tf = this.parseTimeframe (timeframe);
             const candleCount = (limit !== undefined) ? limit : 100;
             const startOffset = tf * candleCount * -1000;
-            startTime = this.sum (until, startOffset);
+            const shiftedStart = this.sum (until, startOffset);
+            startTime = shiftedStart;
             if (startTime === undefined) {
                 throw new ExchangeError (this.id + ' fetchOHLCV() missing startTime');
             }
-            if (startTime < 0) {
+            if (shiftedStart < 0) {
                 startTime = 0;
             }
         }

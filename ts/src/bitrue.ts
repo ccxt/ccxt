@@ -2560,7 +2560,7 @@ export default class bitrue extends Exchange {
         }
         let limitResolved: Int = undefined;
         if (limit !== undefined) {
-            limitResolved = Math.min (limit, 1000);
+            limitResolved = (limit > 1000) ? 1000 : limit;
             request['limit'] = limitResolved;
         }
         if (market['swap'] === true) {
@@ -3096,7 +3096,7 @@ export default class bitrue extends Exchange {
         }
         let limitResolved: Int = undefined;
         if (limit !== undefined) {
-            limitResolved = Math.min (limit, 200);
+            limitResolved = (limit > 200) ? 200 : limit;
             request['limit'] = limitResolved;
         }
         const until = this.safeInteger (params, 'until');

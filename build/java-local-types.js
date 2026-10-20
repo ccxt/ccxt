@@ -19061,3 +19061,101 @@ export function nativeJavaJ24Arithmetic (content) {
     }
     return out;
 }
+
+// hx4 J27
+// ===== hx4 J27: Object locals whose every write already yields one box (Long or Double, null allowed) =====
+// Producers: safeInteger*/safeTimestamp*/parseToInt/Helpers.parseInt (Long), safeNumber*/parseFloat (Double),
+// sum/mathMin/mathMax over Long-family args, typed locals, J23 primitives. The box is unchanged, so only
+// box-neutral reads are allowed; J04/J23 then prove the operators under the existing null guards.
+function j27Box (ctx, text) {
+    const e = longLimitStrip (text).replace (/^\((?:Long|Double)\) /, '');
+    if (e === 'null') return 'null';
+    // string arguments masked: only the argument count and numeric arguments are read
+    const masked = e.replace (/"(?:[^"\\]|\\.)*"/g, 'j27s');
+    const call = (re) => { const m = re.exec (masked); return m === null ? undefined : longLimitCallArgs (masked, m[1]); };
+    if (call (/^((?:\w+\.)?this\.(?:safeInteger|safeInteger2|safeIntegerN|safeTimestamp|safeTimestamp2|safeTimestampN|parseToInt))\(/) !== undefined) return 'Long';
+    if (call (/^(Helpers\.parseInt)\(/) !== undefined) return 'Long';
+    if (call (/^((?:\w+\.)?this\.(?:safeNumber|safeNumber2|safeNumberN))\(/) !== undefined) return 'Double';
+    if (call (/^(Helpers\.parseFloat)\(/) !== undefined) return 'Double';
+    if (/^[A-Za-z_]\w*$/.test (e)) {
+        const t = ctx.declType (e);
+        return t === 'Long' || t === 'Double' ? t : undefined;
+    }
+    const longArg = (a) => { const b = j27Box (ctx, a); return b === 'Long' || (b === undefined && [ 'long', 'int', 'intlit' ].includes (j23Kind (ctx, a, () => true))); };
+    // Generic.sum answers (long) for a whole sum: integer-family args always give a Long box
+    const sum = call (/^((?:\w+\.)?this\.sum)\(/);
+    if (sum !== undefined) return sum.every (longArg) ? 'Long' : undefined;
+    // mathMin/mathMax hand back one operand: Long when both are Long boxes (an int literal would be Integer)
+    const mm = call (/^(Helpers\.math(?:Min|Max))\(/);
+    if (mm !== undefined) return mm.length === 2 && mm.every ((a) => j27Box (ctx, a) === 'Long' || /^-?\d+L$/.test (longLimitStrip (a))) ? 'Long' : undefined;
+    const k = j23Kind (ctx, e, () => true);
+    if (k === 'long') return 'Long';
+    if (k === 'double') return 'Double';
+    return undefined;
+}
+
+function j27RetypeMember (lines, from, to) {
+    const ctx = j04MemberCtx (lines, from, to).ctx;
+    const decl = /^(\s*)Object ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
+    let changed = false;
+    for (let i = from + 1; i < to; i++) {
+        const d = decl.exec (lines[i]);
+        if (d === null) continue;
+        const [ , iden, name ] = d;
+        if (longLimitDeclarations (lines, from, to, name).length !== 1) continue;
+        const operand = new RegExp (`Helpers\\.(?:multiply|subtract|divide|mod|opNeg)\\([^;]*(?<![\\w$.])${name}\\b`);
+        if (!lines.slice (i, to).some ((l) => operand.test (longLimitCodeOnly (l)))) continue;
+        const writeDecl = new RegExp (`^(\\s*)(?:Object )?${name} = (.*?);(\\s*//.*)?$`);
+        const compound = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+        const mention = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`);
+        const assign = new RegExp (`(?<![\\w$.=!<>])${name}\\s*=(?!=)`);
+        const values = [];
+        let ok = true;
+        for (let j = i; j < to && ok; j++) {
+            const code = longLimitCodeOnly (lines[j]);
+            if (!mention.test (code)) continue;
+            if (compound.test (code) || (/->/.test (code) && assign.test (code))) { ok = false; break; }
+            const w = writeDecl.exec (lines[j]);
+            if (w !== null && (j === i || !/^\s*Object /.test (lines[j]))) {
+                values.push (w[2].trim ());
+                if (!j24UseOk (j === i ? `${iden}j24w = ${d[3]};` : lines[j], name, false)) ok = false;
+            } else if (assign.test (code)) ok = false;
+            else if (!j24UseOk (lines[j], name, false)) ok = false;
+        }
+        if (!ok) continue;
+        // a self-referencing write (`x = f(x)`) is classified without x
+        const boxes = values.map ((v) => j27Box (ctx, v));
+        const real = boxes.filter ((b) => b !== 'null');
+        if (boxes.includes (undefined) || real.length === 0 || real.some ((b) => b !== real[0])) continue;
+        lines[i] = `${iden}${real[0]} ${name} = ${d[3]};${d[4] ?? ''}`;
+        changed = true;
+    }
+    return changed;
+}
+
+export function nativeJavaJ27Arithmetic (content) {
+    if (!J24_TARGETS.test (content)) return content;
+    const count = (ls) => ls.reduce ((n, l) => n + (longLimitCodeOnly (l).match (/Helpers\.(?:multiply|subtract|divide|mod|opNeg)\(/g) ?? []).length, 0);
+    let out = content;
+    for (let round = 0; round < 4; round++) {
+        const lines = out.split ('\n');
+        const starts = [];
+        for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+        if (starts.length === 0) return out;
+        const next = lines.slice (0, starts[0]);
+        let changed = false;
+        for (let s = 0; s < starts.length; s++) {
+            const member = lines.slice (starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length);
+            const work = member.slice ();
+            // keep a retype only when it lets at least one target helper go native
+            if (j27RetypeMember (work, 0, work.length)) {
+                const native = nativeJavaJ24Arithmetic (nativeJavaJ23Arithmetic (nativeJavaJ04Arithmetic (work.join ('\n')))).split ('\n');
+                if (count (native) < count (member)) { next.push (...native); changed = true; continue; }
+            }
+            next.push (...member);
+        }
+        if (!changed) break;
+        out = next.join ('\n');
+    }
+    return out;
+}

@@ -867,7 +867,7 @@ export default class gemini extends Exchange {
             } else {
                 const quoteCurrencies = this.handleOption ('fetchMarketsFromAPI', 'quoteCurrencies', []);
                 for (let i = 0; i < quoteCurrencies.length; i++) {
-                    const quoteCurrency = quoteCurrencies[i];
+                    const quoteCurrency = this.safeString (quoteCurrencies, i, '');
                     if (marketIdWithoutPerp.endsWith (quoteCurrency)) {
                         const quoteLength = this.parseToInt (-1 * quoteCurrency.length);
                         baseId = marketIdWithoutPerp.slice (0, quoteLength);

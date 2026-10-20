@@ -3285,7 +3285,8 @@ export default class grvt extends Exchange {
     }
 
     defaultSignature (): Dict {
-        const expiration = this.milliseconds () * 1000000 + 1000000 * this.safeInteger (this.options, 'expirationSeconds', 30) * 1000;
+        const expirationSeconds = this.safeInteger (this.options, 'expirationSeconds', 30);
+        const expiration = this.milliseconds () * 1000000 + 1000000 * expirationSeconds * 1000;
         return {
             'signer': '',
             'r': '',

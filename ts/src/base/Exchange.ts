@@ -3582,10 +3582,10 @@ export class BaseExchange {
             if (arrayLength > 0) {
                 let ascending = true;
                 if ((key in array[0])) {
-                    const first = array[0][key];
-                    const last = array[arrayLength - 1][key];
+                    const first = this.safeFloat (array[0], key);
+                    const last = this.safeFloat (array[arrayLength - 1], key);
                     if (first !== undefined && last !== undefined) {
-                        ascending = first <= last;  // true if array is sorted in ascending order based on 'timestamp'
+                        ascending = last >= first;  // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 if (fromStart) {
@@ -8771,7 +8771,7 @@ export class BaseExchange {
         const tasks: Promise<any>[] = [];
         const time = this.parseTimeframe (timeframe) * 1000;
         const maxEntriesPerRequestValue: Int = this.requireValue (maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
-        const step = time * maxEntriesPerRequestValue;
+        const step = time * this.parseToInt (maxEntriesPerRequestValue);
         const until = this.safeInteger2 (paramsOmitted, 'until', 'till'); // do not omit it here
         let currentSince = current - (maxCallsPaginationCalls * step) - 1;
         if (since !== undefined) {

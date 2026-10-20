@@ -331,15 +331,11 @@ export default class kalshi extends Exchange {
         // inline form to mb_strpos's `=== false`; assigned to a variable first, absence (false)
         // never satisfies `< 0` and id-form inputs take the wrong branch
         if (outcomeSymbol.indexOf (':') < 0) {
-            // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
-            // transpiler's ARRAY hint (count()), and `.length` inline inside slice() args breaks
-            // the python transpiler — this form emits strlen()/len() correctly in both
-            const symbolLength = this.parseToInt (outcomeSymbol.length);
-            const suffix = outcomeSymbol.slice (symbolLength - 3);
-            const isNo = (suffix === '-NO');
+            // endsWith + negative slice: no .length arithmetic (php count() / python slice traps)
+            const isNo = outcomeSymbol.endsWith ('-NO');
             let baseTicker: Str = outcomeSymbol;
             if (isNo) {
-                baseTicker = outcomeSymbol.slice (0, symbolLength - 3);
+                baseTicker = outcomeSymbol.slice (0, -3);
             }
             let response = undefined;
             try {
@@ -414,12 +410,9 @@ export default class kalshi extends Exchange {
             if (outcomeSymbol.indexOf (':') >= 0) {
                 continue;
             }
-            // parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
-            const symbolLength = this.parseToInt (outcomeSymbol.length);
-            const suffix = outcomeSymbol.slice (symbolLength - 3);
             let baseTicker: Str = outcomeSymbol;
-            if (suffix === '-NO') {
-                baseTicker = outcomeSymbol.slice (0, symbolLength - 3);
+            if (outcomeSymbol.endsWith ('-NO')) {
+                baseTicker = outcomeSymbol.slice (0, -3);
             }
             if (!(baseTicker in seen)) {
                 seen[baseTicker] = true;

@@ -1511,8 +1511,9 @@ export default class deribit extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const now = this.milliseconds ();
         // at max, it provides 5000 bars, but we set generous default here
-        const windowLimit: int = (limit === undefined) ? 1000 : limit;
-        const limitResolved = (since === undefined) ? windowLimit : limit;
+        const defaultLimit = 1000;
+        const windowLimit: int = (limit === undefined) ? defaultLimit : limit;
+        const limitResolved = ((since === undefined) && (limit === undefined)) ? defaultLimit : limit;
         const sinceResolved: Int = (since === undefined) ? undefined : Math.max (since - 1, 0);
         if (since === undefined) {
             request['start_timestamp'] = now - (windowLimit - 1) * duration * 1000;
@@ -3334,7 +3335,8 @@ export default class deribit extends Exchange {
         const duration = this.parseTimeframe (eachItemDuration) * 1000;
         const now = this.milliseconds ();
         const month = 30 * 24 * 60 * 60 * 1000;
-        const sinceResolved: int = (since === undefined) ? now - month : since;
+        const defaultSince = now - month;
+        const sinceResolved: int = (since === undefined) ? defaultSince : since;
         const time: int = (since === undefined) ? now : since + month;
         const request: Dict = {
             'instrument_name': market['id'],

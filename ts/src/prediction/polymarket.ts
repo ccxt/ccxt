@@ -591,7 +591,7 @@ export default class polymarket extends Exchange {
         }
         if (firstPageLength >= pageSize) {
             const offsets: number[] = [];
-            for (let p = 1; p < maxPages; p++) {
+            for (let p = 1; maxPages > p; p++) {
                 offsets.push (p * pageSize);
             }
             const restPromises: any[] = [];
@@ -1328,7 +1328,7 @@ export default class polymarket extends Exchange {
                 continue;
             }
             const rawMs = t * 1000;
-            const snappedMs = Math.floor (rawMs / resolutionMs) * resolutionMs;
+            const snappedMs = this.parseToInt (rawMs / resolutionMs) * resolutionMs;
             // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             // rather than fabricating a 0, probing s/v in case the field ever appears
             let vol = this.safeNumber (item, 's');

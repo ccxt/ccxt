@@ -1454,7 +1454,8 @@ export default class revolutx extends Exchange {
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (code >= 400) {
+        const statusCode = this.parseToInt (code);
+        if (statusCode >= 400) {
             if (response === undefined) {
                 return undefined;
             }

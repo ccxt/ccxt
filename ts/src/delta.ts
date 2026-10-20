@@ -1675,7 +1675,10 @@ export default class delta extends Exchange {
             until = this.parseToInt (until);
         }
         if (since === undefined) {
-            const end = untilIsDefined ? until : this.seconds ();
+            let end: Int = this.seconds ();
+            if (untilIsDefined) {
+                end = this.parseToInt (until);
+            }
             request['end'] = end;
             if (end === undefined) {
                 throw new ExchangeError (this.id + ' fetchOHLCV() missing end');

@@ -2016,15 +2016,16 @@ export default class foxbit extends Exchange {
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
         }
-        if (0 > amount) {
-            direction = 'out';
-            realAmount = amount * -1;
-        }
         if (balance === undefined) {
             throw new ExchangeError (this.id + ' parseLedgerEntry() missing balance');
         }
-        if (amount === undefined) {
-            throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
+        let before: Num = undefined;
+        if (amount !== undefined && balance !== undefined) {
+            before = balance - amount;
+            if (0 > amount) {
+                direction = 'out';
+                realAmount = amount * -1;
+            }
         }
         return {
             'id': id,
@@ -2038,7 +2039,7 @@ export default class foxbit extends Exchange {
             'type': type,
             'currency': currencySymbol,
             'amount': realAmount,
-            'before': balance - amount,
+            'before': before,
             'after': balance,
             'status': 'ok',
             'fee': fee,

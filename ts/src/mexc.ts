@@ -2987,7 +2987,7 @@ export default class mexc extends Exchange {
                 if (maxTimeTillEnd === undefined) {
                     throw new ExchangeError (this.id + ' fetchOrders() requires a numeric options["maxTimeTillEnd"]');
                 }
-                request['start_time'] = this.sum (until, maxTimeTillEnd * -1);
+                request['start_time'] = until - maxTimeTillEnd;
                 request['end_time'] = until;
             }
             if (limit !== undefined) {

@@ -8977,6 +8977,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // locals make the remaining `is_true` sites native.
                 rustContent = this.dropNativeCallIsTrue(rustContent);
                 rustContent = this.dropOptionShadowIsTrue(rustContent);
+                rustContent = this.hx4R24BoolParamIsTrue(rustContent);
                 rustContent = this.hx4R03DropBoolBoxedIsTrue(rustContent);
                 rustContent = this.hx4R19NativeBoolEquals(rustContent);
                 rustContent = this.hx4R19NativeBoolIsTrue(rustContent);
@@ -9712,6 +9713,7 @@ impl std::ops::DerefMut for ${coreName} {
         // D-32: bool/`Option<bool>` callees and `Option`-typed shadow locals.
         finalFile = this.dropNativeCallIsTrue(finalFile);
         finalFile = this.dropOptionShadowIsTrue(finalFile);
+        finalFile = this.hx4R24BoolParamIsTrue(finalFile);
         finalFile = this.hx4R03DropBoolBoxedIsTrue(finalFile);
         finalFile = this.hx4R19NativeBoolEquals(finalFile);
         finalFile = this.hx4R19NativeBoolIsTrue(finalFile);
@@ -12101,6 +12103,178 @@ impl std::ops::DerefMut for ${coreName} {
             const inner = content.slice(open + 2, close).trim();
             if (!inner.startsWith('(') || !this.hx4R19IsNativeBoolExpr(inner)) continue;
             rewrites.push({ start, end, text: `(${this.stripOuterParens(inner)})` });
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx4 R24 — `is_true(&p)` -> `p.as_bool() == Some(true)` for a never-reassigned parameter
+    // whose every TS caller passes `true`/`false`/`undefined`/omits it (or forwards a parameter
+    // proven the same way), so its Value is only ever `Bool(..)` or Null.
+
+    private hx4R24Ts: { files: string[], heads: Array<{ file: number, at: number, end: number, name: string, params: Array<[string, string | undefined]> }> } | undefined;
+
+    /** Method headers of every ts/src source (venues, pro, prediction, base, tests). */
+    hx4R24TsIndex() {
+        if (this.hx4R24Ts !== undefined) return this.hx4R24Ts;
+        const files: string[] = [];
+        const walk = (dir: string) => {
+            let entries: fs.Dirent[] = [];
+            try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+            for (const e of entries) {
+                if (e.isDirectory()) walk(`${dir}/${e.name}`);
+                else if (e.name.endsWith('.ts')) files.push(fs.readFileSync(`${dir}/${e.name}`, 'utf8'));
+            }
+        };
+        walk('./ts/src');
+        const heads: any[] = [];
+        const re = /\n[ \t]+(?:(?:override|async|public|private|protected|static)\s+)*([A-Za-z_]\w*)\s*\(([^()]*)\)\s*(?::[^{;]*)?\{/g;
+        files.forEach((text, file) => {
+            const own: any[] = [];
+            for (const m of text.matchAll(re)) {
+                if (/^(?:if|for|while|switch|catch|function|return)$/.test(m[1])) continue;
+                const params: Array<[string, string | undefined]> = [];
+                for (const raw of m[2].split(',')) {
+                    const p = /^\s*(\w+)\s*\??\s*(?::[^=]*)?(?:=\s*(.*?))?\s*$/s.exec(raw);
+                    if (p !== null) params.push([p[1], p[2]]);
+                }
+                own.push({ file, at: m.index as number, end: text.length, name: m[1], params });
+            }
+            for (let i = 0; i + 1 < own.length; i++) own[i].end = own[i + 1].at;
+            heads.push(...own);
+        });
+        this.hx4R24Ts = { files, heads };
+        return this.hx4R24Ts;
+    }
+
+    /** Top-level comma-split argument list starting after a `(`; undefined when unbalanced. */
+    hx4R24Args(text: string, from: number): string[] | undefined {
+        const out: string[] = []; let depth = 0; let cur = '';
+        for (let i = from; i < text.length; i++) {
+            const c = text[i];
+            if (c === '(' || c === '[' || c === '{') depth += 1;
+            else if (c === ')' || c === ']' || c === '}') {
+                if (depth === 0) { if (cur.trim() !== '') out.push(cur.trim()); return out; }
+                depth -= 1;
+            }
+            if (c === ',' && depth === 0) { out.push(cur.trim()); cur = ''; } else cur += c;
+        }
+        return undefined;
+    }
+
+    private hx4R24Memo = new Map<string, boolean>();
+
+    /** Every value the TS parameter `param` of every `method` declaration can receive is a bool or nullish. */
+    hx4R24BoolOnlyParam(method: string, param: string, stack: Set<string> = new Set()): boolean {
+        const key = `${method}:${param}`;
+        if (this.hx4R24Memo.has(key)) return this.hx4R24Memo.get(key) as boolean;
+        if (stack.has(key)) return true; // a self-forward adds no new value
+        stack.add(key);
+        const { files, heads } = this.hx4R24TsIndex();
+        let ok = true;
+        const slots = new Set<number>();
+        for (const h of heads) {
+            if (h.name !== method) continue;
+            const i = h.params.findIndex(p => p[0] === param);
+            if (i < 0) { ok = false; break; }
+            slots.add(i);
+            const d = h.params[i][1];
+            if (d !== undefined && !/^(?:true|false|undefined)$/.test(d.trim())) { ok = false; break; }
+        }
+        if (slots.size !== 1) ok = false;
+        const slot = [...slots][0];
+        for (let f = 0; ok && f < files.length; f++) {
+            const text = files[f];
+            // Dynamic dispatch (`this[name]`, option-named methods) and unbound references.
+            if (new RegExp(`['"\`]${method}['"\`]`).test(text) || new RegExp(`\\.${method}\\b(?!\\s*\\()`).test(text)) { ok = false; break; }
+            for (const c of text.matchAll(new RegExp(`\\.${method}\\s*\\(`, 'g'))) {
+                const args = this.hx4R24Args(text, (c.index as number) + c[0].length);
+                if (args === undefined || args.some(a => a.startsWith('...'))) { ok = false; break; }
+                if (args.length <= slot) continue;
+                const arg = args[slot];
+                if (/^(?:true|false|undefined)$/.test(arg)) continue;
+                const encl = heads.filter(h => h.file === f && h.at < (c.index as number)).pop();
+                const body = encl === undefined ? '' : text.slice(encl.at, encl.end);
+                if (encl !== undefined && /^\w+$/.test(arg) && encl.params.some(p => p[0] === arg)
+                    && !new RegExp(`(?<![\\w.])${arg}\\s*(?:[-+*/%|&^]|\\?\\?|\\|\\||&&)?=(?!=)`).test(body.slice(body.indexOf('{')))
+                    && this.hx4R24BoolOnlyParam(encl.name, arg, stack)) continue;
+                ok = false; break;
+            }
+        }
+        stack.delete(key);
+        this.hx4R24Memo.set(key, ok);
+        return ok;
+    }
+
+    /** Snake-case fns the hand-written runtime calls (their callers are outside ts/src). */
+    private hx4R24Hand: string | undefined;
+
+    hx4R24BoolParamIsTrue(content: string): string {
+        if (!content.includes('is_true(&')) return content;
+        if (this.hx4R24Hand === undefined) {
+            const parts: string[] = [];
+            const walk = (dir: string) => {
+                let entries: fs.Dirent[] = [];
+                try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+                for (const e of entries) {
+                    if (e.isDirectory()) walk(`${dir}/${e.name}`);
+                    else if (e.name.endsWith('.rs') && !e.name.includes('generated')) parts.push(fs.readFileSync(`${dir}/${e.name}`, 'utf8'));
+                }
+            };
+            walk(RUST_CORE);
+            this.hx4R24Hand = parts.join('\n');
+        }
+        const hand = this.hx4R24Hand;
+        const masked = this.maskStringsAndComments(content);
+        const headers: number[] = [];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const region = masked.slice(from, headers[h + 1]);
+            const fm = /fn ([a-z_][a-z0-9_]*)\s*\(/.exec(region);
+            const brace = region.indexOf('{');
+            if (fm === null || brace < 0) continue;
+            const snake = fm[1];
+            const header = region.slice(0, brace);
+            const body = region.slice(brace);
+            if (new RegExp(`\\b${snake}\\s*\\(`).test(hand)) continue;
+            const method = snake.replace(/_([a-z0-9])/g, (_m, c) => c.toUpperCase());
+            const proven = new Map<string, boolean>();
+            const isParam = (name: string): boolean => {
+                if (proven.has(name)) return proven.get(name) as boolean;
+                const declared = new RegExp(`\\bmut ${name}: Value\\b`).test(header)
+                    || new RegExp(`let mut ${name} = get_arg\\(optional_args, \\d+, Value::(?:Bool\\((?:true|false)\\)|Null)\\);`).test(body);
+                const ok = declared
+                    && (body.match(new RegExp(`\\blet (?:mut )?${name}\\b`, 'g')) ?? []).length <= 1
+                    && !new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*(?:[-+*/%|&^]|<<|>>)?=(?!=)`).test(body.replace(/let mut \w+ = get_arg\(/g, ''))
+                    && !new RegExp(`&mut\\s+${name}\\b`).test(body)
+                    && !new RegExp(`\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`).test(body)
+                    && !new RegExp(`(?:for|if let|while let)\\s+[^=]*\\b${name}\\b[^=]*\\s+(?:in|=)`).test(body)
+                    && !new RegExp(`(?<![A-Za-z0-9_.])${name}\\.(?!clone\\(|as_[a-z0-9]+\\(|is_[a-z_]+\\()[a-z_]+\\(`).test(body)
+                    && this.hx4R24BoolOnlyParam(method, name);
+                proven.set(name, ok);
+                return ok;
+            };
+            for (const sm of region.matchAll(/(?<![A-Za-z0-9_:])is_true\(&([A-Za-z_][A-Za-z0-9_]*)\)/g)) {
+                const start = from + (sm.index as number);
+                const end = start + sm[0].length;
+                if (/^\s*(?:\.|==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
+                const lead = content.slice(Math.max(0, start - 12), start);
+                const slot = this.rustIsTrueBoolSlot(content, start, end) ??
+                    (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
+                     /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
+                if (slot === undefined || !isParam(sm[1])) continue;
+                const cmp = `${sm[1]}.as_bool() == Some(true)`;
+                rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
+            }
         }
         if (rewrites.length === 0) return content;
         let out = ''; let at = 0;
