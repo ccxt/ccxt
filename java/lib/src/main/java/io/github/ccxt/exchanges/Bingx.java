@@ -4812,7 +4812,7 @@ public class Bingx extends BingxApi
         mapLiteral9.put("status", this.parseOrderStatus(statusId));
         HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
         mapLiteral10.put("currency", feeCurrencyCode);
-        mapLiteral10.put("cost", Precise.stringAbs(feeCost));
+        mapLiteral10.put("cost", this.parseNumber(Precise.stringAbs(feeCost)));
         mapLiteral9.put("fee", mapLiteral10);
         mapLiteral9.put("trades", null);
         mapLiteral9.put("reduceOnly", this.safeBool2(orderData, "reduceOnly", "ro", (Object) null));
