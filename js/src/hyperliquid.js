@@ -1779,6 +1779,21 @@ export default class hyperliquid extends Exchange {
         };
         return this.signUserSignedAction(messageTypes, message);
     }
+    buildSendAssetSig(message) {
+        const messageTypes = {
+            'HyperliquidTransaction:SendAsset': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'destination', 'type': 'string' },
+                { 'name': 'sourceDex', 'type': 'string' },
+                { 'name': 'destinationDex', 'type': 'string' },
+                { 'name': 'token', 'type': 'string' },
+                { 'name': 'amount', 'type': 'string' },
+                { 'name': 'fromSubAccount', 'type': 'string' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
     buildWithdrawSig(message) {
         const messageTypes = {
             'HyperliquidTransaction:Withdraw': [
@@ -1942,7 +1957,9 @@ export default class hyperliquid extends Exchange {
             };
             let response = undefined;
             try {
-                const rawResponse = await this.publicPostInfo(this.extend(request, paramsEnableUnifiedMargin));
+                // the request keys win: a caller's own 'type' or 'user' params (e.g. transfer's
+                // type 'swap') must not overwrite the info query, which would silently fail here
+                const rawResponse = await this.publicPostInfo(this.extend(paramsEnableUnifiedMargin, request));
                 if (typeof rawResponse === 'string') {
                     response = rawResponse;
                 }
@@ -4223,13 +4240,21 @@ export default class hyperliquid extends Exchange {
      * @method
      * @name hyperliquid#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-from-spot-account-to-perp-account-and-vice-versa
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-between-sub-accounts
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#send-asset
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from *spot, swap*
-     * @param {string} toAccount account to transfer to *swap, spot or address*
+     * @param {string} fromAccount account to transfer from *spot, swap, main or a sub-account address*
+     * @param {string} toAccount account to transfer to *swap, spot, main or a sub-account address*
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.vaultAddress] the vault address for order
+     * @param {string} [params.vaultAddress] spot <> swap only, moves the balance inside this vault or sub-account instead of the main account
+     * @param {string} [params.type] main <> sub-account only, 'spot' moves the spot ledger instead of the perp ledger
+     * @param {string} [params.method] main <> sub-account only, 'sendAsset' forces the unified-account route, 'subAccountTransfer' forces the legacy sub-account actions; defaults to sendAsset when the account abstraction is unifiedAccount
+     * @param {boolean} [params.enableUnifiedMargin] main <> sub-account only, skips the abstraction lookup and states whether the account is unified
+     * @param {string} [params.sourceDex] sendAsset only, perp dex to move from, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+     * @param {string} [params.destinationDex] sendAsset only, perp dex to move to, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+     * @param {string} [params.user] sendAsset only, the master wallet address, defaults to walletAddress
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -4294,10 +4319,66 @@ export default class hyperliquid extends Exchange {
             throw new NotSupported(this.id + ' transfer() only support main <> subaccount transfer');
         }
         this.checkAddress(subAccountAddress);
-        // hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
+        const transferType = this.safeString(params, 'type');
+        // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
+        // unified account is active", a unified account has to move balances with sendAsset instead
+        let transferMethod = undefined;
+        let query = params;
+        [transferMethod, query] = this.handleOptionAndParams(query, 'transfer', 'method');
+        let masterAddress = undefined;
+        [masterAddress, query] = this.handlePublicAddress('transfer', query);
+        let useSendAsset = (transferMethod === 'sendAsset');
+        if (transferMethod === undefined) {
+            let isUnified = undefined;
+            [isUnified, query] = await this.isUnifiedEnabled('transfer', masterAddress, false, query);
+            useSendAsset = (isUnified === true);
+        }
+        if (useSendAsset) {
+            const paramsSendAsset = query;
+            const sendAssetCurrency = this.currency(code);
+            const sendAssetCurrencyInfo = this.safeDict(sendAssetCurrency, 'info', {});
+            const sendAssetToken = this.safeString(sendAssetCurrencyInfo, 'name') + ':' + this.safeString(sendAssetCurrencyInfo, 'tokenId');
+            // '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
+            // keeps every balance in the spot clearinghouse so spot is the default on both sides
+            const defaultDex = ((transferType === 'swap') || (transferType === 'perp')) ? '' : 'spot';
+            const sourceDex = this.safeString(paramsSendAsset, 'sourceDex', defaultDex);
+            const destinationDex = this.safeString(paramsSendAsset, 'destinationDex', defaultDex);
+            const sendAssetPayload = {
+                'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+                'destination': (isDeposit) ? subAccountAddress : masterAddress,
+                'sourceDex': sourceDex,
+                'destinationDex': destinationDex,
+                'token': sendAssetToken,
+                'amount': this.numberToString(amount),
+                'fromSubAccount': (isDeposit) ? '' : subAccountAddress,
+                'nonce': nonce,
+            };
+            const sendAssetSig = this.buildSendAssetSig(sendAssetPayload);
+            const sendAssetRequest = {
+                'action': {
+                    'hyperliquidChain': sendAssetPayload['hyperliquidChain'],
+                    'signatureChainId': '0x66eee',
+                    'type': 'sendAsset',
+                    'destination': sendAssetPayload['destination'],
+                    'sourceDex': sourceDex,
+                    'destinationDex': destinationDex,
+                    'token': sendAssetToken,
+                    'amount': sendAssetPayload['amount'],
+                    'fromSubAccount': sendAssetPayload['fromSubAccount'],
+                    'nonce': nonce,
+                },
+                'nonce': nonce,
+                'signature': sendAssetSig,
+            };
+            const sendAssetResponse = await this.privatePostExchange(sendAssetRequest);
+            //
+            // {'response': {'type': 'default'}, 'status': 'ok'}
+            //
+            return this.parseTransfer(sendAssetResponse, sendAssetCurrency);
+        }
+        // a standard account keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
         // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
         // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
-        const transferType = this.safeString(params, 'type');
         const isUsdc = (code.toUpperCase() === 'USDC');
         if (isUsdc && (transferType !== 'spot')) {
             // Transfer USDC with subAccountTransfer
@@ -4318,7 +4399,7 @@ export default class hyperliquid extends Exchange {
             //
             // {'response': {'type': 'default'}, 'status': 'ok'}
             //
-            return this.parseTransfer(response);
+            return this.parseTransfer(response, this.safeCurrency(code));
         }
         else {
             // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
@@ -4345,7 +4426,7 @@ export default class hyperliquid extends Exchange {
                 'signature': sig,
             };
             const response = await this.privatePostExchange(request);
-            return this.parseTransfer(response);
+            return this.parseTransfer(response, currency);
         }
     }
     parseTransfer(transfer, currency = undefined) {
