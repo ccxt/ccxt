@@ -443,11 +443,13 @@ type Limits struct {
 	Cost     MinMax
 	Leverage MinMax
 	Price    MinMax
+	Market   *MinMax
 }
 
 func NewLimits(data any) Limits {
 	m := MapOrEmpty(data)
 	var amount, cost, leverage, price MinMax
+	var market *MinMax
 	if v, ok := m["amount"]; ok {
 		amountValue := NewMinMax(MapOrEmpty(v))
 		amount = amountValue
@@ -464,11 +466,16 @@ func NewLimits(data any) Limits {
 		priceValue := NewMinMax(MapOrEmpty(v))
 		price = priceValue
 	}
+	if v, ok := m["market"]; ok && v != nil {
+		marketValue := NewMinMax(MapOrEmpty(v))
+		market = &marketValue
+	}
 	return Limits{
 		Amount:   amount,
 		Cost:     cost,
 		Leverage: leverage,
 		Price:    price,
+		Market:   market,
 	}
 }
 

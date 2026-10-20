@@ -546,6 +546,9 @@ func DetypeForComparison(value any) any {
 			out["txid"] = out["txId"]
 			delete(out, "txId")
 		}
+		if l, isLimits := value.(ccxt.Limits); isLimits && l.Market == nil {
+			delete(out, "market")
+		}
 		if _, isPos := value.(ccxt.Position); isPos {
 			for _, k := range []string{"timestamp", "lastUpdateTimestamp"} {
 				if f, isFloat := out[k].(float64); isFloat && f == float64(int64(f)) {

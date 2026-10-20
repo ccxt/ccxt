@@ -499,6 +499,9 @@ func StructToMap(s any) map[string]any {
 			m[lowerFirst(f.Name)] = structValueToAny(v.Field(i))
 		}
 	}
+	if l, isLimits := v.Interface().(Limits); isLimits && l.Market == nil {
+		delete(m, "market")
+	}
 	return m
 }
 
