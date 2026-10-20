@@ -4654,7 +4654,7 @@ public partial class bingx : Exchange
             { "status", this.parseOrderStatus(statusId) },
             { "fee", new Dictionary<string, object>() {
                 { "currency", feeCurrencyCode },
-                { "cost", Precise.stringAbs(feeCost) },
+                { "cost", this.parseNumber(Precise.stringAbs(feeCost)) },
             } },
             { "trades", null },
             { "reduceOnly", this.safeBool2(orderData, "reduceOnly", "ro") },
