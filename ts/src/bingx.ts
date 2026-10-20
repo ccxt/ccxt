@@ -4144,7 +4144,7 @@ export default class bingx extends Exchange {
             'status': this.parseOrderStatus (statusId),
             'fee': {
                 'currency': feeCurrencyCode,
-                'cost': Precise.stringAbs (feeCost),
+                'cost': this.parseNumber (Precise.stringAbs (feeCost)),
             },
             'trades': undefined,
             'reduceOnly': this.safeBool2 (orderData, 'reduceOnly', 'ro'),
