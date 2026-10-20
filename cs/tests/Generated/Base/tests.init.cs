@@ -30,6 +30,7 @@ public partial class BaseTest
             testPrecise();
             testSafeMethods();
             testSafeTicker();
+            testSafePosition();
             testMergeBalanceAccount();
             testBase58ToBinary();
             testToArray();
@@ -48,6 +49,7 @@ public partial class BaseTest
             testFilterBy();
             testHandleMethods();
             testHandleHttpStatusCode();
+            testCheckAddress();
             testNetworkMethods();
             testRemoveRepeatedElementsFromArray();
             testIsEmpty();

@@ -1,4 +1,4 @@
-import kucoin from './kucoin.js';
+import kucoin from '../abstract/pro/kucoinfutures.js';
 import type { Dict, Str, Strings, TransferEntry, Tickers } from '../base/types.js';
 export default class kucoinfutures extends kucoin {
     describe(): any;

@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinspot.js';
-import type { Balances, Dict, int, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, NullableDict, Order } from './base/types.js';
+import type { Balances, Dict, int, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Order } from './base/types.js';
 /**
  * @class coinspot
  * @augments Exchange
@@ -100,5 +100,6 @@ export default class coinspot extends Exchange {
      */
     cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    nonce(): number;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

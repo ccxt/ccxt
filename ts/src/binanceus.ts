@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import binance from './binance.js';
+import binance from './abstract/binanceus.js';
 import type { Endpoint, Dict, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------

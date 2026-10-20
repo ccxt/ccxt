@@ -67,6 +67,7 @@ func (this *BaseExchange) initializeProperties(extendedProperties map[string]any
 	this.CommonCurrencies = SafeValue(extendedProperties, "commonCurrencies", map[string]any{}).(map[string]any)
 	subVal := SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true)
 	this.SubstituteCommonCurrencyCodes = subVal != nil && derefScalar(subVal).(bool)
+	this.NetworkAliases = map[string]any{"ETH": "ERC20", "TRX": "TRC20", "BSC": "BEP20", "BSC20": "BEP20", "CRONOS": "CRC20", "ARB": "ARBITRUM", "ARBONE": "ARBITRUM", "ARBNOVA": "ARBITRUM_NOVA"}
 	this.Name = SafeString(extendedProperties, "name", "").(string)
 	this.HttpsProxy = SafeString(extendedProperties, "httpsProxy", nil)
 	this.HttpProxy = SafeString(extendedProperties, "httpProxy", nil)

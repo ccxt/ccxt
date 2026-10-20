@@ -6,6 +6,8 @@
 
 //  ---------------------------------------------------------------------------
 import lunoRest from '../luno.js';
+import { Precise } from '../base/Precise.js';
+import { ExchangeError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class luno extends lunoRest {
@@ -51,21 +53,26 @@ export default class luno extends lunoRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
-        const subscription = { 'symbol': symbol };
-        const url = this.urls['api']['ws'] + subscriptionHash;
-        const messageHash = 'trades:' + symbol;
+        const subscription = { 'symbol': symbolValue };
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError(this.id + ' watchTrades() has no websocket url');
+        }
+        const url = wsUrl + subscriptionHash;
+        const messageHash = 'trades:' + symbolValue;
         const subscribe = {
             'api_key_id': this.apiKey,
             'api_key_secret': this.secret,
         };
         const request = this.deepExtend(subscribe, params);
         const trades = await this.watch(url, messageHash, request, subscriptionHash, subscription);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message, subscription) {
         //
@@ -117,7 +124,13 @@ export default class luno extends lunoRest {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        const symbol = (market === undefined) ? undefined : market['symbol'];
+        let symbol = undefined;
+        if (market === undefined) {
+            symbol = undefined;
+        }
+        else {
+            symbol = market['symbol'];
+        }
         return this.safeTrade({
             'info': trade,
             'id': undefined,
@@ -152,11 +165,15 @@ export default class luno extends lunoRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
-        const subscription = { 'symbol': symbol };
-        const url = this.urls['api']['ws'] + subscriptionHash;
-        const messageHash = 'orderbook:' + symbol;
+        const subscription = { 'symbol': symbolValue };
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError(this.id + ' watchOrderBook() has no websocket url');
+        }
+        const url = wsUrl + subscriptionHash;
+        const messageHash = 'orderbook:' + symbolValue;
         const subscribe = {
             'api_key_id': this.apiKey,
             'api_key_secret': this.secret,
@@ -204,18 +221,23 @@ export default class luno extends lunoRest {
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.indexedOrderBook({});
         }
-        const asks = this.safeValue(message, 'asks');
+        const orderbook = this.orderbooks[symbol];
+        const asks = this.safeList(message, 'asks');
+        if (asks === undefined) {
+            const inSequence = this.isOrderBookDeltaInSequence(client, message, symbol);
+            if (!inSequence) {
+                return;
+            }
+        }
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            this.orderbooks[symbol] = this.indexedOrderBook(snapshot);
+            orderbook.reset(snapshot);
         }
         else {
-            const ob = this.orderbooks[symbol];
-            this.handleDelta(ob, message);
-            ob['timestamp'] = timestamp;
-            ob['datetime'] = this.iso8601(timestamp);
+            this.handleBookDelta(orderbook, message);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601(timestamp);
         }
-        const orderbook = this.orderbooks[symbol];
         const nonce = this.safeInteger(message, 'sequence');
         orderbook['nonce'] = nonce;
         client.resolve(orderbook, messageHash);
@@ -233,10 +255,10 @@ export default class luno extends lunoRest {
         };
     }
     parseOrderBookBidsAsks(bidasks, priceKey = 'price', amountKey = 'volume', thirdKey = 2) {
-        bidasks = this.toArray(bidasks);
+        const bidasksValue = this.toArray(bidasks);
         const result = [];
-        for (let i = 0; i < bidasks.length; i++) {
-            result.push(this.customParseBidAsk(bidasks[i], priceKey, amountKey, thirdKey));
+        for (let i = 0; i < bidasksValue.length; i++) {
+            result.push(this.customParseBidAsk(bidasksValue[i], priceKey, amountKey, thirdKey));
         }
         return result;
     }
@@ -250,7 +272,7 @@ export default class luno extends lunoRest {
         }
         return result;
     }
-    handleDelta(orderbook, message) {
+    handleBookDelta(orderbook, message) {
         //
         //  create
         //     {
@@ -294,9 +316,26 @@ export default class luno extends lunoRest {
         //         "timestamp": 1660598775360
         //     }
         //
-        const createUpdate = this.safeValue(message, 'create_update');
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
+        // trade updates are applied first, matching the ordering of the
+        // reference luno streaming client
+        const tradeUpdates = this.safeList(message, 'trade_updates', []);
+        for (let i = 0; i < tradeUpdates.length; i++) {
+            const tradeUpdate = tradeUpdates[i];
+            const makerOrderId = this.safeString(tradeUpdate, 'maker_order_id');
+            const tradedAmount = this.safeString(tradeUpdate, 'base');
+            if ((makerOrderId !== undefined) && (tradedAmount !== undefined)) {
+                // the message does not carry the side of the maker order and
+                // order ids are unique across the book, so try the bids first
+                // and fall back to the asks only on a miss
+                const reduced = this.reduceOrderVolume(bidsOrderSide, makerOrderId, tradedAmount);
+                if (!reduced) {
+                    this.reduceOrderVolume(asksOrderSide, makerOrderId, tradedAmount);
+                }
+            }
+        }
+        const createUpdate = this.safeDict(message, 'create_update');
         if (createUpdate !== undefined) {
             const bidAskArray = this.customParseBidAsk(createUpdate, 'price', 'volume', 'order_id');
             const type = this.safeString(createUpdate, 'type');
@@ -307,18 +346,108 @@ export default class luno extends lunoRest {
                 bidsOrderSide.storeArray(bidAskArray);
             }
         }
-        const deleteUpdate = this.safeValue(message, 'delete_update');
+        const deleteUpdate = this.safeDict(message, 'delete_update');
         if (deleteUpdate !== undefined) {
             const orderId = this.safeString(deleteUpdate, 'order_id');
             asksOrderSide.storeArray([0, 0, orderId]);
             bidsOrderSide.storeArray([0, 0, orderId]);
         }
     }
+    /**
+     * @ignore
+     * @method
+     * @name luno#reduceOrderVolume
+     * @description reduces the outstanding volume of the order with the given id inside one side of a level-3 orderbook after a trade, deleting the order when it is fully filled
+     * @param {object} orderSide the bids or asks side of an indexed orderbook
+     * @param {string} orderId the exchange-specific id of the maker order that traded
+     * @param {string} tradedAmount the traded amount in base currency, as a string
+     * @returns {boolean} true if the order was found in this side, false otherwise
+     */
+    reduceOrderVolume(orderSide, orderId, tradedAmount) {
+        const sideLength = orderSide.length;
+        for (let i = 0; i < sideLength; i++) {
+            const order = orderSide[i];
+            const entryId = this.safeString(order, 2);
+            if (entryId === orderId) {
+                const price = this.safeNumber(order, 0);
+                const currentAmount = this.safeString(order, 1);
+                const remainingAmount = Precise.stringSub(currentAmount, tradedAmount);
+                if (Precise.stringLe(remainingAmount, '0')) {
+                    // fully filled, storing a zero amount deletes the order
+                    orderSide.storeArray([price, 0, orderId]);
+                }
+                else {
+                    orderSide.storeArray([price, this.parseNumber(remainingAmount), orderId]);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name luno#isOrderBookDeltaInSequence
+     * @description checks the sequence number of an orderbook delta frame against the stored book, and on a gap tears the connection down so that the next watch call resubscribes and receives a fresh snapshot
+     * @param {object} client the websocket client the frame arrived on
+     * @param {object} message the delta frame
+     * @param {string} symbol unified market symbol of the book
+     * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
+     */
+    isOrderBookDeltaInSequence(client, message, symbol) {
+        const orderbook = this.orderbooks[symbol];
+        const storedNonce = this.safeInteger(orderbook, 'nonce');
+        if (storedNonce === undefined) {
+            // no snapshot was received yet, deltas cannot be applied to an
+            // empty book: luno sends the snapshot as the first frame after
+            // the handshake, so discard the delta
+            return false;
+        }
+        const messageSequence = this.safeInteger(message, 'sequence');
+        if (messageSequence === undefined) {
+            return true;
+        }
+        if (messageSequence <= storedNonce) {
+            // an old or replayed frame, discard it
+            return false;
+        }
+        const expectedSequence = storedNonce + 1;
+        if (messageSequence !== expectedSequence) {
+            // a gap in the sequence means a lost message and the book is
+            // unrecoverable on a live connection, because luno only sends
+            // a snapshot as the first frame after a fresh handshake:
+            // reset the client, which stops its keepalive and rejects
+            // every pending future on the connection, clear the
+            // subscription so that frames still arriving on the orphaned
+            // connection are ignored by handleMessage, and drop the
+            // client, so that the next watch call dials a new connection;
+            // the cached book is kept so references returned by earlier
+            // watchOrderBook calls stay live: clearing its nonce discards
+            // deltas until the fresh snapshot resets the book in place
+            const error = new InvalidNonce(this.id + ' watchOrderBook() received an out-of-sequence update for ' + symbol + ', expected ' + expectedSequence.toString() + ' but got ' + messageSequence.toString());
+            orderbook['nonce'] = undefined;
+            const market = this.market(symbol);
+            const subscriptionHash = '/stream/' + market['id'];
+            if (subscriptionHash in client.subscriptions) {
+                delete client.subscriptions[subscriptionHash];
+            }
+            client.reset(error);
+            delete this.clients[client.url];
+            return false;
+        }
+        return true;
+    }
     handleMessage(client, message) {
         if (message === '') {
             return;
         }
         const subscriptions = Object.values(client.subscriptions);
+        const subscriptionsLength = subscriptions.length;
+        if (subscriptionsLength === 0) {
+            // the subscription was dropped after a sequence gap, ignore the
+            // frames still arriving until the client resubscribes
+            return;
+        }
         const handlers = [this.handleOrderBook, this.handleTrades];
         for (let j = 0; j < handlers.length; j++) {
             const handler = handlers[j];

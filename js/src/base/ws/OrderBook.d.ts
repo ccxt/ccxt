@@ -22,4 +22,4 @@ declare class CountedOrderBook extends OrderBook {
 declare class IndexedOrderBook extends OrderBook {
     constructor(snapshot?: {}, depth?: Int);
 }
-export { OrderBook, CountedOrderBook, IndexedOrderBook, };
+export { OrderBook, OrderBook as WsOrderBook, CountedOrderBook, IndexedOrderBook, };

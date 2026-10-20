@@ -24,7 +24,7 @@ public class TestWatchLiquidations extends BaseTest {
         // log (symbol.green, 'watching trades...')
         String method = "watchLiquidations";
         // we have to skip some exchanges here due to the frequency of trading
-        List<Object> skippedExchanges = new ArrayList<Object>(Arrays.asList());
+        List<String> skippedExchanges = new ArrayList<String>(Arrays.asList());
         if (Helpers.isTrue(exchange.inArray(exchange.id, skippedExchanges)))
         {
             String m1 = ((((exchange.id + " ") + method) + "() test skipped"));
@@ -46,9 +46,9 @@ public class TestWatchLiquidations extends BaseTest {
             {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, method, new Object[] { symbol })).join();
                 now = System.currentTimeMillis();
-                Object isArray = (response instanceof List);
+                Boolean isArray = (response instanceof List);
                 Assert(isArray, "response must be an array");
-                String m3 = ((Helpers.add((((exchange.id + " ") + method) + "() returned "), ((List<?>)response).size()) + " liquidations"));
+                String m3 = ((((((exchange.id + " ") + method) + "() returned ") + ((List<?>)response).size()) + " liquidations"));
                 System.out.println(m3);
                 // log.noLocate (asTable (response))
                 for (var i = 0; i < ((List<?>)response).size(); i++)

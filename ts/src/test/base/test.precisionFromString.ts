@@ -69,6 +69,25 @@ function testPrecisionFromString () {
     // Test 20: Mixed precision
     assert (exchange.precisionFromString ('0.12345') === 5);
 
+    // The mantissa's sign and digits must not become part of the exponent.
+    assert (exchange.precisionFromString ('-1e-4') === 4);
+    assert (exchange.precisionFromString ('-1E-05') === 5);
+    assert (exchange.precisionFromString ('-2.5e-6') === 6);
+    assert (exchange.precisionFromString ('-1e4') === -4);
+    assert (exchange.precisionFromString ('-1e+4') === -4);
+    assert (exchange.precisionFromString ('+1e-4') === 4);
+    assert (exchange.precisionFromString ('+1E+04') === -4);
+    assert (exchange.precisionFromString ('12.34e-5') === 5);
+    assert (exchange.precisionFromString ('-12.34e-5') === 5);
+    assert (exchange.precisionFromString ('+12.34E+04') === -4);
+    assert (exchange.precisionFromString ('-.5E-04') === 4);
+    assert (exchange.precisionFromString ('-1e0') === 0);
+    assert (exchange.precisionFromString ('-0.00100') === 3);
+
+    // Zero exponents must also return zero in the typed language ports.
+    assert (exchange.precisionFromString ('1e0') === 0);
+    assert (exchange.precisionFromString ('1E+00') === 0);
+    assert (exchange.precisionFromString ('1e-0') === 0);
     // Test 21: Negative mantissa with negative exponent
     assert (exchange.precisionFromString ('-8e-8') === 8);
 

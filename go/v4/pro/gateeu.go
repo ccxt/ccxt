@@ -15,7 +15,6 @@ func newGateeu() *Gateeu {
 	base := newGate()
 	p.base = base
 	p.Gate = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

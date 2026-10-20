@@ -65,21 +65,21 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		AddElementToObject(format, "quanto", false) // whether the market is QUANTO or not
 	}
 	// define locals
-	var spot any = GetValue(market, "spot")
-	var contract any = GetValue(market, "contract")
-	var swap any = GetValue(market, "swap")
-	var future any = GetValue(market, "future")
-	var option any = GetValue(market, "option")
+	var spot *bool = SafeBoolPtr(GetValue(market, "spot"))
+	var contract *bool = SafeBoolPtr(GetValue(market, "contract"))
+	var swap *bool = SafeBoolPtr(GetValue(market, "swap"))
+	var future *bool = SafeBoolPtr(GetValue(market, "future"))
+	var option *bool = SafeBoolPtr(GetValue(market, "option"))
 	var index any = ccxt.DerefScalar(exchange.SafeBool(market, "index")) // todo: unify
 	var isIndex bool = (index != nil) && (index == true)
-	var linear any = GetValue(market, "linear")
-	var inverse any = GetValue(market, "inverse")
+	var linear *bool = SafeBoolPtr(GetValue(market, "linear"))
+	var inverse *bool = SafeBoolPtr(GetValue(market, "inverse"))
 	var quanto any = ccxt.DerefScalar(exchange.SafeBool(market, "quanto")) // todo: unify
 	var isQuanto bool = (quanto != nil) && (quanto == true)
 	var isInactiveMarket bool = (GetValue(market, "active") == false)
 	//
 	var emptyAllowedFor []any = []any{"margin"}
-	if contract != true {
+	if contract == nil || *contract != true {
 		emptyAllowedFor = append(emptyAllowedFor, "contractSize")
 		emptyAllowedFor = append(emptyAllowedFor, "linear")
 		emptyAllowedFor = append(emptyAllowedFor, "inverse")
@@ -87,11 +87,11 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		emptyAllowedFor = append(emptyAllowedFor, "settle")
 		emptyAllowedFor = append(emptyAllowedFor, "settleId")
 	}
-	if (future != true) && (option != true) {
+	if (future == nil || *future != true) && (option == nil || *option != true) {
 		emptyAllowedFor = append(emptyAllowedFor, "expiry")
 		emptyAllowedFor = append(emptyAllowedFor, "expiryDatetime")
 	}
-	if option != true {
+	if option == nil || *option != true {
 		emptyAllowedFor = append(emptyAllowedFor, "optionType")
 		emptyAllowedFor = append(emptyAllowedFor, "strike")
 	}
@@ -130,33 +130,33 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	// check if 'type' is consistent
 	var checkedTypes []any = []any{"spot", "swap", "future", "option"}
 	for i := 0; i < len(checkedTypes); i++ {
-		var typeVar any = func() any {
+		var typeVar *string = SafeStringPtr(func() any {
 			if i >= 0 && i < len(checkedTypes) {
 				return DerefScalar(checkedTypes[i])
 			}
 			return nil
-		}()
+		}())
 		if IsEqual(GetValue(market, typeVar), true) {
-			Assert((typeVar == GetValue(market, "type")), Add(Add(Add(Add(Add("market.type (", GetValue(market, "type")), ") not equal to \""), typeVar), "\""), logText))
+			Assert(IsEqual(typeVar, GetValue(market, "type")), Add(Add(Add(Add(Add("market.type (", GetValue(market, "type")), ") not equal to \""), typeVar), "\""), logText))
 		}
 	}
 	// check if 'subType' is consistent
-	if (swap == true) || (future == true) {
+	if (swap != nil && *swap == true) || (future != nil && *future == true) {
 		var checkedSubTypes []any = []any{"linear", "inverse"}
 		for i := 0; i < len(checkedSubTypes); i++ {
-			var subType any = func() any {
+			var subType *string = SafeStringPtr(func() any {
 				if i >= 0 && i < len(checkedSubTypes) {
 					return DerefScalar(checkedSubTypes[i])
 				}
 				return nil
-			}()
+			}())
 			if IsEqual(GetValue(market, subType), true) {
 				Assert(IsEqual(subType, GetValue(market, "subType")), Add(Add(Add(Add(Add("market.subType (", GetValue(market, "subType")), ") not equal to \""), subType), "\""), logText))
 			}
 		}
 	}
 	// margin check (todo: add margin as mandatory, instead of undefined)
-	if spot == true {
+	if spot != nil && *spot == true {
 		// for spot market, 'margin' can be either true/false or undefined
 		AssertInArray(exchange, skippedProperties, method, market, "margin", []any{true, false, nil})
 	} else {
@@ -167,24 +167,24 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var isPrediction bool = (GetValue(market, "type") == "prediction")
 	if isPrediction {
 		// prediction markets trade outcome shares — neither spot nor a derivative contract
-		Assert((spot != true) && (contract != true) && (future != true) && (swap != true) && (option != true), Add("for prediction market, none of spot/contract/future/swap/option should be set", logText))
-	} else if spot == true {
-		Assert((contract != true) && (linear == nil) && (inverse == nil) && (option != true) && (swap != true) && (future != true), Add("for spot market, none of contract/linear/inverse/option/swap/future should be set", logText))
+		Assert((spot == nil || *spot != true) && (contract == nil || *contract != true) && (future == nil || *future != true) && (swap == nil || *swap != true) && (option == nil || *option != true), Add("for prediction market, none of spot/contract/future/swap/option should be set", logText))
+	} else if spot != nil && *spot == true {
+		Assert((contract == nil || *contract != true) && (linear == nil) && (inverse == nil) && (option == nil || *option != true) && (swap == nil || *swap != true) && (future == nil || *future != true), Add("for spot market, none of contract/linear/inverse/option/swap/future should be set", logText))
 	} else {
 		// if not spot, any of the below should be true
-		Assert((contract == true) && ((future == true) || (swap == true) || (option == true) || (isIndex == true)), Add("for non-spot markets, any of (future/swap/option/index) should be set", logText))
+		Assert((contract != nil && *contract == true) && ((future != nil && *future == true) || (swap != nil && *swap == true) || (option != nil && *option == true) || (isIndex == true)), Add("for non-spot markets, any of (future/swap/option/index) should be set", logText))
 	}
-	var contractSize any = exchange.SafeString(market, "contractSize")
+	var contractSize any = ccxt.DerefScalar(exchange.SafeString(market, "contractSize"))
 	// contract fields
-	if (contract == true) && !isInactiveMarket {
+	if (contract != nil && *contract == true) && !isInactiveMarket {
 		if isQuanto {
-			Assert((linear == false), Add("linear must be false when \"quanto\" is true", logText))
-			Assert((inverse == false), Add("inverse must be false when \"quanto\" is true", logText))
+			Assert((linear != nil && *linear == false), Add("linear must be false when \"quanto\" is true", logText))
+			Assert((inverse != nil && *inverse == false), Add("inverse must be false when \"quanto\" is true", logText))
 		} else {
 			// if false or undefined
 			Assert((inverse != nil), Add("inverse must be defined when \"contract\" is true", logText))
 			Assert((linear != nil), Add("linear must be defined when \"contract\" is true", logText))
-			Assert((linear != inverse), Add("linear and inverse must not be the same", logText))
+			Assert((linear != inverse && (linear == nil || inverse == nil || *linear != *inverse)), Add("linear and inverse must not be the same", logText))
 		}
 		// contract size should be defined
 		Assert(((InOp(skippedProperties, "contractSize")) || (contractSize != nil)), Add("\"contractSize\" must be defined when \"contract\" is true", logText))
@@ -192,7 +192,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		Assert((InOp(skippedProperties, "contractSize")) || ccxt.Precise.StringGt(contractSize, "0"), Add("\"contractSize\" must be > 0 when \"contract\" is true", logText))
 		// settle should be defined
 		Assert((InOp(skippedProperties, "settle")) || (!IsEqual(GetValue(market, "settle"), nil) && !IsEqual(GetValue(market, "settleId"), nil)), Add("\"settle\" & \"settleId\" must be defined when \"contract\" is true", logText))
-	} else if contract != true {
+	} else if contract == nil || *contract != true {
 		// linear & inverse needs to be undefined
 		Assert((linear == nil) && (inverse == nil) && (quanto == nil), Add("market linear and inverse (and quanto) must be undefined when \"contract\" is false", logText))
 		// contract size should be undefined
@@ -204,12 +204,12 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	if GetValue(market, "future") == true {
 		Assert((GetValue(market, "swap") != true) && (GetValue(market, "option") != true) && (isIndex != true), Add("market swap and option must be false when \"future\" is true", logText))
 	} else if GetValue(market, "swap") == true {
-		Assert((future != true) && (option != true), Add("market future and option must be false when \"swap\" is true", logText))
+		Assert((future == nil || *future != true) && (option == nil || *option != true), Add("market future and option must be false when \"swap\" is true", logText))
 	} else if GetValue(market, "option") == true {
-		Assert((future != true) && (swap != true), Add("market future and swap must be false when \"option\" is true", logText))
+		Assert((future == nil || *future != true) && (swap == nil || *swap != true), Add("market future and swap must be false when \"option\" is true", logText))
 	}
 	// check specific fields for options & futures
-	if (option == true) || (future == true) {
+	if (option != nil && *option == true) || (future != nil && *future == true) {
 		// future or option markets need 'expiry' and 'expiryDatetime'
 		Assert(!IsEqual(GetValue(market, "expiry"), nil), Add("\"expiry\" must be defined when \"future\" is true", logText))
 		Assert(!IsEqual(GetValue(market, "expiryDatetime"), nil), Add("\"expiryDatetime\" must be defined when \"future\" is true", logText))
@@ -217,7 +217,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		var isoString any = exchange.Iso8601(GetValue(market, "expiry"))
 		Assert(IsEqual(GetValue(market, "expiryDatetime"), isoString), Add(Add(Add(Add(Add("expiryDatetime (\"", GetValue(market, "expiryDatetime")), "\") must be equal to expiry in iso8601 format \""), isoString), "\""), logText))
 		AssertGreater(exchange, skippedProperties, method, market, "expiry", "0")
-		if option == true {
+		if option != nil && *option == true {
 			// strike should be defined
 			Assert(((InOp(skippedProperties, "strike")) || !IsEqual(GetValue(market, "strike"), nil)), Add("\"strike\" must be defined when \"option\" is true", logText))
 			AssertGreater(exchange, skippedProperties, method, market, "strike", "0")
@@ -229,7 +229,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			Assert(IsEqual(GetValue(market, "strike"), nil), Add("\"strike\" must be undefined when \"option\" is false", logText))
 			Assert(IsEqual(GetValue(market, "optionType"), nil), Add("\"optionType\" must be undefined when \"option\" is false", logText))
 		}
-	} else if spot == true {
+	} else if spot != nil && *spot == true {
 		// otherwise, expiry needs to be undefined
 		Assert((IsEqual(GetValue(market, "expiry"), nil)) && (IsEqual(GetValue(market, "expiryDatetime"), nil)), Add("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market", logText))
 	}
@@ -238,10 +238,10 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var precisionKeysLen int = len(precisionKeys)
 	Assert((precisionKeysLen >= 2), Add("precision should have \"amount\" and \"price\" keys at least", logText))
 	for i := 0; i < len(precisionKeys); i++ {
-		var priceOrAmountKey string = GetValue(precisionKeys, i).(string)
+		var priceOrAmountKey string = precisionKeys[i]
 		// only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
 		var isExclusivePair bool = IsEqual(GetValue(market, "baseId"), "BTC")
-		var isNonSpot bool = (spot != true) // such high precision is only allowed in contract markets
+		var isNonSpot bool = (spot == nil || *spot != true) // such high precision is only allowed in contract markets
 		var isPrice bool = (priceOrAmountKey == "price")
 		var isTickSize5 bool = ccxt.Precise.StringEq("5", exchange.SafeString(GetValue(market, "precision"), priceOrAmountKey))
 		if isNonSpot && isPrice && isExclusivePair && isTickSize5 {
@@ -256,7 +256,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var limitsKeysLength int = len(limitsKeys)
 	Assert((limitsKeysLength >= 3), Add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText))
 	for i := 0; i < len(limitsKeys); i++ {
-		var key string = GetValue(limitsKeys, i).(string)
+		var key string = limitsKeys[i]
 		var limitEntry any = GetValue(GetValue(market, "limits"), key)
 		if isInactiveMarket {
 			continue
@@ -267,7 +267,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			// max >= 0
 			AssertGreater(exchange, skippedProperties, method, limitEntry, "max", "0")
 			// max >= min
-			var minString any = exchange.SafeString(limitEntry, "min")
+			var minString any = ccxt.DerefScalar(exchange.SafeString(limitEntry, "min"))
 			if minString != nil {
 				AssertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "max", minString)
 			}
