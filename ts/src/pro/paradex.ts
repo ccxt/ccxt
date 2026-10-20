@@ -684,7 +684,27 @@ export default class paradex extends paradexRest {
         //
         const params = this.safeDict (message, 'params', {});
         const data = this.safeDict (params, 'data', {});
-        this.balance = this.parseWsBalance (data);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
+        const balance = this.parseWsBalance (data);
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = [ 'free', 'used', 'total' ];
+        const keys = Object.keys (balance);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.inArray (key, reserved)) {
+                continue;
+            }
+            this.balance[key] = balance[key];
+        }
+        this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, 'balance');
     }
 

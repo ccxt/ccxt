@@ -2174,6 +2174,139 @@
                         "USDC": 1000.5
                     }
                 }
+            },
+            {
+                "description": "account snapshot followed by an update - updates arriving while no consumer is awaiting must still reach the object handed to the consumer (same class as issue 26773); frame shape from the documented account channel payload",
+                "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
+                "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "input": [],
+                "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
+                "options": {
+                    "authToken": "testToken",
+                    "expires": 999999999999999
+                },
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 3,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 4,
+                        "result": {
+                            "node_id": "73cf456f7cb78d59"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "account",
+                            "data": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "account_value": "1000.5",
+                                "free_collateral": "900.5",
+                                "initial_margin_requirement": "100",
+                                "maintenance_margin_requirement": "50",
+                                "margin_cushion": "950.5",
+                                "seq_no": 20,
+                                "settlement_asset": "USDC",
+                                "status": "ACTIVE",
+                                "total_collateral": "1000",
+                                "updated_at": 1718950074249
+                            }
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscription",
+                        "params": {
+                            "channel": "account",
+                            "data": {
+                                "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                                "account_value": "1010.5",
+                                "free_collateral": "910.5",
+                                "initial_margin_requirement": "100",
+                                "maintenance_margin_requirement": "50",
+                                "margin_cushion": "950.5",
+                                "seq_no": 21,
+                                "settlement_asset": "USDC",
+                                "status": "ACTIVE",
+                                "total_collateral": "1000",
+                                "updated_at": 1718950079249
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "auth",
+                        "params": {
+                            "bearer": "testToken"
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "subscribe",
+                        "params": {
+                            "channel": "account"
+                        }
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+                        "account_value": "1010.5",
+                        "free_collateral": "910.5",
+                        "initial_margin_requirement": "100",
+                        "maintenance_margin_requirement": "50",
+                        "margin_cushion": "950.5",
+                        "seq_no": 21,
+                        "settlement_asset": "USDC",
+                        "status": "ACTIVE",
+                        "total_collateral": "1000",
+                        "updated_at": 1718950079249
+                    },
+                    "timestamp": 1718950079249,
+                    "datetime": "2024-06-21T06:07:59.249Z",
+                    "USDC": {
+                        "free": 910.5,
+                        "used": 100,
+                        "total": 1010.5
+                    },
+                    "free": {
+                        "USDC": 910.5
+                    },
+                    "used": {
+                        "USDC": 100
+                    },
+                    "total": {
+                        "USDC": 1010.5
+                    }
+                }
             }
         ]
     }
