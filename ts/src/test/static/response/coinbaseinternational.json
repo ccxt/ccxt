@@ -1144,6 +1144,94 @@
                     "marginMode": null,
                     "percentage": 11.52
                 }
+            },
+            {
+                "description": "linear swap fetch position coinbase route",
+                "method": "fetchPosition",
+                "input": [
+                    "BTC/USDC:USDC",
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "size": 81.37308,
+                        "kind": "future",
+                        "user_id": 645310,
+                        "maintenance_margin": 1.084974373,
+                        "initial_margin": 1.6274616,
+                        "open_orders_margin": 0,
+                        "direction": "buy",
+                        "index_price": 81345.09,
+                        "instrument_name": "BTC_USDC-PERPETUAL",
+                        "settlement_price": 81464.34,
+                        "mark_price": 81373.08,
+                        "leverage": 50,
+                        "interest_value": 15389224.100632468,
+                        "delta": 0.001,
+                        "average_price": 81334.4,
+                        "floating_profit_loss": 0.03868,
+                        "realized_profit_loss": -0.000066848,
+                        "total_profit_loss": 0.03868,
+                        "realized_funding": -0.00006685,
+                        "size_currency": 0.001,
+                        "estimated_liquidation_price": null
+                    },
+                    "usIn": 1792486633983984,
+                    "usOut": 1792486633985517,
+                    "usDiff": 1533,
+                    "testnet": false
+                },
+                "parsedResponse": {
+                    "info": {
+                        "size": 81.37308,
+                        "kind": "future",
+                        "user_id": 645310,
+                        "maintenance_margin": 1.084974373,
+                        "initial_margin": 1.6274616,
+                        "open_orders_margin": 0,
+                        "direction": "buy",
+                        "index_price": 81345.09,
+                        "instrument_name": "BTC_USDC-PERPETUAL",
+                        "settlement_price": 81464.34,
+                        "mark_price": 81373.08,
+                        "leverage": 50,
+                        "interest_value": 15389224.100632468,
+                        "delta": 0.001,
+                        "average_price": 81334.4,
+                        "floating_profit_loss": 0.03868,
+                        "realized_profit_loss": -0.000066848,
+                        "total_profit_loss": 0.03868,
+                        "realized_funding": -0.00006685,
+                        "size_currency": 0.001,
+                        "estimated_liquidation_price": null
+                    },
+                    "id": null,
+                    "symbol": "BTC/USDC:USDC",
+                    "entryPrice": 81334.4,
+                    "markPrice": 81373.08,
+                    "notional": 0.001,
+                    "collateral": null,
+                    "unrealizedPnl": 0.03868,
+                    "side": "long",
+                    "contracts": 81.37308,
+                    "contractSize": 0.0001,
+                    "timestamp": null,
+                    "datetime": null,
+                    "hedged": null,
+                    "maintenanceMargin": 1.084974373,
+                    "maintenanceMarginPercentage": 1084.974373,
+                    "initialMargin": 1.6274616,
+                    "initialMarginPercentage": 1627.4616,
+                    "leverage": 50,
+                    "liquidationPrice": null,
+                    "marginRatio": null,
+                    "marginMode": null,
+                    "percentage": 2.37,
+                    "positionMargin": null
+                }
             }
         ],
         "fetchPositions": [
@@ -1238,6 +1326,100 @@
                         "marginRatio": null,
                         "marginMode": null,
                         "percentage": 11.43
+                    }
+                ]
+            },
+            {
+                "description": "linear swap fetch positions coinbase route",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ],
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": [
+                        {
+                            "size": 81.41871,
+                            "kind": "future",
+                            "user_id": 645310,
+                            "maintenance_margin": 1.085582773,
+                            "initial_margin": 1.6283742,
+                            "open_orders_margin": 0,
+                            "direction": "buy",
+                            "index_price": 81390.8,
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "settlement_price": 81464.34,
+                            "mark_price": 81418.71,
+                            "leverage": 50,
+                            "interest_value": 16438804.707022445,
+                            "delta": 0.001,
+                            "average_price": 81334.4,
+                            "floating_profit_loss": 0.08431,
+                            "realized_profit_loss": -0.000103292,
+                            "total_profit_loss": 0.08431,
+                            "realized_funding": -0.00010329,
+                            "size_currency": 0.001,
+                            "estimated_liquidation_price": null
+                        }
+                    ],
+                    "usIn": 1792486762722757,
+                    "usOut": 1792486762858118,
+                    "usDiff": 135361,
+                    "testnet": false
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "size": 81.41871,
+                            "kind": "future",
+                            "user_id": 645310,
+                            "maintenance_margin": 1.085582773,
+                            "initial_margin": 1.6283742,
+                            "open_orders_margin": 0,
+                            "direction": "buy",
+                            "index_price": 81390.8,
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "settlement_price": 81464.34,
+                            "mark_price": 81418.71,
+                            "leverage": 50,
+                            "interest_value": 16438804.707022445,
+                            "delta": 0.001,
+                            "average_price": 81334.4,
+                            "floating_profit_loss": 0.08431,
+                            "realized_profit_loss": -0.000103292,
+                            "total_profit_loss": 0.08431,
+                            "realized_funding": -0.00010329,
+                            "size_currency": 0.001,
+                            "estimated_liquidation_price": null
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "entryPrice": 81334.4,
+                        "markPrice": 81418.71,
+                        "notional": 0.001,
+                        "collateral": null,
+                        "unrealizedPnl": 0.08431,
+                        "side": "long",
+                        "contracts": 81.41871,
+                        "contractSize": 0.0001,
+                        "timestamp": null,
+                        "datetime": null,
+                        "hedged": null,
+                        "maintenanceMargin": 1.085582773,
+                        "maintenanceMarginPercentage": 1085.582773,
+                        "initialMargin": 1.6283742,
+                        "initialMarginPercentage": 1628.3742,
+                        "leverage": 50,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": 5.17,
+                        "positionMargin": null
                     }
                 ]
             }
@@ -2432,6 +2614,353 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+                "description": "linear swap create order coinbase route",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.001,
+                    72000,
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "order": {
+                            "label": "nfqkvdjp-b547047bae5f4b60a681f5",
+                            "price": "7.2e4",
+                            "user_id": "645310",
+                            "direction": "buy",
+                            "time_in_force": "good_til_cancelled",
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "web": false,
+                            "api": true,
+                            "order_id": "USDC-209300189875",
+                            "amount": "0.001",
+                            "creation_timestamp": "1792484899661",
+                            "starbase_order_id": "238216752549330947",
+                            "filled_amount": "0.0",
+                            "average_price": "0.0",
+                            "mmp": false,
+                            "post_only": false,
+                            "replaced": false,
+                            "reduce_only": false,
+                            "last_update_timestamp": "1792484899661",
+                            "contracts": "10.0",
+                            "order_state": "open",
+                            "order_type": "limit",
+                            "starbase_last_update_timestamp": "1792484899661091012",
+                            "is_liquidation": false,
+                            "risk_reducing": false
+                        },
+                        "trades": []
+                    },
+                    "usIn": "1792484899656397",
+                    "usOut": "1792484899662509",
+                    "usDiff": "6112",
+                    "testnet": false
+                },
+                "parsedResponse": {
+                    "info": {
+                        "label": "nfqkvdjp-b547047bae5f4b60a681f5",
+                        "price": "7.2e4",
+                        "user_id": "645310",
+                        "direction": "buy",
+                        "time_in_force": "good_til_cancelled",
+                        "instrument_name": "BTC_USDC-PERPETUAL",
+                        "web": false,
+                        "api": true,
+                        "order_id": "USDC-209300189875",
+                        "amount": "0.001",
+                        "creation_timestamp": "1792484899661",
+                        "starbase_order_id": "238216752549330947",
+                        "filled_amount": "0.0",
+                        "average_price": "0.0",
+                        "mmp": false,
+                        "post_only": false,
+                        "replaced": false,
+                        "reduce_only": false,
+                        "last_update_timestamp": "1792484899661",
+                        "contracts": "10.0",
+                        "order_state": "open",
+                        "order_type": "limit",
+                        "starbase_last_update_timestamp": "1792484899661091012",
+                        "is_liquidation": false,
+                        "risk_reducing": false,
+                        "trades": []
+                    },
+                    "id": "USDC-209300189875",
+                    "clientOrderId": "nfqkvdjp-b547047bae5f4b60a681f5",
+                    "timestamp": 1792484899661,
+                    "datetime": "2026-10-20T08:28:19.661Z",
+                    "lastTradeTimestamp": 1792484899661,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 72000,
+                    "triggerPrice": null,
+                    "amount": 0.001,
+                    "filled": 0,
+                    "remaining": 0.001,
+                    "cost": 0,
+                    "average": null,
+                    "status": "open",
+                    "fee": {},
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "linear swap market buy create order coinbase route",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.001,
+                    null,
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "order": {
+                            "label": "nfqkvdjp-9d01ca32fce84491872ed1",
+                            "price": "82550.4",
+                            "user_id": "645310",
+                            "direction": "buy",
+                            "time_in_force": "good_til_cancelled",
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "web": false,
+                            "api": true,
+                            "order_id": "USDC-209308576305",
+                            "amount": "0.001",
+                            "creation_timestamp": "1792486261417",
+                            "starbase_order_id": "238222464167968769",
+                            "filled_amount": "0.001",
+                            "average_price": "81334.4",
+                            "mmp": false,
+                            "post_only": false,
+                            "replaced": false,
+                            "reduce_only": false,
+                            "last_update_timestamp": "1792486261427",
+                            "contracts": "10.0",
+                            "original_order_type": "market",
+                            "order_state": "filled",
+                            "order_type": "limit",
+                            "starbase_last_update_timestamp": "1792486261427573310",
+                            "is_liquidation": false,
+                            "risk_reducing": false
+                        },
+                        "trades": [
+                            {
+                            "label": "nfqkvdjp-9d01ca32fce84491872ed1",
+                            "timestamp": "1792486261427",
+                            "state": "filled",
+                            "price": "81334.4",
+                            "user_id": "645310",
+                            "direction": "buy",
+                            "index_price": "81307.09",
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "trade_seq": "20142266",
+                            "api": true,
+                            "mark_price": "81330.36",
+                            "order_id": "USDC-209308576305",
+                            "amount": "0.001",
+                            "matching_id": null,
+                            "tick_direction": "0",
+                            "profit_loss": null,
+                            "starbase_order_id": "238222464167968769",
+                            "mmp": false,
+                            "post_only": false,
+                            "reduce_only": false,
+                            "starbase_match_id": "238222464209924096",
+                            "trade_id": "USDC-82432971",
+                            "self_trade": false,
+                            "contracts": "10.0",
+                            "fee_currency": "USDC",
+                            "starbase_timestamp": "1792486261427573310",
+                            "fee": "0.03660048",
+                            "order_type": "market",
+                            "risk_reducing": false,
+                            "liquidity": "T"
+                            }
+                        ]
+                    },
+                    "usIn": "1792486261413663",
+                    "usOut": "1792486261428944",
+                    "usDiff": "15281",
+                    "testnet": false
+                },
+                "parsedResponse": {
+                    "info": {
+                        "label": "nfqkvdjp-9d01ca32fce84491872ed1",
+                        "price": "82550.4",
+                        "user_id": "645310",
+                        "direction": "buy",
+                        "time_in_force": "good_til_cancelled",
+                        "instrument_name": "BTC_USDC-PERPETUAL",
+                        "web": false,
+                        "api": true,
+                        "order_id": "USDC-209308576305",
+                        "amount": "0.001",
+                        "creation_timestamp": "1792486261417",
+                        "starbase_order_id": "238222464167968769",
+                        "filled_amount": "0.001",
+                        "average_price": "81334.4",
+                        "mmp": false,
+                        "post_only": false,
+                        "replaced": false,
+                        "reduce_only": false,
+                        "last_update_timestamp": "1792486261427",
+                        "contracts": "10.0",
+                        "original_order_type": "market",
+                        "order_state": "filled",
+                        "order_type": "limit",
+                        "starbase_last_update_timestamp": "1792486261427573310",
+                        "is_liquidation": false,
+                        "risk_reducing": false,
+                        "trades": [
+                            {
+                                "label": "nfqkvdjp-9d01ca32fce84491872ed1",
+                                "timestamp": "1792486261427",
+                                "state": "filled",
+                                "price": "81334.4",
+                                "user_id": "645310",
+                                "direction": "buy",
+                                "index_price": "81307.09",
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "trade_seq": "20142266",
+                                "api": true,
+                                "mark_price": "81330.36",
+                                "order_id": "USDC-209308576305",
+                                "amount": "0.001",
+                                "matching_id": null,
+                                "tick_direction": "0",
+                                "profit_loss": null,
+                                "starbase_order_id": "238222464167968769",
+                                "mmp": false,
+                                "post_only": false,
+                                "reduce_only": false,
+                                "starbase_match_id": "238222464209924096",
+                                "trade_id": "USDC-82432971",
+                                "self_trade": false,
+                                "contracts": "10.0",
+                                "fee_currency": "USDC",
+                                "starbase_timestamp": "1792486261427573310",
+                                "fee": "0.03660048",
+                                "order_type": "market",
+                                "risk_reducing": false,
+                                "liquidity": "T"
+                            }
+                        ]
+                    },
+                    "id": "USDC-209308576305",
+                    "clientOrderId": "nfqkvdjp-9d01ca32fce84491872ed1",
+                    "timestamp": 1792486261417,
+                    "datetime": "2026-10-20T08:51:01.417Z",
+                    "lastTradeTimestamp": 1792486261427,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 82550.4,
+                    "triggerPrice": null,
+                    "amount": 0.001,
+                    "filled": 0.001,
+                    "remaining": 0,
+                    "cost": 81.3344,
+                    "average": 81334.4,
+                    "status": "closed",
+                    "fee": {},
+                    "trades": [
+                        {
+                            "info": {
+                                "label": "nfqkvdjp-9d01ca32fce84491872ed1",
+                                "timestamp": "1792486261427",
+                                "state": "filled",
+                                "price": "81334.4",
+                                "user_id": "645310",
+                                "direction": "buy",
+                                "index_price": "81307.09",
+                                "instrument_name": "BTC_USDC-PERPETUAL",
+                                "trade_seq": "20142266",
+                                "api": true,
+                                "mark_price": "81330.36",
+                                "order_id": "USDC-209308576305",
+                                "amount": "0.001",
+                                "matching_id": null,
+                                "tick_direction": "0",
+                                "profit_loss": null,
+                                "starbase_order_id": "238222464167968769",
+                                "mmp": false,
+                                "post_only": false,
+                                "reduce_only": false,
+                                "starbase_match_id": "238222464209924096",
+                                "trade_id": "USDC-82432971",
+                                "self_trade": false,
+                                "contracts": "10.0",
+                                "fee_currency": "USDC",
+                                "starbase_timestamp": "1792486261427573310",
+                                "fee": "0.03660048",
+                                "order_type": "market",
+                                "risk_reducing": false,
+                                "liquidity": "T"
+                            },
+                            "id": "USDC-82432971",
+                            "order": "USDC-209308576305",
+                            "timestamp": 1792486261427,
+                            "datetime": "2026-10-20T08:51:01.427Z",
+                            "symbol": "BTC/USDC:USDC",
+                            "type": "market",
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 81334.4,
+                            "amount": 0.001,
+                            "cost": 81.3344,
+                            "fee": {
+                                "currency": "USDC",
+                                "cost": 0.03660048
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USDC",
+                                    "cost": 0.03660048
+                                }
+                            ]
+                        }
+                    ],
+                    "fees": [
+                        {
+                            "currency": "USDC",
+                            "cost": 0.03660048
+                        }
+                    ],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
             }
         ],
         "editOrder": [
@@ -2551,6 +3080,118 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+                "description": "linear swap edit order coinbase route",
+                "method": "editOrder",
+                "input": [
+                    "USDC-209300189875",
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.0015,
+                    71000,
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "order": {
+                            "label": "nfqkvdjp-b547047bae5f4b60a681f5",
+                            "price": "7.1e4",
+                            "user_id": "645310",
+                            "direction": "buy",
+                            "time_in_force": "good_til_cancelled",
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "web": false,
+                            "api": true,
+                            "order_id": "USDC-209300189875",
+                            "amount": "0.0015",
+                            "creation_timestamp": "1792484899661",
+                            "starbase_order_id": "238216752549330947",
+                            "filled_amount": "0.0",
+                            "average_price": "0.0",
+                            "mmp": false,
+                            "post_only": false,
+                            "replaced": true,
+                            "reduce_only": false,
+                            "last_update_timestamp": "1792485161869",
+                            "contracts": "15.0",
+                            "order_state": "open",
+                            "order_type": "limit",
+                            "starbase_last_update_timestamp": "1792485161869932734",
+                            "is_liquidation": false,
+                            "risk_reducing": false
+                        },
+                        "trades": []
+                    },
+                    "usIn": "1792485161868748",
+                    "usOut": "1792485161870734",
+                    "usDiff": "1986",
+                    "testnet": false
+                },
+                "parsedResponse": {
+                    "info": {
+                        "label": "nfqkvdjp-b547047bae5f4b60a681f5",
+                        "price": "7.1e4",
+                        "user_id": "645310",
+                        "direction": "buy",
+                        "time_in_force": "good_til_cancelled",
+                        "instrument_name": "BTC_USDC-PERPETUAL",
+                        "web": false,
+                        "api": true,
+                        "order_id": "USDC-209300189875",
+                        "amount": "0.0015",
+                        "creation_timestamp": "1792484899661",
+                        "starbase_order_id": "238216752549330947",
+                        "filled_amount": "0.0",
+                        "average_price": "0.0",
+                        "mmp": false,
+                        "post_only": false,
+                        "replaced": true,
+                        "reduce_only": false,
+                        "last_update_timestamp": "1792485161869",
+                        "contracts": "15.0",
+                        "order_state": "open",
+                        "order_type": "limit",
+                        "starbase_last_update_timestamp": "1792485161869932734",
+                        "is_liquidation": false,
+                        "risk_reducing": false,
+                        "trades": []
+                    },
+                    "id": "USDC-209300189875",
+                    "clientOrderId": "nfqkvdjp-b547047bae5f4b60a681f5",
+                    "timestamp": 1792484899661,
+                    "datetime": "2026-10-20T08:28:19.661Z",
+                    "lastTradeTimestamp": 1792485161869,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 71000,
+                    "triggerPrice": null,
+                    "amount": 0.0015,
+                    "filled": 0,
+                    "remaining": 0.0015,
+                    "cost": 0,
+                    "average": null,
+                    "status": "open",
+                    "fee": {},
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
             }
         ],
         "fetchOrder": [
@@ -2656,6 +3297,110 @@
                         {
                             "cost": null,
                             "currency": "USDC"
+                        }
+                    ],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "linear swap fetch order coinbase route",
+                "method": "fetchOrder",
+                "input": [
+                    "USDC-209300189875",
+                    "BTC/USDC:USDC",
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "label": "nfqkvdjp-b547047bae5f4b60a681f5",
+                        "price": "7.1e4",
+                        "user_id": "645310",
+                        "direction": "buy",
+                        "time_in_force": "good_til_cancelled",
+                        "instrument_name": "BTC_USDC-PERPETUAL",
+                        "web": false,
+                        "api": true,
+                        "order_id": "USDC-209300189875",
+                        "amount": "0.0015",
+                        "creation_timestamp": "1792484899661",
+                        "starbase_order_id": "238216752549330947",
+                        "filled_amount": "0.0",
+                        "average_price": "0.0",
+                        "mmp": false,
+                        "post_only": false,
+                        "replaced": true,
+                        "reduce_only": false,
+                        "last_update_timestamp": "1792485161869",
+                        "contracts": "15.0",
+                        "order_state": "open",
+                        "order_type": "limit",
+                        "starbase_last_update_timestamp": "1792485161869932734",
+                        "is_liquidation": false,
+                        "risk_reducing": false
+                    },
+                    "usIn": "1792485387835767",
+                    "usOut": "1792485387836271",
+                    "usDiff": "504",
+                    "testnet": false
+                },
+                "parsedResponse": {
+                    "info": {
+                        "label": "nfqkvdjp-b547047bae5f4b60a681f5",
+                        "price": "7.1e4",
+                        "user_id": "645310",
+                        "direction": "buy",
+                        "time_in_force": "good_til_cancelled",
+                        "instrument_name": "BTC_USDC-PERPETUAL",
+                        "web": false,
+                        "api": true,
+                        "order_id": "USDC-209300189875",
+                        "amount": "0.0015",
+                        "creation_timestamp": "1792484899661",
+                        "starbase_order_id": "238216752549330947",
+                        "filled_amount": "0.0",
+                        "average_price": "0.0",
+                        "mmp": false,
+                        "post_only": false,
+                        "replaced": true,
+                        "reduce_only": false,
+                        "last_update_timestamp": "1792485161869",
+                        "contracts": "15.0",
+                        "order_state": "open",
+                        "order_type": "limit",
+                        "starbase_last_update_timestamp": "1792485161869932734",
+                        "is_liquidation": false,
+                        "risk_reducing": false
+                    },
+                    "id": "USDC-209300189875",
+                    "clientOrderId": "nfqkvdjp-b547047bae5f4b60a681f5",
+                    "timestamp": 1792484899661,
+                    "datetime": "2026-10-20T08:28:19.661Z",
+                    "lastTradeTimestamp": 1792485161869,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 71000,
+                    "triggerPrice": null,
+                    "amount": 0.0015,
+                    "filled": 0,
+                    "remaining": 0.0015,
+                    "cost": 0,
+                    "average": null,
+                    "status": "open",
+                    "fee": {},
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": null
                         }
                     ],
                     "stopPrice": null,
@@ -2778,6 +3523,115 @@
                         "stopLossPrice": null
                     }
                 ]
+            },
+            {
+                "description": "linear swap fetch open orders coinbase route",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    null,
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": [
+                        {
+                            "label": "nfqkvdjp-b547047bae5f4b60a681f5",
+                            "price": "7.1e4",
+                            "user_id": "645310",
+                            "direction": "buy",
+                            "time_in_force": "good_til_cancelled",
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "web": false,
+                            "api": true,
+                            "order_id": "USDC-209300189875",
+                            "amount": "0.0015",
+                            "creation_timestamp": "1792484899661",
+                            "starbase_order_id": "238216752549330947",
+                            "filled_amount": "0.0",
+                            "average_price": "0.0",
+                            "mmp": false,
+                            "post_only": false,
+                            "replaced": true,
+                            "reduce_only": false,
+                            "last_update_timestamp": "1792485161869",
+                            "contracts": "15.0",
+                            "order_state": "open",
+                            "order_type": "limit",
+                            "starbase_last_update_timestamp": "1792485161869932734",
+                            "is_liquidation": false,
+                            "risk_reducing": false
+                        }
+                    ],
+                    "usIn": "1792485619626480",
+                    "usOut": "1792485619627095",
+                    "usDiff": "615",
+                    "testnet": false
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "label": "nfqkvdjp-b547047bae5f4b60a681f5",
+                            "price": "7.1e4",
+                            "user_id": "645310",
+                            "direction": "buy",
+                            "time_in_force": "good_til_cancelled",
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "web": false,
+                            "api": true,
+                            "order_id": "USDC-209300189875",
+                            "amount": "0.0015",
+                            "creation_timestamp": "1792484899661",
+                            "starbase_order_id": "238216752549330947",
+                            "filled_amount": "0.0",
+                            "average_price": "0.0",
+                            "mmp": false,
+                            "post_only": false,
+                            "replaced": true,
+                            "reduce_only": false,
+                            "last_update_timestamp": "1792485161869",
+                            "contracts": "15.0",
+                            "order_state": "open",
+                            "order_type": "limit",
+                            "starbase_last_update_timestamp": "1792485161869932734",
+                            "is_liquidation": false,
+                            "risk_reducing": false
+                        },
+                        "id": "USDC-209300189875",
+                        "clientOrderId": "nfqkvdjp-b547047bae5f4b60a681f5",
+                        "timestamp": 1792484899661,
+                        "datetime": "2026-10-20T08:28:19.661Z",
+                        "lastTradeTimestamp": 1792485161869,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 71000,
+                        "triggerPrice": null,
+                        "amount": 0.0015,
+                        "filled": 0,
+                        "remaining": 0.0015,
+                        "cost": 0,
+                        "average": null,
+                        "status": "open",
+                        "fee": {},
+                        "trades": [],
+                        "fees": [
+                            {
+                                "cost": null
+                            }
+                        ],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
             }
         ],
         "cancelOrder": [
@@ -2891,6 +3745,112 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+                "description": "linear swap cancel order coinbase route",
+                "method": "cancelOrder",
+                "input": [
+                    "USDC-209300189875",
+                    "BTC/USDC:USDC",
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "label": "nfqkvdjp-b547047bae5f4b60a681f5",
+                        "price": "7.1e4",
+                        "user_id": "645310",
+                        "direction": "buy",
+                        "time_in_force": "good_til_cancelled",
+                        "instrument_name": "BTC_USDC-PERPETUAL",
+                        "web": false,
+                        "api": true,
+                        "order_id": "USDC-209300189875",
+                        "amount": "0.0015",
+                        "creation_timestamp": "1792484899661",
+                        "starbase_order_id": "238216752549330947",
+                        "filled_amount": "0.0",
+                        "average_price": "0.0",
+                        "mmp": false,
+                        "post_only": false,
+                        "replaced": true,
+                        "reduce_only": false,
+                        "last_update_timestamp": "1792485880197",
+                        "cancel_reason": "user_request",
+                        "contracts": "15.0",
+                        "order_state": "cancelled",
+                        "order_type": "limit",
+                        "starbase_last_update_timestamp": "1792485880197888959",
+                        "is_liquidation": false,
+                        "risk_reducing": false
+                    },
+                    "usIn": "1792485880195017",
+                    "usOut": "1792485880199555",
+                    "usDiff": "4538",
+                    "testnet": false
+                },
+                "parsedResponse": {
+                    "info": {
+                        "label": "nfqkvdjp-b547047bae5f4b60a681f5",
+                        "price": "7.1e4",
+                        "user_id": "645310",
+                        "direction": "buy",
+                        "time_in_force": "good_til_cancelled",
+                        "instrument_name": "BTC_USDC-PERPETUAL",
+                        "web": false,
+                        "api": true,
+                        "order_id": "USDC-209300189875",
+                        "amount": "0.0015",
+                        "creation_timestamp": "1792484899661",
+                        "starbase_order_id": "238216752549330947",
+                        "filled_amount": "0.0",
+                        "average_price": "0.0",
+                        "mmp": false,
+                        "post_only": false,
+                        "replaced": true,
+                        "reduce_only": false,
+                        "last_update_timestamp": "1792485880197",
+                        "cancel_reason": "user_request",
+                        "contracts": "15.0",
+                        "order_state": "cancelled",
+                        "order_type": "limit",
+                        "starbase_last_update_timestamp": "1792485880197888959",
+                        "is_liquidation": false,
+                        "risk_reducing": false
+                    },
+                    "id": "USDC-209300189875",
+                    "clientOrderId": "nfqkvdjp-b547047bae5f4b60a681f5",
+                    "timestamp": 1792484899661,
+                    "datetime": "2026-10-20T08:28:19.661Z",
+                    "lastTradeTimestamp": 1792485880197,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 71000,
+                    "triggerPrice": null,
+                    "amount": 0.0015,
+                    "filled": 0,
+                    "remaining": 0.0015,
+                    "cost": 0,
+                    "average": null,
+                    "status": "canceled",
+                    "fee": {},
+                    "trades": [],
+                    "fees": [
+                        {
+                            "cost": null
+                        }
+                    ],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
             }
         ],
         "cancelAllOrders": [
@@ -2920,6 +3880,62 @@
                             "usIn": 1791112837891218,
                             "usOut": 1791112837894488,
                             "usDiff": 3270,
+                            "testnet": false
+                        },
+                        "fees": [],
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": null,
+                        "fee": null
+                    }
+                ]
+            },
+            {
+                "description": "linear swap cancel all orders coinbase route",
+                "method": "cancelAllOrders",
+                "input": [
+                    "BTC/USDC:USDC",
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": 1,
+                    "usIn": 1792486007202781,
+                    "usOut": 1792486007205472,
+                    "usDiff": 2691,
+                    "testnet": false
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "jsonrpc": "2.0",
+                            "result": 1,
+                            "usIn": 1792486007202781,
+                            "usOut": 1792486007205472,
+                            "usDiff": 2691,
                             "testnet": false
                         },
                         "fees": [],
@@ -3236,6 +4252,119 @@
                             {
                                 "currency": "USDC",
                                 "cost": 3.3849299
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "linear swap fetch my trades coinbase route",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    3,
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": {
+                        "trades": [
+                            {
+                            "label": "nfqkvdjp-9d01ca32fce84491872ed1",
+                            "timestamp": "1792486261427",
+                            "state": "filled",
+                            "price": "81334.4",
+                            "user_id": "645310",
+                            "direction": "buy",
+                            "index_price": "81307.09",
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "trade_seq": "20142266",
+                            "api": true,
+                            "mark_price": "81330.36",
+                            "order_id": "USDC-209308576305",
+                            "amount": "0.001",
+                            "matching_id": null,
+                            "tick_direction": "0",
+                            "profit_loss": "0.0",
+                            "starbase_order_id": "238222464167968769",
+                            "mmp": false,
+                            "post_only": false,
+                            "reduce_only": false,
+                            "starbase_match_id": "238222464209924096",
+                            "trade_id": "USDC-82432971",
+                            "self_trade": false,
+                            "contracts": "10.0",
+                            "fee_currency": "USDC",
+                            "starbase_timestamp": "1792486261427573310",
+                            "fee": "0.03660048",
+                            "order_type": "market",
+                            "risk_reducing": false,
+                            "liquidity": "T"
+                            }
+                        ],
+                        "has_more": false
+                    },
+                    "usIn": "1792486486049643",
+                    "usOut": "1792486486051185",
+                    "usDiff": "1542",
+                    "testnet": false
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "label": "nfqkvdjp-9d01ca32fce84491872ed1",
+                            "timestamp": "1792486261427",
+                            "state": "filled",
+                            "price": "81334.4",
+                            "user_id": "645310",
+                            "direction": "buy",
+                            "index_price": "81307.09",
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "trade_seq": "20142266",
+                            "api": true,
+                            "mark_price": "81330.36",
+                            "order_id": "USDC-209308576305",
+                            "amount": "0.001",
+                            "matching_id": null,
+                            "tick_direction": "0",
+                            "profit_loss": "0.0",
+                            "starbase_order_id": "238222464167968769",
+                            "mmp": false,
+                            "post_only": false,
+                            "reduce_only": false,
+                            "starbase_match_id": "238222464209924096",
+                            "trade_id": "USDC-82432971",
+                            "self_trade": false,
+                            "contracts": "10.0",
+                            "fee_currency": "USDC",
+                            "starbase_timestamp": "1792486261427573310",
+                            "fee": "0.03660048",
+                            "order_type": "market",
+                            "risk_reducing": false,
+                            "liquidity": "T"
+                        },
+                        "id": "USDC-82432971",
+                        "order": "USDC-209308576305",
+                        "timestamp": 1792486261427,
+                        "datetime": "2026-10-20T08:51:01.427Z",
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 81334.4,
+                        "amount": 0.001,
+                        "cost": 81.3344,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.03660048
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0.03660048
                             }
                         ]
                     }

@@ -202,6 +202,18 @@
                     }
                 ],
                 "output": null
+            },
+            {
+                "description": "linear swap fetchPosition coinbase route",
+                "method": "fetchPosition",
+                "url": "https://drb.coinbase.com/api/v2/private/get_position?instrument_name=BTC_USDC-PERPETUAL",
+                "input": [
+                    "BTC/USDC:USDC",
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "output": null
             }
         ],
         "fetchPositions": [
@@ -216,6 +228,20 @@
                     ],
                     {
                         "route": "deribit"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "linear swap fetchPositions coinbase route",
+                "method": "fetchPositions",
+                "url": "https://drb.coinbase.com/api/v2/private/get_positions",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ],
+                    {
+                        "route": "coinbase"
                     }
                 ],
                 "output": null
@@ -258,6 +284,38 @@
                     }
                 ],
                 "output": null
+            },
+            {
+                "description": "linear swap createOrder coinbase route",
+                "method": "createOrder",
+                "url": "https://drb.coinbase.com/api/v2/private/buy?instrument_name=BTC_USDC-PERPETUAL&amount=0.001&type=limit&price=72000&label=nfqkvdjp-b547047bae5f4b60a681f5",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.001,
+                    72000,
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "linear swap market buy createOrder coinbase route",
+                "method": "createOrder",
+                "url": "https://drb.coinbase.com/api/v2/private/buy?instrument_name=BTC_USDC-PERPETUAL&amount=0.001&type=market&label=nfqkvdjp-9d01ca32fce84491872ed1",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.001,
+                    null,
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "output": null
             }
         ],
         "editOrder": [
@@ -278,6 +336,23 @@
                     }
                 ],
                 "output": null
+            },
+            {
+                "description": "linear swap editOrder coinbase route",
+                "method": "editOrder",
+                "url": "https://drb.coinbase.com/api/v2/private/edit?order_id=USDC-209300189875&amount=0.0015&price=71000",
+                "input": [
+                    "USDC-209300189875",
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.0015,
+                    71000,
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "output": null
             }
         ],
         "fetchOrder": [
@@ -291,6 +366,19 @@
                     "BTC/USDC:USDC",
                     {
                         "route": "deribit"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "linear swap fetchOrder coinbase route",
+                "method": "fetchOrder",
+                "url": "https://drb.coinbase.com/api/v2/private/get_order_state?order_id=USDC-209300189875",
+                "input": [
+                    "USDC-209300189875",
+                    "BTC/USDC:USDC",
+                    {
+                        "route": "coinbase"
                     }
                 ],
                 "output": null
@@ -311,6 +399,20 @@
                     }
                 ],
                 "output": null
+            },
+            {
+                "description": "linear swap fetchOpenOrders coinbase route",
+                "method": "fetchOpenOrders",
+                "url": "https://drb.coinbase.com/api/v2/private/get_open_orders_by_instrument?instrument_name=BTC_USDC-PERPETUAL",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    null,
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "output": null
             }
         ],
         "cancelOrder": [
@@ -324,6 +426,19 @@
                     "BTC/USDC:USDC",
                     {
                         "route": "deribit"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "linear swap cancelOrder coinbase route",
+                "method": "cancelOrder",
+                "url": "https://drb.coinbase.com/api/v2/private/cancel?order_id=USDC-209300189875",
+                "input": [
+                    "USDC-209300189875",
+                    "BTC/USDC:USDC",
+                    {
+                        "route": "coinbase"
                     }
                 ],
                 "output": null
@@ -342,6 +457,18 @@
                     }
                 ],
                 "output": null
+            },
+            {
+                "description": "linear swap cancelAllOrders coinbase route",
+                "method": "cancelAllOrders",
+                "url": "https://drb.coinbase.com/api/v2/private/cancel_all_by_instrument?instrument_name=BTC_USDC-PERPETUAL",
+                "input": [
+                    "BTC/USDC:USDC",
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "output": null
             }
         ],
         "fetchMyTrades": [
@@ -356,6 +483,20 @@
                     3,
                     {
                         "route": "deribit"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "linear swap fetchMyTrades coinbase route",
+                "method": "fetchMyTrades",
+                "url": "https://drb.coinbase.com/api/v2/private/get_user_trades_by_instrument?instrument_name=BTC_USDC-PERPETUAL&include_old=true&count=3",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    3,
+                    {
+                        "route": "coinbase"
                     }
                 ],
                 "output": null
