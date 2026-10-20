@@ -1996,7 +1996,9 @@ export default class hyperliquid extends Exchange {
             };
             let response: Str = undefined;
             try {
-                const rawResponse = await this.publicPostInfo (this.extend (request, paramsEnableUnifiedMargin));
+                // the request keys win: a caller's own 'type' or 'user' params (e.g. transfer's
+                // type 'swap') must not overwrite the info query, which would silently fail here
+                const rawResponse = await this.publicPostInfo (this.extend (paramsEnableUnifiedMargin, request));
                 if (typeof rawResponse === 'string') {
                     response = rawResponse;
                 }

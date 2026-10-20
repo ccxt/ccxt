@@ -1443,7 +1443,7 @@
                     "USDC",
                     5,
                     "0x56a1cc0d72cf557718c8488991278ab3c78e10ff",
-                    "main"
+                    "main", {"enableUnifiedMargin": true, "user": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31"}
                 ],
                 "output": "{\"action\":{\"hyperliquidChain\":\"Mainnet\",\"signatureChainId\":\"0x66eee\",\"type\":\"sendAsset\",\"destination\":\"0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31\",\"sourceDex\":\"spot\",\"destinationDex\":\"spot\",\"token\":\"USDC:0x6d1e7cde53ba9467b783cb7c530ce054\",\"amount\":\"5\",\"fromSubAccount\":\"0x56a1cc0d72cf557718c8488991278ab3c78e10ff\",\"nonce\":1792484001565},\"nonce\":1792484001565,\"signature\":{\"r\":\"0x487a19e9283a119c5cbab2161d7667d90c046b864e49cdeadba7c229ba5d4c7f\",\"s\":\"0x232f55edcd0db65564bd635894bfd6d65099aff774f960320e20f751be2aacef\",\"v\":28}}"
             },
@@ -1455,7 +1455,7 @@
                     "USDC",
                     5,
                     "main",
-                    "0x56a1cc0d72cf557718c8488991278ab3c78e10ff"
+                    "0x56a1cc0d72cf557718c8488991278ab3c78e10ff", {"enableUnifiedMargin": true}
                 ],
                 "output": "{\"action\":{\"hyperliquidChain\":\"Mainnet\",\"signatureChainId\":\"0x66eee\",\"type\":\"sendAsset\",\"destination\":\"0x56a1cc0d72cf557718c8488991278ab3c78e10ff\",\"sourceDex\":\"spot\",\"destinationDex\":\"spot\",\"token\":\"USDC:0x6d1e7cde53ba9467b783cb7c530ce054\",\"amount\":\"5\",\"fromSubAccount\":\"\",\"nonce\":1792483918651},\"nonce\":1792483918651,\"signature\":{\"r\":\"0xc8e6091833d11d6aebce4e26e1f9102fbd81d345ba2b7661cb1a2e91c866fdea\",\"s\":\"0x4101f65b66121bae95168807a744f2e0b0cc90a127800c0b6bc4878758c67a86\",\"v\":27}}"
             },
