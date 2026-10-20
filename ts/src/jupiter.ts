@@ -4,7 +4,7 @@
 import Exchange from './abstract/jupiter.js';
 import { ArgumentsRequired, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, Endpoint, Int, List, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Ticker, int } from './base/types.js';
+import type { Dict, Endpoint, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -290,9 +290,10 @@ export default class jupiter extends Exchange {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported, use createOrder() quotes for executable prices');
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         let url = this.urls['api']['rest'] + '/' + path;
-        headers = {};
+        const headers: Dict = {};
+        let body: Str = undefined;
         if (this.apiKey !== undefined && this.apiKey !== '') {
             headers['X-API-KEY'] = this.apiKey;
         }
