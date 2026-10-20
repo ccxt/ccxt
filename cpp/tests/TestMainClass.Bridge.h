@@ -21,6 +21,7 @@
 #include "ccxt/base/ExchangeBase.h"
 #include "../ccxt/exchanges/ExchangeFactory.h"
 #include "../ccxt/pro/ProExchangeFactory.h"
+#include "../ccxt/prediction/PredictionFactory.h"
 
 #include <any>
 #include <cstdio>
@@ -344,7 +345,18 @@ public:
         if (ws) {
             return ccxt::any (ccxt::pro::factory::createProExchange (id, config));
         }
-        return ccxt::any (ccxt::factory::createExchange (id, config));
+        try {
+            return ccxt::any (ccxt::factory::createExchange (id, config));
+        } catch (const ccxt::NotSupported& e) {
+            // prediction venues register in their own tier registry
+            // (polymarket, kalshi, limitless, myriad, ...); keep the original
+            // message when the id is not a prediction venue either
+            try {
+                return ccxt::any (ccxt::prediction::factory::createPredictionExchange (id, config));
+            } catch (const ccxt::NotSupported&) {
+                throw NotSupported (e.what ());
+            }
+        }
     }
 
     ccxt::any getTestFilesSync (ccxt::any properties, ccxt::any ws = ccxt::any (false)) {
