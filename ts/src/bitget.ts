@@ -2156,7 +2156,7 @@ export default class bitget extends Exchange {
         const promises: List = [];
         let fetchMargins = false;
         for (let i = 0; i < types.length; i++) {
-            const type = types[i];
+            const type = this.safeString (types, i);
             if ((type === 'swap') || (type === 'future')) {
                 const subTypes = [ 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES', 'SUSDT-FUTURES', 'SCOIN-FUTURES', 'SUSDC-FUTURES' ];
                 for (let j = 0; j < subTypes.length; j++) {

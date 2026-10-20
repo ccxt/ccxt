@@ -790,7 +790,7 @@ export default class gate extends gateRest {
         const symbolValue: string = market['symbol'];
         params['callerMethodName'] = 'watchTicker';
         const result = await this.watchTickers ([ symbolValue ], params);
-        return this.safeValue (result, symbolValue);
+        return this.safeDict (result, symbolValue) as Ticker;
     }
 
     /**
@@ -1055,9 +1055,12 @@ export default class gate extends gateRest {
         //     }]
         // }
         //
-        let result = this.safeValue (message, 'result');
-        if (!Array.isArray (result)) {
-            result = [ result ];
+        const rawResult = this.safeValue (message, 'result');
+        let result: List = [];
+        if (Array.isArray (rawResult)) {
+            result = this.safeList (message, 'result', []);
+        } else {
+            result = [ rawResult ];
         }
         const parsedTrades = this.parseTrades (result);
         for (let i = 0; i < parsedTrades.length; i++) {
@@ -1137,9 +1140,12 @@ export default class gate extends gateRest {
         if (rawMarketType === 'spot') {
             marketType = 'spot';
         }
-        let result = this.safeValue (message, 'result');
-        if (!Array.isArray (result)) {
-            result = [ result ];
+        const rawResult = this.safeValue (message, 'result');
+        let result: List = [];
+        if (Array.isArray (rawResult)) {
+            result = this.safeList (message, 'result', []);
+        } else {
+            result = [ rawResult ];
         }
         const marketIds: Dict = {};
         for (let i = 0; i < result.length; i++) {

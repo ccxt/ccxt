@@ -7746,7 +7746,7 @@ export default class binance extends Exchange {
         }
         const request: Dict = {};
         let market: Market = undefined;
-        let stock = undefined;
+        let stock: Bool = undefined;
         let paramsStock = undefined;
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'fetchOrder', 'stock', false);
         if (symbol !== undefined) {
@@ -7758,9 +7758,9 @@ export default class binance extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, paramsStock ] = this.handleMarketTypeAndParams ('fetchOrder', market, paramsStock, 'spot');
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, paramsStock ] = this.handleSubTypeAndParams ('fetchOrder', market, paramsStock);
         let marginMode: Str = undefined;
         [ marginMode, paramsStock ] = this.handleMarginModeAndParams ('fetchOrder', paramsStock);
@@ -7868,16 +7868,16 @@ export default class binance extends Exchange {
         }
         const request: Dict = {};
         let market: Market = undefined;
-        let stock = undefined;
+        let stock: Bool = undefined;
         [ stock, paramsPaginate ] = this.handleOptionBoolAndParams (paramsPaginate, 'fetchOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
             stock = this.safeBool (market, 'stock', false);
             request['symbol'] = market['id'];
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, paramsPaginate ] = this.handleMarketTypeAndParams ('fetchOrders', market, paramsPaginate, 'spot');
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, paramsPaginate ] = this.handleSubTypeAndParams ('fetchOrders', market, paramsPaginate);
         let marginMode: Str = undefined;
         [ marginMode, paramsPaginate ] = this.handleMarginModeAndParams ('fetchOrders', paramsPaginate);
@@ -8221,7 +8221,7 @@ export default class binance extends Exchange {
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, paramsMarginMode ] = this.handleOptionBoolAndParams2 (paramsMarginMode, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBoolN (paramsMarginMode, [ 'stop', 'trigger', 'conditional' ]);
-        let stock = undefined;
+        let stock: Bool = undefined;
         [ stock, paramsMarginMode ] = this.handleOptionBoolAndParams (paramsMarginMode, 'fetchOpenOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -8546,7 +8546,7 @@ export default class binance extends Exchange {
      */
     override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         let market: Market = undefined;
-        let stock = undefined;
+        let stock: Bool = undefined;
         let paramsStock = undefined;
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'fetchClosedOrders', 'stock', false);
         if (symbol !== undefined) {
@@ -8590,7 +8590,7 @@ export default class binance extends Exchange {
      */
     override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         let market: Market = undefined;
-        let stock = undefined;
+        let stock: Bool = undefined;
         let paramsStock = undefined;
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'fetchCanceledOrders', 'stock', false);
         if (symbol !== undefined) {
@@ -8634,7 +8634,7 @@ export default class binance extends Exchange {
      */
     override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         let market: Market = undefined;
-        let stock = undefined;
+        let stock: Bool = undefined;
         let paramsStock = undefined;
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'fetchCanceledAndClosedOrders', 'stock', false);
         if (symbol !== undefined) {
@@ -8685,7 +8685,7 @@ export default class binance extends Exchange {
         }
         const request: Dict = {};
         let market: Market = undefined;
-        let stock = undefined;
+        let stock: Bool = undefined;
         let paramsStock = undefined;
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'cancelOrder', 'stock', false);
         if (symbol !== undefined) {
@@ -8697,9 +8697,9 @@ export default class binance extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        let type = undefined;
+        let type: Str = undefined;
         [ type, paramsStock ] = this.handleMarketTypeAndParams ('cancelOrder', market, paramsStock, 'spot');
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, paramsStock ] = this.handleSubTypeAndParams ('cancelOrder', market, paramsStock);
         let marginMode: Str = undefined;
         [ marginMode, paramsStock ] = this.handleMarginModeAndParams ('cancelOrder', paramsStock);
@@ -8819,7 +8819,7 @@ export default class binance extends Exchange {
         }
         const request: Dict = {};
         let market: Market = undefined;
-        let stock = undefined;
+        let stock: Bool = undefined;
         let paramsStock = undefined;
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'cancelAllOrders', 'stock', false);
         if (symbol !== undefined) {
@@ -8834,9 +8834,9 @@ export default class binance extends Exchange {
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, paramsStock ] = this.handleOptionBoolAndParams2 (paramsStock, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBoolN (paramsStock, [ 'stop', 'trigger', 'conditional' ]);
-        let type = undefined;
+        let type: Str = undefined;
         [ type, paramsStock ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, paramsStock, 'spot');
-        let subType = undefined;
+        let subType: SubType = undefined;
         [ subType, paramsStock ] = this.handleSubTypeAndParams ('cancelAllOrders', market, paramsStock);
         const isOptionType = type === 'option';
         const isLinearType = this.isLinear (type, subType);
@@ -9148,7 +9148,7 @@ export default class binance extends Exchange {
         let market: Market = undefined;
         let type: Str = undefined;
         let marginMode: Str = undefined;
-        let stock = undefined;
+        let stock: Bool = undefined;
         [ stock, paramsPaginate ] = this.handleOptionBoolAndParams (paramsPaginate, 'fetchMyTrades', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);

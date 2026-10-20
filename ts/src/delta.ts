@@ -903,7 +903,7 @@ export default class delta extends Exchange {
             }
             const linear = (settle === quote);
             let optionType: Str = undefined;
-            let symbol = base + '/' + quote;
+            let symbol: string = base + '/' + quote;
             if (swap || future || option) {
                 symbol = symbol + ':' + settle;
                 if (future || option) {
@@ -4200,7 +4200,7 @@ export default class delta extends Exchange {
                 'api-key': this.apiKey,
                 'timestamp': timestamp,
             };
-            let auth = method + timestamp + requestPath;
+            let auth: string = method + timestamp + requestPath;
             if (method === 'GET') {
                 if (Object.keys (query).length > 0) {
                     const queryString = '?' + this.urlencode (query);

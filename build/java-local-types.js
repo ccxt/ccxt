@@ -18159,20 +18159,14 @@ function j14Value (printer, node, declaration, type, depth = 0) {
     return declared === type ? { cast: '' } : undefined;
 }
 
-// a ternary arm / unary operand would unbox a Long/Double/Boolean local (NPE on null); an equality
-// against a non-literal can print `a == b` on two boxes (a reference compare)
+// a ternary arm / unary operand would unbox a Long/Double/Boolean local (NPE on null); equality is
+// value-safe since hx4 J15 (two declared boxes print Objects.equals / unboxed compare)
 function j14UnboxingUse (n) {
     let child = n;
     let parent = n.parent;
     while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
         child = parent;
         parent = parent.parent;
-    }
-    if (parent !== undefined && ts.isBinaryExpression (parent) && [ ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.EqualsEqualsEqualsToken,
-        ts.SyntaxKind.ExclamationEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ].includes (parent.operatorToken.kind)) {
-        const other = unwrapParens (parent.left === child ? parent.right : parent.left);
-        return !(isNullishInitializer (other) || j10IntLiteral (other) || other?.kind === ts.SyntaxKind.NumericLiteral
-            || other?.kind === ts.SyntaxKind.StringLiteral || other?.kind === ts.SyntaxKind.TrueKeyword || other?.kind === ts.SyntaxKind.FalseKeyword);
     }
     return parent !== undefined && ((ts.isConditionalExpression (parent) && parent.condition !== child)
         || ts.isPrefixUnaryExpression (parent) && parent.operator !== ts.SyntaxKind.ExclamationToken);
@@ -18263,5 +18257,381 @@ export function installJ14ScalarLocals (transpiler) {
             return printed;
         }
         return accumulatorCastWrite (printer, node, printed, { cast: info.cast });
+    };
+}
+
+// ===== hx4 J15: J12 caller pre-scan =====
+// A J12 parameter whose caller passes a local no pass has typed YET (the caller prints after the callee)
+// marks the file; the file is then printed twice so every local table is filled before J12 decides.
+function j15UntypedLocalArgument (printer, method, index) {
+    const name = method.name.text;
+    let pending = false;
+    const visit = (n) => {
+        if (pending) {
+            return;
+        }
+        if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && n.expression.name.text === name
+            && n.expression.expression.kind === ts.SyntaxKind.ThisKeyword && n.pos > method.end) {
+            const arg = unwrapParens (n.arguments[index]);
+            if (arg !== undefined && ts.isIdentifier (arg) && arg.text !== 'undefined') {
+                const declaration = printer.getChecker ().getSymbolAtLocation (arg)?.valueDeclaration?.resolve?.();
+                if (declaration !== undefined && ts.isVariableDeclaration (declaration) && printer.javaDeclaredTypeOf (arg) === undefined) {
+                    pending = true;
+                }
+            }
+        }
+        n.forEachChild (visit);
+    };
+    visit (method.getSourceFile ());
+    return pending;
+}
+
+export function installJ15J12PreScan (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeParameterTypeOf !== 'function' || printer._j15PreScanPatched) {
+        return;
+    }
+    printer._j15PreScanPatched = true;
+    const upstreamType = printer.javaNativeParameterTypeOf.bind (printer);
+    printer.javaNativeParameterTypeOf = function (node) {
+        const type = upstreamType (node);
+        if (type === undefined && printer._j15FirstPass && node?.kind === ts.SyntaxKind.Parameter && node.type !== undefined
+            && J12_PARAM_TYPES[node.type.getText ().replace (/\s/g, '')] !== undefined && node.parent?.kind === ts.SyntaxKind.MethodDeclaration
+            && ts.isIdentifier (node.parent.name ?? {})) {
+            try {
+                if (j15UntypedLocalArgument (printer, node.parent, node.parent.parameters.indexOf (node))) {
+                    printer._j15Retry = true;
+                }
+            } catch (e) {
+                // an unresolvable caller keeps the single-pass answer
+            }
+        }
+        return type;
+    };
+    const upstreamPrint = printer.printNode.bind (printer);
+    printer.printNode = function (node, identation) {
+        if (node?.kind !== ts.SyntaxKind.SourceFile || printer._j15FirstPass !== undefined) {
+            return upstreamPrint (node, identation);
+        }
+        printer._j15FirstPass = true;
+        printer._j15Retry = false;
+        let out;
+        try {
+            out = upstreamPrint (node, identation);
+        } finally {
+            printer._j15FirstPass = undefined;
+        }
+        if (!printer._j15Retry) {
+            return out;
+        }
+        // second pass: the local tables now hold every caller's type; J12 decides afresh
+        printer._j12ParamTypes = new WeakMap ();
+        printer._j15FirstPass = false;
+        try {
+            return upstreamPrint (node, identation);
+        } finally {
+            printer._j15FirstPass = undefined;
+        }
+    };
+}
+
+// ===== hx4 J17: String returns of `: Str` / `: string` methods proven after their bodies print =====
+// javaNativeReturnType is memoised on first query; a caller printed above its callee asked before the
+// callee's typed locals were published, so the callee kept `Object`. Each class body now prints its
+// String-candidate methods callee-first (output order unchanged), and a candidate redeclared by a
+// descendant class keeps `Object` (Java return types are covariant only).
+let j17Index;
+
+function j17ClassIndex () {
+    if (j17Index !== undefined) {
+        return j17Index;
+    }
+    const files = new Map (); // resolved file -> { parent: resolved file | undefined, methods: Set }
+    const visitDir = (dir) => {
+        if (!fs.existsSync (dir)) {
+            return;
+        }
+        for (const entry of fs.readdirSync (dir, { withFileTypes: true })) {
+            const full = path.join (dir, entry.name);
+            if (entry.isDirectory ()) {
+                if (entry.name !== 'static_dependencies' && entry.name !== 'node_modules' && entry.name !== 'test') {
+                    visitDir (full);
+                }
+                continue;
+            }
+            if (entry.name.endsWith ('.ts') && !entry.name.endsWith ('.d.ts')) {
+                j17IndexSource (files, path.resolve (full), fs.readFileSync (full, 'utf8'));
+            }
+        }
+    };
+    visitDir (JAVA_FRESH_MAP_TS_ROOT);
+    j17Index = files;
+    return files;
+}
+
+function j17IndexSource (files, fileName, text) {
+    const sf = ts.createSourceFile (fileName, text, ts.ScriptTarget.Latest, true);
+    const imports = new Map ();
+    let parent;
+    const methods = new Set ();
+    const hazards = new Set ();
+    const stringHazards = new Set ();
+    for (const statement of sf.statements) {
+        if (ts.isImportDeclaration (statement) && statement.importClause?.name !== undefined && ts.isStringLiteral (statement.moduleSpecifier)) {
+            imports.set (statement.importClause.name.text, path.resolve (path.dirname (fileName), statement.moduleSpecifier.text.replace (/\.js$/, '.ts')));
+        }
+    }
+    const visit = (n) => {
+        if (ts.isClassDeclaration (n)) {
+            const base = n.heritageClauses?.[0]?.types?.[0]?.expression;
+            if (base !== undefined && ts.isIdentifier (base) && imports.has (base.text)) {
+                parent = imports.get (base.text);
+            }
+            for (const member of n.members) {
+                if (ts.isMethodDeclaration (member) && member.name !== undefined && ts.isIdentifier (member.name)) {
+                    methods.add (member.name.text);
+                }
+            }
+        }
+        if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && j17NumericUseHazard (n)) {
+            hazards.add (n.expression.name.text);
+        }
+        if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && j17StringUseHazard (n)) {
+            stringHazards.add (n.expression.name.text);
+        }
+        n.forEachChild (visit);
+    };
+    visit (sf);
+    files.set (fileName, { parent, methods, hazards, stringHazards });
+}
+
+// a Long/Double result here would unbox (ternary arm, unary operand) or meet a reference `==`;
+// a `const|let x = <call>` local is checked through every read of x in its function
+function j17NumericUseHazard (call) {
+    if (j14UnboxingUse (call)) {
+        return true;
+    }
+    let child = call;
+    let parent = call.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        child = parent;
+        parent = parent.parent;
+    }
+    const local = parent !== undefined && ts.isVariableDeclaration (parent) && parent.initializer === child && ts.isIdentifier (parent.name) ? parent.name
+        : parent !== undefined && ts.isBinaryExpression (parent) && parent.right === child && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+            && ts.isIdentifier (parent.left) ? parent.left : undefined;
+    if (local === undefined) {
+        return false;
+    }
+    const scope = enclosingFunction (call);
+    return scope === undefined || (identifierIndex (scope).get (local.text) ?? []).some ((n) => n !== local && j14UnboxingUse (n));
+}
+
+// a String result on the left of `+` moves Helpers.add to its (String, Object) overload, which prints
+// "null" where add(Object, Object) answers null; omitZero has a String overload too
+function j17StringUseHazard (call) {
+    let child = call;
+    let parent = call.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        child = parent;
+        parent = parent.parent;
+    }
+    if (parent !== undefined && ts.isCallExpression (parent) && parent.arguments.includes (child)
+        && ts.isPropertyAccessExpression (parent.expression) && parent.expression.name.text === 'omitZero') {
+        return true;
+    }
+    return !plusUsesAreSafe (call);
+}
+
+// some other ts/src class that extends this file's class (transitively) declares the same method name
+function j17RedeclaredByDescendant (method) {
+    const name = method?.name?.text;
+    if (name === undefined) {
+        return true;
+    }
+    const files = j17ClassIndex ();
+    const own = path.resolve (method.getSourceFile ().fileName);
+    if (!files.has (own)) {
+        j17IndexSource (files, own, method.getSourceFile ().text); // a probe written after the index was built
+    }
+    for (const [ file, entry ] of files) {
+        if (file === own || !entry.methods.has (name)) {
+            continue;
+        }
+        let ancestor = entry.parent;
+        for (let depth = 0; ancestor !== undefined && depth < 12; depth++) {
+            if (ancestor === own) {
+                return true;
+            }
+            ancestor = files.get (ancestor)?.parent;
+        }
+    }
+    return false;
+}
+
+const J17_NUMERIC_RETURNS = { 'Int': 'Long', 'Num': 'Double' };
+
+// any ts/src file calls this method name in a hazardous position for the box (over-approximated by name)
+function j17NumericCallHazard (method, table) {
+    const name = method.name.text;
+    const files = j17ClassIndex ();
+    const own = path.resolve (method.getSourceFile ().fileName);
+    if (!files.has (own)) {
+        j17IndexSource (files, own, method.getSourceFile ().text);
+    }
+    for (const entry of files.values ()) {
+        if (entry[table].has (name)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function j17IsStringCandidate (printer, member) {
+    if (!ts.isMethodDeclaration (member) || member.body === undefined || member.type === undefined
+        || member.name === undefined || !ts.isIdentifier (member.name)) {
+        return false;
+    }
+    try {
+        return !printer.isAsyncFunction (member) && [ 'String', 'Long', 'Double' ].includes (printer.javaNativeReturnTypeTarget (member));
+    } catch (e) {
+        return false;
+    }
+}
+
+// String candidates callee-first (depth-first over `this.<candidate> (..)` calls), then every other member
+function j17PrintOrder (printer, node) {
+    const members = [ ...node.members ];
+    const candidates = new Map ();
+    for (const member of members) {
+        if (j17IsStringCandidate (printer, member) && !candidates.has (member.name.text)) {
+            candidates.set (member.name.text, member);
+        }
+    }
+    if (candidates.size === 0) {
+        return undefined;
+    }
+    const order = [];
+    const seen = new Set ();
+    const place = (member) => {
+        if (seen.has (member)) {
+            return;
+        }
+        seen.add (member);
+        const visit = (n) => {
+            if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression)
+                && n.expression.expression.kind === ts.SyntaxKind.ThisKeyword && candidates.has (n.expression.name.text)) {
+                place (candidates.get (n.expression.name.text));
+            }
+            n.forEachChild (visit);
+        };
+        member.body.forEachChild (visit);
+        order.push (member);
+    };
+    for (const member of members) {
+        if (candidates.get (member.name?.text) === member) {
+            place (member);
+        }
+    }
+    for (const member of members) {
+        if (!seen.has (member)) {
+            order.push (member);
+        }
+    }
+    return order;
+}
+
+export function installJ17StringReturns (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printClassBody !== 'function' || typeof printer.javaNativeReturnType !== 'function'
+        || printer._j17StringReturnsPatched) {
+        return;
+    }
+    printer._j17StringReturnsPatched = true;
+    const upstreamReturnType = printer.javaNativeReturnType.bind (printer);
+    printer.javaNativeReturnType = function (node) {
+        const type = upstreamReturnType (node);
+        if (type !== 'String' && type !== 'Long' && type !== 'Double') {
+            return type;
+        }
+        let redeclared;
+        try {
+            redeclared = j17RedeclaredByDescendant (node) || j17NumericCallHazard (node, type === 'String' ? 'stringHazards' : 'hazards');
+        } catch (e) {
+            redeclared = true;
+        }
+        return redeclared ? undefined : type;
+    };
+    // `: Int` -> Long, `: Num` -> Double when every return is null, a typed local of that box, or a
+    // base-tier call whose hand-written Java declaration returns it (no checkcast at the return)
+    const upstreamTarget = printer.javaNativeReturnTypeTarget.bind (printer);
+    printer.javaNativeReturnTypeTarget = function (node) {
+        const own = upstreamTarget (node);
+        if (own !== undefined || node?.type === undefined || !ts.isTypeReferenceNode (node.type) || !ts.isIdentifier (node.type.typeName)) {
+            return own;
+        }
+        const alias = J17_NUMERIC_RETURNS[node.type.typeName.text];
+        let file;
+        try {
+            const symbol = printer.getChecker ().getSymbolAtLocation (node.type.typeName);
+            const target = symbol !== undefined && (symbol.flags & ts.SymbolFlags.Alias) ? printer.getChecker ().getAliasedSymbol (symbol) : symbol;
+            file = target?.declarations?.[0]?.resolve?.()?.getSourceFile?.()?.fileName;
+        } catch (e) {
+            file = undefined;
+        }
+        return alias !== undefined && /(^|[\\/])ts[\\/]src[\\/]base[\\/]types\.ts$/.test (String (file)) ? alias : undefined;
+    };
+    const upstreamPrints = printer.javaExpressionPrintsType.bind (printer);
+    printer.javaExpressionPrintsType = function (expression, target) {
+        if (target !== 'Long' && target !== 'Double') {
+            return upstreamPrints (expression, target);
+        }
+        const node = printer.javaUnwrapReturnExpression (expression);
+        if (node === undefined) {
+            return false;
+        }
+        if (isNullishInitializer (node)) {
+            return true;
+        }
+        if (ts.isConditionalExpression (node)) {
+            return printer.javaExpressionPrintsType (node.whenTrue, target) && printer.javaExpressionPrintsType (node.whenFalse, target);
+        }
+        try {
+            if (ts.isIdentifier (node)) {
+                return printer.printNode (node, 0) === node.text && printer.javaDeclaredTypeOf (node) === target;
+            }
+            if (isThisCall (node) && !node.arguments.some ((a) => ts.isSpreadElement (a)) && !isAsyncMethodCall (printer, node)) {
+                if (printer.javaReturnedCallType (node) === target) {
+                    return true;
+                }
+                return j14ResolvesToBase (printer, node) && syncCoreCallType (printer, node) === target;
+            }
+        } catch (e) {
+            return false;
+        }
+        return false;
+    };
+    const upstreamBody = printer.printClassBody.bind (printer);
+    printer.printClassBody = function (node, identation) {
+        let order;
+        try {
+            order = j17PrintOrder (printer, node);
+        } catch (e) {
+            order = undefined;
+        }
+        if (order === undefined) {
+            return upstreamBody (node, identation);
+        }
+        // an answer memoised by an earlier file is re-proven once the body has printed
+        for (const member of node.members) {
+            printer.javaReturnTypeCache?.delete?.(member);
+        }
+        const printed = new Map ();
+        for (const member of order) {
+            printed.set (member, printer.printNode (member, identation + 1));
+        }
+        return node.members.map ((member, index) => (member.kind === ts.SyntaxKind.PropertyDeclaration || index === 0
+            ? printed.get (member)
+            : '\n'.repeat (printer.NUM_LINES_BETWEEN_CLASS_MEMBERS) + printed.get (member))).join ('\n');
     };
 }

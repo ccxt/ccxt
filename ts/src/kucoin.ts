@@ -8299,7 +8299,7 @@ export default class kucoin extends Exchange {
         };
         if (isolated) {
             const data = this.safeDict (response, 'data', {});
-            const assets = this.safeValue (data, 'assets', data);
+            const assets = this.safeList (data, 'assets', []);
             for (let i = 0; i < assets.length; i++) {
                 const entry = this.safeDict (assets, i);
                 const base = this.safeDict (entry, 'baseAsset', {});

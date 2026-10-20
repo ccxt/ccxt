@@ -287,10 +287,10 @@ export default class phemex extends phemexRest {
         //
         const tickers: List = [];
         if ('market24h' in message) {
-            const ticker: Dict = this.safeValue (message, 'market24h');
+            const ticker = this.safeDict (message, 'market24h', {});
             tickers.push (this.parseSwapTicker (ticker));
         } else if ('spot_market24h' in message) {
-            const ticker: Dict = this.safeValue (message, 'spot_market24h');
+            const ticker = this.safeDict (message, 'spot_market24h', {});
             tickers.push (this.parseTicker (ticker));
         } else if ('data' in message) {
             const data = this.safeList (message, 'data', []);

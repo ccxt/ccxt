@@ -1623,7 +1623,7 @@ export default class coinbaseexchange extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
             request['size'] = this.amountToPrecision (symbol, amount);
         } else if (type === 'market') {
-            let cost = costParam;
+            let cost: Num = costParam;
             if (cost === undefined) {
                 if (price !== undefined) {
                     cost = amount * price;

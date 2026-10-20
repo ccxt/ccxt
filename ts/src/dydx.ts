@@ -1338,8 +1338,8 @@ export default class dydx extends Exchange {
         const subaccountId = 0;
         const [ subaccountIdOption, paramsSubAccountId ] = this.handleOptionIntegerAndParams (params, 'createOrder', 'subAccountId', subaccountId);
         const triggerPrice = this.safeString2 (paramsSubAccountId, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue (paramsSubAccountId, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue (paramsSubAccountId, 'takeProfitPrice');
+        const stopLossPrice = this.safeString (paramsSubAccountId, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString (paramsSubAccountId, 'takeProfitPrice');
         const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper (paramsSubAccountId, 'timeInForce', 'GTT');

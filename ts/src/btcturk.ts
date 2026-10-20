@@ -1108,7 +1108,7 @@ export default class btcturk extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
-        let requestBody = undefined;
+        let requestBody: Str = undefined;
         if (isQueryMethod) {
             requestBody = undefined;
         } else {

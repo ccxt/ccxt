@@ -594,7 +594,7 @@ export default class bitfinex extends bitfinexRest {
         //     ]
         //  ]
         //
-        const ticker = this.safeValue (message, 1);
+        const ticker = this.safeList (message, 1);
         const marketId = this.safeString (subscription, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId);
@@ -605,7 +605,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (parsed, messageHash);
     }
 
-    parseWsTicker (ticker: List, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: List | undefined, market: Market = undefined): Ticker {
         //
         //     [
         //         236.62,        // 1 BID float Price of last highest bid
@@ -910,7 +910,7 @@ export default class bitfinex extends bitfinexRest {
         if (updateType === 'ws') {
             data = this.safeList (message, 2) as List;
         } else {
-            data = [ this.safeValue (message, 2) ];
+            data = [ this.safeList (message, 2) ];
         }
         const updatedTypes: Dict = {};
         for (let i = 0; i < data.length; i++) {

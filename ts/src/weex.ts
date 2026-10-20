@@ -1622,12 +1622,12 @@ export default class weex extends Exchange {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;
             }
-            let startTime = since;
-            let endTime = until;
+            let startTime: Int = since;
+            let endTime: Int = until;
             if ((since === undefined) || (until === undefined)) {
                 const now = this.milliseconds ();
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                let numberOfCandles = maxHistoricalLimit;
+                let numberOfCandles: Int = maxHistoricalLimit;
                 if (limitResolved !== undefined && limitResolved !== null && limitResolved !== 0) {
                     numberOfCandles = limitResolved;
                 }

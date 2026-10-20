@@ -2395,7 +2395,7 @@ export default class gate extends Exchange {
             'currency': currency['id'], // todo: currencies have network-junctions
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
-        const addresses = this.safeValue (response, 'multichain_addresses');
+        const addresses = this.safeList (response, 'multichain_addresses', []);
         const currencyId = this.safeString (response, 'currency');
         const codeValue: string = this.safeCurrencyCode (currencyId) as string;
         const result: Dict = {};

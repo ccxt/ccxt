@@ -1988,11 +1988,12 @@ export default class bitso extends Exchange {
             const nonce = this.incrementingNonce ().toString ();
             endpoint = '/api' + endpoint;
             const content = [ nonce, method, endpoint ];
-            let request = content.join ('');
+            let request: string = content.join ('');
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys (query).length > 0) {
-                    requestBody = this.json (query);
-                    request += requestBody;
+                    const jsonBody = this.json (query);
+                    requestBody = jsonBody;
+                    request += jsonBody;
                 }
             }
             const signature = this.hmac (this.encode (request), this.encode (this.secret), sha256);

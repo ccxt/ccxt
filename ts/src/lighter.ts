@@ -809,8 +809,8 @@ export default class lighter extends Exchange {
         request['api_key_index'] = apiKeyIndex;
         request['account_index'] = this.parseToInt (accountIndex);
         const triggerPrice = this.safeString2 (paramsOrderExpiry, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue (paramsOrderExpiry, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue (paramsOrderExpiry, 'takeProfitPrice');
+        const stopLossPrice = this.safeString (paramsOrderExpiry, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString (paramsOrderExpiry, 'takeProfitPrice');
         const stopLoss = this.safeDict (paramsOrderExpiry, 'stopLoss');
         const takeProfit = this.safeDict (paramsOrderExpiry, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);

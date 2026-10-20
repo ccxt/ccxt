@@ -3408,7 +3408,7 @@ function ccxtGoAnnotatedMethodReturnType (goTranspiler, node) {
     if ((reserved !== undefined) && (reserved.has (name) || reserved.has (name.charAt (0).toUpperCase () + name.slice (1)))) {
         return undefined; // the interface files list the emitted (capitalised) Go name
     }
-    const allowed = ccxtGoAnnotatedReturnTypes (goTranspiler, node) ?? g13ArrayAnnotatedReturnTypes (goTranspiler, node, name);
+    const allowed = ccxtGoAnnotatedReturnTypes (goTranspiler, node) ?? g13ArrayAnnotatedReturnTypes (goTranspiler, node, name) ?? g15StringArrayAnnotatedReturnTypes (goTranspiler, node, name);
     if (allowed === undefined) {
         return undefined;
     }
@@ -3419,7 +3419,7 @@ function ccxtGoAnnotatedMethodReturnType (goTranspiler, node) {
     let result;
     try {
         result = ccxtGoProveReturnPaths (goTranspiler, node, allowed);
-        if ((result !== undefined) && !CCXT_GO_PARSE_METHOD.test (name) && !ccxtGoGeneralReturnKeepsAbsence (goTranspiler, node, result)) {
+        if ((result !== undefined) && !CCXT_GO_PARSE_METHOD.test (name) && !g15GeneralReturnKeepsAbsence (goTranspiler, node, result)) {
             result = undefined;
         }
     } finally {
@@ -6993,6 +6993,7 @@ export function installCcxtGoLocalTypes (goTranspiler, unifiedInt64Params = unde
     installCcxtGoTupleParamsRebind (goTranspiler);
     installCcxtGoTupleResults (goTranspiler);
     installHx4G10SelfMapWrites (goTranspiler);
+    installB02SafeBalanceLocals (goTranspiler); // hx4 B02
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -10457,3 +10458,138 @@ function installCcxtGoG14SafeListWrappedReads (goTranspiler) {
     goTranspiler.__ccxtGoG14Installed = true;
 }
 
+
+// hx4 B02
+// Base SafeBalance writes free/used/total into its argument and returns that same value. A local
+// declared `this.safeBalance (m)` of a never-nil map-literal local m, or a G10 map-literal local
+// rebound `x = this.safeBalance (x)`, therefore holds that map: MapTyped of it is identity.
+function b02SafeBalanceOfLocal (goTranspiler, call) {
+    while (call?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        call = call.expression;
+    }
+    const callee = call?.expression;
+    if ((call?.kind !== ts.SyntaxKind.CallExpression) || (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression)
+        || (callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) || (callee.name?.text !== 'safeBalance')
+        || (call.arguments.length !== 1) || (call.arguments[0].kind !== ts.SyntaxKind.Identifier)) {
+        return undefined;
+    }
+    try {
+        const method = goTranspiler.getChecker ().getSymbolAtLocation (callee.name)?.valueDeclaration?.resolve ();
+        if (!CCXT_GO_ELEMENT_1_BASE_FILE.test (method?.getSourceFile ()?.fileName ?? '')) {
+            return undefined;
+        }
+        return goTranspiler.getChecker ().getSymbolAtLocation (call.arguments[0])?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return undefined;
+    }
+}
+
+// a const/let local initialised by an object literal and printed map[string]any is never a nil map
+function b02NeverNilMapLocal (goTranspiler, declaration) {
+    return (declaration?.kind === ts.SyntaxKind.VariableDeclaration) && (declaration.name?.kind === ts.SyntaxKind.Identifier)
+        && (declaration.initializer?.kind === ts.SyntaxKind.ObjectLiteralExpression)
+        && (goTranspiler.goDeclaredTypeOfIdentifier (declaration.name) === 'map[string]any');
+}
+
+// G10's self-write scan with `x = this.safeBalance (x)` admitted as one more self-write
+function b02SelfMapWritesAreSafe (goTranspiler, scope, declaration, varName) {
+    if ((scope === undefined) || (declaration?.kind !== ts.SyntaxKind.VariableDeclaration)
+        || (declaration.initializer?.kind !== ts.SyntaxKind.ObjectLiteralExpression)
+        || (declaration.name?.kind !== ts.SyntaxKind.Identifier) || (typeof goTranspiler.hasNodeWhere !== 'function')) {
+        return false;
+    }
+    let balanceWrites = 0;
+    const unsafe = goTranspiler.hasNodeWhere (scope, (n) => {
+        if ((n.kind !== ts.SyntaxKind.Identifier) || (n.text !== varName) || (n === declaration.name)) {
+            return false;
+        }
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n)
+            && (parent.operatorToken?.kind === ts.SyntaxKind.EqualsToken)) {
+            if (b02SafeBalanceOfLocal (goTranspiler, parent.right) === declaration) {
+                balanceWrites += 1;
+                return false;
+            }
+            if (hx4G10SelfMapWrite (goTranspiler, parent.right, declaration) !== undefined) {
+                return false;
+            }
+            return (parent.right?.kind !== ts.SyntaxKind.ObjectLiteralExpression);
+        }
+        return ccxtGoWriteSiteShippedVeto (goTranspiler, n, parent, 'map[string]any');
+    });
+    if (unsafe || (balanceWrites === 0)) {
+        return false;
+    }
+    goTranspiler.hx4G10TypedLocals ??= new Set ();
+    goTranspiler.hx4G10TypedLocals.add (declaration.getSourceFile ().fileName + ':' + declaration.pos);
+    return true;
+}
+
+function installB02SafeBalanceLocals (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__hx4B02Installed || !goTranspiler.__hx4G10Installed
+        || (typeof goTranspiler.goSafeDictLocalUnbox !== 'function') || (typeof goTranspiler.goSafeDictUnboxValue !== 'function')
+        || (typeof goTranspiler.goDeclaredLocalTypeIfSafe !== 'function')) {
+        return;
+    }
+    const shippedIsSafe = goTranspiler.goLocalIsSafeToType;
+    goTranspiler.goLocalIsSafeToType = function (scope, declaration, varName, goType) {
+        return shippedIsSafe.call (this, scope, declaration, varName, goType)
+            || ((goType === 'map[string]any') && b02SelfMapWritesAreSafe (this, scope, declaration, varName));
+    };
+    const shippedBinary = goTranspiler.printBinaryExpression;
+    goTranspiler.printBinaryExpression = function (node, identation) {
+        const right = node?.right;
+        if ((node?.operatorToken?.kind === ts.SyntaxKind.EqualsToken) && (node.left?.kind === ts.SyntaxKind.Identifier)
+            && (right?.kind === ts.SyntaxKind.CallExpression) && (right.expression?.name?.text === 'safeBalance')
+            && (b02SafeBalanceOfLocal (this, right) === ccxtGoParamDeclarationOf (this, node.left))
+            && (this.goDeclaredTypeOfIdentifier (node.left) === 'map[string]any')) {
+            return this.printNode (node.left, 0) + ' = MapTyped(' + this.printNode (right, identation).trim () + ')';
+        }
+        return shippedBinary.call (this, node, identation);
+    };
+    // `const b = this.safeBalance (m)`: only a declaration statement prints `var b T = ..`
+    const declared = (printer, declaration) => {
+        if ((declaration?.kind !== ts.SyntaxKind.VariableDeclaration) || (declaration.name?.kind !== ts.SyntaxKind.Identifier)
+            || (declaration.parent?.parent?.kind !== ts.SyntaxKind.VariableStatement)
+            || (declaration.initializer?.kind !== ts.SyntaxKind.CallExpression)) {
+            return undefined;
+        }
+        const source = b02SafeBalanceOfLocal (printer, declaration.initializer);
+        if ((source === undefined) || (source === declaration) || !b02NeverNilMapLocal (printer, source)) {
+            return undefined;
+        }
+        return printer.goDeclaredLocalTypeIfSafe (declaration, 'map[string]any', (n) => !ccxtGoProducerUseRebinds (n));
+    };
+    const shippedDictType = goTranspiler.goSafeDictLocalUnbox;
+    const shippedDictValue = goTranspiler.goSafeDictUnboxValue;
+    goTranspiler.goSafeDictLocalUnbox = function (declaration) {
+        return shippedDictType.call (this, declaration) ?? declared (this, declaration);
+    };
+    goTranspiler.goSafeDictUnboxValue = function (declaration, identation) {
+        if ((shippedDictType.call (this, declaration) === undefined) && (declared (this, declaration) !== undefined)) {
+            return 'MapTyped(' + this.printNode (declaration.initializer, identation).trimStart () + ')';
+        }
+        return shippedDictValue.call (this, declaration, identation);
+    };
+    goTranspiler.__hx4B02Installed = true;
+}
+
+// hx4 G15
+// a non-parse `: Str` method returning a *string value on every path (no `undefined` path) already hands
+// its `any` caller that very *string box: naming `*string` changes no value; an absent path still keeps `any`
+function g15GeneralReturnKeepsAbsence (goTranspiler, node, goType) {
+    if (goType === '*string') {
+        return collectReturnStatements (node.body).every ((statement) => (statement.expression !== undefined) && !isAbsentExpression (statement.expression));
+    }
+    return ccxtGoGeneralReturnKeepsAbsence (goTranspiler, node, goType);
+}
+
+// `: Strings` / `: string[]` on a closed non-parse method: `[]any`, admitted only when every path is never nil
+function g15StringArrayAnnotatedReturnTypes (goTranspiler, node, name) {
+    const annotation = node.type?.getText ()?.replace (/\s+/g, '');
+    if (((annotation !== 'Strings') && (annotation !== 'string[]')) || !ccxtGoGeneralAnnotatedMethodIsClosed (node, name)) {
+        return undefined;
+    }
+    const neverNil = collectReturnStatements (node.body).every ((statement) => ccxtGoContainerNeverNil (goTranspiler, statement.expression));
+    return neverNil ? [ '[]any' ] : undefined;
+}

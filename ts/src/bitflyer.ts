@@ -1274,11 +1274,12 @@ export default class bitflyer extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const content = [ nonce, method, request ];
-            let auth = content.join ('');
+            let auth: string = content.join ('');
             if (Object.keys (params).length > 0) {
                 if (method !== 'GET') {
-                    bodySigned = this.json (params);
-                    auth += bodySigned;
+                    const body = this.json (params);
+                    bodySigned = body;
+                    auth += body;
                 }
             }
             headersSigned = {

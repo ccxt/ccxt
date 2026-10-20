@@ -523,7 +523,7 @@ export default class deepcoin extends Exchange {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        let symbol = base + '/' + quote;
+        let symbol: string = base + '/' + quote;
         let isLinear: Bool = undefined;
         if (swap) {
             isLinear = (quoteId !== 'USD');

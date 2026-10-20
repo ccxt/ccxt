@@ -1905,7 +1905,7 @@ export default class toobit extends Exchange {
         };
         if (hasStopLoss) {
             request['stopLoss'] = this.safeValue (stopLoss, 'triggerPrice');
-            const limitPrice = this.safeValue (stopLoss, 'price');
+            const limitPrice = this.safeString (stopLoss, 'price');
             if (limitPrice !== undefined) {
                 request['slOrderType'] = 'LIMIT';
                 request['slLimitPrice'] = this.priceToPrecision (symbol, limitPrice);
@@ -1917,7 +1917,7 @@ export default class toobit extends Exchange {
         }
         if (hasTakeProfit) {
             request['takeProfit'] = this.safeValue (takeProfit, 'triggerPrice');
-            const limitPrice = this.safeValue (takeProfit, 'price');
+            const limitPrice = this.safeString (takeProfit, 'price');
             if (limitPrice !== undefined) {
                 request['tpOrderType'] = 'LIMIT';
                 request['tpLimitPrice'] = this.priceToPrecision (symbol, limitPrice);

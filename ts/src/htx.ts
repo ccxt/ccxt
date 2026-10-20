@@ -3622,7 +3622,7 @@ export default class htx extends Exchange {
             if (isolated) {
                 for (let i = 0; i < data.length; i++) {
                     const entry = this.safeDict (data, i);
-                    const balances = this.safeValue (entry, 'list');
+                    const balances: Dict[] = this.safeList (entry, 'list', []);
                     const subResult: Dict = {};
                     for (let j = 0; j < balances.length; j++) {
                         const balance = balances[j];
@@ -3878,10 +3878,8 @@ export default class htx extends Exchange {
         //         "ts": 1780967407144
         //     }
         //
-        let order = this.safeValue (response, 'data');
-        if (Array.isArray (order)) {
-            order = this.safeDict (order, 0);
-        }
+        const rawOrder = this.safeValue (response, 'data');
+        const order = Array.isArray (rawOrder) ? this.safeDict (rawOrder, 0) : rawOrder;
         return this.parseOrder (order, market);
     }
 
@@ -4138,10 +4136,8 @@ export default class htx extends Exchange {
                 }
             }
         }
-        let orders = this.safeValue (response, 'data');
-        if (!Array.isArray (orders)) {
-            orders = this.safeList (orders, 'orders', []);
-        }
+        const rawOrders = this.safeValue (response, 'data');
+        const orders = Array.isArray (rawOrders) ? rawOrders : this.safeList (rawOrders, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -4685,10 +4681,8 @@ export default class htx extends Exchange {
         //         "ts": 1780739390596
         //     }
         //
-        let orders = this.safeValue (response, 'data');
-        if (!Array.isArray (orders)) {
-            orders = this.safeList (orders, 'orders', []);
-        }
+        const rawOrders = this.safeValue (response, 'data');
+        const orders = Array.isArray (rawOrders) ? rawOrders : this.safeList (rawOrders, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -8444,7 +8438,7 @@ export default class htx extends Exchange {
             account = this.safeDict (data, 0);
         }
         const omitted = this.omit (account, [ 'positions' ]);
-        const positions = this.safeValue (account, 'positions');
+        const positions: Dict[] = this.safeList (account, 'positions', []);
         let position: NullableDict = undefined;
         if ((market['future'] === true) && (market['inverse'] === true)) {
             for (let i = 0; i < positions.length; i++) {

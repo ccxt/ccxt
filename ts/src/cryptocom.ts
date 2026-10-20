@@ -3424,7 +3424,7 @@ export default class cryptocom extends Exchange {
         if (typeof object === 'string') {
             return object;
         }
-        let returnString = '';
+        let returnString: string = '';
         let paramsKeys: Strings = undefined;
         if (Array.isArray (object)) {
             paramsKeys = object;

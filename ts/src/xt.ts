@@ -4921,10 +4921,8 @@ export default class xt extends Exchange {
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_', 'swap');
         const timestamp = this.safeInteger (contract, 'nextCollectionTime');
-        let interval = this.safeString (contract, 'collectionInternal');
-        if (interval !== undefined) {
-            interval = interval + 'h';
-        }
+        const collectionInterval = this.safeString (contract, 'collectionInternal');
+        const interval = (collectionInterval !== undefined) ? (collectionInterval + 'h') : undefined;
         return {
             'info': contract,
             'symbol': symbol,

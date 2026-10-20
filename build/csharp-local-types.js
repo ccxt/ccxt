@@ -10746,7 +10746,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? hx4C08CounterLocal (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? hx4C08CounterLocal (csharp, declaration, context) ?? hx4C13OmitParamsLocal (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -18475,3 +18475,97 @@ export function installCsharpHx4C10NonNullConcat (transpiler) {
     };
     csharp._hx4C10Patched = true;
 }
+
+// ===== hx4 C12: Wave-4 TS annotations -> C# return / string-parameter types =====
+// Sync, non-override, exchange-local names (no base declaration; every declaration prints
+// `object`) whose every return path boxes the listed type (census: hx4 C12 report). The
+// boundary cast of installCsharpMethodReturnTypes names the box; callers' locals follow.
+const HX4_C12_RETURN_TYPES = {
+    'fixCommaNumber': 'string?', 'getStockWsUrl': 'string?', 'hashMessage': 'string?', 'hashOrderMessage': 'string?',
+    'parseTransactionStatusByType': 'string?', 'getTimestamp': 'Int64?',
+    'getExceptionsByUrl': 'IDictionary<string, object>', 'getCurrentPosition': 'IDictionary<string, object>',
+    'findSubscription': 'IDictionary<string, object>', 'indexByStringifiedNumericId': 'Dictionary<string, object>',
+    'parseBalanceHelper': 'Dictionary<string, object>', 'parseOrderFlags': 'List<object>',
+    'parseSbeAccount': 'Dictionary<string, object>', 'parseSbeFill': 'Dictionary<string, object>',
+    'parseSbeFundingData': 'Dictionary<string, object>', 'parseSbeMarketSummary': 'Dictionary<string, object>',
+    'parseSbeOrder': 'Dictionary<string, object>', 'parseSbeOrderBook': 'Dictionary<string, object>',
+    'parseSbePosition': 'Dictionary<string, object>', 'parseSbeTrade': 'Dictionary<string, object>',
+};
+for (const [ name, type ] of Object.entries (HX4_C12_RETURN_TYPES)) {
+    if (CSHARP_METHOD_RETURN_TYPES[name] === undefined) {
+        CSHARP_METHOD_RETURN_TYPES[name] = type;
+    }
+    if (CSHARP_LOCAL_THIS_RETURN_TYPES[name] === undefined) {
+        CSHARP_LOCAL_THIS_RETURN_TYPES[name] = type;
+    }
+}
+// `Str`/`string` positions every caller feeds a string or null and no body writes or uses as an add() left
+const HX4_C12_STRING_PARAMS = {
+    'constructCurrencyObject': { 1: 'string?' }, 'createAuthToken': { 2: 'string?' }, 'createContractOrderRequest': { 0: 'string?' },
+    'getCurrencyName': { 0: 'string?' }, 'getDexFromSymbols': { 0: 'string?' }, 'getMarketType': { 0: 'string?' },
+    'parseLedgerEntryType': { 0: 'string?' }, 'parseLedgerType': { 0: 'string?' }, 'parseOrderStatus': { 0: 'string?' },
+    'parseStatus': { 0: 'string?' }, 'parseTransactionStatus': { 1: 'string?' }, 'parseTransactionStatusByType': { 1: 'string?' },
+    'parseTransactionWithType': { 2: 'string?' }, 'parseTransferStatus': { 0: 'string?' }, 'pow': { 0: 'string?' },
+    'verifyOrderActionSuccess': { 1: 'string?' },
+};
+for (const [ name, positions ] of Object.entries (HX4_C12_STRING_PARAMS)) {
+    CSHARP_STRING_PARAMS[name] = Object.assign ({}, positions, CSHARP_STRING_PARAMS[name] ?? {});
+}
+
+// ===== hx4 C13: `const x = this.omit (params, …)` on the method's own optional `params = {}` =====
+// The trailing `params = {}` prints `parameters ??= new Dictionary<string, object>()`; omit hands a
+// dictionary receiver back as a fresh Dictionary, so the cast names that box. Implicit-API list bodies
+// only reach sign/request/fetch2 (`params` never rebound in the method, which keeps that receiver).
+const HX4_C13_LIST_PARAMS_METHODS = [ 'sign', 'request', 'fetch2' ];
+
+function hx4C13OmitParamsLocal (csharp, declaration, context) {
+    const initializer = stripParens (declaration.initializer);
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || !isBlockScopedDeclaration (declaration) || initializer?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || callee.name?.text !== 'omit' || (initializer.arguments?.length ?? 0) < 2) {
+        return undefined;
+    }
+    const receiver = stripParens (initializer.arguments[0]);
+    if (receiver?.kind !== ts.SyntaxKind.Identifier || receiver.text !== 'params') {
+        return undefined;
+    }
+    const parameter = resolveReference (csharp, receiver);
+    const owner = parameter?.parent;
+    if (parameter?.kind !== ts.SyntaxKind.Parameter || owner?.kind !== ts.SyntaxKind.MethodDeclaration
+            || owner.parameters[owner.parameters.length - 1] !== parameter || enclosingFunction (declaration) !== owner) {
+        return undefined;
+    }
+    const defaultValue = stripParens (parameter.initializer);
+    if (defaultValue?.kind !== ts.SyntaxKind.ObjectLiteralExpression || defaultValue.properties.length !== 0
+            || HX4_C13_LIST_PARAMS_METHODS.includes (owner.name?.text) || hx4C13ParamsWritten (csharp, owner, parameter)) {
+        return undefined;
+    }
+    const type = 'IDictionary<string, object>';
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : owner);
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type } : undefined;
+}
+
+// per-method verdict: any `params` write target in the method (closures included)
+const hx4C13ParamsWrittenCache = new WeakMap ();
+
+function hx4C13ParamsWritten (csharp, owner, parameter) {
+    if (hx4C13ParamsWrittenCache.has (owner)) {
+        return hx4C13ParamsWrittenCache.get (owner);
+    }
+    let written = false;
+    for (const n of (indexScope (csharp, owner).identifiers.get ('params') ?? [])) {
+        // a write of any same-name binding in the method keeps object
+        if (n !== parameter.name && csharpWriteTarget (n)) {
+            written = true;
+            break;
+        }
+    }
+    hx4C13ParamsWrittenCache.set (owner, written);
+    return written;
+}
+

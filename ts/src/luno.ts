@@ -1428,8 +1428,8 @@ export default class luno extends Exchange {
         await this.loadAccounts ();
         let currency: Currency = undefined;
         let id = this.safeString (params, 'id'); // account id
-        let min_row = this.safeValue (params, 'min_row');
-        let max_row = this.safeValue (params, 'max_row');
+        let min_row = this.safeInteger (params, 'min_row');
+        let max_row = this.safeInteger (params, 'max_row');
         if (id === undefined) {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchLedger() requires a currency code argument if no account id specified in params');

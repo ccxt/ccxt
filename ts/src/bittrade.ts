@@ -1867,8 +1867,8 @@ export default class bittrade extends Exchange {
         const networkId = this.safeString (depositAddress, 'chain');
         const networks = this.safeDict (currencyResolved, 'networks', {});
         const networksById = this.indexBy (networks, 'id');
-        const networkValue = this.safeValue (networksById, networkId, networkId);
-        const network = this.safeString (networkValue, 'network');
+        const networkEntry = this.safeDict (networksById, networkId);
+        const network = this.safeString (networkEntry, 'network');
         this.checkAddress (address);
         return {
             'currency': code,

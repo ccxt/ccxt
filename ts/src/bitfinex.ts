@@ -649,7 +649,7 @@ export default class bitfinex extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const pairObj = this.safeList (markets, i);
             const id = this.safeStringUpper (pairObj, 0);
-            const market = this.safeValue (pairObj, 1, {});
+            const market = this.safeList (pairObj, 1, []);
             let spot = true;
             let type: Str = undefined;
             if ((id as string).indexOf ('F0') >= 0) {
@@ -2045,7 +2045,7 @@ export default class bitfinex extends Exchange {
             market = this.market (symbol);
         }
         if (cid !== undefined) {
-            const cidDate = this.safeValue (params, 'cidDate'); // client order id date
+            const cidDate = this.safeString (params, 'cidDate'); // client order id date
             if (cidDate === undefined) {
                 throw new InvalidOrder (this.id + " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
             }

@@ -1605,7 +1605,7 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const trades = this.safeValue (result, id);
+        const trades = this.safeList (result, id, []);
         // trades is a sorted array: last (most recent trade) goes last
         const length = trades.length;
         if (length <= 0) {
@@ -2276,10 +2276,9 @@ export default class kraken extends Exchange {
                 request['reduce_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        let close = this.safeDict (paramsOmitted2, 'close');
-        if (close !== undefined) {
-            close = this.extend ({}, close);
-            close = (close === undefined) ? {} : close;
+        const rawClose = this.safeDict (paramsOmitted2, 'close');
+        if (rawClose !== undefined) {
+            const close: Dict = this.extend ({}, rawClose);
             const closePrice = this.safeValue (close, 'price');
             if (closePrice !== undefined) {
                 close['price'] = this.priceToPrecision (symbol, closePrice);
@@ -3269,7 +3268,7 @@ export default class kraken extends Exchange {
 
     addPaginationCursorToResult (result: Dict): List {
         const cursor = this.safeString (result, 'next_cursor');
-        const data = this.safeValue (result, 'withdrawals');
+        const data = this.safeList (result, 'withdrawals', []);
         const dataLength = data.length;
         if (cursor !== undefined && dataLength > 0) {
             const last = data[dataLength - 1];

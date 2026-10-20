@@ -2557,7 +2557,7 @@ export default class extended extends Exchange {
         const recipient = this.safeString (params, 'recipient', address);
         const currencyInfo = this.safeDict (currency, 'info', {});
         const collateralId = this.safeString (params, 'collateralId', this.safeString2 (currencyInfo, 'starkexId', 'l1Id'));
-        const resolution = this.safeInteger (params, 'resolution', this.safeValue2 (currencyInfo, 'starkexResolution', 'l1Resolution'));
+        const resolution = this.safeInteger (params, 'resolution', this.safeInteger2 (currencyInfo, 'starkexResolution', 'l1Resolution'));
         const starkKey = this.safeString (account, 'l2Key');
         if ((positionId === undefined) || (collateralId === undefined) || (resolution === undefined) || (starkKey === undefined)) {
             throw new BadRequest (this.id + ' withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
@@ -2590,7 +2590,7 @@ export default class extended extends Exchange {
         const fromL2Key = this.safeString2 (params, 'fromL2Key', 'senderPublicKey', this.safeString (account, 'l2Key'));
         const currencyInfo = this.safeDict (currency, 'info', {});
         const collateralId = this.safeString2 (params, 'assetId', 'collateralId', this.safeString2 (currencyInfo, 'starkexId', 'l1Id'));
-        const resolution = this.safeInteger (params, 'resolution', this.safeValue2 (currencyInfo, 'starkexResolution', 'l1Resolution'));
+        const resolution = this.safeInteger (params, 'resolution', this.safeInteger2 (currencyInfo, 'starkexResolution', 'l1Resolution'));
         if ((fromVault === undefined) || (fromL2Key === undefined) || (collateralId === undefined) || (resolution === undefined)) {
             throw new BadRequest (this.id + ' transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
         }

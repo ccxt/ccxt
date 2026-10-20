@@ -861,7 +861,7 @@ export default class backpack extends Exchange {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        let symbol = base + '/' + quote;
+        let symbol: string = base + '/' + quote;
         const filters = this.safeDict (market, 'filters', {});
         const priceFilter = this.safeDict (filters, 'price', {});
         const maxPrice = this.safeNumber (priceFilter, 'maxPrice');
@@ -3395,7 +3395,6 @@ export default class backpack extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = apiUrl;
         const requestParams = Array.isArray (params) ? params : this.omit (params, [ 'stock', 'defaultStock', 'rfq', 'callerMethodName' ]);
         const sortedParams = Array.isArray (requestParams) ? requestParams : this.keysort (requestParams);
         let headersSigned: NullableDict = undefined;
@@ -3438,7 +3437,7 @@ export default class backpack extends Exchange {
                 endpoint += '?' + query;
             }
         }
-        url += endpoint;
+        const url = apiUrl + endpoint;
         const headersResolved = (apiName === 'private') ? headersSigned : undefined;
         let bodyResolved = undefined;
         if ((apiName === 'private') && (method !== 'GET')) {

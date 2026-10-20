@@ -1759,7 +1759,7 @@ export default class nado extends Exchange {
             const quoteId = this.safeString (quoteAsset, 'product_id', rawQuoteId);
             const settleId = contract ? quoteId : undefined;
             const settle = contract ? quote : undefined;
-            let symbol = base + '/' + quote;
+            let symbol: string = base + '/' + quote;
             if (contract) {
                 symbol += ':' + settle;
             }
@@ -3089,12 +3089,7 @@ export default class nado extends Exchange {
             throw new ArgumentsRequired (this.id + ' padHex() requires length');
         }
         const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
-        let padded: Str = undefined;
-        if (left) {
-            padded = (zeros + value);
-        } else {
-            padded = (value + zeros);
-        }
+        const padded = left ? (zeros + value) : (value + zeros);
         if (left) {
             const start = padded.length - length;
             return padded.slice (start, padded.length);
@@ -3209,10 +3204,8 @@ export default class nado extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = baseApiUrl;
-        if (path !== '') {
-            url += '/' + this.implodeParams (path, params);
-        }
+        const pathSuffix = (path !== '') ? ('/' + this.implodeParams (path, params)) : '';
+        let url = baseApiUrl + pathSuffix;
         const query = this.omit (params, this.extractParams (path));
         const headersValue: NullableDict = {};
         if ((endpoint === 'gateway') || (endpoint === 'archive')) {

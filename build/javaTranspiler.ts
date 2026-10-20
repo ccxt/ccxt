@@ -32,6 +32,8 @@ import { installJ11MapLocals } from './java-local-types.js';
 import { installJ12ParamTypes } from './java-local-types.js';
 import { installJ13ListLocals } from './java-local-types.js';
 import { installJ14ScalarLocals } from './java-local-types.js';
+import { installJ15J12PreScan } from './java-local-types.js';
+import { installJ17StringReturns } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -2400,6 +2402,8 @@ class NewTranspiler {
         installJ12ParamTypes(this.transpiler); // hx4 J12
         installJ13ListLocals(this.transpiler); // hx4 J13
         installJ14ScalarLocals(this.transpiler); // hx4 J14
+        installJ15J12PreScan(this.transpiler); // hx4 J15
+        installJ17StringReturns(this.transpiler); // hx4 J17
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5737,7 +5741,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7167,6 +7171,79 @@ function j14ScalarLocalsSelfTest (): string[] {
         problems.push(`j14 self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// hx4 J15: J14 locals compared to each other print a value compare; a J12 callee declared above its caller
+// still reads the caller's typed local
+function j15SelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzj15selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        'export default class zzj15selftest extends Exchange {',
+        "    zzjHelper (code: string) { return code.length; }",
+        "    seq (p: any) { const a = this.safeInteger (p, 'a'); const b = this.safeInteger (p, 'b'); if (a !== b) { return 1; } return a === b; }",
+        "    run (r: any) { const s = this.safeString (r, 'a'); return this.zzjHelper (s); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Long a = this\.safeInteger\(/.test(out) || !/Long b = this\.safeInteger\(/.test(out)) problems.push("j15: 'a'/'b' compared box-to-box must print Long (J14 un-veto)");
+        if (!/!java\.util\.Objects\.equals\(a, b\)/.test(out) || !/[^!]java\.util\.Objects\.equals\(a, b\)/.test(out)) problems.push('j15: Long === / !== Long must print Objects.equals');
+        if (/\ba [!=]= b\b/.test(out)) problems.push('j15: no reference ==/!= on two Long boxes');
+        if (!/zzjHelper\(String code\)/.test(out)) problems.push('j15: zzjHelper above its caller must print String code (J12 pre-scan)');
+        if (problems.length) problems.push('j15 output:\n' + out);
+    } catch (e: any) {
+        problems.push(`j15 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+// hx4 J17: `: Str` / `: Int` / `: Num` venue methods print String / Long / Double once their bodies print
+function j17ReturnsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzj17selftest${process.pid}.ts`);
+    const child = path.join(process.cwd(), 'ts', 'src', `zzj17selftestchild${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Str, Int, Num } from './base/types.js';",
+        `export default class zzj17selftest${process.pid} extends Exchange {`,
+        "    caller (p: any) { const a = this.pairSym (p); const c = this.tif (p); return [ a === undefined, c > 2, this.over (p) ]; }",
+        "    pairSym (pair: any): Str { const b = this.safeString (pair, 0); if (b === undefined) { return undefined; } const s = b + '/'; return s; }",
+        "    tif (t: Str): Int { return this.safeInteger ({ 'A': 1 }, t, 0); }",
+        "    fromW (w: Str): Num { return (w === undefined) ? undefined : this.parseNumber (w); }",
+        "    unboxed (t: Str): Int { return this.safeInteger ({ 'A': 1 }, t, 0); }",
+        "    useU (p: any) { const u = this.unboxed (p); return (u > 1) ? u : 0; }",
+        "    over (x: any): Str { const u = this.safeString (x, 'u'); return u; }",
+        '}',
+    ].join('\n');
+    const childBody = [
+        `import base from './zzj17selftest${process.pid}.js';`,
+        "import type { Str } from './base/types.js';",
+        `export default class zzj17selftestchild${process.pid} extends base {`,
+        "    over (x: any): Str { return this.safeValue (x, 'u'); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        fs.writeFileSync(child, childBody);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/public String pairSym\(/.test(out)) problems.push("j17: pairSym (callee printed after its caller, String local return) must print String");
+        if (!/String a = this\.pairSym\(/.test(out)) problems.push("j17: the caller local of pairSym must print String");
+        if (!/public Long tif\(/.test(out)) problems.push("j17: tif (Int, safeInteger return) must print Long");
+        if (!/Long c = this\.tif\(/.test(out)) problems.push("j17: the caller local of tif must print Long");
+        if (!/public Double fromW\(/.test(out)) problems.push("j17: fromW (Num, parseNumber/undefined arms) must print Double");
+        if (!/public Object unboxed\(/.test(out)) problems.push("j17: unboxed has a ternary-arm caller and must stay Object");
+        if (!/public Object over\(/.test(out)) problems.push("j17: over is redeclared by a descendant and must stay Object");
+    } catch (e: any) {
+        problems.push(`j17 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+        fs.rmSync(child, { force: true });
     }
     return problems;
 }

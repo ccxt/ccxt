@@ -515,7 +515,7 @@ export default class hyperliquid extends Exchange {
             const isWrapped = fullName.startsWith ('Unit ') && name.startsWith ('U');
             if (isWrapped) {
                 const parts = name.split ('U');
-                let nameWithoutU = '';
+                let nameWithoutU: string = '';
                 for (let j = 0; j < parts.length; j++) {
                     nameWithoutU = nameWithoutU + parts[j];
                 }
@@ -1711,10 +1711,10 @@ export default class hyperliquid extends Exchange {
         };
     }
 
-    actionHash (action: any, vaultAddress: any, nonce: any, expiresAfter: Int = undefined) {
+    actionHash (action: any, vaultAddress: Str, nonce: any, expiresAfter: Int = undefined) {
         const dataBinary = this.packb (action);
         const dataHex = this.binaryToBase16 (dataBinary);
-        let data = dataHex;
+        let data: string = dataHex;
         data += '00000' + this.intToBase16 (nonce);
         if (vaultAddress === undefined) {
             data += '00';

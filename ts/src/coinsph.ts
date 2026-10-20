@@ -2252,7 +2252,7 @@ export default class coinsph extends Exchange {
     }
 
     urlEncodeQuery (query: Dict = {}): string {
-        let encodedArrayParams = '';
+        let encodedArrayParams: string = '';
         let remainingQuery: Dict = query;
         const keys = Object.keys (query);
         for (let i = 0; i < keys.length; i++) {
@@ -2291,7 +2291,7 @@ export default class coinsph extends Exchange {
         }
         const query = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);
-        let url = apiUrl + '/' + endpoint;
+        let url: string = apiUrl + '/' + endpoint;
         if (apiName === 'private') {
             this.checkRequiredCredentials ();
             query['timestamp'] = this.milliseconds ();

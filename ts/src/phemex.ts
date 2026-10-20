@@ -6,7 +6,7 @@ import Exchange from './abstract/phemex.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Balances, Currency, CurrencyInterface, Fee, FeeString, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, NullableDict, List, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL, Endpoint } from './base/types.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, Fee, FeeString, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, NullableDict, List, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL, Endpoint, Bool } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1239,7 +1239,7 @@ export default class phemex extends Exchange {
         for (let i = 0; i < sides.length; i++) {
             const side = sides[i];
             const orders: Num[][] = [];
-            const bidasks = this.safeValue (orderbook, side);
+            const bidasks = this.safeList (orderbook, side, []);
             for (let k = 0; k < bidasks.length; k++) {
                 orders.push (this.customParseBidAsk (bidasks[k], priceKey, amountKey, market));
             }
@@ -2616,7 +2616,7 @@ export default class phemex extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const triggerPrice = this.omitZero (this.safeString2 (order, 'stopPx', 'stopPxRp'));
         const postOnly = (timeInForce === 'PO');
-        let reduceOnly = this.safeValue (order, 'reduceOnly');
+        let reduceOnly: Bool = this.safeBool (order, 'reduceOnly');
         const execInst = this.safeString (order, 'execInst');
         if (execInst === 'ReduceOnly') {
             reduceOnly = true;
@@ -5128,7 +5128,7 @@ export default class phemex extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'data', {});
-        const rates = this.safeValue (data, 'rows');
+        const rates = this.safeList (data, 'rows', []);
         const result: FundingRateHistory[] = [];
         for (let i = 0; i < rates.length; i++) {
             const item = rates[i];
@@ -5170,7 +5170,7 @@ export default class phemex extends Exchange {
         if (networkCode !== undefined) {
             networkId = this.networkCodeToId (networkCode, code);
         }
-        const stableCoins = this.safeValue (this.options, 'stableCoins');
+        const stableCoins = this.safeList (this.options, 'stableCoins', []);
         if (networkId === undefined) {
             if (!(this.inArray (code, stableCoins))) {
                 networkId = currency['id'];

@@ -560,7 +560,7 @@ export default class binance extends Exchange {
         if (rawMarketsLength === 0) {
             active = (status === 'REGISTERED') || (status === 'OPEN');
         }
-        let resolved = undefined;
+        let resolved: Bool = undefined;
         if (status !== undefined) {
             resolved = (status === 'RESOLVED') || (status === 'SETTLED');
         }
@@ -650,7 +650,7 @@ export default class binance extends Exchange {
             const outcomeHandle = marketSymbol + ':' + label;
             const price = this.safeString (rawOutcome, 'price');
             let winnerRaw: Bool = undefined;
-            let settleFractionRaw = undefined;
+            let settleFractionRaw: Int = undefined;
             if (resolved && (price !== undefined)) {
                 winnerRaw = Precise.stringEq (price, '1');
                 settleFractionRaw = (winnerRaw) ? 1 : 0;
@@ -796,7 +796,7 @@ export default class binance extends Exchange {
             isMirrored = (label === 'NO') || (label === 'DOWN');
         }
         const lastString = this.safeString (raw, 'lastTradePrice');
-        let last = undefined;
+        let last: Num = undefined;
         if (lastString !== undefined) {
             if (isMirrored) {
                 last = this.parseNumber (Precise.stringSub ('1', lastString));

@@ -1611,11 +1611,14 @@ export default class bullish extends Exchange {
 
     getClosestLimit (limit: Int): Int {
         let pageSize = 5;
-        if (((limit as number) > 5) && ((limit as number) < 26)) {
+        if (limit === undefined) {
+            return pageSize;
+        }
+        if ((limit > 5) && (limit < 26)) {
             pageSize = 25;
-        } else if (((limit as number) > 25) && ((limit as number) < 51)) {
+        } else if ((limit > 25) && (limit < 51)) {
             pageSize = 50;
-        } else if ((limit as number) > 50) {
+        } else if (limit > 50) {
             pageSize = 100;
         }
         return pageSize;

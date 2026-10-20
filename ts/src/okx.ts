@@ -1867,7 +1867,7 @@ export default class okx extends Exchange {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        let symbol = base + '/' + quote;
+        let symbol: string = base + '/' + quote;
         // handle preopen empty markets
         if (base === '' || quote === '') {
             symbol = id;
@@ -2193,7 +2193,7 @@ export default class okx extends Exchange {
         const requestedLimit = (limit === undefined) ? defaultLimit : limit;
         // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
         // including the 5000 that publicGetMarketBooksFull defaults to
-        let limitResolved = requestedLimit;
+        let limitResolved: Int = requestedLimit;
         if (rpi && (requestedLimit > 400)) {
             limitResolved = 400;
         }

@@ -11,6 +11,7 @@ import { installJ11MapLocals } from './java-local-types.js';
 import { installJ12ParamTypes } from './java-local-types.js';
 import { installJ13ListLocals } from './java-local-types.js';
 import { installJ14ScalarLocals } from './java-local-types.js';
+import { installJ17StringReturns } from './java-local-types.js';
 import log from 'ololog'
 
 // task payload posted by javaTranspiler.ts#webworkerTranspile (structured clone)
@@ -101,6 +102,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJ12ParamTypes (cachedTranspiler); // hx4 J12
         installJ13ListLocals (cachedTranspiler); // hx4 J13
         installJ14ScalarLocals (cachedTranspiler); // hx4 J14
+        installJ17StringReturns (cachedTranspiler); // hx4 J17
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

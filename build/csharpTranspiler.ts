@@ -9340,7 +9340,7 @@ function csharpNullableIntegerComparisonText (helper: string, left, right, leftT
 // final pass after the declared-helper rewrites: mathMin/mathMax on two declared integers of
 // one kind -> Math.Min/Max, a guarded `Int64?` request value -> `.Value`, `isTrue((x))` on bool/bool?
 export function nativeDeclaredHelperCalls (content: string, objectNull = true): string {
-    return nativeC07HelperCalls (nativeDeclaredHelperCallsBase (content, objectNull));
+    return hx4C13Int64ListReads (nativeC07HelperCalls (nativeDeclaredHelperCallsBase (content, objectNull)));
 }
 
 function nativeC07HelperCalls (content: string): string {
@@ -9662,6 +9662,50 @@ export function csharpHx4SelfTest (): string[] {
         check ('list write stays object',
             'f (raw, xs) { let p = this.safeDict (raw, "k", {}); p = this.omit (p, "x"); p = [ xs ]; return p; }', 'object p = this.safeDict(');
     }
+    {
+        // hx4 C13: `const x = this.omit (params, …)` on the trailing `params = {}` parameter
+        const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+        const transpiler = new Transpiler (config);
+        setupCsharpPrinter (transpiler);
+        const check = (name: string, body: string, expected: string, forbidden?: string) => {
+            const src = 'type Dict = any; class Test {\n omit (o, ...k): any { return o; }\n safeString (o, k): string { return k; }\n' + body + '\n}';
+            const out: string = (transpiler as any).transpileCSharp (src).content;
+            if (!out.includes (expected) || (forbidden !== undefined && out.includes (forbidden))) {
+                problems.push (`hx4 C13 omit(params) local: ${name}\n${out.slice (-600)}`);
+            }
+        };
+        check ('omit(params, key) -> IDictionary',
+            'fetchX (symbol: string, params: Dict = {}) { const query = this.omit (params, \'a\'); return this.safeString (query, \'b\'); }',
+            'IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, "a"));');
+        check ('omit(params, list) -> IDictionary',
+            'fetchX (params: Dict = {}) { const query = this.omit (params, [ \'a\', \'b\' ]); return query; }',
+            'IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>()');
+        check ('sign keeps object (implicit-API list bodies)',
+            'sign (path, api = \'public\', method = \'GET\', params: Dict = {}) { const query = this.omit (params, \'a\'); return query; }', 'object query = this.omit(');
+        check ('rebound params keeps object',
+            'fetchX (params: Dict = {}) { params = this.extend ({}, params); const query = this.omit (params, \'a\'); return query; }', 'object query = this.omit(');
+        check ('params without default keeps object',
+            'fetchX (params: Dict) { const query = this.omit (params, \'a\'); return query; }', 'object query = this.omit(');
+        check ('later list write keeps object',
+            'fetchX (xs, params: Dict = {}) { let query = this.omit (params, \'a\'); query = [ xs ]; return query; }', 'object query = this.omit(');
+    }
+    {
+        // hx4 C13: getValue(list, <Int64 local>) on a declared list
+        const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object since, object parameters = null)\n    {\n' + body + '\n    }\n}\n';
+        const check = (name: string, body: string, expected: string) => {
+            const out = nativeDeclaredHelperCalls (wrap (body));
+            if (!out.includes (expected)) {
+                problems.push (`hx4 C13 Int64 list index: ${name}\n${out}`);
+            }
+        };
+        check ('List<object> x Int64 local', '        List<object> data = this.safeList(parameters, "d", new List<object>() {});\n        int n = data.Count;\n        for (Int64 i = 0; i < n; i++)\n        {\n            Int64 index = ((n - i) - 1);\n            object row = getValue(data, index);\n        }',
+            'object row = (data != null && index < data.Count ? data[(int)index] : null);');
+        check ('IList<object> x for-counter', '        IList<object> data = this.safeList(parameters, "d");\n        for (Int64 i = 0; i < 3; i++)\n        {\n            object row = getValue(data, i);\n        }',
+            'object row = (data != null && i < data.Count ? data[(int)i] : null);');
+        check ('object receiver keeps helper', '        object data = this.safeValue(parameters, "d");\n        Int64 index = 1;\n        object row = getValue(data, index);', 'object row = getValue(data, index);');
+        check ('Int64? index keeps helper', '        List<object> data = new List<object>() {};\n        Int64? index = 1;\n        object row = getValue(data, index);', 'object row = getValue(data, index);');
+        check ('index rebound with another type keeps helper', '        List<object> data = new List<object>() {};\n        if (true)\n        {\n            Int64 index = 1;\n            object row = getValue(data, index);\n        } else\n        {\n            object index = 2;\n        }', 'object row = getValue(data, index);');
+    }
     // hx4 C10: native `+` on a left operand proven a non-null string
     {
         const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
@@ -9686,5 +9730,96 @@ export function csharpHx4SelfTest (): string[] {
         check ('loop write of unknown box keeps helper', 'f (o, xs) { let s = \'\'; for (let i = 0; i < xs.length; i++) { s = xs[i]; } return s + \':\'; }', 'add(s, ":")');
         check ('closure write keeps helper', 'f (o) { let s = \'\'; const g = () => { s = o[\'x\']; }; g (); return s + \':\'; }', 'add(s, ":")');
     }
+    // hx4 C12: Wave-4 annotated exchange-local returns / string params
+    {
+        const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+        const transpiler = new Transpiler (config);
+        setupCsharpPrinter (transpiler);
+        const check = (name: string, body: string, expected: string, forbidden?: string) => {
+            const src = 'type Str = string | undefined; type Dict = any; class Test {\n' + body + '\n}';
+            const out: string = (transpiler as any).transpileCSharp (src).content;
+            if (!out.includes (expected) || (forbidden !== undefined && out.includes (forbidden))) {
+                problems.push (`hx4 C12 typed signatures: ${name}\n${out}`);
+            }
+        };
+        check ('sbe row builder returns Dictionary', 'parseSbeTrade (frameHex: string, a: number, b: number): Dict { if (a < 8) { return undefined; } return { \'id\': frameHex }; }', 'public virtual Dictionary<string, object> parseSbeTrade(');
+        check ('string return gets boundary cast', 'fixCommaNumber (numberStr: Str): Str { const s = numberStr; return s; }', 'public virtual string? fixCommaNumber(');
+        check ('caller local takes the return type', 'hashMessage (m: string): string { return m; }\n g (m) { const h = this.hashMessage (m); return h; }', 'string? h = this.hashMessage(m);');
+        check ('unannotated parameter keeps object', 'parseOrderStatus (status) { return status; }', 'parseOrderStatus(object status)');
+    }
     return problems;
 }
+
+// hx4 C13 — `getValue(xs, i)` with `xs` a declared List<object>/IList<object> and `i` a declared Int64
+// local: GetValue's IList branch is `(int)i < Count ? xs[(int)i] : null` (null receiver -> null,
+// negative -> throws in both), so the read is `(xs != null && i < xs.Count ? xs[(int)i] : null)`.
+export function hx4C13Int64ListReads (content: string): string {
+    if (!/\bgetValue\(/.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    const signatures = [];
+    for (let i = 0; i < masked.length; i++) {
+        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) {
+            signatures.push (i);
+        }
+    }
+    let changed = false;
+    for (let n = 0; n < signatures.length; n++) {
+        const start = signatures[n];
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
+        const params = csharpHelperSignatureParams (masked, start);
+        const declarations = [];
+        for (let i = start; i < end; i++) {
+            const declaration = csharpHelperDeclarationOfLine (masked[i]);
+            if (declaration !== undefined) {
+                declarations.push ({ line: i, name: declaration.name, type: declaration.type, value: declaration.value });
+            }
+        }
+        const region = { start, end, params, declarations, lines: masked };
+        // every binding of the index in the method is an Int64 local (no other typed binding, no parameter)
+        const int64Index = (name: string, line: number) => {
+            if (params[name] !== undefined) return false;
+            const bound = declarations.filter ((d) => d.name === name);
+            const header = new RegExp ('\\bfor[ ]*\\([ ]*Int64[ ]+' + name + '[ ]*=');
+            const loops = masked.some ((l, k) => (k > start) && (k <= line) && header.test (l));
+            if (bound.some ((d) => d.type !== 'Int64') || !(loops || bound.some ((d) => d.line < line))) return false;
+            const typed = new RegExp ('([A-Za-z_][\\w<>?\\[\\]]*)[ ]+' + name + '\\b(?=[ ]*(?:=[^=]|;|\\)|,|in\\b))', 'g');
+            for (let k = start + 1; k < end; k++) {
+                for (const m of masked[k].matchAll (typed)) {
+                    if (![ 'Int64', 'return', 'throw', 'else', 'case', 'await', 'new', 'in' ].includes (m[1])) return false;
+                }
+            }
+            return true;
+        };
+        for (let i = start + 1; i < end; i++) {
+            if (!/\bgetValue\(/.test (masked[i])) continue;
+            const edits = [];
+            const calls = /(?<![A-Za-z_.])getValue\(/g;
+            let match;
+            while ((match = calls.exec (masked[i])) !== null) {
+                const open = match.index + match[0].length - 1;
+                const close = csharpHelperCallEnd (masked[i], open);
+                if (close === undefined) continue;
+                const comma = csharpHelperTopLevelComma (masked[i], open, close);
+                if ((comma === undefined) || (csharpHelperTopLevelComma (masked[i], comma, close) !== undefined)) continue;
+                const name = masked[i].substring (open + 1, comma).trim ();
+                const key = masked[i].substring (comma + 1, close).trim ();
+                if (!/^[A-Za-z_]\w*$/.test (name) || !/^[A-Za-z_]\w*$/.test (key) || !int64Index (key, i)) continue;
+                const receiver = csharpHelperReceiverType (region, name, i, params);
+                if ((receiver === undefined) || !CSHARP_DECLARED_LIST_TYPES.includes (receiver.type)) continue;
+                edits.push ({ start: match.index, end: close + 1, text: `(${name} != null && ${key} < ${name}.Count ? ${name}[(int)${key}] : null)` });
+            }
+            if (edits.length === 0) continue;
+            let out = lines[i];
+            for (const edit of edits.sort ((a, b) => b.start - a.start)) {
+                out = out.substring (0, edit.start) + edit.text + out.substring (edit.end);
+            }
+            lines[i] = out;
+            changed = true;
+        }
+    }
+    return changed ? lines.join ('\n') : content;
+}
+

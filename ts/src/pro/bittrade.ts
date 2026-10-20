@@ -483,7 +483,10 @@ export default class bittrade extends bittradeRest {
         //     }
         //
         const messageHash = this.safeString (message, 'ch');
-        const ch = this.safeValue (message, 'ch');
+        const ch = this.safeString (message, 'ch');
+        if (ch === undefined) {
+            return;
+        }
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
@@ -579,7 +582,10 @@ export default class bittrade extends bittradeRest {
         //         }
         //     }
         //
-        const ch = this.safeValue (message, 'ch');
+        const ch = this.safeString (message, 'ch');
+        if (ch === undefined) {
+            return;
+        }
         const parts = ch.split ('.');
         const type = this.safeString (parts, 0);
         if (type === 'market') {

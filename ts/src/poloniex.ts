@@ -2381,7 +2381,7 @@ export default class poloniex extends Exchange {
             //
             return this.parseOrder (this.safeDict (raw, 'data', {}));
         }
-        const clientOrderId = this.safeValue (params, 'clientOrderId');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         const idValue: string = (clientOrderId !== undefined) ? clientOrderId : id;
         request['id'] = idValue;
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
@@ -2679,7 +2679,7 @@ export default class poloniex extends Exchange {
         // for spot
         for (let i = 0; i < response.length; i++) {
             const account = this.safeDict (response, i, {});
-            const balances = this.safeValue (account, 'balances');
+            const balances = this.safeList (account, 'balances', []);
             for (let j = 0; j < balances.length; j++) {
                 const balance = this.safeDict (balances, j);
                 const currencyId = this.safeString (balance, 'currency');
@@ -2859,8 +2859,8 @@ export default class poloniex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 'time');
-        const asks = this.safeValue (response, 'asks');
-        const bids = this.safeValue (response, 'bids');
+        const asks = this.safeList (response, 'asks', []);
+        const bids = this.safeList (response, 'bids', []);
         const asksResult: List = [];
         const bidsResult: List = [];
         for (let i = 0; i < asks.length; i++) {
@@ -3398,7 +3398,7 @@ export default class poloniex extends Exchange {
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray (code, codesValue)))) {
                 const currency = this.currency (code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, currency);
-                const childChains = this.safeValue (feeInfo, 'childChains');
+                const childChains = this.safeList (feeInfo, 'childChains', []);
                 const chainsLength = childChains.length;
                 if (chainsLength > 0) {
                     for (let j = 0; j < childChains.length; j++) {

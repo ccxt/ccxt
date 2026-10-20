@@ -1184,7 +1184,7 @@ export default class limitless extends Exchange {
                 slugs.push (slug);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            const grouped = this.safeValue (outcomesBySlug, slug);
+            const grouped = this.safeList (outcomesBySlug, slug, []);
             grouped.push (outcomeObj);
             if (slug !== undefined) {
                 outcomesBySlug[slug] = grouped;
@@ -1203,7 +1203,7 @@ export default class limitless extends Exchange {
             const detail = responses[detailIndex];
             const book = responses[this.sum (detailIndex, 1)];
             const tickerInput: Dict = { 'market': detail, 'book': book };
-            const grouped = outcomesBySlug[slug];
+            const grouped = this.safeList (outcomesBySlug, slug, []);
             for (let j = 0; j < grouped.length; j++) {
                 const ticker = this.parsePredictionTicker (tickerInput, grouped[j]);
                 const symbolKey = this.safeString (ticker, 'outcome');

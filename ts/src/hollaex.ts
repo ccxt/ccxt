@@ -950,9 +950,9 @@ export default class hollaex extends Exchange {
         if (paginateOption) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
         }
-        let until = this.safeInteger (paramsPaginate, 'until');
+        let until: Int = this.safeInteger (paramsPaginate, 'until');
         const timeDelta = this.parseTimeframe (timeframe) * maxLimit * 1000;
-        let start = since;
+        let start: Int = since;
         const now = this.milliseconds ();
         if (until === undefined) {
             until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
