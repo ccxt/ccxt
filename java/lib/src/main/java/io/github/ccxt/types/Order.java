@@ -27,6 +27,8 @@ public final class Order extends TypedMap {
     public Double stopPrice;
     public Double triggerPrice;
     public Double stopLossPrice;
+    public Double trailingPercent;
+    public Double trailingTriggerPrice;
     public Double takeProfitPrice;
     public String status;
     public Boolean reduceOnly;
@@ -62,6 +64,8 @@ public final class Order extends TypedMap {
         this.stopPrice = TypeHelper.safeFloat(data, "stopPrice");
         this.triggerPrice = TypeHelper.safeFloat(data, "triggerPrice");
         this.stopLossPrice = TypeHelper.safeFloat(data, "stopLossPrice");
+        this.trailingPercent = TypeHelper.safeFloat(data, "trailingPercent");
+        this.trailingTriggerPrice = TypeHelper.safeFloat(data, "trailingTriggerPrice");
         this.takeProfitPrice = TypeHelper.safeFloat(data, "takeProfitPrice");
         this.status = TypeHelper.safeString(data, "status");
         this.reduceOnly = TypeHelper.safeBool(data, "reduceOnly");

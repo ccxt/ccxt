@@ -226,6 +226,8 @@ class Order(TypedDict):
     triggerPrice: Num
     takeProfitPrice: Num
     stopLossPrice: Num
+    trailingPercent: Num
+    trailingTriggerPrice: Num
     cost: Num
     trades: list[Trade]
     fee: Fee

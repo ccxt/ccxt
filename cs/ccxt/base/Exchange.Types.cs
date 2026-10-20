@@ -401,6 +401,8 @@ public struct Order
     public string? marginMode;
     public IEnumerable<Trade>? trades;
     public Dictionary<string, object>? info;
+    public double? trailingPercent;
+    public double? trailingTriggerPrice;
     public Order(object order2)
     {
         var order = (Dictionary<string, object>)order2;
@@ -434,6 +436,8 @@ public struct Order
         postOnly = Exchange.SafeBool(order, "postOnly", false);
         fees = Helper.GetFees(order);
         info = Helper.GetInfo(order);
+        trailingPercent = Exchange.SafeFloat(order, "trailingPercent");
+        trailingTriggerPrice = Exchange.SafeFloat(order, "trailingTriggerPrice");
     }
 }
 

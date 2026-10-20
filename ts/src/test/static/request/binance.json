@@ -1536,7 +1536,7 @@
             {
                 "description": "Savings fetchBalance",
                 "method": "fetchBalance",
-                "url": "https://testnet.binancefuture.com/sapi/v1/lending/union/account?timestamp=1699385163596&recvWindow=10000&signature=f8a952f41e186866660fa44ef11e22e69fd54145638964c6e79034e2fa83eb58",
+                "url": "https://testnet.binancefuture.com/sapi/v1/simple-earn/flexible/position?timestamp=1699385163596&recvWindow=10000&signature=f8a952f41e186866660fa44ef11e22e69fd54145638964c6e79034e2fa83eb58",
                 "input": [
                     {
                         "type": "savings"

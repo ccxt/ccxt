@@ -1785,8 +1785,8 @@ export default class binance extends Exchange {
                         //
                         '-2008': AuthenticationError, // undocumented, Invalid Api-Key ID
                         '-2016': OperationRejected, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
-                        '-2021': BadResponse, // This code is sent when either the cancellation of the order failed or the new order placement failed but not both.
-                        '-2022': BadResponse, // This code is sent when both the cancellation of the order failed and the new order placement failed.
+                        '-2021': InvalidOrder, // This code is sent when either the cancellation of the order failed or the new order placement failed but not both.
+                        '-2022': InvalidOrder, // This code is sent when both the cancellation of the order failed and the new order placement failed.
                         '-2026': InvalidOrder, // Order was canceled or expired with no executed qty over 90 days ago and has been archived.
                         //
                         //        3xxx (these errors are available only for spot atm)
@@ -3988,7 +3988,7 @@ export default class binance extends Exchange {
     }
 
     parseBalanceCustom (response: any, type: Str = undefined, marginMode: Str = undefined, isPortfolioMargin: boolean = false): Balances {
-        let result: Dict = {
+        const result: Dict = {
             'info': response,
         };
         let timestamp: Int = undefined;
@@ -4047,25 +4047,29 @@ export default class binance extends Exchange {
             const assets: Dict[] = this.safeList (response, 'assets', []);
             for (let i = 0; i < assets.length; i++) {
                 const asset = this.safeDict (assets, i);
+                const marketId = this.safeString (asset, 'symbol');
+                const symbol = this.safeSymbol (marketId, undefined, undefined, 'spot');
                 const base = this.safeDict (asset, 'baseAsset', {});
                 const quote = this.safeDict (asset, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
+                const subResult: Dict = {};
                 if (baseCode !== undefined) {
-                    result = this.mergeBalanceAccount (result, baseCode, this.parseBalanceHelper (base));
+                    subResult[baseCode] = this.parseBalanceHelper (base);
                 }
                 if (quoteCode !== undefined) {
-                    result = this.mergeBalanceAccount (result, quoteCode, this.parseBalanceHelper (quote));
+                    subResult[quoteCode] = this.parseBalanceHelper (quote);
                 }
+                result[symbol] = this.safeBalance (subResult);
             }
         } else if (type === 'savings') {
-            const positionAmountVos: Dict[] = this.safeList (response, 'positionAmountVos', []);
-            for (let i = 0; i < positionAmountVos.length; i++) {
-                const entry = this.safeDict (positionAmountVos, i);
+            const rows: Dict[] = this.safeList (response, 'rows', []);
+            for (let i = 0; i < rows.length; i++) {
+                const entry = this.safeDict (rows, i);
                 const currencyId = this.safeString (entry, 'asset');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
-                const usedAndTotal = this.safeString (entry, 'amount');
+                const usedAndTotal = this.safeString (entry, 'totalAmount');
                 account['total'] = usedAndTotal;
                 account['used'] = usedAndTotal;
                 if (code !== undefined) {
@@ -4141,6 +4145,9 @@ export default class binance extends Exchange {
         }
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         let type = this.safeString (params, 'type', defaultType);
+        if (type === 'delivery') {
+            throw new BadRequest (this.id + ' fetchBalance() type delivery is no longer supported, use type swap or future with subType inverse instead');
+        }
         let subType: SubType = undefined;
         let paramsSubType = undefined;
         [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
@@ -4199,7 +4206,7 @@ export default class binance extends Exchange {
         } else if ((type === 'margin') || (marginMode === 'cross')) {
             response = await this.sapiGetMarginAccount (this.extend (request, query));
         } else if (type === 'savings') {
-            response = await this.sapiGetLendingUnionAccount (this.extend (request, query));
+            response = await this.sapiGetSimpleEarnFlexiblePosition (this.extend (request, query));
         } else if (type === 'funding') {
             response = await this.sapiPostAssetGetFundingAsset (this.extend (request, query));
         } else {
@@ -5799,7 +5806,7 @@ export default class binance extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    editSpotOrderRequest (id: string, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
+    editSpotOrderRequest (id: Str, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -5919,7 +5926,13 @@ export default class binance extends Exchange {
         request['cancelReplaceMode'] = 'STOP_ON_FAILURE'; // If the cancel request fails, the new order placement will not be attempted.
         const cancelId = this.safeString2 (params, 'cancelNewClientOrderId', 'cancelOrigClientOrderId');
         if (cancelId === undefined) {
-            request['cancelOrderId'] = id; // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
+            if (id !== undefined) {
+                request['cancelOrderId'] = id;
+            } else if (clientOrderId !== undefined) {
+                request['cancelOrigClientOrderId'] = clientOrderId;
+            } else {
+                throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument or a clientOrderId parameter');
+            }
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
         let paramsTimeInForce: Dict = params;
@@ -6848,6 +6861,8 @@ export default class binance extends Exchange {
         // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
         const isTakeProfitType = this.inArray (type, [ 'take_profit', 'take_profit_market', 'take_profit_limit' ]);
         const takeProfitPrice = isTakeProfitType ? triggerPrice : undefined;
+        const trailingPercent = this.parseNumber (this.omitZero (this.safeString2 (order, 'callbackRate', 'priceRate')));
+        const trailingTriggerPrice = this.parseNumber (this.omitZero (this.safeString2 (order, 'activatePrice', 'activationPrice')));
         const feeCost = this.safeNumber (order, 'fee');
         let fee: Fee = undefined;
         if (feeCost !== undefined) {
@@ -6857,7 +6872,7 @@ export default class binance extends Exchange {
                 'rate': undefined,
             };
         }
-        return this.safeOrder ({
+        const result: Dict = {
             'info': order,
             'id': this.safeStringN (order, [ 'strategyId', 'orderId', 'algoId' ]),
             'clientOrderId': this.safeStringN (order, [ 'clientOrderId', 'newClientStrategyId', 'clientAlgoId' ]),
@@ -6882,7 +6897,15 @@ export default class binance extends Exchange {
             'status': status,
             'fee': fee,
             'trades': fills,
-        }, marketResolved);
+        };
+        // trailing fields are only set for trailing orders
+        if (trailingPercent !== undefined) {
+            result['trailingPercent'] = trailingPercent;
+        }
+        if (trailingTriggerPrice !== undefined) {
+            result['trailingTriggerPrice'] = trailingTriggerPrice;
+        }
+        return this.safeOrder (result, marketResolved);
     }
 
     /**
@@ -7283,6 +7306,10 @@ export default class binance extends Exchange {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
         }
         const market = this.market (symbol);
+        // no binance order endpoint accepts attached stop loss / take profit objects, they would leak into the request
+        if ((this.safeDict (params, 'stopLoss') !== undefined) || (this.safeDict (params, 'takeProfit') !== undefined)) {
+            throw new NotSupported (this.id + ' createOrder() does not support attached stopLoss/takeProfit objects, use separate orders with stopLossPrice/takeProfitPrice instead');
+        }
         const marketType = this.safeString (params, 'type', market['type']);
         const stock = this.safeBool (market, 'stock', false);
         // set by the caller: the algo order endpoints name the client id, trigger and activation fields differently
@@ -9020,14 +9047,19 @@ export default class binance extends Exchange {
         }
         const market = this.market (symbol);
         if (market['contract'] !== true) {
-            throw new BadRequest (this.id + ' cancelOrders is only supported for swap markets.');
+            throw new NotSupported (this.id + ' cancelOrders() is only supported for contract markets');
+        }
+        // the batch endpoint cancels regular orders only, conditional orders live on the algo api
+        const isTrigger = this.safeBoolN (params, [ 'trigger', 'stop', 'conditional' ], false);
+        if (isTrigger) {
+            throw new NotSupported (this.id + ' cancelOrders() does not support trigger orders, use cancelOrder() with params.trigger instead');
         }
         const request: Dict = {
             'symbol': market['id'],
             // 'orderidlist': ids,
         };
         const origClientOrderIdList = this.safeList2 (params, 'origClientOrderIdList', 'clientOrderIds');
-        const paramsOmitted: Dict = (origClientOrderIdList !== undefined) ? this.omit (params, [ 'clientOrderIds' ]) : params;
+        const paramsOmitted: Dict = this.omit (params, [ 'clientOrderIds', 'trigger', 'stop', 'conditional' ]);
         if (origClientOrderIdList !== undefined) {
             request['origClientOrderIdList'] = origClientOrderIdList;
         } else {
@@ -9074,7 +9106,23 @@ export default class binance extends Exchange {
         //        }
         //    ]
         //
-        return this.parseOrders (response, market);
+        // per-row failures are kept as rejected orders instead of being dropped by the symbol filter
+        const rows = this.toArray (response);
+        const result: Order[] = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = this.safeDict (rows, i, {});
+            const rowError = this.safeString (row, 'code');
+            if (rowError !== undefined) {
+                result.push (this.safeOrder ({
+                    'info': row,
+                    'symbol': market['symbol'],
+                    'status': 'rejected',
+                }, market));
+            } else {
+                result.push (this.parseOrder (row, market));
+            }
+        }
+        return result;
     }
 
     /**
@@ -10184,6 +10232,16 @@ export default class binance extends Exchange {
             if (toIsolated && (market === undefined)) {
                 isolatedSymbol = toId;
             }
+            // an account name outside accountsById is only valid as an isolated margin market id
+            const marketsById: Dict = (this.markets_by_id !== undefined) ? this.markets_by_id : {};
+            if (market === undefined) {
+                if (fromIsolated && !(fromId in marketsById)) {
+                    throw new BadRequest (this.id + ' transfer () unknown fromAccount ' + fromAccount + ', expected an account type or an isolated margin market id');
+                }
+                if (toIsolated && !(toId in marketsById)) {
+                    throw new BadRequest (this.id + ' transfer () unknown toAccount ' + toAccount + ', expected an account type or an isolated margin market id');
+                }
+            }
             if (fromIsolated || toIsolated) { // Isolated margin transfer
                 const fromFuture = fromId === 'UMFUTURE' || fromId === 'CMFUTURE';
                 const toFuture = toId === 'UMFUTURE' || toId === 'CMFUTURE';
@@ -10764,7 +10822,9 @@ export default class binance extends Exchange {
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, undefined, 'spot');
+        // spot and linear ids collide, so resolve with the requested market type when known
+        const marketType = (market !== undefined) ? market['type'] : 'spot';
+        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         return {
             'info': fee,
             'symbol': symbol,
@@ -10863,8 +10923,11 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchTradingFees', undefined, paramsMarketType, 'linear');
+        // an explicit subType selects the contract fees even without a type
+        const hasSubType = (this.safeString (params, 'subType') !== undefined) && (this.safeString (params, 'type') === undefined);
+        const type = (hasSubType) ? 'swap' : marketType;
         const isSpotOrMargin = (type === 'spot') || (type === 'margin');
         const isLinear = this.isLinear (type, subType);
         const isInverse = this.isInverse (type, subType);
@@ -12788,7 +12851,6 @@ export default class binance extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        await this.loadLeverageBrackets (false, params);
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchLeverages', undefined, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchLeverages', undefined, paramsMarketType, 'linear');
         const [ isPortfolioMargin, paramsPapi ] = this.handleOptionBoolAndParams2 (paramsSubType, 'fetchLeverages', 'papi', 'portfolioMargin', false);
@@ -13517,6 +13579,15 @@ export default class binance extends Exchange {
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
                 throw new MarginModeAlreadySet (feedback);
+            }
+            // spot cancelReplace failures carry the cause in data.cancelResponse or data.newOrderResponse
+            const errorData = this.safeDict (responseParsed, 'data', {});
+            const cancelResponse = this.safeDict (errorData, 'cancelResponse', {});
+            const newOrderResponse = this.safeDict (errorData, 'newOrderResponse', {});
+            const innerError = this.safeString (cancelResponse, 'code', this.safeString (newOrderResponse, 'code'));
+            if ((innerError !== undefined) && ((error === '-2021') || (error === '-2022'))) {
+                this.throwExactlyMatchedException (this.getExceptionsByUrl (url, 'exact'), innerError, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], innerError, feedback);
             }
             this.throwExactlyMatchedException (this.getExceptionsByUrl (url, 'exact'), error, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
