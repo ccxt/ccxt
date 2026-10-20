@@ -4,7 +4,7 @@
 import Exchange from './abstract/uniswapv4.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, Endpoint, Int, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, int } from './base/types.js';
+import type { Dict, Endpoint, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -282,10 +282,12 @@ export default class uniswapv4 extends Exchange {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported, use createOrder() quotes for executable prices');
     }
 
-    override sign (path: any, api: any = 'trading', method = 'POST', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api: string[] = [ 'trading' ], method = 'POST', params: Dict = {}): Dict {
+        const apiName = api[0];
         let url = undefined;
-        headers = { 'Content-Type': 'application/json' };
-        if (api === 'subgraph') {
+        const headers: Dict = { 'Content-Type': 'application/json' };
+        let body: Str = undefined;
+        if (apiName === 'subgraph') {
             const graphApiKey = this.safeString (this.options, 'graphApiKey');
             if (graphApiKey === undefined) {
                 throw new ArgumentsRequired (this.id + ' requires exchange.options["graphApiKey"] (a The Graph gateway key) to fetch markets');
