@@ -5,7 +5,7 @@ import Exchange from './abstract/wallex.js';
 import { ExchangeError, AuthenticationError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Dict, Endpoint, Market, Num, NullableDict, Order, OrderSide, OrderType, Str, int } from './base/types.js';
+import type { Balances, Dict, Endpoint, Market, Num, Order, OrderSide, OrderType, Str, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -357,11 +357,13 @@ export default class wallex extends Exchange {
         }, market);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        headers = {};
-        if (api === 'private') {
+        const headers: Dict = {};
+        let body: Str = undefined;
+        if (apiName === 'private') {
             // wallex authenticates with the raw key in x-api-key, there is no secret and no hmac signature
             this.checkRequiredCredentials ();
             headers['X-API-KEY'] = this.apiKey;
