@@ -7229,6 +7229,7 @@ public partial class BaseExchange
             }
             paginationTimestamp = since;
         }
+        bool shouldBreak = false;
         while ((isLessThan(calls, maxCallsPaginationCalls)))
         {
             calls = add(calls, 1);
@@ -7255,6 +7256,7 @@ public partial class BaseExchange
                     }
                     if ((responseLength == 0))
                     {
+                        shouldBreak = true;
                         break;
                     }
                     errors = 0;
@@ -7263,10 +7265,12 @@ public partial class BaseExchange
                     paginationTimestamp = this.safeInteger2(firstElement, "timestamp", 0);
                     if ((paginationTimestamp == null))
                     {
+                        shouldBreak = true;
                         break;
                     }
                     if (((since != null)) && (isLessThanOrEqual(paginationTimestamp, since)))
                     {
+                        shouldBreak = true;
                         break;
                     }
                 } else
@@ -7285,6 +7289,7 @@ public partial class BaseExchange
                     }
                     if ((responseLength == 0))
                     {
+                        shouldBreak = true;
                         break;
                     }
                     errors = 0;
@@ -7293,12 +7298,14 @@ public partial class BaseExchange
                     Int64? lastTimestamp = this.safeInteger(last, "timestamp", 0);
                     if ((lastTimestamp == null))
                     {
+                        shouldBreak = true;
                         break;
                     }
                     Int64? nextPaginationTimestamp = (lastTimestamp + 1);
                     paginationTimestamp = nextPaginationTimestamp;
                     if (((until != null)) && ((until == null || nextPaginationTimestamp >= until)))
                     {
+                        shouldBreak = true;
                         break;
                     }
                 }
@@ -7309,6 +7316,10 @@ public partial class BaseExchange
                 {
                     throw e;
                 }
+            }
+            if (shouldBreak)
+            {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
         }
         object uniqueResults = result;
@@ -7452,6 +7463,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         string? timeframe = this.safeString(paramsMaxEntriesPerRequest, "timeframe");
         Dictionary<string, object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
+        bool shouldBreak = false;
         while (isLessThan(i, maxCallsPaginationCalls))
         {
             try
@@ -7501,6 +7513,7 @@ public partial class BaseExchange
                 }
                 if ((responseLength == 0))
                 {
+                    shouldBreak = true;
                     break;
                 }
                 if ((response != null))
@@ -7510,20 +7523,20 @@ public partial class BaseExchange
                 IDictionary<string, object> last = this.safeDict(response, (responseLength - 1));
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = null; // search for the cursor
+                // guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
                 for (Int64 j = 0; j < responseLength; j++)
                 {
-                    Int64 index = ((responseLength - j) - 1);
-                    IDictionary<string, object> entry = this.safeDict(response, index);
-                    IDictionary<string, object> info = this.safeDict(entry, "info");
-                    object cursor = ((cursorReceived == null)) ? null : this.safeValue(info, cursorReceived);
-                    if ((cursor != null))
+                    if ((cursorValue == null))
                     {
-                        cursorValue = cursor;
-                        break;
+                        Int64 index = ((responseLength - j) - 1);
+                        IDictionary<string, object> entry = this.safeDict(response, index);
+                        IDictionary<string, object> info = this.safeDict(entry, "info");
+                        cursorValue = ((cursorReceived == null)) ? null : this.safeValue(info, cursorReceived);
                     }
                 }
                 if ((cursorValue == null))
                 {
+                    shouldBreak = true;
                     break;
                 }
                 Int64? lastTimestamp = this.safeInteger(last, "timestamp");
@@ -7533,6 +7546,7 @@ public partial class BaseExchange
                 }
                 if ((lastTimestamp != null) && isLessThan(lastTimestamp, since))
                 {
+                    shouldBreak = true;
                     break;
                 }
             } catch(Exception e)
@@ -7542,6 +7556,10 @@ public partial class BaseExchange
                 {
                     throw e;
                 }
+            }
+            if (shouldBreak)
+            {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
             i = add(i, 1);
         }
@@ -7567,6 +7585,7 @@ public partial class BaseExchange
         object i = 0;
         object errors = 0;
         List<object> result = new List<object>() {};
+        bool shouldBreak = false;
         while (isLessThan(i, maxCallsPaginationCalls))
         {
             try
@@ -7583,6 +7602,7 @@ public partial class BaseExchange
                 }
                 if ((responseLength == 0))
                 {
+                    shouldBreak = true;
                     break;
                 }
                 result = this.arrayConcat(result, response);
@@ -7593,6 +7613,10 @@ public partial class BaseExchange
                 {
                     throw e;
                 }
+            }
+            if (shouldBreak)
+            {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
             i = add(i, 1);
         }
