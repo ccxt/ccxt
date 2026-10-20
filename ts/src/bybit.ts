@@ -2699,7 +2699,7 @@ export default class bybit extends Exchange {
                 if (currentType === undefined) {
                     currentType = this.safeString (market, 'type');
                     firstLinear = this.safeBool (market, 'linear');
-                } else if ((market['type'] !== currentType) || (market['contract'] && (this.safeBool (market, 'linear') !== firstLinear))) {
+                } else if ((market['type'] !== currentType) || ((market['contract'] === true) && (this.safeBool (market, 'linear') !== firstLinear))) {
                     throw new BadRequest (this.id + ' fetchTickers can only accept a list of symbols of the same type');
                 }
                 if (market['option'] === true) {
