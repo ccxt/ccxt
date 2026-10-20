@@ -11503,9 +11503,15 @@ export default class binance extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeString (marketResolved, 'symbol');
-        const leverageString = this.omitZero (this.safeString (position, 'leverage')); // portfolio-margin accounts may return leverage "0", see #29244
-        const leverage = (leverageString !== undefined) ? parseInt (leverageString) : undefined;
+        let leverageString = this.omitZero (this.safeString (position, 'leverage')); // portfolio-margin accounts may return leverage "0", see #29244
         const initialMarginString = this.safeString (position, 'initialMargin');
+        const notionalRawAbs = Precise.stringAbs (this.safeString2 (position, 'notional', 'notionalValue'));
+        const positionInitialMarginRaw = this.safeString2 (position, 'positionInitialMargin', 'initialMargin');
+        if ((leverageString === undefined) && Precise.stringGt (positionInitialMarginRaw, '0') && Precise.stringGt (notionalRawAbs, '0') && ('notional' in position)) {
+            // v3 has no leverage field: notional / initial margin, rounded to an integer
+            leverageString = Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (notionalRawAbs, positionInitialMarginRaw), '0.5'), '1', 0);
+        }
+        const leverage = (leverageString !== undefined) ? parseInt (leverageString) : undefined;
         const initialMargin = this.parseNumber (initialMarginString);
         let initialMarginPercentageString: Str = undefined;
         if (leverageString !== undefined) {
@@ -11636,13 +11642,22 @@ export default class binance extends Exchange {
             }
             liquidationPrice = this.parseNumber (truncatedLiquidationPrice);
         }
+        let markPriceString: Str = undefined;
+        const baseSizeString = Precise.stringMul (contractsStringAbs, contractSizeString);
+        if (Precise.stringGt (baseSizeString, '0') && Precise.stringGt (notionalStringAbs, '0')) {
+            if (usdm) {
+                markPriceString = Precise.stringDiv (notionalStringAbs, baseSizeString);
+            } else {
+                markPriceString = Precise.stringDiv (baseSizeString, notionalStringAbs);
+            }
+        }
         const positionSide = this.safeString (position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
         let isolatedWalletString: Str = undefined;
         if (marginMode === 'isolated') {
             isolatedWalletString = this.safeString (position, 'isolatedWallet');
         }
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -11660,14 +11675,14 @@ export default class binance extends Exchange {
             'contractSize': contractSize,
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
-            'markPrice': undefined,
+            'markPrice': this.parseNumber (markPriceString),
             'positionMargin': this.parseNumber (isolatedWalletString),
             'collateral': collateral,
             'marginMode': marginMode,
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
-        };
+        });
     }
 
     parsePositionRisk (position: Dict, market: Market = undefined) {
@@ -11836,7 +11851,6 @@ export default class binance extends Exchange {
         } else {
             collateralString = this.safeString (position, 'isolatedMargin');
         }
-        collateralString = (collateralString === undefined) ? '0' : collateralString;
         const collateral = this.parseNumber (collateralString);
         const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice')));
         let timestamp = this.safeInteger (position, 'updateTime');
@@ -11867,10 +11881,20 @@ export default class binance extends Exchange {
             const unrounded = Precise.stringMul (initialMarginString, '1');
             initialMarginPercentageString = Precise.stringDiv (unrounded, notionalStringAbs, 8);
         }
+        let leverageResult = leverageString;
+        if (leverageResult === undefined) {
+            // v3 has no leverage field: notional / positionInitialMargin, rounded to an integer
+            const positionInitialMarginString = this.safeString (position, 'positionInitialMargin');
+            if (Precise.stringGt (positionInitialMarginString, '0') && Precise.stringGt (notionalStringAbs, '0')) {
+                leverageResult = Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (notionalStringAbs, positionInitialMarginString), '0.5'), '1', 0);
+            }
+        }
         let marginRatio: Num = undefined;
         let percentage: Num = undefined;
-        if (!Precise.stringEquals (collateralString, '0')) {
+        if ((collateralString !== undefined) && !Precise.stringEquals (collateralString, '0')) {
             marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
+        }
+        if (Precise.stringGt (initialMarginString, '0')) {
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
         }
         const positionSide = this.safeString (position, 'positionSide');
@@ -11886,7 +11910,7 @@ export default class binance extends Exchange {
             'contracts': contracts,
             'contractSize': contractSize,
             'unrealizedPnl': unrealizedPnl,
-            'leverage': this.parseNumber (leverageString),
+            'leverage': this.parseNumber (leverageResult),
             'liquidationPrice': liquidationPrice,
             'positionMargin': this.parseNumber (isolatedWalletString),
             'collateral': collateral,
@@ -12090,6 +12114,8 @@ export default class binance extends Exchange {
      * @name binance#fetchPosition
      * @description fetch data on an open position
      * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -12100,7 +12126,12 @@ export default class binance extends Exchange {
         }
         const market = this.market (symbol);
         if (market['option'] !== true) {
-            throw new NotSupported (this.id + ' fetchPosition() supports option markets only');
+            let subType = 'inverse';
+            if (market['linear']) {
+                subType = 'linear';
+            }
+            const positions = await this.fetchPositionsRisk ([ symbol ], this.extend ({ 'symbol': market['id'], 'subType': subType }, params));
+            return this.safeDict (positions, 0) as Position;
         }
         const request: Dict = {
             'symbol': market['id'],
@@ -13742,7 +13773,7 @@ export default class binance extends Exchange {
             'symbol': marketResolved['symbol'],
             'type': (rawType === 1) ? 'add' : 'reduce',
             'marginMode': 'isolated',
-            'amount': this.safeNumber (data, 'amount'),
+            'amount': this.parseNumber (Precise.stringAbs (this.safeString (data, 'amount'))),
             'code': this.safeString (data, 'asset'),
             'total': undefined,
             'status': (success || noErrorCode) ? 'ok' : 'failed',
