@@ -4927,8 +4927,8 @@ export default class bybit extends Exchange {
         if (clientOrderId !== undefined) {
             request['orderLinkId'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
-        const paramsOmitted = (market['spot'] === true) ? this.omit (params, [ 'stop', 'trigger' ]) : params;
+        const paramsRest = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
+        const paramsOmitted = (market['spot'] === true) ? this.omit (paramsRest, [ 'stop', 'trigger' ]) : paramsRest;
         const [ category, paramsCategory ] = this.getBybitType ('cancelOrderRequest', market, paramsOmitted);
         request['category'] = category;
         return this.extend (request, paramsCategory);
