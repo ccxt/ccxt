@@ -1464,19 +1464,21 @@ export default class bithumb extends Exchange {
         if (transactionDatetime !== undefined) {
             const parts = transactionDatetime.split (' ');
             const numParts = parts.length;
+            let parsedTimestamp: Int = undefined;
             if (numParts > 1) {
                 const transactionDate = parts[0];
                 let transactionTime = parts[1];
                 if (transactionTime.length < 8) {
                     transactionTime = '0' + transactionTime;
                 }
-                timestamp = this.parse8601 (transactionDate + ' ' + transactionTime);
+                parsedTimestamp = this.parse8601 (transactionDate + ' ' + transactionTime);
             } else {
-                timestamp = this.safeIntegerProduct (trade, 'transaction_date', 0.001);
+                parsedTimestamp = this.safeIntegerProduct (trade, 'transaction_date', 0.001);
             }
-        }
-        if ((timestamp !== undefined) && (!isGenerationTwo)) {
-            timestamp -= 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+            timestamp = parsedTimestamp;
+            if ((parsedTimestamp !== undefined) && (!isGenerationTwo)) {
+                timestamp = parsedTimestamp - 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+            }
         }
         const type = undefined;
         let side = this.safeStringLower2 (trade, 'ask_bid', 'type');

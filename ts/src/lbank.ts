@@ -1212,9 +1212,15 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const limitResolved: int = (limit === undefined) ? 100 : Math.min (limit, 2000);
+        let limitResolved: int = 100;
+        if (limit !== undefined) {
+            limitResolved = Math.min (limit, 2000);
+        }
         const duration = this.parseTimeframe (timeframe);
-        const sinceResolved: int = (since === undefined) ? (this.milliseconds () - (duration * 1000 * limitResolved)) : since;
+        let sinceResolved: int = this.milliseconds () - (duration * 1000 * limitResolved);
+        if (since !== undefined) {
+            sinceResolved = since;
+        }
         const parsedSince = this.parseToInt (sinceResolved / 1000);
         const parsedLimit: int = Math.min (limitResolved + 1, 2000); // max 2000;
         const request: Dict = {

@@ -483,7 +483,8 @@ export default class hollaex extends hollaexRest {
         this.checkRequiredCredentials ();
         let expires = this.safeString (this.options, 'ws-expires');
         if (expires === undefined) {
-            const timeout = parseInt ((this.timeout / 1000).toString ());
+            const timeoutMs = this.parseToInt (this.timeout);
+            const timeout = this.parseToInt (timeoutMs / 1000);
             expires = this.sum (this.seconds (), timeout);
             if (expires === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchPrivate() expires is required');

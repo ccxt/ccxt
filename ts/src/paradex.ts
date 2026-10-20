@@ -863,17 +863,17 @@ export default class paradex extends Exchange {
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, params);
         const hasEnd = ('end_at' in request);
         const paramsOmitted: Dict = this.omit (paramsUntil, [ 'price' ]);
-        const limitResolved: Int = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        const limitResolved = ((limit === undefined) || (limit > maxLimit)) ? maxLimit : limit;
+        const windowLength = duration * (limitResolved + 1) * 1000;
         if (since !== undefined) {
             requestUntil['start_at'] = since;
             if (!hasEnd) {
-                requestUntil['end_at'] = since + duration * (limitResolved + 1) * 1000 - 1;
+                requestUntil['end_at'] = since + windowLength - 1;
             }
         } else {
-            if (!hasEnd) {
-                requestUntil['end_at'] = this.milliseconds ();
-            }
-            requestUntil['start_at'] = requestUntil['end_at'] - duration * (limitResolved + 1) * 1000 + 1;
+            const endAt = hasEnd ? this.safeInteger (requestUntil, 'end_at', 0) : this.milliseconds ();
+            requestUntil['end_at'] = endAt;
+            requestUntil['start_at'] = endAt - windowLength + 1;
         }
         const response = await this.publicGetMarketsKlines (this.extend (requestUntil, paramsOmitted));
         //
@@ -1536,7 +1536,7 @@ export default class paradex extends Exchange {
 
     async authenticateRest (params: Dict = {}): Promise<Str> {
         const cachedToken = this.safeString (this.options, 'authToken');
-        const now = this.nonce ();
+        const now = this.parseToInt (this.nonce ());
         if (cachedToken !== undefined) {
             const cachedExpires = this.safeInteger (this.options, 'expires');
             if (cachedExpires === undefined) {
@@ -1804,7 +1804,7 @@ export default class paradex extends Exchange {
 
     async signOrderRequest (request: Dict, modify: boolean = false): Promise<Dict> {
         const account = await this.retrieveAccount ();
-        const now = this.nonce ();
+        const now = this.parseToInt (this.nonce ());
         const orderType = this.safeString (request, 'type');
         if (orderType === undefined) {
             throw new ExchangeError (this.id + ' signOrderRequest() missing orderType');

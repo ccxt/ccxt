@@ -809,3 +809,176 @@ export function hx4G18SelfTest (): string[] {
     }
     return problems;
 }
+
+
+// hx4 G23
+// Comparison/EvalTruthy operands G18 cannot type: Handle*AndParams tuple element-0 locals, Add-only int
+// counters (`var n any = 0`), and declared-once pointers proven non-nil by an earlier early exit.
+const HX4G23_TUPLE_PTR: [ RegExp, string ][] = [
+    [ /^(?:HandleOptionIntegerAndParams2?Nullable|HandleParamInteger2?)$/, '*int64' ],
+    [ /^(?:HandleOptionBoolAndParams2?Nullable|HandleParamBool2?)$/, '*bool' ],
+];
+
+function hx4G23DeclCount (masked: string, name: string): number {
+    const rx = new RegExp ('(?<![\\w.])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bvar\\s+' + name + '\\b|\\bfunc\\s*\\([^()]*\\b' + name + '\\b|\\bfor\\b[^\\n{]*\\b' + name + '\\b[^\\n{]*:=\\s*range\\b', 'g');
+    return (masked.match (rx) ?? []).length;
+}
+
+// Go type of a single-write local bound from a Handle*AndParams result, by the base method's declared shape
+function hx4G23TupleType (scope: GoArithScope, name: string, fileOwn: Set<string>): string | undefined {
+    if (!/^[A-Za-z_]\w*$/.test (name) || (hx4G23DeclCount (scope.masked, name) !== 1) || !hx4G17SingleWrite (scope, name)) {
+        return undefined;
+    }
+    const pair = new RegExp ('(?<![\\w.])' + name + ',\\s*\\w+\\s*:=\\s*this\\.(HandleOptionIntegerAndParams2?)\\(').exec (scope.masked);
+    if (pair && !fileOwn.has (pair[1]) && (pair.index < scope.pos)) {
+        return 'int64';
+    }
+    // only a raw `h[0]` read keeps the pointer box (GetValue derefs it to a plain scalar)
+    const el = new RegExp ('(?<![\\w.])' + name + '\\s*:=\\s*(\\w+)\\[0\\]\\s*$', 'm').exec (scope.masked);
+    if (!el || (el.index > scope.pos)) {
+        return undefined;
+    }
+    const holder = el[1];
+    const decl = new RegExp ('\\bvar\\s+' + holder + '\\s+\\[\\]any\\s*=\\s*this\\.(\\w+)\\(').exec (scope.masked);
+    if (!decl || (hx4G23DeclCount (scope.masked, holder) !== 1) || !hx4G17SingleWrite (scope, holder) || fileOwn.has (decl[1])) {
+        return undefined;
+    }
+    for (const [ rx, type ] of HX4G23_TUPLE_PTR) {
+        if (rx.test (decl[1])) {
+            return type;
+        }
+    }
+    return undefined;
+}
+
+// `var n any = <int>` whose every other write is `n = <int>` or `n = Add(n, <int>)`: an int box, never nil
+function hx4G23Counter (scope: GoArithScope, name: string): boolean {
+    if (!/^[A-Za-z_]\w*$/.test (name) || (hx4G23DeclCount (scope.masked, name) !== 1)) {
+        return false;
+    }
+    if (!new RegExp ('\\bvar\\s+' + name + '\\s+any\\s*=\\s*[1-9]?\\d{0,8}\\s*(?:\\n|$)').test (scope.masked + '\n')) {
+        return false;
+    }
+    const writes = scope.masked.match (new RegExp ('(?<![\\w.*])' + name + '\\s*(?:=(?!=)[^\\n]*|\\+\\+|--|[-+*/%]=|,[\\w\\s,]*=(?!=))|&' + name + '\\b', 'g')) ?? [];
+    const lit = '[1-9]?\\d{0,8}';
+    const ok = new RegExp ('^' + name + '\\s*=\\s*(?:' + lit + '|(?:ccxt\\.)?Add\\(' + name + ',\\s*' + lit + '\\))\\s*$');
+    return writes.every ((w) => ok.test (w.trim ()));
+}
+
+function hx4G23RewriteFunc (text: string, ownMethods: Set<string>, fileOwn: Set<string>): string {
+    let masked = goArithMask (text);
+    const nl = masked.indexOf ('\n');
+    const scope: GoArithScope = { 'masked': masked, 'signature': masked.slice (0, nl < 0 ? masked.length : nl), 'known': new Map (), 'ownMethods': ownMethods, 'pos': 0, 'derefs': new Set<string> () };
+    const rx = /(?<![\w.])(?:ccxt\.)?(IsGreaterThanOrEqual|IsLessThanOrEqual|IsGreaterThan|IsLessThan|EvalTruthy)\(/g;
+    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
+    calls.sort ((x, y) => y.start - x.start);
+    for (const call of calls) {
+        const close = goArithClose (masked, call.open);
+        const spans = (close < 0) ? [] : goArithArgs (masked, call.open, close);
+        scope.pos = call.start;
+        const args = spans.map (([ s, e ]) => goArithStripParens (text.slice (s, e)));
+        const margs = spans.map (([ s, e ]) => goArithStripParens (masked.slice (s, e)));
+        let native: string | undefined = undefined;
+        if (call.helper === 'EvalTruthy') {
+            // EvalTruthy derefs a *bool box: nil is false
+            if ((args.length === 1) && (hx4G23TupleType (scope, args[0], fileOwn) === '*bool')) {
+                native = '(' + args[0] + '.(*bool) != nil && *' + args[0] + '.(*bool))';
+            }
+        } else if (spans.length === 2) {
+            const ptrName: string[] = [];
+            const isPtr: boolean[] = [];
+            const kinds: (Kind | undefined)[] = [];
+            const ops: string[] = [];
+            for (let i = 0; i < 2; i++) {
+                const x = args[i];
+                const tuple = hx4G23TupleType (scope, x, fileOwn);
+                const declared = /^[A-Za-z_]\w*$/.test (x) ? goArithDeclaredType (scope.masked, scope.signature, x) : undefined;
+                if (tuple === '*int64') {
+                    ptrName.push (x + '.(*int64)'); isPtr.push (true); kinds.push ('i64'); ops.push ('*' + x + '.(*int64)');
+                } else if (tuple === 'int64') {
+                    ptrName.push (x); isPtr.push (false); kinds.push ('i64'); ops.push (x);
+                } else if (hx4G23Counter (scope, x)) {
+                    ptrName.push (x); isPtr.push (false); kinds.push ('int'); ops.push (x + '.(int)');
+                } else if (((declared === '*int64') || (declared === '*float64')) && hx4G17PointerNonNil (scope, x, declared)) {
+                    ptrName.push (x); isPtr.push (false); kinds.push ((declared === '*int64') ? 'i64' : 'f64'); ops.push ('*' + x);
+                } else if ((declared === '*int64') || (declared === '*float64')) {
+                    const guarded = g10kArithPointerIsNonNil (scope, x);
+                    ptrName.push (x); isPtr.push (!guarded); kinds.push ((declared === '*int64') ? 'i64' : 'f64'); ops.push ('*' + x);
+                } else {
+                    ptrName.push (x); isPtr.push (false); kinds.push (hx4G18Kind (scope, x, margs[i])); ops.push (x);
+                }
+            }
+            if (kinds.every ((k) => k !== undefined) && !((isPtr[0] && !isPtr[1] && !hx4G18Skippable (margs[1])) || (isPtr[1] && !isPtr[0] && !hx4G18Skippable (margs[0])))) {
+                native = hx4G18Native (call.helper, ops[0], ops[1], kinds[0] as Kind, kinds[1] as Kind, isPtr[0], isPtr[1], ptrName);
+            }
+        }
+        if (native === undefined) {
+            continue;
+        }
+        if (/\(\s*$/.test (masked.slice (0, call.start)) && /^\s*\)/.test (masked.slice (close + 1))) {
+            native = native.slice (1, -1);
+        }
+        text = text.slice (0, call.start) + native + text.slice (close + 1);
+        masked = masked.slice (0, call.start) + goArithMask (native) + masked.slice (close + 1);
+        scope.masked = masked;
+    }
+    return text;
+}
+
+export function hx4G23Comparisons (content: string): string {
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?(?:Is(?:Greater|Less)Than(?:OrEqual)?|EvalTruthy)\(/.test (content)) {
+        return content;
+    }
+    const masked = goArithMask (content);
+    const ownMethods = new Set<string> ();
+    for (const name of GO_ARITH_INT64_METHODS) {
+        if (new RegExp ('^func \\(this \\*\\w+\\) ' + name + '\\(', 'm').test (masked)) {
+            ownMethods.add (name);
+        }
+    }
+    // an exchange-level override of a Handle* method may answer another element type
+    const fileOwn = new Set<string> ([ ...masked.matchAll (/^func \(this \*\w+\) (Handle\w+)\(/gm) ].map ((m) => m[1]));
+    const lines = content.split ('\n');
+    const out: string[] = [];
+    let start = -1;
+    for (let k = 0; k < lines.length; k++) {
+        if (start < 0) {
+            if (lines[k].startsWith ('func ') && !lines[k].endsWith ('}')) { start = k; } else { out.push (lines[k]); }
+            continue;
+        }
+        if (lines[k] === '}') {
+            out.push (hx4G23RewriteFunc (lines.slice (start, k + 1).join ('\n'), ownMethods, fileOwn));
+            start = -1;
+        }
+    }
+    if (start >= 0) {
+        out.push (...lines.slice (start));
+    }
+    return out.join ('\n');
+}
+
+export function hx4G23SelfTest (): string[] {
+    const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) F(o any, n any) any {\n' + body + '\n}\n';
+    const cases: [ string, string, boolean ][] = [
+        [ '\tvar uparamsV []any = this.HandleOptionBoolAndParamsNullable(o, "m", "uta", nil)\n\tu := uparamsV[0]\n\tif EvalTruthy(u) {\n\t}\n\treturn nil', 'if (u.(*bool) != nil && *u.(*bool)) {', true ],
+        [ '\tvar uparamsV []any = this.HandleOptionBoolAndParamsNullable(o, "m", "uta", nil)\n\tu := uparamsV[0]\n\tif !ccxt.EvalTruthy(u) {\n\t}\n\treturn nil', 'if !(u.(*bool) != nil && *u.(*bool)) {', true ],
+        [ '\tvar uparamsV []any = this.HandleOptionBoolAndParamsNullable(o, "m", "uta", nil)\n\tu := ccxt.GetValue(uparamsV, 0)\n\tif ccxt.EvalTruthy(u) {\n\t}\n\treturn nil', 'ccxt.EvalTruthy(u)', true ],
+        [ '\tvar uparamsV []any = this.HandleOptionAndParams(o, "m", "uta", nil)\n\tu := uparamsV[0]\n\tif EvalTruthy(u) {\n\t}\n\treturn nil', 'EvalTruthy(u)', true ],
+        [ '\tvar uparamsV []any = this.HandleOptionBoolAndParamsNullable(o, "m", "uta", nil)\n\tu := uparamsV[0]\n\tu = true\n\tif EvalTruthy(u) {\n\t}\n\treturn nil', 'EvalTruthy(u)', true ],
+        [ '\tvar aparamsV []any = this.HandleParamInteger(o, "a")\n\ta := aparamsV[0]\n\tif IsLessThan(a, 4) {\n\t}\n\treturn nil', 'if (a.(*int64) == nil || *a.(*int64) < 4) {', true ],
+        [ '\tvar aparamsV []any = this.HandleParamInteger(o, "a")\n\ta := aparamsV[0]\n\tif IsGreaterThan(a, this.Seconds()) {\n\t}\n\treturn nil', 'IsGreaterThan(a, this.Seconds())', true ],
+        [ '\tm, p := this.HandleOptionIntegerAndParams(o, "f", "m", 3)\n\t_ = p\n\tfor i := 1; IsLessThan(i, m); i++ {\n\t}\n\treturn nil', 'for i := 1; (int64(i) < m); i++ {', true ],
+        [ '\tm, p := this.HandleOptionIntegerAndParams(o, "f", "m", 3)\n\t_ = p\n\tvar e any = 0\n\tfor IsLessThanOrEqual(e, m) {\n\t\te = Add(e, 1)\n\t}\n\treturn nil', 'for (int64(e.(int)) <= m) {', true ],
+        [ '\tvar e any = 0\n\te = this.Sum(e, 1)\n\tif IsGreaterThan(e, 0) {\n\t}\n\treturn nil', 'IsGreaterThan(e, 0)', true ],
+        [ '\tvar e *int64 = this.SafeInteger(o, "e")\n\tvar f *int64 = this.SafeInteger(o, "f")\n\tif e == nil {\n\t\treturn nil\n\t}\n\tif f == nil {\n\t\treturn nil\n\t}\n\tif IsLessThan(e, *f-1) {\n\t}\n\treturn nil', 'if (*e < *f-1) {', true ],
+        [ '\tvar e *int64 = this.SafeInteger(o, "e")\n\tvar f *int64 = this.SafeInteger(o, "f")\n\tif IsLessThan(e, *f-1) {\n\t}\n\treturn nil', 'IsLessThan(e, *f-1)', true ],
+    ];
+    const problems: string[] = [];
+    for (const [ body, want, present ] of cases) {
+        const out = hx4G23Comparisons (wrap (body));
+        if (out.includes (want) !== present) {
+            problems.push ('hx4 G23: expected ' + want + ' in ' + out);
+        }
+    }
+    return problems;
+}

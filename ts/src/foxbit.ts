@@ -2016,11 +2016,8 @@ export default class foxbit extends Exchange {
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
         }
-        if (amount < 0) {
+        if (0 > amount) {
             direction = 'out';
-            if (amount === undefined) {
-                throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
-            }
             realAmount = amount * -1;
         }
         if (balance === undefined) {

@@ -712,7 +712,7 @@ export default class gate extends gateRest {
             return;
         } else if ((deltaEnd !== undefined) && (nonce >= deltaEnd)) {
             return;
-        } else if ((deltaStart !== undefined) && (nonce >= deltaStart - 1)) {
+        } else if ((deltaStart !== undefined) && (nonce !== undefined) && (nonce >= deltaStart - 1)) {
             this.handleBookDelta (storedOrderBook, delta);
         } else {
             delete client.subscriptions[messageHash];

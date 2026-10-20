@@ -2823,11 +2823,12 @@ export default class tokocrypto extends Exchange {
         } else if (('noPoolId' in config) && !('poolId' in params)) {
             return config['noPoolId'];
         } else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = params['limit'];
+            const limit = this.safeInteger (params, 'limit');
             const byLimit = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit <= entry[0]) {
+                const entryLimit = this.safeInteger (entry, 0);
+                if ((limit !== undefined) && (entryLimit !== undefined) && (limit <= entryLimit)) {
                     return entry[1];
                 }
             }

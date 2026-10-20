@@ -1221,7 +1221,7 @@ export default class revolutx extends Exchange {
             const market = this.market (symbol);
             request['symbols'] = market['id'];
         }
-        const thirtyDays = 2592000000;
+        const thirtyDays = 30 * 24 * 60 * 60 * 1000;
         const until = this.safeInteger2 (params, 'until', 'until');
         if (since !== undefined) {
             request['start_date'] = since;
@@ -1232,8 +1232,8 @@ export default class revolutx extends Exchange {
             request['end_date'] = until;
         } else if (since !== undefined) {
             const now = this.milliseconds ();
-            const defaultEnd = since + thirtyDays;
-            request['end_date'] = (defaultEnd < now) ? defaultEnd : now;
+            const thirtyDaysAgo = now - thirtyDays;
+            request['end_date'] = (since < thirtyDaysAgo) ? since + thirtyDays : now;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1344,7 +1344,7 @@ export default class revolutx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const thirtyDays = 2592000000;
+        const thirtyDays = 30 * 24 * 60 * 60 * 1000;
         const until = this.safeInteger2 (params, 'until', 'until');
         if (since !== undefined) {
             request['start_date'] = since;
@@ -1355,8 +1355,8 @@ export default class revolutx extends Exchange {
             request['end_date'] = until;
         } else if (since !== undefined) {
             const now = this.milliseconds ();
-            const defaultEnd = since + thirtyDays;
-            request['end_date'] = (defaultEnd < now) ? defaultEnd : now;
+            const thirtyDaysAgo = now - thirtyDays;
+            request['end_date'] = (since < thirtyDaysAgo) ? since + thirtyDays : now;
         }
         if (limit !== undefined) {
             request['limit'] = limit;

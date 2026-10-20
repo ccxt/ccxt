@@ -1598,26 +1598,15 @@ export default class derive extends Exchange {
         const until = this.safeInteger (paramsPrice, 'until');
         const paramsOmitted: Dict = this.omit (paramsPrice, [ 'until' ]);
         const duration = this.parseTimeframe (timeframe);
-        let end = this.seconds ();
-        if (until !== undefined) {
-            end = this.parseToInt (until / 1000);
-        }
-        let defaultLimit = 1000;
-        if (since !== undefined) {
-            defaultLimit = 5000;
-        }
+        const untilSeconds = (until === undefined) ? this.seconds () : this.parseToInt (until / 1000);
+        const defaultLimit = (since === undefined) ? 1000 : 5000;
         const limitRequested = (limit === undefined) ? defaultLimit : limit;
         const limitResolved = (limitRequested > 5000) ? 5000 : limitRequested; // the venue keeps only the latest 5000 buckets of the requested window
         const span = limitResolved * duration;
-        let start = end - span;
-        if (since !== undefined) {
-            start = this.parseToInt (since / 1000);
-            // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
-            const maxEnd = this.sum (start, span);
-            if (maxEnd < end) {
-                end = maxEnd;
-            }
-        }
+        const windowStart = untilSeconds - span;
+        const start = (since === undefined) ? windowStart : this.parseToInt (since / 1000);
+        // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
+        const end = (start < windowStart) ? this.sum (start, span) : untilSeconds;
         const request: Dict = {
             'period': period,
             'start_timestamp': start,

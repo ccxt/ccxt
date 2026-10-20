@@ -988,7 +988,7 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             limitResolved = limit;
         }
-        if (limitResolved <= 500) {
+        if (limit === undefined || limit <= 500) {
             request['depth'] = this.findNearestCeiling ([ 10, 50, 100, 500 ], limitResolved);
         }
         const response = await this.publicMarketPostFullV1Book (this.extend (request, params));

@@ -4773,13 +4773,11 @@ export default class bitget extends Exchange {
             }
         }
         if (until !== undefined) {
-            calculatedEndTime = until;
-            if (calculatedEndTime > now) {
-                calculatedEndTime = now;
-            }
-            request['endTime'] = calculatedEndTime;
+            const untilEndTime: int = (until > now) ? now : until;
+            calculatedEndTime = untilEndTime;
+            request['endTime'] = untilEndTime;
             if (since === undefined) {
-                calculatedStartTime = calculatedEndTime - limitMultipliedDuration;
+                calculatedStartTime = untilEndTime - limitMultipliedDuration;
                 // we do not need to set "startTime" here
             }
         }

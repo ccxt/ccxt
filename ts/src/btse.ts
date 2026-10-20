@@ -848,8 +848,7 @@ export default class btse extends Exchange {
                 // if so, just omit until for correct paginated calls for not to get an error from the exchange
                 const duration = this.parseTimeframe (timeframe);
                 const maxDelta = duration * maxLimit * 1000; // parseTimeframe returns seconds, the difference below is in milliseconds
-                const difference = until - since;
-                if (difference < maxDelta) {
+                if ((until - since) < maxDelta) {
                     request['end'] = this.parseToInt (until / 1000);
                 }
             } else {
@@ -971,10 +970,12 @@ export default class btse extends Exchange {
         if (period === undefined) {
             period = '7D';
             if (since !== undefined) {
-                const age = this.milliseconds () - since;
-                if (age > 1209600000) { // 14 days in ms
+                const now = this.milliseconds ();
+                const twoWeeksAgo = now - 1209600000; // 14 days in ms
+                const oneWeekAgo = now - 604800000; // 7 days in ms
+                if (since < twoWeeksAgo) {
                     period = '1M';
-                } else if (age > 604800000) { // 7 days in ms
+                } else if (since < oneWeekAgo) {
                     period = '2W';
                 }
             }

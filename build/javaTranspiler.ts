@@ -24,7 +24,7 @@ import { nativeJavaEqualTruthy } from './java-local-types.js';
 import { h2kJ09NativeSubtractDivideMod } from './java-local-types.js';
 import { nativeJavaJ04Arithmetic } from './java-local-types.js';
 import { nativeJavaJ20ParamCompare } from './java-local-types.js';
-import { nativeJavaJ04Arithmetic, nativeJavaJ23Arithmetic } from './java-local-types.js';
+import { nativeJavaJ04Arithmetic, nativeJavaJ23Arithmetic, nativeJavaJ24Arithmetic } from './java-local-types.js';
 import { installH2kJ11StringArgs } from './java-local-types.js';
 import { nativeJavaInOp } from './java-local-types.js';
 import { nativeJavaToLongOrNullH2kJ13 } from './java-local-types.js';
@@ -2990,7 +2990,7 @@ class NewTranspiler {
         baseClass = this.removeUnreachableReturnNull(baseClass);
 
         baseClass = this.addDeprecatedAnnotations(baseClass);
-        baseClass = nativeJavaJ23Arithmetic(baseClass); // hx4 J23
+        baseClass = nativeJavaJ24Arithmetic(nativeJavaJ23Arithmetic(baseClass)); // hx4 J23, J24
         return baseClass;
     }
 
@@ -3622,7 +3622,8 @@ class NewTranspiler {
         // hx4 J19: re-run the long-limit + compare passes over J04's native arithmetic
         content = nativeJavaJ19Compare(h2kJ10NativeComparisons(nativeJavaLongLimitLocals(content)));
         content = nativeJavaJ20ParamCompare(content); // hx4 J20
-        content = nativeJavaJ23Arithmetic(content); // hx4 J23
+        content = nativeJavaJ24Arithmetic(nativeJavaJ23Arithmetic(content)); // hx4 J23, J24
+        content = nativeJavaJ25Compare(content); // hx4 J25
 
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
@@ -4842,6 +4843,7 @@ class NewTranspiler {
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
         javaSource = typeCoreReturns(javaSource, withVenueAsyncReturns(typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest')))
         javaSource = hx4J06ObjectValues(javaSource) // hx4 J06
+        javaSource = nativeJavaJ26MapLocals(javaSource) // hx4 J26
         javaSource = nativeJavaJ22CoreArgs(javaSource) // hx4 J22
 
         if (javaFolder) {
@@ -5749,7 +5751,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7450,6 +7452,7 @@ function hx4J21BaseNativePasses (transpiler: any, body: string): string {
     content = nativeJavaH2kJ15(content);
     content = nativeJavaNestedNewMaps(content);
     content = nativeJavaJ04Arithmetic(content);
+    content = nativeJavaJ25Compare(content); // hx4 J25
     return content;
 }
 
@@ -7601,6 +7604,389 @@ function j23ArithmeticSelfTest (): string[] {
         const out = nativeJavaJ23Arithmetic (member (body));
         const ok = expect === undefined ? out === member (body) : out.includes (expect);
         if (!ok) { problems.push (`hx4 J23 arithmetic: ${name}\n${out}`); }
+    }
+    return problems;
+}
+
+// hx4 J24: snippet checks for the Object-local retype that lets the J23 arithmetic go native
+function j24ArithmeticSelfTest (): string[] {
+    const problems: string[] = [];
+    const member = (body: string) => `    public Object m(Long since, Long limit, Object x, String s)\n    {\n        Long now = this.milliseconds();\n        int duration = 60;\n${body}\n    }\n`;
+    const cases: [string, string, string | undefined][] = [
+        // positives
+        [ 'long product local', '        Object delta = (duration * 3L);\n        Object t = Helpers.subtract(now, delta);', 'Object t = (now - delta);' ],
+        [ 'guarded ternary local', '        Object st = (((!java.util.Objects.equals(since, null)))) ? since : ((now - 5L));\n        Object e = this.sum(x, Helpers.subtract(now, st));', 'this.sum(x, (now - st))' ],
+        [ 'int local stays Integer', '        Object sd = Math.max(5, s.length());\n        Object e = this.sum(x, Helpers.subtract(sd, s.length()));', 'Integer sd = Math.max(5, s.length());' ],
+        // negatives: nullable write, a cast read, a write the proof cannot type, no helper gained
+        [ 'nullable write', '        Object st = since;\n        Object e = this.sum(x, Helpers.subtract(now, st));', undefined ],
+        [ 'cast read', '        Object delta = (duration * 2L);\n        Object t = Helpers.subtract(now, delta);\n        String q = (String) delta;', undefined ],
+        [ 'object write', '        Object delta = (duration * 2L);\n        delta = x;\n        Object t = Helpers.subtract(now, delta);', undefined ],
+        [ 'ternary arm read', '        Object delta = (duration * 2L);\n        Object t = Helpers.subtract(now, delta);\n        Object u = (s == null) ? delta : x;', undefined ],
+    ];
+    for (const [ name, body, expect ] of cases) {
+        const out = nativeJavaJ24Arithmetic (member (body));
+        const ok = expect === undefined ? out === member (body) : out.includes (expect);
+        if (!ok) { problems.push (`hx4 J24 arithmetic: ${name}\n${out}`); }
+    }
+    return problems;
+}
+
+// hx4 J25: compares over Object locals whose single write proves the box: `((String)s).indexOf(..)` /
+// Helpers.getIndexOf (a non-null Integer) and a same-file `this.m(..)` whose every return is `this.parseToInt(..)` (Long)
+function j25LongReturningMembers (content: string): Set<string> {
+    const out = new Set<string> ();
+    if (/^    (?:public|private|protected)[^\n(]* parseToInt\(/m.test (content)) return out;
+    const lines = content.split ('\n');
+    for (let i = 0; i < lines.length; i++) {
+        const m = lines[i].match (/^    public Object (\w+)\(/);
+        if (m === null) continue;
+        let j = i + 1, returns = 0, ok = true;
+        for (; j < lines.length && !/^    \}/.test (lines[j]); j++) {
+            if (/^\s+return\b/.test (lines[j])) { returns++; ok = ok && /^\s+return this\.parseToInt\(.*\);$/.test (lines[j]); }
+            if (/->|supplyAsync/.test (lines[j])) ok = false;
+        }
+        const redeclared = lines.filter ((l) => new RegExp ('^    (?:public|private|protected)[^\\n(]* ' + m[1] + '\\(').test (l)).length;
+        if (ok && returns > 0 && redeclared === 1) out.add (m[1]);
+        i = j;
+    }
+    return out;
+}
+
+function j25ProvenLocal (member: string, name: string, longMembers: Set<string>): { kind: string, boxed: boolean, text: string, nullName?: string } | undefined {
+    const esc = name.replace (/\$/g, '\\$');
+    const decls = [ ...member.matchAll (new RegExp ('^\\s+Object ' + esc + ' = (.+);$', 'gm')) ];
+    if (decls.length !== 1) return undefined;
+    const writes = member.match (new RegExp ('(?<![\\w$.])' + esc + '\\s*(?:[-+*/%]?=(?!=)|\\+\\+|--)', 'g')) ?? [];
+    const otherDecl = new RegExp ('[\\w>\\]] ' + esc + '\\s*[,);:]').test (member) || new RegExp ('\\b' + esc + '\\s*->').test (member);
+    if (writes.length !== 1 || otherDecl) return undefined;
+    const init = decls[0][1];
+    if (/^\(\(String\)[\w$.]+\)\.indexOf\("(?:[^"\\]|\\.)*"\)$/.test (init) || /^Helpers\.getIndexOf\([\w$.]+, "(?:[^"\\]|\\.)*"\)$/.test (init)) {
+        return { kind: 'long', boxed: false, text: '((Integer) ' + name + ')' };
+    }
+    const call = init.match (/^this\.(\w+)\(/);
+    if (call !== null && longMembers.has (call[1]) && h2kJ15Close (init, call[0].length - 1) === init.length - 1) {
+        return { kind: 'long', boxed: true, text: '((Long) ' + name + ')', nullName: name };
+    }
+    return undefined;
+}
+
+export function nativeJavaJ25Compare (content: string): string {
+    if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
+    const lines = content.split ('\n');
+    const fields = new Set<string> ();
+    for (const line of lines) {
+        const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
+        if (f !== null) fields.add (f[1]);
+    }
+    const longMembers = j25LongReturningMembers (content);
+    const starts: number[] = [];
+    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b.*\(/.test (lines[i])) starts.push (i);
+    const re = /Helpers\.(is(?:GreaterThan|LessThan|GreaterThanOrEqual|LessThanOrEqual))\(/g;
+    for (let s = 0; s < starts.length; s++) {
+        const from = starts[s], to = s + 1 < starts.length ? starts[s + 1] : lines.length;
+        const member = lines.slice (from, to).join ('\n');
+        if (!member.includes ('Helpers.is')) continue;
+        const operand = (text: string) => {
+            const inner = h2kJ10StripParens (text);
+            if (/^[A-Za-z_$][\w$]*$/.test (inner) && !fields.has (inner)) {
+                const p = j25ProvenLocal (member, inner, longMembers);
+                if (p !== undefined) return { ...p, mine: true };
+            }
+            const o = j19Operand (text, member, fields, content);
+            return o === undefined ? undefined : { ...o, mine: false };
+        };
+        for (let i = from; i < to; i++) {
+            const trimmed = lines[i].trim ();
+            if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
+            let line = lines[i], again = true;
+            while (again) {
+                again = false;
+                re.lastIndex = 0;
+                let m;
+                while ((m = re.exec (line)) !== null) {
+                    const split = h2kJ10SplitArgs (line, m.index + m[0].length);
+                    if (split === undefined || split.args.length !== 2) continue;
+                    const l = operand (split.args[0]), r = operand (split.args[1]);
+                    if (l === undefined || r === undefined || !(l.mine || r.mine)) continue;
+                    let native = h2kJ10Compare (m[1].replace (/^is/, ''), l, r);
+                    if (native === undefined) continue;
+                    for (const o of [ l, r ]) {
+                        if (o.mine && o.nullName !== undefined) native = native.split (o.text + ' == null').join (o.nullName + ' == null').split (o.text + ' != null').join (o.nullName + ' != null');
+                    }
+                    line = line.slice (0, m.index) + native + line.slice (split.end + 1);
+                    again = true;
+                    break;
+                }
+            }
+            lines[i] = line;
+        }
+    }
+    return lines.join ('\n');
+}
+
+function j25CompareSelfTest (): string[] {
+    const problems: string[] = [];
+    const member = (body: string) => `    public Object m(Long since, Object x, String s)\n    {\n${body}\n    }\n`;
+    const sbe = '    public Object rd(Object a)\n    {\n        Object r = 0;\n        return this.parseToInt(r);\n    }\n';
+    const cases: [string, string, string | undefined][] = [
+        [ 'indexOf gt', '        Object q = ((String)s).indexOf("?");\n        if (Helpers.isGreaterThan(q, 0)) {}', '((((Integer) q) > 0))' ],
+        [ 'indexOf vs length', '        Object c = ((String)s).indexOf(":");\n        boolean b = Helpers.isLessThan(c, (((long) ((String)s).length()) - 1L));', '(((Integer) c) < (((long) ((String)s).length()) - 1L))' ],
+        [ 'getIndexOf ge', '        Object c = Helpers.getIndexOf(s, ":");\n        boolean b = Helpers.isGreaterThanOrEqual(c, 0);', '(((Integer) c) >= 0)' ],
+        [ 'sbe uint', '        Object bl = this.rd(x);\n        boolean b = Helpers.isLessThan(bl, 50);\n    }\n' + sbe + '    public void z()\n    {', '(bl == null || ((Long) bl) < 50)' ],
+        [ 'sbe ge', '        Object bl = this.rd(x);\n        boolean b = Helpers.isGreaterThanOrEqual(bl, 248);\n    }\n' + sbe + '    public void z()\n    {', '(bl != null && ((Long) bl) >= 248)' ],
+        // negatives: rewritten local, Object other side, non-literal indexOf arg, unknown callee, parseToInt override
+        [ 'rewritten', '        Object q = ((String)s).indexOf("?");\n        q = x;\n        boolean b = Helpers.isGreaterThan(q, 0);', undefined ],
+        [ 'object other', '        Object q = ((String)s).indexOf("?");\n        boolean b = Helpers.isGreaterThan(q, x);', undefined ],
+        [ 'indexOf var arg', '        Object q = ((String)s).indexOf(x);\n        boolean b = Helpers.isGreaterThan(q, 0);', undefined ],
+        [ 'unknown callee', '        Object bl = this.other(x);\n        boolean b = Helpers.isLessThan(bl, 50);', undefined ],
+        [ 'parseToInt override', '        Object bl = this.rd(x);\n        boolean b = Helpers.isLessThan(bl, 50);\n    }\n' + sbe + '    public Long parseToInt(Object n)\n    {\n        return null;', undefined ],
+    ];
+    for (const [ name, body, expect ] of cases) {
+        const out = nativeJavaJ25Compare (member (body));
+        const ok = expect === undefined ? out === member (body) : out.includes (expect);
+        if (!ok) problems.push (`hx4 J25 compare ${name}: ${out.slice (0, 500)}`);
+    }
+    return problems;
+}
+
+// hx4 J26
+// Object/var locals whose every write is a proven Map (null, a Map literal / newMap, a Map-declared
+// name, a 2-arg extend, omit of a Map, Pair.second() of a Map slot, or slot 1 of an audited tuple
+// producer) print `java.util.Map<String, Object>`; J22 then drops their toMapArg identity wrappers.
+// tuple producers -> index of the params argument slot 1 echoes (or omits from); -1 = always a Map
+function j26Slot1MapProducers (): Record<string, { params: number, venue?: string }> {
+    return {
+    handlePostOnly: { params: 2 }, handleParamBool: { params: 0 }, handleParamBool2: { params: 0 },
+    handleParamString: { params: 0 }, handleParamString2: { params: 0 },
+    handleOptionAndParams: { params: 0 }, handleOptionAndParams2: { params: 0 },
+    handleProductTypeAndParams: { params: -1, venue: 'Bitget' }, handleUTAAndParams: { params: -1, venue: 'Bitget' },
+    handleDeriveSubaccountId: { params: -1, venue: 'Derive' }, parseCreateEditOrderArgs: { params: -1, venue: 'Hyperliquid' },
+    requestWalletHistoryRows: { params: -1, venue: 'Btse' }, prepareRequest: { params: -1, venue: 'Gate' },
+    handleApiKeyIndex: { params: 0, venue: 'Lighter' }, handleAccountIndex: { params: 0, venue: 'Lighter' },
+    };
+}
+
+function j26Close (text: string, open: number): number {
+    let depth = 0;
+    for (let k = open; k < text.length; k++) {
+        const c = text[k];
+        if (c === '"') { for (k++; k < text.length && text[k] !== '"'; k++) if (text[k] === '\\') k++; continue; }
+        if (c === '(' || c === '[' || c === '{') depth++;
+        else if ((c === ')' || c === ']' || c === '}') && --depth === 0) return k;
+    }
+    return -1;
+}
+
+// end of the statement starting at `from` (a depth-0 `;`), strings, `//` comments and `{{ }}` bodies skipped
+function j26StatementEnd (text: string, from: number): number {
+    let depth = 0;
+    for (let k = from; k < text.length; k++) {
+        const c = text[k];
+        if (c === '"') { for (k++; k < text.length && text[k] !== '"'; k++) if (text[k] === '\\') k++; continue; }
+        if (c === '/' && text[k + 1] === '/') { while (k < text.length && text[k] !== '\n') k++; continue; }
+        if (c === '(' || c === '[' || c === '{') depth++;
+        else if (c === ')' || c === ']' || c === '}') { if (--depth < 0) return -1; }
+        else if (c === ';' && depth === 0) return k;
+    }
+    return -1;
+}
+
+function j26Strip (e: string): string {
+    e = e.trim ();
+    while (e.startsWith ('(') && j26Close (e, 0) === e.length - 1) e = e.slice (1, -1).trim ();
+    return e;
+}
+
+// top-level arguments of the call whose `(` is at text[open]
+function j26Args (text: string, open: number): string[] | undefined {
+    const close = j26Close (text, open);
+    if (close === -1) return undefined;
+    const out: string[] = [];
+    let depth = 0, at = open + 1;
+    for (let k = open + 1; k < close; k++) {
+        const c = text[k];
+        if (c === '"') { for (k++; k < close && text[k] !== '"'; k++) if (text[k] === '\\') k++; continue; }
+        if (c === '(' || c === '[' || c === '{' || c === '<') depth++;
+        else if (c === ')' || c === ']' || c === '}' || (c === '>' && text[k - 1] !== '-')) depth--;
+        else if (c === ',' && depth === 0) { out.push (text.slice (at, k).trim ()); at = k + 1; }
+    }
+    const last = text.slice (at, close).trim ();
+    if (last !== '') out.push (last);
+    return out;
+}
+
+function j26Ternary (e: string): [string, string, string] | undefined {
+    let depth = 0, q = -1;
+    for (let k = 0; k < e.length; k++) {
+        const c = e[k];
+        if (c === '"') { for (k++; k < e.length && e[k] !== '"'; k++) if (e[k] === '\\') k++; continue; }
+        if (c === '(' || c === '[' || c === '{') depth++;
+        else if (c === ')' || c === ']' || c === '}') depth--;
+        else if (c === '?' && depth === 0 && q === -1) q = k;
+        else if (c === ':' && depth === 0 && q !== -1) return [ e.slice (0, q), e.slice (q + 1, k), e.slice (k + 1) ];
+    }
+    return undefined;
+}
+
+function j26Member (member: string, className: string): string {
+    if (!member.includes ('Helpers.toMapArg(')) return member;
+    const header = member.slice (0, member.indexOf ('\n') === -1 ? member.length : member.indexOf ('\n'));
+    // declared names: name -> list of declared types (params included)
+    const declTypes = new Map<string, string[]> ();
+    const declRe = /(?:^|[\s(,])((?:final )?[\w.]+(?:<[\w.<>, ?]*>)?) ([A-Za-z_]\w*)(?=\s*(?:=(?!=)|[,);:]))/g;
+    for (const m of member.matchAll (declRe)) {
+        const t = m[1].replace (/^final /, '');
+        if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof' ].includes (t)) continue;
+        const list = declTypes.get (m[2]) ?? [];
+        list.push (t);
+        declTypes.set (m[2], list);
+    }
+    const lambdaShadow = (n: string) => new RegExp (`(?:\\(|, )${n}\\) ->|(?<![\\w.])${n} ->`).test (member);
+    const isParam = (n: string) => new RegExp (`[(,] ?(?:final )?[\\w.<>, ?]+ ${n}[,)]`).test (header);
+    const declaredMap = (n: string) => {
+        const t = declTypes.get (n);
+        return t !== undefined && t.length >= 1 && t.every ((x) => /^(?:java\.util\.)?Map<String, Object>$/.test (x)) && !lambdaShadow (n);
+    };
+    // candidates: one `Object`/`var` declaration in the body, not a parameter, not lambda-shadowed
+    const candidates = new Set<string> ();
+    for (const [ n, t ] of declTypes) {
+        if (t.length === 1 && (t[0] === 'Object' || t[0] === 'var') && !isParam (n) && !lambdaShadow (n)
+            && new RegExp (`(?:^|[\\s;{])(?:Object|var) ${n} = `, 'm').test (member)) candidates.add (n);
+    }
+    if (candidates.size === 0) return member;
+    // every write `[Object |var ]n = <rhs>;` of each candidate
+    const writes = new Map<string, { start: number, end: number, rhs: string }[]> ();
+    for (const n of candidates) {
+        const list: { start: number, end: number, rhs: string }[] = [];
+        let ok = true;
+        for (const m of member.matchAll (new RegExp (`(?<![\\w.])${n}\\s*(=(?!=)|\\+=|-=|\\+\\+|--)`, 'g'))) {
+            if (m[1] !== '=') { ok = false; break; }
+            const start = m.index + m[0].length;
+            const end = j26StatementEnd (member, start);
+            if (end === -1) { ok = false; break; }
+            list.push ({ start, end, rhs: member.slice (start, end) });
+        }
+        // no inconvertible casts / instanceof on the local
+        // any cast but a Map one (or an instanceof) on the local could stop compiling or change meaning
+        for (const c of member.matchAll (new RegExp (`\\(([\\w.<>, ?]+)\\)\\s*\\(?\\s*${n}(?![\\w(])`, 'g'))) {
+            if (!/^(?:java\.util\.)?Map<(?:String, Object|\?, \?)>$/.test (c[1])) ok = false;
+        }
+        if (new RegExp (`(?<![\\w.])${n} instanceof `).test (member)) ok = false;
+        if (ok && list.length > 0) writes.set (n, list); else candidates.delete (n);
+    }
+    // the holder `<h> = <producer call>` of a `((List<Object>) h).get(1)` read
+    const holderCall = (h: string): { name: string, args: string[] } | undefined => {
+        const m = new RegExp (`(?:^|[\\s;{])(?:var|List<Object>|java\\.util\\.List<Object>) ${h} = (?:\\((?:java\\.util\\.)?List<Object>\\) )?\\(?(this\\.(\\w+)\\()`, 'm').exec (member);
+        if (m === null) return undefined;
+        if ((declTypes.get (h) ?? []).length !== 1) return undefined;
+        const open = m.index + m[0].length - 1;
+        const args = j26Args (member, open);
+        return args === undefined ? undefined : { name: m[2], args };
+    };
+    const proves = (e: string, assumed: Set<string>, depth = 0): boolean => {
+        e = j26Strip (e);
+        if (e === 'null' || e.startsWith ('new HashMap<String, Object>() {{') || e.startsWith ('new java.util.HashMap<String, Object>() {{')) return true;
+        if (/^[A-Za-z_]\w*$/.test (e)) return assumed.has (e) || declaredMap (e);
+        const t = j26Ternary (e);
+        if (t !== undefined) return depth < 4 && proves (t[1], assumed, depth + 1) && proves (t[2], assumed, depth + 1);
+        const call = /^(this\.\w+\(|Helpers\.newMap\()/.exec (e);
+        if (call !== null && j26Close (e, call[0].length - 1) === e.length - 1) {
+            if (call[1] === 'Helpers.newMap(' || /^this\.(?:market|currency|safeMarket|safeCurrency|keysort|deepExtend)\($/.test (call[1])) return true;
+            const args = j26Args (e, call[0].length - 1) ?? [];
+            if (call[1] === 'this.extend(') return args.length === 2;
+            if (call[1] === 'this.omit(') return args.length >= 2 && /^[A-Za-z_]\w*$/.test (args[0]) && (assumed.has (args[0]) || declaredMap (args[0]));
+            return false;
+        }
+        const second = /^([A-Za-z_]\w*)\.second\(\)$/.exec (e);
+        if (second !== null) {
+            const t2 = declTypes.get (second[1]);
+            return t2 !== undefined && t2.length === 1 && /^(?:io\.github\.ccxt\.types\.)?Pair<[\w.<>, ?]+, (?:java\.util\.)?Map<String, Object>>$/.test (t2[0]);
+        }
+        const slot = /^\(\((?:java\.util\.)?List<Object>\) ([A-Za-z_]\w*)\)\.get\(1\)$/.exec (e);
+        if (slot !== null) {
+            const holder = holderCall (slot[1]);
+            const spec = holder === undefined ? undefined : j26Slot1MapProducers ()[holder.name];
+            if (holder === undefined || spec === undefined || (spec.venue !== undefined && spec.venue !== className)) return false;
+            if (spec.params === -1) return true;
+            const arg = holder.args[spec.params];
+            return arg !== undefined && depth < 4 && proves (arg.replace (/^\(Map<String, Object>\) /, ''), assumed, depth + 1);
+        }
+        return false;
+    };
+    // greatest fixpoint over the candidates
+    const assumed = new Set (candidates);
+    for (let changed = true; changed;) {
+        changed = false;
+        for (const n of [ ...assumed ]) {
+            if (!(writes.get (n) ?? []).every ((w) => proves (w.rhs, assumed))) { assumed.delete (n); changed = true; }
+        }
+    }
+    // retype the toMapArg names and the candidates their proofs read (static omit/arg types must line up)
+    const wanted = new Set<string> ();
+    const visit = (n: string) => {
+        if (wanted.has (n) || !assumed.has (n)) return;
+        wanted.add (n);
+        for (const w of writes.get (n) ?? []) for (const m of w.rhs.matchAll (/[A-Za-z_]\w*/g)) visit (m[0]);
+    };
+    for (const m of member.matchAll (/Helpers\.toMapArg\(([A-Za-z_]\w*)\)/g)) visit (m[1]);
+    if (wanted.size === 0) return member;
+    const edits: { at: number, end: number, text: string }[] = [];
+    for (const n of wanted) {
+        const decl = new RegExp (`(^|[\\s;{])(Object|var) ${n} = `, 'm').exec (member);
+        if (decl === null) return member;
+        const at = decl.index + decl[1].length;
+        edits.push ({ at, end: at + decl[2].length, text: 'java.util.Map<String, Object>' });
+        for (const w of writes.get (n) ?? []) {
+            const rhs = j26Strip (w.rhs);
+            if (/^\(\((?:java\.util\.)?List<Object>\) [A-Za-z_]\w*\)\.get\(1\)$/.test (rhs)) {
+                const lead = w.rhs.length - w.rhs.trimStart ().length;
+                edits.push ({ at: w.start + lead, end: w.start + lead, text: '(java.util.Map<String, Object>) ' });
+            }
+        }
+    }
+    edits.sort ((a, b) => b.at - a.at);
+    let out = member;
+    for (const e of edits) out = out.slice (0, e.at) + e.text + out.slice (e.end);
+    return out;
+}
+
+export function nativeJavaJ26MapLocals (content: string): string {
+    if (!content.includes ('Helpers.toMapArg(')) return content;
+    const cls = /^public (?:abstract )?class (\w+)/m.exec (content);
+    const className = cls === null ? '' : cls[1];
+    const lines = content.split ('\n');
+    const starts: number[] = [];
+    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
+    if (starts.length === 0) return content;
+    starts.push (lines.length);
+    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
+    for (let s = 0; s + 1 < starts.length; s++) parts.push (j26Member (lines.slice (starts[s], starts[s + 1]).join ('\n'), className));
+    return parts.join ('\n');
+}
+
+// hx4 J26: snippet checks for the Map-local retype (`--audit-string-types --self-test`)
+function j26MapLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const cls = (body: string) => `public class Bitget extends BitgetApi\n{\n    public Object m(Map<String, Object> parameters, Object p)\n    {\n${body}\n    }\n}`;
+    const run = (body: string) => nativeJavaJ22CoreArgs (nativeJavaJ26MapLocals (cls (body)));
+    const cases: [string, string, string | undefined][] = [
+        // positives: Pair slot, omit of a Map, audited tuple slot 1, base handle* over a Map params argument
+        [ 'pair + tuple slot', '        Object q = null;\n        Pair<String, Map<String, Object>> aqVariable = this.handleMarginModeAndParams("x", parameters, (String) null);\n        q = aqVariable.second();\n        List<Object> bqVariable = (List<Object>) this.handleProductTypeAndParams(null, Helpers.toMapArg(q));\n        q = ((List<Object>) bqVariable).get(1);\n        return this.f(Helpers.toMapArg(q));',
+            'java.util.Map<String, Object> q = null;' ],
+        [ 'omit of Map', '        Object o = this.omit(parameters, "a");\n        return this.f(Helpers.toMapArg(o));', 'java.util.Map<String, Object> o = this.omit(parameters, "a");\n        return this.f(o);' ],
+        [ 'handleParamString over Map', '        List<Object> vxVariable = (List<Object>) this.handleParamString(parameters, "k", (String) null);\n        var x = ((List<Object>) vxVariable).get(1);\n        return this.f(Helpers.toMapArg(x));', 'java.util.Map<String, Object> x = (java.util.Map<String, Object>) ((List<Object>) vxVariable).get(1);' ],
+        // negatives: Object params argument, Object omit source, unaudited producer, foreign venue, String cast use
+        [ 'Object params arg', '        List<Object> vxVariable = (List<Object>) this.handleParamString(p, "k", (String) null);\n        var x = ((List<Object>) vxVariable).get(1);\n        return this.f(Helpers.toMapArg(x));', undefined ],
+        [ 'omit of Object', '        Object o = this.omit(p, "a");\n        return this.f(Helpers.toMapArg(o));', undefined ],
+        [ 'unaudited producer', '        List<Object> vxVariable = (List<Object>) this.handleOther(parameters);\n        var x = ((List<Object>) vxVariable).get(1);\n        return this.f(Helpers.toMapArg(x));', undefined ],
+        [ 'venue mismatch', '        List<Object> vxVariable = (List<Object>) this.handleApiKeyIndex(parameters, "a", "b", "c", null);\n        var x = ((List<Object>) vxVariable).get(1);\n        return this.f(Helpers.toMapArg(x));', undefined ],
+        [ 'String cast use', '        Object o = this.omit(parameters, "a");\n        String s = (String) o;\n        return this.f(Helpers.toMapArg(o));', undefined ],
+        [ 'other write', '        Object o = this.omit(parameters, "a");\n        o = this.safeValue(parameters, "x");\n        return this.f(Helpers.toMapArg(o));', undefined ],
+    ];
+    for (const [ name, body, expect ] of cases) {
+        const out = run (body);
+        const ok = expect === undefined ? out === nativeJavaJ22CoreArgs (cls (body)) : out.includes (expect);
+        if (!ok) problems.push (`hx4 J26 map locals: ${name}\n${out}`);
     }
     return problems;
 }

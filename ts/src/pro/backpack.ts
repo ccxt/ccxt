@@ -1233,7 +1233,8 @@ export default class backpack extends backpackRest {
             if ((deltaStart === undefined) || (deltaEnd === undefined)) {
                 return cacheLength;
             }
-            if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
+            const deltaStartPrev = deltaStart - 1;
+            if ((nonce >= deltaStartPrev) && (nonce < deltaEnd)) {
                 return i;
             }
         }

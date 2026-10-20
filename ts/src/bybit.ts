@@ -3127,7 +3127,11 @@ export default class bybit extends Exchange {
                 if (fundingTimeFrameMins !== undefined) {
                     fundingInterval = fundingTimeFrameMins * 60 * 1000;
                 }
-                request['endTime'] = this.sum (since, limitResolved * fundingInterval);
+                if (limit === undefined) {
+                    request['endTime'] = this.sum (since, 200 * fundingInterval);
+                } else {
+                    request['endTime'] = this.sum (since, limit * fundingInterval);
+                }
             }
         }
         const response = await this.publicGetV5MarketFundingHistory (this.extend (request, paramsOmitted));
@@ -7389,8 +7393,11 @@ export default class bybit extends Exchange {
         } else if (since !== undefined) {
             // the endpoint walks backwards from endTime and ignores a lone startTime
             const duration = this.parseTimeframe (timeframe);
-            const requestedLimit = (limit === undefined) ? 50 : limit; // exchange default
-            request['endTime'] = this.sum (since, duration * requestedLimit * 1000);
+            if (limit === undefined) {
+                request['endTime'] = this.sum (since, duration * 50 * 1000); // exchange default
+            } else {
+                request['endTime'] = this.sum (since, duration * limit * 1000);
+            }
         }
         if (limit !== undefined) {
             request['limit'] = limit;

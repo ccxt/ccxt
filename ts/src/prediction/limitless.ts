@@ -254,12 +254,11 @@ export default class limitless extends Exchange {
                 'limit': pageSize,
             };
             const firstPageResponse = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
-            const totalMarketsCount = this.safeInteger (firstPageResponse, 'totalMarketsCount');
             const firstData = this.safeList (firstPageResponse, 'data', []);
             allRaw = this.arrayConcat (allRaw, firstData);
             const promises: Promise<Dict>[] = [];
             const cappedPages = Math.ceil (maxMarkets / pageSize);
-            const knownTotal = (totalMarketsCount !== undefined) ? totalMarketsCount : 0;
+            const knownTotal = this.safeInteger (firstPageResponse, 'totalMarketsCount', 0);
             const allPages = Math.ceil (knownTotal / pageSize);
             const totalPages = Math.min (allPages, cappedPages);
             for (let i = 2; i <= totalPages; i++) {
@@ -1452,13 +1451,14 @@ export default class limitless extends Exchange {
         for (let i = 0; i < history.length; i++) {
             const point = this.safeDict (history, i);
             const pointPrice = this.safeNumber (point, 'price');
-            let pointTs: Int = this.safeInteger (point, 'timestamp');
-            if (pointTs === undefined) {
+            const rawTs = this.safeInteger (point, 'timestamp');
+            let pointTs: Int = rawTs;
+            if (rawTs === undefined) {
                 const tsString = this.safeString (point, 'timestamp');
                 pointTs = (tsString !== undefined && tsString !== '') ? this.parse8601 (tsString) : undefined;
-            } else if (pointTs < 1000000000000) {
+            } else if (rawTs < 1000000000000) {
                 // old responses may return unix seconds
-                pointTs = pointTs * 1000;
+                pointTs = rawTs * 1000;
             }
             if ((pointPrice !== undefined) && (pointTs !== undefined)) {
                 pseudoTrades.push ({ 'timestamp': pointTs, 'price': pointPrice, 'amount': 0 });
@@ -1487,10 +1487,13 @@ export default class limitless extends Exchange {
             } else {
                 const candle = candles[key];
                 const pPriceOrZero = (pPrice === undefined) ? 0 : pPrice;
-                candle[2] = Math.max (candle[2], pPriceOrZero);
-                const candleLow = (candle[3] === undefined) ? pPrice : candle[3];
-                const pPriceOrCandleLow = (pPrice === undefined) ? candle[3] : pPrice;
-                candle[3] = Math.min (candleLow, pPriceOrCandleLow);
+                // pPrice is always defined here (pseudoTrades only holds priced points)
+                const prevHigh = this.safeNumber (candle, 2);
+                const candleHigh = (prevHigh === undefined) ? pPriceOrZero : prevHigh;
+                candle[2] = Math.max (candleHigh, pPriceOrZero);
+                const prevLow = this.safeNumber (candle, 3);
+                const candleLow = (prevLow === undefined) ? pPriceOrZero : prevLow;
+                candle[3] = Math.min (candleLow, pPriceOrZero);
                 candle[4] = pPrice;
                 candles[key] = candle; // php arrays are value types - write the mutation back
             }
@@ -3064,7 +3067,6 @@ export default class limitless extends Exchange {
         const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ]);
         const allRaw: any[] = [];
         let page = 1;
-        let collected: int = 0;
         while (true) {
             const request: Dict = { 'page': page, 'limit': pageSize };
             let response = undefined;
@@ -3080,13 +3082,14 @@ export default class limitless extends Exchange {
                 break;
             }
             for (let i = 0; i < dataLength; i++) {
+                const collected = allRaw.length;
                 if (collected < maxMarkets) {
                     allRaw.push (data[i]);
-                    collected = this.sum (collected, 1);
                 }
             }
             page = this.sum (page, 1);
-            if (dataLength < pageSize || collected >= maxMarkets) {
+            const collectedTotal = allRaw.length;
+            if (dataLength < pageSize || collectedTotal >= maxMarkets) {
                 break;
             }
         }

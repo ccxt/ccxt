@@ -1073,12 +1073,8 @@ export default class kraken extends krakenRest {
         const integer = this.safeString (parts, 0);
         const decimals = this.safeString (parts, 1, '');
         let joinedResult = integer + decimals;
-        let i: int = 0;
-        while (joinedResult[i] === '0') {
-            i += 1;
-        }
-        if (i > 0) {
-            joinedResult = joinedResult.slice (i);
+        while ((joinedResult.length > 0) && (joinedResult[0] === '0')) {
+            joinedResult = joinedResult.slice (1);
         }
         return joinedResult;
     }
@@ -1119,9 +1115,10 @@ export default class kraken extends krakenRest {
         const authenticated = 'authenticated';
         let subscription = this.safeValue (client.subscriptions, authenticated);
         const now = this.seconds ();
-        const start = this.safeInteger (subscription, 'start') as number;
-        const expires = this.safeInteger (subscription, 'expires') as number;
-        if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) <= now)) {
+        const start = this.safeInteger (subscription, 'start');
+        const expires = this.safeInteger (subscription, 'expires');
+        const expired = (start !== undefined) && (expires !== undefined) && ((start + expires) <= now);
+        if ((subscription === undefined) || expired) {
             // single-flight leader election, see
             // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
             // above is followed by an awaited privatePostGetWebSocketsToken (),

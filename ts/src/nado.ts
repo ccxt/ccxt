@@ -3099,7 +3099,7 @@ export default class nado extends Exchange {
         const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
         if (left) {
             const paddedLeft = zeros + value;
-            const start = paddedLeft.length - length;
+            const start = paddedLeft.length - this.parseToInt (length);
             return paddedLeft.slice (start, paddedLeft.length);
         }
         const paddedRight = value + zeros;

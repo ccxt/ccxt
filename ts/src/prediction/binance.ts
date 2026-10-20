@@ -200,23 +200,16 @@ export default class binance extends Exchange {
      * @returns {object[]} raw market topic objects
      */
     async fetchRawTopics (maxTopics: Int, rest: Dict = {}): Promise<any[]> {
-        let maxTopicsResolved: int = this.safeInteger (this.options, 'maxFetchMarketsLimit', 200);
-        if (maxTopics !== undefined) {
-            maxTopicsResolved = maxTopics;
-        }
-        let pageLimit: int = this.safeInteger (this.options, 'marketsPageLimit', 100);
-        if (pageLimit > 100) {
-            pageLimit = 100;
-        }
+        const maxTopicsOption = this.safeInteger (this.options, 'maxFetchMarketsLimit', 200);
+        const maxTopicsResolved = (maxTopics !== undefined) ? maxTopics : maxTopicsOption;
+        const pageLimitOption = this.safeInteger (this.options, 'marketsPageLimit', 100);
+        const pageLimit = (pageLimitOption > 100) ? 100 : pageLimitOption;
         const collected: any[] = [];
         let offset: int = 0;
         while (true) {
-            let reqLimit: int = pageLimit;
             const collectedLength = collected.length;
-            const remaining: int = maxTopicsResolved - collectedLength;
-            if (remaining < reqLimit) {
-                reqLimit = remaining;
-            }
+            const remaining = maxTopicsResolved - collectedLength;
+            const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
             }
@@ -446,13 +439,8 @@ export default class binance extends Exchange {
         const seen: Dict = {};
         const collected: any[] = [];
         const queriesLength = queries.length;
-        let limitResolved: int = 20;
-        if (limit !== undefined) {
-            limitResolved = limit;
-            if (limit > 50) {
-                limitResolved = 50;
-            }
-        }
+        const limitValue = (limit === undefined) ? 20 : limit;
+        const limitResolved = (limitValue > 50) ? 50 : limitValue;
         for (let qi = 0; qi < queriesLength; qi++) {
             const request: Dict = {
                 'query': queries[qi],

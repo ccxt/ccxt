@@ -1804,7 +1804,8 @@ export default class kucoin extends kucoinRest {
             if ((deltaStart === undefined) || (deltaEnd === undefined)) {
                 continue;
             }
-            if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
+            const deltaPrev = deltaStart - 1;
+            if ((nonce >= deltaPrev) && (nonce < deltaEnd)) {
                 return i;
             }
         }

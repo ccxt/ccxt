@@ -431,13 +431,9 @@ export default class opinion extends Exchange {
         const maxPages = this.safeInteger (this.options, 'maxEventsPages', 50);
         const rawEvents: any[] = [];
         let page = 1;
-        let fetchedRawCount = 0;
         while (true) {
-            let reqLimit = pageLimit;
-            const remaining = fetchCap - fetchedRawCount;
-            if (remaining < reqLimit) {
-                reqLimit = remaining;
-            }
+            const remaining = fetchCap - rawEvents.length;
+            const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
             }
@@ -450,10 +446,11 @@ export default class opinion extends Exchange {
             const result = this.safeDict (response, 'result', {});
             const pageEvents = this.safeList (result, 'list', []);
             const pageEventsLength = pageEvents.length;
-            fetchedRawCount = this.sum (fetchedRawCount, pageEventsLength);
             for (let i = 0; i < pageEventsLength; i++) {
                 rawEvents.push (pageEvents[i]);
             }
+            // rawEvents holds every row fetched so far, so its length is the raw fetched count
+            const fetchedRawCount = rawEvents.length;
             const total = this.safeInteger (result, 'total');
             if ((pageEventsLength < reqLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || (fetchedRawCount >= fetchCap)) {
                 break;

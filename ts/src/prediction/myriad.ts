@@ -308,7 +308,7 @@ export default class myriad extends Exchange {
         const allRawMarkets: any[] = [];
         // track the running count with an explicit counter (avoids inline array .length / .slice,
         // which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
-        let collected: number = 0;
+        let collected: Int = 0;
         let page = 1;
         while (true) {
             const response = await this.myriadPublicGetMarkets (this.extend ({
@@ -327,7 +327,7 @@ export default class myriad extends Exchange {
             for (let i = 0; i < rawMarketsLength; i++) {
                 if (collected < maxMarkets) {
                     allRawMarkets.push (rawMarkets[i]);
-                    collected = this.sum (collected, 1);
+                    collected = allRawMarkets.length;
                 }
             }
             page = this.sum (page, 1);
@@ -478,7 +478,7 @@ export default class myriad extends Exchange {
         const rest = this.omit (params, [ 'state', 'status', 'limit', 'tradingModel', 'trading_model' ]);
         const allRawQuestions: any[] = [];
         const seen: Dict = {};
-        let collected: number = 0;
+        let collected: Int = 0;
         let page = 1;
         while (true) {
             const request: Dict = {
@@ -507,7 +507,7 @@ export default class myriad extends Exchange {
                 }
                 if (collected < maxQuestions) {
                     allRawQuestions.push (rawQuestion);
-                    collected = this.sum (collected, 1);
+                    collected = allRawQuestions.length;
                 }
             }
             page = this.sum (page, 1);
@@ -2018,8 +2018,7 @@ export default class myriad extends Exchange {
         if (decimals === undefined) {
             throw new ExchangeError (this.id + ' fromWeiWithDecimals() missing decimals');
         }
-        const decimalsValue: number = decimals;
-        for (let i = 0; i < decimalsValue; i++) {
+        for (let i = 0; i < decimals; i++) {
             scale = scale + '0';
         }
         return Precise.stringDiv (decimalString, scale);

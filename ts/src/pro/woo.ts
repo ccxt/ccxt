@@ -305,7 +305,7 @@ export default class woo extends wooRest {
                 if (ts === undefined) {
                     continue;
                 }
-                const orderbookTimestamp: Int = orderbook['timestamp'];
+                const orderbookTimestamp = this.safeInteger (orderbook, 'timestamp');
                 if ((orderbookTimestamp !== undefined) && (ts < orderbookTimestamp)) {
                     continue;
                 } else {

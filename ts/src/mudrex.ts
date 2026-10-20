@@ -293,20 +293,9 @@ export default class mudrex extends Exchange {
         };
         // the endpoint requires an explicit time window (in seconds)
         const duration = this.parseTimeframe (timeframe);
-        let requestLimit = limit;
-        if (requestLimit === undefined) {
-            requestLimit = 500;
-        }
+        const requestLimit = (limit === undefined) ? 500 : limit;
         const now = this.seconds ();
-        let startTime: Int = undefined;
-        if (since !== undefined) {
-            startTime = this.parseToInt (since / 1000);
-        } else {
-            startTime = now - duration * requestLimit;
-        }
-        if (startTime === undefined) {
-            throw new ExchangeError (this.id + ' fetchOHLCV() missing startTime');
-        }
+        const startTime = (since !== undefined) ? this.parseToInt (since / 1000) : now - duration * requestLimit;
         let endTime = startTime + duration * requestLimit;
         const until = this.safeInteger (params, 'until');
         const paramsOmitted: Dict = this.omit (params, [ 'price', 'until' ]);
@@ -1289,11 +1278,8 @@ export default class mudrex extends Exchange {
             market = this.market (symbol);
         }
         const [ maxCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, 'fetchMyTrades', 'paginationCalls', 10);
-        let pageSize = 0;
-        if (limit !== undefined) {
-            // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-            pageSize = limit * 2;
-        }
+        // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+        const pageSize = (limit === undefined) ? 0 : limit * 2;
         const allRows: Dict[] = [];
         let transactionsCount = 0;
         let calls = 0;

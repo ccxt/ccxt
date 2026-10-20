@@ -3615,8 +3615,8 @@ export class BaseExchange {
             result = [ ];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
-                const value = this.safeValue (entry, key);
-                if ((value !== undefined) && (value !== null) && (value !== 0) && (value >= since)) {
+                const value = this.safeInteger (entry, key);
+                if ((value !== undefined) && (value !== 0) && (value >= since)) {
                     result.push (entry);
                 }
             }
@@ -3644,8 +3644,8 @@ export class BaseExchange {
                 // KeyError in python/php — prediction structures key on outcome, not symbol
                 const entryFiledEqualValue = this.safeValue (entry, field) === value;
                 const firstCondition: boolean = valueIsDefined ? entryFiledEqualValue : true;
-                const entryKeyValue = this.safeValue (entry, key);
-                const entryKeyGESince = (entryKeyValue !== undefined) && (entryKeyValue !== null) && (entryKeyValue !== 0) && (since !== undefined) && (entryKeyValue >= since);
+                const entryKeyValue = this.safeInteger (entry, key);
+                const entryKeyGESince = (entryKeyValue !== undefined) && (entryKeyValue !== 0) && (since !== undefined) && (entryKeyValue >= since);
                 const secondCondition: boolean = sinceIsDefined ? entryKeyGESince : true;
                 if (firstCondition && secondCondition) {
                     result.push (entry);

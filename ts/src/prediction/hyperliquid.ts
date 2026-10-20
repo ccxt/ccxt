@@ -170,7 +170,8 @@ export default class hyperliquid extends Exchange {
      * @returns {int} the outcome side encoding
      */
     outcomeEncoding (outcomeId: number, side: number): number {
-        return this.sum (10 * outcomeId, side);
+        const outcomeIdInt = this.parseToInt (outcomeId);
+        return this.sum (10 * outcomeIdInt, side);
     }
 
     /**
@@ -629,12 +630,15 @@ export default class hyperliquid extends Exchange {
         const midStr = this.numberToString (midPx);
         const parts = midStr.split ('.');
         const intPart = parts[0];
-        const significantDigits = Math.max (5, intPart.length);
-        const maxDecimals = 8 - szDecimals;
-        const pricePrecisionDecimals = Math.max (1, Math.min (maxDecimals, significantDigits - intPart.length));
+        const intPartLength = intPart.length;
+        const significantDigits = (intPartLength > 5) ? intPartLength : 5;
+        const szDecimalsInt = this.parseToInt (szDecimals);
+        const maxDecimals = 8 - szDecimalsInt;
+        const digitsLeft = significantDigits - intPartLength;
+        const cappedDecimals = (maxDecimals < digitsLeft) ? maxDecimals : digitsLeft;
+        // appends max (1, cappedDecimals) - 1 zeros
         let zeros = '';
-        const zeroCount = pricePrecisionDecimals - 1;
-        for (let zi = 0; zi < zeroCount; zi++) {
+        for (let zi = 1; zi < cappedDecimals; zi++) {
             zeros = zeros + '0';
         }
         return this.parseToNumeric ('0.' + zeros + '1');

@@ -6693,7 +6693,8 @@ export default class gate extends Exchange {
         if (type !== 'future' && type !== 'swap') {
             throw new BadRequest (this.id + ' fetchLeverageTiers only supports swap and future');
         }
-        const limit = Math.max (1, Math.min (this.safeInteger (requestParams, 'limit', 100), 100));
+        const requestedLimit = this.safeInteger (requestParams, 'limit', 100);
+        const limit: Int = (requestedLimit === undefined) ? 100 : Math.max (1, Math.min (requestedLimit, 100));
         let offset = this.safeInteger (requestParams, 'offset', 0);
         const contract = this.safeString (requestParams, 'contract', '');
         const paramsOmitted = this.omit (requestParams, [ 'limit', 'offset' ]);

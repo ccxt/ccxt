@@ -779,7 +779,7 @@ export default class polymarket extends Exchange {
                         winnerRaw = true;
                         settleFractionRaw = 1;
                         resolvedOutcome = outcomeHandle;
-                    } else if (outcomePrice <= 0.01) {
+                    } else if (0.01 >= outcomePrice) {
                         winnerRaw = false;
                         settleFractionRaw = 0;
                     }

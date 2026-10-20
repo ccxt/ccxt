@@ -1380,7 +1380,7 @@ export default class bullish extends Exchange {
             until = untilParam;
         }
         const duration = this.parseTimeframe (timeframe);
-        const maxDelta: int = 1000 * duration * maxLimit;
+        const maxDelta = duration * maxLimit * 1000;
         let startTime: Int = since;
         // both of since and until are required
         if (startTime === undefined && untilParam === undefined) {

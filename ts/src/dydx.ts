@@ -2549,7 +2549,7 @@ export default class dydx extends Exchange {
             errorCode = this.safeString (response, 'code');
         }
         if ((errorCode !== undefined) && (errorCode !== '')) {
-            const errorCodeNum = this.parseToNumeric (errorCode);
+            const errorCodeNum = this.parseToInt (errorCode);
             if (errorCodeNum > 0) {
                 const feedback = this.id + ' ' + this.json (response);
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);

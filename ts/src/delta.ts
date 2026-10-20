@@ -1664,8 +1664,10 @@ export default class delta extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         let limitValue: Int = 2000;
+        let windowSeconds = 2000 * duration;
         if (limit !== undefined && limit !== null && limit !== 0) {
             limitValue = limit; // max 2000
+            windowSeconds = limit * duration;
         }
         let until = this.safeIntegerProduct (params, 'until', 0.001);
         const untilIsDefined = (until !== undefined);
@@ -1678,11 +1680,11 @@ export default class delta extends Exchange {
             if (end === undefined) {
                 throw new ExchangeError (this.id + ' fetchOHLCV() missing end');
             }
-            request['start'] = end - limitValue * duration;
+            request['start'] = end - windowSeconds;
         } else {
             const start = this.parseToInt (since / 1000);
             request['start'] = start;
-            request['end'] = untilIsDefined ? until : this.sum (start, limitValue * duration);
+            request['end'] = untilIsDefined ? until : this.sum (start, windowSeconds);
         }
         const price = this.safeString (params, 'price');
         if (price === 'mark') {

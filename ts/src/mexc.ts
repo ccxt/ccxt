@@ -1880,7 +1880,7 @@ export default class mexc extends Exchange {
         if (omitUntil) {
             paramsUntil = this.omit (paramsPaginate, [ 'until' ]);
         }
-        let start = since;
+        let start: Int = since;
         if (omitUntil) {
             const usedLimit = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxLimit;
             start = until - (usedLimit * duration);

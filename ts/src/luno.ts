@@ -1442,22 +1442,16 @@ export default class luno extends Exchange {
             }
             id = this.safeString (account, 'id');
         }
-        let max_row: int = 0; // Default to most recent transactions
-        let min_row: int = -1000; // Maximum number of records supported
-        if (minRowParam !== undefined && maxRowParam !== undefined) {
-            max_row = maxRowParam;
-            min_row = minRowParam;
-        } else if (minRowParam !== undefined || maxRowParam !== undefined) {
+        if ((minRowParam === undefined || maxRowParam === undefined) && (minRowParam !== undefined || maxRowParam !== undefined)) {
             throw new ExchangeError (this.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined");
         }
-        if (limit !== undefined && max_row - min_row > limit) {
-            if (max_row <= 0) {
-                min_row = max_row - limit;
-            } else if (min_row > 0) {
-                max_row = min_row + limit;
-            }
-        }
-        if (max_row - min_row > 1000) {
+        const maxRowBase = this.safeInteger (params, 'max_row', 0); // Default to most recent transactions
+        const minRowBase = this.safeInteger (params, 'min_row', -1000); // Maximum number of records supported
+        const limitApplies = (limit !== undefined) && (maxRowBase - minRowBase > limit);
+        const min_row = (limitApplies && maxRowBase <= 0) ? maxRowBase - limit : minRowBase;
+        const max_row = (limitApplies && maxRowBase > 0 && minRowBase > 0) ? minRowBase + limit : maxRowBase;
+        const limitAdjusts = limitApplies && (maxRowBase <= 0 || minRowBase > 0); // max_row - min_row becomes limit
+        if ((limitAdjusts && limit > 1000) || (!limitAdjusts && maxRowBase - minRowBase > 1000)) {
             throw new ExchangeError (this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
         }
         const request: Dict = {

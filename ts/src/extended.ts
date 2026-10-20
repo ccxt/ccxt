@@ -2664,7 +2664,8 @@ export default class extended extends Exchange {
         }
         const now = this.milliseconds ();
         const expiryEpochMillis = this.safeInteger (paramsBuilder, 'expiryEpochMillis', now + 3600000);
-        const settlementExpiration = this.safeInteger (paramsBuilder, 'settlementExpiration', this.parseToInt ((expiryEpochMillis + 999) / 1000) + 1209600);
+        const settlementDefault = (expiryEpochMillis !== undefined) ? this.parseToInt ((expiryEpochMillis + 999) / 1000) + 1209600 : undefined;
+        const settlementExpiration = this.safeInteger (paramsBuilder, 'settlementExpiration', settlementDefault);
         const nonce = this.numberToString (this.nonce ());
         const account = await this.fetchExtendedAccount ();
         const starkKey = this.safeString (account, 'l2Key');

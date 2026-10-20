@@ -1262,13 +1262,12 @@ export default class pacifica extends Exchange {
         };
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_time', request, paramsPaginate);
         const nowMillis = this.milliseconds ();
-        let until = this.safeInteger (requestUntil, 'end_time');
-        if (until === undefined) {
+        const requestedUntil = this.safeInteger (requestUntil, 'end_time');
+        if (requestedUntil === undefined) {
+            const durationMillis = this.parseTimeframe (tf) * 1000;
+            let until = since + (defaultMaxLimit * durationMillis) - 1;
             if (limit !== undefined) {
-                until = since + (limit * (this.parseTimeframe (tf) * 1000)) - 1;
-            }
-            if (until === undefined) {
-                until = since + (defaultMaxLimit * (this.parseTimeframe (tf) * 1000)) - 1;
+                until = since + (limit * durationMillis) - 1;
             }
             if (until > nowMillis) {
                 until = nowMillis;
@@ -1727,8 +1726,9 @@ export default class pacifica extends Exchange {
         //  Cancel (Only common (limit) orders)
         //
         const lenActions = actions.length;
-        const maxLen: Int = this.handleOption ('batchOrdersRequest', 'batchOrdersMax');
-        if (maxLen !== undefined) {
+        const maxLenOption = this.handleOption ('batchOrdersRequest', 'batchOrdersMax');
+        if (maxLenOption !== undefined) {
+            const maxLen = this.parseToInt (maxLenOption);
             if (lenActions > maxLen) {
                 throw new ExchangeError (this.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + this.numberToString (maxLen));
             }
@@ -3687,8 +3687,9 @@ export default class pacifica extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorId, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback); // documented message prefixes are more specific than the http-status echo
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            const statusCode = this.parseToInt (code);
             const codeAsString = code.toString ();
-            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+            if ((statusCode < 400) || !(codeAsString in this.httpExceptions)) {
                 throw new ExchangeError (feedback); // unknown message
             }
         }

@@ -6939,6 +6939,7 @@ export function installCcxtGoLocalTypes (goTranspiler, unifiedInt64Params = unde
         installNilDeclaredJoin (goTranspiler);
         installCcxtGoClosurePointerJoin (goTranspiler);
         installCcxtGoClosureDefaultValue (goTranspiler);
+        installG22ClosureNumericDefault (goTranspiler); // hx4 G22
         installCcxtGoTernaryLiftJoin (goTranspiler);
         installCcxtGoTernaryMapJoin (goTranspiler);
         installCcxtGoNilDeclaredParseNumberJoins (goTranspiler);
@@ -10592,4 +10593,133 @@ function g15StringArrayAnnotatedReturnTypes (goTranspiler, node, name) {
     }
     const neverNil = collectReturnStatements (node.body).every ((statement) => ccxtGoContainerNeverNil (goTranspiler, statement.expression));
     return neverNil ? [ '[]any' ] : undefined;
+}
+
+// hx4 G22
+// `p === undefined ? D : p` over a declared `*int64`/`*float64` (D a literal, or a value local of the
+// matching numeric type) is never nil: the literal returns the value even when later reads are
+// arithmetic/relational helper calls, which accept the value exactly like the deref'd pointer box.
+const G22_ARITH_TOKENS = [
+    ts.SyntaxKind.AsteriskToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.SlashToken, ts.SyntaxKind.PercentToken,
+    ts.SyntaxKind.LessThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.GreaterThanEqualsToken,
+];
+
+function g22DefaultArmText (goTranspiler, pointerType, node) {
+    if (ccxtGoClosureDefaultLiteralFits (pointerType, node)) {
+        return undefined; // the literal keeps its printed text
+    }
+    if (node?.kind !== ts.SyntaxKind.Identifier) {
+        return null;
+    }
+    const declared = goTranspiler.goDeclaredTypeOfIdentifier (node);
+    const printed = (goTranspiler.printNode (node, 0) ?? '').trim ();
+    if (pointerType === '*int64') {
+        return (declared === 'int64') ? printed : ((declared === 'int') ? 'int64(' + printed + ')' : null);
+    }
+    return ((pointerType === '*float64') && (declared === 'float64')) ? printed : null;
+}
+
+// a read that prints as an arithmetic/relational helper argument (never a native operator)
+function g22ArithReadIsSafe (goTranspiler, node, name) {
+    let current = node;
+    let parent = current.parent;
+    while (parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = parent;
+        parent = current.parent;
+    }
+    const escaped = name.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const nativeUse = new RegExp ('(?<![\\w.\"])' + escaped + '\\s*[-*/%<>]|[-*/%<>]\\s*' + escaped + '(?![\\w\"])');
+    if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (G22_ARITH_TOKENS.indexOf (parent.operatorToken?.kind) >= 0)) {
+        return !nativeUse.test ((goTranspiler.printNode (parent, 0) ?? '').trim ());
+    }
+    if ((parent?.kind === ts.SyntaxKind.PrefixUnaryExpression) && (parent.operator === ts.SyntaxKind.MinusToken)) {
+        return /^(?:ccxt\.)?OpNeg\(/.test ((goTranspiler.printNode (parent, 0) ?? '').trim ());
+    }
+    return ccxtGoClosureReadIsSafe (goTranspiler, node, name);
+}
+
+function installG22ClosureNumericDefault (goTranspiler) {
+    if ((typeof goTranspiler.printVariableDeclarationList !== 'function') || (typeof goTranspiler.goDeclaredTypeOfIdentifier !== 'function')
+            || (typeof goTranspiler.goEnclosingFunction !== 'function') || goTranspiler.__g22ClosureNumericDefaultInstalled) {
+        return;
+    }
+    const upstream = goTranspiler.printVariableDeclarationList.bind (goTranspiler);
+    goTranspiler.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        if ((typeof printed !== 'string') || (node?.declarations?.length !== 1)) {
+            return printed;
+        }
+        const declaration = node.declarations[0];
+        const literal = ccxtGoClosureLiteralLines (printed);
+        if ((literal === undefined) || (literal.name !== (goTranspiler.printNode (declaration.name) ?? '').trim ())) {
+            return printed;
+        }
+        const initializer = declaration.initializer;
+        if ((declaration.name.kind !== ts.SyntaxKind.Identifier) || (initializer?.kind !== ts.SyntaxKind.ConditionalExpression)) {
+            return printed;
+        }
+        const condition = ccxtGoUnwrapParens (initializer.condition);
+        if ((condition?.kind !== ts.SyntaxKind.BinaryExpression) || (COMPARISON_TOKENS.indexOf (condition.operatorToken?.kind) < 0)
+                || !isUndefinedLiteral (condition.right) || (condition.left?.kind !== ts.SyntaxKind.Identifier)) {
+            return printed;
+        }
+        const negated = (condition.operatorToken.kind === ts.SyntaxKind.ExclamationEqualsToken)
+            || (condition.operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken);
+        const pointerArm = ccxtGoUnwrapParens (negated ? initializer.whenTrue : initializer.whenFalse);
+        const defaultArm = ccxtGoUnwrapParens (negated ? initializer.whenFalse : initializer.whenTrue);
+        const pointer = condition.left;
+        if ((pointerArm?.kind !== ts.SyntaxKind.Identifier) || (pointerArm.text !== pointer.text) || (pointer.text === declaration.name.text)) {
+            return printed;
+        }
+        const checker = goTranspiler.getChecker ();
+        if (checker.getSymbolAtLocation (pointerArm) !== checker.getSymbolAtLocation (pointer)) {
+            return printed;
+        }
+        const pointerType = goTranspiler.goDeclaredTypeOfIdentifier (pointer);
+        if ((pointerType !== '*int64') && (pointerType !== '*float64')) {
+            return printed;
+        }
+        const defaultText = g22DefaultArmText (goTranspiler, pointerType, defaultArm);
+        if (defaultText === null) {
+            return printed;
+        }
+        const valueType = pointerType.slice (1);
+        const pointerName = (goTranspiler.printNode (pointer, 0) ?? '').trim ();
+        const lines = printed.split ('\n');
+        const body = literal.indent + '\t';
+        const pointerLine = negated ? 2 : 4;
+        const defaultLine = negated ? 4 : 2;
+        const expectedCondition = body + 'if ' + pointerName + (negated ? ' != nil {' : ' == nil {');
+        const expectedReturn = (negated ? body + '\t' : body) + 'return ' + pointerName;
+        if ((lines[1] !== expectedCondition) || (lines[pointerLine] !== expectedReturn)) {
+            return printed;
+        }
+        const scope = goTranspiler.goEnclosingFunction (declaration);
+        if (scope === undefined) {
+            return printed;
+        }
+        const varName = declaration.name.text;
+        let unproven = false;
+        const visit = (n) => {
+            if (unproven) {
+                return;
+            }
+            if ((n.kind === ts.SyntaxKind.Identifier) && (n.text === varName) && (n !== declaration.name)) {
+                unproven = !g22ArithReadIsSafe (goTranspiler, n, varName);
+                return;
+            }
+            n?.forEachChild (visit);
+        };
+        scope.forEachChild (visit);
+        if (unproven || goTranspiler.goTypeNameIsShadowed (scope, valueType) || !goTranspiler.goLocalIsSafeToType (scope, declaration, varName, valueType)) {
+            return printed;
+        }
+        lines[0] = literal.indent + 'var ' + literal.name + ' ' + valueType + ' = func() ' + valueType + ' {';
+        lines[pointerLine] = expectedReturn.replace (/return (\w+)$/, 'return *$1');
+        if (defaultText !== undefined) {
+            lines[defaultLine] = lines[defaultLine].replace (/return .*$/, 'return ' + defaultText);
+        }
+        return lines.join ('\n');
+    };
+    goTranspiler.__g22ClosureNumericDefaultInstalled = true;
 }

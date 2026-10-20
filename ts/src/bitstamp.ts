@@ -1218,7 +1218,7 @@ export default class bitstamp extends Exchange {
                 timestamp = this.parse8601 (datetimeString);
             } else {
                 // string unix epoch in seconds
-                const seconds: Int = parseInt (datetimeString);
+                const seconds = this.parseToInt (datetimeString);
                 timestamp = seconds * 1000;
             }
         }

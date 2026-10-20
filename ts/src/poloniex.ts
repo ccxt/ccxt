@@ -3194,7 +3194,8 @@ export default class poloniex extends Exchange {
         const now = this.seconds ();
         let start: Int = now - 10 * year;
         if (since !== undefined) {
-            start = this.parseToInt (since / 1000);
+            const sinceMs = this.safeInteger ({ 'since': since }, 'since', 0);
+            start = this.parseToInt (sinceMs / 1000);
         }
         const request: Dict = {
             'start': start, // UNIX timestamp, required
@@ -3963,7 +3964,8 @@ export default class poloniex extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     override async reduceMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
-        return await this.modifyMarginHelper (symbol, -amount, 'reduce', params);
+        // modifyMarginHelper sends Precise.stringAbs (amountToPrecision (amount)), so the sign is irrelevant
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
     /**

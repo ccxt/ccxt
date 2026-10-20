@@ -842,7 +842,7 @@ export default class apex extends Exchange {
             'symbol': this.safeString (market, 'id2'),
         };
         // default is 200 when requested with `since`, max 200
-        const limitResolved = (limit === undefined) ? 200 : Math.min (limit, 200);
+        const limitResolved = (limit === undefined || limit > 200) ? 200 : limit;
         request['limit'] = limitResolved;
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end', request, params, 0.001);
         if (since !== undefined) {

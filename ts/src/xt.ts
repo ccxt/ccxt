@@ -1503,7 +1503,7 @@ export default class xt extends Exchange {
             // window start return one pre-since candle, shifting paginated windows and
             // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
             const duration = this.parseTimeframe (timeframe) * 1000;
-            request['startTime'] = Math.ceil (since / duration) * duration;
+            request['startTime'] = this.parseToInt (Math.ceil (since / duration)) * duration;
         }
         let limitResolved: Int = limit;
         if (limit !== undefined) {
@@ -4754,7 +4754,7 @@ export default class xt extends Exchange {
             const tier = this.safeDict (brackets, i);
             const marketId = this.safeString (info, 'symbol');
             const marketResolved: Market = this.safeMarket (marketId, market, '_', 'contract');
-            const minNotional = this.safeNumber (brackets[i - 1], 'maxNominalValue', 0);
+            const minNotional = this.safeNumber (this.safeDict (brackets, i - 1), 'maxNominalValue', 0);
             tiers.push ({
                 'tier': this.safeInteger (tier, 'bracket'),
                 'symbol': this.safeSymbol (marketId, marketResolved, '_', 'contract'),

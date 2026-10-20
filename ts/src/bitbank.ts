@@ -616,7 +616,11 @@ export default class bitbank extends Exchange {
         const windowLimit = (limit === undefined) ? 1000 : limit;
         const limitResolved = (since === undefined) ? windowLimit : limit;
         const duration = this.parseTimeframe (timeframe);
-        const sinceResolved = (since === undefined) ? this.milliseconds () - duration * 1000 * windowLimit : since;
+        let windowMs = duration * 1000 * 1000;
+        if (limit !== undefined) {
+            windowMs = duration * 1000 * limit;
+        }
+        const sinceResolved = (since === undefined) ? this.milliseconds () - windowMs : since;
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

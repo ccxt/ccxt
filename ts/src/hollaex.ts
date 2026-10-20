@@ -278,7 +278,7 @@ export default class hollaex extends Exchange {
             },
             'options': {
                 // how many seconds before the authenticated request expires
-                'api-expires': this.parseToInt (this.timeout / 1000),
+                'api-expires': this.parseToInt (this.parseToInt (this.timeout) / 1000),
                 'networks': {
                     'BTC': 'btc',
                     'ERC20': 'eth',
@@ -2092,7 +2092,8 @@ export default class hollaex extends Exchange {
         let requestHeaders: NullableDict = undefined;
         if (api[0] === 'private') {
             this.checkRequiredCredentials ();
-            const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', this.parseToInt (this.timeout / 1000));
+            const timeoutMs = this.parseToInt (this.timeout);
+            const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', this.parseToInt (timeoutMs / 1000));
             const expires = this.sum (this.seconds (), defaultExpires);
             const expiresString = expires.toString ();
             let auth = method + requestPath + expiresString;
@@ -2120,7 +2121,8 @@ export default class hollaex extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        if ((code >= 400) && (code <= 503)) {
+        const statusCode = this.parseToInt (code);
+        if ((statusCode >= 400) && (statusCode <= 503)) {
             //
             //  { "message": "Invalid token" }
             //

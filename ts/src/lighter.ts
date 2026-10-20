@@ -485,13 +485,14 @@ export default class lighter extends Exchange {
 
     handleApiKeyIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): [Int, Dict] {
         const [ apiKeyIndexOption, paramsApiKeyIndex ] = this.handleOptionAndParams2 (params, methodName1, optionName1, optionName2, defaultValue);
-        let apiKeyIndex: Int = apiKeyIndexOption;
-        if ((apiKeyIndex === undefined) || (apiKeyIndex < 4) || (apiKeyIndex > 254)) {
-            // apiKeyIndex = this.randNumber (2);
-            apiKeyIndex = 254;
-            this.options['apiKeyIndex'] = apiKeyIndex; // default to a value to avoid overriding other keys
+        const apiKeyIndex = this.safeInteger ([ apiKeyIndexOption ], 0);
+        if ((apiKeyIndex !== undefined) && (apiKeyIndex >= 4) && (apiKeyIndex <= 254)) {
+            return [ this.parseToInt (apiKeyIndex), paramsApiKeyIndex ];
         }
-        return [ this.parseToInt (apiKeyIndex), paramsApiKeyIndex ];
+        // apiKeyIndex = this.randNumber (2);
+        const defaultApiKeyIndex = 254;
+        this.options['apiKeyIndex'] = defaultApiKeyIndex; // default to a value to avoid overriding other keys
+        return [ defaultApiKeyIndex, paramsApiKeyIndex ];
     }
 
     async handleAccountIndex (params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue: any = undefined): Promise<[Int, Dict]> {
@@ -581,11 +582,9 @@ export default class lighter extends Exchange {
         const accountAuths = this.safeDict (auths, accountIndex);
         const cachedAuth = this.safeDict (accountAuths, apiKeyIndex);
         const cachedDeadline = this.safeInteger (cachedAuth, 'deadline');
-        if (cachedDeadline !== undefined) {
-            const minimumDeadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineMinimumRemaining', 60);
-            if (cachedDeadline >= minimumDeadline) {
-                return this.safeString (cachedAuth, 'token');
-            }
+        const minimumRemaining = this.safeInteger (this.options, 'authDeadlineMinimumRemaining', 60);
+        if ((cachedDeadline !== undefined) && (minimumRemaining !== undefined) && (cachedDeadline - minimumRemaining >= this.seconds ())) {
+            return this.safeString (cachedAuth, 'token');
         }
         const deadline = this.seconds () + this.safeInteger (this.options, 'authDeadlineExpiry', 28800);
         const request: Dict = {
@@ -1722,16 +1721,15 @@ export default class lighter extends Exchange {
                 endTs = now;
             }
         } else {
-            let endValue = now;
+            const count = this.safeInteger ({ 'limit': limit }, 'limit', 100);
+            const timeframeMs = this.parseTimeframe (timeframe) * 1000;
+            const span = timeframeMs * count;
             if (until !== undefined) {
-                endValue = until;
-            }
-            endTs = endValue;
-            const defaultLimit = 100;
-            if (limit !== undefined) {
-                startTs = endValue - this.parseTimeframe (timeframe) * 1000 * limit;
+                endTs = until;
+                startTs = until - span;
             } else {
-                startTs = endValue - this.parseTimeframe (timeframe) * 1000 * defaultLimit;
+                endTs = now;
+                startTs = now - span;
             }
         }
         const request: Dict = {

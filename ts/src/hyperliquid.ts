@@ -789,11 +789,8 @@ export default class hyperliquid extends Exchange {
         const priceSplitted = priceStr.split ('.');
         if (Precise.stringEq (priceStr, '0')) {
             // Significant digits is always 5 in this case
-            const significantDigits = 5;
-            // Integer digits is always 0 in this case (0 doesn't count)
-            const integerDigits = 0;
-            // Calculate the price precision
-            pricePrecision = Math.min (maxDecimals - amountPrecision, significantDigits - integerDigits);
+            // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
+            pricePrecision = Math.min (maxDecimals - amountPrecision, 5);
         } else if (Precise.stringGt (priceStr, '0') && Precise.stringLt (priceStr, '1')) {
             // Significant digits, always 5 in this case
             const significantDigits = 5;
@@ -812,7 +809,7 @@ export default class hyperliquid extends Exchange {
             // Count the numbers before the decimal separator
             const integerPart = this.safeString (priceSplitted, 0, '');
             // Get significant digits, take the max() of 5 and the integer digits count
-            const significantDigits = Math.max (5, integerPart.length);
+            const significantDigits: int = (integerPart.length > 5) ? integerPart.length : 5;
             // Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
             pricePrecision = Math.min (maxDecimals - amountPrecision, significantDigits - integerPart.length);
         }
@@ -4228,10 +4225,8 @@ export default class hyperliquid extends Exchange {
         }
         const market = this.market (symbol);
         const asset = this.parseToInt (market['baseId']);
-        let sz: int = this.parseToInt (Precise.stringMul (this.amountToPrecision (symbol, amount), '1000000'));
-        if (type === 'reduce') {
-            sz = -sz;
-        }
+        const szAbs: int = this.parseToInt (Precise.stringMul (this.amountToPrecision (symbol, amount), '1000000'));
+        const sz: int = (type === 'reduce') ? -szAbs : szAbs;
         const nonce = this.incrementingNonce ();
         const updateAction: Dict = {
             'type': 'updateIsolatedMargin',

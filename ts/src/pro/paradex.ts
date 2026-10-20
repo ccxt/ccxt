@@ -916,9 +916,9 @@ export default class paradex extends paradexRest {
         if (frameLength < 8) {
             return undefined;
         }
-        const blockLength = this.sbeReadUint (frameHex, 0, 2);
-        const templateId = this.sbeReadUint (frameHex, 2, 2);
-        const schemaId = this.sbeReadUint (frameHex, 4, 2);
+        const blockLength = this.parseToInt (this.sbeReadUint (frameHex, 0, 2));
+        const templateId = this.parseToInt (this.sbeReadUint (frameHex, 2, 2));
+        const schemaId = this.parseToInt (this.sbeReadUint (frameHex, 4, 2));
         if ((schemaId !== 1) || (frameLength < this.sum (blockLength, 8))) {
             return undefined;
         }
@@ -1060,7 +1060,7 @@ export default class paradex extends paradexRest {
             if (position >= frameLength) {
                 return result;
             }
-            const length = this.sbeReadUint (frameHex, position, 1);
+            const length = this.parseToInt (this.sbeReadUint (frameHex, position, 1));
             if (this.sum (position, 1, length) > frameLength) {
                 return undefined;
             }
@@ -1121,8 +1121,8 @@ export default class paradex extends paradexRest {
             if (position + 4 > frameLength) {
                 return undefined;
             }
-            const entryLength = this.sbeReadUint (frameHex, position, 2);
-            const numInGroup = this.sbeReadUint (frameHex, position + 2, 2);
+            const entryLength = this.parseToInt (this.sbeReadUint (frameHex, position, 2));
+            const numInGroup = this.parseToInt (this.sbeReadUint (frameHex, position + 2, 2));
             position = position + 4;
             if ((entryLength < 16) || (this.sum (position, numInGroup * entryLength) > frameLength)) {
                 return undefined;
@@ -1273,7 +1273,7 @@ export default class paradex extends paradexRest {
     sbeReadFlags (frameHex: string, offset: number, names: string[]): string[] {
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         const flags: string[] = [];
-        let bits = this.sbeReadUint (frameHex, offset, 1);
+        let bits = this.parseToInt (this.sbeReadUint (frameHex, offset, 1));
         for (let i = 0; i < names.length; i++) {
             const bit = this.parseToInt (bits % 2);
             if ((bit === 1) && (names[i] !== '')) {

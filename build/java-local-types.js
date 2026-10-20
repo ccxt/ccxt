@@ -18914,3 +18914,150 @@ export function nativeJavaJ23Arithmetic (content) {
     }
     return changed ? lines.join ('\n') : content;
 }
+
+// hx4 J24
+// ===== hx4 J24: retype Object numeric locals so multiply/subtract/divide/mod/opNeg go native =====
+// An `Object x` local whose every write is null or a proven primitive of one family (long/int, or double)
+// prints `Long x` / `Double x` when each read is box-neutral; the J23 pass then proves the operators.
+const J24_TARGETS = /Helpers\.(?:multiply|subtract|divide|mod|opNeg)\(/;
+
+// the never-null primitive kind of a printed value: J23's proofs plus String.indexOf and proven ternaries
+function j24Kind (ctx, text, nn) {
+    const k = j23Kind (ctx, text, nn);
+    if (k !== undefined) return k;
+    const e = longLimitStrip (text);
+    if (/^\(\(String\)[A-Za-z_]\w*\)\.indexOf\([^()]*(?:\(\(String\)[A-Za-z_]\w*\))?\)$/.test (e)) return 'int';
+    const t = longLimitSplitTernary (e);
+    if (t === undefined) return undefined;
+    const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
+    const arm = (a, isTrue) => {
+        const x = longLimitStrip (a);
+        const guarded = g !== null && x === g[2] && (g[1] === '!') === isTrue;
+        return j24Kind (ctx, x, guarded ? () => true : nn);
+    };
+    const ks = [ arm (t.whenTrue, true), arm (t.whenFalse, false) ];
+    if (ks.includes (undefined)) return undefined;
+    // a ternary over int and long promotes to long; int literals alone stay int
+    return ks.every ((x) => x === 'intlit') ? 'int' : j23Widest (ks.map ((x) => (x === 'intlit' ? 'int' : x)));
+}
+
+function j24UseOk (line, name, boxChanges) {
+    const lhs = new RegExp (`^(\\s*)${name} = `);
+    const probe = line.replace (lhs, '$1j24w = ');
+    const code = longLimitCodeOnly (probe);
+    if (/\bcatch\b/.test (code)) return false;
+    // a typed ternary arm unboxes (numeric promotion): `c ? x : y` must keep the Object box
+    const re = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, 'g');
+    let m;
+    while ((m = re.exec (code)) !== null) {
+        const before = code.slice (0, m.index).replace (/[\s(]*$/, '');
+        const after = code.slice (m.index + name.length).replace (/^[\s)]*/, '');
+        if (/[?:]$/.test (before) || /^[?:]/.test (after)) return false;
+        if (boxChanges) continue;
+        // the same box as before: plain copies, returns and static Helpers arguments read it alike
+        if (/(?:^\s*return|^\s*Object [A-Za-z_]\w* =|^\s*[A-Za-z_]\w* =)$/.test (before) && /^;\s*$/.test (after)) continue;
+        const callee = longLimitCallee (code, m.index);
+        if (callee !== undefined && /^(?:Helpers\.\w+|(?:\w+\.)?this\.(?:parseToInt|iso8601|numberToString|sum)|java\.util\.Objects\.equals)$/.test (callee)) continue;
+    }
+    return longLimitUseOk (probe, name, boxChanges) || (!boxChanges && j24NeutralLine (code, name));
+}
+
+// every mention is one of the box-neutral shapes j24UseOk accepts for an unchanged box
+function j24NeutralLine (code, name) {
+    const re = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, 'g');
+    let m;
+    while ((m = re.exec (code)) !== null) {
+        const before = code.slice (0, m.index).replace (/[\s(]*$/, '');
+        const after = code.slice (m.index + name.length).replace (/^[\s)]*/, '');
+        if (/(?:^\s*return|^\s*Object [A-Za-z_]\w* =|^\s*[A-Za-z_]\w* =)$/.test (before) && /^;\s*$/.test (after)) continue;
+        const callee = longLimitCallee (code, m.index);
+        if (callee !== undefined && /^(?:Helpers\.\w+|(?:\w+\.)?this\.(?:parseToInt|iso8601|numberToString|sum)|java\.util\.Objects\.equals)$/.test (callee)) continue;
+        if (/[-+*/%]$/.test (before) || /^[-+*/%]/.test (after)) continue;
+        return false;
+    }
+    return true;
+}
+
+function j24RetypeMember (lines, from, to) {
+    const state = j23MemberCtx (lines, from, to);
+    const decl = /^(\s*)Object ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
+    let changed = false;
+    for (let i = from + 1; i < to; i++) {
+        const d = decl.exec (lines[i]);
+        if (d === null) continue;
+        const [ , iden, name ] = d;
+        if (longLimitDeclarations (lines, from, to, name).length !== 1) continue;
+        const operand = new RegExp (`Helpers\\.(?:multiply|subtract|divide|mod|opNeg)\\([^;]*(?<![\\w$.])${name}\\b`);
+        if (!lines.slice (i, to).some ((l) => operand.test (longLimitCodeOnly (l)))) continue;
+        const writeDecl = new RegExp (`^(\\s*)(?:Object )?${name} = (.*?);(\\s*//.*)?$`);
+        const compound = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+        const mention = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`);
+        const writes = [];
+        let ok = true;
+        for (let j = i; j < to && ok; j++) {
+            const code = longLimitCodeOnly (lines[j]);
+            if (!mention.test (code)) continue;
+            if (compound.test (code)) { ok = false; break; }
+            const w = writeDecl.exec (lines[j]);
+            if (w !== null && (j === i || !/^\s*Object /.test (lines[j]))) writes.push ({ line: j, value: w[2].trim (), w });
+            else if (new RegExp (`(?<![\\w$.=!<>])${name}\\s*=(?!=)`).test (code)) ok = false;
+        }
+        if (!ok) continue;
+        // every write: null or a never-null primitive of one family
+        const kinds = writes.map ((w) => (w.value === 'null' ? 'null'
+            : j24Kind (state.ctx, w.value, (n) => n !== name && state.nonNullAt (n, w.line))));
+        if (kinds.includes (undefined) || kinds.every ((k) => k === 'null')) continue;
+        const dbl = kinds.some ((k) => k === 'double');
+        if (dbl && kinds.some ((k) => k !== 'double' && k !== 'null')) continue;
+        // all-int writes keep their Integer box; an int write beside a long one changes box (Integer -> Long)
+        const allInt = kinds.every ((k) => k === 'int' || k === 'intlit' || k === 'null');
+        const boxChanges = !allInt && kinds.some ((k) => k === 'int' || k === 'intlit');
+        let usesOk = true;
+        for (let j = from; j < to && usesOk; j++) {
+            if (j === i && !mention.test (longLimitCodeOnly (d[3]))) continue;
+            const code = longLimitCodeOnly (lines[j]);
+            if (!mention.test (code)) continue;
+            const text = j === i ? `${iden}j24w = ${d[3]};` : lines[j];
+            if (/->/.test (code) && new RegExp (`(?<![\\w$.])${name}\\s*=(?!=)`).test (code)) usesOk = false;
+            else if (!j24UseOk (text, name, boxChanges)) usesOk = false;
+        }
+        if (!usesOk) continue;
+        const type = dbl ? 'Double' : allInt ? 'Integer' : 'Long';
+        writes.forEach ((w, k) => {
+            const widen = !allInt && !dbl;
+            const v = widen && kinds[k] === 'intlit' ? `${w.value}L` : widen && kinds[k] === 'int' ? `((long) (${w.value}))` : w.value;
+            const head = w.line === i ? `${w.w[1]}${type} ${name} = ` : `${w.w[1]}${name} = `;
+            lines[w.line] = `${head}${v};${w.w[3] ?? ''}`;
+        });
+        changed = true;
+    }
+    return changed;
+}
+
+export function nativeJavaJ24Arithmetic (content) {
+    if (!J24_TARGETS.test (content)) return content;
+    let out = content;
+    for (let round = 0; round < 4; round++) {
+        const lines = out.split ('\n');
+        const starts = [];
+        for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+        let changed = false;
+        const count = (ls) => ls.reduce ((n, l) => n + (longLimitCodeOnly (l).match (/Helpers\.(?:multiply|subtract|divide|mod|opNeg)\(/g) ?? []).length, 0);
+        const next = [];
+        for (let s = 0; s < starts.length; s++) {
+            const to = s + 1 < starts.length ? starts[s + 1] : lines.length;
+            const member = lines.slice (starts[s], to);
+            if (s === 0) next.push (...lines.slice (0, starts[0]));
+            const work = member.slice ();
+            // keep a retype only when it lets at least one target helper go native
+            if (j24RetypeMember (work, 0, work.length)) {
+                const native = nativeJavaJ23Arithmetic (nativeJavaJ04Arithmetic (work.join ('\n'))).split ('\n');
+                if (count (native) < count (member)) { next.push (...native); changed = true; continue; }
+            }
+            next.push (...member);
+        }
+        if (!changed) break;
+        out = starts.length === 0 ? out : next.join ('\n');
+    }
+    return out;
+}

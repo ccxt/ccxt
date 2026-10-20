@@ -21,7 +21,7 @@ export default class okx extends Exchange {
             'name': 'OKX',
             'countries': [ 'CN', 'US' ],
             'version': 'v5',
-            'rateLimit': 100 * 1.10, // 10% tolerance because of #26973
+            'rateLimit': 110, // 100 plus 10% tolerance because of #26973
             'pro': true,
             'certified': true,
             'has': {
@@ -2193,10 +2193,7 @@ export default class okx extends Exchange {
         const requestedLimit = (limit === undefined) ? defaultLimit : limit;
         // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
         // including the 5000 that publicGetMarketBooksFull defaults to
-        let limitResolved: Int = requestedLimit;
-        if (rpi && (requestedLimit > 400)) {
-            limitResolved = 400;
-        }
+        const limitResolved = (rpi && (requestedLimit > 400)) ? 400 : requestedLimit;
         if (limitResolved !== undefined) {
             request['sz'] = limitResolved; // max 400
         }
@@ -2749,13 +2746,13 @@ export default class okx extends Exchange {
             const now = this.milliseconds ();
             const durationInMilliseconds = duration * 1000;
             // switch to history candles if since is past the cutoff for current candles
-            const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
+            const historyBorder = now - (1439 * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
                 const maxLimit = isMarkOrIndex ? 100 : 300;
                 limitResolved = Math.min (limitResolved, maxLimit);
             }
-            const startTime = Math.max (since - 1, 0);
+            const startTime = (since > 1) ? (since - 1) : 0;
             request['before'] = startTime;
             request['after'] = this.sum (since, durationInMilliseconds * limitResolved);
         }
@@ -8280,7 +8277,7 @@ export default class okx extends Exchange {
      */
     handleTradingStatisticsWindow (request: Dict, period: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict[] {
         const maxLimit = 100;
-        const effectiveLimit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        const effectiveLimit = ((limit === undefined) || (limit > maxLimit)) ? maxLimit : limit;
         if (limit !== undefined) {
             request['limit'] = effectiveLimit;
         }

@@ -1394,8 +1394,8 @@ export default class bingx extends Exchange {
         };
         let response: Dict;
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
+        const maxLimit = (marketType === 'spot') ? 500 : 1000;
         if (limit !== undefined) {
-            const maxLimit = (marketType === 'spot') ? 500 : 1000;
             request['limit'] = Math.min (limit, maxLimit);
         }
         if (marketType === 'spot') {

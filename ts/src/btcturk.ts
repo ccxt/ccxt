@@ -742,7 +742,10 @@ export default class btcturk extends Exchange {
         }
         let limitResolved: Int = undefined;
         if (limit !== undefined) {
-            limitResolved = Math.min (limit, 11000); // max 11000 candles diapason can be covered
+            limitResolved = limit;
+            if (limit > 11000) {
+                limitResolved = 11000; // max 11000 candles diapason can be covered
+            }
         } else if (since === undefined) {
             limitResolved = 100; // default value
         }
@@ -754,9 +757,11 @@ export default class btcturk extends Exchange {
             const limitSeconds: int = seconds * (limitResolved - 1);
             if (since !== undefined) {
                 const to: int = this.parseToInt (since / 1000) + limitSeconds;
-                request['to'] = Math.min (untilSeconds, to);
+                if (to < untilSeconds) {
+                    request['to'] = to;
+                }
             } else {
-                request['from'] = this.parseToInt (0 / 1000) - limitSeconds;
+                request['from'] = 0 - limitSeconds;
             }
         }
         const response = await this.graphGetKlinesHistory (this.extend (request, params));
