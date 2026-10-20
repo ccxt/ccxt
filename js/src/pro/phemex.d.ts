@@ -7,7 +7,7 @@ export default class phemex extends phemexRest {
     fromEp(ep: any, market?: Market): Str;
     fromEv(ev: any, market?: Market): Str;
     fromEr(er: any, market?: Market): Str;
-    requestId(): any;
+    requestId(): number;
     parseSwapTicker(ticker: Dict, market?: Market): Ticker;
     parsePerpetualTicker(ticker: any[], market?: Market): Ticker;
     handleTicker(client: Client, message: Dict): void;

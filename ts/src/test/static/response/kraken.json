@@ -682,7 +682,7 @@
                     "trades": [
                         {
                             "id": "TWA6QJ-ZO4EM-6QIHQJ",
-                            "orderId": "OGMZCL-KC6MC-ZRBGM6",
+                            "order": "OGMZCL-KC6MC-ZRBGM6",
                             "symbol": "LTC/USDT",
                             "info": {},
                             "fees": [],
@@ -1655,9 +1655,10 @@
                     "lastUpdateTimestamp": null,
                     "maintenanceMargin": null,
                     "maintenanceMarginPercentage": null,
+                    "positionMargin": null,
                     "collateral": null,
                     "initialMargin": 1.5187625,
-                    "initialMarginPercentage": null,
+                    "initialMarginPercentage": 0.25,
                     "leverage": 4,
                     "marginRatio": null,
                     "stopLossPrice": null,

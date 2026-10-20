@@ -24,7 +24,7 @@ public class TestDepositWithdrawal extends BaseTest {
             put( "txid", "0x1345FEG45EAEF7" );
             put( "timestamp", 1502962946216L );
             put( "datetime", "2017-08-17 12:42:48.000" );
-            put( "network", "ETH" );
+            put( "network", "ERC20" );
             put( "address", "0xEFE3487358AEF352345345" );
             put( "addressTo", "0xEFE3487358AEF352345123" );
             put( "addressFrom", "0xEFE3487358AEF352345456" );
@@ -38,10 +38,11 @@ public class TestDepositWithdrawal extends BaseTest {
             put( "updated", 1502962946233L );
             put( "fee", new HashMap<String, Object>() {{}} );
         }};
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("address", "addressTo", "addressFrom", "tag", "tagTo", "tagFrom")); // below we still do Assertion for to/from
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("address", "addressTo", "addressFrom", "tag", "tagTo", "tagFrom")); // below we still do Assertion for to/from
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("currency"), requestedCode);
+        TestSharedMethods.AssertUnifiedNetworkCode(exchange, skippedProperties, method, entry, exchange.safeString(entry, "network"));
         //
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "status", new ArrayList<Object>(Arrays.asList("ok", "pending", "failed", "rejected", "canceled")));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "type", new ArrayList<Object>(Arrays.asList("deposit", "withdrawal")));

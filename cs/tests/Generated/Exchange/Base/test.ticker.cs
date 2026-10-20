@@ -51,8 +51,8 @@ public partial class testMainClass : BaseTest
         // trick csharp-transpiler for string
         if (!isTrue((((object)method).ToString().Contains("BidsAsks"))))
         {
-            ((IList<object>)emptyAllowedFor).Add("bid");
-            ((IList<object>)emptyAllowedFor).Add("ask");
+            emptyAllowedFor.Add("bid");
+            emptyAllowedFor.Add("ask");
         }
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
@@ -60,7 +60,7 @@ public partial class testMainClass : BaseTest
         // check market
         IDictionary<string, object> market = null;
         bool isUnrecognizedSymbol = false;
-        bool isFetchTickerCalled = isEqual(method, "fetchTicker");
+        bool isFetchTickerCalled = (method is "fetchTicker");
         object symbolForMarket = ((symbol != null)) ? symbol : exchange.safeString(entry, "symbol");
         if ((symbolForMarket != null))
         {

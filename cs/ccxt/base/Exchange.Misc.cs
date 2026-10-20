@@ -14,7 +14,10 @@ public partial class BaseExchange
         return quotient;
     }
 
-    public object roundTimeframe(object timeframe, object timestamp, object direction = null)
+    // both return paths are Int64: the calendar branch's ToUnixTimeMilliseconds() and the
+    // `(Int64)timestamp - offset + …` arithmetic below (parseTimeframe * 1000 is Int64) —
+    // naming the type moves no box
+    public Int64 roundTimeframe(object timeframe, object timestamp, object direction = null)
     {
         direction ??= ROUND_DOWN;
         var timeframeString = (string)timeframe;
@@ -118,7 +121,9 @@ public partial class BaseExchange
     // }
 
     // returns the version of the ccxt library, e.g. "4.5.54"
-    public virtual object getCcxtVersion()
+    // its only path returns the static `string ccxtVersion` field (Exchange.MetaData.cs),
+    // so the generated call sites type `string` and no cast is needed
+    public virtual string getCcxtVersion()
     {
         return ccxtVersion;
     }

@@ -99,8 +99,8 @@ class modetrade extends Exchange {
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
-                'fetchTicker' => false,
-                'fetchTickers' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
@@ -537,6 +537,7 @@ class modetrade extends Exchange {
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
+        //     "status": "ACTIVE",
         //     "quote_min": 123,
         //     "quote_max": 100000,
         //     "quote_tick": 0.1,
@@ -562,12 +563,20 @@ class modetrade extends Exchange {
         //   }
         //
         $marketId = $this->safe_string($market, 'symbol', '');
+        $status = $this->safe_string($market, 'status');
+        $active = null;
+        if ($status !== null) {
+            $active = ($status === 'ACTIVE');
+        }
         $parts = explode('_', $marketId);
         $marketType = 'swap';
         $baseId = $this->safe_string($parts, 1);
         $quoteId = $this->safe_string($parts, 2);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settleId = $this->safe_string($parts, 2);
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
@@ -586,7 +595,7 @@ class modetrade extends Exchange {
             'swap' => true,
             'future' => false,
             'option' => false,
-            'active' => null,
+            'active' => $active,
             'contract' => true,
             'linear' => true,
             'inverse' => false,
@@ -644,6 +653,7 @@ class modetrade extends Exchange {
         //       "rows": [
         //         {
         //           "symbol": "PERP_BTC_USDC",
+        //           "status": "ACTIVE",
         //           "quote_min": 123,
         //           "quote_max": 100000,
         //           "quote_tick": 0.1,
@@ -821,8 +831,8 @@ class modetrade extends Exchange {
         $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
         $timestamp = $this->safe_integer($trade, 'executed_timestamp');
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $price = $this->safe_string($trade, 'executed_price');
         $amount = $this->safe_string($trade, 'executed_quantity');
         $order_id = $this->safe_string($trade, 'order_id');
@@ -853,7 +863,7 @@ class modetrade extends Exchange {
             'type' => null,
             'fee' => $fee,
             'info' => $trade,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -916,14 +926,14 @@ class modetrade extends Exchange {
         //         }
         //
         $symbol = $this->safe_string($fundingRate, 'symbol');
-        $market = ($symbol === null) ? $market : $this->market($symbol);
+        $marketValue = ($symbol === null) ? $market : $this->market($symbol);
         $nextFundingTimestamp = $this->safe_integer($fundingRate, 'next_funding_time');
         $estFundingRateTimestamp = $this->safe_integer($fundingRate, 'est_funding_rate_timestamp');
         $lastFundingRateTimestamp = $this->safe_integer($fundingRate, 'last_funding_rate_timestamp');
         $fundingTimeString = $this->safe_string($fundingRate, 'last_funding_rate_timestamp');
         $nextFundingTimeString = $this->safe_string($fundingRate, 'next_funding_time');
         $millisecondsInterval = Precise::string_sub($nextFundingTimeString, $fundingTimeString);
-        $fundingSymbol = ($market !== null) ? $market['symbol'] : null;
+        $fundingSymbol = ($marketValue !== null) ? $marketValue['symbol'] : null;
         return array(
             'info' => $fundingRate,
             'symbol' => $fundingSymbol,
@@ -1032,7 +1042,7 @@ class modetrade extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->v1PublicGetPublicFundingRates($params));
         //
         // {
@@ -1053,7 +1063,7 @@ class modetrade extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         $rows = $this->safe_list($data, 'rows', array());
-        return $this->parse_funding_rates($rows, $symbols);
+        return $this->parse_funding_rates($rows, $symbolsNormalized);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1077,22 +1087,22 @@ class modetrade extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'page', 25));
+            return Async\await($this->fetch_paginated_call_incremental('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 'page', 25));
         }
         $request = array();
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
             $request['start_t'] = $since;
         }
-        list($request, $params) = $this->handle_until_option('end_t', $request, $params, 0.001);
-        $response = Async\await($this->v1PublicGetPublicFundingRateHistory($this->extend($request, $params)));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_t', $request, $paramsPaginate, 0.001);
+        $response = Async\await($this->v1PublicGetPublicFundingRateHistory($this->extend($requestUntil, $paramsUntil)));
         //
         // {
         //     "success": true,
@@ -1128,10 +1138,149 @@ class modetrade extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $symbolResolved, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "display_symbol_name": "BTC",
+        //         "broker_id": null,
+        //         "status": "ACTIVE",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "sum_unitary_funding": 27744.3,
+        //         "est_funding_rate": 0.00008318,
+        //         "last_funding_rate": 0.0000394,
+        //         "next_funding_time": 1792281600000,
+        //         "open_interest": 42.65602,
+        //         "is_pretge": false,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        return $this->safe_ticker(array(
+            'symbol' => $marketResolved['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_string($ticker, '24h_high'),
+            'low' => $this->safe_string($ticker, '24h_low'),
+            'bid' => null,
+            'bidVolume' => null,
+            'ask' => null,
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $this->safe_string($ticker, '24h_open'),
+            'close' => $this->safe_string($ticker, '24h_close'),
+            'last' => $this->safe_string($ticker, '24h_close'),
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_string($ticker, '24h_volume'),
+            'quoteVolume' => $this->safe_string($ticker, '24h_amount'),
+            'indexPrice' => $this->safe_string($ticker, 'index_price'),
+            'markPrice' => $this->safe_string($ticker, 'mark_price'),
+            'info' => $ticker,
+        ), $marketResolved);
+    }
+
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_ticker(...))($symbol, $params);
+    }
+
+    private function do_fetch_ticker(string $symbol, $params = array()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-$market-info-for-one-$symbol
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->v1PublicGetPublicFuturesSymbol($this->extend($request, $params)));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDC",
+        //             "24h_close": 81518.1
+        //         },
+        //         "timestamp": 1792270455082
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        $ticker = $this->extend(array( 'timestamp' => $timestamp ), $data);
+        return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
+    }
+
+    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-$symbols
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $response = Async\await($this->v1PublicGetPublicFutures($params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "PERP_BTC_USDC",
+        //                     "24h_close": 81518.1
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1792270455518
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $rows = $this->safe_list($data, 'rows', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        $result = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $row = $rows[$i];
+            $marketId = $this->safe_string($row, 'symbol', '');
+            if (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            }
+            $ticker = $this->extend(array( 'timestamp' => $timestamp ), $row);
+            $result[] = $this->parse_ticker($ticker);
+        }
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
+    }
+
+    public function parse_income(array $income, ?array $market = null): array {
         //
         // {
         //         "symbol": "PERP_ETH_USDC",
@@ -1184,10 +1333,9 @@ class modetrade extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $params, 'page', 500));
+            return Async\await($this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $paramsPaginate, 'page', 500));
         }
         $request = array();
         $market = null;
@@ -1198,15 +1346,15 @@ class modetrade extends Exchange {
         if ($since !== null) {
             $request['start_t'] = $since;
         }
-        $until = $this->safe_integer($params, 'until'); // unified in milliseconds
-        $params = $this->omit($params, array( 'until' ));
+        $until = $this->safe_integer($paramsPaginate, 'until'); // unified in milliseconds
+        $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
         if ($until !== null) {
             $request['end_t'] = $until;
         }
         if ($limit !== null) {
             $request['size'] = min($limit, 500);
         }
-        $response = Async\await($this->v1PrivateGetFundingFeeHistory($this->extend($request, $params)));
+        $response = Async\await($this->v1PrivateGetFundingFeeHistory($this->extend($request, $paramsOmitted)));
         //
         // {
         //     "success": true,
@@ -1323,8 +1471,7 @@ class modetrade extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $limit = min($limit, 1000);
-            $request['max_level'] = $limit;
+            $request['max_level'] = min($limit, 1000);
         }
         $response = Async\await($this->v1PrivateGetOrderbookSymbol($this->extend($request, $params)));
         //
@@ -1464,8 +1611,8 @@ class modetrade extends Exchange {
         $orderId = $this->safe_string_n($order, array( 'order_id', 'orderId', 'algoOrderId' ));
         $clientOrderId = $this->omit_zero($this->safe_string_2($order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $price = $this->safe_string_2($order, 'order_price', 'price');
         $amount = $this->safe_string_2($order, 'order_quantity', 'quantity'); // This is base amount
         $cost = $this->safe_string_2($order, 'order_amount', 'amount'); // This is quote amount
@@ -1481,7 +1628,7 @@ class modetrade extends Exchange {
         $remaining = Precise::string_sub($cost, $filled);
         $fee = $this->safe_number_2($order, 'total_fee', 'totalFee');
         $feeCurrency = $this->safe_string_2($order, 'fee_asset', 'feeAsset');
-        $transactions = $this->safe_value($order, 'Transactions');
+        $transactions = $this->safe_list($order, 'Transactions');
         $triggerPrice = $this->safe_number($order, 'triggerPrice');
         $takeProfitPrice = null;
         $stopLossPrice = null;
@@ -1527,7 +1674,7 @@ class modetrade extends Exchange {
                 'currency' => $feeCurrency,
             ),
             'info' => $order,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function parse_time_in_force(?string $timeInForce) {
@@ -1577,10 +1724,10 @@ class modetrade extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         /**
          * @ignore
@@ -1597,7 +1744,7 @@ class modetrade extends Exchange {
         $orderType = strtoupper($type);
         $market = $this->market($symbol);
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         $orderSide = strtoupper($side);
         $request = array(
@@ -1614,9 +1761,18 @@ class modetrade extends Exchange {
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
-        $orderQtyKey = $isConditional ? 'quantity' : 'order_quantity';
-        $priceKey = $isConditional ? 'price' : 'order_price';
-        $typeKey = $isConditional ? 'type' : 'order_type';
+        $orderQtyKey = 'order_quantity';
+        if ($isConditional) {
+            $orderQtyKey = 'quantity';
+        }
+        $priceKey = 'order_price';
+        if ($isConditional) {
+            $priceKey = 'price';
+        }
+        $typeKey = 'order_type';
+        if ($isConditional) {
+            $typeKey = 'type';
+        }
         $request[$typeKey] = $orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!$isConditional) {
             if ($postOnly) {
@@ -1654,7 +1810,10 @@ class modetrade extends Exchange {
                 'child_orders' => array(),
             );
             $childOrders = $outterOrder['child_orders'];
-            $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
+            $closeSide = 'BUY';
+            if ($orderSide === 'BUY') {
+                $closeSide = 'SELL';
+            }
             if ($hasStopLoss) {
                 $stopLossPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'price', $stopLoss);
                 $stopLossOrder = array(
@@ -1679,8 +1838,8 @@ class modetrade extends Exchange {
             }
             $request['child_orders'] = array( $outterOrder );
         }
-        $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ));
-        return $this->extend($request, $params);
+        $paramsOmitted = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ));
+        return $this->extend($request, $paramsOmitted);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -1722,7 +1881,6 @@ class modetrade extends Exchange {
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($params, 'childOrders') !== null);
-        $response = null;
         if ($isConditional) {
             $response = Async\await($this->v1PrivatePostAlgoOrder($request));
             //
@@ -1781,7 +1939,7 @@ class modetrade extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             if ($marketId === null) {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
@@ -1862,27 +2020,32 @@ class modetrade extends Exchange {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
         }
         $isConditional = ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
-        $orderQtyKey = $isConditional ? 'quantity' : 'order_quantity';
-        $priceKey = $isConditional ? 'price' : 'order_price';
+        $orderQtyKey = 'order_quantity';
+        if ($isConditional) {
+            $orderQtyKey = 'quantity';
+        }
+        $priceKey = 'order_price';
+        if ($isConditional) {
+            $priceKey = 'price';
+        }
         if ($price !== null) {
             $request[$priceKey] = $this->price_to_precision($symbol, $price);
         }
         if ($amount !== null) {
             $request[$orderQtyKey] = $this->amount_to_precision($symbol, $amount);
         }
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
-        $response = null;
+        $paramsOmitted = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
         if ($isConditional) {
-            $response = Async\await($this->v1PrivatePutAlgoOrder($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivatePutAlgoOrder($this->extend($request, $paramsOmitted)));
         } else {
             $request['symbol'] = $market['id'];
             if ($side !== null) {
                 $request['side'] = strtoupper($side);
             }
             $orderType = strtoupper($type);
-            $timeInForce = $this->safe_string_lower($params, 'timeInForce');
+            $timeInForce = $this->safe_string_lower($paramsOmitted, 'timeInForce');
             $isMarket = $orderType === 'MARKET';
-            $postOnly = $this->is_post_only($isMarket, null, $params);
+            $postOnly = $this->is_post_only($isMarket, null, $paramsOmitted);
             if ($postOnly) {
                 $request['order_type'] = 'POST_ONLY';
             } elseif ($timeInForce === 'fok') {
@@ -1892,14 +2055,14 @@ class modetrade extends Exchange {
             } else {
                 $request['order_type'] = $orderType;
             }
-            $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce' ));
+            $clientOrderId = $this->safe_string_n($paramsOmitted, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
+            $paramsOrder = $this->omit($paramsOmitted, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce' ));
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
             }
             // request['side'] = side.toUpperCase ();
             // request['symbol'] = market['id'];
-            $response = Async\await($this->v1PrivatePutOrder($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivatePutOrder($this->extend($request, $paramsOrder)));
         }
         //
         // {
@@ -1936,9 +2099,9 @@ class modetrade extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         if (($trigger !== true) && ($symbol === null)) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1950,26 +2113,25 @@ class modetrade extends Exchange {
         $request = array(
             'symbol' => $this->safe_string($market, 'id'),
         );
-        $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
-        $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
+        $clientOrderIdUnified = $this->safe_string_2($paramsOmitted, 'clOrdID', 'clientOrderId');
+        $clientOrderIdExchangeSpecific = $this->safe_string($paramsOmitted, 'client_order_id', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
+        $paramsClientOrder = $this->omit($paramsOmitted, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         if ($trigger === true) {
             if ($isByClientOrder) {
                 $request['client_order_id'] = $clientOrderIdExchangeSpecific;
-                $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-                $response = Async\await($this->v1PrivateDeleteAlgoClientOrder($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteAlgoClientOrder($this->extend($request, $paramsClientOrder)));
             } else {
                 $request['order_id'] = $id;
-                $response = Async\await($this->v1PrivateDeleteAlgoOrder($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteAlgoOrder($this->extend($request, $paramsOmitted)));
             }
         } else {
             if ($isByClientOrder) {
                 $request['client_order_id'] = $clientOrderIdExchangeSpecific;
-                $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-                $response = Async\await($this->v1PrivateDeleteClientOrder($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteClientOrder($this->extend($request, $paramsClientOrder)));
             } else {
                 $request['order_id'] = $id;
-                $response = Async\await($this->v1PrivateDeleteOrder($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateDeleteOrder($this->extend($request, $paramsOmitted)));
             }
         }
         //
@@ -2021,15 +2183,14 @@ class modetrade extends Exchange {
             Async\await($this->load_markets());
         }
         $clientOrderIds = $this->safe_list_n($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
-        $params = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
+        $paramsOmitted = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $request = array();
-        $response = null;
         if ($clientOrderIds !== null) {
             $request['client_order_ids'] = implode(',', $clientOrderIds);
-            $response = Async\await($this->v1PrivateDeleteClientBatchOrder($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateDeleteClientBatchOrder($this->extend($request, $paramsOmitted)));
         } else {
             $request['order_ids'] = implode(',', $ids);
-            $response = Async\await($this->v1PrivateDeleteBatchOrder($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateDeleteBatchOrder($this->extend($request, $paramsOmitted)));
         }
         //
         // {
@@ -2065,7 +2226,7 @@ class modetrade extends Exchange {
             Async\await($this->load_markets());
         }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2073,9 +2234,9 @@ class modetrade extends Exchange {
         }
         $response = null;
         if ($trigger === true) {
-            $response = Async\await($this->v1PrivateDeleteAlgoOrders($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateDeleteAlgoOrders($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->v1PrivateDeleteOrders($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateDeleteOrders($this->extend($request, $paramsOmitted)));
         }
         // trigger
         // {
@@ -2129,23 +2290,22 @@ class modetrade extends Exchange {
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $request = array();
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-        $params = $this->omit($params, array( 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ));
-        $response = null;
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ));
         if ($trigger === true) {
             if ($clientOrderId !== null && $clientOrderId !== '') {
                 $request['client_order_id'] = $clientOrderId;
-                $response = Async\await($this->v1PrivateGetAlgoClientOrderClientOrderId($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateGetAlgoClientOrderClientOrderId($this->extend($request, $paramsOmitted)));
             } else {
                 $request['oid'] = $id;
-                $response = Async\await($this->v1PrivateGetAlgoOrderOid($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateGetAlgoOrderOid($this->extend($request, $paramsOmitted)));
             }
         } else {
             if (($clientOrderId !== null) && ($clientOrderId !== '')) {
                 $request['client_order_id'] = $clientOrderId;
-                $response = Async\await($this->v1PrivateGetClientOrderClientOrderId($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateGetClientOrderClientOrderId($this->extend($request, $paramsOmitted)));
             } else {
                 $request['oid'] = $id;
-                $response = Async\await($this->v1PrivateGetOrderOid($this->extend($request, $params)));
+                $response = Async\await($this->v1PrivateGetOrderOid($this->extend($request, $paramsOmitted)));
             }
         }
         //
@@ -2204,16 +2364,15 @@ class modetrade extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
         $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $maxLimit = ($isTrigger === true) ? 100 : 500;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $params, 'page', $maxLimit));
+            return Async\await($this->fetch_paginated_call_incremental('fetchOrders', $symbol, $since, $limit, $paramsPaginate, 'page', $maxLimit));
         }
         $request = array();
         $market = null;
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $paramsOmitted = $this->omit($paramsPaginate, array( 'stop', 'trigger' ));
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
@@ -2229,12 +2388,11 @@ class modetrade extends Exchange {
         if ($isTrigger === true) {
             $request['algo_type'] = 'STOP';
         }
-        list($request, $params) = $this->handle_until_option('end_t', $request, $params);
-        $response = null;
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_t', $request, $paramsOmitted);
         if ($isTrigger === true) {
-            $response = Async\await($this->v1PrivateGetAlgoOrders($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetAlgoOrders($this->extend($requestUntil, $paramsUntil)));
         } else {
-            $response = Async\await($this->v1PrivateGetOrders($this->extend($request, $params)));
+            $response = Async\await($this->v1PrivateGetOrders($this->extend($requestUntil, $paramsUntil)));
         }
         //
         //     {
@@ -2408,10 +2566,9 @@ class modetrade extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $params, 'page', 500));
+            return Async\await($this->fetch_paginated_call_incremental('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, 'page', 500));
         }
         $request = array();
         $market = null;
@@ -2427,8 +2584,8 @@ class modetrade extends Exchange {
         } else {
             $request['size'] = 500;
         }
-        list($request, $params) = $this->handle_until_option('end_t', $request, $params);
-        $response = Async\await($this->v1PrivateGetTrades($this->extend($request, $params)));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_t', $request, $paramsPaginate);
+        $response = Async\await($this->v1PrivateGetTrades($this->extend($requestUntil, $paramsUntil)));
         //
         // {
         //     "success": true,
@@ -2457,7 +2614,7 @@ class modetrade extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         $trades = $this->safe_list($data, 'rows', array());
-        return $this->parse_trades($trades, $market, $since, $limit, $params);
+        return $this->parse_trades($trades, $market, $since, $limit, $paramsUntil);
     }
 
     public function parse_balance(mixed $response): array {
@@ -2466,7 +2623,7 @@ class modetrade extends Exchange {
         );
         $balances = $this->safe_list($response, 'holding', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $code = $this->safe_currency_code($this->safe_string($balance, 'token'));
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'holding');
@@ -2535,11 +2692,11 @@ class modetrade extends Exchange {
             $request['size'] = $limit;
         }
         $transactionType = $this->safe_string($params, 'type');
-        $params = $this->omit($params, 'type');
+        $paramsOmitted = $this->omit($params, 'type');
         if ($transactionType !== null) {
             $request['type'] = $transactionType;
         }
-        $response = Async\await($this->v1PrivateGetAssetHistory($this->extend($request, $params)));
+        $response = Async\await($this->v1PrivateGetAssetHistory($this->extend($request, $paramsOmitted)));
         //
         // {
         //     "success": true,
@@ -2586,7 +2743,7 @@ class modetrade extends Exchange {
         //
         $currencyId = $this->safe_string($item, 'token');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         $amount = $this->safe_number($item, 'amount');
         $side = $this->safe_string($item, 'side');
         $direction = null;
@@ -2618,7 +2775,7 @@ class modetrade extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'type' => $this->parse_ledger_entry_type($this->safe_string_2($item, 'type', 'side')),
             'info' => $item,
-        ), $currency);
+        ), $currencyResolved);
     }
 
     public function parse_ledger_entry_type(?string $type): ?string {
@@ -2799,8 +2956,8 @@ class modetrade extends Exchange {
         //         "success":true
         //     }
         //
-        $params = $this->omit($params, 'side'); // request-side filter, not a unified transaction field
-        return $this->parse_transactions($rows, $currency, $since, $limit, $params);
+        $paramsOmitted = $this->omit($params, 'side'); // request-side filter, not a unified transaction field
+        return $this->parse_transactions($rows, $currency, $since, $limit, $paramsOmitted);
     }
 
     public function get_withdraw_nonce($params = array()): PromiseInterface {
@@ -2838,11 +2995,11 @@ class modetrade extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -2851,28 +3008,26 @@ class modetrade extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $this->check_address($address);
-        if ($code !== null) {
-            $code = strtoupper($code);
-            if ($code !== 'USDC') {
-                throw new NotSupported($this->id . ' withdraw() only support USDC');
-            }
+        $codeUpper = strtoupper($code);
+        if ($codeUpper !== 'USDC') {
+            throw new NotSupported($this->id . ' withdraw() only support USDC');
         }
-        $currency = $this->currency($code);
+        $currency = $this->currency($codeUpper);
         $verifyingContractAddress = $this->safe_string($this->options, 'verifyingContractAddress');
         $chainId = $this->safe_string($params, 'chainId');
         $currencyNetworks = $this->safe_dict($currency, 'networks', array());
         $coinNetwork = ($chainId === null) ? array() : $this->safe_dict($currencyNetworks, $chainId, array());
         $coinNetworkId = $this->safe_number($coinNetwork, 'id');
         if ($coinNetworkId === null) {
-            throw new BadRequest($this->id . ' withdraw() require $chainId parameter');
+            throw new BadRequest($this->id . ' withdraw() require chainId parameter');
         }
         $withdrawNonce = Async\await($this->get_withdraw_nonce($params));
         $nonce = $this->nonce();
@@ -2897,7 +3052,7 @@ class modetrade extends Exchange {
             'brokerId' => $this->safe_string($this->options, 'keyBrokerId', 'mode'),
             'chainId' => $this->parse_to_int($chainId),
             'receiver' => $address,
-            'token' => $code,
+            'token' => $codeUpper,
             'amount' => (string) $amount,
             'withdrawNonce' => $withdrawNonce,
             'timestamp' => $nonce,
@@ -2910,8 +3065,8 @@ class modetrade extends Exchange {
             'verifyingContract' => $verifyingContractAddress,
             'message' => $withdrawRequest,
         );
-        $params = $this->omit($params, 'chainId');
-        $response = Async\await($this->v1PrivatePostWithdrawRequest($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($params, 'chainId');
+        $response = Async\await($this->v1PrivatePostWithdrawRequest($this->extend($request, $paramsOmitted)));
         //
         //     {
         //         "success": true,
@@ -3007,7 +3162,7 @@ class modetrade extends Exchange {
         $isMinLeverage = $leverage < 1;
         $isMaxLeverage = $leverage > 50;
         if ($isMinLeverage || $isMaxLeverage) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 50');
+            throw new BadRequest($this->id . ' leverage should be between 1 and 50');
         }
         $request = array(
             'leverage' => $leverage,
@@ -3039,7 +3194,7 @@ class modetrade extends Exchange {
         // }
         //
         $contract = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($contract, $market);
+        $marketResolved = $this->safe_market($contract, $market);
         $size = $this->safe_string($position, 'position_qty');
         $side = null;
         if (Precise::string_gt($size, '0')) {
@@ -3047,7 +3202,7 @@ class modetrade extends Exchange {
         } else {
             $side = 'short';
         }
-        $contractSize = $this->safe_string($market, 'contractSize');
+        $contractSize = $this->safe_string($marketResolved, 'contractSize');
         $markPrice = $this->safe_string($position, 'mark_price');
         $timestamp = $this->safe_integer($position, 'timestamp');
         $entryPrice = $this->safe_string($position, 'average_open_price');
@@ -3057,7 +3212,7 @@ class modetrade extends Exchange {
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => null,
@@ -3077,7 +3232,6 @@ class modetrade extends Exchange {
             'lastPrice' => null,
             'collateral' => null,
             'marginMode' => 'cross',
-            'marginType' => null,
             'side' => $side,
             'percentage' => null,
             'hedged' => null,
@@ -3104,7 +3258,7 @@ class modetrade extends Exchange {
             Async\await($this->load_markets());
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchPosition() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchPosition() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -3206,17 +3360,20 @@ class modetrade extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array()): array {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
-        $url = $this->urls['api'][$access] . '/' . $version . '/';
-        $params = $this->omit($params, $this->extract_params($path));
-        $params = $this->keysort($params);
+        $apiUrl = $this->safe_string($this->urls['api'], $access);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $version . '/';
+        $paramsSorted = $this->keysort($this->omit($params, $this->extract_params($path)));
         if ($access === 'public') {
             $url .= $pathWithParams;
-            if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+            if (count($paramsSorted) > 0) {
+                $url .= '?' . $this->urlencode($paramsSorted);
             }
         } else {
             $this->check_required_credentials();
@@ -3227,15 +3384,18 @@ class modetrade extends Exchange {
                 if ($isSandboxMode !== true) {
                     $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXTMODE');
                     if ($path === 'batch-order') {
-                        $ordersList = $this->safe_list($params, 'orders', array());
+                        $ordersList = $this->safe_list($paramsSorted, 'orders', array());
                         for ($i = 0; $i < count($ordersList); $i++) {
-                            $params['orders'][$i]['order_tag'] = $brokerId;
+                            $paramsSorted['orders'][$i]['order_tag'] = $brokerId;
                         }
                     } else {
-                        $params['order_tag'] = $brokerId;
+                        $paramsSorted['order_tag'] = $brokerId;
                     }
                 }
-                $params = $this->keysort($params);
+            }
+            $paramsSigned = $paramsSorted;
+            if ($isPostOrPut && $isOrder) {
+                $paramsSigned = $this->keysort($paramsSorted);
             }
             $auth = '';
             $ts = (string) $this->nonce();
@@ -3244,25 +3404,24 @@ class modetrade extends Exchange {
             if (mb_strpos($apiKey, 'ed25519:') === false) {
                 $apiKey = 'ed25519:' . $apiKey;
             }
-            $headers = array(
+            $signedHeaders = array(
                 'orderly-account-id' => $this->accountId,
                 'orderly-key' => $apiKey,
                 'orderly-timestamp' => $ts,
             );
             $auth = $ts . $method . '/' . $version . '/' . $pathWithParams;
+            $signedBody = null;
             if ($method === 'POST' || $method === 'PUT') {
-                $body = $this->json($params);
-                $auth .= $body;
-                $headers['content-type'] = 'application/json';
+                $signedBody = $this->json($paramsSigned);
+                $auth .= $signedBody;
+                $signedHeaders['content-type'] = 'application/json';
             } else {
-                if (count($params) > 0) {
-                    $url .= '?' . $this->urlencode($params);
-                    $auth .= '?' . $this->rawencode($params);
+                if (count($paramsSigned) > 0) {
+                    $url .= '?' . $this->urlencode($paramsSigned);
+                    $auth .= '?' . $this->rawencode($paramsSigned);
                 }
-                $headers['content-type'] = 'application/x-www-form-urlencoded';
-                if ($method === 'DELETE') {
-                    $body = '';
-                }
+                $signedHeaders['content-type'] = 'application/x-www-form-urlencoded';
+                $signedBody = ($method === 'DELETE') ? '' : null;
             }
             $secret = $this->secret;
             if (mb_strpos($secret, 'ed25519:') !== false) {
@@ -3270,9 +3429,10 @@ class modetrade extends Exchange {
                 $secret = $parts[1];
             }
             $signature = $this->eddsa($this->encode($auth), $this->base58_to_binary($secret), 'ed25519');
-            $headers['orderly-signature'] = $this->urlencode_base64(base64_decode($signature));
+            $signedHeaders['orderly-signature'] = $this->urlencode_base64(base64_decode($signature));
+            return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $signedHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

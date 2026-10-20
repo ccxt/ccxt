@@ -226,42 +226,10 @@ func (this *BaseExchange) truncate(num any, precision int) float64 {
 	return result
 }
 
-// matchExponentPrefix emulates one match of `^[-+]?\d\.?\d*[eE]` anchored at i
-// and returns the end index of the match, or -1 when there is no match at i.
-func matchExponentPrefix(s string, i int) int {
-	n := len(s)
-	j := i
-	if s[j] == '-' || s[j] == '+' { // [-+]? — keep the mantissa sign out of the leftover
-		j++
-		if j >= n {
-			return -1
-		}
-	}
-	if s[j] < '0' || s[j] > '9' { // \d
-		return -1
-	}
-	j++
-	if j < n && s[j] == '.' { // \.? greedy; on failure \d* cannot match '.' anyway
-		j++
-	}
-	for j < n && s[j] >= '0' && s[j] <= '9' { // \d* — digits and [eE] are disjoint,
-		j++ // so the greedy run is the only candidate
-	}
-	if j < n && (s[j] == 'e' || s[j] == 'E') {
-		return j + 1
-	}
-	return -1
-}
-
 func (this *BaseExchange) PrecisionFromString(str2 any) int {
 	str, _ := derefScalar(str2).(string)
-	if strings.ContainsAny(str, "eE") {
-		// equivalent to regexp `^[-+]?\d\.?\d*[eE]`.ReplaceAllString(str, "")
-		numStr := str
-		if end := matchExponentPrefix(str, 0); end >= 0 {
-			numStr = str[end:]
-		}
-		precision, _ := strconv.Atoi(numStr)
+	if exponentIndex := strings.IndexAny(str, "eE"); exponentIndex >= 0 {
+		precision, _ := strconv.Atoi(str[exponentIndex+1:])
 		return -precision
 	}
 	// equivalent to regexp `0+$`.ReplaceAllString(str, "") — Go's `$` is

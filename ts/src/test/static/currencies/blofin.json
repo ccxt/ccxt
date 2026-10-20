@@ -4,7 +4,78 @@
         "code": "BTC",
         "precision": 0.1,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "BTC": {
+                "id": "Bitcoin",
+                "network": "BTC",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 4e-05,
+                "precision": 1e-08,
+                "limits": {
+                    "deposit": {
+                        "min": 1e-05,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.0001,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "currency": "BTC",
+                    "chain": "Bitcoin",
+                    "depositMinAmount": "0.00001",
+                    "depositUnsafeConfirmation": 1,
+                    "depositConfirmation": 2,
+                    "withdrawMinAmount": "0.0001",
+                    "withdrawFee": "0.00004",
+                    "withdrawPrecision": 8,
+                    "supportMemo": 0,
+                    "isDepositAvailable": 1,
+                    "isWithdrawAvailable": 1,
+                    "recoveryEtaDeposit": 0,
+                    "recoveryEtaWithdraw": 0,
+                    "logo": "https://s2.blofin.com/static/currency/icon/BTC-y1Z7we69.png"
+                }
+            },
+            "BEP20": {
+                "id": "BNB Smart Chain (BEP20)",
+                "network": "BEP20",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 2e-06,
+                "precision": 1e-08,
+                "limits": {
+                    "deposit": {
+                        "min": 1e-07,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 3e-05,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "currency": "BTC",
+                    "chain": "BNB Smart Chain (BEP20)",
+                    "depositMinAmount": "0.0000001",
+                    "depositUnsafeConfirmation": 15,
+                    "depositConfirmation": 15,
+                    "withdrawMinAmount": "0.00003",
+                    "withdrawFee": "0.000002",
+                    "withdrawPrecision": 8,
+                    "supportMemo": 0,
+                    "isDepositAvailable": 1,
+                    "isWithdrawAvailable": 1,
+                    "recoveryEtaDeposit": 0,
+                    "recoveryEtaWithdraw": 0,
+                    "logo": "https://s2.blofin.com/static/currency/icon/BTC-y1Z7we69.png"
+                }
+            }
+        },
         "limits": {
             "deposit": {},
             "withdraw": {}
@@ -48,7 +119,428 @@
         "withdraw": null,
         "fee": null,
         "fees": {},
-        "networks": {},
+        "networks": {
+            "TRC20": {
+                "id": "Tron (TRC20)",
+                "network": "TRC20",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": 1e-06,
+                "limits": {
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "currency": "USDT",
+                    "chain": "Tron (TRC20)",
+                    "depositMinAmount": "0.01",
+                    "depositUnsafeConfirmation": 20,
+                    "depositConfirmation": 20,
+                    "withdrawMinAmount": "5",
+                    "withdrawFee": "1",
+                    "withdrawPrecision": 6,
+                    "supportMemo": 0,
+                    "isDepositAvailable": 1,
+                    "isWithdrawAvailable": 1,
+                    "recoveryEtaDeposit": 0,
+                    "recoveryEtaWithdraw": 0,
+                    "logo": "https://s2.blofin.com/static/currency/icon/usdt.png"
+                }
+            },
+            "ERC20": {
+                "id": "Ethereum (ERC20)",
+                "network": "ERC20",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.4,
+                "precision": 1e-06,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "currency": "USDT",
+                    "chain": "Ethereum (ERC20)",
+                    "depositMinAmount": "0.001",
+                    "depositUnsafeConfirmation": 6,
+                    "depositConfirmation": 64,
+                    "withdrawMinAmount": "5",
+                    "withdrawFee": "0.4",
+                    "withdrawPrecision": 6,
+                    "supportMemo": 0,
+                    "isDepositAvailable": 1,
+                    "isWithdrawAvailable": 1,
+                    "recoveryEtaDeposit": 0,
+                    "recoveryEtaWithdraw": 0,
+                    "logo": "https://s2.blofin.com/static/currency/icon/usdt.png"
+                }
+            },
+            "BEP20": {
+                "id": "BNB Smart Chain (BEP20)",
+                "network": "BEP20",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.15,
+                "precision": 1e-08,
+                "limits": {
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "currency": "USDT",
+                    "chain": "BNB Smart Chain (BEP20)",
+                    "depositMinAmount": "0.01",
+                    "depositUnsafeConfirmation": 15,
+                    "depositConfirmation": 15,
+                    "withdrawMinAmount": "5",
+                    "withdrawFee": "0.15",
+                    "withdrawPrecision": 8,
+                    "supportMemo": 0,
+                    "isDepositAvailable": 1,
+                    "isWithdrawAvailable": 1,
+                    "recoveryEtaDeposit": 0,
+                    "recoveryEtaWithdraw": 0,
+                    "logo": "https://s2.blofin.com/static/currency/icon/usdt.png"
+                }
+            },
+            "MATIC": {
+                "id": "Polygon POS",
+                "network": "MATIC",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.03,
+                "precision": 1e-06,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "currency": "USDT",
+                    "chain": "Polygon POS",
+                    "depositMinAmount": "0.001",
+                    "depositUnsafeConfirmation": 64,
+                    "depositConfirmation": 150,
+                    "withdrawMinAmount": "5",
+                    "withdrawFee": "0.03",
+                    "withdrawPrecision": 6,
+                    "supportMemo": 0,
+                    "isDepositAvailable": 1,
+                    "isWithdrawAvailable": 1,
+                    "recoveryEtaDeposit": 0,
+                    "recoveryEtaWithdraw": 0,
+                    "logo": "https://s2.blofin.com/static/currency/icon/usdt.png"
+                }
+            },
+            "AVAXC": {
+                "id": "AVAX C-Chain",
+                "network": "AVAXC",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.2,
+                "precision": 1e-06,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "currency": "USDT",
+                    "chain": "AVAX C-Chain",
+                    "depositMinAmount": "0.001",
+                    "depositUnsafeConfirmation": 20,
+                    "depositConfirmation": 20,
+                    "withdrawMinAmount": "5",
+                    "withdrawFee": "0.2",
+                    "withdrawPrecision": 6,
+                    "supportMemo": 0,
+                    "isDepositAvailable": 1,
+                    "isWithdrawAvailable": 1,
+                    "recoveryEtaDeposit": 0,
+                    "recoveryEtaWithdraw": 0,
+                    "logo": "https://s2.blofin.com/static/currency/icon/usdt.png"
+                }
+            },
+            "SOL": {
+                "id": "Solana",
+                "network": "SOL",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.8,
+                "precision": 1e-06,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "currency": "USDT",
+                    "chain": "Solana",
+                    "depositMinAmount": "0.001",
+                    "depositUnsafeConfirmation": 200,
+                    "depositConfirmation": 200,
+                    "withdrawMinAmount": "5",
+                    "withdrawFee": "0.8",
+                    "withdrawPrecision": 6,
+                    "supportMemo": 0,
+                    "isDepositAvailable": 1,
+                    "isWithdrawAvailable": 1,
+                    "recoveryEtaDeposit": 0,
+                    "recoveryEtaWithdraw": 0,
+                    "logo": "https://s2.blofin.com/static/currency/icon/usdt.png"
+                }
+            },
+            "ARBITRUM": {
+                "id": "Arbitrum One",
+                "network": "ARBITRUM",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.2,
+                "precision": 1e-06,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "currency": "USDT",
+                    "chain": "Arbitrum One",
+                    "depositMinAmount": "0.001",
+                    "depositUnsafeConfirmation": 64,
+                    "depositConfirmation": 500,
+                    "withdrawMinAmount": "5",
+                    "withdrawFee": "0.2",
+                    "withdrawPrecision": 6,
+                    "supportMemo": 0,
+                    "isDepositAvailable": 1,
+                    "isWithdrawAvailable": 1,
+                    "recoveryEtaDeposit": 0,
+                    "recoveryEtaWithdraw": 0,
+                    "logo": "https://s2.blofin.com/static/currency/icon/usdt.png"
+                }
+            },
+            "APT": {
+                "id": "APT (APT)",
+                "network": "APT",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.03,
+                "precision": 1e-06,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "currency": "USDT",
+                    "chain": "APT (APT)",
+                    "depositMinAmount": "0.001",
+                    "depositUnsafeConfirmation": 5,
+                    "depositConfirmation": 5,
+                    "withdrawMinAmount": "5",
+                    "withdrawFee": "0.03",
+                    "withdrawPrecision": 6,
+                    "supportMemo": 0,
+                    "isDepositAvailable": 1,
+                    "isWithdrawAvailable": 1,
+                    "recoveryEtaDeposit": 0,
+                    "recoveryEtaWithdraw": 0,
+                    "logo": "https://s2.blofin.com/static/currency/icon/usdt.png"
+                }
+            },
+            "TON": {
+                "id": "TON (Toncoin)",
+                "network": "TON",
+                "active": null,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0.15,
+                "precision": 1e-06,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "currency": "USDT",
+                    "chain": "TON (Toncoin)",
+                    "depositMinAmount": "0.001",
+                    "depositUnsafeConfirmation": 30,
+                    "depositConfirmation": 40,
+                    "withdrawMinAmount": "5",
+                    "withdrawFee": "0.15",
+                    "withdrawPrecision": 6,
+                    "supportMemo": 1,
+                    "isDepositAvailable": 1,
+                    "isWithdrawAvailable": 0,
+                    "recoveryEtaDeposit": 0,
+                    "recoveryEtaWithdraw": 0,
+                    "logo": "https://s2.blofin.com/static/currency/icon/usdt.png"
+                }
+            },
+            "PLASMA": {
+                "id": "Plasma",
+                "network": "PLASMA",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.012,
+                "precision": 1e-06,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "currency": "USDT",
+                    "chain": "Plasma",
+                    "depositMinAmount": "0.001",
+                    "depositUnsafeConfirmation": 64,
+                    "depositConfirmation": 64,
+                    "withdrawMinAmount": "5",
+                    "withdrawFee": "0.012",
+                    "withdrawPrecision": 6,
+                    "supportMemo": 0,
+                    "isDepositAvailable": 1,
+                    "isWithdrawAvailable": 1,
+                    "recoveryEtaDeposit": 0,
+                    "recoveryEtaWithdraw": 0,
+                    "logo": "https://s2.blofin.com/static/currency/icon/usdt.png"
+                }
+            },
+            "KAIA": {
+                "id": "KAIA",
+                "network": "KAIA",
+                "active": null,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0.02,
+                "precision": 1e-06,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "currency": "USDT",
+                    "chain": "KAIA",
+                    "depositMinAmount": "0.001",
+                    "depositUnsafeConfirmation": 15,
+                    "depositConfirmation": 15,
+                    "withdrawMinAmount": "5",
+                    "withdrawFee": "0.02",
+                    "withdrawPrecision": 6,
+                    "supportMemo": 0,
+                    "isDepositAvailable": 1,
+                    "isWithdrawAvailable": 0,
+                    "recoveryEtaDeposit": 0,
+                    "recoveryEtaWithdraw": 0,
+                    "logo": "https://s2.blofin.com/static/currency/icon/usdt.png"
+                }
+            },
+            "OPTIMISM": {
+                "id": "Optimism (USDT0)",
+                "network": "OPTIMISM",
+                "active": null,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0.15,
+                "precision": 1e-06,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "currency": "USDT",
+                    "chain": "Optimism (USDT0)",
+                    "depositMinAmount": "0.001",
+                    "depositUnsafeConfirmation": 64,
+                    "depositConfirmation": 500,
+                    "withdrawMinAmount": "5",
+                    "withdrawFee": "0.15",
+                    "withdrawPrecision": 6,
+                    "supportMemo": 0,
+                    "isDepositAvailable": 1,
+                    "isWithdrawAvailable": 0,
+                    "recoveryEtaDeposit": 0,
+                    "recoveryEtaWithdraw": 0,
+                    "logo": "https://s2.blofin.com/static/currency/icon/usdt.png"
+                }
+            }
+        },
         "limits": {
             "deposit": {
                 "min": null,

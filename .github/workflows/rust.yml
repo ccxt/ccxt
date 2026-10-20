@@ -99,24 +99,30 @@ jobs:
         if: env.important_modified == 'false'
         run: |
           read -r -a files <<<"$(printf '%s %s' "${{ env.rest_files }}" "${{ env.ws_files }}" | xargs)"
-          if [ "${#files[@]}" -eq 0 ]; then
+          read -r -a prediction <<<"$(printf '%s' "${{ env.prediction_files }}" | xargs)"
+          if [ "${#files[@]}" -eq 0 ] && [ "${#prediction[@]}" -eq 0 ]; then
             echo "No files to process; building the reference venue only."
-            tsx build/granular-rust-build.ts binance
-          else
+          elif [ "${#prediction[@]}" -eq 0 ]; then
             echo "Files to process: ${files[*]}"
             tsx build/granular-rust-build.ts "${files[@]}"
+          else
+            echo "Files to process: ${files[*]} (prediction: ${prediction[*]})"
+            tsx build/granular-rust-build.ts "${files[@]}" --prediction "${prediction[@]}"
           fi
       - name: Generate Rust typed wrappers
         run: npm run emitRustTyped
       - name: Build
         run: npm run buildRust
       - name: Check ccxt package (isolated feature sets)
+        if: env.important_modified == 'true'
         run: |
+          cargo check --manifest-path rust/ccxt-common/Cargo.toml
           cargo check --manifest-path rust/ccxt-base/Cargo.toml --no-default-features
           cargo check --manifest-path rust/ccxt-base/Cargo.toml --all-features
       - name: Clippy (ccxt lib)
         run: |
           rustup component add clippy
+          cargo clippy --manifest-path rust/ccxt-common/Cargo.toml -- -D warnings
           cargo clippy --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base -- -D warnings
       - name: Build Rust examples
         if: github.ref == 'refs/heads/master' && env.important_modified == 'true'
@@ -131,7 +137,9 @@ jobs:
         # Selecting native tests must not independently force every venue to transpile.
         if: (github.ref == 'refs/heads/master' && (env.important_modified == 'true' || steps.native-tests.outputs.enabled == 'true')) || (github.event_name == 'pull_request' && steps.native-tests.outputs.enabled == 'true')
         timeout-minutes: 15
-        run: cargo test --jobs 2 --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base
+        run: |
+          cargo test --jobs 2 --manifest-path rust/ccxt-common/Cargo.toml
+          cargo test --jobs 2 --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base
       - name: Cargo test gate
         if: github.ref == 'refs/heads/master' && env.important_modified == 'true'
         run: |

@@ -1,6 +1,7 @@
 import bitstampRest from '../bitstamp.js';
-import type { Int, Str, OrderBook, Order, Trade, Dict, Market, Bool, FundingRate } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Dict, NullableDict, Market, Bool, FundingRate } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bitstamp extends bitstampRest {
     describe(): any;
     /**
@@ -22,7 +23,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -34,9 +35,9 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    unWatchChannel(channel: string, subHash: string, topic: string, symbols: string[], params?: {}): Promise<any>;
+    unWatchChannel(channel: string, subHash: string, topic: string, symbols: string[], params?: Dict): Promise<any>;
     handleOrderBook(client: Client, message: Dict): void;
-    handleDelta(orderbook: any, delta: any): void;
+    handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     handleBidAsks(bookSide: any, bidAsks: any[]): void;
     getCacheIndex(orderbook: any, deltas: any): number;
     /**
@@ -59,8 +60,8 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    parseWsTrade(trade: Dict, market?: Market): Trade;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    parseWsTrade(trade: NullableDict, market?: Market): Trade;
     handleTrade(client: Client, message: Dict): void;
     /**
      * @method
@@ -71,7 +72,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    watchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     handleFundingRate(client: Client, message: Dict): void;
     /**
      * @method
@@ -93,7 +94,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
+    unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
     /**
      * @method
      * @name bitstamp#watchMyTrades
@@ -115,9 +116,9 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
+    unWatchMyTrades(symbol?: Str, params?: Dict): Promise<any>;
     handleMyTrades(client: Client, message: Dict): void;
-    parseWsMyTrade(trade: any, market?: Market): Trade;
+    parseWsMyTrade(trade: Dict, market?: Market): Trade;
     handleOrders(client: Client, message: Dict): void;
     parseWsOrder(order: Dict, market?: Market): Order;
     handleOrderBookSubscription(client: Client, message: Dict): void;
@@ -134,7 +135,7 @@ export default class bitstamp extends bitstampRest {
      */
     pruneCachedBySymbols(newCache: any, cache: any, symbols: string[]): any;
     handleSubject(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: any): Bool;
+    handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: Dict): void;
     authenticate(params?: Dict): Promise<void>;
     subscribePrivate(subscription: Dict, messageHash: string, params?: Dict): Promise<any>;

@@ -103,9 +103,9 @@ public class ToobitApi extends Exchange
      * Calls the commonGetQuoteV1IndexKlines endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public CompletableFuture<List<Object>>  commonGetQuoteV1IndexKlines (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  commonGetQuoteV1IndexKlines (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1IndexKlines", optionalArgs);
     }
@@ -125,9 +125,9 @@ public class ToobitApi extends Exchange
      * Calls the commonGetQuoteV1MarkPriceKlines endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public CompletableFuture<List<Object>>  commonGetQuoteV1MarkPriceKlines (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  commonGetQuoteV1MarkPriceKlines (Object... optionalArgs)
     {
         return this.callAsync ("commonGetQuoteV1MarkPriceKlines", optionalArgs);
     }
