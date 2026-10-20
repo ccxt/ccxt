@@ -27,6 +27,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'swap': True,
                 'future': True,
                 'option': None,
+                'editOrder': False,
                 'fetchBidsAsks': True,
                 'transfer': True,
             },
