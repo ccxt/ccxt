@@ -7,7 +7,7 @@ import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, NullResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, MarketMarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, Bool, Fee, FeeString, MarketType, List, NullableDict, NullableList, SubType, CurrencyInterface, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, Endpoint, AllGreeks, LastPrice, FundingHistory, LastPrices } from './base/types.js';
-import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
+import { TRUNCATE, TICK_SIZE, DECIMAL_PLACES } from './base/functions/number.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
 
@@ -1287,7 +1287,7 @@ export default class binance extends Exchange {
                         'maker': this.parseNumber ('0.000200'),
                         'tiers': {
                             'taker': [
-                                [ this.parseNumber ('0'), this.parseNumber ('0.000400') ],
+                                [ this.parseNumber ('0'), this.parseNumber ('0.000500') ],
                                 [ this.parseNumber ('250'), this.parseNumber ('0.000400') ],
                                 [ this.parseNumber ('2500'), this.parseNumber ('0.000350') ],
                                 [ this.parseNumber ('7500'), this.parseNumber ('0.000320') ],
@@ -1319,7 +1319,7 @@ export default class binance extends Exchange {
                         'tierBased': true,
                         'percentage': true,
                         'taker': this.parseNumber ('0.000500'),
-                        'maker': this.parseNumber ('0.000100'),
+                        'maker': this.parseNumber ('0.000200'),
                         'tiers': {
                             'taker': [
                                 [ this.parseNumber ('0'), this.parseNumber ('0.000500') ],
@@ -1334,7 +1334,7 @@ export default class binance extends Exchange {
                                 [ this.parseNumber ('750000'), this.parseNumber ('0.000240') ],
                             ],
                             'maker': [
-                                [ this.parseNumber ('0'), this.parseNumber ('0.000100') ],
+                                [ this.parseNumber ('0'), this.parseNumber ('0.000200') ],
                                 [ this.parseNumber ('250'), this.parseNumber ('0.000080') ],
                                 [ this.parseNumber ('2500'), this.parseNumber ('0.000050') ],
                                 [ this.parseNumber ('7500'), this.parseNumber ('0.0000030') ],
@@ -2064,6 +2064,8 @@ export default class binance extends Exchange {
                         '-10045': OperationRejected, // The loan coin does not support collateral repayment. Please try again later.
                         '-10046': OperationRejected, // Collateral Adjustment exceeds the maximum limit. Please try again.
                         '-10047': PermissionDenied, // This coin is currently not supported in your location due to local regulations.
+                        '-11001': BadRequest, // Isolated margin account does not exist
+                        '-11007': BadRequest, // Isolated pair is not active
                         '-11008': OperationRejected, // undocumented: Exceeding the account’s maximum borrowable limit
                         '-12014': RateLimitExceeded, // More than 1 request in 2 seconds
                         // BLVT
@@ -4148,6 +4150,9 @@ export default class binance extends Exchange {
         if (type === 'delivery') {
             throw new BadRequest (this.id + ' fetchBalance() type delivery is no longer supported, use type swap or future with subType inverse instead');
         }
+        if (type === 'option') {
+            throw new NotSupported (this.id + ' fetchBalance() does not support type option');
+        }
         let subType: SubType = undefined;
         let paramsSubType = undefined;
         [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
@@ -5843,15 +5848,26 @@ export default class binance extends Exchange {
         if (postOnly) {
             uppercaseType = 'LIMIT_MAKER';
         }
-        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
+        if ((this.safeDict (params, 'stopLoss') !== undefined) || (this.safeDict (params, 'takeProfit') !== undefined)) {
+            throw new NotSupported (this.id + ' editOrder() does not support stopLoss/takeProfit dicts for spot orders, use stopLossPrice or takeProfitPrice');
+        }
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const triggerPrice = this.safeNumberN (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (triggerPrice !== undefined) {
+            const isTakeProfit = (takeProfitPrice !== undefined) && (stopLossPrice === undefined);
+            const triggerType = isTakeProfit ? 'TAKE_PROFIT' : 'STOP_LOSS';
             if (uppercaseType === 'MARKET') {
-                uppercaseType = 'STOP_LOSS';
+                uppercaseType = triggerType;
             } else if (uppercaseType === 'LIMIT') {
-                uppercaseType = 'STOP_LOSS_LIMIT';
+                uppercaseType = triggerType + '_LIMIT';
             }
         }
         request['type'] = uppercaseType;
+        const icebergAmount = this.safeString (params, 'icebergAmount');
+        if (icebergAmount !== undefined) {
+            request['icebergQty'] = this.amountToPrecision (symbol, icebergAmount);
+        }
         const validOrderTypes = this.safeList (market['info'], 'orderTypes', []);
         if (!this.inArray (uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {
@@ -5939,7 +5955,7 @@ export default class binance extends Exchange {
         if (this.safeString (params, 'timeInForce') === 'PO') {
             paramsTimeInForce = this.omit (params, [ 'timeInForce' ]);
         }
-        const paramsOmitted: Dict = this.omit (paramsTimeInForce, [ 'quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
+        const paramsOmitted: Dict = this.omit (paramsTimeInForce, [ 'quoteOrderQty', 'cost', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'icebergAmount', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
         return this.extend (request, paramsOmitted);
     }
 
@@ -7365,7 +7381,7 @@ export default class binance extends Exchange {
                     const stopLossOrTakeProfit = this.safeString (paramsPapi, 'stopLossOrTakeProfit');
                     omitKeys.push ('stopLossOrTakeProfit');
                     if ((stopLossOrTakeProfit !== 'stopLoss') && (stopLossOrTakeProfit !== 'takeProfit')) {
-                        throw new InvalidOrder (this.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
+                        throw new InvalidOrder (this.id + ' ' + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
                     }
                     if (isMarketOrder) {
                         if (stopLossOrTakeProfit === 'stopLoss') {
@@ -10336,11 +10352,11 @@ export default class binance extends Exchange {
             if (type === undefined) {
                 if (fromId === undefined) {
                     const keys = Object.keys (accountsByType);
-                    throw new ExchangeError (this.id + ' fromAccount parameter must be one of ' + keys.join (', '));
+                    throw new BadRequest (this.id + ' fromAccount parameter must be one of ' + keys.join (', '));
                 }
                 if (toId === undefined) {
                     const keys = Object.keys (accountsByType);
-                    throw new ExchangeError (this.id + ' toAccount parameter must be one of ' + keys.join (', '));
+                    throw new BadRequest (this.id + ' toAccount parameter must be one of ' + keys.join (', '));
                 }
                 type = fromId + '_' + toId;
             }
@@ -13655,7 +13671,11 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const amountValue: any = this.amountToPrecision (symbol, amount);
+        let marginCode = market['base'];
+        if (market['linear'] === true) {
+            marginCode = market['quote'];
+        }
+        const amountValue: any = this.currencyToPrecision (marginCode, amount);
         const request: Dict = {
             'type': addOrReduce,
             'symbol': market['id'],
@@ -14186,7 +14206,8 @@ export default class binance extends Exchange {
         const currency = this.currency (code);
         const request: Dict = {
             'asset': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            // truncate to 8 decimals so a full repay leaves no dust
+            'amount': this.decimalToPrecision (amount, TRUNCATE, 8, DECIMAL_PLACES),
         };
         let response: NullableDict = undefined;
         let isPortfolioMargin: Bool = undefined;
@@ -14248,7 +14269,7 @@ export default class binance extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'asset': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.decimalToPrecision (amount, TRUNCATE, 8, DECIMAL_PLACES),
             'symbol': market['id'],
             'isIsolated': 'TRUE',
             'type': 'REPAY',
