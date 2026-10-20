@@ -3919,7 +3919,7 @@ class bingx(Exchange, ImplicitAPI):
             'status': self.parse_order_status(statusId),
             'fee': {
                 'currency': feeCurrencyCode,
-                'cost': Precise.string_abs(feeCost),
+                'cost': self.parse_number(Precise.string_abs(feeCost)),
             },
             'trades': None,
             'reduceOnly': self.safe_bool_2(orderData, 'reduceOnly', 'ro'),
