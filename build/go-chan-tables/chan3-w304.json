@@ -1,7 +1,0 @@
-{
-    "FetchOrderWithClientOrderId": "Order",
-    "FetchUnifiedOrder": "Order",
-    "FetchClosedOrder": "Order",
-    "FetchOpenOrder": "Order",
-    "FetchOrderClassic": "Order"
-}

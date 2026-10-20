@@ -1,5 +1,0 @@
-{
-  "SignAndCreateOrder": "[]map[string]any",
-  "SignAndCancelOrder": "[]map[string]any",
-  "SignAndCancelAllOrders": "[]map[string]any"
-}

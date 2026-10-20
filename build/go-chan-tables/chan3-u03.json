@@ -1,6 +1,0 @@
-{
-    "CancelOrders": "[]any",
-    "CancelAllOrders": "[]any",
-    "CreateOrders": "[]any",
-    "FetchOrdersByIds": "[]any"
-}

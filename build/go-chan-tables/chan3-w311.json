@@ -1,8 +1,0 @@
-{
-    "FetchBidsAsks": "map[string]Ticker",
-    "FetchContractTickers": "map[string]Ticker",
-    "FetchMarkPrices": "map[string]Ticker",
-    "FetchSpotTickers": "map[string]Ticker",
-    "FetchTickersV2": "map[string]Ticker",
-    "FetchTickersV3": "map[string]Ticker"
-}

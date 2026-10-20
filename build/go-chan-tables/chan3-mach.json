@@ -1,5 +1,0 @@
-{
-  "TransferUta": "map[string]any",
-  "TransferClassic": "map[string]any",
-  "NegotiateHelper": "string"
-}

@@ -1,6 +1,0 @@
-{
-    "FetchDepositWithdrawFee": "DepositWithdrawFee",
-    "FetchDepositWithdrawFees": "map[string]DepositWithdrawFee",
-    "FetchPrivateDepositWithdrawFees": "map[string]DepositWithdrawFee",
-    "FetchPublicDepositWithdrawFees": "map[string]DepositWithdrawFee"
-}

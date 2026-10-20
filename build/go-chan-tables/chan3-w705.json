@@ -1,5 +1,0 @@
-{
-  "FetchContractMarkets": "[]map[string]any",
-  "FetchDefaultMarkets": "[]map[string]any",
-  "FetchHip3Markets": "[]map[string]any"
-}

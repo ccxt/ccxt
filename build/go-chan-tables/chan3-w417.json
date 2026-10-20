@@ -1,4 +1,0 @@
-{
-  "RepayMargin": "map[string]any",
-  "SetContractLeverage": "map[string]any"
-}

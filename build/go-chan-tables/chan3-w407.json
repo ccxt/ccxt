@@ -1,7 +1,0 @@
-{
-    "FetchTransfer": "TransferEntry",
-    "FuturesTransfer": "TransferEntry",
-    "TransferBetweenMainAndSubAccount": "TransferEntry",
-    "TransferBetweenSubAccounts": "TransferEntry",
-    "Deposit": "Transaction"
-}

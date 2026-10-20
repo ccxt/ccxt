@@ -1,5 +1,0 @@
-{
-  "FetchOptionMarkets": "[]map[string]any",
-  "FetchFutureMarkets": "[]map[string]any",
-  "FetchMarketsByType": "[]map[string]any"
-}

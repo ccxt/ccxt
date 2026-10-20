@@ -1,5 +1,0 @@
-{
-    "FetchBorrowInterest": "[]BorrowInterest",
-    "FetchFundingHistory": "[]FundingHistory",
-    "FetchFundingRateHistory": "[]FundingRateHistory"
-}

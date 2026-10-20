@@ -1,4 +1,0 @@
-{
-  "FetchDepositMethodId": "map[string]any",
-  "FetchLatestBlockHeight": "*int64"
-}

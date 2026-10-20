@@ -1,6 +1,0 @@
-{
-    "CreateGiftCode": "map[string]any",
-    "CreateExtendedOrderRequest": "map[string]any",
-    "CreateSpotOrderRequest": "map[string]any",
-    "CreateOrderRequest": "map[string]any"
-}

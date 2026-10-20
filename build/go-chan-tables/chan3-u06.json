@@ -1,4 +1,0 @@
-{
-    "FetchBidsAsks": "map[string]any",
-    "FetchLastPrices": "map[string]any"
-}

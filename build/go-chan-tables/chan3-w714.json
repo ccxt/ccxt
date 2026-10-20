@@ -1,5 +1,0 @@
-{
-  "Binance.ModifyMarginHelper": "MarginModification",
-  "Binance.AddMargin": "MarginModification",
-  "Binance.ReduceMargin": "MarginModification"
-}

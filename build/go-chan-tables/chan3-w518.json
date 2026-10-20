@@ -1,5 +1,0 @@
-{
-    "Prediction.CreateMarketBuyOrderWithCost": "PredictionOrder",
-    "Prediction.CreateMarketOrderWithCost": "PredictionOrder",
-    "Prediction.CreateMarketSellOrderWithCost": "PredictionOrder"
-}

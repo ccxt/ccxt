@@ -1,6 +1,0 @@
-{
-  "FetchFundingLimits": "map[string]any",
-  "FetchPublicTransactionFees": "map[string]any",
-  "FetchPrivateTransactionFees": "map[string]any",
-  "FetchBorrowRateHistories": "map[string]any"
-}

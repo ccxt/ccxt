@@ -1,7 +1,0 @@
-{
-    "FetchMarketLeverageTiers": "[]LeverageTier",
-    "FetchDerivativesMarketLeverageTiers": "[]LeverageTier",
-    "FetchMarginAdjustmentHistory": "[]MarginModification",
-    "FetchLongShortRatioHistory": "[]LongShortRatio",
-    "FetchPositionsADLRank": "[]ADL"
-}

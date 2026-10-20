@@ -1,5 +1,0 @@
-{
-  "AuthenticateRest": "*string",
-  "FetchAccountIdByType": "*string",
-  "FetchAccountSettings": "map[string]any"
-}

@@ -1,8 +1,0 @@
-{
-    "FetchAllGreeks": "map[string]Greeks",
-    "FetchOptionChain": "map[string]Option",
-    "FetchAccount": "Account",
-    "FetchPortfolios": "[]Account",
-    "FetchAccountsV2": "[]Account",
-    "FetchAccountsV3": "[]Account"
-}

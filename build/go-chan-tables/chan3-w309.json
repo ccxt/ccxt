@@ -1,7 +1,0 @@
-{
-    "FetchADLRank": "ADL",
-    "FetchPositionADLRank": "ADL",
-    "FetchCrossBorrowRate": "CrossBorrowRate",
-    "FetchIsolatedBorrowRate": "IsolatedBorrowRate",
-    "FetchLongShortRatio": "LongShortRatio"
-}

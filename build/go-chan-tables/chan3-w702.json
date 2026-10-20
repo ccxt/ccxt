@@ -1,4 +1,0 @@
-{
-  "FetchSpotMarkets": "[]map[string]any",
-  "FetchSwapMarkets": "[]map[string]any"
-}

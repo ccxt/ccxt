@@ -1,6 +1,0 @@
-{
-    "ModifyMarginHelper": "map[string]any",
-    "SetLeverage": "map[string]any",
-    "SetMarginMode": "map[string]any",
-    "SetPositionMode": "map[string]any"
-}

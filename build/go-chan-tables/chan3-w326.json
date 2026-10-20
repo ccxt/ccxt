@@ -1,5 +1,0 @@
-{
-    "FetchDepositAddresses": "[]DepositAddress",
-    "FetchTransfers": "[]TransferEntry",
-    "InternalFetchTransfers": "[]TransferEntry"
-}

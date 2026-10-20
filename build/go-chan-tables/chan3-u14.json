@@ -1,5 +1,0 @@
-{
-    "FetchLeverageTiers": "map[string]any",
-    "FetchMarketLeverageTiers": "[]any",
-    "GetLeverageTiersPaginated": "[]any"
-}

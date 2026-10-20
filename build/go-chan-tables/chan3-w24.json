@@ -1,9 +1,0 @@
-{
-    "FetchDydxAccount": "map[string]any",
-    "FetchExtendedAccount": "map[string]any",
-    "LoadUnifiedStatus": "bool",
-    "SetRef": "bool",
-    "Kraken.FetchDepositMethods": "[]any",
-    "IsUTAEnabled": "bool",
-    "Bullish.LoadAccount": "*string"
-}

@@ -1,7 +1,0 @@
-{
-    "LoadMarketsHelper": "*sync.Map",
-    "GetZKContractSignatureObj": "string",
-    "GetZKTransferSignatureObj": "string",
-    "LoadDydxProtos": "bool",
-    "LoadOrderBook": "bool"
-}

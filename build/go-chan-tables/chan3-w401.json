@@ -1,7 +1,0 @@
-{
-    "CancelContractOrder": "Order",
-    "CancelSpotOrder": "Order",
-    "CancelTwapOrder": "Order",
-    "CancelUtaOrder": "Order",
-    "CreateContractOrder": "Order"
-}

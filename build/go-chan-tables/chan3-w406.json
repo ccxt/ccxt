@@ -1,7 +1,0 @@
-{
-    "FetchTicker2": "Ticker",
-    "FetchTickerV1": "map[string]any",
-    "FetchTickerV2": "map[string]any",
-    "FetchTickerV1AndV2": "Ticker",
-    "FetchTickerV3": "Ticker"
-}

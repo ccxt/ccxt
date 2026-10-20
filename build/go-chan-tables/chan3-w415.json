@@ -1,7 +1,0 @@
-{
-    "HandleAccountIndex": "[]any",
-    "HandleBuilderFeeApproval": "bool",
-    "HandleNetworkIdAndParams": "[]any",
-    "HandlePortfolioAndParams": "[]any",
-    "HandleUTAAndParams": "[]any"
-}

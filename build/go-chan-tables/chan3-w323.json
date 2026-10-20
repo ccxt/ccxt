@@ -1,9 +1,0 @@
-{
-    "FetchPositionHistory": "[]Position",
-    "FetchPositionsHistory": "[]Position",
-    "FetchPositionsForSymbol": "[]Position",
-    "FetchPositionsRisk": "[]Position",
-    "CloseAllPositions": "[]Position",
-    "FetchAccountPositions": "[]Position",
-    "FetchOptionPositions": "[]Position"
-}

@@ -1,6 +1,6 @@
 // ===== GO-CHAN3: typed AsyncResult channels (`<-chan AsyncResult[any]` -> `<-chan AsyncResult[T]`) =====
 // API
-//   tables  build/go-chan-tables/chan3-*.json: { "<Core>": "<Go T>" } keyed by the printed core name without
+//   tables  build/go-chan-tables.json async: { "<Core>": "<Go T>" } keyed by the printed core name without
 //           `Async` (e.g. "CancelOrder": "map[string]any"). T in map[string]any, []any, string, float64, bool,
 //           int64, *int64, ... A method may not also sit in an EndpointResult (gochan) table: goChan3Table throws.
 //   pass    goChan3Pass(content): runs AFTER goErrValuePass (it retypes the AsyncResult[any] go-err printed).
@@ -19,7 +19,8 @@ import { fileURLToPath } from 'url';
 import { GO_STRUCT_RETURN_TYPES } from './go-struct-returns.js';
 import { goChanMask, goChanClose, goChanExprEnd, goChanQual, goChanSendType, goChanMethodReturn, goChanTable, goChanSetBaseReturnsForTest } from './go-chan.js';
 
-const GO_CHAN3_DIR = path.join (path.dirname (fileURLToPath (import.meta.url)), 'go-chan-tables');
+const GO_CHAN3_FILE = path.join (path.dirname (fileURLToPath (import.meta.url)), 'go-chan-tables.json');
+const goChan3File = (): { 'async': Record<string, string>, 'resolved': string[] } => JSON.parse (fs.readFileSync (GO_CHAN3_FILE, 'utf8'));
 let GO_CHAN3_TABLE: Map<string, string> | undefined = undefined;
 
 export function goChan3Nilable (type: string): boolean {
@@ -281,38 +282,22 @@ function goChan3BalanceSend (expr: string, fnMasked: string, ownCall: (name: str
     return { 'value': name, 'decl': { 'start': at, 'end': at + 3 } };
 }
 
-// method -> T merged from chan3-*.json; a method tabled twice differently or also in a gochan table throws
+// method -> T from go-chan-tables.json async; a method also in a gochan table throws
 export function goChan3Table (): Map<string, string> {
     if (GO_CHAN3_TABLE === undefined) {
         const table = new Map<string, string> ();
-        const files = fs.existsSync (GO_CHAN3_DIR) ? fs.readdirSync (GO_CHAN3_DIR).filter ((f) => /^chan3-.*\.json$/.test (f)).sort () : [];
+        const f = 'go-chan-tables.json';
+        const entries = goChan3File ().async;
         const carriers = goChanTable ();
-        for (const f of files) {
-            const entries = JSON.parse (fs.readFileSync (path.join (GO_CHAN3_DIR, f), 'utf8'));
-            for (const method of Object.keys (entries)) {
-                const type = entries[method];
-                if ((typeof type !== 'string') || /\bany\b(?!\])|^interface/.test (type.replace (/^(?:\[\])?map\[string\]any$|^\[\]any$/, ''))) {
-                    throw new Error ('GOCHAN3: ' + method + ': element type must be concrete (' + f + ')');
-                }
-                if (carriers.has (method)) {
-                    throw new Error ('GOCHAN3: ' + method + ' is already an EndpointResult carrier (gochan table), ' + f);
-                }
-                const prev = table.get (method);
-                if ((prev !== undefined) && (prev !== type)) {
-                    const structs = goChan3StructTypes ();
-                    const prevBase = prev.replace (/\?$/, '');
-                    const typeBase = type.replace (/\?$/, '');
-                    const prevIsShadowOfType = ((structs.has (type) && (prevBase === 'map[string]any')) || ((goChan3ListElem (type) !== undefined) && ((prevBase === '[]any') || ((prevBase === '[]map[string]any') && (typeBase !== '[]map[string]any')))));
-                    const typeIsShadowOfPrev = ((structs.has (prev) && (typeBase === 'map[string]any')) || ((goChan3ListElem (prev) !== undefined) && ((typeBase === '[]any') || ((typeBase === '[]map[string]any') && (prevBase !== '[]map[string]any')))));
-                    if (typeIsShadowOfPrev) {
-                        continue;
-                    }
-                    if (!prevIsShadowOfType) {
-                        throw new Error ('GOCHAN3: ' + method + ' tabled twice with different types (' + f + ')');
-                    }
-                }
-                table.set (method, type);
+        for (const method of Object.keys (entries)) {
+            const type = entries[method];
+            if ((typeof type !== 'string') || /\bany\b(?!\])|^interface/.test (type.replace (/^(?:\[\])?map\[string\]any$|^\[\]any$/, ''))) {
+                throw new Error ('GOCHAN3: ' + method + ': element type must be concrete (' + f + ')');
             }
+            if (carriers.has (method)) {
+                throw new Error ('GOCHAN3: ' + method + ' is already an EndpointResult carrier (gochan table), ' + f);
+            }
+            table.set (method, type);
         }
         GO_CHAN3_TABLE = table;
     }
@@ -325,15 +310,13 @@ export function goChan3SetTableForTest (table: Map<string, string> | undefined, 
 }
 
 // ===== GO-CHAN3 WS2: the Future resolution boundary =====
-// Methods in chan3-ws2.json (watch*/ *Ws) may send what a ws handler resolved (Client.Resolve takes any): such a
+// Methods in go-chan-tables.json resolved (watch*/ *Ws) may send what a ws handler resolved (Client.Resolve takes any): such a
 // send becomes an inline type switch (T, *sync.Map snapshot / ArrayCache ToArray, nil) that panics on any other type.
 let GO_CHAN3_RESOLVED: Set<string> | undefined = undefined;
 
 export function goChan3Resolved (): Set<string> {
     if (GO_CHAN3_RESOLVED === undefined) {
-        // chan3-ws2.json plus per-unit chan3-ws2-<unit>.json files
-        const files = fs.existsSync (GO_CHAN3_DIR) ? fs.readdirSync (GO_CHAN3_DIR).filter ((f) => /^chan3-ws2(?:-[\w-]+)?\.json$/.test (f)).sort () : [];
-        GO_CHAN3_RESOLVED = new Set (files.flatMap ((f) => Object.keys (JSON.parse (fs.readFileSync (path.join (GO_CHAN3_DIR, f), 'utf8')))));
+        GO_CHAN3_RESOLVED = new Set (goChan3File ().resolved);
     }
     return GO_CHAN3_RESOLVED;
 }
@@ -2390,7 +2373,7 @@ export function goChan3SelfTest (): string[] {
     try { pmOut = run (pm, goChan3Table ()); } catch (e) { pmOut = 'THROW ' + e; }
     ok (pmOut.includes ('ccxt.AsyncResult[map[string]any]{Value: map[string]any{}}') && !pmOut.includes ('ccxt.Ticker'), 'prediction venue keeps the tickers map shadow: ' + pmOut);
     goChan3SetTableForTest (undefined, undefined);
-    ok ([ 'WatchTicker', 'WatchMarkPrice' ].every ((m) => goChan3Resolved ().has (m)), 'ws2 set merges every chan3-ws2*.json');
+    ok ([ 'WatchTicker', 'WatchMarkPrice' ].every ((m) => goChan3Resolved ().has (m)), 'ws2 resolved set loads');
     goChan3SetTableForTest (undefined, undefined);
     goChan3SetStubsForTest (undefined);
     goChanSetBaseReturnsForTest (undefined);

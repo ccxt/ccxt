@@ -1,8 +1,0 @@
-{
-    "FetchFundingIntervals": "map[string]FundingRate",
-    "WatchFundingRates": "map[string]FundingRate",
-    "WatchFundingRatesForSymbols": "map[string]FundingRate",
-    "FetchTradingFeesWs": "map[string]TradingFeeInterface",
-    "FetchIsolatedBorrowRates": "map[string]IsolatedBorrowRate",
-    "FetchLastPrices": "map[string]LastPrice"
-}

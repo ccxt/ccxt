@@ -1,7 +1,0 @@
-{
-    "CancelOrders": "[]Order",
-    "CancelOrdersForSymbols": "[]Order",
-    "CancelUtaOrders": "[]Order",
-    "CancelAllOrders": "[]Order",
-    "CancelAllUtaOrders": "[]Order"
-}

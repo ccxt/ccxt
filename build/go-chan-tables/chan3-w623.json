@@ -1,4 +1,0 @@
-{
-  "FetchRawActiveMarkets": "[]map[string]any",
-  "FetchRawMarketsByTags": "[]map[string]any"
-}

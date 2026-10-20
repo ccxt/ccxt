@@ -1,4 +1,0 @@
-{
-    "Prediction.FetchTickers": "map[string]PredictionTicker",
-    "Prediction.WatchTickers": "map[string]PredictionTicker"
-}

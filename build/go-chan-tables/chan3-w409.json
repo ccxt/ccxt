@@ -1,8 +1,0 @@
-{
-  "FetchPositionWs": "[]Position",
-  "FetchLedgerByEntries": "[]LedgerEntry",
-  "Alpaca.FetchTransactionsHelper": "[]Transaction",
-  "Bydfi.FetchTransactionsHelper": "[]Transaction",
-  "Dydx.FetchTransactionsHelper": "[]map[string]any",
-  "Hitbtc.FetchTransactionsHelper": "[]Transaction"
-}

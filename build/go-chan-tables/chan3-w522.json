@@ -1,5 +1,0 @@
-{
-    "Prediction.FetchClosedOrders": "[]PredictionOrder",
-    "Prediction.FetchCanceledOrders": "[]PredictionOrder",
-    "Prediction.FetchOrdersByIds": "[]PredictionOrder"
-}

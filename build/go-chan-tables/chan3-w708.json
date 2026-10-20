@@ -1,5 +1,0 @@
-{
-  "FetchUTAMarkets": "[]map[string]any",
-  "FetchUtaMarkets": "[]map[string]any",
-  "FetchMarketsWs": "[]map[string]any"
-}

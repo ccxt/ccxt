@@ -1,12 +1,12 @@
 // ===== GOCHAN-1: typed async carriers (`<-chan EndpointResult[T]`) and their consumers =====
 // A tabled method's cores send EndpointResult[T]{Value: v, Raw: v}; Raw is the value sent today, so
-// IsError / PanicOnError / ReturnPanicErrorT see the same payload. Tables: build/go-chan-tables/*.json.
+// IsError / PanicOnError / ReturnPanicErrorT see the same payload. Table: build/go-chan-tables.json (endpoint).
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { goStructBoxedReturn } from './go-struct-returns.js';
 
-const GO_CHAN_TABLE_DIR = path.join (path.dirname (fileURLToPath (import.meta.url)), 'go-chan-tables');
+const GO_CHAN_TABLE_FILE = path.join (path.dirname (fileURLToPath (import.meta.url)), 'go-chan-tables.json');
 // calls whose hand-written Go signature returns this type (go/v4/exchange_*.go)
 export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     'this.Extend': 'map[string]any', 'this.DeepExtend': 'map[string]any', 'this.ParseToInt': 'int64', 'this.Json': 'string',
@@ -68,33 +68,17 @@ const GO_CHAN_RECEIVERS = /^(?:this|this\.base|this\.Exchange|this\.BaseExchange
 
 let GO_CHAN_TABLE: Map<string, string> | undefined = undefined;
 
-// method (printed core name without the Async suffix) -> Go element type, merged from every lead's table
+// method (printed core name without the Async suffix) -> EndpointResult element type
 export function goChanTable (): Map<string, string> {
     if (GO_CHAN_TABLE === undefined) {
         const table = new Map<string, string> ();
-        const chan3Keys = new Set<string> ();
-        const chan3Files = fs.existsSync (GO_CHAN_TABLE_DIR) ? fs.readdirSync (GO_CHAN_TABLE_DIR).filter ((f) => /^chan3-(?!ws2)/.test (f) && f.endsWith ('.json')) : [];
-        for (const f of chan3Files) {
-            for (const k of Object.keys (JSON.parse (fs.readFileSync (path.join (GO_CHAN_TABLE_DIR, f), 'utf8')))) {
-                chan3Keys.add (k);
+        const raw = JSON.parse (fs.readFileSync (GO_CHAN_TABLE_FILE, 'utf8'));
+        const entries: Record<string, string> = raw.endpoint ?? {};
+        for (const method of Object.keys (entries)) {
+            if (/\?$/.test (entries[method]) && !/^(?:map\[|\[\]|\*)/.test (entries[method])) {
+                throw new Error ('GOCHAN: ' + method + ': nil sends need a nilable type (go-chan-tables.json)');
             }
-        }
-        // chan3-*.json are AsyncResult[T] tables (build/go-chan3.ts) and supersede EndpointResult carriers
-        const files = fs.existsSync (GO_CHAN_TABLE_DIR) ? fs.readdirSync (GO_CHAN_TABLE_DIR).filter ((f) => f.endsWith ('.json') && !f.startsWith ('chan3-')).sort () : [];
-        for (const f of files) {
-            const entries = JSON.parse (fs.readFileSync (path.join (GO_CHAN_TABLE_DIR, f), 'utf8'));
-            for (const method of Object.keys (entries)) {
-                if (chan3Keys.has (method)) {
-                    continue;
-                }
-                if (table.has (method) && (table.get (method) !== entries[method])) {
-                    throw new Error ('GOCHAN: ' + method + ' tabled twice with different types (' + f + ')');
-                }
-                if (/\?$/.test (entries[method]) && !/^(?:map\[|\[\]|\*)/.test (entries[method])) {
-                    throw new Error ('GOCHAN: ' + method + ': nil sends need a nilable type (' + f + ')');
-                }
-                table.set (method, entries[method]);
-            }
+            table.set (method, entries[method]);
         }
         GO_CHAN_TABLE = table;
     }

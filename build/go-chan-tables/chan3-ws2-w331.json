@@ -1,4 +1,0 @@
-{
-    "UnSubscribe": "bool?",
-    "Krakenfutures.SubscribePublic": "map[string]any"
-}

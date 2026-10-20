@@ -1,6 +1,0 @@
-{
-  "FetchOutcomes": "map[string]any",
-  "LoadOutcomes": "map[string]any",
-  "LoadEvents": "map[string]any",
-  "LoadEventsHelper": "map[string]any"
-}

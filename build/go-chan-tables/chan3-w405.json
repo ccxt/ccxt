@@ -1,6 +1,0 @@
-{
-    "FetchClosedOrdersWs": "[]Order",
-    "FetchClosedSpotOrders": "[]Order",
-    "FetchOpenOrdersV1": "[]Order",
-    "FetchSpotOrders": "[]Order"
-}

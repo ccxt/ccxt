@@ -1,9 +1,0 @@
-{
-  "PreLoadLighterLibrary": "bool",
-  "CheckIfStandardTier": "bool",
-  "FetchNonce": "int64",
-  "QueryContracts": "map[string]any",
-  "GetSystemConfig": "map[string]any",
-  "RetrieveAccount": "map[string]any",
-  "SignOrderRequest": "map[string]any"
-}

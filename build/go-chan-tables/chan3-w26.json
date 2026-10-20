@@ -1,5 +1,0 @@
-{
-    "LoadAccounts": "[]any",
-    "LoadTimeDifference": "int64",
-    "LoadTradingLimits": "map[string]any"
-}

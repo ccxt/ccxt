@@ -1,7 +1,0 @@
-{
-    "FetchContractDepositAddress": "DepositAddress",
-    "FetchDepositAddressDefault": "DepositAddress",
-    "FetchDepositAddressSupplement": "DepositAddress",
-    "FetchNetworkDepositAddress": "DepositAddress",
-    "FetchWithdrawAddresses": "[]DepositAddress"
-}

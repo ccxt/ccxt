@@ -1,8 +1,0 @@
-{
-    "FetchLiquidations": "[]Liquidation",
-    "FetchMyLiquidations": "[]Liquidation",
-    "WatchLiquidations": "[]Liquidation",
-    "WatchLiquidationsForSymbols": "[]Liquidation",
-    "WatchMyLiquidations": "[]Liquidation",
-    "WatchMyLiquidationsForSymbols": "[]Liquidation"
-}

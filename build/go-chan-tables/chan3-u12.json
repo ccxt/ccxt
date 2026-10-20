@@ -1,8 +1,0 @@
-{
-    "FetchDepositWithdrawFees": "map[string]any",
-    "FetchTransactionFees": "map[string]any",
-    "FetchDepositWithdrawFee": "map[string]any",
-    "FetchTradingLimitsById": "map[string]any",
-    "FetchPublicDepositWithdrawFees": "map[string]any",
-    "FetchPrivateDepositWithdrawFees": "map[string]any"
-}

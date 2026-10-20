@@ -1,5 +1,0 @@
-{
-  "Authenticate": "*string",
-  "Bithumb.Authenticate": "ClientInterface",
-  "Whitebit.Authenticate": "int"
-}
