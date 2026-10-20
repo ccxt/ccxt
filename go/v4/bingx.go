@@ -5253,7 +5253,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 		"status":              this.ParseOrderStatus(statusId),
 		"fee": map[string]any{
 			"currency": feeCurrencyCode,
-			"cost":     Precise.StringAbs(feeCost),
+			"cost":     this.ParseNumber(Precise.StringAbs(feeCost)),
 		},
 		"trades":     nil,
 		"reduceOnly": this.SafeBool2(orderData, "reduceOnly", "ro"),
