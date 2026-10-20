@@ -8,13 +8,26 @@
 import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetTokensV2Tag (params?: {}): Promise<List>;
-    publicGetTokensV2Search (params?: {}): Promise<List>;
-    publicGetPriceV3 (params?: {}): Promise<Dict>;
-    publicGetSwapV1Quote (params?: {}): Promise<Dict>;
-    publicPostSwapV1Swap (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetTokensV2Tag (params = {}): Promise<List> {
+        return this.request ('tokens/v2/tag', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetTokensV2Search (params = {}): Promise<List> {
+        return this.request ('tokens/v2/search', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetPriceV3 (params = {}): Promise<Dict> {
+        return this.request ('price/v3', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetSwapV1Quote (params = {}): Promise<Dict> {
+        return this.request ('swap/v1/quote', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicPostSwapV1Swap (params = {}): Promise<Dict> {
+        return this.request ('swap/v1/swap', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;
