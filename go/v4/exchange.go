@@ -525,16 +525,16 @@ func (this *BaseExchange) Throttle(cost any) <-chan bool {
 }
 
 // base fetchMarkets (ts/src/base/Exchange.ts): the loaded markets as a list, [] before loadMarkets
-func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]map[string]any] {
-	ch := make(chan AsyncResult[[]map[string]any], 1)
+func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		if this.Markets == nil {
-			ch <- AsyncResult[[]map[string]any]{Value: []map[string]any{}}
+			ch <- AsyncResult[[]MarketInterface]{Value: []MarketInterface{}}
 			return
 		}
-		ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.ToArray(this.Markets))}
+		ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ToArray(this.Markets))}
 	}()
 	return ch
 }
@@ -2345,8 +2345,8 @@ func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResul
 // FetchOutcomes is a default stub so every exchange satisfies IDerivedExchange.
 // The prediction base provides the real fallback (a per-outcome fetchOutcome loop) and
 // kalshi/polymarket override it with batched by-id requests.
-func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any])
+func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncResult[map[string]PredictionOutcome] {
+	ch := make(chan AsyncResult[map[string]PredictionOutcome])
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)

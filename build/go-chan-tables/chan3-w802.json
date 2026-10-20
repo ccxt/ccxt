@@ -1,0 +1,5 @@
+{
+  "FetchSpotMarkets": "[]MarketInterface",
+  "FetchSwapMarkets": "[]MarketInterface",
+  "FetchOptionMarkets": "[]MarketInterface"
+}
