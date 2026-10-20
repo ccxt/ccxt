@@ -3228,6 +3228,11 @@ func (r AsyncResult[T]) Boxed() any {
 		if c == nil {
 			return nil
 		}
+	case map[string]map[string][]OHLCV:
+		if len(c) == 0 {
+			return nil
+		}
+		return OHLCVForSymbolsMapToMap(c)
 	}
 	// a list-of-struct channel (AsyncResult[[]Trade], ...) boxes as the []any of maps it replaced
 	if boxed, isList := structListBoxed(r.Value); isList {

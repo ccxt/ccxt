@@ -578,11 +578,11 @@ func lowerFirst(s string) string {
 // NewOHLCVForSymbolsMap converts a watchOHLCVForSymbols result (symbol -> timeframe -> candles,
 // built by createOHLCVObject as nested map[string]any) into the typed wrapper shape.
 func NewOHLCVForSymbolsMap(data any) map[string]map[string][]OHLCV {
-	result := map[string]map[string][]OHLCV{}
 	bySymbol, ok := data.(map[string]any)
 	if !ok {
-		return result
+		return nil
 	}
+	result := map[string]map[string][]OHLCV{}
 	for symbol, frames := range bySymbol {
 		byFrame, ok := frames.(map[string]any)
 		if !ok {
@@ -591,10 +591,31 @@ func NewOHLCVForSymbolsMap(data any) map[string]map[string][]OHLCV {
 		typed := map[string][]OHLCV{}
 		for timeframe, candles := range byFrame {
 			if candles != nil {
-				typed[timeframe] = NewOHLCVArray(candles)
+				typed[timeframe] = OHLCVsFromList(candles)
 			}
 		}
 		result[symbol] = typed
+	}
+	return result
+}
+
+// OHLCVForSymbolsMapFromMap builds a nested symbol->timeframe->[]OHLCV map from a watchOHLCVForSymbols result.
+func OHLCVForSymbolsMapFromMap(data any) map[string]map[string][]OHLCV {
+	return NewOHLCVForSymbolsMap(data)
+}
+
+// OHLCVForSymbolsMapToMap converts a nested symbol->timeframe->[]OHLCV map back to map[string]any.
+func OHLCVForSymbolsMapToMap(v map[string]map[string][]OHLCV) map[string]any {
+	if v == nil {
+		return nil
+	}
+	result := make(map[string]any, len(v))
+	for symbol, byFrame := range v {
+		frames := make(map[string]any, len(byFrame))
+		for timeframe, candles := range byFrame {
+			frames[timeframe] = OHLCVsToList(candles)
+		}
+		result[symbol] = frames
 	}
 	return result
 }

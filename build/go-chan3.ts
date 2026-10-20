@@ -1325,7 +1325,7 @@ function goChan3IsPredOnlyStruct (t: string): boolean {
 export function goChan3StructTypes (): Set<string> {
     const base = [ ...new Set ([ ...Object.keys (GO_STRUCT_RETURN_TYPES).filter ((t) => GO_STRUCT_RETURN_TYPES[t].to === undefined), ...GO_CHAN3_EXTRA_STRUCTS ]) ];
     // W29 map-of-struct channels: `map[string]T` (a string-keyed dict of T, e.g. fetchTickers) rides the same pass
-    return new Set ([ ...base, ...base.filter ((t) => GO_CHAN3_STRUCT_MAPS[t] !== undefined).map ((t) => 'map[string]' + t) ]);
+    return new Set ([ ...base, ...base.filter ((t) => GO_CHAN3_STRUCT_MAPS[t] !== undefined).map ((t) => 'map[string]' + t), 'map[string]map[string][]OHLCV' ]);
 }
 
 // W29: struct element -> the typed wrapper container of its string-keyed dict (`Tickers{Tickers: map[string]Ticker}`)
@@ -1352,19 +1352,25 @@ function goChan3StructMapElem (t: string): string | undefined {
 
 // W29: a struct channel type as written in a file with qualifier q (`map[string]ccxt.Ticker`, `ccxt.Order`)
 function goChan3StructQual (t: string, q: string): string {
+    if (t === 'map[string]map[string][]OHLCV') {
+        return 'map[string]map[string][]' + q + 'OHLCV';
+    }
     const e = goChan3StructMapElem (t);
     return (e === undefined) ? (q + t) : ('map[string]' + q + e);
 }
 
 // W29: the from/to helper base name of a struct channel type (`TickerMap` for map[string]Ticker)
 function goChan3StructHelper (t: string): string {
+    if (t === 'map[string]map[string][]OHLCV') {
+        return 'OHLCVForSymbolsMap';
+    }
     const e = goChan3StructMapElem (t);
     return (e === undefined) ? t : (e + 'Map');
 }
 
 // W29: is t (optionally ccxt.-qualified) a struct channel type
 function goChan3IsStructType (t: string): boolean {
-    return goChan3StructTypes ().has (t.replace (/^ccxt\./, '').replace (/^map\[string\]ccxt\./, 'map[string]'));
+    return goChan3StructTypes ().has (t.replace (/^ccxt\./, '').replace (/^map\[string\]ccxt\./, 'map[string]').replace (/^map\[string\]map\[string\]\[\]ccxt\./, 'map[string]map[string][]'));
 }
 
 function goChan3Escape (s: string): string {
@@ -1593,7 +1599,7 @@ export function goChan3StructPass (content: string, table: Map<string, string>):
         const QT = goChan3StructQual (T, q);
         const QH = q + goChan3StructHelper (T);
         const elem = goChan3StructMapElem (T);
-        const newName = (elem === undefined) ? ('New' + T) : ('New' + GO_CHAN3_STRUCT_MAPS[elem]);
+        const newName = (T === 'map[string]map[string][]OHLCV') ? 'NewOHLCVForSymbolsMap' : ((elem === undefined) ? ('New' + T) : ('New' + GO_CHAN3_STRUCT_MAPS[elem]));
         const pre = masked.substring (ls, r.start);
         const callEnd = goChanClose (masked, m.index + m[0].length - 1);
         const [ , fe0 ] = goChan3Func (masked, m.index);

@@ -7,5 +7,5 @@
   "WatchLiquidationsForSymbols": "[]any",
   "WatchMyLiquidations": "[]any",
   "WatchMyLiquidationsForSymbols": "[]any",
-  "WatchOHLCVForSymbols": "map[string]any"
+  "WatchOHLCVForSymbols": "map[string]map[string][]OHLCV"
 }

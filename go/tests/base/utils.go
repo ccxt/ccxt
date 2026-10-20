@@ -503,6 +503,9 @@ func DetypeForComparison(value any) any {
 	if curs, isCurs := value.(ccxt.Currencies); isCurs {
 		return ccxt.CurrenciesToMap(curs)
 	}
+	if ohlcvs, isOhlcvs := value.(map[string]map[string][]ccxt.OHLCV); isOhlcvs {
+		return ccxt.OHLCVForSymbolsMapToMap(ohlcvs)
+	}
 	rv := reflect.ValueOf(value)
 	switch rv.Kind() {
 	case reflect.Struct:

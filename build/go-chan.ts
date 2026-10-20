@@ -24,6 +24,7 @@ export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
     ...Object.fromEntries ([ 'Ticker', 'FundingRate', 'OpenInterest', 'TradingFeeInterface', 'Leverage', 'MarginMode', 'IsolatedBorrowRate', 'LastPrice', 'DepositWithdrawFee', 'DepositAddress', 'CrossBorrowRate', 'OrderBook', 'Greeks', 'Option', 'PredictionTicker' ].map ((t) => [ t + 'MapToMap', 'map[string]any' ])), // W29+W3+W4+W5
     'PredictionOutcomeToMap': 'map[string]any', 'MarketInterfaceToMap': 'map[string]any', 'CurrencyToMap': 'map[string]any', 'CurrenciesToMap': 'map[string]any', 'MapSliceToList': '[]any', 'StringSliceToList': '[]any', // W6
     'MarketInterfacesToList': '[]any', 'PredictionOutcomeMapToMap': 'map[string]any', 'PredictionEventMapToMap': 'map[string]any', // W8
+    'OHLCVForSymbolsMapToMap': 'map[string]any',
     'MapTyped': 'map[string]any', 'MarketTyped': 'map[string]any', 'ListTyped': '[]any',
     // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
     'this.ApplyEventFetchParams': '[]any',
