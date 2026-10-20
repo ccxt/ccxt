@@ -1135,14 +1135,15 @@
                     "datetime": null,
                     "hedged": null,
                     "maintenanceMargin": 1137.741171556,
-                    "maintenanceMarginPercentage": null,
+                    "maintenanceMarginPercentage": 0.013333332999994492,
                     "initialMargin": 1706.6118,
-                    "initialMarginPercentage": null,
+                    "initialMarginPercentage": 0.02,
                     "leverage": 50,
                     "liquidationPrice": null,
                     "marginRatio": null,
                     "marginMode": null,
-                    "percentage": 11.52
+                    "percentage": 11.52,
+                    "positionMargin": null
                 }
             },
             {
@@ -1318,14 +1319,15 @@
                         "datetime": null,
                         "hedged": null,
                         "maintenanceMargin": 1137.719838224,
-                        "maintenanceMarginPercentage": null,
+                        "maintenanceMarginPercentage": 0.013333333000003868,
                         "initialMargin": 1706.5798,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.02,
                         "leverage": 50,
                         "liquidationPrice": null,
                         "marginRatio": null,
                         "marginMode": null,
-                        "percentage": 11.43
+                        "percentage": 11.43,
+                        "positionMargin": null
                     }
                 ]
             },

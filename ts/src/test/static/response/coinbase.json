@@ -468,7 +468,7 @@
               },
               "id": "BIT-26APR24-CDE",
               "symbol": "BTC/USD:USD-240426",
-              "notional": null,
+              "notional": 1422.9,
               "marginMode": null,
               "liquidationPrice": null,
               "entryPrice": 70980,
@@ -492,7 +492,8 @@
               "leverage": null,
               "marginRatio": null,
               "stopLossPrice": null,
-              "takeProfitPrice": null
+              "takeProfitPrice": null,
+              "positionMargin": null
             }
           ]
         }
