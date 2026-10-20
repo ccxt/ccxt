@@ -8,11 +8,18 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    subgraphPostGraphql (params?: {}): Promise<Dict>;
-    tradingPostQuote (params?: {}): Promise<Dict>;
-    tradingPostSwap (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    subgraphPostGraphql (params = {}): Promise<Dict> {
+        return this.request ('graphql', [ 'subgraph' ], 'POST', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    tradingPostQuote (params = {}): Promise<Dict> {
+        return this.request ('quote', [ 'trading' ], 'POST', params, { 'cost': 1 });
+    }
+
+    tradingPostSwap (params = {}): Promise<Dict> {
+        return this.request ('swap', [ 'trading' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;
