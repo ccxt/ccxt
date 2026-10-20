@@ -4236,7 +4236,7 @@ class bingx extends Exchange {
             'status' => $this->parse_order_status($statusId),
             'fee' => array(
                 'currency' => $feeCurrencyCode,
-                'cost' => Precise::string_abs($feeCost),
+                'cost' => $this->parse_number(Precise::string_abs($feeCost)),
             ),
             'trades' => null,
             'reduceOnly' => $this->safe_bool_2($orderData, 'reduceOnly', 'ro'),
