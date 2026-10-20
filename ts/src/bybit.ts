@@ -821,6 +821,7 @@ export default class bybit extends Exchange {
                     '110071': ExchangeError, // Sorry, we're revamping the Unified Margin Account! Currently, new upgrades are not supported. If you have any questions, please contact our 24/7 customer support.
                     '110072': InvalidOrder, // OrderLinkedID is duplicate
                     '110073': ExchangeError, // Set margin mode failed
+                    '110101': PermissionDenied, // settlement asset not enabled as collateral
                     '110092': InvalidOrder, // expect Rising, but trigger_price[XXXXX] <= current[XXXXX]
                     '110093': InvalidOrder, // expect Falling, but trigger_price[XXXXX] >= current[XXXXX]
                     '110094': InvalidOrder, // Order notional value below the lower limit
@@ -2684,6 +2685,7 @@ export default class bybit extends Exchange {
             const defaultType = this.handleMarketTypeAndParams ('fetchTickers', undefined, params)[0]; // don't omit here
             // we can't use marketSymbols here due to the conflicting ids between markets
             let currentType: Str = undefined;
+            let firstLinear: Bool = undefined;
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
@@ -2696,7 +2698,8 @@ export default class bybit extends Exchange {
                 }
                 if (currentType === undefined) {
                     currentType = this.safeString (market, 'type');
-                } else if (market['type'] !== currentType) {
+                    firstLinear = this.safeBool (market, 'linear');
+                } else if ((market['type'] !== currentType) || (market['linear'] !== firstLinear)) {
                     throw new BadRequest (this.id + ' fetchTickers can only accept a list of symbols of the same type');
                 }
                 if (market['option'] === true) {
@@ -3017,6 +3020,12 @@ export default class bybit extends Exchange {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
                 request['symbol'] = market['id'];
+            }
+            for (let i = 1; i < symbolsLength; i++) {
+                const other = this.market (symbolsNormalized[i]);
+                if (other['linear'] !== market['linear']) {
+                    throw new BadRequest (this.id + ' fetchFundingRates() symbols must be all linear or all inverse');
+                }
             }
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchFundingRates', market, params);
@@ -4784,7 +4793,8 @@ export default class bybit extends Exchange {
         this.checkRequiredArgument ('editOrder', symbol, 'symbol');
         const market = this.market (symbol);
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, params);
-        const response = await this.privatePostV5OrderAmend (this.extend (request, params));
+        const paramsRest = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'orderLinkId', 'triggerBy', 'slTriggerBy', 'tpTriggerBy', 'type', 'subType' ]);
+        const response = await this.privatePostV5OrderAmend (this.extend (paramsRest, request));
         //
         //     {
         //         "retCode": 0,
@@ -4913,6 +4923,11 @@ export default class bybit extends Exchange {
         if (id !== undefined) { // The user can also use argument params["orderLinkId"]
             request['orderId'] = id;
         }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
+        if (clientOrderId !== undefined) {
+            request['orderLinkId'] = clientOrderId;
+        }
+        params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
         const paramsOmitted = (market['spot'] === true) ? this.omit (params, [ 'stop', 'trigger' ]) : params;
         const [ category, paramsCategory ] = this.getBybitType ('cancelOrderRequest', market, paramsOmitted);
         request['category'] = category;
@@ -8922,6 +8937,9 @@ export default class bybit extends Exchange {
         const request: Dict = {
             'category': subType,
         };
+        if (market !== undefined) {
+            request['symbol'] = market['id'];
+        }
         const response = await this.publicGetV5MarketRiskLimit (this.extend (request, paramsSubType));
         const result = this.addPaginationCursorToResult (response);
         const first = this.safeDict (result, 0);
@@ -8953,14 +8971,20 @@ export default class bybit extends Exchange {
         }
         let market: Market = undefined;
         let symbol: Str = undefined;
+        let paginateDefault = true;
         if (symbols !== undefined) {
             market = this.market (symbols[0]);
             if (market['spot'] === true) {
                 throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported for spot market');
             }
-            symbol = this.safeString (market, 'symbol');
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                // a single symbol is returned whole by one symbol-filtered request
+                symbol = this.safeString (market, 'symbol');
+                paginateDefault = false;
+            }
         }
-        const data = await this.getLeverageTiersPaginated (symbol, this.extend ({ 'paginate': true, 'paginationCalls': 200 }, params));
+        const data = await this.getLeverageTiersPaginated (symbol, this.extend ({ 'paginate': paginateDefault, 'paginationCalls': 200 }, params));
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         return this.parseLeverageTiers (data, symbolsNormalized, 'symbol');
     }
