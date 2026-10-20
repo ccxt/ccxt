@@ -12,7 +12,7 @@
 //           Interface lines `\tMAsync(..) <-chan AsyncResult[any]` retype (hand exchange_interface.go: --apply-hand).
 //   audit   `npx tsx build/go-chan3.ts --audit [dir=go/v4] [--json]`: per method per core the unprovable sends
 //           over committed generated Go (reads files, no transpile). `--self-test` runs the self-test.
-// Runtime: ReturnPanicError[T] is generic; AsyncResult[T].Boxed() un-types a nil container for reflective users.
+// Runtime: ReturnPanicError[T] is generic; reflective readers read a typed AsyncResult[T] through the runtime's untyped accessor.
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -1034,7 +1034,7 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
         }
         const bind = /^\t+(r\d*) := <-$/.exec (pre);
         if (bind === null) {
-            // PanicOnError((<-X)) / promiseAll element / handed-on channel: reflective Boxed() / AsyncOutcome
+            // PanicOnError((<-X)) / promiseAll element / handed-on channel: left typed for the runtime's untyped accessor
             continue;
         }
         const name = bind[1];
@@ -1797,8 +1797,8 @@ export function goChan3Pass (content: string, table: Map<string, string> = goCha
 //   consumers  `NewTArray(r.Value)` (typed wrappers) and `var x []T = r.Value` read the slice; nil tests stay;
 //              every other read boxes back with `TsToList(r.Value)` -- the exact []any (nil for nil) the
 //              AsyncResult[[]any] core sent; PromiseAllTyped of same-T list channels converts with
-//              StructListsToLists; reflective readers (PromiseAll, CallInternalMethod) get the []any through
-//              AsyncResult.Boxed (go/v4/exchange_struct_returns.go structListBoxers)
+//              StructListsToLists; reflective readers (PromiseAll, CallInternalMethod) read the typed []T
+//              through the runtime's untyped accessor
 //   interfaces `\tMAsync(..) <-chan AsyncResult[[]any]` -> []T, except IPrediction* blocks
 // Prediction venues (package ccxtprediction, PredictionExchange) keep the []any shape (Prediction* rows); a
 // PredictionExchange body reading the regular base (`this.BaseExchange.MAsync`) boxes like any other reader.
@@ -2079,7 +2079,7 @@ export function goChan3StructListPass (content: string, table: Map<string, strin
         }
         const bind = /^\t+(r\d*) := <-$/.exec (pre);
         if (bind === null) {
-            continue;   // promiseAll element / handed-on channel / PanicOnError: reflective Boxed()
+            continue;   // promiseAll element / handed-on channel / PanicOnError: left typed for the runtime's untyped accessor
         }
         const name = bind[1];
         const scope = masked.substring (callEnd, fe0);
