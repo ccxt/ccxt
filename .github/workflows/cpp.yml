@@ -21,7 +21,7 @@ concurrency:
 jobs:
   build:
     runs-on: [ self-hosted, linux, x64, cpp ]
-    if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') }}
+    if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch') }}
     timeout-minutes: 150
     steps:
     - uses: actions/checkout@v6
@@ -46,9 +46,14 @@ jobs:
       run: |
         echo "CCACHE_DIR=/mnt/cache/ccache" >> "$GITHUB_ENV"
         echo "CCACHE_MAXSIZE=2G" >> "$GITHUB_ENV"
+    - name: Determine modified files
+      run: ./build/utils/init_actions.sh
+    - name: export exchanges
+      run: npm run export-exchanges
     - name: Emit implicit API
       run: npm run emitAPI -- --cpp
     - name: Transpile everything (base, tests, all exchanges)
+      # no granular transpile for cpp — the tiers regenerate whole (cheap, few seconds)
       run: npm run transpileCpp -- --all --force
     - name: Transpile pro (ws) tier
       run: npm run transpileCpp -- --pro --force
@@ -73,9 +78,35 @@ jobs:
     - name: typed layer smoke test
       run: cpp/build/ccxt-typed-smoke
     - name: Static request tests (all exchanges)
+      if: env.important_modified == 'true'
       run: cpp/build/ccxt-tests all --requestTests
+    - name: Static request tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          cpp/build/ccxt-tests $exchange --requestTests
+        done
     - name: Static response tests (all exchanges)
+      if: env.important_modified == 'true'
       run: cpp/build/ccxt-tests all --responseTests
+    - name: Static response tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          cpp/build/ccxt-tests $exchange --responseTests
+        done
+    - name: WS static tests (all exchanges)
+      if: env.important_modified == 'true'
+      run: cpp/build/ccxt-tests all --wsTests
+    - name: WS static tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+        for exchange in $cleaned_ws_files; do
+          cpp/build/ccxt-tests $exchange --wsTests
+        done
 
   live-tests:
     runs-on: [ self-hosted, linux, x64, cpp ]
@@ -85,7 +116,7 @@ jobs:
     # self-hosted runners delete the workspace between jobs, so this job is
     # fully self-sufficient: fresh checkout + npm ci + transpile + warm-ccache
     # build, then the live tests through the standard node harness — same
-    # shape the js/python live-test workflows use.
+    # shape the other language live-test jobs use.
     - uses: actions/checkout@v6
       with:
         fetch-depth: 2
@@ -99,6 +130,10 @@ jobs:
       run: |
         echo "CCACHE_DIR=/mnt/cache/ccache" >> "$GITHUB_ENV"
         echo "CCACHE_MAXSIZE=2G" >> "$GITHUB_ENV"
+    - name: Determine modified files
+      run: ./build/utils/init_actions.sh
+    - name: export exchanges
+      run: npm run export-exchanges
     - name: Emit implicit API
       run: npm run emitAPI -- --cpp
     - name: Transpile everything (base, tests, all exchanges)
@@ -115,5 +150,15 @@ jobs:
           -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld
     - name: Build (parallel compile)
       run: cmake --build cpp/build --parallel 4
-    - name: binance live tests (public endpoints)
-      run: node run-tests binance --cpp
+    - name: Live tests
+      if: env.important_modified == 'true'
+      run: node run-tests --cpp --useProxy
+    - name: Live tests (specific)
+      if: env.important_modified == 'false'
+      run: node run-tests --cpp --useProxy "${{ env.rest_files }}" "${{ env.ws_files }}"
+    - name: Live ws tests
+      if: env.important_modified == 'true'
+      run: node run-tests --cpp --ws --useProxy
+    - name: Live ws tests (specific)
+      if: env.important_modified == 'false'
+      run: node run-tests --cpp --ws --useProxy "${{ env.ws_files }}"
