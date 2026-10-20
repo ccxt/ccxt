@@ -1620,8 +1620,8 @@ export default class bybit extends bybitRest {
         if ((symbols !== undefined) && (symbols.length > 0)) {
             for (let i = 0; i < symbols.length; i++) {
                 const market = this.market (symbols[i]);
-                if (market['contract']) {
-                    const subType = market['linear'] ? 'linear' : 'inverse';
+                if (market['contract'] === true) {
+                    const subType = (market['linear'] === true) ? 'linear' : 'inverse';
                     pairs[subType + ':' + market['settleId']] = [ subType, market['settleId'] ];
                 }
             }

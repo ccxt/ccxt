@@ -7018,7 +7018,7 @@ export default class bybit extends Exchange {
             lastUpdateTimestamp = this.safeInteger2 (position, 'updatedTime', 'updatedAt');
         }
         // positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
-        let positionMarginString = this.omitZero (this.safeString (position, 'positionBalance'));
+        const positionMarginString = this.omitZero (this.safeString (position, 'positionBalance'));
         let collateralString: Str = undefined;
         if (positionMarginString !== undefined) {
             collateralString = positionMarginString;
@@ -7272,7 +7272,7 @@ export default class bybit extends Exchange {
     async modifyMarginHelper (symbol: string, amount: number, type: string, params: Dict = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadSymbol (this.id + ' ' + type + 'Margin() supports contract markets only');
         }
         let margin: Str = this.numberToString (amount);
@@ -7280,7 +7280,7 @@ export default class bybit extends Exchange {
             margin = Precise.stringNeg (margin);
         }
         const request: Dict = {
-            'category': market['linear'] ? 'linear' : 'inverse',
+            'category': (market['linear'] === true) ? 'linear' : 'inverse',
             'symbol': market['id'],
             'margin': margin,
             'positionIdx': this.safeInteger (params, 'positionIdx', 0),
@@ -7304,16 +7304,16 @@ export default class bybit extends Exchange {
 
     override parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         const marketId = this.safeString (data, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'contract');
+        const resolved = this.safeMarket (marketId, market, undefined, 'contract');
         const timestamp = this.safeInteger (data, 'updatedTime');
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': resolved['symbol'],
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,
             'total': this.safeNumber (data, 'positionIM'),
-            'code': market['settle'],
+            'code': resolved['settle'],
             'status': 'ok',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
