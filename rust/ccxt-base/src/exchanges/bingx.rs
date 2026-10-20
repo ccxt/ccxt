@@ -5693,7 +5693,7 @@ impl BingxCore {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), feeCurrencyCode);
-        m.insert("cost".to_string(), crate::precise::Precise::stringAbs(&feeCost));
+        m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&feeCost), &[]));
     m
 }));
         m.insert("trades".to_string(), Value::Null);
