@@ -1,6 +1,6 @@
 /* eslint-disable max-classes-per-file */
 // @ts-nocheck
-import { Int } from '../types.js';
+import { Int, Str } from '../types.js';
 
 interface CustomArray extends Array<any> {
     hashmap: object;
@@ -91,8 +91,8 @@ class ArrayCache extends BaseCache implements CustomArray {
         })
     }
 
-    getLimit (symbol, limit) {
-        let newUpdatesValue: Bool = undefined
+    getLimit (symbol: Str, limit: Int): Int {
+        let newUpdatesValue: Int = undefined
 
         if (symbol === undefined) {
             newUpdatesValue = this.allNewUpdates
@@ -177,7 +177,7 @@ class ArrayCacheByTimestamp extends BaseCache {
         })
     }
 
-    getLimit (symbol, limit) {
+    getLimit (symbol: Str, limit: Int): Int {
         this.clearUpdates = true
         if (limit === undefined) {
             return this.newUpdates

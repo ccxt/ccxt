@@ -283,6 +283,14 @@ export default [
         },
     },
     {
+        // Generated implicit-API files: the generator emits the exchange style, so hold it to it.
+        files: ['ts/src/abstract/**/*.ts'],
+        languageOptions: sharedLanguageOptions,
+        plugins: sharedPlugins,
+        settings: sharedSettings,
+        rules: mainRulesWithoutJsdoc,
+    },
+    {
         files: ['ts/src/test/**/*.ts'],
         languageOptions: sharedLanguageOptions,
         plugins: sharedPlugins,
@@ -365,6 +373,13 @@ export default [
                 { 'blankLine': 'always', 'prev': '*', 'next': 'export' },
                 { 'blankLine': 'always', 'prev': '*', 'next': 'function' },
             ],
+        },
+    },
+    {
+        // exchange sources must not reassign parameters (write new values to fresh typed locals)
+        files: ['ts/src/*.ts', 'ts/src/pro/*.ts', 'ts/src/base/Exchange.ts', 'ts/src/base/PredictionExchange.ts'],
+        rules: {
+            'no-param-reassign': ['error', { 'props': false }],
         },
     },
 ];

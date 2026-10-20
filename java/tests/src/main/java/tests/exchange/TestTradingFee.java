@@ -31,7 +31,7 @@ public class TestTradingFee extends BaseTest {
             put( "maker", exchange.parseNumber("0.002") );
             put( "taker", exchange.parseNumber("0.003") );
         }};
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("tierBased", "percentage", "symbol"));
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("tierBased", "percentage", "symbol"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
     }

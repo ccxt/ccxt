@@ -41,7 +41,8 @@ public partial class BaseExchange
         return array;
     }
 
-    public object ethAbiEncode(object types2, object args2)
+    // Nethereum TupleType.Encode returns byte[]; the only return path hands it back unchanged
+    public byte[] ethAbiEncode(object types2, object args2)
     {
         //  ['(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8', 'address', 'uint256']
         //  [Array(1), 0, '0x0000000000000000000000000000000000000000', 1708007294587]

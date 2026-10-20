@@ -112,7 +112,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         result = {'info': message}
         balances = self.safe_list(message, 'balances', [])
         for i in range(0, len(balances)):
-            entry = balances[i]
+            entry = self.safe_dict(balances, i)
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -140,9 +140,9 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
-        messageHash = 'ohlcv:' + symbol
+        messageHash = 'ohlcv:' + symbolValue
         request = {
             'action': 'subscribe',
             'channel': 'prices',
@@ -152,9 +152,10 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         request = self.deep_extend(request, params)
         url = self.urls['api']['ws']
         ohlcv = await self.watch(url, messageHash, request, messageHash, request)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
     def handle_ohlcv(self, client: Client, message: dict):
         #
@@ -212,9 +213,9 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         url = self.urls['api']['ws']
-        messageHash = 'ticker:' + symbol
+        messageHash = 'ticker:' + symbolValue
         request = {
             'action': 'subscribe',
             'channel': 'ticker',
@@ -319,9 +320,9 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         url = self.urls['api']['ws']
-        messageHash = 'trades:' + symbol
+        messageHash = 'trades:' + symbolValue
         request = {
             'action': 'subscribe',
             'channel': 'trades',
@@ -417,9 +418,10 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
+        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
         url = self.urls['api']['ws']
         message = {
             'action': 'subscribe',
@@ -428,9 +430,10 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         messageHash = 'orders'
         request = self.deep_extend(message, params)
         orders = await self.watch(url, messageHash, request, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limitResolved = orders.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
     def handle_orders(self, client: Client, message: dict):
         #
@@ -564,7 +567,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         datetime = self.safe_string(order, 'transactTime')
         status = self.safe_string(order, 'ordStatus')
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         tradeId = self.safe_string(order, 'tradeId')
         trades = []
         if tradeId != '0':
@@ -575,7 +578,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             'datetime': datetime,
             'timestamp': self.parse8601(datetime),
             'status': self.parse_ws_order_status(status),
-            'symbol': self.safe_symbol(marketId, market),
+            'symbol': self.safe_symbol(marketId, marketResolved),
             'type': self.safe_string(order, 'ordType'),  # limit, market, stop, stopLimit, trailingStop, fillOrKill
             'timeInForce': self.safe_string(order, 'timeInForce'),
             'postOnly': self.safe_string(order, 'execInst') == 'ALO',
@@ -590,12 +593,12 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             'fee': {
                 'rate': None,
                 'cost': self.safe_number(order, 'fee'),
-                'currency': self.safe_string(market, 'quote'),
+                'currency': self.safe_string(marketResolved, 'quote'),
             },
             'info': order,
             'lastTradeTimestamp': None,
             'average': self.safe_string(order, 'avgPx'),
-        }, market)
+        }, marketResolved)
 
     def parse_ws_order_status(self, status: Str) -> Str:
         statuses = {
@@ -626,14 +629,14 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         market = self.market(symbol)
         url = self.urls['api']['ws']
         type = self.safe_string(params, 'type', 'l2')
-        params = self.omit(params, 'type')
+        paramsOmitted = self.omit(params, 'type')
         messageHash = 'orderbook:' + symbol + ':' + type
         subscribe = {
             'action': 'subscribe',
             'channel': type,
             'symbol': market['id'],
         }
-        request = self.deep_extend(subscribe, params)
+        request = self.deep_extend(subscribe, paramsOmitted)
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 

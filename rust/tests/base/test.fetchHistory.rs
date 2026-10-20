@@ -18,16 +18,25 @@ pub async fn testFetchHistoryBase() -> Value {
     }));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("fetchHistoryCacheSize".into())), &Value::Int(2))))));
     let mut trueAssertion: Value = Value::Bool(exchange.parse_number(Value::Null, &[]) == Value::Null);
-    {
+    let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
         exchange.fetch2(Value::Str("sample1".into()), &[]).await;
+     #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+        assert!(ccxt::runtime::is_true(&(trueAssertion.clone()))); // just skip
     }
     assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(1.0)))));
-    {
+    let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
         exchange.fetch2(Value::Str("sample2".into()), &[]).await;
+     #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+        assert!(ccxt::runtime::is_true(&(trueAssertion.clone()))); // just skip
     }
     assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));
-    {
+    let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
         exchange.fetch2(Value::Str("sample3".into()), &[]).await;
+     #[allow(unreachable_code)] { Value::Null }})).await;
+if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+        assert!(ccxt::runtime::is_true(&(trueAssertion.clone()))); // just skip
     }
     assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));
     assert!(ccxt::runtime::is_true(&(((match (&(Value::Int(1)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) < Value::Int(3).as_f64().unwrap_or(f64::NAN)))));

@@ -171,8 +171,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.08105,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     },
@@ -217,8 +218,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.08085,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     },
@@ -263,8 +265,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.070914,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     },
@@ -309,8 +312,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.070956,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     }
@@ -422,8 +426,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.08105,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     },
@@ -468,8 +473,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.070914,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     }
@@ -488,6 +494,7 @@
                             "asset": "usd",
                             "contract": "pf_dogeusd",
                             "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+                            "positionMargin": null,
                             "collateral": null,
                             "date": "2026-09-17T12:00:00.000Z",
                             "execution": null,
@@ -516,6 +523,7 @@
                             "asset": "usd",
                             "contract": "pf_dogeusd",
                             "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+                            "positionMargin": null,
                             "collateral": null,
                             "date": "2026-09-17T12:00:00.000Z",
                             "execution": null,
@@ -1516,8 +1524,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": null,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "cross",
+                        "marginMode": "cross",
                         "side": "long",
                         "percentage": null
                     }
@@ -1562,7 +1571,7 @@
                         "timestamp": 1707258274849,
                         "datetime": "2024-02-06T22:24:34.849Z",
                         "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 1,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "entryPrice": 68.54,
@@ -1576,8 +1585,9 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": null,
+                        "positionMargin": null,
                         "collateral": null,
-                        "marginType": "isolated",
+                        "marginMode": "isolated",
                         "side": "long",
                         "percentage": null
                     }

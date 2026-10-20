@@ -29,7 +29,7 @@ public class Binancecoinm extends io.github.ccxt.exchanges.Binancecoinm
         var restInstance = new io.github.ccxt.exchanges.Binancecoinm();
         Object restDescribe = restInstance.describe();
         Object parentWsDescribe = new io.github.ccxt.exchanges.pro.Binance().describeData();
-        Map<String, Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
+        Map<String,Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new HashMap<String, Object>() {{
             put( "id", "binancecoinm" );
             put( "name", "Binance COIN-M" );

@@ -83,7 +83,45 @@ java/lib/src/main/java/io/github/ccxt/exchanges/${CAPITALIZED}.java
 java/lib/src/main/java/io/github/ccxt/exchanges/${CAPITALIZED}Core.java
 java/lib/src/main/java/io/github/ccxt/exchanges/pro/${CAPITALIZED}.java
 java/lib/src/main/java/io/github/ccxt/exchanges/pro/${CAPITALIZED}Core.java
+# Rust (transpiled cores, implicit api, typed wrappers)
+rust/ccxt-base/src/exchanges/${EXCHANGE}.rs
+rust/ccxt-base/src/exchanges/${EXCHANGE}_api.rs
+rust/ccxt/src/exchanges/${EXCHANGE}_typed.rs
+rust/ccxt-pro/src/pro/${EXCHANGE}.rs
+rust/ccxt-pro/src/pro_typed/${EXCHANGE}_typed.rs
 EOF
+
+# drop the id from the generated Rust registries, otherwise the crates still
+# declare a module whose file is gone and `cargo build` fails (E0583) until the
+# next full transpile (rust.yml) rewrites them
+filter_lines() {
+    file="$1"
+    pattern="$2"
+    if [ ! -f "$file" ]; then
+        return
+    fi
+    if grep -qE "$pattern" "$file"; then
+        tmp=$(mktemp)
+        grep -vE "$pattern" "$file" > "$tmp"
+        mv "$tmp" "$file"
+        echo "  filtered $EXCHANGE from $file"
+        if git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
+            git add "$file"
+        fi
+    fi
+}
+# module declarations: `pub mod <id>;` plus `pub mod <id>_api;` for the REST crate
+filter_lines rust/ccxt-base/src/exchanges/mod.rs "^pub mod ${EXCHANGE}(_api)?;\$"
+filter_lines rust/ccxt-pro/src/pro/mod.rs "^pub mod ${EXCHANGE};\$"
+filter_lines rust/ccxt/src/exchanges/mod.rs "^pub mod ${EXCHANGE}_typed;\$"
+filter_lines rust/ccxt-pro/src/pro_typed/mod.rs "^pub mod ${EXCHANGE}_typed;\$"
+# the test registry lists every core twice (REST + WS): as a `<id>::<Id>Core,`
+# import and as a `$cb!(<id>, <Id>Core);` macro arm
+filter_lines rust/tests/src/generated_cores.rs "^[[:space:]]*(${EXCHANGE}::|\\\$cb!\\(${EXCHANGE},)"
+# the typed aggregators re-export the wrapper (`pub use ...::<id>_typed::<Id>;`)
+# and construct it by id in a `"<id>" => Some(Box::new(...))` match arm
+filter_lines rust/ccxt/src/typed.rs "(::${EXCHANGE}_typed::|^[[:space:]]*\"${EXCHANGE}\" =>)"
+filter_lines rust/ccxt-pro/src/typed.rs "(::${EXCHANGE}_typed::|^[[:space:]]*\"${EXCHANGE}\" =>)"
 
 # remove the id from exchanges.json (ids / ws / prediction / predictionWs)
 if [ -f exchanges.json ]; then
