@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
         IDictionary<string, object> featuresSpot = exchange.safeDict(features, "spot", new Dictionary<string, object>() {});
         IDictionary<string, object> fetchCurrencies = exchange.safeDict(featuresSpot, "fetchCurrencies", new Dictionary<string, object>() {});
         object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
-        if (!isEqual(isFetchCurrenciesPrivate, true))
+        if (!(isFetchCurrenciesPrivate is true))
         {
             List<object> values = new List<object>(((IDictionary<string,object>)currencies).Values);
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);
@@ -33,7 +33,7 @@ public partial class testMainClass : BaseTest
             // loop
             for (int i = 0; i < currenciesLength; i++)
             {
-                object currency = getValue(values, i);
+                object currency = (values != null && i < values.Count ? values[i] : null);
                 testCurrency(exchange, skippedProperties, method, currency);
                 // detailed check for deposit/withdraw
                 bool? active = exchange.safeBool(currency, "active");
@@ -46,7 +46,7 @@ public partial class testMainClass : BaseTest
                 bool? withdraw = exchange.safeBool(currency, "withdraw");
                 bool? deposit = exchange.safeBool(currency, "deposit");
                 bool? isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
-                bool skipUsdtForMica = ((isMicaCompliant == true)) && ((code == "USDT"));
+                bool skipUsdtForMica = ((isMicaCompliant == true)) && (code == "USDT");
                 if (isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && ((skipUsdtForMica != true)))
                 {
                     assert(((withdraw == true)) && ((deposit == true)), ((("Major currency " + code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
@@ -69,9 +69,9 @@ public partial class testMainClass : BaseTest
             string? key = ((string)keys[i]);
             object currency = getValue(currencyValues, key);
             object code = getValue(currency, "code");
-            if (!(inOp(ids, code)))
+            if (!((code is string inOpKey0 && ids.ContainsKey(inOpKey0))))
             {
-                ((IDictionary<string,object>)ids)[(string)code] = getValue(currency, "id");
+                ids[(string)code] = getValue(currency, "id");
             } else
             {
                 bool isDifferent = !isEqual(getValue(ids, code), getValue(currency, "id"));

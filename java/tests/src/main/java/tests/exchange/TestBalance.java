@@ -42,9 +42,9 @@ public class TestBalance extends BaseTest {
         {
             Object code = (allCodes == null || i < 0 || i >= ((List<?>)allCodes).size() ? null : ((List<?>)allCodes).get(i));
             // TestSharedMethods.AssertCurrencyCode (exchange, skippedProperties, method, entry, code);
-            Assert(Helpers.inOp(((Map<String, Object>)entry).get("total"), code), ((Helpers.add("code ", code) + " not in total") + logText));
-            Assert(Helpers.inOp(((Map<String, Object>)entry).get("free"), code), ((Helpers.add("code ", code) + " not in free") + logText));
-            Assert(Helpers.inOp(((Map<String, Object>)entry).get("used"), code), ((Helpers.add("code ", code) + " not in used") + logText));
+            Assert(Helpers.inOp(((Map<String, Object>)entry).get("total"), code), ((("code " + code) + " not in total") + logText));
+            Assert(Helpers.inOp(((Map<String, Object>)entry).get("free"), code), ((("code " + code) + " not in free") + logText));
+            Assert(Helpers.inOp(((Map<String, Object>)entry).get("used"), code), ((("code " + code) + " not in used") + logText));
             String total = exchange.safeString(((Map<String, Object>)entry).get("total"), code);
             String free = exchange.safeString(((Map<String, Object>)entry).get("free"), code);
             String used = exchange.safeString(((Map<String, Object>)entry).get("used"), code);

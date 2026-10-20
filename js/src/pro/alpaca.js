@@ -162,17 +162,18 @@ export default class alpaca extends alpacaRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const request = {
             'action': 'subscribe',
             'bars': [market['id']],
         };
-        const messageHash = 'ohlcv:' + symbol;
+        const messageHash = 'ohlcv:' + symbolValue;
         const ohlcv = await this.watch(url, messageHash, this.extend(request, params), messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -219,8 +220,8 @@ export default class alpaca extends alpacaRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orderbook' + ':' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'orderbook' + ':' + symbolValue;
         const request = {
             'action': 'subscribe',
             'orderbooks': [market['id']],
@@ -302,17 +303,18 @@ export default class alpaca extends alpacaRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trade:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'trade:' + symbolValue;
         const request = {
             'action': 'subscribe',
             'trades': [market['id']],
         };
         const trades = await this.watch(url, messageHash, this.extend(request, params), messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -358,9 +360,9 @@ export default class alpaca extends alpacaRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-            messageHash += ':' + symbol;
+        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : undefined;
+        if (symbolResolved !== undefined) {
+            messageHash += ':' + symbolResolved;
         }
         const request = {
             'action': 'listen',
@@ -369,10 +371,11 @@ export default class alpaca extends alpacaRest {
             },
         };
         const trades = await this.watch(url, messageHash, this.extend(request, params), messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -391,10 +394,11 @@ export default class alpaca extends alpacaRest {
             await this.loadMarkets();
         }
         let messageHash = 'orders';
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbol = market['symbol'];
-            messageHash = 'orders:' + symbol;
+            symbolResolved = this.safeString(market, 'symbol');
+            messageHash = 'orders:' + symbolResolved;
         }
         const request = {
             'action': 'listen',
@@ -403,10 +407,11 @@ export default class alpaca extends alpacaRest {
             },
         };
         const orders = await this.watch(url, messageHash, this.extend(request, params), messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     handleTradeUpdate(client, message) {
         this.handleOrder(client, message);
@@ -615,7 +620,7 @@ export default class alpaca extends alpacaRest {
                 'key': this.apiKey,
                 'secret': this.secret,
             };
-            if (url === this.urls['api']['ws']['trading']) {
+            if (url === this.safeString(this.urls['api']['ws'], 'trading')) {
                 // this auth request is being deprecated in test environment
                 request = {
                     'action': 'authenticate',
@@ -638,8 +643,12 @@ export default class alpaca extends alpacaRest {
         //    }
         //
         const code = this.safeString(message, 'code');
-        const msg = this.safeValue(message, 'msg', {});
-        throw new ExchangeError(this.id + ' code: ' + code + ' message: ' + msg);
+        const msg = this.safeString(message, 'msg');
+        let errorMessage = this.id + ' code: ' + code;
+        if (msg !== undefined) {
+            errorMessage = errorMessage + ' message: ' + msg;
+        }
+        throw new ExchangeError(errorMessage);
     }
     handleConnected(client, message) {
         //

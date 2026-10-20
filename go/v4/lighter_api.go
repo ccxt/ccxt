@@ -8,296 +8,296 @@
 package ccxt
 
 // RootGet returns a channel that yields a JSON object.
-func (this *Lighter) RootGet(args ...any) <-chan any {
-	return this.Fetch2Async("", "root", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) RootGet(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "", []string{"root"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // RootGetInfo returns a channel that yields a JSON object.
-func (this *Lighter) RootGetInfo(args ...any) <-chan any {
-	return this.Fetch2Async("info", "root", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) RootGetInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "info", []string{"root"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAccount returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetAccount(args ...any) <-chan any {
-	return this.Fetch2Async("account", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetAccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAccountsByL1Address returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetAccountsByL1Address(args ...any) <-chan any {
-	return this.Fetch2Async("accountsByL1Address", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetAccountsByL1Address(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "accountsByL1Address", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetApikeys returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetApikeys(args ...any) <-chan any {
-	return this.Fetch2Async("apikeys", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetApikeys(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "apikeys", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetExchangeStats returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetExchangeStats(args ...any) <-chan any {
-	return this.Fetch2Async("exchangeStats", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetExchangeStats(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "exchangeStats", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAssetDetails returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetAssetDetails(args ...any) <-chan any {
-	return this.Fetch2Async("assetDetails", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetAssetDetails(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assetDetails", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetOrderBookDetails returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetOrderBookDetails(args ...any) <-chan any {
-	return this.Fetch2Async("orderBookDetails", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetOrderBookDetails(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderBookDetails", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetOrderBookOrders returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetOrderBookOrders(args ...any) <-chan any {
-	return this.Fetch2Async("orderBookOrders", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetOrderBookOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderBookOrders", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetOrderBooks returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetOrderBooks(args ...any) <-chan any {
-	return this.Fetch2Async("orderBooks", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetOrderBooks(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderBooks", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetRecentTrades returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetRecentTrades(args ...any) <-chan any {
-	return this.Fetch2Async("recentTrades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetRecentTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "recentTrades", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetBlockTxs returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetBlockTxs(args ...any) <-chan any {
-	return this.Fetch2Async("blockTxs", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetBlockTxs(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "blockTxs", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetNextNonce returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetNextNonce(args ...any) <-chan any {
-	return this.Fetch2Async("nextNonce", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetNextNonce(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "nextNonce", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTx returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetTx(args ...any) <-chan any {
-	return this.Fetch2Async("tx", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetTx(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tx", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTxFromL1TxHash returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetTxFromL1TxHash(args ...any) <-chan any {
-	return this.Fetch2Async("txFromL1TxHash", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetTxFromL1TxHash(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "txFromL1TxHash", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTxs returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetTxs(args ...any) <-chan any {
-	return this.Fetch2Async("txs", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetTxs(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "txs", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAnnouncement returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetAnnouncement(args ...any) <-chan any {
-	return this.Fetch2Async("announcement", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetAnnouncement(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "announcement", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetBlock returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetBlock(args ...any) <-chan any {
-	return this.Fetch2Async("block", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetBlock(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "block", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetBlocks returns a channel that yields a JSON array.
-func (this *Lighter) PublicGetBlocks(args ...any) <-chan any {
-	return this.Fetch2Async("blocks", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetBlocks(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "blocks", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCurrentHeight returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetCurrentHeight(args ...any) <-chan any {
-	return this.Fetch2Async("currentHeight", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetCurrentHeight(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "currentHeight", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetCandles returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetCandles(args ...any) <-chan any {
-	return this.Fetch2Async("candles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetCandles(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "candles", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetMarkPriceCandles returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetMarkPriceCandles(args ...any) <-chan any {
-	return this.Fetch2Async("markPriceCandles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetMarkPriceCandles(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "markPriceCandles", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetFundings returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetFundings(args ...any) <-chan any {
-	return this.Fetch2Async("fundings", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetFundings(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "fundings", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetFastbridgeInfo returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetFastbridgeInfo(args ...any) <-chan any {
-	return this.Fetch2Async("fastbridge/info", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetFastbridgeInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "fastbridge/info", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetFundingRates returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetFundingRates(args ...any) <-chan any {
-	return this.Fetch2Async("funding-rates", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetFundingRates(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "funding-rates", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetWithdrawalDelay returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetWithdrawalDelay(args ...any) <-chan any {
-	return this.Fetch2Async("withdrawalDelay", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetWithdrawalDelay(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdrawalDelay", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetPartnerStats returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetPartnerStats(args ...any) <-chan any {
-	return this.Fetch2Async("partnerStats", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetPartnerStats(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "partnerStats", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSyntheticSpotInfo returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetSyntheticSpotInfo(args ...any) <-chan any {
-	return this.Fetch2Async("syntheticSpotInfo", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetSyntheticSpotInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "syntheticSpotInfo", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTokenlist returns a channel that yields a JSON object.
-func (this *Lighter) PublicGetTokenlist(args ...any) <-chan any {
-	return this.Fetch2Async("tokenlist", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicGetTokenlist(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tokenlist", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicPostSendTx returns a channel that yields a JSON object.
-func (this *Lighter) PublicPostSendTx(args ...any) <-chan any {
-	return this.Fetch2Async("sendTx", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicPostSendTx(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sendTx", []string{"public"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicPostSendTxBatch returns a channel that yields a JSON object.
-func (this *Lighter) PublicPostSendTxBatch(args ...any) <-chan any {
-	return this.Fetch2Async("sendTxBatch", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PublicPostSendTxBatch(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sendTxBatch", []string{"public"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccountLimits returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetAccountLimits(args ...any) <-chan any {
-	return this.Fetch2Async("accountLimits", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetAccountLimits(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "accountLimits", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccountMetadata returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetAccountMetadata(args ...any) <-chan any {
-	return this.Fetch2Async("accountMetadata", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetAccountMetadata(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "accountMetadata", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetPnl returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetPnl(args ...any) <-chan any {
-	return this.Fetch2Async("pnl", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetPnl(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "pnl", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetL1Metadata returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetL1Metadata(args ...any) <-chan any {
-	return this.Fetch2Async("l1Metadata", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetL1Metadata(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "l1Metadata", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetLiquidations returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetLiquidations(args ...any) <-chan any {
-	return this.Fetch2Async("liquidations", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetLiquidations(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "liquidations", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetPositionFunding returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetPositionFunding(args ...any) <-chan any {
-	return this.Fetch2Async("positionFunding", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetPositionFunding(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "positionFunding", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetPublicPoolsMetadata returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetPublicPoolsMetadata(args ...any) <-chan any {
-	return this.Fetch2Async("publicPoolsMetadata", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetPublicPoolsMetadata(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "publicPoolsMetadata", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetMakerOnlyApiKeys returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetGetMakerOnlyApiKeys(args ...any) <-chan any {
-	return this.Fetch2Async("getMakerOnlyApiKeys", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetGetMakerOnlyApiKeys(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getMakerOnlyApiKeys", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccountActiveOrders returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetAccountActiveOrders(args ...any) <-chan any {
-	return this.Fetch2Async("accountActiveOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetAccountActiveOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "accountActiveOrders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccountInactiveOrders returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetAccountInactiveOrders(args ...any) <-chan any {
-	return this.Fetch2Async("accountInactiveOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetAccountInactiveOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "accountInactiveOrders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccountOrders returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetAccountOrders(args ...any) <-chan any {
-	return this.Fetch2Async("accountOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetAccountOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "accountOrders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetExport returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetExport(args ...any) <-chan any {
-	return this.Fetch2Async("export", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetExport(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "export", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetExportHistoricalTrades returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetExportHistoricalTrades(args ...any) <-chan any {
-	return this.Fetch2Async("export/historicalTrades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetExportHistoricalTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "export/historicalTrades", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetTrades returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetTrades(args ...any) <-chan any {
-	return this.Fetch2Async("trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trades", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccountTxs returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetAccountTxs(args ...any) <-chan any {
-	return this.Fetch2Async("accountTxs", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetAccountTxs(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "accountTxs", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetDepositHistory returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetDepositHistory(args ...any) <-chan any {
-	return this.Fetch2Async("deposit/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetDepositHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "deposit/history", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetTransferHistory returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetTransferHistory(args ...any) <-chan any {
-	return this.Fetch2Async("transfer/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetTransferHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "transfer/history", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetWithdrawHistory returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetWithdrawHistory(args ...any) <-chan any {
-	return this.Fetch2Async("withdraw/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetWithdrawHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdraw/history", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetReferralPoints returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetReferralPoints(args ...any) <-chan any {
-	return this.Fetch2Async("referral/points", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetReferralPoints(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/points", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetTransferFeeInfo returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetTransferFeeInfo(args ...any) <-chan any {
-	return this.Fetch2Async("transferFeeInfo", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetTransferFeeInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "transferFeeInfo", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetRfqGet returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetRfqGet(args ...any) <-chan any {
-	return this.Fetch2Async("rfq/get", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetRfqGet(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "rfq/get", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetRfqList returns a channel that yields a JSON object.
-func (this *Lighter) PrivateGetRfqList(args ...any) <-chan any {
-	return this.Fetch2Async("rfq/list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivateGetRfqList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "rfq/list", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostChangeAccountTier returns a channel that yields a JSON object.
-func (this *Lighter) PrivatePostChangeAccountTier(args ...any) <-chan any {
-	return this.Fetch2Async("changeAccountTier", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivatePostChangeAccountTier(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "changeAccountTier", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostSetMakerOnlyApiKeys returns a channel that yields a JSON object.
-func (this *Lighter) PrivatePostSetMakerOnlyApiKeys(args ...any) <-chan any {
-	return this.Fetch2Async("setMakerOnlyApiKeys", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivatePostSetMakerOnlyApiKeys(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "setMakerOnlyApiKeys", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostNotificationAck returns a channel that yields a JSON object.
-func (this *Lighter) PrivatePostNotificationAck(args ...any) <-chan any {
-	return this.Fetch2Async("notification/ack", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivatePostNotificationAck(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "notification/ack", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostRfqCreate returns a channel that yields a JSON object.
-func (this *Lighter) PrivatePostRfqCreate(args ...any) <-chan any {
-	return this.Fetch2Async("rfq/create", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivatePostRfqCreate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "rfq/create", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostRfqRespond returns a channel that yields a JSON object.
-func (this *Lighter) PrivatePostRfqRespond(args ...any) <-chan any {
-	return this.Fetch2Async("rfq/respond", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivatePostRfqRespond(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "rfq/respond", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostRfqUpdate returns a channel that yields a JSON object.
-func (this *Lighter) PrivatePostRfqUpdate(args ...any) <-chan any {
-	return this.Fetch2Async("rfq/update", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lighter) PrivatePostRfqUpdate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "rfq/update", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

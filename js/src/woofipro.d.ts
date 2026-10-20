@@ -1,5 +1,5 @@
 import Exchange from './abstract/woofipro.js';
-import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, MarginMode, MarginModes, MarginModification, OpenInterest, OpenInterests, Position, NullableDict, FeeString, Status } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, MarginMode, MarginModes, MarginModification, OpenInterest, OpenInterests, Position, FeeString, Status } from './base/types.js';
 /**
  * @class woofipro
  * @augments Exchange
@@ -81,7 +81,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name woofipro#fetchFundingRates
@@ -148,7 +148,7 @@ export default class woofipro extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    parseIncome(income: any, market?: Market): object;
+    parseIncome(income: Dict, market?: Market): object;
     /**
      * @method
      * @name woofipro#fetchFundingHistory
@@ -466,11 +466,11 @@ export default class woofipro extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
@@ -583,6 +583,6 @@ export default class woofipro extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     nonce(): number;
-    sign(path: any, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, section?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

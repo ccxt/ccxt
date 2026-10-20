@@ -1,6 +1,6 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetV1PublicApiLimits(params?: {}): Promise<Dict>;
     publicGetV1FapiMarketExchangeInfo(params?: {}): Promise<Dict>;
     publicGetV1FapiMarketDepth(params?: {}): Promise<Dict>;
@@ -59,7 +59,5 @@ interface Exchange {
     privatePostV1FapiUserDataMarginType(params?: {}): Promise<Dict>;
     privatePostV1FapiUserDataPositionSideDual(params?: {}): Promise<Dict>;
     privatePostV1AgentInternalWithdrawal(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

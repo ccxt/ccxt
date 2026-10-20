@@ -26,6 +26,7 @@ pub async fn baseTestsInit() {
     testPrecise();
     testSafeMethods();
     testSafeTicker();
+    testSafePosition();
     testMergeBalanceAccount();
     testBase58ToBinary();
     testToArray();
@@ -43,6 +44,7 @@ pub async fn baseTestsInit() {
     testInArray();
     testFilterBy();
     testHandleMethods();
+    testHandleHttpStatusCode();
     testNetworkMethods();
     testRemoveRepeatedElementsFromArray();
     testIsEmpty();

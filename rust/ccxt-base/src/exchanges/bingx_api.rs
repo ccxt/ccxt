@@ -862,11 +862,6 @@ impl BingxCore {
         self.call_method(Value::Str("user_auth_private_delete_user_data_stream".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `copyTradingV1PrivateGetSwapTraceCurrentTrack` implicit endpoint.
-    pub async fn copy_trading_v1_private_get_swap_trace_current_track(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("copy_trading_v1_private_get_swap_trace_current_track".into()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `copyTradingV1PrivateGetPFuturesTraderDetail` implicit endpoint.
     pub async fn copy_trading_v1_private_get_p_futures_trader_detail(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("copy_trading_v1_private_get_p_futures_trader_detail".into()), optional_args).await
@@ -905,11 +900,6 @@ impl BingxCore {
     /// Auto-generated wrapper for the `copyTradingV1PrivateGetSpotHistoryOrder` implicit endpoint.
     pub async fn copy_trading_v1_private_get_spot_history_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("copy_trading_v1_private_get_spot_history_order".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `copyTradingV1PrivatePostSwapTraceCloseTrackOrder` implicit endpoint.
-    pub async fn copy_trading_v1_private_post_swap_trace_close_track_order(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("copy_trading_v1_private_post_swap_trace_close_track_order".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `copyTradingV1PrivatePostSwapTraceSetTPSL` implicit endpoint.
@@ -952,14 +942,14 @@ impl BingxCore {
         self.call_method(Value::Str("api_v3_private_post_post_asset_transfer".into()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `apiAssetV1PrivateGetTransferSupportCoins` implicit endpoint.
+    pub async fn api_asset_v1_private_get_transfer_support_coins(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("api_asset_v1_private_get_transfer_support_coins".into()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `apiAssetV1PrivatePostTransfer` implicit endpoint.
     pub async fn api_asset_v1_private_post_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("api_asset_v1_private_post_transfer".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `apiAssetV1PublicGetTransferSupportCoins` implicit endpoint.
-    pub async fn api_asset_v1_public_get_transfer_support_coins(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("api_asset_v1_public_get_transfer_support_coins".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `agentV1PrivateGetAccountInviteAccountList` implicit endpoint.

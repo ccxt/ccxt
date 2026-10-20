@@ -273,6 +273,8 @@ class zaif(Exchange, ImplicitAPI):
         baseId, quoteId = name.split('/')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         return self.safe_market_structure({
             'id': id,
@@ -709,7 +711,7 @@ class zaif(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'return', {})
         return self.parse_orders(data, market, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
 
         https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
@@ -718,12 +720,12 @@ class zaif(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -736,9 +738,9 @@ class zaif(Exchange, ImplicitAPI):
             # 'message': 'Hi!', // XEM and others
             # 'opt_fee': 0.003, // BTC and MONA only
         }
-        if tag is not None:
-            request['message'] = tag
-        result = await self.privatePostWithdraw(self.extend(request, params))
+        if tagWithdrawTag is not None:
+            request['message'] = tagWithdrawTag
+        result = await self.privatePostWithdraw(self.extend(request, paramsWithdrawTag))
         #
         #     {
         #         "success": 1,
@@ -772,13 +774,13 @@ class zaif(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        currency = self.safe_currency(None, currency)
+        currencyResolved = self.safe_currency(None, currency)
         fee = None
         feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': currency['code'],
+                'currency': currencyResolved['code'],
             }
         return {
             'id': self.safe_string(transaction, 'id'),
@@ -791,7 +793,7 @@ class zaif(Exchange, ImplicitAPI):
             'addressTo': None,
             'amount': None,
             'type': None,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'status': None,
             'updated': None,
             'tagFrom': None,
@@ -808,31 +810,37 @@ class zaif(Exchange, ImplicitAPI):
         nonce = float(num)
         return format(nonce, '.8f')
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api']['rest'] + '/'
-        if api == 'public':
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls['api'], 'rest')
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = baseApiUrl
+        url = baseUrl + '/'
+        if apiName == 'public':
             url += 'api/' + self.version + '/' + self.implode_params(path, params)
-        elif api == 'fapi':
+        elif apiName == 'fapi':
             url += 'fapi/' + self.version + '/' + self.implode_params(path, params)
         else:
             self.check_required_credentials()
-            if api == 'ecapi':
+            if apiName == 'ecapi':
                 url += 'ecapi'
-            elif api == 'tlapi':
+            elif apiName == 'tlapi':
                 url += 'tlapi'
             else:
                 url += 'tapi'
             nonce = self.custom_nonce()
-            body = self.urlencode(self.extend({
+            bodyEncoded = self.urlencode(self.extend({
                 'method': path,
                 'nonce': nonce,
             }, params))
-            headers = {
+            headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,
-                'Sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
+                'Sign': self.hmac(self.encode(bodyEncoded), self.encode(self.secret), hashlib.sha512),
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+            return {'url': url, 'method': method, 'body': bodyEncoded, 'headers': headersSigned}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

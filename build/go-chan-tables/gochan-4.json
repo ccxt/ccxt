@@ -1,0 +1,4 @@
+{
+    "FetchDepositAddressesByNetwork": "map[string]any",
+    "FetchConvertCurrencies": "map[string]any"
+}

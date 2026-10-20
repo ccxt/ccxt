@@ -7,6 +7,7 @@ import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -45,7 +46,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = (exchange.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, chosenTimeframeKey)))), since, limit)).join();
+                response = (exchange.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, chosenTimeframeKey)))), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), new HashMap<String, Object>() {{}})).join();
                 if (java.util.Objects.equals(response, null))
                 {
                     throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;

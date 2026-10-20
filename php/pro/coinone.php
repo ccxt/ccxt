@@ -115,6 +115,9 @@ class coinone extends \ccxt\async\coinone {
         $quoteId = $this->safe_string_upper($data, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return;
+        }
         $symbol = $this->symbol($base . '/' . $quote);
         $timestamp = $this->safe_integer($data, 'timestamp');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
@@ -205,6 +208,9 @@ class coinone extends \ccxt\async\coinone {
         $data = $this->safe_dict($message, 'data', array());
         $ticker = $this->parse_ws_ticker($data);
         $symbol = $ticker['symbol'];
+        if ($symbol === null) {
+            return;
+        }
         $this->tickers[$symbol] = $ticker;
         $messageHash = 'ticker:' . $symbol;
         $client->resolve($this->tickers[$symbol], $messageHash);
@@ -242,7 +248,10 @@ class coinone extends \ccxt\async\coinone {
         $quoteId = $this->safe_string($ticker, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $this->symbol($base . '/' . $quote);
+        $symbol = null;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $this->symbol($base . '/' . $quote);
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -299,10 +308,11 @@ class coinone extends \ccxt\async\coinone {
         );
         $message = $this->extend($request, $params);
         $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($market['symbol'], $limit);
+            $limitResolved = $trades->getLimit($market['symbol'], $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -351,9 +361,12 @@ class coinone extends \ccxt\async\coinone {
         $quoteId = $this->safe_string_upper($trade, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $base . '/' . $quote;
+        $symbol = null;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $base . '/' . $quote;
+        }
         $timestamp = $this->safe_integer($trade, 'timestamp');
-        $market = $this->safe_market($symbol, $market);
+        $marketResolved = $this->safe_market($symbol, $market);
         $isSellerMaker = $this->safe_bool($trade, 'is_seller_maker');
         $side = null;
         if ($isSellerMaker !== null) {
@@ -367,7 +380,7 @@ class coinone extends \ccxt\async\coinone {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'order' => null,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
@@ -375,10 +388,10 @@ class coinone extends \ccxt\async\coinone {
             'amount' => $amountString,
             'cost' => null,
             'fee' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
         //         "response_type": "ERROR",

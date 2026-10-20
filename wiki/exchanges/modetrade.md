@@ -14,6 +14,8 @@
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRates](#fetchfundingrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
+* [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchTradingFees](#fetchtradingfees)
 * [fetchOrderBook](#fetchorderbook)
@@ -239,6 +241,48 @@ fetches historical funding rate prices
 
 ```javascript
 modetrade.fetchFundingRateHistory (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchTicker" id="fetchticker"></a>
+
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>modetrade</code>](#modetrade)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+modetrade.fetchTicker (symbol, params?)
+```
+
+
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+**Kind**: instance method of [<code>modetrade</code>](#modetrade)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+modetrade.fetchTickers (symbols?, params?)
 ```
 
 
@@ -811,12 +855,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-modetrade.withdraw (code, amount, address, tag, params?)
+modetrade.withdraw (code, amount, address, params?)
 ```
 
 

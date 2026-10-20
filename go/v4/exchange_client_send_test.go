@@ -16,7 +16,8 @@ func TestClientSendNotConnectedDoesNotBlock(t *testing.T) {
 	ch := client.SendAsync(map[string]any{"op": "subscribe"})
 
 	select {
-	case res := <-ch:
+	case received := <-ch:
+		res := outcomeOf(received)
 		if _, ok := res.(error); !ok {
 			t.Fatalf("expected an error on the channel, got %T: %v", res, res)
 		}
