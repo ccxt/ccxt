@@ -34,12 +34,13 @@ public partial class BaseTest
         object captured = null;
         var silent = new BaseExchange.WebSocketClient("ws://localhost:1234", null, (c, m) => { }, null, null, (c, e) => { captured = e; }, false, 50);
         silent.isConnected = true;
-        silent.PingLoop();
+        var silentPing = silent.PingLoop();
         for (var i = 0; i < 100 && captured == null; i++)
         {
             await Task.Delay(50);
         }
         silent.isConnected = false;
+        await silentPing;
         Assert(captured != null, "a silent connection must be disconnected by the keepalive window");
         Assert(captured is RequestTimeout, "the keepalive death must be a RequestTimeout, got " + (captured?.GetType()?.Name ?? "null"));
 
@@ -47,13 +48,14 @@ public partial class BaseTest
         object err = null;
         var busy = new BaseExchange.WebSocketClient("ws://localhost:1234", null, (c, m) => { }, null, null, (c, e) => { err = e; }, false, 200);
         busy.isConnected = true;
-        busy.PingLoop();
+        var busyPing = busy.PingLoop();
         for (var i = 0; i < 12; i++)
         {
             busy.TryHandleMessage("{\"tick\":" + i + "}");
             await Task.Delay(50); // staleness stays ~50ms, far below the 600ms kill window (keepAlive 200 x 3 misses)
         }
         busy.isConnected = false;
+        await busyPing;
         Assert(err == null, "a connection with inbound frames must never be killed by the keepalive");
     }
 }
