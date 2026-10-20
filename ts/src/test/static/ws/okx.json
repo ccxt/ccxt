@@ -2316,7 +2316,7 @@
                             ],
                             [
                                 64072.2,
-                                1.02e-05,
+                                0.0000102,
                                 0
                             ],
                             [
@@ -2343,7 +2343,7 @@
                             ],
                             [
                                 64074,
-                                1.02e-05,
+                                0.0000102,
                                 0
                             ],
                             [
@@ -2376,12 +2376,12 @@
                             ],
                             [
                                 64072.2,
-                                1.02e-05,
+                                0.0000102,
                                 0
                             ],
                             [
                                 64071.5,
-                                1.02e-05,
+                                0.0000102,
                                 0
                             ],
                             [
@@ -2403,7 +2403,7 @@
                             ],
                             [
                                 64074,
-                                1.02e-05,
+                                0.0000102,
                                 0
                             ],
                             [
@@ -2566,6 +2566,665 @@
                     "datetime": "2026-08-12T13:28:20.000Z",
                     "nonce": 100,
                     "symbol": "BTC/USDT:USDT"
+                }
+            },
+            {
+                "description": "resubscription snapshot resets the held orderbook in place - a consumer holding the old object must see post-resnapshot updates",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws.okx.com:443/ws/v5/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "books",
+                            "instId": "BTC-USDT"
+                        },
+                        "connId": "72501699"
+                    },
+                    {
+                        "arg": {
+                            "channel": "books",
+                            "instId": "BTC-USDT"
+                        },
+                        "action": "snapshot",
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "81482.2",
+                                        "1.65",
+                                        "0",
+                                        "1"
+                                    ],
+                                    [
+                                        "81483.0",
+                                        "2.0",
+                                        "0",
+                                        "2"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "81480.1",
+                                        "1.1",
+                                        "0",
+                                        "1"
+                                    ],
+                                    [
+                                        "81479.5",
+                                        "2.4",
+                                        "0",
+                                        "3"
+                                    ]
+                                ],
+                                "ts": "1792488233039",
+                                "checksum": 1300677031,
+                                "prevSeqId": -1,
+                                "seqId": 100
+                            }
+                        ]
+                    },
+                    {
+                        "arg": {
+                            "channel": "books",
+                            "instId": "BTC-USDT"
+                        },
+                        "action": "update",
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "81482.2",
+                                        "1.2",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "bids": [],
+                                "ts": "1792488233539",
+                                "checksum": 1639734359,
+                                "prevSeqId": 100,
+                                "seqId": 101
+                            }
+                        ]
+                    },
+                    {
+                        "arg": {
+                            "channel": "books",
+                            "instId": "BTC-USDT"
+                        },
+                        "action": "snapshot",
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "81402.0",
+                                        "2.5",
+                                        "0",
+                                        "2"
+                                    ],
+                                    [
+                                        "81403.1",
+                                        "1.0",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "81400.9",
+                                        "3.0",
+                                        "0",
+                                        "2"
+                                    ],
+                                    [
+                                        "81399.0",
+                                        "1.0",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "ts": "1792488240100",
+                                "checksum": 830931827,
+                                "prevSeqId": -1,
+                                "seqId": 200
+                            }
+                        ]
+                    },
+                    {
+                        "arg": {
+                            "channel": "books",
+                            "instId": "BTC-USDT"
+                        },
+                        "action": "update",
+                        "data": [
+                            {
+                                "asks": [],
+                                "bids": [
+                                    [
+                                        "81399.0",
+                                        "0",
+                                        "0",
+                                        "0"
+                                    ],
+                                    [
+                                        "81398.4",
+                                        "0.5",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "ts": "1792488240600",
+                                "checksum": -855196043,
+                                "prevSeqId": 200,
+                                "seqId": 201
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "channel": "books",
+                                "instId": "BTC-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            81400.9,
+                            3
+                        ],
+                        [
+                            81398.4,
+                            0.5
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            81402,
+                            2.5
+                        ],
+                        [
+                            81403.1,
+                            1
+                        ]
+                    ],
+                    "timestamp": 1792488240600,
+                    "datetime": "2026-10-20T09:24:00.600Z",
+                    "nonce": 201,
+                    "symbol": "BTC/USDT"
+                }
+            }
+        ],
+        "watchBalance": [
+            {
+                "description": "account snapshot followed by a partial event_update - updates arriving while no consumer is awaiting must still reach the object handed to the consumer (same class as issue 26773); frames captured from okx demo trading 2026-10-20",
+                "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
+                "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "input": [],
+                "url": "wss://ws.okx.com:443/ws/v5/private",
+                "messages": [
+                    {
+                        "event": "login",
+                        "msg": "",
+                        "code": "0",
+                        "connId": "72501699"
+                    },
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "account"
+                        },
+                        "connId": "72501699"
+                    },
+                    {
+                        "event": "channel-conn-count",
+                        "channel": "account",
+                        "connCount": "1",
+                        "connId": "72501699"
+                    },
+                    {
+                        "event": "channel-conn-count",
+                        "channel": "account",
+                        "connCount": "1",
+                        "connId": "72501699"
+                    },
+                    {
+                        "event": "channel-conn-count",
+                        "channel": "account",
+                        "connCount": "1",
+                        "connId": "72501699"
+                    },
+                    {
+                        "arg": {
+                            "channel": "account",
+                            "uid": "158635852459810816"
+                        },
+                        "eventType": "snapshot",
+                        "curPage": 1,
+                        "lastPage": true,
+                        "data": [
+                            {
+                                "adjEq": "114177.5912825359",
+                                "availEq": "113115.2558553984",
+                                "borrowFroz": "268.66757710416124",
+                                "delta": "",
+                                "deltaLever": "",
+                                "deltaNeutralStatus": "",
+                                "details": [
+                                    {
+                                        "accAvgPx": "",
+                                        "autoLendAmt": "0",
+                                        "autoLendMtAmt": "0",
+                                        "autoLendStatus": "unsupported",
+                                        "autoStakingStatus": "unsupported",
+                                        "availBal": "0.6612261049395155",
+                                        "availEq": "0.6612261049395155",
+                                        "borrowFroz": "0",
+                                        "cashBal": "1.0612261049395155",
+                                        "ccy": "BTC",
+                                        "clSpotInUseAmt": "",
+                                        "coinUsdPrice": "81369.9",
+                                        "colBorrAutoConversion": "0",
+                                        "colRes": "0",
+                                        "collateralEnabled": true,
+                                        "collateralRestrict": false,
+                                        "crossLiab": "0",
+                                        "disEq": "84624.82479559151",
+                                        "eq": "1.0612261049395155",
+                                        "eqUsd": "86351.86203631788",
+                                        "fixedBal": "0",
+                                        "frozenBal": "0.4",
+                                        "frpType": "0",
+                                        "imr": "",
+                                        "interest": "0",
+                                        "isoEq": "0",
+                                        "isoLiab": "0",
+                                        "isoUpl": "0",
+                                        "liab": "0",
+                                        "maxLoan": "6.950681754272673",
+                                        "maxSpotInUseAmt": "",
+                                        "mgnRatio": "",
+                                        "mmr": "",
+                                        "notionalLever": "",
+                                        "openAvgPx": "",
+                                        "ordFrozen": "0.4",
+                                        "rewardBal": "",
+                                        "smtSyncEq": "0",
+                                        "spotBal": "",
+                                        "spotCopyTradingEq": "0",
+                                        "spotInUseAmt": "",
+                                        "spotIsoBal": "0",
+                                        "spotUpl": "",
+                                        "spotUplRatio": "",
+                                        "stgyEq": "0",
+                                        "totalPnl": "",
+                                        "totalPnlRatio": "",
+                                        "twap": "0",
+                                        "uTime": "1773993673401",
+                                        "upl": "0",
+                                        "uplLiab": "0"
+                                    },
+                                    {
+                                        "accAvgPx": "",
+                                        "autoLendAmt": "0",
+                                        "autoLendMtAmt": "0",
+                                        "autoLendStatus": "unsupported",
+                                        "autoStakingStatus": "unsupported",
+                                        "availBal": "2900",
+                                        "availEq": "2900",
+                                        "borrowFroz": "0",
+                                        "cashBal": "2900",
+                                        "ccy": "TUSD",
+                                        "clSpotInUseAmt": "",
+                                        "coinUsdPrice": "21.97294",
+                                        "colBorrAutoConversion": "0",
+                                        "colRes": "0",
+                                        "collateralEnabled": false,
+                                        "collateralRestrict": false,
+                                        "crossLiab": "0",
+                                        "disEq": "0",
+                                        "eq": "2900",
+                                        "eqUsd": "63721.526000000005",
+                                        "fixedBal": "0",
+                                        "frozenBal": "0",
+                                        "frpType": "0",
+                                        "imr": "",
+                                        "interest": "0",
+                                        "isoEq": "0",
+                                        "isoLiab": "0",
+                                        "isoUpl": "0",
+                                        "liab": "0",
+                                        "maxLoan": "0",
+                                        "maxSpotInUseAmt": "",
+                                        "mgnRatio": "",
+                                        "mmr": "",
+                                        "notionalLever": "",
+                                        "openAvgPx": "",
+                                        "ordFrozen": "0",
+                                        "rewardBal": "",
+                                        "smtSyncEq": "0",
+                                        "spotBal": "",
+                                        "spotCopyTradingEq": "0",
+                                        "spotInUseAmt": "",
+                                        "spotIsoBal": "0",
+                                        "spotUpl": "",
+                                        "spotUplRatio": "",
+                                        "stgyEq": "0",
+                                        "totalPnl": "",
+                                        "totalPnlRatio": "",
+                                        "twap": "0",
+                                        "uTime": "1752243427083",
+                                        "upl": "0",
+                                        "uplLiab": "0"
+                                    },
+                                    {
+                                        "accAvgPx": "",
+                                        "autoLendAmt": "0",
+                                        "autoLendMtAmt": "0",
+                                        "autoLendStatus": "unsupported",
+                                        "autoStakingStatus": "off",
+                                        "availBal": "5",
+                                        "availEq": "5",
+                                        "borrowFroz": "0",
+                                        "cashBal": "5",
+                                        "ccy": "ETH",
+                                        "clSpotInUseAmt": "",
+                                        "coinUsdPrice": "2382.32",
+                                        "colBorrAutoConversion": "0",
+                                        "colRes": "0",
+                                        "collateralEnabled": true,
+                                        "collateralRestrict": false,
+                                        "crossLiab": "0",
+                                        "disEq": "11673.368000000002",
+                                        "eq": "5",
+                                        "eqUsd": "11911.6",
+                                        "fixedBal": "0",
+                                        "frozenBal": "0",
+                                        "frpType": "0",
+                                        "imr": "",
+                                        "interest": "0",
+                                        "isoEq": "0",
+                                        "isoLiab": "0",
+                                        "isoUpl": "0",
+                                        "liab": "0",
+                                        "maxLoan": "12",
+                                        "maxSpotInUseAmt": "",
+                                        "mgnRatio": "",
+                                        "mmr": "",
+                                        "notionalLever": "",
+                                        "openAvgPx": "",
+                                        "ordFrozen": "0",
+                                        "rewardBal": "",
+                                        "smtSyncEq": "0",
+                                        "spotBal": "",
+                                        "spotCopyTradingEq": "0",
+                                        "spotInUseAmt": "",
+                                        "spotIsoBal": "0",
+                                        "spotUpl": "",
+                                        "spotUplRatio": "",
+                                        "stgyEq": "0",
+                                        "totalPnl": "",
+                                        "totalPnlRatio": "",
+                                        "twap": "0",
+                                        "uTime": "1639594842592",
+                                        "upl": "0",
+                                        "uplLiab": "0"
+                                    }
+                                ],
+                                "imr": "1062.3354271374947",
+                                "isoEq": "0",
+                                "mgnRatio": "1699.3636125843136",
+                                "mmr": "63.25752962123225",
+                                "notionalUsd": "5067.679321141613",
+                                "notionalUsdForBorrow": "2686.6757710416127",
+                                "notionalUsdForFutures": "0",
+                                "notionalUsdForOption": "0",
+                                "notionalUsdForSwap": "2381.0035501",
+                                "ordFroz": "0",
+                                "totalEq": "208150.27797617626",
+                                "uTime": "1792488275041",
+                                "upl": "-90.60569990000002"
+                            }
+                        ]
+                    },
+                    {
+                        "arg": {
+                            "channel": "account",
+                            "uid": "158635852459810816"
+                        },
+                        "eventType": "event_update",
+                        "data": [
+                            {
+                                "adjEq": "114174.60399859239",
+                                "availEq": "113112.33381528156",
+                                "borrowFroz": "268.69553874416124",
+                                "delta": "",
+                                "deltaLever": "",
+                                "deltaNeutralStatus": "",
+                                "details": [
+                                    {
+                                        "accAvgPx": "",
+                                        "autoLendAmt": "0",
+                                        "autoLendMtAmt": "0",
+                                        "autoLendStatus": "unsupported",
+                                        "autoStakingStatus": "unsupported",
+                                        "availBal": "2901",
+                                        "availEq": "2901",
+                                        "borrowFroz": "0",
+                                        "cashBal": "2901",
+                                        "ccy": "TUSD",
+                                        "clSpotInUseAmt": "",
+                                        "coinUsdPrice": "21.97294",
+                                        "colBorrAutoConversion": "0",
+                                        "colRes": "0",
+                                        "collateralEnabled": false,
+                                        "collateralRestrict": false,
+                                        "crossLiab": "0",
+                                        "disEq": "0",
+                                        "eq": "2901",
+                                        "eqUsd": "63743.498940000005",
+                                        "fixedBal": "0",
+                                        "frozenBal": "0",
+                                        "frpType": "0",
+                                        "imr": "",
+                                        "interest": "0",
+                                        "isoEq": "0",
+                                        "isoLiab": "0",
+                                        "isoUpl": "0",
+                                        "liab": "0",
+                                        "maxLoan": "0",
+                                        "maxSpotInUseAmt": "",
+                                        "mgnRatio": "",
+                                        "mmr": "",
+                                        "notionalLever": "",
+                                        "openAvgPx": "",
+                                        "ordFrozen": "0",
+                                        "rewardBal": "",
+                                        "smtSyncEq": "0",
+                                        "spotBal": "",
+                                        "spotCopyTradingEq": "0",
+                                        "spotInUseAmt": "",
+                                        "spotIsoBal": "0",
+                                        "spotUpl": "",
+                                        "spotUplRatio": "",
+                                        "stgyEq": "0",
+                                        "totalPnl": "",
+                                        "totalPnlRatio": "",
+                                        "twap": "0",
+                                        "uTime": "1792488291078",
+                                        "upl": "0",
+                                        "uplLiab": "0"
+                                    }
+                                ],
+                                "imr": "1062.2701833108279",
+                                "isoEq": "0",
+                                "mgnRatio": "1699.2023296885936",
+                                "mmr": "63.262003483632256",
+                                "notionalUsd": "5067.6793211416125",
+                                "notionalUsdForBorrow": "2686.955387441613",
+                                "notionalUsdForFutures": "0",
+                                "notionalUsdForOption": "0",
+                                "notionalUsdForSwap": "2380.7239336999996",
+                                "ordFroz": "0",
+                                "totalEq": "208169.38955536144",
+                                "uTime": "1792488291112",
+                                "upl": "-90.88531630000021"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "login",
+                        "args": [
+                            {
+                                "apiKey": "key",
+                                "passphrase": "password",
+                                "timestamp": "TS",
+                                "sign": "SIGNATURE"
+                            }
+                        ]
+                    },
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "channel": "account"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "sign"
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "arg": {
+                            "channel": "account",
+                            "uid": "158635852459810816"
+                        },
+                        "eventType": "event_update",
+                        "data": [
+                            {
+                                "adjEq": "114174.60399859239",
+                                "availEq": "113112.33381528156",
+                                "borrowFroz": "268.69553874416124",
+                                "delta": "",
+                                "deltaLever": "",
+                                "deltaNeutralStatus": "",
+                                "details": [
+                                    {
+                                        "accAvgPx": "",
+                                        "autoLendAmt": "0",
+                                        "autoLendMtAmt": "0",
+                                        "autoLendStatus": "unsupported",
+                                        "autoStakingStatus": "unsupported",
+                                        "availBal": "2901",
+                                        "availEq": "2901",
+                                        "borrowFroz": "0",
+                                        "cashBal": "2901",
+                                        "ccy": "TUSD",
+                                        "clSpotInUseAmt": "",
+                                        "coinUsdPrice": "21.97294",
+                                        "colBorrAutoConversion": "0",
+                                        "colRes": "0",
+                                        "collateralEnabled": false,
+                                        "collateralRestrict": false,
+                                        "crossLiab": "0",
+                                        "disEq": "0",
+                                        "eq": "2901",
+                                        "eqUsd": "63743.498940000005",
+                                        "fixedBal": "0",
+                                        "frozenBal": "0",
+                                        "frpType": "0",
+                                        "imr": "",
+                                        "interest": "0",
+                                        "isoEq": "0",
+                                        "isoLiab": "0",
+                                        "isoUpl": "0",
+                                        "liab": "0",
+                                        "maxLoan": "0",
+                                        "maxSpotInUseAmt": "",
+                                        "mgnRatio": "",
+                                        "mmr": "",
+                                        "notionalLever": "",
+                                        "openAvgPx": "",
+                                        "ordFrozen": "0",
+                                        "rewardBal": "",
+                                        "smtSyncEq": "0",
+                                        "spotBal": "",
+                                        "spotCopyTradingEq": "0",
+                                        "spotInUseAmt": "",
+                                        "spotIsoBal": "0",
+                                        "spotUpl": "",
+                                        "spotUplRatio": "",
+                                        "stgyEq": "0",
+                                        "totalPnl": "",
+                                        "totalPnlRatio": "",
+                                        "twap": "0",
+                                        "uTime": "1792488291078",
+                                        "upl": "0",
+                                        "uplLiab": "0"
+                                    }
+                                ],
+                                "imr": "1062.2701833108279",
+                                "isoEq": "0",
+                                "mgnRatio": "1699.2023296885936",
+                                "mmr": "63.262003483632256",
+                                "notionalUsd": "5067.6793211416125",
+                                "notionalUsdForBorrow": "2686.955387441613",
+                                "notionalUsdForFutures": "0",
+                                "notionalUsdForOption": "0",
+                                "notionalUsdForSwap": "2380.7239336999996",
+                                "ordFroz": "0",
+                                "totalEq": "208169.38955536144",
+                                "uTime": "1792488291112",
+                                "upl": "-90.88531630000021"
+                            }
+                        ]
+                    },
+                    "BTC": {
+                        "free": 0.6612261049395155,
+                        "used": 0.4,
+                        "total": 1.0612261049395155
+                    },
+                    "TUSD": {
+                        "free": 2901,
+                        "used": 0,
+                        "total": 2901
+                    },
+                    "ETH": {
+                        "free": 5,
+                        "used": 0,
+                        "total": 5
+                    },
+                    "timestamp": 1792488291112,
+                    "datetime": "2026-10-20T09:24:51.112Z",
+                    "free": {
+                        "BTC": 0.6612261049395155,
+                        "TUSD": 2901,
+                        "ETH": 5
+                    },
+                    "used": {
+                        "BTC": 0.4,
+                        "TUSD": 0,
+                        "ETH": 0
+                    },
+                    "total": {
+                        "BTC": 1.0612261049395155,
+                        "TUSD": 2901,
+                        "ETH": 5
+                    }
                 }
             }
         ]
