@@ -4459,7 +4459,7 @@ export default class hyperliquid extends Exchange {
             //
             // {'response': {'type': 'default'}, 'status': 'ok'}
             //
-            return this.parseTransfer (response);
+            return this.parseTransfer (response, this.safeCurrency (code));
         } else {
             // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
             // expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
@@ -4485,7 +4485,7 @@ export default class hyperliquid extends Exchange {
                 'signature': sig,
             };
             const response = await this.privatePostExchange (request);
-            return this.parseTransfer (response);
+            return this.parseTransfer (response, currency);
         }
     }
 
