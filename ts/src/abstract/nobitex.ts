@@ -8,22 +8,62 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetV2Options (params?: {}): Promise<Dict>;
-    publicGetMarketStats (params?: {}): Promise<Dict>;
-    publicGetV3OrderbookSymbol (params?: {}): Promise<Dict>;
-    publicGetV2TradesSymbol (params?: {}): Promise<Dict>;
-    publicGetMarketUdfHistory (params?: {}): Promise<Dict>;
-    privateGetMarketTradesList (params?: {}): Promise<Dict>;
-    privatePostUsersProfile (params?: {}): Promise<Dict>;
-    privatePostUsersWalletsList (params?: {}): Promise<Dict>;
-    privatePostUsersWalletsBalance (params?: {}): Promise<Dict>;
-    privatePostMarketOrdersAdd (params?: {}): Promise<Dict>;
-    privatePostMarketOrdersStatus (params?: {}): Promise<Dict>;
-    privatePostMarketOrdersList (params?: {}): Promise<Dict>;
-    privatePostMarketOrdersUpdateStatus (params?: {}): Promise<Dict>;
-    privatePostMarketOrdersCancelOld (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetV2Options (params = {}): Promise<Dict> {
+        return this.request ('v2/options', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetMarketStats (params = {}): Promise<Dict> {
+        return this.request ('market/stats', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetV3OrderbookSymbol (params = {}): Promise<Dict> {
+        return this.request ('v3/orderbook/{symbol}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetV2TradesSymbol (params = {}): Promise<Dict> {
+        return this.request ('v2/trades/{symbol}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMarketUdfHistory (params = {}): Promise<Dict> {
+        return this.request ('market/udf/history', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetMarketTradesList (params = {}): Promise<Dict> {
+        return this.request ('market/trades/list', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostUsersProfile (params = {}): Promise<Dict> {
+        return this.request ('users/profile', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostUsersWalletsList (params = {}): Promise<Dict> {
+        return this.request ('users/wallets/list', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostUsersWalletsBalance (params = {}): Promise<Dict> {
+        return this.request ('users/wallets/balance', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostMarketOrdersAdd (params = {}): Promise<Dict> {
+        return this.request ('market/orders/add', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostMarketOrdersStatus (params = {}): Promise<Dict> {
+        return this.request ('market/orders/status', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostMarketOrdersList (params = {}): Promise<Dict> {
+        return this.request ('market/orders/list', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostMarketOrdersUpdateStatus (params = {}): Promise<Dict> {
+        return this.request ('market/orders/update-status', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostMarketOrdersCancelOld (params = {}): Promise<Dict> {
+        return this.request ('market/orders/cancel-old', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;
