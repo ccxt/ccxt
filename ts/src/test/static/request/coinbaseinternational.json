@@ -6,6 +6,10 @@
         "end_timestamp"
     ],
     "outputType": "json",
+    "options": {
+        "v2AccessToken": "token",
+        "v2TokenExpires": 99999999999999
+    },
     "methods": {
         "fetchOHLCV": [
             {
@@ -161,9 +165,7 @@
                 "url": "https://drb.coinbase.com/api/v2/private/get_leverage?instrument_name=BTC_USDC-PERPETUAL",
                 "options": {
                     "route": "coinbase",
-                    "routeBackend": false,
-                    "v2AccessToken": "token",
-                    "v2TokenExpires": 99999999999999
+                    "routeBackend": false
                 },
                 "input": [
                     "BTC/USDC:USDC"
@@ -178,9 +180,7 @@
                 "url": "https://drb.coinbase.com/api/v2/private/set_leverage?instrument_name=BTC_USDC-PERPETUAL&leverage=10",
                 "options": {
                     "route": "coinbase",
-                    "routeBackend": false,
-                    "v2AccessToken": "token",
-                    "v2TokenExpires": 99999999999999
+                    "routeBackend": false
                 },
                 "input": [
                     10,
@@ -296,7 +296,8 @@
                     0.001,
                     72000,
                     {
-                        "route": "coinbase"
+                        "route": "coinbase",
+                        "clientOrderId": "nfqkvdjp-b547047bae5f4b60a681f5"
                     }
                 ],
                 "output": null
@@ -312,7 +313,8 @@
                     0.001,
                     null,
                     {
-                        "route": "coinbase"
+                        "route": "coinbase",
+                        "clientOrderId": "nfqkvdjp-9d01ca32fce84491872ed1"
                     }
                 ],
                 "output": null
