@@ -6,7 +6,7 @@ import Exchange from './abstract/nobitex.js';
 import { ExchangeError, AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Dict, Endpoint, Int, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Ticker, int } from './base/types.js';
+import type { Dict, Endpoint, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -378,17 +378,19 @@ export default class nobitex extends Exchange {
         }, market);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let fullPath = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        headers = {};
+        const headers: Dict = {};
+        let body: Str = undefined;
         if (method === 'POST') {
             body = this.json (query);
             headers['Content-Type'] = 'application/json';
         } else if (Object.keys (query).length > 0) {
             fullPath += '?' + this.urlencode (query);
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             if (this.secret !== undefined && this.secret !== '') {
                 // API Key auth: Ed25519 over timestamp + METHOD + full_path + raw_body, keys and signature are url-safe base64
