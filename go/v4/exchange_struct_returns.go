@@ -707,8 +707,7 @@ func WatchMultiple[T any](ex interface{ WatchMultiple(args ...any) <-chan AsyncR
 
 // List-of-struct channels (build/go-chan3.ts goChan3StructListPass, W28): a core typed AsyncResult[[]T]
 // sends the parsed rows as []T; readers that hand the value on untyped read it back with <Ts>ToList, the
-// exact []any (nil for nil) the AsyncResult[[]any] core sent, and reflective readers (AsyncResult.Boxed:
-// PromiseAll, CallInternalMethod) get the same []any through structListBoxers.
+// exact []any (nil for nil) the AsyncResult[[]any] core sent; reflective readers get the typed []T.
 
 // StructListFromList builds a []T from a parsed list (an ArrayCache reads as its rows; nil stays nil).
 func StructListFromList[T any](data any, from func(any) T) []T {
@@ -1384,49 +1383,3 @@ func StringElementToAny(s string) any {
 	return s
 }
 
-// structListBoxers: the reflective box (AsyncResult.Boxed) of every list-of-struct channel element type.
-var structListBoxers = map[reflect.Type]func(any) any{
-	reflect.TypeOf([]Trade(nil)):                func(v any) any { return TradesToList(v.([]Trade)) },
-	reflect.TypeOf([]Order(nil)):                func(v any) any { return OrdersToList(v.([]Order)) },
-	reflect.TypeOf([]OHLCV(nil)):                func(v any) any { return OHLCVsToList(v.([]OHLCV)) },
-	reflect.TypeOf([]Position(nil)):             func(v any) any { return PositionsToList(v.([]Position)) },
-	reflect.TypeOf([]Transaction(nil)):          func(v any) any { return TransactionsToList(v.([]Transaction)) },
-	reflect.TypeOf([]LedgerEntry(nil)):          func(v any) any { return LedgerEntriesToList(v.([]LedgerEntry)) },
-	reflect.TypeOf([]DepositAddress(nil)):       func(v any) any { return DepositAddressesToList(v.([]DepositAddress)) },
-	reflect.TypeOf([]TransferEntry(nil)):        func(v any) any { return TransferEntriesToList(v.([]TransferEntry)) },
-	reflect.TypeOf([]OpenInterest(nil)):         func(v any) any { return OpenInterestsToList(v.([]OpenInterest)) },
-	reflect.TypeOf([]Conversion(nil)):           func(v any) any { return ConversionsToList(v.([]Conversion)) },
-	reflect.TypeOf([]Liquidation(nil)):          func(v any) any { return LiquidationsToList(v.([]Liquidation)) },
-	reflect.TypeOf([]BorrowInterest(nil)):       func(v any) any { return BorrowInterestsToList(v.([]BorrowInterest)) },
-	reflect.TypeOf([]FundingHistory(nil)):       func(v any) any { return FundingHistoriesToList(v.([]FundingHistory)) },
-	reflect.TypeOf([]FundingRateHistory(nil)):   func(v any) any { return FundingRateHistoriesToList(v.([]FundingRateHistory)) },
-	reflect.TypeOf([]LeverageTier(nil)):         func(v any) any { return LeverageTiersToList(v.([]LeverageTier)) },
-	reflect.TypeOf([]MarginModification(nil)):   func(v any) any { return MarginModificationsToList(v.([]MarginModification)) },
-	reflect.TypeOf([]LongShortRatio(nil)):       func(v any) any { return LongShortRatiosToList(v.([]LongShortRatio)) },
-	reflect.TypeOf([]ADL(nil)):                  func(v any) any { return ADLsToList(v.([]ADL)) },
-	reflect.TypeOf([]Account(nil)):              func(v any) any { return AccountsToList(v.([]Account)) },
-	reflect.TypeOf([]PredictionOrder(nil)):      func(v any) any { return PredictionOrdersToList(v.([]PredictionOrder)) },
-	reflect.TypeOf([]PredictionTrade(nil)):      func(v any) any { return PredictionTradesToList(v.([]PredictionTrade)) },
-	reflect.TypeOf([]PredictionPosition(nil)):   func(v any) any { return PredictionPositionsToList(v.([]PredictionPosition)) },
-	reflect.TypeOf([]PredictionEvent(nil)):      func(v any) any { return PredictionEventsToList(v.([]PredictionEvent)) },
-	reflect.TypeOf([]PredictionSettlement(nil)): func(v any) any { return PredictionSettlementsToList(v.([]PredictionSettlement)) },
-	reflect.TypeOf([]MarketInterface(nil)):      func(v any) any { return MarketInterfacesToList(v.([]MarketInterface)) },
-	reflect.TypeOf([]map[string]any(nil)):       func(v any) any { return MapSliceToList(v.([]map[string]any)) },
-	reflect.TypeOf([]string(nil)):               func(v any) any { return StringSliceToList(v.([]string)) },
-}
-
-// structListBoxed is the reflective box of a list-of-struct value (ok false for any other value).
-func structListBoxed(v any) (any, bool) {
-	rv := reflect.ValueOf(v)
-	if !rv.IsValid() || rv.Kind() != reflect.Slice {
-		return nil, false
-	}
-	box, ok := structListBoxers[rv.Type()]
-	if !ok {
-		return nil, false
-	}
-	if rv.IsNil() {
-		return nil, true
-	}
-	return box(v), true
-}

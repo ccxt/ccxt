@@ -476,7 +476,10 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		var currencies any = nil
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
-			currencies = (<-this.DerivedExchange.FetchCurrenciesAsync(params)).Boxed()
+			// a nil currencies map stays untyped nil: SetMarkets reads it as "not fetched"
+			if fetchedCurrencies := (<-this.DerivedExchange.FetchCurrenciesAsync(params)).Value; fetchedCurrencies != nil {
+				currencies = fetchedCurrencies
+			}
 			// this.cachedCurrenciesMutex.Lock()
 			// this.Options["cachedCurrencies"] = currencies
 			this.Options.Store("cachedCurrencies", currencies)
@@ -487,7 +490,7 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		if fetched.Err != nil {
 			panic(fetched.Err)
 		}
-		markets := fetched.Boxed()
+		markets := MarketInterfacesToList(fetched.Value)
 
 		// this.cachedCurrenciesMutex.Lock()
 		// delete(this.Options, "cachedCurrencies")
@@ -2119,12 +2122,12 @@ func (this *BaseExchange) Spawn(method any, args ...any) *Future {
 				response, failure = r.Value, r.Err
 			}
 		default:
-			// typed cores (<-chan EndpointResult[T]) yield their boxed payload and failure
+			// typed cores (<-chan EndpointResult[T]) yield their untyped payload and failure
 			if v := reflect.ValueOf(awaited); v.Kind() == reflect.Chan && !v.IsNil() {
 				if val, ok := v.Recv(); ok {
 					response = val.Interface()
-					if outcome, isOutcome := response.(AsyncOutcome); isOutcome {
-						response, failure = outcome.Boxed(), outcome.Failure()
+					if outcome, isOutcome := response.(UntypedOutcome); isOutcome {
+						response, failure = outcome.Untyped(), outcome.Failure()
 					}
 				}
 			} else if v.Kind() != reflect.Chan {
