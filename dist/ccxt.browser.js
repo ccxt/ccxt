@@ -183431,6 +183431,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             }
             paginationTimestamp = since;
         }
+        let shouldBreak = false;
         while(calls < maxCallsPaginationCalls){
             calls += 1;
             try {
@@ -183450,6 +183451,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                         this.log(backwardMessage);
                     }
                     if (responseLength === 0) {
+                        shouldBreak = true;
                         break;
                     }
                     errors = 0;
@@ -183457,9 +183459,11 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                     const firstElement = this.safeValue(response, 0);
                     paginationTimestamp = this.safeInteger2(firstElement, 'timestamp', 0);
                     if (paginationTimestamp === undefined) {
+                        shouldBreak = true;
                         break;
                     }
                     if (since !== undefined && paginationTimestamp <= since) {
+                        shouldBreak = true;
                         break;
                     }
                 } else {
@@ -183474,6 +183478,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                         this.log(forwardMessage);
                     }
                     if (responseLength === 0) {
+                        shouldBreak = true;
                         break;
                     }
                     errors = 0;
@@ -183481,11 +183486,13 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                     const last = this.safeValue(response, responseLength - 1);
                     const lastTimestamp = this.safeInteger(last, 'timestamp', 0);
                     if (lastTimestamp === undefined) {
+                        shouldBreak = true;
                         break;
                     }
                     const nextPaginationTimestamp = lastTimestamp + 1;
                     paginationTimestamp = nextPaginationTimestamp;
                     if (until !== undefined && nextPaginationTimestamp >= until) {
+                        shouldBreak = true;
                         break;
                     }
                 }
@@ -183494,6 +183501,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 if (errors > maxRetriesOption) {
                     throw e;
                 }
+            }
+            if (shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
         }
         let uniqueResults = result;
@@ -183597,6 +183607,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         let result = [];
         const timeframe = this.safeString(paramsMaxEntriesPerRequest, 'timeframe');
         const paramsOmitted = this.omit(paramsMaxEntriesPerRequest, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
+        let shouldBreak = false;
         while(i < maxCallsPaginationCalls){
             try {
                 if (cursorValue !== undefined) {
@@ -183634,6 +183645,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                     this.log(cursorMessage);
                 }
                 if (responseLength === 0) {
+                    shouldBreak = true;
                     break;
                 }
                 if (response !== undefined) {
@@ -183642,17 +183654,17 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 const last = this.safeDict(response, responseLength - 1);
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = undefined; // search for the cursor
+                // guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
                 for(let j = 0; j < responseLength; j++){
-                    const index = responseLength - j - 1;
-                    const entry = this.safeDict(response, index);
-                    const info = this.safeDict(entry, 'info');
-                    const cursor = cursorReceived === undefined ? undefined : this.safeValue(info, cursorReceived);
-                    if (cursor !== undefined) {
-                        cursorValue = cursor;
-                        break;
+                    if (cursorValue === undefined) {
+                        const index = responseLength - j - 1;
+                        const entry = this.safeDict(response, index);
+                        const info = this.safeDict(entry, 'info');
+                        cursorValue = cursorReceived === undefined ? undefined : this.safeValue(info, cursorReceived);
                     }
                 }
                 if (cursorValue === undefined) {
+                    shouldBreak = true;
                     break;
                 }
                 const lastTimestamp = this.safeInteger(last, 'timestamp');
@@ -183660,6 +183672,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                     throw new _errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchPaginatedCallCursor() requires a since argument');
                 }
                 if (lastTimestamp !== undefined && lastTimestamp < since) {
+                    shouldBreak = true;
                     break;
                 }
             } catch (e) {
@@ -183667,6 +183680,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 if (errors > maxRetriesOption) {
                     throw e;
                 }
+            }
+            if (shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
             i += 1;
         }
@@ -183683,6 +183699,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         let i = 0;
         let errors = 0;
         let result = [];
+        let shouldBreak = false;
         while(i < maxCallsPaginationCalls){
             try {
                 paramsMaxEntriesPerRequest[pageKey] = i + 1;
@@ -183695,6 +183712,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                     this.log(incrementalMessage);
                 }
                 if (responseLength === 0) {
+                    shouldBreak = true;
                     break;
                 }
                 result = this.arrayConcat(result, response);
@@ -183703,6 +183721,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 if (errors > maxRetriesOption) {
                     throw e;
                 }
+            }
+            if (shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
             i += 1;
         }
