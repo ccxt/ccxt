@@ -277,6 +277,7 @@ void setValue (const ccxt::any& target, const ccxt::any& key, const ccxt::any& v
         ccxt::ws::WsOrderBook book = ccxt::any_cast<ccxt::ws::WsOrderBook> (target);
         const std::string name = anyToString (key);
         if (name == "timestamp") { book.setTimestamp (value); return; }
+        if (name == "datetime") { book.setDatetime (value); return; }
         if (name == "nonce")     { book.setNonce (value); return; }
         if (name == "symbol")    { book.setSymbol (value); return; }
         return;

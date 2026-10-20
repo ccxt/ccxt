@@ -45,7 +45,12 @@ public:
         s.nonce = snapValue (snapshot, "nonce");
         s.symbol = snapValue (snapshot, "symbol");
         s.cache = ccxt::any (list {});
-        this->refreshDatetime ();
+        const ccxt::any snapDatetime = snapValue (snapshot, "datetime");
+        if (snapDatetime.has_value ()) {
+            s.datetime = snapDatetime;
+        } else {
+            this->refreshDatetime ();
+        }
     }
 
     OrderBookSide& bids () { return this->impl->bids; }
@@ -57,6 +62,7 @@ public:
     ccxt::any cache () const { return this->impl->cache; }
     void setSymbol (const ccxt::any& symbol) { this->impl->symbol = symbol; }
     void setNonce (const ccxt::any& nonce) { this->impl->nonce = nonce; }
+    void setDatetime (const ccxt::any& datetime) { this->impl->datetime = datetime; }
     void setTimestamp (const ccxt::any& timestamp) {
         this->impl->timestamp = timestamp;
         this->refreshDatetime ();
@@ -89,7 +95,15 @@ public:
         s.nonce = snapValue (snapshot, "nonce");
         s.timestamp = snapValue (snapshot, "timestamp");
         s.symbol = snapValue (snapshot, "symbol");
-        this->refreshDatetime ();
+        // TS keeps the snapshot's raw datetime string verbatim (exchanges may
+        // carry sub-millisecond precision, e.g. kraken's 6-digit timestamps) —
+        // only derive it from the timestamp when the snapshot has none
+        const ccxt::any snapDatetime = snapValue (snapshot, "datetime");
+        if (snapDatetime.has_value ()) {
+            s.datetime = snapDatetime;
+        } else {
+            this->refreshDatetime ();
+        }
         return *this;
     }
 
