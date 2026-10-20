@@ -9,6 +9,7 @@
                 "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
                 "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
                 "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledRS": "the rust static-ws harness has no concurrent injector - it re-invokes the watch method while injected frames remain queued, so a request-reply method sends one get-balance per remaining frame and the sentMessages assertion cannot hold; the no-waiter window this entry exercises is not reproducible in that lane",
                 "input": [],
                 "url": "wss://ws.cex.io/ws",
                 "messages": [

@@ -2180,6 +2180,7 @@
                 "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
                 "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
                 "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledRS": "the rust Value runtime is copy-on-write (Arc-backed dicts) - the in-place merge detaches from the clone the consumer received at resolve time, and the typed watch_balance wrapper additionally copies into a Balances struct (Balances::from_value), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
                 "input": [],
                 "url": "wss://ws.api.prod.paradex.trade/v1?sbeSchemaId=1&sbeSchemaVersion=3",
                 "options": {
