@@ -4158,7 +4158,7 @@ class bingx extends bingx$1["default"] {
             'status': this.parseOrderStatus(statusId),
             'fee': {
                 'currency': feeCurrencyCode,
-                'cost': Precise["default"].stringAbs(feeCost),
+                'cost': this.parseNumber(Precise["default"].stringAbs(feeCost)),
             },
             'trades': undefined,
             'reduceOnly': this.safeBool2(orderData, 'reduceOnly', 'ro'),

@@ -222389,7 +222389,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'status': this.parseOrderStatus(statusId),
             'fee': {
                 'currency': feeCurrencyCode,
-                'cost': _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(feeCost)
+                'cost': this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(feeCost))
             },
             'trades': undefined,
             'reduceOnly': this.safeBool2(orderData, 'reduceOnly', 'ro')
