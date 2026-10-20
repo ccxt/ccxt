@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, AccountSuspended, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, MarginModeAlreadySet, NoChange, ManualInteractionNeeded, BadSymbol, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, CurrencyInterface, MarketInterface, TransferEntry, Liquidation, Leverage, List, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, NullableDict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL, Bool, Fee, FeeString, DepositWithdrawFees, Status, MarginLoan, Endpoint, AllGreeks, DepositAddresses } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, CurrencyInterface, MarketInterface, TransferEntry, Liquidation, Leverage, List, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, NullableDict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, MarginModification, ADL, Bool, Fee, FeeString, DepositWithdrawFees, Status, MarginLoan, Endpoint, AllGreeks, DepositAddresses } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -96,6 +96,8 @@ export default class bybit extends Exchange {
                 'fetchLeverageTiers': true,
                 'fetchLongShortRatio': false,
                 'fetchLongShortRatioHistory': true,
+                'addMargin': true,
+                'reduceMargin': true,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
@@ -765,6 +767,7 @@ export default class bybit extends Exchange {
                     '110015': BadRequest, // the position is in cross_margin
                     '110016': InvalidOrder, // Requested quantity of contracts exceeds risk limit, please adjust your risk limit level before trying again
                     '110017': InvalidOrder, // Reduce-only rule not satisfied
+                    '110076': BadRequest, // only isolated mode can add margin
                     '110018': BadRequest, // userId illegal
                     '110019': InvalidOrder, // orderId illegal
                     '110020': InvalidOrder, // number of active orders greater than 500
@@ -1483,16 +1486,12 @@ export default class bybit extends Exchange {
     /**
      * @method
      * @name bybit#isUnifiedEnabled
-     * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
      * @see https://bybit-exchange.github.io/docs/v5/account/account-info
      * @description returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} [enableUnifiedMargin, enableUnifiedAccount]
      */
     async isUnifiedEnabled (params: Dict = {}): Promise<any[]> {
-        // The API key of user id must own one of permissions will be allowed to call following API endpoints:
-        // SUB UID: "Account Transfer"
-        // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         const enableUnifiedMargin = this.safeBool (this.options, 'enableUnifiedMargin');
         const enableUnifiedAccount = this.safeBool (this.options, 'enableUnifiedAccount');
         if (enableUnifiedMargin === undefined || enableUnifiedAccount === undefined) {
@@ -1504,50 +1503,8 @@ export default class bybit extends Exchange {
                 this.options['unifiedMarginStatus'] = 6;
                 return [ this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount'] ];
             }
-            const rawPromises = [ this.privateGetV5UserQueryApi (params), this.privateGetV5AccountInfo (params) ];
-            const promises = await Promise.all (rawPromises);
-            const response = this.safeDict (promises, 0);
-            const accountInfo = this.safeDict (promises, 1);
+            const accountInfo = await this.privateGetV5AccountInfo (params);
             //
-            //     {
-            //         "retCode": 0,
-            //         "retMsg": "",
-            //         "result": {
-            //             "id": "13770661",
-            //             "note": "XXXXXX",
-            //             "apiKey": "XXXXXX",
-            //             "readOnly": 0,
-            //             "secret": "",
-            //             "permissions": {
-            //                 "ContractTrade": [...],
-            //                 "Spot": [...],
-            //                 "Wallet": [...],
-            //                 "Options": [...],
-            //                 "Derivatives": [...],
-            //                 "CopyTrading": [...],
-            //                 "BlockTrade": [...],
-            //                 "Exchange": [...],
-            //                 "NFT": [...],
-            //             },
-            //             "ips": [...],
-            //             "type": 1,
-            //             "deadlineDay": 83,
-            //             "expiredAt": "2023-05-15T03:21:05Z",
-            //             "createdAt": "2022-10-16T02:24:40Z",
-            //             "unified": 0,
-            //             "uta": 0,
-            //             "userID": 24600000,
-            //             "inviterID": 0,
-            //             "vipLevel": "No VIP",
-            //             "mktMakerLevel": "0",
-            //             "affiliateID": 0,
-            //             "rsaPublicKey": "",
-            //             "isMaster": false
-            //         },
-            //         "retExtInfo": {},
-            //         "time": 1676891757649
-            //     }
-            // account info
             //     {
             //         "retCode": 0,
             //         "retMsg": "OK",
@@ -1563,11 +1520,12 @@ export default class bybit extends Exchange {
             //         }
             //     }
             //
-            const result = this.safeDict (response, 'result', {});
             const accountResult = this.safeDict (accountInfo, 'result', {});
-            this.options['enableUnifiedMargin'] = this.safeInteger (result, 'unified') === 1;
-            this.options['enableUnifiedAccount'] = this.safeInteger (result, 'uta') === 1;
-            this.options['unifiedMarginStatus'] = this.safeInteger (accountResult, 'unifiedMarginStatus', 6); // default to uta 2.0 pro if not found
+            // 1 classic, 2 unified margin, 3/4 uta 1.0 (pro), 5/6 uta 2.0 (pro); default uta 2.0 pro
+            const status = this.safeInteger (accountResult, 'unifiedMarginStatus', 6);
+            this.options['unifiedMarginStatus'] = status;
+            this.options['enableUnifiedMargin'] = (status === 2);
+            this.options['enableUnifiedAccount'] = (status >= 3);
         }
         return [ this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount'] ];
     }
@@ -4289,6 +4247,9 @@ export default class bybit extends Exchange {
         }
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
+        if (this.safeString (params, 'trailingPercent') !== undefined) {
+            throw new NotSupported (this.id + ' createOrder() trailingPercent is not supported, use trailingAmount instead');
         }
         const market = this.market (symbol);
         const symbolValue: Str = market['symbol'];
@@ -7069,7 +7030,7 @@ export default class bybit extends Exchange {
         const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));
         const leverage = this.safeString (position, 'leverage');
         if (liquidationPrice !== undefined) {
-            if (marketResolved['settle'] === 'USDC') {
+            if ((marketResolved['settle'] === 'USDC') && (positionMarginString === undefined)) {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 const useMarkPrice = this.safeBool (this.options, 'useMarkPriceForPositionCollateral', false);
                 let price: Str = entryPrice;
@@ -7078,8 +7039,7 @@ export default class bybit extends Exchange {
                 }
                 const difference = Precise.stringAbs (Precise.stringSub (price, liquidationPrice));
                 collateralString = Precise.stringAdd (Precise.stringAdd (Precise.stringMul (difference, size), maintenanceMarginString), unrealisedPnl);
-                positionMarginString = undefined; // derived from collateral by safePosition
-            } else {
+            } else if (marketResolved['settle'] !== 'USDC') {
                 const bustPrice = this.omitZero (this.safeString (position, 'bustPrice'));
                 const closingFee = this.omitZero (this.safeString (position, 'occClosingFee'));
                 if (marketResolved['linear'] === true) {
@@ -7209,6 +7169,9 @@ export default class bybit extends Exchange {
             'portfolio': 'PORTFOLIO_MARGIN',
         };
         if (isUnifiedAccount) {
+            if (symbol !== undefined) {
+                throw new BadRequest (this.id + ' setMarginMode() on a unified account applies to the whole account, call it without a symbol');
+            }
             const unifiedMarginMode = this.safeString (marginModes, marginMode);
             if (unifiedMarginMode === undefined) {
                 throw new NotSupported (this.id + ' setMarginMode() marginMode must be either [isolated, cross, portfolio]');
@@ -7216,7 +7179,7 @@ export default class bybit extends Exchange {
             const request: Dict = {
                 'setMarginMode': unifiedMarginMode,
             };
-            response = await this.privatePostV5AccountSetMarginMode (this.extend (request, params));
+            response = await this.privatePostV5AccountSetMarginMode (this.extend (request, this.omit (params, [ 'leverage', 'buyLeverage', 'sellLeverage' ])));
         } else {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol parameter for non unified account');
@@ -7274,6 +7237,87 @@ export default class bybit extends Exchange {
             }
         }
         return response;
+    }
+
+    /**
+     * @method
+     * @name bybit#addMargin
+     * @description add margin to an isolated position
+     * @see https://bybit-exchange.github.io/docs/v5/position/manual-add-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.positionIdx] 0 one-way, 1 hedge buy side, 2 hedge sell side
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    override async addMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    /**
+     * @method
+     * @name bybit#reduceMargin
+     * @description remove margin from an isolated position
+     * @see https://bybit-exchange.github.io/docs/v5/position/manual-add-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.positionIdx] 0 one-way, 1 hedge buy side, 2 hedge sell side
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    override async reduceMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async modifyMarginHelper (symbol: string, amount: number, type: string, params: Dict = {}): Promise<MarginModification> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadSymbol (this.id + ' ' + type + 'Margin() supports contract markets only');
+        }
+        let margin: Str = this.numberToString (amount);
+        if (type === 'reduce') {
+            margin = Precise.stringNeg (margin);
+        }
+        const request: Dict = {
+            'category': market['linear'] ? 'linear' : 'inverse',
+            'symbol': market['id'],
+            'margin': margin,
+            'positionIdx': this.safeInteger (params, 'positionIdx', 0),
+        };
+        const response = await this.privatePostV5PositionAddMargin (this.extend (request, this.omit (params, 'positionIdx')));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": { "category": "linear", "symbol": "BTCUSDT", "positionIdx": 0, "size": "0.1", "positionIM": "0.5", "liqPrice": "...", "updatedTime": "1684234363665", ... },
+        //         "retExtInfo": {},
+        //         "time": 1684234363665
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.extend (this.parseMarginModification (result, market), {
+            'type': type,
+            'amount': this.parseNumber (this.numberToString (amount)),
+        });
+    }
+
+    override parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
+        const marketId = this.safeString (data, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'contract');
+        const timestamp = this.safeInteger (data, 'updatedTime');
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': this.safeNumber (data, 'positionIM'),
+            'code': market['settle'],
+            'status': 'ok',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 
     /**
@@ -7667,12 +7711,14 @@ export default class bybit extends Exchange {
      * @method
      * @name bybit#fetchBorrowInterest
      * @description fetch the interest owed by the user for borrowing currency for margin trading
-     * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/account-info
+     * @see https://bybit-exchange.github.io/docs/v5/account/borrow-history
      * @param {string} code unified currency code
-     * @param {string} symbol unified market symbol when fetch interest in isolated markets
+     * @param {string} symbol not used by bybit, unified account borrowing is cross margin
      * @param {number} [since] the earliest time in ms to fetch borrrow interest for
-     * @param {number} [limit] the maximum number of structures to retrieve
+     * @param {number} [limit] the maximum number of structures to retrieve, max 50
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {string} [params.cursor] the nextPageCursor from a previous response
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     override async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<BorrowInterest[]> {
@@ -7680,34 +7726,48 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        const response = await this.privateGetV5SpotCrossMarginTradeAccount (this.extend (request, params));
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger2 (params, 'until', 'endTime');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.privateGetV5AccountBorrowHistory (this.extend (request, this.omit (params, [ 'until' ])));
         //
         //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "",
-        //         "ext_code": null,
-        //         "ext_info": null,
+        //         "retCode": 0,
+        //         "retMsg": "OK",
         //         "result": {
-        //             "status": "1",
-        //             "riskRate": "0",
-        //             "acctBalanceSum": "0.000486213817680857",
-        //             "debtBalanceSum": "0",
-        //             "loanAccountList": [
+        //             "nextPageCursor": "2671153%3A1%2C2671153%3A1",
+        //             "list": [
         //                 {
-        //                     "tokenId": "BTC",
-        //                     "total": "0.00048621",
-        //                     "locked": "0",
-        //                     "loan": "0",
-        //                     "interest": "0",
-        //                     "free": "0.00048621"
-        //                 },
-        //                 ...
+        //                     "borrowAmount": "1.06333265702840778",
+        //                     "costExemption": "0",
+        //                     "freeBorrowedAmount": "0",
+        //                     "createdTime": 1697439900204,
+        //                     "InterestBearingBorrowSize": "1.06333265702840778",
+        //                     "currency": "BTC",
+        //                     "unrealisedLoss": "0",
+        //                     "hourlyBorrowRate": "0.000001216904",
+        //                     "borrowCost": "0.00000129"
+        //                 }
         //             ]
-        //         }
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1697442206478
         //     }
         //
         const data = this.safeDict (response, 'result', {});
-        const rows = this.safeList (data, 'loanAccountList', []);
+        const rows = this.safeList (data, 'list', []);
         const interest = this.parseBorrowInterests (rows);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
@@ -7767,24 +7827,28 @@ export default class bybit extends Exchange {
     override parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         //
         //     {
-        //         "tokenId": "BTC",
-        //         "total": "0.00048621",
-        //         "locked": "0",
-        //         "loan": "0",
-        //         "interest": "0",
-        //         "free": "0.00048621"
-        //     },
+        //         "borrowAmount": "1.06333265702840778",
+        //         "costExemption": "0",
+        //         "freeBorrowedAmount": "0",
+        //         "createdTime": 1697439900204,
+        //         "InterestBearingBorrowSize": "1.06333265702840778",
+        //         "currency": "BTC",
+        //         "unrealisedLoss": "0",
+        //         "hourlyBorrowRate": "0.000001216904",
+        //         "borrowCost": "0.00000129"
+        //     }
         //
+        const timestamp = this.safeInteger (info, 'createdTime');
         return {
             'info': info,
             'symbol': undefined,
-            'currency': this.safeCurrencyCode (this.safeString (info, 'tokenId')),
-            'interest': this.safeNumber (info, 'interest'),
-            'interestRate': undefined,
-            'amountBorrowed': this.safeNumber (info, 'loan'),
+            'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
+            'interest': this.safeNumber (info, 'borrowCost'),
+            'interestRate': this.safeNumber (info, 'hourlyBorrowRate'),
+            'amountBorrowed': this.safeNumber (info, 'borrowAmount'),
             'marginMode': 'cross',
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         } as BorrowInterest;
     }
 

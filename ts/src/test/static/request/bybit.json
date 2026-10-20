@@ -1416,8 +1416,7 @@
                 "method": "setMarginMode",
                 "url": "https://api-testnet.bybit.com/v5/account/set-margin-mode",
                 "input": [
-                    "isolated",
-                    "BTC/USDT:USDT"
+                    "isolated"
                 ],
                 "output": { "setMarginMode": "ISOLATED_MARGIN" }
             },
@@ -1426,8 +1425,7 @@
                 "method": "setMarginMode",
                 "url": "https://api-testnet.bybit.com/v5/account/set-margin-mode",
                 "input": [
-                    "cross",
-                    "BTC/USDT:USDT"
+                    "cross"
                 ],
                 "output": { "setMarginMode": "REGULAR_MARGIN" }
             }
