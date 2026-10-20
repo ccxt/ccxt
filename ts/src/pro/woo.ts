@@ -305,7 +305,8 @@ export default class woo extends wooRest {
                 if (ts === undefined) {
                     continue;
                 }
-                if (ts < orderbook['timestamp']) {
+                const orderbookTimestamp: Int = orderbook['timestamp'];
+                if ((orderbookTimestamp !== undefined) && (ts < orderbookTimestamp)) {
                     continue;
                 } else {
                     this.handleOrderBookMessage (client, messageItem, orderbook);

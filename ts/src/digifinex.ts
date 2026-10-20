@@ -1493,7 +1493,11 @@ export default class digifinex extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {};
         if (limit !== undefined) {
-            request['limit'] = (market['swap'] === true) ? Math.min (limit, 100) : limit;
+            if (market['swap'] === true) {
+                request['limit'] = Math.min (limit, 100);
+            } else {
+                request['limit'] = limit;
+            }
         }
         let response = undefined;
         if (market['swap'] === true) {
@@ -1612,17 +1616,17 @@ export default class digifinex extends Exchange {
             const until = this.safeInteger (params, 'until');
             request['symbol'] = market['id'];
             request['period'] = this.safeString (this.timeframes, timeframe, timeframe);
-            let startTime = since;
+            let startTimeMs: Int = since;
             const duration = this.parseTimeframe (timeframe);
-            if (startTime === undefined) {
+            if (startTimeMs === undefined) {
                 if ((limit !== undefined) || (until !== undefined)) {
-                    const endTime = (until !== undefined) ? until : this.milliseconds ();
-                    const startLimit = (limit !== undefined) ? limit : 200;
-                    startTime = endTime - (startLimit * duration * 1000);
+                    const endTime: int = (until !== undefined) ? until : this.milliseconds ();
+                    const startLimit: int = (limit !== undefined) ? limit : 200;
+                    startTimeMs = endTime - (startLimit * duration * 1000);
                 }
             }
-            if (startTime !== undefined) {
-                startTime = this.parseToInt (startTime / 1000);
+            if (startTimeMs !== undefined) {
+                const startTime = this.parseToInt (startTimeMs / 1000);
                 request['start_time'] = startTime;
                 if ((limit !== undefined) || (until !== undefined)) {
                     if (until !== undefined) {

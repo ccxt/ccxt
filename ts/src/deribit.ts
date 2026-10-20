@@ -1511,7 +1511,7 @@ export default class deribit extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const now = this.milliseconds ();
         // at max, it provides 5000 bars, but we set generous default here
-        const windowLimit = (limit === undefined) ? 1000 : limit;
+        const windowLimit: int = (limit === undefined) ? 1000 : limit;
         const limitResolved = (since === undefined) ? windowLimit : limit;
         const sinceResolved: Int = (since === undefined) ? undefined : Math.max (since - 1, 0);
         if (since === undefined) {
@@ -3334,19 +3334,16 @@ export default class deribit extends Exchange {
         const duration = this.parseTimeframe (eachItemDuration) * 1000;
         const now = this.milliseconds ();
         const month = 30 * 24 * 60 * 60 * 1000;
-        const sinceResolved: Int = (since === undefined) ? now - month : since;
-        const time = (since === undefined) ? now : since + month;
+        const sinceResolved: int = (since === undefined) ? now - month : since;
+        const time: int = (since === undefined) ? now : since + month;
         const request: Dict = {
             'instrument_name': market['id'],
             'start_timestamp': sinceResolved - 1,
         };
         const until = this.safeInteger2 (paramsPaginate, 'until', 'end_timestamp');
         const paramsUntil: Dict = (until !== undefined) ? this.omit (paramsPaginate, [ 'until' ]) : paramsPaginate;
-        if (until !== undefined) {
-            request['end_timestamp'] = until;
-        } else {
-            request['end_timestamp'] = time;
-        }
+        const endTimestamp: int = (until !== undefined) ? until : time;
+        request['end_timestamp'] = endTimestamp;
         const isPaginationCall = ('isDeribitPaginationCall' in paramsUntil);
         let paramsOmitted: Dict = paramsUntil;
         if (isPaginationCall) {
@@ -3357,7 +3354,7 @@ export default class deribit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a limit argument');
             }
             const maxUntil = this.sum (sinceResolved, limit * duration);
-            request['end_timestamp'] = Math.min (request['end_timestamp'], maxUntil);
+            request['end_timestamp'] = Math.min (endTimestamp, maxUntil);
         }
         const response = await this.publicGetGetFundingRateHistory (this.extend (request, paramsOmitted));
         //

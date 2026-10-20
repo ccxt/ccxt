@@ -227,7 +227,10 @@ export default class limitless extends Exchange {
             const requestedLimit = this.safeInteger (params, 'limit', 50);
             // the search endpoint rejects limit > 50 - cap the per-query request and let
             // maxMarkets bound the overall collection
-            const limit = Math.min (requestedLimit, 50);
+            let limit: int = 50;
+            if (requestedLimit !== undefined) {
+                limit = Math.min (requestedLimit, 50);
+            }
             const searchRest = this.omit (rest, [ 'limit' ]);
             const seen: Dict = {};
             for (let i = 0; i < queries.length; i++) {
@@ -1449,7 +1452,7 @@ export default class limitless extends Exchange {
         for (let i = 0; i < history.length; i++) {
             const point = this.safeDict (history, i);
             const pointPrice = this.safeNumber (point, 'price');
-            let pointTs = this.safeInteger (point, 'timestamp');
+            let pointTs: Int = this.safeInteger (point, 'timestamp');
             if (pointTs === undefined) {
                 const tsString = this.safeString (point, 'timestamp');
                 pointTs = (tsString !== undefined && tsString !== '') ? this.parse8601 (tsString) : undefined;
@@ -2490,7 +2493,7 @@ export default class limitless extends Exchange {
         }
         const request: Dict = {};
         if (limit !== undefined) {
-            request['limit'] = Math.min (limit, maxLimit);
+            request['limit'] = Math.min (limit, 100);
         }
         const response = await this.limitlessPrivateGetPortfolioHistory (this.extend (request, paramsValue));
         //
@@ -2950,7 +2953,10 @@ export default class limitless extends Exchange {
         if (queriesLength > 0) {
             const requestedLimit = this.safeInteger (params, 'limit', 50);
             // the search endpoint rejects limit > 50 - cap the per-query request
-            const limit = Math.min (requestedLimit, 50);
+            let limit: int = 50;
+            if (requestedLimit !== undefined) {
+                limit = Math.min (requestedLimit, 50);
+            }
             const seen: Dict = {};
             for (let i = 0; i < queries.length; i++) {
                 if (queries === undefined) {
@@ -3058,7 +3064,7 @@ export default class limitless extends Exchange {
         const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ]);
         const allRaw: any[] = [];
         let page = 1;
-        let collected = 0;
+        let collected: int = 0;
         while (true) {
             const request: Dict = { 'page': page, 'limit': pageSize };
             let response = undefined;

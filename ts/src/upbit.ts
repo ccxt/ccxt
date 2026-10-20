@@ -884,7 +884,7 @@ export default class upbit extends Exchange {
         return this.parseTickers (tickers, symbolsNormalized);
     }
 
-    idsQueryStrings (ids: Strings, maxQueryLength: number): string[] {
+    idsQueryStrings (ids: Strings, maxQueryLength: int): string[] {
         if (ids === undefined) {
             return [];
         }

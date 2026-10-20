@@ -1577,8 +1577,9 @@ export default class backpack extends Exchange {
             const supportedLimits = [ 5, 10, 20, 50, 100, 500 ];
             requestLimit = 500;
             for (let i = 0; i < supportedLimits.length; i++) {
-                if (limit <= supportedLimits[i]) {
-                    requestLimit = supportedLimits[i];
+                const supportedLimit = this.safeInteger (supportedLimits, i, 0);
+                if (limit <= supportedLimit) {
+                    requestLimit = supportedLimit;
                     break;
                 }
             }
@@ -1634,18 +1635,23 @@ export default class backpack extends Exchange {
         if ((since === undefined) && (limit === undefined)) {
             limitResolved = defaultLimit;
         }
+        const windowLimit = (limit === undefined) ? defaultLimit : limit;
+        let startTime: Int = undefined;
         if (since === undefined) {
-            const endTime = (until !== undefined && until !== null && until !== 0) ? this.parseToInt (until / 1000) : this.seconds ();
-            const windowLimit = (limit === undefined) ? defaultLimit : limit;
-            const startTime = endTime - (windowLimit * duration);
-            request['startTime'] = startTime;
+            let endTime: Int = undefined;
+            if (until !== undefined && until !== null && until !== 0) {
+                endTime = this.parseToInt (until / 1000);
+            } else {
+                endTime = this.seconds ();
+            }
+            startTime = endTime - (windowLimit * duration);
         } else {
-            request['startTime'] = this.parseToInt (since / 1000); // convert milliseconds to seconds
+            startTime = this.parseToInt (since / 1000); // convert milliseconds to seconds
         }
+        request['startTime'] = startTime;
         if (until === undefined) {
             const currentMs = this.seconds (); // default to current time in seconds
-            const windowLimit = (limit === undefined) ? defaultLimit : limit;
-            const windowEnd = this.sum (request['startTime'], windowLimit * duration); // sum (): `+` on a dict value is string concatenation in php
+            const windowEnd = this.sum (startTime, windowLimit * duration);
             const minTimestamp = Math.min (currentMs, windowEnd);
             request['endTime'] = this.parseToInt (minTimestamp); // default to current time in seconds if until is not specified
         }

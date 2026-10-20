@@ -1907,8 +1907,11 @@ export default class poloniex extends Exchange {
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (limit !== undefined) {
-            const max = (marketType === 'spot') ? 2000 : 100;
-            request['limit'] = Math.max (limit, max);
+            if (marketType === 'spot') {
+                request['limit'] = Math.max (limit, 2000);
+            } else {
+                request['limit'] = Math.max (limit, 100);
+            }
         }
         const isTrigger = this.safeBool2 (paramsMarketType, 'trigger', 'stop');
         const paramsOmitted: Dict = this.omit (paramsMarketType, [ 'trigger', 'stop' ]);
@@ -2864,14 +2867,14 @@ export default class poloniex extends Exchange {
         const asksResult: List = [];
         const bidsResult: List = [];
         for (let i = 0; i < asks.length; i++) {
-            if ((i % 2) < 1) {
+            if ((i % 2) === 0) {
                 const price = this.safeNumber (asks, i);
                 const amount = this.safeNumber (asks, this.sum (i, 1));
                 asksResult.push ([ price, amount ]);
             }
         }
         for (let i = 0; i < bids.length; i++) {
-            if ((i % 2) < 1) {
+            if ((i % 2) === 0) {
                 const price = this.safeNumber (bids, i);
                 const amount = this.safeNumber (bids, this.sum (i, 1));
                 bidsResult.push ([ price, amount ]);
@@ -3189,7 +3192,10 @@ export default class poloniex extends Exchange {
         await this.loadMarkets ();
         const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         const now = this.seconds ();
-        const start = (since !== undefined) ? this.parseToInt (since / 1000) : now - 10 * year;
+        let start: Int = now - 10 * year;
+        if (since !== undefined) {
+            start = this.parseToInt (since / 1000);
+        }
         const request: Dict = {
             'start': start, // UNIX timestamp, required
             'end': now, // UNIX timestamp, required

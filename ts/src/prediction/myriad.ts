@@ -308,7 +308,7 @@ export default class myriad extends Exchange {
         const allRawMarkets: any[] = [];
         // track the running count with an explicit counter (avoids inline array .length / .slice,
         // which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
-        let collected = 0;
+        let collected: number = 0;
         let page = 1;
         while (true) {
             const response = await this.myriadPublicGetMarkets (this.extend ({
@@ -478,7 +478,7 @@ export default class myriad extends Exchange {
         const rest = this.omit (params, [ 'state', 'status', 'limit', 'tradingModel', 'trading_model' ]);
         const allRawQuestions: any[] = [];
         const seen: Dict = {};
-        let collected = 0;
+        let collected: number = 0;
         let page = 1;
         while (true) {
             const request: Dict = {
@@ -1276,7 +1276,7 @@ export default class myriad extends Exchange {
         if (scaled === undefined) {
             throw new ExchangeError (this.id + ' toOrderbookWei() missing scaled');
         }
-        const dotIndex = scaled.indexOf ('.');
+        const dotIndex: number = scaled.indexOf ('.');
         if (scaled === undefined) {
             throw new ExchangeError (this.id + ' toOrderbookWei() missing scaled');
         }
@@ -2018,7 +2018,8 @@ export default class myriad extends Exchange {
         if (decimals === undefined) {
             throw new ExchangeError (this.id + ' fromWeiWithDecimals() missing decimals');
         }
-        for (let i = 0; i < decimals; i++) {
+        const decimalsValue: number = decimals;
+        for (let i = 0; i < decimalsValue; i++) {
             scale = scale + '0';
         }
         return Precise.stringDiv (decimalString, scale);
@@ -2468,12 +2469,12 @@ export default class myriad extends Exchange {
         let previousClose: Num = undefined;
         let percentage: Num = undefined;
         if ((price !== undefined) && (change !== undefined)) {
-            previousClose = price - change;
-            if (previousClose === undefined) {
-                throw new ExchangeError (this.id + ' method() missing previousClose');
-            }
-            if (previousClose !== 0) {
-                percentage = change / previousClose * 100;
+            const priceValue: number = price;
+            const changeValue: number = change;
+            const previousCloseValue: number = priceValue - changeValue;
+            previousClose = previousCloseValue;
+            if (previousCloseValue !== 0) {
+                percentage = changeValue / previousCloseValue * 100;
             }
         }
         return this.safePredictionTicker ({
@@ -2628,10 +2629,11 @@ export default class myriad extends Exchange {
         let bid: Num = undefined;
         let ask: Num = undefined;
         if (price !== undefined) {
-            if (price > 0.001) {
+            const priceValue: number = price;
+            if (priceValue > 0.001) {
                 bid = this.parseNumber (Precise.stringSub (this.numberToString (price), '0.001'));
             }
-            if (price < 0.999) {
+            if (priceValue < 0.999) {
                 ask = this.parseNumber (Precise.stringAdd (this.numberToString (price), '0.001'));
             }
         }

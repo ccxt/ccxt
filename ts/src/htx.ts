@@ -3025,8 +3025,12 @@ export default class htx extends Exchange {
         };
         const priceType = this.safeString2 (paramsPaginate, 'priceType', 'price');
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'priceType', 'price' ]);
-        const [ until, paramsUntil ] = this.handleParamInteger (paramsOmitted, 'until');
-        const untilSeconds = (until !== undefined) ? this.parseToInt (until / 1000) : undefined;
+        const [ untilParam, paramsUntil ] = this.handleParamInteger (paramsOmitted, 'until');
+        const until = this.safeInteger (paramsOmitted, 'until', untilParam);
+        let untilSeconds: Int = undefined;
+        if (until !== undefined) {
+            untilSeconds = this.parseToInt (until / 1000);
+        }
         const isContract = (market['contract'] === true);
         const contractLimit: number = (limit !== undefined) ? limit : 2000; // only used for from/to calculation
         let rangeLimit = limit;
@@ -7679,7 +7683,7 @@ export default class htx extends Exchange {
                     const options = this.safeDict (this.options, 'broker', {});
                     const id = this.safeString (options, 'id', 'AA03022abc');
                     if (!isArrayParams) {
-                        if ((pathString.indexOf ('cancel') === -1) && pathString.endsWith ('order')) {
+                        if ((pathString.indexOf ('cancel') < 0) && pathString.endsWith ('order')) {
                             // swap order placement
                             const channelCode = this.safeString (params, 'channel_code');
                             if (channelCode === undefined) {

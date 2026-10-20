@@ -591,7 +591,8 @@ export default class hyperliquid extends Exchange {
         //     ]
         //
         const perpDexesOffset: Dict = {};
-        for (let i = 1; i < fetchDexes.length; i++) {
+        const dexesCount: int = fetchDexes.length;
+        for (let i = 1; i < dexesCount; i++) {
             // builder-deployed perp dexs start at 110000
             const dex = this.safeDict (fetchDexes, i, {});
             const secondPart = (i - 1) * 10000;
@@ -779,7 +780,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} maxDecimals the maxDecimals to use in the calculation
      * @returns {int} The calculated price precision
      */
-    calculatePricePrecision (price: number, amountPrecision: number, maxDecimals: number): number {
+    calculatePricePrecision (price: number, amountPrecision: int, maxDecimals: int): number {
         let pricePrecision = 0;
         const priceStr = this.numberToString (price);
         if (priceStr === undefined) {
@@ -799,7 +800,7 @@ export default class hyperliquid extends Exchange {
             // Get the part after the decimal separator
             const decimalPart = this.safeString (priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
-            let leadingZeros = 0;
+            let leadingZeros: int = 0;
             while ((leadingZeros <= decimalPart.length) && (decimalPart[leadingZeros] === '0')) {
                 leadingZeros = leadingZeros + 1;
             }
@@ -1445,7 +1446,8 @@ export default class hyperliquid extends Exchange {
         const funding = this.safeNumber (info, 'funding');
         const markPx = this.safeNumber (info, 'markPx');
         const oraclePx = this.safeNumber (info, 'oraclePx');
-        const fundingTimestamp = (Math.floor (this.milliseconds () / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
+        const currentHour: int = this.parseToInt (this.milliseconds () / 60 / 60 / 1000);
+        const fundingTimestamp = (currentHour + 1) * 60 * 60 * 1000;
         return {
             'info': info,
             'symbol': symbol,
@@ -1681,7 +1683,10 @@ export default class hyperliquid extends Exchange {
         const integerPart = (priceStr as string).split ('.')[0];
         const significantDigits = Math.max (5, integerPart.length);
         const result = this.decimalToPrecision (price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
-        const maxDecimals = (market['spot'] === true) ? 8 : 6;
+        let maxDecimals: int = 6;
+        if (market['spot'] === true) {
+            maxDecimals = 8;
+        }
         const subtractedValue = maxDecimals - this.precisionFromString (this.safeString (market['precision'], 'amount'));
         return this.decimalToPrecision (result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
     }
@@ -4223,7 +4228,7 @@ export default class hyperliquid extends Exchange {
         }
         const market = this.market (symbol);
         const asset = this.parseToInt (market['baseId']);
-        let sz = this.parseToInt (Precise.stringMul (this.amountToPrecision (symbol, amount), '1000000'));
+        let sz: int = this.parseToInt (Precise.stringMul (this.amountToPrecision (symbol, amount), '1000000'));
         if (type === 'reduce') {
             sz = -sz;
         }

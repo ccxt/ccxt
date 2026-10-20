@@ -1272,8 +1272,11 @@ export default class toobit extends Exchange {
         } else if (isPriceKlines && (since !== undefined)) {
             // mark and index klines walk backwards from `to` and ignore a lone `from`
             const duration = this.parseTimeframe (timeframe);
-            const requestedLimit = (limit === undefined) ? 2000 : limit; // exchange default
-            request['to'] = this.sum (since, duration * requestedLimit * 1000);
+            if (limit === undefined) {
+                request['to'] = this.sum (since, duration * 2000 * 1000); // exchange default limit
+            } else {
+                request['to'] = this.sum (since, duration * limit * 1000);
+            }
         }
         if (limit !== undefined) {
             request['limit'] = limit;

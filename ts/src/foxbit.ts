@@ -2068,6 +2068,7 @@ export default class foxbit extends Exchange {
         if (method === 'GET') {
             const paramKeys = Object.keys (paramsOmitted);
             const paramKeysLength = paramKeys.length;
+            const lastKeyIndex = paramKeysLength - 1;
             if (paramKeysLength > 0) {
                 query = this.urlencode (paramsOmitted);
                 url += '?' + query;
@@ -2078,7 +2079,7 @@ export default class foxbit extends Exchange {
                 if (value !== undefined) {
                     signatureQuery += key + '=' + value;
                 }
-                if (i < paramKeysLength - 1) {
+                if (i < lastKeyIndex) {
                     signatureQuery += '&';
                 }
             }

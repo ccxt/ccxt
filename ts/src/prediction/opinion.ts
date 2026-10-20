@@ -961,10 +961,12 @@ export default class opinion extends Exchange {
         return '0x' + this.remove0xPrefix (sig['r']) + this.remove0xPrefix (sig['s']) + this.intToBase16 (sig['v']);
     }
 
-    opinionOrderRawAmounts (isMarket: boolean, side: string, amount: Num, price: Num, decimals: number): Dict {
+    opinionOrderRawAmounts (isMarket: boolean, side: string, amount: Num, price: Num, decimals: Int): Dict {
         let decimalsStr = '1';
-        for (let i = 0; i < decimals; i++) {
-            decimalsStr = decimalsStr + '0';
+        if (decimals !== undefined) {
+            for (let i = 0; i < decimals; i++) {
+                decimalsStr = decimalsStr + '0';
+            }
         }
         const amountStr = this.numberToString (amount);
         if (isMarket && (side === 'BUY')) {

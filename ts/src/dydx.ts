@@ -1589,7 +1589,8 @@ export default class dydx extends Exchange {
         if (idString.indexOf ('-') > -1) {
             throw new NotSupported (this.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
-        let goodTillBlock = this.safeInteger (paramsOmitted, 'goodTillBlock');
+        const goodTillBlockOption = this.safeInteger (paramsOmitted, 'goodTillBlock');
+        let goodTillBlock = goodTillBlockOption;
         const goodTillBlockTimeInSeconds = 2592000;
         const [ goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds ] = this.handleOptionIntegerAndParams (paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         let goodTillBlockTime: Num = undefined;
@@ -1604,7 +1605,7 @@ export default class dydx extends Exchange {
             if (goodTillBlockTimeInSecondsOption === undefined) {
                 throw new ArgumentsRequired (this.id + ' goodTillBlockTimeInSeconds is required in params for long term or conditional order.');
             }
-            if (goodTillBlock !== undefined && goodTillBlock > 0) {
+            if (goodTillBlockOption !== undefined && goodTillBlockOption > 0) {
                 throw new InvalidOrder (this.id + ' goodTillBlock should be 0 for long term or conditional order.');
             }
             goodTillBlockTime = this.seconds () + goodTillBlockTimeInSecondsOption;

@@ -1318,7 +1318,7 @@ export default class bullish extends Exchange {
         if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
             throw new NotSupported (this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
         }
-        let errors = 0;
+        let errors: int = 0;
         const paramsOmitted: Dict = this.omit (paramsMaxRetries, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
@@ -1374,17 +1374,22 @@ export default class bullish extends Exchange {
             '_pageSize': maxLimit,
         };
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('createdAtDatetime[lte]', request, paramsPaginate);
-        let until = this.safeInteger (requestUntil, 'createdAtDatetime[lte]');
+        const untilParam = this.safeInteger (requestUntil, 'createdAtDatetime[lte]');
+        let until: Int = undefined;
+        if (untilParam !== undefined) {
+            until = untilParam;
+        }
         const duration = this.parseTimeframe (timeframe);
-        const maxDelta = 1000 * duration * maxLimit;
-        let startTime = since;
+        const maxDelta: int = 1000 * duration * maxLimit;
+        let startTime: Int = since;
         // both of since and until are required
-        if (startTime === undefined && until === undefined) {
-            until = this.milliseconds ();
-            startTime = until - maxDelta;
-        } else if (startTime === undefined) {
-            startTime = (until as number) - maxDelta;
-        } else if (until === undefined) {
+        if (startTime === undefined && untilParam === undefined) {
+            const now = this.milliseconds ();
+            until = now;
+            startTime = now - maxDelta;
+        } else if ((startTime === undefined) && (untilParam !== undefined)) {
+            startTime = untilParam - maxDelta;
+        } else if (untilParam === undefined) {
             until = this.sum (startTime, maxDelta);
         }
         requestUntil['createdAtDatetime[gte]'] = this.iso8601 (startTime);
@@ -1582,19 +1587,23 @@ export default class bullish extends Exchange {
     }
 
     handleSinceAndUntil (since: Int = undefined, params: Dict = {}, sinceKey: Str = 'createdAtDatetime[gte]', untilKey: Str = 'createdAtDatetime[lte]'): Dict {
-        let until = this.safeInteger (params, 'until');
-        const sinceFromUntil = (since === undefined) && (until !== undefined);
+        const untilParam = this.safeInteger (params, 'until');
+        let until: Int = undefined;
+        if (untilParam !== undefined) {
+            until = untilParam;
+        }
+        const sinceFromUntil = (since === undefined) && (untilParam !== undefined);
         let paramsResult: Dict = params;
         if (sinceFromUntil) {
             paramsResult = this.omit (params, 'until');
         }
-        if ((since !== undefined) || (until !== undefined)) {
+        if ((since !== undefined) || (untilParam !== undefined)) {
             const timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             let sinceResolved: Int = since;
-            if (since === undefined) {
-                sinceResolved = (until as number) - timeDelta;
+            if ((since === undefined) && (untilParam !== undefined)) {
+                sinceResolved = untilParam - timeDelta;
             }
-            if ((since !== undefined) && (until === undefined)) {
+            if ((since !== undefined) && (untilParam === undefined)) {
                 until = this.sum (since, timeDelta);
                 const now = this.milliseconds ();
                 if ((until as number) > now) {

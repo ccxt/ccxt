@@ -1468,6 +1468,12 @@ export default class nado extends Exchange {
             currency = this.currency (code);
         }
         const [ subaccount, paramsSubaccount ] = this.handleOptionStringAndParams (params, methodName, 'subaccount', 'default');
+        const limitRequest: Dict = {
+            'raw': 100,
+        };
+        if (limit !== undefined) {
+            limitRequest['raw'] = Math.min (limit, 500);
+        }
         const eventsRequest: Dict = {
             'subaccounts': [
                 this.createSubaccount (this.walletAddress, subaccount),
@@ -1475,9 +1481,7 @@ export default class nado extends Exchange {
             'event_types': [
                 eventType,
             ],
-            'limit': {
-                'raw': (limit === undefined) ? 100 : Math.min (limit, 500),
-            },
+            'limit': limitRequest,
         };
         if (currency !== undefined) {
             eventsRequest['product_ids'] = [
@@ -1986,14 +1990,18 @@ export default class nado extends Exchange {
             throw new BadSymbol (this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         const [ subaccount, paramsSubaccount ] = this.handleOptionStringAndParams (params, 'fetchFundingHistory', 'subaccount', 'default');
+        const fundingRequest: Dict = {
+            'subaccount': this.createSubaccount (this.walletAddress, subaccount),
+            'product_ids': [
+                this.parseToInt (market['id']),
+            ],
+            'limit': 100,
+        };
+        if (limit !== undefined) {
+            fundingRequest['limit'] = Math.min (limit, 100);
+        }
         const request: Dict = {
-            'interest_and_funding': {
-                'subaccount': this.createSubaccount (this.walletAddress, subaccount),
-                'product_ids': [
-                    this.parseToInt (market['id']),
-                ],
-                'limit': (limit === undefined) ? 100 : Math.min (limit, 100),
-            },
+            'interest_and_funding': fundingRequest,
         };
         const response = await this.archivePost (this.deepExtend (request, paramsSubaccount));
         //
@@ -3089,12 +3097,13 @@ export default class nado extends Exchange {
             throw new ArgumentsRequired (this.id + ' padHex() requires length');
         }
         const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
-        const padded = left ? (zeros + value) : (value + zeros);
         if (left) {
-            const start = padded.length - length;
-            return padded.slice (start, padded.length);
+            const paddedLeft = zeros + value;
+            const start = paddedLeft.length - length;
+            return paddedLeft.slice (start, paddedLeft.length);
         }
-        return padded.slice (0, length);
+        const paddedRight = value + zeros;
+        return paddedRight.slice (0, length);
     }
 
     signOrder (order: Dict, productId: Int, chainId: Str): string {

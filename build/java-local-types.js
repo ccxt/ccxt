@@ -18635,3 +18635,282 @@ export function installJ17StringReturns (transpiler) {
             : '\n'.repeat (printer.NUM_LINES_BETWEEN_CLASS_MEMBERS) + printed.get (member))).join ('\n');
     };
 }
+
+// hx4 J20: setLeverage / cancelAllOrdersAfter / handleErrors keep their first parameter `Object p` (an int in TS,
+// a Number box or null at runtime); a comparison / divide / mod of that unwritten parameter against an integer
+// literal prints the double compare with the helper's null arm (isLessThan(null, N) is true, isGreaterThan false).
+const J20_MEMBER = /^    public \S+(?:<[^>]*>)? (?:setLeverage|cancelAllOrdersAfter|handleErrors)\(Object (\w+)[,)]/;
+
+function j20Rewrite (line, p) {
+    const v = `((Number) ${p}).doubleValue()`;
+    const lit = '(-?\\d+)L?';
+    const cmp = new RegExp (`Helpers\\.(isLessThanOrEqual|isGreaterThanOrEqual|isLessThan|isGreaterThan|isEqual)\\(${p}, ${lit}\\)`, 'g');
+    let out = line.replace (cmp, (m, op, n) => {
+        if (op === 'isGreaterThan') return `(${p} != null && ${v} > ${n})`;
+        if (op === 'isGreaterThanOrEqual') return `(${p} != null && ${v} >= ${n})`;
+        if (op === 'isEqual') return `(${p} != null && ${v} == ${n})`;
+        if (op === 'isLessThan') return `(${p} == null || !(${v} >= ${n}))`;
+        return `(${p} == null || !(${v} > ${n}))`;
+    });
+    out = out.replace (new RegExp (`Helpers\\.divide\\(${p}, ${lit}\\)`, 'g'), (m, n) => `(${p} == null ? null : ${v} / ${n})`);
+    out = out.replace (new RegExp (`Helpers\\.divide\\(${lit}, ${p}\\)`, 'g'), (m, n) => `(${p} == null ? null : ((double) ${n}) / ${v})`);
+    out = out.replace (new RegExp (`Helpers\\.mod\\(${lit}, ${p}\\)`, 'g'), (m, n) => `(${p} == null ? null : ((double) ${n}) % ${v})`);
+    return out;
+}
+
+export function nativeJavaJ20ParamCompare (content) {
+    if (!/ (?:setLeverage|cancelAllOrdersAfter|handleErrors)\(Object /.test (content)) return content;
+    const lines = content.split ('\n');
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        const m = J20_MEMBER.exec (lines[i]);
+        if (m === null) continue;
+        const p = m[1];
+        let end = i + 1;
+        while (end < lines.length && lines[end] !== '    }') end++;
+        // D2: any write or redeclaration of the parameter keeps every helper in the member
+        const write = new RegExp (`(?<![\\w.])${p}\\s*(?:[-+*/]?=(?!=)|\\+\\+|--)|(?:\\+\\+|--)${p}\\b`);
+        let written = false;
+        for (let k = i + 1; k < end; k++) if (write.test (lines[k].replace (/"(?:[^"\\]|\\.)*"/g, '""'))) { written = true; break; }
+        if (!written) {
+            for (let k = i + 1; k < end; k++) {
+                const next = j20Rewrite (lines[k], p);
+                if (next !== lines[k]) { lines[k] = next; changed = true; }
+            }
+        }
+        i = end;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+
+// hx4 J23
+// ===== hx4 J23: arithmetic helpers over typed primitives the J04 pass cannot prove =====
+// Adds operand proofs (parseToInt of a numeric, Math.*, .size()/.length(), microseconds, double
+// chains), Double operands on + - / % and opNeg, multiply-with-double under value-insensitive consumers,
+// and null-guarded ternary arms whose other arm is the guarded Long. Runs after J04, also on base methods.
+function j23Operands (e) {
+    const mask = longMultiplyMask (e);
+    if (mask.includes ('"')) return undefined;
+    const out = [];
+    const ops = [];
+    let depth = 0;
+    let last = 0;
+    for (let k = 0; k < mask.length; k++) {
+        const ch = mask[k];
+        if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        else if (depth === 0 && /^ [-+*/%] /.test (mask.slice (k, k + 3))) {
+            out.push (e.slice (last, k));
+            ops.push (mask[k + 1]);
+            last = k + 3;
+            k += 2;
+        } else if (depth === 0 && (ch === '?' || ch === ':' || ch === '=' || ch === '<' || ch === '>' || ch === '&' || ch === '|')) {
+            return undefined;
+        }
+    }
+    out.push (e.slice (last));
+    return out.length > 1 ? { operands: out, ops } : undefined;
+}
+
+function j23Widest (ks) {
+    if (ks.includes (undefined)) return undefined;
+    if (ks.includes ('double')) return 'double';
+    return ks.includes ('long') ? 'long' : 'int';
+}
+
+// the Java primitive kind of a printed never-null numeric expression; undefined when unproven
+function j23Kind (ctx, text, nn) {
+    const base = j04Kind (ctx, text, nn);
+    if (base !== undefined) return base;
+    const e = longLimitStrip (text);
+    if (/^-?\d+\.\d+$/.test (e)) return 'double';
+    if (/^(?:\w+\.)?this\.microseconds\(\)$/.test (e)) return 'long';
+    if (/^(?:\w+\.)?this\.(?:milliseconds|seconds)\(\)$/.test (e)) return 'long';
+    // String.length() / List.size() are primitive ints; a null-guarded `x == null ? 0 : x.length()` too
+    const recv = '(?:\\(\\([\\w.<>?, ]+\\)[A-Za-z_]\\w*\\)|[A-Za-z_]\\w*)';
+    if (new RegExp (`^${recv}\\.(?:size|length)\\(\\)$`).test (e)) return 'int';
+    const guarded = new RegExp (`^([A-Za-z_]\\w*) == null \\? 0 : (${recv})\\.(?:size|length)\\(\\)$`).exec (e);
+    if (guarded !== null && guarded[2].replace (/^\(\([^)]*\)(\w+)\)$/, '$1') === guarded[1]) return 'int';
+    const cast = /^\((long|double|int)\) (.*)$/.exec (e);
+    if (cast !== null) {
+        const k = j23Kind (ctx, cast[2], nn);
+        return k === undefined ? undefined : (cast[1] === 'int' ? 'int' : cast[1]);
+    }
+    const neg = /^-([A-Za-z_(][\s\S]*)$/.exec (e);
+    if (neg !== null && (/^[\w.]+(\(\))?$/.test (neg[1]) || longLimitStrip (neg[1]) !== neg[1].trim ())) {
+        return j23Kind (ctx, neg[1], nn);
+    }
+    const mask = longMultiplyMask (e);
+    // Double.parseDouble returns a primitive double (it throws on null); Math.* over primitives
+    if (longLimitCallArgs (mask, 'Double.parseDouble') !== undefined) return 'double';
+    for (const f of [ 'Math.floor', 'Math.ceil', 'Math.pow', 'Math.sqrt' ]) {
+        const args = longLimitCallArgs (mask, f);
+        if (args !== undefined && args.every ((a) => j23Kind (ctx, a, () => true) !== undefined)) return 'double';
+    }
+    const round = longLimitCallArgs (mask, 'Math.round');
+    if (round !== undefined && round.length === 1 && j23Kind (ctx, round[0], () => true) === 'double') return 'long';
+    for (const f of [ 'Math.min', 'Math.max' ]) {
+        const args = longLimitCallArgs (mask, f);
+        // the arguments already unbox in the original expression: a null box threw there too
+        if (args !== undefined && args.length === 2) return j23Widest (args.map ((a) => j23Kind (ctx, a, () => true)));
+    }
+    // parseToInt of a non-null number never answers null (numberToString/parseFloat/parseInt all succeed)
+    const pti = /^((?:\w+\.)?this\.parseToInt)\(/.exec (e);
+    if (pti !== null) {
+        const args = longLimitCallArgs (e, pti[1]);
+        if (args !== undefined && args.length === 1 && j23Kind (ctx, args[0], nn) !== undefined) return 'long';
+    }
+    const chain = j23Operands (e);
+    if (chain !== undefined) return j23Widest (chain.operands.map ((o) => j23Kind (ctx, o, nn)));
+    return undefined;
+}
+
+function j23NonNullValue (ctx, value, nn) {
+    if (j04NonNullValue (ctx, value, nn)) return true;
+    const e = longLimitStrip (value);
+    if (j23Kind (ctx, e, nn) !== undefined) return true;
+    const t = longLimitSplitTernary (e);
+    if (t !== undefined) {
+        const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
+        const arm = (a, isTrue) => (g !== null && longLimitStrip (a) === g[2] && (g[1] === '!') === isTrue
+            && [ 'Long', 'Integer', 'Double' ].includes (ctx.declType (g[2]))) || j23NonNullValue (ctx, a, nn);
+        return arm (t.whenTrue, true) && arm (t.whenFalse, false);
+    }
+    return false;
+}
+
+// j04MemberCtx with the J23 non-null producers and Double locals
+function j23MemberCtx (lines, from, to) {
+    const base = j04MemberCtx (lines, from, to);
+    const ctx = base.ctx;
+    const boxes = [ 'Long', 'Integer', 'Double' ];
+    const writeCache = new Map ();
+    const writes = (name) => {
+        if (writeCache.has (name)) return writeCache.get (name);
+        const decl = new RegExp (`^\\s*(?:final\\s+)?[A-Za-z_][\\w.<>, ]*? ${name} = (.*?);(\\s*//.*)?$`);
+        const plain = new RegExp (`^\\s*${name} = (.*?);(\\s*//.*)?$`);
+        const other = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+        const any = new RegExp (`(?<![\\w$.])${name}\\s*=(?!=)`);
+        let out = [];
+        for (let w = from + 1; w < to && out !== undefined; w++) {
+            const code = longLimitCodeOnly (lines[w]);
+            if (!new RegExp (`(?<![\\w$.])${name}\\b`).test (code)) continue;
+            if (other.test (code) || /->/.test (code) && any.test (code)) { out = undefined; break; }
+            const m = decl.exec (lines[w]) ?? plain.exec (lines[w]);
+            if (m !== null) out.push ({ line: w, value: m[1].trim () });
+            else if (any.test (code)) out = undefined;
+        }
+        writeCache.set (name, out);
+        return out;
+    };
+    const memo = new Map ();
+    const writesNonNull = (name, seen) => {
+        if (memo.has (name)) return memo.get (name);
+        if (seen.has (name)) return false;
+        seen.add (name);
+        const ws = writes (name);
+        const t = ctx.declType (name);
+        const ok = ws !== undefined && ws.length > 0 && boxes.includes (t)
+            && new RegExp (`^\\s*(?:final\\s+)?${t} ${name} = `).test (lines[ws[0].line])
+            && ws.every ((w) => j23NonNullValue (ctx, w.value, (n) => base.nonNullAt (n, w.line) || writesNonNull (n, seen)));
+        seen.delete (name);
+        memo.set (name, ok);
+        return ok;
+    };
+    const nonNullAt = (name, j) => base.nonNullAt (name, j) || (boxes.includes (ctx.declType (name)) && writesNonNull (name, new Set ()));
+    return { ctx, nonNullAt };
+}
+
+// multiply re-boxes an integral double as Long: a double product is only native under a consumer that
+// reads both boxes alike (parseToInt, Double.parseDouble(toString|valueOf))
+function j23BoxInsensitiveConsumer (mask, start, close) {
+    const before = mask.slice (0, start);
+    const after = mask.slice (close + 1);
+    const m = /(?:(?:\w+\.)?this\.parseToInt\(|Double\.parseDouble\((?:Helpers\.toString|String\.valueOf)\(\(?)(\(*)$/.exec (before);
+    if (m === null) return false;
+    const opened = (m[0].match (/\(/g) ?? []).length;
+    return after.startsWith (')'.repeat (opened));
+}
+
+// `x = Objects.equals(G, null) ? <call> : G` (or the negated form) where G is a Long: the arms promote
+// to long and the call's Long box is unchanged; the G arm is read only when it is non-null
+function j23TernaryArmOk (line, mask, start, close, ctx) {
+    const head = /^(\s*(?:[\w.<>]+ )?[A-Za-z_]\w* = |\s*return )/.exec (mask);
+    if (head === null || !/;\s*(\/\/.*)?$/.test (line)) return false;
+    const rhsEnd = mask.lastIndexOf (';');
+    const t = longLimitSplitTernary (line.slice (head[0].length, rhsEnd));
+    if (t === undefined) return false;
+    const call = line.slice (start, close + 1);
+    const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
+    if (g === null || ctx.declType (g[2]) !== 'Long') return false;
+    const [ mine, other ] = g[1] === '' ? [ t.whenTrue, t.whenFalse ] : [ t.whenFalse, t.whenTrue ];
+    return longLimitStrip (mine) === call && longLimitStrip (other) === g[2];
+}
+
+function j23Member (lines, from, to) {
+    let state;
+    let changed = false;
+    const helpers = [ [ 'Helpers.add(', '+' ], [ 'Helpers.subtract(', '-' ], [ 'Helpers.multiply(', '*' ],
+        [ 'Helpers.divide(', '/' ], [ 'Helpers.mod(', '%' ], [ 'Helpers.opNeg(', 'neg' ] ];
+    const atom = (e) => (/^[\w.]+(\(\))?$/.test (e) ? e : `(${e})`);
+    for (let j = from + 1; j < to; j++) {
+        if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
+        state = state ?? j23MemberCtx (lines, from, to);
+        let line = lines[j];
+        const mask0 = longMultiplyMask (line);
+        const starts = [];
+        for (const [ h, op ] of helpers) {
+            for (let k = mask0.indexOf (h); k !== -1; k = mask0.indexOf (h, k + 1)) {
+                if (k === 0 || !/[\w.]/.test (mask0[k - 1])) starts.push ([ k, h, op ]);
+            }
+        }
+        starts.sort ((a, b) => b[0] - a[0]);
+        for (const [ start, h, op ] of starts) {
+            const mask = longMultiplyMask (line);
+            const call = longMultiplyArgSpans (mask, start + h.length - 1);
+            if (call === undefined || call.spans.length !== (op === 'neg' ? 1 : 2)) continue;
+            const args = call.spans.map (([ x, y ]) => longLimitStrip (line.slice (x, y)));
+            const plain = j04PlainValuePosition (mask, start, call.close);
+            const armOk = !plain && j23TernaryArmOk (line, mask, start, call.close, state.ctx);
+            if (!plain && !armOk) continue;
+            const ternary = j04TernaryGuarded (mask, line, start);
+            const nn = (n) => ternary.has (n) || state.nonNullAt (n, j);
+            const kinds = args.map ((a) => j23Kind (state.ctx, a, nn));
+            if (kinds.includes (undefined)) continue;
+            const dbl = kinds.includes ('double');
+            if (armOk && (dbl || op === '/' || op === '%')) continue;
+            let text;
+            if (op === 'neg') {
+                text = `(-${atom (args[0])})`;
+            } else if (op === '/' || op === '%') {
+                text = `(((double) ${atom (args[0])}) ${op} ((double) ${atom (args[1])}))`;
+            } else if (dbl) {
+                if (op === '*' && !j23BoxInsensitiveConsumer (mask, start, call.close)) continue;
+                // any Double operand makes the helper answer toDouble(a) op toDouble(b)
+                const show = (a, k) => (k === 'intlit' ? a + 'L' : atom (a));
+                text = `(${show (args[0], kinds[0])} ${op} ${show (args[1], kinds[1])})`;
+            } else {
+                const show = (a, k) => (k === 'intlit' ? a + 'L' : atom (a));
+                const allInt = kinds.every ((k) => k === 'int' || k === 'intlit') && !kinds.every ((k) => k === 'intlit');
+                const lit = kinds.every ((k) => k === 'intlit');
+                text = lit ? `(${args[0]}L ${op} ${args[1]}L)` : `(${allInt ? `((long) ${atom (args[0])})` : show (args[0], kinds[0])} ${op} ${allInt && kinds[1] === 'intlit' ? args[1] : show (args[1], kinds[1])})`;
+            }
+            line = line.slice (0, start) + text + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    return changed;
+}
+
+export function nativeJavaJ23Arithmetic (content) {
+    if (!/Helpers\.(?:add|subtract|multiply|divide|mod|opNeg)\(/.test (content)) return content;
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    let changed = false;
+    for (let s = 0; s < starts.length; s++) {
+        if (j23Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}

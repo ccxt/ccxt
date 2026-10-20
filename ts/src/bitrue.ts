@@ -2558,8 +2558,9 @@ export default class bitrue extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const limitResolved: Int = (limit === undefined) ? undefined : Math.min (limit, 1000);
-        if (limitResolved !== undefined) {
+        let limitResolved: Int = undefined;
+        if (limit !== undefined) {
+            limitResolved = Math.min (limit, 1000);
             request['limit'] = limitResolved;
         }
         if (market['swap'] === true) {
@@ -3093,8 +3094,9 @@ export default class bitrue extends Exchange {
         if (since !== undefined) {
             request['beginTime'] = since;
         }
-        const limitResolved: Int = (limit === undefined) ? undefined : Math.min (limit, 200);
-        if (limitResolved !== undefined) {
+        let limitResolved: Int = undefined;
+        if (limit !== undefined) {
+            limitResolved = Math.min (limit, 200);
             request['limit'] = limitResolved;
         }
         const until = this.safeInteger (params, 'until');

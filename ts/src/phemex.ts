@@ -1440,22 +1440,23 @@ export default class phemex extends Exchange {
             if ((until !== undefined) || (since !== undefined)) {
                 const candleDuration = this.parseTimeframe (timeframe);
                 if (since !== undefined) {
-                    sinceSeconds = Math.round (since / 1000);
-                } else {
-                    // when 'to' is defined since is mandatory
-                    sinceSeconds = Math.round ((until as number) / 1000) - (maxLimit * candleDuration);
-                }
-                request['from'] = sinceSeconds;
-                if (until !== undefined) {
-                    request['to'] = Math.round (until / 1000);
-                } else {
-                    // when since is defined 'to' is mandatory
-                    let to = sinceSeconds + (maxLimit * candleDuration);
-                    const now = this.seconds ();
-                    if (to > now) {
-                        to = now;
+                    const fromSeconds = Math.round (since / 1000);
+                    sinceSeconds = fromSeconds;
+                    request['from'] = fromSeconds;
+                    if (until !== undefined) {
+                        request['to'] = Math.round (until / 1000);
+                    } else {
+                        // when since is defined 'to' is mandatory
+                        const now = this.seconds ();
+                        const to = fromSeconds + (maxLimit * candleDuration);
+                        request['to'] = (to > now) ? now : to;
                     }
-                    request['to'] = to;
+                } else if (until !== undefined) {
+                    // when 'to' is defined since is mandatory
+                    const untilSeconds = Math.round (until / 1000);
+                    sinceSeconds = untilSeconds - (maxLimit * candleDuration);
+                    request['from'] = sinceSeconds;
+                    request['to'] = untilSeconds;
                 }
                 response = await this.publicGetMdV2KlineList (this.extend (request, paramsOmitted));
             } else {

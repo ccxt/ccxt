@@ -4,7 +4,7 @@
 import paradexRest from '../paradex.js';
 import Precise from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances } from '../base/types.js';
+import type { Int, int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -969,11 +969,11 @@ export default class paradex extends paradexRest {
         };
     }
 
-    sbeReadUint (frameHex: string, offset: number, length: number): any {
+    sbeReadUint (frameHex: string, offset: number, length: number): int {
         // a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
         const digits = '0123456789abcdef';
-        let result = 0;
-        let factor = 1;
+        let result: int = 0;
+        let factor: int = 1;
         let position = offset * 2;
         for (let i = 0; i < length; i++) {
             // plain variables as slice bounds, php gets end - start unparenthesized
@@ -985,7 +985,8 @@ export default class paradex extends paradexRest {
             factor = factor * 256;
             position = next;
         }
-        return result;
+        // an exact integer below 2^32, parseToInt keeps it and types the return as an integer
+        return this.parseToInt (result);
     }
 
     sbeReadInt64 (frameHex: string, offset: number): Str {

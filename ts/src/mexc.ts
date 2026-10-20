@@ -2976,7 +2976,7 @@ export default class mexc extends Exchange {
                 if (end === undefined) {
                     request['end_time'] = this.sum (since, maxTimeTillEnd);
                 } else {
-                    if ((end - since) > maxTimeTillEnd) {
+                    if ((maxTimeTillEnd !== undefined) && ((end - since) > maxTimeTillEnd)) {
                         throw new BadRequest (this.id + ' end is invalid, i.e. exceeds allowed 90 days.');
                     } else {
                         request['end_time'] = until;

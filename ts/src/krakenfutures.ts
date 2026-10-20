@@ -929,21 +929,23 @@ export default class krakenfutures extends Exchange {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const paramsOmitted: Dict = this.omit (paramsPaginate, 'price');
-        const windowLimit = (limit === undefined) ? 2000 : Math.min (limit, 2000);
+        const windowLimit: Int = ((limit === undefined) || (limit > 2000)) ? 2000 : limit;
         let limitResolved: Int = undefined;
         if ((since !== undefined) || (limit !== undefined)) {
             limitResolved = windowLimit;
         }
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
-            request['from'] = this.parseToInt (since / 1000);
-            const toTimestamp = this.sum (request['from'], windowLimit * duration - 1);
+            const fromTimestamp = this.parseToInt (since / 1000);
+            request['from'] = fromTimestamp;
+            const toTimestamp = this.sum (fromTimestamp, windowLimit * duration - 1);
             const currentTimestamp = this.seconds ();
             request['to'] = Math.min (toTimestamp, currentTimestamp);
         } else if (limitResolved !== undefined) {
             const duration = this.parseTimeframe (timeframe);
-            request['to'] = this.seconds ();
-            request['from'] = this.parseToInt (request['to'] - (duration * limitResolved));
+            const toTimestamp = this.seconds ();
+            request['to'] = toTimestamp;
+            request['from'] = this.parseToInt (toTimestamp - (duration * windowLimit));
         }
         const response = await this.chartsGetPriceTypeSymbolInterval (this.extend (request, paramsOmitted));
         //

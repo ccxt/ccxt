@@ -244,7 +244,7 @@ export default class sxbet extends Exchange {
         const maxPages = this.safeInteger (this.options, 'maxMarketsPages', 50);
         const rawMarkets: any[] = [];
         let paginationKey: Str = undefined;
-        let page = 0;
+        let page: int = 0;
         while (true) {
             const request: Dict = { 'pageSize': pageSize };
             if (paginationKey !== undefined) {
@@ -258,7 +258,7 @@ export default class sxbet extends Exchange {
                 rawMarkets.push (pageMarkets[i]);
             }
             paginationKey = this.safeString (result, 'nextKey');
-            page = this.sum (page, 1);
+            page = page + 1;
             const collectedLength = rawMarkets.length;
             if ((pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey === undefined) || ((userLimit !== undefined) && (collectedLength >= userLimit))) {
                 break;
@@ -742,7 +742,7 @@ export default class sxbet extends Exchange {
         const digits = '0123456789abcdef';
         const lowerHex = hex.toLowerCase ();
         const hexLength = lowerHex.length;
-        let result = 0;
+        let result: int = 0;
         for (let i = 0; i < hexLength; i++) {
             const ch = lowerHex[i];
             const digitValue = digits.indexOf (ch);
@@ -1144,8 +1144,8 @@ export default class sxbet extends Exchange {
         const chunkCount = this.parseToInt (this.sum (idsLength, chunkSize - 1) / chunkSize);
         let result: PredictionOrder[] = [];
         for (let c = 0; c < chunkCount; c++) {
-            const start = c * chunkSize;
-            let end = start + chunkSize;
+            const start: int = c * chunkSize;
+            let end: int = start + chunkSize;
             if (end > idsLength) {
                 end = idsLength;
             }
@@ -1188,8 +1188,10 @@ export default class sxbet extends Exchange {
         let result = this.parseSxbetCancelResponse (response);
         // both paths paginate their async submission - keep going on the SAME route while more remain
         let hasMore = this.safeBool (this.safeDict (response, 'data', {}), 'hasMore', false);
-        let guard = 0;
-        while ((hasMore === true) && (guard < 50)) {
+        for (let guard = 0; guard < 50; guard++) {
+            if (hasMore !== true) {
+                break;
+            }
             let nextResponse = undefined;
             if (isEventScoped) {
                 const nextRequest: Dict = { 'eventId': eventId };
@@ -1199,7 +1201,6 @@ export default class sxbet extends Exchange {
             }
             result = this.arrayConcat (result, this.parseSxbetCancelResponse (nextResponse));
             hasMore = this.safeBool (this.safeDict (nextResponse, 'data', {}), 'hasMore', false);
-            guard = this.sum (guard, 1);
         }
         return result;
     }
@@ -1304,11 +1305,10 @@ export default class sxbet extends Exchange {
      * @returns {int} the limit clamped to at most 100
      */
     clampSxbetPerPage (limit: Int): Int {
-        const maxPerPage = 100;
-        if (limit === undefined) {
-            return undefined;
+        if ((limit !== undefined) && (limit > 100)) {
+            return 100;
         }
-        return (limit > maxPerPage) ? maxPerPage : limit;
+        return limit;
     }
 
     /**
@@ -1909,8 +1909,8 @@ export default class sxbet extends Exchange {
         const chunkSize = this.safeInteger (this.options, 'bestOddsBatchSize', 100);
         const chunkCount = this.parseToInt (this.sum (hashesLength, chunkSize - 1) / chunkSize);
         for (let c = 0; c < chunkCount; c++) {
-            const start = c * chunkSize;
-            let end = start + chunkSize;
+            const start: int = c * chunkSize;
+            let end: int = start + chunkSize;
             if (end > hashesLength) {
                 end = hashesLength;
             }
@@ -2052,17 +2052,13 @@ export default class sxbet extends Exchange {
         let sortedAsks = this.safeList (sides, 'asks', []);
         if (limit !== undefined) {
             const bidsLength = sortedBids.length;
-            let bidsEnd = limit;
-            if (bidsEnd > bidsLength) {
-                bidsEnd = bidsLength;
+            if (limit < bidsLength) {
+                sortedBids = this.arraySlice (sortedBids, 0, limit);
             }
-            sortedBids = this.arraySlice (sortedBids, 0, bidsEnd);
             const asksLength = sortedAsks.length;
-            let asksEnd = limit;
-            if (asksEnd > asksLength) {
-                asksEnd = asksLength;
+            if (limit < asksLength) {
+                sortedAsks = this.arraySlice (sortedAsks, 0, limit);
             }
-            sortedAsks = this.arraySlice (sortedAsks, 0, asksEnd);
         }
         const timestamp = this.milliseconds ();
         return this.safePredictionOrderBook ({

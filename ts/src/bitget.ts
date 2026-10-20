@@ -3034,7 +3034,10 @@ export default class bitget extends Exchange {
             }
             return await this.fetchPaginatedCallCursor ('fetchDeposits', undefined, since, limit, paramsPaginate, 'idLessThan', 'idLessThan', undefined, 100) as Transaction[];
         }
-        const defaultWindow = (uta === true) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
+        let defaultWindow = 7776000000; // uta allows a window of 30 days at most, else 90 days
+        if (uta === true) {
+            defaultWindow = 2592000000;
+        }
         const sinceResolved: Int = (since === undefined) ? this.milliseconds () - defaultWindow : since;
         const request: Dict = {
             'startTime': sinceResolved,
@@ -3230,7 +3233,10 @@ export default class bitget extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const defaultWindow = (uta === true) ? 2592000000 : 7776000000; // uta allows a window of 30 days at most, else 90 days
+        let defaultWindow = 7776000000; // uta allows a window of 30 days at most, else 90 days
+        if (uta === true) {
+            defaultWindow = 2592000000;
+        }
         const sinceResolved: Int = (since === undefined) ? this.milliseconds () - defaultWindow : since;
         const request: Dict = {
             'startTime': sinceResolved,
@@ -4732,8 +4738,6 @@ export default class bitget extends Exchange {
         const duration = this.parseTimeframe (timeframe) * 1000;
         const until = this.safeInteger (paramsUTA, 'until');
         const limitDefined = limit !== undefined;
-        const sinceDefined = since !== undefined;
-        const untilDefined = until !== undefined;
         const paramsOmitted: Dict = this.omit (paramsUTA, [ 'until' ]);
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
@@ -4747,10 +4751,9 @@ export default class bitget extends Exchange {
         const maxLimitForThisTimeframe = this.safeInteger (maxLimitPerTimeframe, timeframe, limit);
         const recentEndpointDaysMap = this.safeDict (this.options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', {});
         const recentEndpointAvailableDays = this.safeInteger (recentEndpointDaysMap, timeframe);
-        const recentEndpointBoundaryTs = now - ((recentEndpointAvailableDays as number) - 1) * msInDay;
         let limitResolved: Int = defaultLimit;
-        if (limitDefined) {
-            const limitCapped = Math.min (limit as number, maxLimitForRecentEndpoint);
+        if (limit !== undefined) {
+            const limitCapped = Math.min (limit, maxLimitForRecentEndpoint);
             limitResolved = Math.min (limitCapped, maxLimitForThisTimeframe as number);
         }
         let limitMultipliedDuration = limitResolved * duration;
@@ -4758,10 +4761,10 @@ export default class bitget extends Exchange {
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
         let calculatedStartTime: Int = undefined;
         let calculatedEndTime: Int = undefined;
-        if (sinceDefined) {
+        if (since !== undefined) {
             calculatedStartTime = since;
             request['startTime'] = since;
-            if (!untilDefined) {
+            if (until === undefined) {
                 calculatedEndTime = this.sum (calculatedStartTime, limitMultipliedDuration);
                 if ((calculatedEndTime as number) > now) {
                     calculatedEndTime = now;
@@ -4769,21 +4772,26 @@ export default class bitget extends Exchange {
                 request['endTime'] = calculatedEndTime;
             }
         }
-        if (untilDefined) {
+        if (until !== undefined) {
             calculatedEndTime = until;
             if (calculatedEndTime > now) {
                 calculatedEndTime = now;
             }
             request['endTime'] = calculatedEndTime;
-            if (!sinceDefined) {
+            if (since === undefined) {
                 calculatedStartTime = calculatedEndTime - limitMultipliedDuration;
                 // we do not need to set "startTime" here
             }
         }
         // if historical endpoint is needed, we should re-set the variables
-        let historicalEndpointNeeded = false;
-        if ((calculatedStartTime !== undefined && calculatedStartTime <= recentEndpointBoundaryTs) || (useHistoryEndpoint === true)) {
-            historicalEndpointNeeded = true;
+        let historicalEndpointNeeded = (useHistoryEndpoint === true);
+        if (calculatedStartTime !== undefined && recentEndpointAvailableDays !== undefined) {
+            const recentEndpointBoundaryTs: int = now - (recentEndpointAvailableDays - 1) * msInDay;
+            if (calculatedStartTime <= recentEndpointBoundaryTs) {
+                historicalEndpointNeeded = true;
+            }
+        }
+        if (historicalEndpointNeeded) {
             // only for "historical-candles" - ensure we use correct max limit
             limitResolved = Math.min (limitResolved, maxLimitForHistoryEndpoint);
             limitMultipliedDuration = limitResolved * duration;

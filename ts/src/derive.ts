@@ -789,11 +789,8 @@ export default class derive extends Exchange {
      */
     async getMarketsPaginated (request: Dict, params: Dict = {}): Promise<Dict[]> {
         let allInstruments: Dict[] = [];
-        let maxPages = 25;
-        let paramsOmitted: Dict = {};
-        [ maxPages, paramsOmitted ] = this.handleOptionAndParams (params, 'getMarketsPaginated', 'maxMarketPages', maxPages);
-        let pageSize = 1000;
-        [ pageSize, paramsOmitted ] = this.handleOptionAndParams (paramsOmitted, 'getMarketsPaginated', 'maxMarketsPerPage', pageSize);
+        const [ maxPages, paramsMaxPages ] = this.handleOptionIntegerAndParams (params, 'getMarketsPaginated', 'maxMarketPages', 25);
+        const [ pageSize, paramsOmitted ] = this.handleOptionAndParams (paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
         let page = 1;
         for (let i = 0; i < maxPages; i++) {
             const requestExtension: Dict = {
@@ -1430,12 +1427,9 @@ export default class derive extends Exchange {
         if (limit !== undefined && limit > 1000) {
             limitResolved = 1000;
         }
-        if (limitResolved !== undefined) {
+        if (limit !== undefined) {
             // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
-            let pageSize = limitResolved * 2;
-            if (pageSize > 1000) {
-                pageSize = 1000; // default 100, max 1000
-            }
+            const pageSize = (limit > 500) ? 1000 : limit * 2; // default 100, max 1000
             request['page_size'] = pageSize;
         }
         if (since !== undefined) {
@@ -1604,30 +1598,25 @@ export default class derive extends Exchange {
         const until = this.safeInteger (paramsPrice, 'until');
         const paramsOmitted: Dict = this.omit (paramsPrice, [ 'until' ]);
         const duration = this.parseTimeframe (timeframe);
-        let end: Int = undefined;
+        let end = this.seconds ();
         if (until !== undefined) {
             end = this.parseToInt (until / 1000);
-        } else {
-            end = this.seconds ();
         }
-        let limitResolved = limit;
-        if (limitResolved === undefined) {
-            limitResolved = (since !== undefined) ? 5000 : 1000;
+        let defaultLimit = 1000;
+        if (since !== undefined) {
+            defaultLimit = 5000;
         }
-        if (limitResolved > 5000) {
-            limitResolved = 5000; // the venue keeps only the latest 5000 buckets of the requested window
-        }
-        let start: Int = undefined;
+        const limitRequested = (limit === undefined) ? defaultLimit : limit;
+        const limitResolved = (limitRequested > 5000) ? 5000 : limitRequested; // the venue keeps only the latest 5000 buckets of the requested window
+        const span = limitResolved * duration;
+        let start = end - span;
         if (since !== undefined) {
             start = this.parseToInt (since / 1000);
             // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
-            const calculatedEnd = limitResolved * duration;
-            const maxEnd = this.sum (start, calculatedEnd);
+            const maxEnd = this.sum (start, span);
             if (maxEnd < end) {
                 end = maxEnd;
             }
-        } else {
-            start = end - limitResolved * duration;
         }
         const request: Dict = {
             'period': period,

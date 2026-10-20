@@ -2969,12 +2969,13 @@ export default class gate extends Exchange {
         //         "update": 1634350208.724
         //     }
         //
-        let timestamp = this.safeInteger (response, 'current');
-        if (timestamp === undefined) {
+        const current = this.safeInteger (response, 'current');
+        if (current === undefined) {
             throw new ExchangeError (this.id + ' method() missing timestamp');
         }
+        let timestamp: Int = current;
         if (market['spot'] !== true) {
-            timestamp = timestamp * 1000;
+            timestamp = current * 1000;
         }
         const priceKey = (market['spot'] === true) ? 0 : 'p';
         const amountKey = (market['spot'] === true) ? 1 : 's';
@@ -3532,9 +3533,10 @@ export default class gate extends Exchange {
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
         const maxLimit = (market['contract'] === true) ? 1999 : 1000;
         const limitValue: Int = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
-        let until = this.safeInteger (paramsRequest, 'until');
-        if (until !== undefined) {
-            until = this.parseToInt (until / 1000);
+        const untilMs = this.safeInteger (paramsRequest, 'until');
+        let until: Int = undefined;
+        if (untilMs !== undefined) {
+            until = this.parseToInt (untilMs / 1000);
         }
         const paramsOmitted = this.omit (paramsRequest, 'until');
         if (since !== undefined) {

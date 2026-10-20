@@ -1262,9 +1262,10 @@ export default class lighter extends Exchange {
             if (type === 'perp') {
                 type = 'swap';
             }
-            let baseId = this.safeString (market, 'symbol');
-            if (baseId !== undefined && baseId.indexOf ('/') !== -1) {
-                baseId = baseId.split ('/')[0];
+            const marketSymbol = this.safeString (market, 'symbol');
+            let baseId = marketSymbol;
+            if (marketSymbol !== undefined && marketSymbol.indexOf ('/') !== -1) {
+                baseId = marketSymbol.split ('/')[0];
             }
             const quoteId = 'USDC';
             const settleId = (type === 'swap') ? 'USDC' : undefined;
@@ -1721,12 +1722,16 @@ export default class lighter extends Exchange {
                 endTs = now;
             }
         } else {
-            endTs = (until !== undefined) ? until : now;
+            let endValue = now;
+            if (until !== undefined) {
+                endValue = until;
+            }
+            endTs = endValue;
             const defaultLimit = 100;
             if (limit !== undefined) {
-                startTs = endTs - this.parseTimeframe (timeframe) * 1000 * limit;
+                startTs = endValue - this.parseTimeframe (timeframe) * 1000 * limit;
             } else {
-                startTs = endTs - this.parseTimeframe (timeframe) * 1000 * defaultLimit;
+                startTs = endValue - this.parseTimeframe (timeframe) * 1000 * defaultLimit;
             }
         }
         const request: Dict = {

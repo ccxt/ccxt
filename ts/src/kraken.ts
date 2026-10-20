@@ -2489,13 +2489,12 @@ export default class kraken extends Exchange {
         const options = this.safeDict (this.options, 'fetchOrderTrades', {});
         const batchSize = this.safeInteger (options, 'batchSize', 20);
         const numTradeIds = tradeIds.length;
-        let numBatches = this.parseToInt (numTradeIds / batchSize);
-        numBatches = this.sum (numBatches, 1);
+        const numBatches = this.sum (this.parseToInt (numTradeIds / batchSize), 1);
         let result: List = [];
         for (let j = 0; j < numBatches; j++) {
             const requestIds: List = [];
             for (let k = 0; k < batchSize; k++) {
-                const index = this.sum (j * batchSize, k);
+                const index: int = this.sum (j * batchSize, k);
                 if (index < numTradeIds) {
                     requestIds.push (tradeIds[index]);
                 }

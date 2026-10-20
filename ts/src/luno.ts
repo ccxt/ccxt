@@ -1428,8 +1428,8 @@ export default class luno extends Exchange {
         await this.loadAccounts ();
         let currency: Currency = undefined;
         let id = this.safeString (params, 'id'); // account id
-        let min_row = this.safeInteger (params, 'min_row');
-        let max_row = this.safeInteger (params, 'max_row');
+        const minRowParam = this.safeInteger (params, 'min_row');
+        const maxRowParam = this.safeInteger (params, 'max_row');
         if (id === undefined) {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchLedger() requires a currency code argument if no account id specified in params');
@@ -1442,10 +1442,12 @@ export default class luno extends Exchange {
             }
             id = this.safeString (account, 'id');
         }
-        if (min_row === undefined && max_row === undefined) {
-            max_row = 0; // Default to most recent transactions
-            min_row = -1000; // Maximum number of records supported
-        } else if (min_row === undefined || max_row === undefined) {
+        let max_row: int = 0; // Default to most recent transactions
+        let min_row: int = -1000; // Maximum number of records supported
+        if (minRowParam !== undefined && maxRowParam !== undefined) {
+            max_row = maxRowParam;
+            min_row = minRowParam;
+        } else if (minRowParam !== undefined || maxRowParam !== undefined) {
             throw new ExchangeError (this.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined");
         }
         if (limit !== undefined && max_row - min_row > limit) {

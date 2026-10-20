@@ -8767,7 +8767,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = csharpHx4SelfTest ();
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9340,7 +9340,7 @@ function csharpNullableIntegerComparisonText (helper: string, left, right, leftT
 // final pass after the declared-helper rewrites: mathMin/mathMax on two declared integers of
 // one kind -> Math.Min/Max, a guarded `Int64?` request value -> `.Value`, `isTrue((x))` on bool/bool?
 export function nativeDeclaredHelperCalls (content: string, objectNull = true): string {
-    return hx4C13Int64ListReads (nativeC07HelperCalls (nativeDeclaredHelperCallsBase (content, objectNull)));
+    return hx4C18NativeGetValue (hx4C17NativeHelperCalls (hx4C16NativeHelperCalls (nativeC15HelperCalls (hx4C14NativeMath (hx4C13Int64ListReads (nativeC07HelperCalls (nativeDeclaredHelperCallsBase (content, objectNull))))))));
 }
 
 function nativeC07HelperCalls (content: string): string {
@@ -9630,7 +9630,7 @@ export function csharpHx4SelfTest (): string[] {
         // negatives: doubles, object, expressions, rebinding with another type
         keeps ('double? x = this.safeNumber(parameters, "x");\nif (isLessThan(x, 0)) { }');
         keeps ('object x = this.safeValue(parameters, "x");\nif (isLessThan(x, limit)) { }');
-        keeps ('if (isLessThan(this.sum(1, 2), limit)) { }');
+        keeps ('if (isLessThan(this.safeInteger(parameters, \"a\"), limit)) { }');
         keeps ('if (isLessThan(limit, 1.5)) { }');
         keeps ('if (true)\n{\n    Int64? x = 1;\n}\nelse\n{\n    object x = 2;\n    if (isLessThan(x, 3)) { }\n}');
         keeps ('uint big = 4000000000;\nif (isLessThan(limit, big)) { }');
@@ -9747,7 +9747,27 @@ export function csharpHx4SelfTest (): string[] {
         check ('caller local takes the return type', 'hashMessage (m: string): string { return m; }\n g (m) { const h = this.hashMessage (m); return h; }', 'string? h = this.hashMessage(m);');
         check ('unannotated parameter keeps object', 'parseOrderStatus (status) { return status; }', 'parseOrderStatus(object status)');
     }
+    // hx4 C15: typed-expression comparisons and guarded Int64? Min/Max
+    {
+        const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object since0, Int64? since = null, Int64? limit = null)\n    {\n' + body + '\n    }\n}\n';
+        const check = (name: string, body: string, expected: string) => {
+            const out = nativeDeclaredHelperCalls (wrap (body));
+            if (!out.includes (expected)) problems.push (`hx4 C15: ${name}\n${out}`);
+        };
+        check ('double field > literal', '        if (isGreaterThan(this.rateLimit, 0))\n        {\n        }', 'if ((this.rateLimit > 0))');
+        check ('double field >= keeps helper', '        bool b = isGreaterThanOrEqual(this.rateLimit, 0);', 'isGreaterThanOrEqual(this.rateLimit, 0)');
+        check ('Int64 compound > Int64', '        Int64 a = this.milliseconds();\n        Int64 b = 5;\n        bool x = isGreaterThan((a - b), b);', 'bool x = ((a - b) > b);');
+        check ('nullable compound keeps helper', '        Int64 a = this.milliseconds();\n        Int64? b = limit;\n        bool x = isGreaterThan((a - b), 1);', 'isGreaterThan((a - b), 1)');
+        check ('object operand keeps helper', '        object a = 1;\n        bool x = isLessThan(this.milliseconds(), a);', 'isLessThan(this.milliseconds(), a)');
+        check ('guarded Int64? request field', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((since != null))\n        {\n            request["before"] = mathMax((since - 1), 0);\n        }', 'request["before"] = Math.Max((since.Value - 1), 0);');
+        check ('unguarded Int64? request field keeps helper', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        request["before"] = mathMax((since - 1), 0);', 'mathMax((since - 1), 0)');
+        check ('ternary-guarded box-neutral local', '        int maxLimit = 300;\n        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        object v = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);\n        request["limit"] = v;\n        object d = multiply(v, 2);', 'object v = ((limit == null)) ? maxLimit : Math.Min(limit.Value, maxLimit);');
+        check ('ternary local returned keeps helper', '        int maxLimit = 300;\n        object v = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);\n        return v;', 'mathMin(limit, maxLimit)');
+        check ('ternary on another name keeps helper', '        int maxLimit = 300;\n        object v = ((since == null)) ? maxLimit : mathMin(limit, maxLimit);\n        object d = multiply(v, 2);', 'mathMin(limit, maxLimit)');
+    }
+    problems.push (...hx4C18SelfTest ());
     return problems;
+    return problems.concat (hx4C17SelfTest ());
 }
 
 // hx4 C13 — `getValue(xs, i)` with `xs` a declared List<object>/IList<object> and `i` a declared Int64
@@ -9823,3 +9843,1280 @@ export function hx4C13Int64ListReads (content: string): string {
     return changed ? lines.join ('\n') : content;
 }
 
+
+// hx4 C14 — final-text pass (after C13): `for (object i = <int>; …; postFixIncrement(ref i))` counters whose
+// every read normalises the box become `Int64 i … i++`; `prefixUnaryNeg(ref x)` on a numeric parameter copy /
+// single-use safeInteger local -> `(-x)`; subtract/multiply/divide with null-guarded or this.sum operands.
+
+// the call name and argument index whose argument list holds `pos`, plus that argument's text
+function hx4C14EnclosingCall (text: string, pos: number): { name: string, index: number, arg: string } | undefined {
+    let depth = 0;
+    let index = 0;
+    let argStart = pos;
+    for (let i = pos - 1; i >= 0; i--) {
+        const ch = text[i];
+        if ((ch === ')') || (ch === ']') || (ch === '}')) depth++;
+        if ((ch === '(') || (ch === '[') || (ch === '{')) {
+            if (depth === 0) {
+                if (ch !== '(') return undefined;
+                const name = /([A-Za-z_][\w.]*)$/.exec (text.slice (0, i));
+                const close = hx4C05ClosingParen (text, i);
+                if ((name === null) || (close === undefined)) return undefined;
+                if (argStart === pos) argStart = i + 1;
+                let argEnd = close;
+                let d = 0;
+                for (let j = pos; j < close; j++) {
+                    if ('([{'.includes (text[j])) d++;
+                    if (')]}'.includes (text[j])) d--;
+                    if ((d === 0) && (text[j] === ',')) { argEnd = j; break; }
+                }
+                return { name: name[1], index, arg: text.slice (argStart, argEnd).trim () };
+            }
+            depth--;
+        }
+        if ((ch === ',') && (depth === 0)) {
+            if (index === 0) argStart = i + 1;
+            index++;
+        }
+    }
+    return undefined;
+}
+
+function hx4C14Indent (line: string): number {
+    return line.length - line.trimStart ().length;
+}
+
+// last line of the block opened by the `{` on line `open`
+function hx4C14BlockEnd (masked: string[], open: number, end: number): number {
+    let depth = 0;
+    for (let i = open; i < end; i++) {
+        for (const ch of masked[i]) {
+            if (ch === '{') depth++;
+            if (ch === '}') { depth--; if (depth === 0) return i; }
+        }
+    }
+    return end - 1;
+}
+
+function hx4C14WriteRe (name: string): RegExp {
+    return new RegExp ('(?<![\\w.])' + name + '[ ]*(?:=(?!=)|\\+=|-=|\\*=|/=|%=|\\?\\?=|\\+\\+|--)|\\b(?:ref|out)[ ]+' + name + '\\b|(?:\\+\\+|--)' + name + '\\b');
+}
+
+// a conjunct that is false when `name` is null: `name != null`, `!(name == null)`, a lifted `<`/`>` compare
+function hx4C14ConjunctProvesNonNull (conjunct: string, name: string): boolean {
+    const c = hx4C05StripParens (conjunct);
+    if (new RegExp ('^' + name + '[ ]*!=[ ]*null$').test (c) || new RegExp ('^null[ ]*!=[ ]*' + name + '$').test (c)) return true;
+    if (/^!/.test (c) && new RegExp ('^' + name + '[ ]*==[ ]*null$').test (hx4C05StripParens (c.slice (1)))) return true;
+    return new RegExp ('^' + name + '[ ]*(?:<|>|<=|>=)[ ]*[^=<>]+$').test (c) && !/\bnull\b/.test (c);
+}
+
+function hx4C14TopLevelSplit (text: string, token: string): string[] {
+    const parts = [];
+    let depth = 0;
+    let last = 0;
+    for (let i = 0; i < text.length; i++) {
+        if ('([{'.includes (text[i])) depth++;
+        if (')]}'.includes (text[i])) depth--;
+        if ((depth === 0) && text.startsWith (token, i)) { parts.push (text.slice (last, i)); last = i + token.length; i += token.length - 1; }
+    }
+    parts.push (text.slice (last));
+    return parts;
+}
+
+// `name` is non-null at (line, col): an enclosing `if (… && name != null && …)` block with no write of `name`
+// inside it, or a same-line `(name != null) && (…)` / `(name == null) || (…)` whose right operand holds col
+function hx4C14Guarded (masked: string[], start: number, line: number, col: number, name: string): boolean {
+    const write = hx4C14WriteRe (name);
+    const text = masked[line];
+    for (const [ op, test ] of [ [ '&&', '!=' ], [ '||', '==' ] ]) {
+        const re = new RegExp ('\\(' + name + '[ ]*' + test + '[ ]*null\\)+[ ]*' + op.replace (/\|/g, '\\|'), 'g');
+        let m;
+        while ((m = re.exec (text)) !== null) {
+            if (m.index >= col) break;
+            // the operator and col share the operator's paren group
+            let depth = 0;
+            let ok = true;
+            for (let j = m.index + m[0].length; j < col; j++) {
+                if (text[j] === '(') depth++;
+                if (text[j] === ')') { depth--; if (depth < 0) { ok = false; break; } }
+            }
+            let opDepth = 0;
+            for (let j = m.index; j < m.index + m[0].length - op.length; j++) {
+                if (text[j] === '(') opDepth++;
+                if (text[j] === ')') opDepth--;
+            }
+            // the null test must be the FIRST operand of the group holding the operator
+            // (`(A && (x == null)) || B` would not guard B)
+            const p = m.index + m[0].length - op.length;
+            let d = 0;
+            let groupStart = -1;
+            for (let j = p - 1; j >= 0; j--) {
+                if (text[j] === ')') d++;
+                if (text[j] === '(') { if (d === 0) { groupStart = j; break; } d--; }
+            }
+            const first = (groupStart >= 0) && /^[ (]*$/.test (text.slice (groupStart + 1, m.index));
+            if (ok && first && (opDepth <= 0) && !write.test (text.slice (m.index + m[0].length, col))) return true;
+        }
+    }
+    let indent = hx4C14Indent (masked[line]);
+    for (let k = line - 1; k > start; k--) {
+        const ind = hx4C14Indent (masked[k]);
+        if ((masked[k].trim () === '') || (ind >= indent)) continue;
+        indent = ind;
+        if ((masked[k].trim () !== '{') || (k - 1 <= start)) continue;
+        const header = /^[ ]*(?:\}[ ]*else[ ]+)?if[ ]*\(/.exec (masked[k - 1]);
+        if (header === null) continue;
+        const open = header[0].length - 1;
+        const close = hx4C05ClosingParen (masked[k - 1], open);
+        if (close === undefined) continue;
+        const cond = masked[k - 1].slice (open + 1, close);
+        if (cond.includes ('||')) continue;
+        if (!hx4C14TopLevelSplit (hx4C05StripParens (cond), '&&').some ((c) => hx4C14ConjunctProvesNonNull (c, name))) continue;
+        const blockEnd = hx4C14BlockEnd (masked, k, masked.length);
+        let written = false;
+        for (let j = k; j <= blockEnd; j++) {
+            // the negation being proven is the read itself, not a write before it
+            if (write.test (masked[j].replace ('prefixUnaryNeg(ref ' + name + ')', ''))) { written = true; break; }
+        }
+        if (!written) return true;
+    }
+    return false;
+}
+
+// hx4C05OperandType plus the typed base calls: `this.sum` of integer operands binds sum(Int64[?], Int64[?])
+// (returns Int64), `this.parseToInt(...)` returns Int64?
+function hx4C14OperandType (arg: string, typeOfName: (name: string) => string | undefined): { type: string, text: string, literal: boolean } | undefined {
+    const known = hx4C05OperandType (arg, typeOfName, new Map ());
+    if (known !== undefined) {
+        return known;
+    }
+    const text = arg.trim ();
+    const bare = hx4C05StripParens (text);
+    const call = /^this\.(sum|parseToInt)\(/.exec (bare);
+    if ((call === null) || (hx4C05ClosingParen (bare, call[0].length - 1) !== bare.length - 1)) {
+        return undefined;
+    }
+    if (call[1] === 'parseToInt') {
+        return { type: 'Int64?', text: bare, literal: false };
+    }
+    const args = hx4C14TopLevelSplit (bare.slice (call[0].length, -1), ',');
+    if (args.length !== 2) {
+        return undefined;
+    }
+    const kinds = args.map ((a) => hx4C14OperandType (a, typeOfName));
+    const integer = (k) => (k !== undefined) && [ 'int', 'Int64', 'Int64?' ].includes (k.type);
+    return (integer (kinds[0]) && integer (kinds[1])) ? { type: 'Int64', text: bare, literal: false } : undefined;
+}
+
+function hx4C14Arithmetic (text: string, typeOfName, guardedName: (name: string, col: number) => boolean, offset: number): string {
+    let out = '';
+    let last = 0;
+    const callRe = /(?<![A-Za-z0-9_.])(subtract|multiply|divide)\(/g;
+    let m;
+    while ((m = callRe.exec (text)) !== null) {
+        const open = m.index + m[0].length - 1;
+        const close = hx4C05ClosingParen (text, open);
+        if (close === undefined) continue;
+        const comma = csharpHelperTopLevelComma (text, open, close);
+        if ((comma === undefined) || (csharpHelperTopLevelComma (text, comma, close) !== undefined)) continue;
+        const raw = [ text.slice (open + 1, comma), text.slice (comma + 1, close) ];
+        const inner = raw.map ((a, n) => hx4C14Arithmetic (a, typeOfName, guardedName, offset + ((n === 0) ? open + 1 : comma + 1)));
+        const typed = inner.map ((a) => hx4C14OperandType (a, typeOfName));
+        let native: string | undefined;
+        if ((typed[0] !== undefined) && (typed[1] !== undefined)) {
+            const atom = (t: string) => (hx4C05TopLevelBinary (t) === undefined) ? t : '(' + t + ')';
+            const L = atom (typed[0].text);
+            const R = atom (typed[1].text);
+            const kinds = [ typed[0].type, typed[1].type ];
+            const base = kinds.map ((k) => k.replace ('?', ''));
+            if (m[1] === 'subtract') {
+                // only a null-guarded identifier may be nullable (subtract(object, object) dereferences null)
+                const proven = [ 0, 1 ].every ((n) => !kinds[n].endsWith ('?')
+                    || (/^[A-Za-z_]\w*$/.test (typed[n].text) && guardedName (typed[n].text, offset + m.index)));
+                const nullable = kinds.some ((k) => k.endsWith ('?'));
+                // the object overload: double left converts any right; Int64 left casts the right to Int64
+                const pair = (base[0] === 'double') || ((base[1] !== 'double') && !((base[0] === 'int') && (base[1] === 'int')));
+                if (nullable && proven && pair) native = '(' + L + ' - ' + R + ')';
+            } else if ((m[1] === 'multiply') && (kinds[0] === 'int') && (kinds[1] === 'int') && !typed[0].literal && !typed[1].literal) {
+                native = '((Int64)' + L + ' * ' + R + ')'; // the multiply(Int64, Int64) twin's body
+            } else if ((hx4C05OperandType (inner[0], typeOfName, new Map ()) === undefined) || (hx4C05OperandType (inner[1], typeOfName, new Map ()) === undefined)) {
+                // a this.sum / parseToInt operand C05 could not type: the twin C05 would have chosen
+                const twin = hx4C05Twin (m[1], kinds[0], kinds[1]);
+                if ((twin !== undefined) && (m[1] === 'divide')) {
+                    native = (base[0] === 'double' || base[1] === 'double') ? '(' + L + ' / ' + R + ')' : '((' + twin + ')' + L + ' / ' + R + ')';
+                } else if ((twin !== undefined) && (m[1] === 'multiply') && !((base[0] === 'int') && (base[1] === 'int'))) {
+                    native = '(' + L + ' * ' + R + ')';
+                }
+            }
+        }
+        out += text.slice (last, m.index) + (native ?? (m[1] + '(' + inner[0] + ',' + inner[1] + ')'));
+        last = close + 1;
+        callRe.lastIndex = close + 1;
+    }
+    return out + text.slice (last);
+}
+
+// every read of the counter in its header condition / body hands the box to a helper that normalises it
+function hx4C14CounterReadsNormalise (masked: string[], from: number, to: number, header: string, name: string): boolean {
+    const compare = [ 'isLessThan', 'isGreaterThan', 'isLessThanOrEqual', 'isGreaterThanOrEqual', 'isEqual' ];
+    const keyed = [ 'getValue', 'GetValue', 'this.safeDict', 'this.safeList', 'this.safeValue', 'this.safeString', 'this.safeInteger', 'this.safeNumber' ];
+    const texts = [ header ];
+    for (let i = from; i <= to; i++) texts.push (masked[i]);
+    const re = new RegExp ('(?<![\\w.])' + name + '(?![\\w])', 'g');
+    for (const text of texts) {
+        let m;
+        while ((m = re.exec (text)) !== null) {
+            const call = hx4C14EnclosingCall (text, m.index);
+            if ((call === undefined) || (call.arg !== name)) return false;
+            if (compare.includes (call.name) || (keyed.includes (call.name) && (call.index === 1))) continue;
+            if (([ 'subtract', 'add' ].includes (call.name)) && (call.index === 0)) {
+                const at = text.lastIndexOf (call.name + '(', m.index);
+                const close = hx4C05ClosingParen (text, at + call.name.length);
+                const right = (close === undefined) ? '' : text.slice (m.index + name.length, close).replace (/^[ ]*,/, '').trim ();
+                if (/^\d{1,9}$/.test (right)) continue;
+            }
+            return false;
+        }
+    }
+    return true;
+}
+
+export function hx4C14NativeMath (content: string): string {
+    if (!/(?<![\w.])(?:postFixIncrement|prefixUnaryNeg|subtract|multiply|divide)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    const signatures = [];
+    for (let i = 0; i < masked.length; i++) {
+        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
+    }
+    let changed = false;
+    const set = (i: number, next: string) => {
+        if (next !== lines[i]) { lines[i] = next; masked[i] = csharpHelperMaskLine (next); changed = true; }
+    };
+    for (let n = 0; n < signatures.length; n++) {
+        const start = signatures[n];
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
+        const params = csharpHelperSignatureParams (masked, start);
+        const declarations = () => {
+            const out = [];
+            for (let i = start; i < end; i++) {
+                const d = csharpHelperDeclarationOfLine (masked[i]);
+                if (d !== undefined) out.push ({ line: i, name: d.name, type: d.type, value: d.value });
+            }
+            return out;
+        };
+        const occurrences = (name: string) => {
+            const re = new RegExp ('(?<![\\w.])' + name + '(?![\\w])');
+            const at = [];
+            for (let i = start + 1; i < end; i++) if (re.test (masked[i])) at.push (i);
+            return at;
+        };
+        const written = (name: string, except: number[]) => {
+            const re = hx4C14WriteRe (name);
+            for (let i = start + 1; i < end; i++) if (!except.includes (i) && re.test (masked[i])) return true;
+            return false;
+        };
+        // (1) integer-literal for counters
+        for (let i = start + 1; i < end; i++) {
+            const loop = /^([ ]*)for \(object ([A-Za-z_]\w*) = (\d{1,9}); (.*); postFixIncrement\(ref \2\)\)[ ]*$/.exec (masked[i]);
+            if ((loop === null) || (masked[i + 1]?.trim () !== '{')) continue;
+            const name = loop[2];
+            const blockEnd = hx4C14BlockEnd (masked, i + 1, end);
+            if (!hx4C14CounterReadsNormalise (masked, i + 2, blockEnd - 1, loop[4], name)) continue;
+            set (i, lines[i].replace ('for (object ' + name + ' = ', 'for (Int64 ' + name + ' = ').replace ('postFixIncrement(ref ' + name + '))', name + '++)'));
+            for (let j = i + 2; j < blockEnd; j++) {
+                set (j, lines[j].replace (new RegExp ('(?<![\\w.])subtract\\(' + name + ', (\\d{1,9})\\)', 'g'), '(' + name + ' - $1)'));
+            }
+        }
+        // (2) prefixUnaryNeg(ref x)
+        for (let i = start + 1; i < end; i++) {
+            const site = /(?<![\w.])prefixUnaryNeg\(ref ([A-Za-z_]\w*)\)/.exec (masked[i]);
+            if (site === null) continue;
+            const name = site[1];
+            const decls = declarations ().filter ((d) => d.name === name);
+            if ((decls.length !== 1) || (decls[0].type !== 'object') || (decls[0].line >= i)) continue;
+            const decl = decls[0];
+            const uses = occurrences (name).filter ((k) => k !== decl.line && k !== i);
+            const tail = masked[i].slice (site.index + site[0].length);
+            const after = uses.some ((k) => k > i) || new RegExp ('(?<![\\w.])' + name + '(?![\\w])').test (tail);
+            if (written (name, [ decl.line, i ]) || after) continue;
+            const guarded = () => hx4C14Guarded (masked, start, i, site.index, name)
+                || new RegExp ('\\(!\\(' + name + ' == null\\)\\) \\? [^:]*$').test (masked[i].slice (0, site.index));
+            const param = params[decl.value];
+            // the helper negates the copy in place: no other read, or the read is the method's return
+            const final = (uses.length === 0) || /^[ ]*return\b/.test (masked[i]);
+            if ((param !== undefined) && /^[A-Za-z_]\w*$/.test (decl.value) && final) {
+                const nonNull = [ 'double', 'Int64', 'int', 'long' ].includes (param);
+                const nullable = [ 'double?', 'Int64?', 'long?' ].includes (param)
+                    && (hx4C14Guarded (masked, start, i, site.index, decl.value) || guarded ());
+                if ((nonNull || nullable) && !written (decl.value, [])) {
+                    set (i, lines[i].replace (site[0], '(-' + decl.value + ')'));
+                }
+                continue;
+            }
+            const safe = /^this\.safeInteger2?\((.*)\)$/.exec (decl.value);
+            if ((safe === null) || (hx4C05ClosingParen (decl.value, decl.value.indexOf ('(')) !== decl.value.length - 1)) continue;
+            const nullTest = new RegExp ('^(?:[^]*[^\\w.])?' + name + ' [!=]= null(?![\\w])');
+            const nullTestsOnly = uses.every ((k) => k < i && masked[k].replace (new RegExp ('(?<![\\w.])' + name + ' [!=]= null', 'g'), '').search (new RegExp ('(?<![\\w.])' + name + '(?![\\w])')) < 0 && nullTest.test (masked[k]));
+            const args = hx4C14TopLevelSplit (safe[1], ',');
+            const defaulted = (decl.value.startsWith ('this.safeInteger(') && (args.length === 3) && /^\d{1,9}$/.test (args[2].trim ()));
+            if (!nullTestsOnly || !(defaulted || guarded ())) continue;
+            set (decl.line, lines[decl.line].replace ('object ' + name + ' = ', 'Int64? ' + name + ' = '));
+            set (i, lines[i].replace (site[0], '(-' + name + ')'));
+        }
+        // (3) arithmetic on guarded nullable / this.sum / int x int operands
+        const decls = declarations ();
+        const bound = new Set<string> ();
+        for (let i = start + 1; i < end; i++) {
+            for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*[A-Za-z_][\w<>?,]*[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+)([A-Za-z_]\w*)/g)) bound.add (b[1]);
+            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) bound.add (b[1]);
+            for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
+                for (const x of b[1].split (',')) bound.add (x.trim ().split (/\s+/).pop ());
+            }
+        }
+        const region = { start, end, params, declarations: decls, lines: masked, bound };
+        for (let i = start + 1; i < end; i++) {
+            if (!/(?<![A-Za-z0-9_.])(subtract|multiply|divide)\(/.test (masked[i]) || /['@$\u0001]/.test (lines[i])) continue;
+            const typeOfName = (name: string) => bound.has (name) ? undefined : csharpHelperReceiverType (region, name, i, params)?.type;
+            const comment = masked[i].indexOf ('//');
+            const code = (comment < 0) ? lines[i] : lines[i].slice (0, comment);
+            // string literals become same-length opaque runs (columns stay valid), restored in order
+            const strings = [];
+            const opaque = code.replace (/"(?:[^"\\]|\\.)*"/g, (s) => { strings.push (s); return '\u0001' + '\u0002'.repeat (s.length - 2) + '\u0001'; });
+            let k = 0;
+            const rewritten = hx4C14Arithmetic (opaque, typeOfName, (name: string, col: number) => hx4C14Guarded (masked, start, i, col, name), 0)
+                .replace (/\u0001\u0002*\u0001/g, () => strings[k++]);
+            if (k !== strings.length) continue;
+            set (i, rewritten + ((comment < 0) ? '' : lines[i].slice (comment)));
+        }
+    }
+    // the retyped counters / negations feed C05's declared-operand twins once more
+    return changed ? hx4C05NativeArithmetic (lines.join ('\n')) : content;
+}
+
+export function hx4C14SelfTest (): string[] {
+    const problems: string[] = [];
+    const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object since, double amount, Int64? limit = null)\n    {\n' + body + '\n    }\n}\n';
+    const check = (name: string, body: string, expected: string, forbidden?: string) => {
+        const out = hx4C14NativeMath (wrap (body));
+        if (!out.includes (expected) || ((forbidden !== undefined) && out.includes (forbidden))) {
+            problems.push (`hx4 C14 native math: ${name}\n${out}`);
+        }
+    };
+    check ('literal for counter -> Int64 i++', '        for (object i = 0; isLessThan(i, getArrayLength(xs)); postFixIncrement(ref i))\n        {\n            object a = this.safeDict(xs, i);\n            if (!isEqual(i, 0))\n            {\n                object b = getValue(xs, subtract(i, 1));\n            }\n        }',
+        'for (Int64 i = 0; isLessThan(i, getArrayLength(xs)); i++)', 'postFixIncrement');
+    check ('counter body subtract(i, 1) -> (i - 1)', '        for (object i = 1; isLessThan(i, n); postFixIncrement(ref i))\n        {\n            object b = getValue(xs, subtract(i, 1));\n        }', 'getValue(xs, (i - 1))');
+    check ('counter read as a string key keeps object', '        for (object i = 0; isLessThan(i, n); postFixIncrement(ref i))\n        {\n            object b = ((string)i);\n        }', 'postFixIncrement(ref i)');
+    check ('counter subtract of a typed name keeps object', '        for (object i = 0; isLessThan(i, n); postFixIncrement(ref i))\n        {\n            object b = subtract(i, d);\n        }', 'postFixIncrement(ref i)');
+    check ('object-initialised counter keeps helper', '        object s = 0;\n        for (object i = s; isLessThan(i, n); postFixIncrement(ref i))\n        {\n            object b = getValue(xs, i);\n        }', 'postFixIncrement(ref i)');
+    check ('double param copy -> (-amount)', '        object amountVar = amount;\n        return this.g(prefixUnaryNeg(ref amountVar));', 'return this.g((-amount));');
+    check ('object param copy keeps helper', '        object s = since;\n        return this.g(prefixUnaryNeg(ref s));', 'prefixUnaryNeg(ref s)');
+    check ('copy read earlier in a loop keeps helper', '        object amountVar = amount;\n        while (true)\n        {\n            object y = amountVar;\n            object x = this.g(prefixUnaryNeg(ref amountVar));\n        }', 'prefixUnaryNeg(ref amountVar)');
+    check ('copy read after the site keeps helper', '        object amountVar = amount;\n        object x = this.g(prefixUnaryNeg(ref amountVar));\n        return amountVar;', 'prefixUnaryNeg(ref amountVar)');
+    check ('guarded Int64? param copy', '        object limitVar = limit;\n        if ((limitVar != null))\n        {\n            return this.g(prefixUnaryNeg(ref limitVar));\n        }\n        return null;', 'return this.g((-limit));');
+    check ('unguarded Int64? param copy keeps helper', '        object limitVar = limit;\n        return this.g(prefixUnaryNeg(ref limitVar));', 'prefixUnaryNeg(ref limitVar)');
+    check ('defaulted safeInteger local', '        object d = this.safeInteger(this.options, "k", 6);\n        string s = this.numberToString(prefixUnaryNeg(ref d));', 'string s = this.numberToString((-d));');
+    check ('defaulted safeInteger local retyped', '        object d = this.safeInteger(this.options, "k", 6);\n        string s = this.numberToString(prefixUnaryNeg(ref d));', 'Int64? d = this.safeInteger(');
+    check ('ternary-guarded safeInteger local', '        object sc = this.safeInteger(c, "scale");\n        double? p = (!(sc == null)) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble(prefixUnaryNeg(ref sc))) : null;', 'Convert.ToDouble((-sc))');
+    check ('unguarded safeInteger local keeps helper', '        object sc = this.safeInteger(c, "scale");\n        object p = this.g(prefixUnaryNeg(ref sc));', 'prefixUnaryNeg(ref sc)');
+    check ('guarded double? subtract', '        double? a = this.safeNumber(o, "a");\n        double? b = this.safeNumber(o, "b");\n        object p = null;\n        if (((a != null)) && ((b != null)))\n        {\n            p = subtract(a, b);\n        }', 'p = (a - b);');
+    check ('one-side guarded subtract keeps helper', '        double? a = this.safeNumber(o, "a");\n        double? b = this.safeNumber(o, "b");\n        object p = null;\n        if ((a != null))\n        {\n            p = subtract(a, b);\n        }', 'subtract(a, b)');
+    check ('|| guarded Int64 - Int64?', '        Int64? ts = this.safeInteger(o, "t");\n        Int64 now = this.milliseconds();\n        if (((ts == null)) || (isGreaterThan((subtract(now, ts)), 5)))\n        {\n        }', 'isGreaterThan(((now - ts)), 5)');
+    check ('lifted > guard proves non-null', '        Int64? p = parseInt(s);\n        if ((p > 0))\n        {\n            for (int i = 0; isLessThan(i, subtract(p, 1)); i++)\n            {\n            }\n        }', 'isLessThan(i, (p - 1))');
+    check ('guard write inside block keeps helper', '        Int64? p = parseInt(s);\n        if ((p != null))\n        {\n            p = null;\n            object q = subtract(p, 1);\n        }', 'subtract(p, 1)');
+    check ('Int64? - double keeps helper', '        Int64? a = parseInt(s);\n        double b = 1.5;\n        if ((a != null))\n        {\n            object q = subtract(a, b);\n        }', 'subtract(a, b)');
+    check ('int * int -> Int64 twin body', '        int a = 60;\n        int b = 300;\n        object d = multiply(a, b);', 'object d = ((Int64)a * b);');
+    check ('this.sum operand -> divide twin', '        int n = 3;\n        Int64? c = this.safeInteger(o, "c", 100);\n        Int64? k = this.parseToInt(divide(this.sum(n, (c - 1)), c));', 'this.parseToInt(((double?)this.sum(n, (c - 1)) / c))');
+    check ('double? multiply keeps helper', '        double? a = this.safeNumber(o, "a");\n        double? b = this.safeNumber(o, "b");\n        if ((a != null) && (b != null))\n        {\n            object c = multiply(a, b);\n        }', 'multiply(a, b)');
+    return problems;
+}
+
+// hx4 C15 — final-text tail after C13: ordered comparisons on typed expressions the name pass cannot
+// read (`(a - b)`, `this.milliseconds()`, `.Length`, `this.sum(a, b)`, `for (int i` counters, hand-written
+// fields), and mathMin/mathMax on a non-null-proven `Int64?` in box-neutral positions.
+function nativeC15HelperCalls (content: string): string {
+    if (!/(?<![\w.])(?:mathMin|mathMax|isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    const signatures = [];
+    for (let i = 0; i < masked.length; i++) {
+        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
+    }
+    let changed = false;
+    for (let n = 0; n < signatures.length; n++) {
+        const start = signatures[n];
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
+        const region = { start, end, params: csharpHelperSignatureParams (masked, start), declarations: [], lines: masked, bound: new Set<string> (), forInt: new Set<string> () };
+        for (let i = start; i < end; i++) {
+            const d = csharpHelperDeclarationOfLine (masked[i]);
+            if (d !== undefined) region.declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
+        }
+        for (let i = start + 1; i < end; i++) {
+            for (const b of masked[i].matchAll (/\bfor[ ]*\([ ]*int[ ]+([A-Za-z_]\w*)[ ]*=/g)) region.forInt.add (b[1]);
+            for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*([A-Za-z_][\w<>?,]*)[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+|\bcatch[ ]*\([ ]*[A-Za-z_][\w.]*[ ]+)([A-Za-z_]\w*)/g)) {
+                if (b[1] !== 'int') region.bound.add (b[2]);
+            }
+            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) region.bound.add (b[1]);
+            for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
+                for (const p of b[1].split (',')) region.bound.add (p.trim ().split (/\s+/).pop ());
+            }
+        }
+        for (let i = start + 1; i < end; i++) {
+            const next = c15Line (region, lines[i], masked[i], i);
+            if (next !== undefined) {
+                lines[i] = next;
+                masked[i] = csharpHelperMaskLine (next);
+                changed = true;
+            }
+        }
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// a name's C# type at `line`: one declared type, a parameter, or a `for (int name = ...)` counter
+// nothing else binds; names written by ref/out keep the helper
+function c15NameType (region, name: string, line: number): string | undefined {
+    if (!/^[A-Za-z_]\w*$/.test (name) || region.bound.has (name)) return undefined;
+    const sink = new RegExp ('\\b(?:ref|out)[ ]+' + name + '\\b');
+    for (let k = region.start + 1; k < region.end; k++) {
+        if (sink.test (region.lines[k])) return undefined;
+    }
+    const declared = csharpHelperReceiverType (region, name, line, region.params);
+    if (declared !== undefined) return declared.type.replace (/^long(\??)$/, 'Int64$1');
+    const other = region.declarations.some ((d) => d.name === name) || (region.params[name] !== undefined);
+    return (!other && region.forInt.has (name)) ? 'int' : undefined;
+}
+
+// an operand: { kind: 'name', type } for a typed value (nullable only for a plain name), or a literal kind
+function c15Operand (region, text: string, line: number) {
+    const bare = hx4C05StripParens (text);
+    if (/^-?\d{1,15}$/.test (bare)) return { kind: 'integer-literal' };
+    if (/^-?\d+\.\d+$/.test (bare)) return { kind: 'double-literal' };
+    // hand-written fields (cs/ccxt/base/Exchange.Options.cs)
+    const fields = { 'this.rateLimit': 'double', 'this.minFundingAddressLength': 'int', 'this.fetchHistoryCacheSize': 'int' };
+    if (Object.prototype.hasOwnProperty.call (fields, bare)) return { kind: 'name', type: fields[bare] };
+    // `this.sum(a, b)` on two non-null integers binds `Int64 sum(Int64 a, Int64 b)`
+    if (bare.startsWith ('this.sum(') && (hx4C05ClosingParen (bare, 8) === bare.length - 1)) {
+        const comma = csharpHelperTopLevelComma (bare, 8, bare.length - 1);
+        if ((comma === undefined) || (csharpHelperTopLevelComma (bare, comma, bare.length - 1) !== undefined)) return undefined;
+        const ok = (x: string) => {
+            const o = c15Operand (region, x, line);
+            return (o !== undefined) && ((o.kind === 'integer-literal') || [ 'int', 'Int64' ].includes (o.type));
+        };
+        return (ok (bare.slice (9, comma)) && ok (bare.slice (comma + 1, bare.length - 1))) ? { kind: 'name', type: 'Int64' } : undefined;
+    }
+    const typed = hx4C05OperandType (text, (name: string) => c15NameType (region, name, line), new Map ());
+    if ((typed === undefined) || (typed.literal)) return undefined;
+    // a nullable side is repeated by the guard: plain names only
+    if (typed.type.endsWith ('?') && !/^[A-Za-z_]\w*$/.test (bare)) return undefined;
+    return { kind: 'name', type: typed.type };
+}
+
+function c15Line (region, original: string, masked: string, line: number): string | undefined {
+    if (/['@$]/.test (original)) return undefined;
+    const c15Atom = (x: string) => ((/^[A-Za-z_][\w.]*$/.test (x) || /^-?[\d.]+$/.test (x) || (hx4C05StripParens (x) !== x.trim ())) ? x : '(' + x + ')');
+    const edits = [];
+    const call = /(?<![\w.])(mathMin|mathMax|isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\(/g;
+    let m;
+    while ((m = call.exec (masked)) !== null) {
+        const open = m.index + m[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        const comma = csharpHelperTopLevelComma (masked, open, close);
+        if ((comma === undefined) || (csharpHelperTopLevelComma (masked, comma, close) !== undefined)) continue;
+        const a = original.substring (open + 1, comma).trim ();
+        const b = original.substring (comma + 1, close).trim ();
+        let text: string | undefined;
+        if ((m[1] === 'mathMin') || (m[1] === 'mathMax')) {
+            text = c15MinMax (region, masked, line, m.index, close, m[1] === 'mathMin' ? 'Min' : 'Max', a, b);
+        } else {
+            const l = c15Operand (region, a, line);
+            const r = c15Operand (region, b, line);
+            if ((l === undefined) || (r === undefined) || ((l.kind !== 'name') && (r.kind !== 'name'))) continue;
+            // isEqual's double branch rounds integral doubles: OrEqual on a double side keeps the helper
+            const dbl = (o) => (o.kind === 'double-literal') || ((o.kind === 'name') && o.type.startsWith ('double'));
+            if (m[1].endsWith ('OrEqual') && (dbl (l) || dbl (r))) continue;
+            const L = c15Atom (a);
+            const R = c15Atom (b);
+            text = csharpNativeOperatorText (m[1], l, r, L, R, false) ?? csharpNullableIntegerComparisonText (m[1], l, r, L, R);
+        }
+        if (text !== undefined) edits.push ({ start: m.index, end: close + 1, text });
+    }
+    if (edits.length === 0) return undefined;
+    let out = original;
+    for (const e of edits.sort ((x, y) => y.start - x.start)) {
+        if (edits.some ((o) => (o !== e) && (o.start <= e.start) && (e.end <= o.end))) continue;
+        out = out.substring (0, e.start) + e.text + out.substring (e.end);
+    }
+    return (out === original) ? undefined : out;
+}
+
+// mathMin/mathMax(X, M), X an `Int64?` name (or `(X ± n)`) proven non-null, M an int/Int64 name or int
+// literal -> `Math.Min(X.Value, M)`: the same value; the helper hands back the winner's own box (Int32
+// or Int64), so the call must be a whole request-field value or initialize a box-neutral `object` local
+function c15MinMax (region, masked: string, line: number, start: number, close: number, name: string, a: string, b: string): string | undefined {
+    const nullableOperand = (x: string) => {
+        const t = hx4C05StripParens (x);
+        const plain = /^([A-Za-z_]\w*)$/.exec (t);
+        const shifted = /^([A-Za-z_]\w*)[ ]*([+-])[ ]*(\d{1,9})$/.exec (t);
+        const id = (plain ?? shifted)?.[1];
+        if ((id === undefined) || (c15NameType (region, id, line) !== 'Int64?')) return undefined;
+        return { id, value: plain ? `${id}.Value` : `(${id}.Value ${shifted[2]} ${shifted[3]})` };
+    };
+    const plainOperand = (x: string) => /^\d{1,9}$/.test (x) || [ 'int', 'Int64' ].includes (c15NameType (region, x, line) ?? '');
+    let nullable = nullableOperand (a);
+    let native: string | undefined;
+    if ((nullable !== undefined) && plainOperand (b)) {
+        native = `Math.${name}(${nullable.value}, ${b})`;
+    } else {
+        nullable = nullableOperand (b);
+        if ((nullable === undefined) || !plainOperand (a)) return undefined;
+        native = `Math.${name}(${a}, ${nullable.value})`;
+    }
+    const id = nullable.id;
+    const callText = masked.substring (start, close + 1);
+    // the value expression: the whole call, or an arm of a same-line ternary on `id`'s null test
+    const arm = '(?:null|-?\\d{1,9}|[A-Za-z_]\\w*)';
+    const esc = callText.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const shapes = [
+        new RegExp ('^' + esc + '$'),
+        new RegExp ('^\\(\\(' + id + ' == null\\)\\)[ ]*\\?[ ]*' + arm + '[ ]*:[ ]*' + esc + '$'),
+        new RegExp ('^\\(!\\(' + id + ' == null\\)\\)[ ]*\\?[ ]*' + esc + '[ ]*:[ ]*' + arm + '$'),
+    ];
+    const field = /^[ ]*[A-Za-z_]\w*\["[^"]*"\][ ]*=[ ]*(.*?);[ ]*(?:\/\/.*)?$/.exec (masked) ?? /^[ ]*\{[ ]*"[^"]*",[ ]*(.*?)[ ]*\},?[ ]*$/.exec (masked);
+    const local = /^[ ]*object[ ]+([A-Za-z_]\w*)[ ]*=[ ]*(.*?);[ ]*$/.exec (masked);
+    const value = (field ?? local)?.[field ? 1 : 2]?.trim ();
+    const shape = (value === undefined) ? -1 : shapes.findIndex ((s) => s.test (value));
+    if (shape < 0) return undefined;
+    // the whole-call shape needs a dominating `if ((id != null))` block opened right above
+    if (shape === 0) {
+        const prev = (region.lines[line - 2] ?? '').trim ();
+        if (((region.lines[line - 1] ?? '').trim () !== '{') || ((prev !== `if ((${id} != null))`) && (prev !== `if (${id} != null)`))) return undefined;
+    }
+    if (field) return native;
+    return c15BoxNeutralLocal (region, local[1], line) ? native : undefined;
+}
+
+// `object v = ...` declared once, never written again, every read a direct argument of a helper that
+// normalizes Int32 to Int64 first, or a whole request-field value
+function c15BoxNeutralLocal (region, v: string, line: number): boolean {
+    if ((region.declarations.filter ((d) => d.name === v).length !== 1) || (region.params[v] !== undefined) || region.bound.has (v)) return false;
+    const write = new RegExp ('(?<![\\w.])' + v + '[ ]*(?:=[^=>]|\\+=|-=|\\?\\?=|\\+\\+|--)|\\b(?:ref|out)[ ]+' + v + '\\b');
+    const fieldValue = new RegExp ('^[ ]*[A-Za-z_]\\w*\\["[^"]*"\\][ ]*=[ ]*' + v + ';[ ]*$');
+    const normalizing = [ 'add', 'subtract', 'multiply', 'divide', 'isEqual', 'isLessThan', 'isGreaterThan', 'isLessThanOrEqual', 'isGreaterThanOrEqual' ];
+    let reads = 0;
+    for (let k = line + 1; k < region.end; k++) {
+        const text = region.lines[k];
+        if (write.test (text)) return false;
+        if (fieldValue.test (text)) { reads++; continue; }
+        for (const r of text.matchAll (new RegExp ('(?<![\\w.])' + v + '\\b', 'g'))) {
+            reads++;
+            let depth = 0;
+            let p = r.index - 1;
+            for (; p >= 0; p--) {
+                if (text[p] === ')') depth++;
+                if (text[p] === '(') { if (depth === 0) break; depth--; }
+            }
+            const callee = (p < 0) ? null : /(?<![\w.])([A-Za-z_]\w*)$/.exec (text.substring (0, p));
+            if ((callee === null) || !normalizing.includes (callee[1])) return false;
+            const prefix = text.substring (p + 1, r.index).trim ();
+            if ((prefix !== '') && !prefix.endsWith (',')) return false;
+            if (!/^[ ]*[,)]/.test (text.substring (r.index + v.length))) return false;
+        }
+    }
+    return reads > 0;
+}
+
+// hx4 C16 — inOp on a declared string->object dictionary whose key is a pure non-identifier expression
+// (`getValue(v, "id")`, a guarded element read): InOp's IDictionary<string, object> branch answers
+// ContainsKey for a string key and false otherwise, so `K is string k` reads K once, as the call did.
+// getIndexOf(s, xs[i]) on a declared string: the helper's `(string)` needle cast, Ordinal like C04.
+export function hx4C16NativeHelperCalls (content: string): string {
+    if (!/(?<![\w.])(?:inOp|getIndexOf)\(/.test (content)) {
+        return content;
+    }
+    const objectDicts = [ 'Dictionary<string,object>', 'IDictionary<string,object>', 'ConcurrentDictionary<string,object>' ];
+    // hand-written base fields declared as a string->object dictionary (cs/ccxt/base/Exchange.Options.cs, ws/Client.cs)
+    const fields = { 'this.features': 'Dictionary<string, object>', 'this.markets_by_id': 'IDictionary<string, object>',
+        'this.orderbooks': 'IDictionary<string, object>', 'this.markets': 'IDictionary<string, object>',
+        'this.currencies_by_id': 'IDictionary<string, object>', 'this.has': 'Dictionary<string, object>',
+        'this.timeframes': 'Dictionary<string, object>' };
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    const signatures = [];
+    for (let i = 0; i < masked.length; i++) {
+        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
+    }
+    let keys = Math.max (-1, ...Array.from (content.matchAll (/\binOpKey(\d+)\b/g), (m) => Number (m[1]))) + 1;
+    let changed = false;
+    for (let n = 0; n < signatures.length; n++) {
+        const start = signatures[n];
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
+        const region = { start, end, params: csharpHelperSignatureParams (masked, start), declarations: [], lines: masked };
+        for (let i = start; i < end; i++) {
+            const d = csharpHelperDeclarationOfLine (masked[i]);
+            if (d !== undefined) region.declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
+        }
+        for (let i = start + 1; i < end; i++) {
+            if (!/(?<![\w.])(?:inOp|getIndexOf)\(/.test (masked[i])) continue;
+            const receiverOf = (name: string) => {
+                if (Object.prototype.hasOwnProperty.call (fields, name)) return fields[name];
+                if (/^[A-Za-z_]\w*$/.test (name)) return csharpHelperReceiverType (region, name, i, region.params)?.type;
+                return csharpInOpReceiverType (region, name, i)?.type;
+            };
+            const next = hx4C16Line (lines[i], masked[i], receiverOf, objectDicts, () => `inOpKey${keys++}`);
+            if (next !== undefined) {
+                lines[i] = next;
+                masked[i] = csharpHelperMaskLine (next);
+                changed = true;
+            }
+        }
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// a key expression with no call but getValue / ContainsKey / Count and no write: evaluating it after
+// the receiver's null test is unobservable
+function hx4C16PureKey (mask: string): boolean {
+    if (/(?<![=!<>])=(?!=)|\+\+|--|\bawait\b|\bnew\b/.test (mask)) return false;
+    for (const m of mask.matchAll (/([A-Za-z_][\w.]*)[ ]*\(/g)) {
+        if (!/(?:^|\.)(?:getValue|ContainsKey)$/.test (m[1])) return false;
+    }
+    return true;
+}
+
+function hx4C16Line (original: string, masked: string, receiverOf, objectDicts: string[], keyName): string | undefined {
+    const edits = [];
+    const call = /(?<![\w.])(inOp|getIndexOf)\(/g;
+    let m;
+    while ((m = call.exec (masked)) !== null) {
+        const open = m.index + m[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        if (edits.some ((e) => (m.index < e.end) && (close >= e.start))) continue;
+        const comma = csharpHelperTopLevelComma (masked, open, close);
+        if ((comma === undefined) || (csharpHelperTopLevelComma (masked, comma, close) !== undefined)) continue;
+        const name = masked.substring (open + 1, comma).trim ();
+        const keyMask = masked.substring (comma + 1, close).trim ();
+        const keyText = original.substring (comma + 1, close).trim ();
+        if (!/^(?:this\.)?[A-Za-z_]\w*(?:\.(?:subscriptions))?$/.test (name)) continue;
+        const type = receiverOf (name);
+        if (type === undefined) continue;
+        if (m[1] === 'getIndexOf') {
+            // only the `xs[i]` needle shape is new here (literal / string needles are C04's)
+            if (!/^[A-Za-z_]\w*\[[A-Za-z_]\w*\]$/.test (keyMask) || ((type !== 'string') && (type !== 'string?'))) continue;
+            const scan = `IndexOf((string)${keyText}, StringComparison.Ordinal)`;
+            edits.push ({ start: m.index, end: close + 1, text: (type === 'string') ? `${name}.${scan}` : `(${name}?.${scan} ?? -1)` });
+            continue;
+        }
+        if (!objectDicts.includes (type.replace (/\s+/g, ''))) continue;
+        // literal and identifier keys belong to the declared-helper pass
+        if (/^[A-Za-z_]\w*$/.test (keyMask) || /^"[^"]*"$/.test (keyMask) || !hx4C16PureKey (keyMask)) continue;
+        const bound = keyName ();
+        edits.push ({ start: m.index, end: close + 1, text: `(${name} != null && ${keyText} is string ${bound} && ${name}.ContainsKey(${bound}))` });
+    }
+    if (edits.length === 0) return undefined;
+    let out = original;
+    for (const e of edits.sort ((x, y) => y.start - x.start)) {
+        out = out.substring (0, e.start) + e.text + out.substring (e.end);
+    }
+    return out;
+}
+
+function hx4C16SelfTest (): string[] {
+    const problems: string[] = [];
+    const wrap = (sig: string, body: string) => [ 'namespace ccxt;', 'public partial class test : Exchange', '{',
+        `    public virtual object ${sig}`, '    {', ...body.split ('\n').map ((l) => '        ' + l), '    }', '}' ].join ('\n');
+    const check = (name: string, sig: string, body: string, expected: string) => {
+        const out = hx4C16NativeHelperCalls (wrap (sig, body));
+        if (!out.includes (expected)) problems.push (`hx4 C16: ${name}\n${out}`);
+    };
+    check ('declared dict + getValue key', 'f(object v)', 'IDictionary<string, object> d = this.safeDict(v, "a", new Dictionary<string, object>() {});\nif (inOp(d, getValue(v, "id"))) { }',
+        '(d != null && getValue(v, "id") is string inOpKey0 && d.ContainsKey(inOpKey0))');
+    check ('base field + guarded read key', 'f(Dictionary<string, object> m)', 'if (inOp(this.orderbooks, (m.ContainsKey("s") ? m["s"] : null))) { }',
+        '(this.orderbooks != null && (m.ContainsKey("s") ? m["s"] : null) is string inOpKey0 && this.orderbooks.ContainsKey(inOpKey0))');
+    check ('string? haystack, element needle', 'f(string? topic, List<object> keys)', 'for (int i = 0; i < keys.Count; i++) { if (getIndexOf(topic, keys[i]) >= 0) { } }',
+        '(topic?.IndexOf((string)keys[i], StringComparison.Ordinal) ?? -1)');
+    // negatives: object receiver, call-bearing key, identifier key (other pass)
+    check ('object receiver keeps helper', 'f(object d, object v)', 'if (inOp(d, getValue(v, "id"))) { }', 'inOp(d, getValue(v, "id"))');
+    check ('side-effecting key keeps helper', 'f(IDictionary<string, object> d)', 'if (inOp(d, this.k())) { }', 'inOp(d, this.k())');
+    check ('identifier key left to the declared pass', 'f(IDictionary<string, object> d, object k)', 'if (inOp(d, k)) { }', 'inOp(d, k)');
+    check ('object haystack keeps helper', 'f(object topic, List<object> keys)', 'if (getIndexOf(topic, keys[0]) >= 0) { }', 'getIndexOf(topic, keys[0])');
+    return problems;
+}
+
+// hx4 C17 — `add(L, R)` whose left prints a C# string binds add(string, string|object), whose body is
+// `L + R` (`b?.ToString()` is what string concatenation does); `isEqual` on proven string/int/bool?
+// pairs and `isTrue` on proven bool/bool? operands, operand types read from the final emitted text.
+export function hx4C17NativeHelperCalls (content: string): string {
+    if (!/(?<![A-Za-z0-9_.])(add|isEqual|isTrue)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
+        return content;
+    }
+    const stringFields = [ 'id', 'version', 'userAgent', 'url', 'hostname', 'apiKey', 'secret', 'password', 'uid',
+        'accountId', 'login', 'privateKey', 'walletAddress', 'twofa', 'rateLimiterAlgorithm' ];
+    const stringCalls = [ 'implodeParams', 'implodeHostname', 'urlencode', 'urlencodeNested', 'urlencodeWithArrayRepeat',
+        'rawencode', 'numberToString', 'iso8601', 'ymdhms', 'yyyymmdd', 'uuid', 'json', 'hmac', 'encode', 'decode',
+        'stringToBase64', 'binaryToBase64', 'decimalToPrecision', 'safeString', 'safeString2', 'safeStringN',
+        'safeStringLower', 'safeStringUpper', 'safeStringLower2', 'safeStringUpper2', 'amountToPrecision',
+        'priceToPrecision', 'costToPrecision', 'currencyToPrecision', 'feeToPrecision' ];
+    const boolCalls = [ 'inArray', 'isEmpty' ];
+    const nullableBoolCalls = [ 'safeBool', 'safeBool2', 'safeBoolN' ];
+    const preciseString = [ 'stringAdd', 'stringSub', 'stringMul', 'stringDiv', 'stringMod', 'stringNeg', 'stringAbs', 'stringMin', 'stringMax' ];
+    const preciseBool = [ 'stringGt', 'stringGe', 'stringLt', 'stringLe', 'stringEq' ];
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    // the return types every in-file declaration of a method gives it
+    const ownReturns: { [name: string]: string[] } = {};
+    for (const l of masked) {
+        const m = /^[ ]{4}(?:(?:public|private|protected|internal|static|virtual|override|async|new)[ ]+)+([\w<>,.?\[\]]+)[ ]+([A-Za-z_]\w*)[ ]*\(/.exec (l);
+        if (m !== null) (ownReturns[m[2]] = ownReturns[m[2]] ?? []).push (m[1]);
+    }
+    const ownMember = (name: string) => new RegExp ('^[ ]+(?:(?:public|private|protected|internal|static|virtual|override|new)[ ]+)+[\\w<>,.?\\[\\]]+[ ]+' + name + '[ ]*(?:\\{|;|=)', 'm').test (content);
+    const returnsOf = (name: string, table: string[], kinds: string[]) => {
+        const own = ownReturns[name];
+        if (own !== undefined) return own.every ((t) => kinds.includes (t));
+        return table.includes (name);
+    };
+    const signatures = [];
+    for (let i = 0; i < masked.length; i++) {
+        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
+    }
+    const regions = signatures.map ((start, n) => {
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
+        const declarations = [];
+        for (let i = start; i < end; i++) {
+            const d = csharpHelperDeclarationOfLine (masked[i]);
+            if (d !== undefined) declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
+        }
+        // names bound by any other syntax (for/foreach/out/lambda/pattern/catch) are not proven
+        const bound = new Set<string> ();
+        for (let i = start + 1; i < end; i++) {
+            for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*[A-Za-z_][\w<>?,]*[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+|\bcatch[ ]*\([ ]*[A-Za-z_][\w.]*[ ]+)([A-Za-z_]\w*)/g)) bound.add (b[1]);
+            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) bound.add (b[1]);
+            for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
+                for (const n of b[1].split (',')) bound.add (n.trim ().split (/\s+/).pop ());
+            }
+        }
+        // `for (int i = ...` headers: one type for every header of the name and no other binding
+        const forTypes = new Map<string, Set<string>> ();
+        for (let i = start + 1; i < end; i++) {
+            for (const f of masked[i].matchAll (/\bfor[ ]*\([ ]*(int|Int64)[ ]+([A-Za-z_]\w*)[ ]*=/g)) {
+                if (!forTypes.has (f[2])) forTypes.set (f[2], new Set ());
+                forTypes.get (f[2]).add (f[1]);
+            }
+        }
+        const counters = new Map<string, string> ();
+        for (const [ name, types ] of forTypes) {
+            const others = new RegExp ('(?:\\bforeach[ ]*\\([ ]*[A-Za-z_][\\w<>?,]*[ ]+|\\bout[ ]+[A-Za-z_][\\w<>?]*[ ]+|\\bis[ ]+[A-Za-z_][\\w<>?]*[ ]+|\\bcatch[ ]*\\([ ]*[A-Za-z_][\\w.]*[ ]+)' + name + '\\b|\\b' + name + '[ ]*=>|\\([^()]*\\b' + name + '\\b[^()]*\\)[ ]*=>');
+            const clash = declarations.some ((d) => d.name === name) || (csharpHelperSignatureParams (masked, start)[name] !== undefined)
+                || masked.slice (start + 1, end).some ((l) => others.test (l));
+            if ((types.size === 1) && !clash) counters.set (name, [ ...types ][0]);
+        }
+        for (const name of counters.keys ()) bound.delete (name);
+        return { start, end, params: csharpHelperSignatureParams (masked, start), declarations, lines: masked, bound, counters };
+    });
+    // the outermost parenthesis pair wraps the whole text
+    const wrapped = (m: string) => m.startsWith ('(') && (csharpHelperCallEnd (m, 0) === m.length - 1);
+    // top-level `+` operands of a text with no other top-level operator, else undefined
+    const plusOperands = (m: string, o: string): string[] | undefined => {
+        const parts = [];
+        let depth = 0;
+        let last = 0;
+        for (let k = 0; k < m.length; k++) {
+            const ch = m[k];
+            if ('([{'.includes (ch)) depth++;
+            else if (')]}'.includes (ch)) depth--;
+            else if ((depth === 0) && (ch === '"')) { const e = m.indexOf ('"', k + 1); if (e < 0) return undefined; k = e; }
+            else if ((depth === 0) && (m.substring (k, k + 3) === ' + ')) { parts.push (o.substring (last, k)); last = k + 3; k += 2; }
+            else if ((depth === 0) && /[?:=<>&|!*\/%^-]/.test (ch)) return undefined;
+        }
+        parts.push (o.substring (last));
+        return (parts.length > 1) ? parts : undefined;
+    };
+    // the printed C# type of an operand: 'string', 'int', 'bool', 'bool?' (undefined when unproven)
+    const typeOf = (region, line: number, text: string, depth = 0): string | undefined => {
+        const t = text.trim ();
+        const m = csharpHelperMaskLine (t);
+        if ((t.length === 0) || (depth > 8)) return undefined;
+        if (/^"(?:[^"\\]|\\.)*"$/.test (t)) return 'string';
+        if (/^-?[0-9]{1,9}$/.test (t)) return 'int';
+        if (/^(true|false)$/.test (t)) return 'bool';
+        if (/^[A-Za-z_]\w*$/.test (t)) {
+            if (region.bound.has (t)) return undefined;
+            if (region.counters.has (t)) return 'int';
+            const d = csharpHelperReceiverType (region, t, line, region.params);
+            if (d === undefined) return undefined;
+            const ty = d.type.replace (/^long$/, 'Int64');
+            if ((ty === 'string') || (ty === 'string?')) return 'string';
+            if ((ty === 'int') || (ty === 'Int64')) return 'int';
+            if ((ty === 'bool') || (ty === 'bool?')) return ty;
+            if ((ty === 'object') && (d.kind === 'local') && (nonNullStringLocal (region, t, depth) || nonNullStringAt (region, t, line, depth))) return 'objstring';
+            return undefined;
+        }
+        const field = /^this\.([A-Za-z_]\w*)$/.exec (t);
+        if (field !== null) return (stringFields.includes (field[1]) && !ownMember (field[1])) ? 'string' : undefined;
+        // `(string)<atom>`: a name, member chain or one call (the cast binds tighter than any operator)
+        if (/^\(string\)/.test (m)) {
+            const rest = m.substring (8);
+            const head = /^[A-Za-z_][\w.]*/.exec (rest);
+            if ((head !== null) && ((head[0].length === rest.length) || ((rest[head[0].length] === '(') && (csharpHelperCallEnd (rest, head[0].length) === rest.length - 1)))) return 'string';
+            if (wrapped (rest)) return 'string';
+        }
+        // an object-left concat this pass made native was an `object` in the text the overloads bound
+        if (objectConcats.has (t)) return 'objstring';
+        if (wrapped (m)) {
+            const inner = t.slice (1, -1);
+            const parts = plusOperands (m.slice (1, -1), inner);
+            if (parts !== undefined) {
+                const kinds = parts.map ((p) => typeOf (region, line, p, depth + 1));
+                if ((kinds[0] === 'string') || ((parts.length === 2) && (kinds[1] === 'string'))) return 'string';
+                return kinds.every ((k) => k === 'int') ? 'int' : undefined;
+            }
+            const minus = /^(.*[^ ]) - ([0-9]{1,9})$/.exec (inner);
+            if ((minus !== null) && !/[?:=<>&|!+*\/%^]/.test (csharpHelperMaskLine (minus[1]).replace (/\([^()]*\)/g, ''))) {
+                return (typeOf (region, line, minus[1], depth + 1) === 'int') ? 'int' : undefined;
+            }
+            return typeOf (region, line, inner, depth + 1);
+        }
+        const call = /^((?:this|Precise)\.)?([A-Za-z_]\w*)\(/.exec (m);
+        if ((call !== null) && (csharpHelperCallEnd (m, call[0].length - 1) === m.length - 1)) {
+            const name = call[2];
+            if (call[1] === 'this.') {
+                if (returnsOf (name, stringCalls, [ 'string', 'string?' ])) return 'string';
+                if (returnsOf (name, boolCalls, [ 'bool' ])) return 'bool';
+                if (returnsOf (name, nullableBoolCalls, [ 'bool?' ])) return 'bool?';
+                return undefined;
+            }
+            if (call[1] === 'Precise.') return preciseString.includes (name) ? 'string' : (preciseBool.includes (name) ? 'bool' : undefined);
+            if (name === 'getArrayLength') return 'int';
+            if (name === 'add') {
+                const close = m.length - 1;
+                const comma = csharpHelperTopLevelComma (m, call[0].length - 1, close);
+                return ((comma !== undefined) && (typeOf (region, line, t.substring (call[0].length, comma), depth + 1) === 'string')) ? 'string' : undefined;
+            }
+            return undefined;
+        }
+        if (/^[A-Za-z_][\w.]*\.ToString\(\)$/.test (m)) return 'string';
+        // a string-only member call (an NRE on a null receiver happens before the helper too)
+        for (const tail of m.matchAll (/\.(?:PadLeft|PadRight|Substring|ToLower|ToUpper|ToLowerInvariant|ToUpperInvariant|Trim|TrimStart|TrimEnd)\(/g)) {
+            if (csharpHelperCallEnd (m, tail.index + tail[0].length - 1) !== m.length - 1) continue;
+            const rm = m.substring (0, tail.index);
+            if (/^\([A-Za-z_]\w* as String\)$/.test (rm) || (typeOf (region, line, t.substring (0, tail.index), depth + 1) === 'string')) return 'string';
+        }
+        if (/^String\.Join\(/.test (m) && (csharpHelperCallEnd (m, 11) === m.length - 1)) return 'string';
+        return undefined;
+    };
+    // every write of an `object` local in the method stores a non-null string (or a self-concat)
+    const objectConcats = new Set<string> ();
+    const banned = new Set<string> ();
+    // an object-left concat now prints `string` where the helper printed `object`: keep it only where
+    // the static type picks nothing (assignment / return / string cast / concat or add operand)
+    const objectConcatContextsBad = (text: string): string | undefined => {
+        for (const e of objectConcats) {
+            let at = text.indexOf (e);
+            while (at >= 0) {
+                const before = csharpHelperMaskLine (text.substring (0, at)).trimEnd ();
+                const after = csharpHelperMaskLine (text.substring (at + e.length)).trimStart ();
+                // `var x =` would infer string where it inferred object
+                let ok = (/(?<![=!<>])=$/.test (before) && !/\bvar[ ]+[A-Za-z_]\w*[ ]*=$/.test (before)) || /\breturn$/.test (before) || /\(string\)$/.test (before) || /\+$/.test (before);
+                if (!ok && before.endsWith (',')) {
+                    // the right operand of a helper add
+                    let depth = 0;
+                    let k = before.length - 2;
+                    for (; k >= 0; k--) {
+                        if (before[k] === ')') depth++;
+                        else if (before[k] === '(') { if (depth === 0) break; depth--; }
+                    }
+                    ok = (k >= 3) && /(?<![\w.])add$/.test (before.substring (0, k)) && (csharpHelperTopLevelComma (before + ' ', k, before.length) === before.length - 1);
+                }
+                if (ok && (/\breturn$/.test (before) || /(?<![=!<>])=$/.test (before)) && !/^[;)]/.test (after)) ok = /^\+/.test (after);
+                // the left operand of a native concat (that concat proved its right a string)
+                if (!ok && before.endsWith ('(') && !/[\w.]\($/.test (before) && /^\+ /.test (after)) ok = true;
+                if (!ok) return e;
+                at = text.indexOf (e, at + 1);
+            }
+        }
+        return undefined;
+    };
+    const nonNullMemo = new Map<string, boolean> ();
+    const nonNullStringLocal = (region, name: string, depth: number): boolean => {
+        const key = region.start + ':' + name;
+        if (nonNullMemo.has (key)) return nonNullMemo.get (key);
+        nonNullMemo.set (key, false); // a cycle reads unproven
+        let ok = !region.bound.has (name) && (region.params[name] === undefined) && (depth < 6);
+        const write = new RegExp ('(?<![\\w.])' + name + '[ ]*(=(?![=>])|\\+=|-=|\\?\\?=|\\+\\+|--)|\\b(?:ref|out)[ ]+' + name + '\\b|(?<![\\w.])' + name + '[ ]*--|\\+\\+[ ]*' + name + '\\b');
+        for (let k = region.start + 1; ok && (k < region.end); k++) {
+            const l = region.lines[k];
+            if (!write.test (l)) continue;
+            const m = new RegExp ('^[ ]*(?:object[ ]+)?' + name + '[ ]*=[ ]*(.*);[ ]*$').exec (l);
+            if (m === null) { ok = false; break; }
+            const value = lines[k].substring (m.index + l.length - l.trimStart ().length).replace (/^[^=]*=[ ]*/, '').replace (/;[ ]*$/, '');
+            ok = nonNullString (region, k, value, name, depth + 1);
+        }
+        nonNullMemo.set (key, ok);
+        return ok;
+    };
+    // the block of `line` opened at or after `from` is still open at `to` (brace depth never closes it)
+    const openThrough = (region, from: number, to: number): boolean => {
+        let depth = 0;
+        for (let k = from + 1; k < to; k++) {
+            for (const ch of region.lines[k]) {
+                if (ch === '{') depth++;
+                if ((ch === '}') && (--depth < 0)) return false;
+            }
+        }
+        return true;
+    };
+    const writesName = (l: string, name: string) => new RegExp ('(?<![\\w.])' + name + '[ ]*(=(?![=>])|\\+=|-=|\\?\\?=|\\+\\+|--)|\\b(?:ref|out)[ ]+' + name + '\\b|\\+\\+[ ]*' + name + '\\b').test (l);
+    // `name != null` dominates `line`: an enclosing `if ((name != null))` block, or an earlier
+    // `if ((name == null)) { throw|return }` in an enclosing block; no write of `name` in between
+    // a loop back edge can carry a later write to the read: every later write stores a non-null string
+    const laterWritesNonNull = (region, name: string, line: number, depth: number): boolean => {
+        for (let k = line + 1; k < region.end; k++) {
+            if (!writesName (region.lines[k], name)) continue;
+            const m = new RegExp ('^[ ]*' + name + '[ ]*=[ ]*(.*);[ ]*$').exec (region.lines[k]);
+            if (m === null) return false;
+            const value = lines[k].trim ().replace (/^[A-Za-z_]\w*[ ]*=[ ]*/, '').replace (/;[ ]*$/, '');
+            if (!nonNullString (region, k, value, name, depth + 1)) return false;
+        }
+        return true;
+    };
+    const nullGuarded = (region, name: string, line: number, depth = 0): boolean => {
+        if ((depth > 6) || !laterWritesNonNull (region, name, line, depth)) return false;
+        for (let k = line - 1; k > region.start; k--) {
+            const l = region.lines[k].trim ();
+            if (writesName (region.lines[k], name)) return false;
+            if (((l === `if ((${name} != null))`) || (l === `if (${name} != null)`)) && ((region.lines[k + 1] ?? '').trim () === '{') && openThrough (region, k + 1, line)) return true;
+            if (((l === `if ((${name} == null))`) || (l === `if (${name} == null)`)) && ((region.lines[k + 1] ?? '').trim () === '{')
+                    && /^(throw|return)\b/.test ((region.lines[k + 2] ?? '').trim ()) && ((region.lines[k + 3] ?? '').trim () === '}') && openThrough (region, k + 3, line)) return true;
+        }
+        return false;
+    };
+    // the write of an `object` local that reaches `line`: a plain statement in a block still open at
+    // `line` with no write of the name between, whose value is a non-null string
+    const nonNullStringAt = (region, name: string, line: number, depth: number): boolean => {
+        if (region.bound.has (name) || (region.params[name] !== undefined) || (depth > 6) || !laterWritesNonNull (region, name, line, depth)) return false;
+        for (let k = line - 1; k > region.start; k--) {
+            const l = region.lines[k];
+            if (!writesName (l, name) && !new RegExp ('^[ ]*object[ ]+' + name + '[ ]*=').test (l)) continue;
+            if (/=>/.test (l)) return false;
+            const m = new RegExp ('^[ ]*(?:object[ ]+)?' + name + '[ ]*=[ ]*(.*);[ ]*$').exec (l);
+            if ((m === null) || !openThrough (region, k, line)) return false;
+            const value = lines[k].trim ().replace (/^(?:object[ ]+)?[A-Za-z_]\w*[ ]*=[ ]*/, '').replace (/;[ ]*$/, '');
+            // a string-typed value (possibly null) behind a dominating null test
+            return nonNullString (region, k, value, '\u0000', depth + 1) || ((typeOf (region, k, value, depth + 1) === 'string') && nullGuarded (region, name, line));
+        }
+        return false;
+    };
+    const nonNullString = (region, line: number, text: string, self: string, depth: number): boolean => {
+        const t = text.trim ();
+        const m = csharpHelperMaskLine (t);
+        if (depth > 8) return false;
+        if (/^"(?:[^"\\]|\\.)*"$/.test (t)) return true;
+        if ((t === self) || objectConcats.has (t)) return true;
+        if (/^[A-Za-z_]\w*$/.test (t)) {
+            if (region.bound.has (t)) return false;
+            const d = csharpHelperReceiverType (region, t, line, region.params);
+            if (d === undefined) return false;
+            if ((d.type === 'string') || (d.type === 'string?')) return nullGuarded (region, t, line);
+            return (d.kind === 'local') && (d.type === 'object') && (nonNullStringLocal (region, t, depth + 1) || nonNullStringAt (region, t, line, depth + 1));
+        }
+        if (wrapped (m)) {
+            const parts = plusOperands (m.slice (1, -1), t.slice (1, -1));
+            // a C# string concatenation is never null
+            if ((parts !== undefined) && (parts.length === 2)) return [ 0, 1 ].some ((n) => typeOf (region, line, parts[n], depth + 1) === 'string');
+            return nonNullString (region, line, t.slice (1, -1), self, depth + 1);
+        }
+        const call = /^((?:this\.)?[A-Za-z_]\w*)\(/.exec (m);
+        if ((call === null) || (csharpHelperCallEnd (m, call[0].length - 1) !== m.length - 1)) return false;
+        const open = call[0].length - 1;
+        const comma = csharpHelperTopLevelComma (m, open, m.length - 1);
+        if (call[1] === 'add') return (comma !== undefined) && nonNullString (region, line, t.substring (open + 1, comma), self, depth + 1);
+        // NumberToString answers null only for a null number
+        if ((call[1] === 'this.numberToString') && (comma === undefined) && !ownMember ('numberToString') && (ownReturns['numberToString'] === undefined)) {
+            const arg = t.substring (open + 1, m.length - 1).trim ();
+            if (/^-?[0-9]+$/.test (arg)) return true;
+            if (!/^[A-Za-z_]\w*$/.test (arg) || region.bound.has (arg)) return false;
+            const d = csharpHelperReceiverType (region, arg, line, region.params);
+            if ((d !== undefined) && [ 'int', 'Int64', 'long', 'double' ].includes (d.type)) return true;
+            return (d !== undefined) && nullGuarded (region, arg, line);
+        }
+        if ([ 'this.uuid', 'this.uuid16', 'this.uuid22' ].includes (call[1]) && (ownReturns[call[1].slice (5)] === undefined)) return true;
+        // SafeString / SafeString2 answer `defaultValue as string` for a missing / null value
+        const arity = { 'this.safeString': 3, 'this.safeString2': 4 }[call[1]];
+        if (arity !== undefined) {
+            const args = [];
+            let from = open;
+            let at = comma;
+            while (at !== undefined) { args.push (t.substring (from + 1, at)); from = at; at = csharpHelperTopLevelComma (m, at, m.length - 1); }
+            args.push (t.substring (from + 1, m.length - 1));
+            return (args.length === arity) && /^"(?:[^"\\]|\\.)*"$/.test (args[arity - 1].trim ());
+        }
+        return false;
+    };
+    const atom = (t: string) => {
+        const s = t.trim ();
+        const m = csharpHelperMaskLine (s);
+        if (wrapped (m) || /^"(?:[^"\\]|\\.)*"$/.test (s) || /^[\w.]+$/.test (m)) return s;
+        const call = /^[\w.]+\(/.exec (m);
+        if ((call !== null) && (csharpHelperCallEnd (m, call[0].length - 1) === m.length - 1)) return s;
+        return '(' + s + ')';
+    };
+    const rewrite = (region, line: number, text: string): string | undefined => {
+        const m = csharpHelperMaskLine (text);
+        const calls = [ ...m.matchAll (/(?<![A-Za-z0-9_.])(add|isEqual|isTrue)\(/g) ].reverse ();
+        for (const c of calls) {
+            const open = c.index + c[0].length - 1;
+            const close = csharpHelperCallEnd (m, open);
+            if (close === undefined) continue;
+            const comma = csharpHelperTopLevelComma (m, open, close);
+            let out: string | undefined = undefined;
+            if (c[1] === 'isTrue') {
+                if (comma !== undefined) continue;
+                const arg = text.substring (open + 1, close);
+                const ty = typeOf (region, line, arg);
+                if (ty === 'bool') out = atom (arg);
+                else if (ty === 'bool?') out = `(${atom (arg)} == true)`;
+            } else {
+                if ((comma === undefined) || (csharpHelperTopLevelComma (m, comma, close) !== undefined)) continue;
+                const a = text.substring (open + 1, comma).trim ();
+                const b = text.substring (comma + 1, close).trim ();
+                const ta = typeOf (region, line, a);
+                if (c[1] === 'add') {
+                    // a non-null string box on the left: the helper's `(string)a + (string)b` for a string right
+                    if (ta === 'string') out = `(${atom (a)} + ${atom (b)})`;
+                    else if ((ta === 'objstring') && (typeOf (region, line, b) === 'string') && !banned.has (`(${atom (a)} + ${atom (b)})`)) {
+                        out = `(${atom (a)} + ${atom (b)})`;
+                        objectConcats.add (out);
+                    }
+                } else {
+                    const tb = typeOf (region, line, b);
+                    const lit = (x: string, kind: string) => (kind === 'bool') ? /^(true|false)$/.test (x) : (kind === 'string') ? /^"/.test (x) : /^-?[0-9]+$/.test (x);
+                    const literal = (x: string) => /^"(?:[^"\\]|\\.)*"$/.test (x) || /^-?[0-9]+$/.test (x) || /^(true|false)$/.test (x);
+                    if (literal (a) && literal (b)) continue;
+                    if (((ta === 'string') && (tb === 'string')) || ((ta === 'int') && (tb === 'int'))) out = `(${atom (a)} == ${atom (b)})`;
+                    else if ((ta === 'bool?' || ta === 'bool') && lit (b, 'bool')) out = `(${atom (a)} == ${b})`;
+                    else if ((tb === 'bool?' || tb === 'bool') && lit (a, 'bool')) out = `(${atom (b)} == ${a})`;
+                }
+            }
+            if (out === undefined) continue;
+            return text.substring (0, c.index) + out + text.substring (close + 1);
+        }
+        return undefined;
+    };
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        if (!/(?<![A-Za-z0-9_.])(add|isEqual|isTrue)\(/.test (masked[i]) || /['@$]/.test (masked[i]) || /^[ ]*(\/\/|\*|\/\*)/.test (masked[i])) continue;
+        const region = regions.filter ((r) => r.start < i && i < r.end)[0];
+        if (region === undefined) continue;
+        const comment = masked[i].indexOf ('//');
+        let code = (comment < 0) ? lines[i] : lines[i].slice (0, comment);
+        const fixpoint = (text: string) => {
+            let next = rewrite (region, i, text);
+            let guard = 0;
+            while ((next !== undefined) && (guard++ < 200)) {
+                text = next;
+                next = rewrite (region, i, text);
+            }
+            return text;
+        };
+        const original = code;
+        banned.clear ();
+        code = fixpoint (code);
+        for (let round = 0; round < 20; round++) {
+            const bad = objectConcatContextsBad (code);
+            if (bad === undefined) break;
+            banned.add (bad);
+            code = fixpoint (original);
+        }
+        if (objectConcatContextsBad (code) !== undefined) code = original;
+        const out = code + ((comment < 0) ? '' : lines[i].slice (comment));
+        if (out !== lines[i]) { lines[i] = out; changed = true; }
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// hx4 C17 snippet checks (part of `csharpTranspiler.ts --self-test`)
+export function hx4C17SelfTest (): string[] {
+    const problems: string[] = [];
+    const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object a, string b, string? c)\n    {\n'
+        + body.split ('\n').map ((l) => '        ' + l).join ('\n') + '\n    }\n}\n';
+    const check = (name: string, body: string, expected: string, forbidden?: string) => {
+        const out = hx4C17NativeHelperCalls (wrap (body));
+        if (!out.includes (expected) || ((forbidden !== undefined) && out.includes (forbidden)) || (hx4C17NativeHelperCalls (out) !== out)) {
+            problems.push (`hx4 C17 ${name}\n${out}`);
+        }
+    };
+    check ('string param left', 'object q = add(b, a);', 'object q = (b + a);');
+    check ('string? chain', 'object q = add(add(c, "-"), a);', '((c + "-") + a)');
+    check ('object param left keeps helper', 'object q = add(a, "x");', 'add(a, "x")');
+    check ('object literal-initialised local', 'object x = "/";\nx = add(x, b);', 'x = (x + b);');
+    check ('object local safeString without default keeps helper', 'object y = this.safeString(a, "k");\nobject z = add(y, b);', 'add(y, b)');
+    check ('object local safeString with literal default', 'object w = this.safeString(a, "k", "d");\nreturn add(add(w, ":"), b);', 'return ((w + ":") + b);');
+    check ('object-left concat in a ternary keeps helper', 'object w = "d";\nobject t = a == null ? add(w, c) : 5;', 'add(w, c)');
+    check ('object-left concat as an argument keeps helper', 'object w = "d";\nthis.f(add(w, c));', 'this.f(add(w, c))');
+    check ('object-left concat into var keeps helper', 'object w = "d";\nvar t = add(w, c);', 'var t = add(w, c);');
+    check ('object left with object right keeps helper', 'object w = "d";\nobject t = add(w, a);', 'add(w, a)');
+    check ('null-guarded numberToString write', 'object id = null;\nif ((a != null))\n{\n    id = this.numberToString(a);\n    if ((b != null))\n    {\n        id = add(id, ("-" + b));\n    }\n}', 'id = (id + ("-" + b));');
+    check ('loop write after the read keeps helper', 'object x = "a";\nwhile (true)\n{\n    object y = add(x, b);\n    x = null;\n}', 'add(x, b)');
+    check ('unguarded numberToString keeps helper', 'object id = this.numberToString(a);\nobject z = add(id, b);', 'add(id, b)');
+    check ('throw-guarded safeString local', 'object u = this.safeString(a, "x");\nif ((u == null))\n{\n    throw new Exception("x");\n}\nobject w = add(u, "/");', 'object w = (u + "/");');
+    check ('for counter equality', 'int n = 3;\nfor (int i = 0; i < n; i++)\n{\n    if (isEqual(i, ((n - 1)))) {}\n}', 'if ((i == ((n - 1)))) {}');
+    check ('lambda-bound counter keeps helper', 'int n = 3;\nFunc<object, object> g = (i) => isEqual(i, (n - 1));', 'isEqual(i, (n - 1))');
+    check ('object vs int literal keeps helper', 'if (isEqual(a, 0)) {}', 'isEqual(a, 0)');
+    check ('string call vs literal', 'if (isEqual(this.numberToString(a), "0")) {}', '(this.numberToString(a) == "0")');
+    check ('bool? safeBool vs literal', 'if (isEqual(this.safeBool(a, "k"), true)) {}', '(this.safeBool(a, "k") == true)');
+    check ('isTrue on bool? call', 'if (isTrue(this.safeBool(a, "k"))) {}', 'if ((this.safeBool(a, "k") == true)) {}');
+    check ('isTrue on object keeps helper', 'if (isTrue(a)) {}', 'isTrue(a)');
+    check ('own string member shadow keeps helper', 'object q = add(this.id, a);\n    }\n    public object id;\n    public void g()\n    {', 'add(this.id, a)');
+    const tests = hx4C17NativeHelperCalls ('namespace Tests;\npublic partial class t\n{\n    public void f(string b)\n    {\n        object q = add(b, 1);\n    }\n}\n');
+    if (!tests.includes ('add(b, 1)')) problems.push ('hx4 C17 tests namespace rewritten');
+    return problems;
+}
+
+// hx4 C18 — getValue reads the emitted text still leaves on a declared receiver: hand-written
+// base dictionary / list fields, `object` keys on declared dictionaries (GetValue's `(string)key`
+// cast kept), ws book receivers, int-expression list indexes and `string` char reads.
+export function hx4C18NativeGetValue (content: string): string {
+    if (!/\bgetValue\(/.test (content) || /^namespace Tests;/m.test (content)) {
+        return content;
+    }
+    // hand-written field types (cs/ccxt/base/Exchange.Options.cs); no venue redeclares them
+    const dictFields = [ 'features', 'userAgents', 'has', 'timeframes', 'precision', 'markets', 'markets_by_id',
+        'currencies_by_id', 'options', 'balance', 'tickers', 'fundingRates', 'bidsasks', 'trades', 'ohlcvs' ];
+    const listFields = [ 'symbols', 'codes', 'ids' ];
+    const dictTypes = [ 'Dictionary<string,object>', 'IDictionary<string,object>', 'ConcurrentDictionary<string,object>', 'ccxt.pro.IOrderBook' ];
+    const listTypes = [ 'List<object>', 'IList<object>', 'ccxt.pro.IBids', 'ccxt.pro.IAsks', 'ccxt.pro.IOrderBookSide' ];
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    const signatures = [];
+    for (let i = 0; i < masked.length; i++) {
+        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
+    }
+    let changed = false;
+    for (let n = 0; n < signatures.length; n++) {
+        const start = signatures[n];
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
+        const params = csharpHelperSignatureParams (masked, start);
+        const declarations = [];
+        for (let i = start; i < end; i++) {
+            const d = csharpHelperDeclarationOfLine (masked[i]);
+            if (d !== undefined) declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
+        }
+        const region = { start, end, params, declarations, lines: masked };
+        // every typed binding of `name` in the method (declarations, loop headers, lambdas, params) is `type`
+        const onlyBinding = (name: string, type: string) => {
+            const typed = new RegExp ('([A-Za-z_][\\w<>?.\\[\\]]*)[ ]+' + name + '\\b(?=[ ]*(?:=[^=]|;|\\)|,|in\\b))', 'g');
+            for (let k = start; k < end; k++) {
+                for (const m of masked[k].matchAll (typed)) {
+                    // a generic type with a space is captured from its last segment (`object>`)
+                    if ((m[1] !== type.split (' ').pop ()) && ![ 'return', 'throw', 'else', 'case', 'await', 'new', 'in', 'ref', 'out' ].includes (m[1])) return false;
+                }
+            }
+            return !new RegExp ('\\((?:[ ]*[A-Za-z_]\\w*[ ]*,)*[ ]*' + name + '[ ]*(?:,[ ]*[A-Za-z_]\\w*[ ]*)*\\)[ ]*=>').test (masked.slice (start, end).join ('\n'));
+        };
+        const declared = (name: string, line: number) => (/^[A-Za-z_]\w*$/.test (name) ? csharpHelperReceiverType (region, name, line, params) : undefined);
+        const intName = (name: string, line: number) => (params[name] === undefined) && onlyBinding (name, 'int')
+            && (declarations.some ((d) => (d.name === name) && (d.line < line)) || masked.some ((l, k) => (k > start) && (k <= line) && new RegExp ('\\bfor[ ]*\\([ ]*int[ ]+' + name + '[ ]*=').test (l)));
+        // a C# int index: a literal, or `+`/`-` over int-only names and literals (pure, read twice)
+        const intIndex = (text: string, line: number) => {
+            if (/^\d{1,9}$/.test (text) || (/^[A-Za-z_]\w*$/.test (text) && intName (text, line))) return true;
+            if (!/^[\w ()+-]+$/.test (text) || !/[+-]/.test (text) || !text.startsWith ('(')) return false;
+            const names = text.match (/[A-Za-z_]\w*/g) ?? [];
+            return (names.length > 0) && names.every ((x) => intName (x, line)) && !/\b\d{10,}\b/.test (text);
+        };
+        for (let i = start + 1; i < end; i++) {
+            if (!/\bgetValue\(/.test (masked[i])) continue;
+            const edits = [];
+            const calls = /(?<![A-Za-z_.])getValue\(/g;
+            let m;
+            while ((m = calls.exec (masked[i])) !== null) {
+                const open = m.index + m[0].length - 1;
+                const close = csharpHelperCallEnd (masked[i], open);
+                if (close === undefined) continue;
+                if (edits.some ((e) => (m.index < e.end) && (close >= e.start))) continue;
+                const comma = csharpHelperTopLevelComma (masked[i], open, close);
+                if ((comma === undefined) || (csharpHelperTopLevelComma (masked[i], comma, close) !== undefined)) continue;
+                const r = masked[i].substring (open + 1, comma).trim ();
+                const keyMask = masked[i].substring (comma + 1, close).trim ();
+                const k = lines[i].substring (comma + 1, close).trim ();
+                const field = /^this\.([A-Za-z_]\w*)$/.exec (r);
+                const local = (field === null) ? declared (r, i) : undefined;
+                const rType = (field !== null) ? (dictFields.includes (field[1]) ? 'dict' : (listFields.includes (field[1]) ? 'list' : undefined))
+                    : ((local === undefined) ? undefined : (dictTypes.includes (local.type.replace (/\s+/g, '')) ? 'dict'
+                        : (listTypes.includes (local.type) ? 'list' : ([ 'string', 'string?' ].includes (local.type) ? 'string' : undefined))));
+                if ((rType === undefined) || ((field === null) && !onlyBinding (r, local.type))) continue;
+                let text = undefined;
+                if (rType === 'dict') {
+                    const literal = /^"[ ]*"$/.test (keyMask);
+                    const key = literal ? undefined : declared (keyMask, i);
+                    if (literal) {
+                        text = `(${r} != null && ${r}.ContainsKey(${k}) ? ${r}[${k}] : null)`;
+                    } else if ((key !== undefined) && (key.type === 'string')) {
+                        text = `(${r} != null && ${k} != null && ${r}.ContainsKey(${k}) ? ${r}[${k}] : null)`;
+                    } else if ((key !== undefined) && ((key.type === 'object') || (key.type === 'string?')) && onlyBinding (keyMask, key.type)) {
+                        // GetValue's dictionary branch casts the key: a non-string key throws there too
+                        const sk = (key.type === 'object') ? `(string)${k}` : k;
+                        text = `(${r} != null && ${k} != null && ${r}.ContainsKey(${sk}) ? ${r}[${sk}] : null)`;
+                    }
+                } else if (rType === 'list') {
+                    // the IList<object> branch: at or past Count reads null, a negative index throws in both
+                    if (intIndex (keyMask, i)) text = `(${r} != null && ${k} < ${r}.Count ? ${r}[${k}] : null)`;
+                } else if (/^\d{1,9}$/.test (keyMask) || intName (keyMask, i)) {
+                    // the string branch: `str[i].ToString()` (out of range throws in both); only where the
+                    // read is compared, so the `string` result cannot rebind an overload
+                    const after = masked[i].substring (close + 1);
+                    const before = masked[i].substring (0, m.index);
+                    if (/^\)*[ ]+is[ ]+"/.test (after) || (/isEqual\($/.test (before) && /^[ ]*,/.test (after))) {
+                        text = `(${r} != null ? ${r}[${k}].ToString() : null)`;
+                    }
+                }
+                if (text !== undefined) edits.push ({ start: m.index, end: close + 1, text });
+            }
+            if (edits.length === 0) continue;
+            let out = lines[i];
+            for (const e of edits.sort ((a, b) => b.start - a.start)) out = out.substring (0, e.start) + e.text + out.substring (e.end);
+            lines[i] = out;
+            masked[i] = csharpHelperMaskLine (out);
+            changed = true;
+        }
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// hx4 C18 snippet checks (run from csharpHx4SelfTest)
+function hx4C18SelfTest (): string[] {
+    const problems: string[] = [];
+    const wrap = (body: string, ns = 'ccxt') => `namespace ${ns};\npublic partial class t : Exchange\n{\n    public virtual object f(object key, string s, IDictionary<string, object> d, ccxt.pro.IOrderBook ob)\n    {\n${body}\n    }\n}\n`;
+    const cases: [string, string, string][] = [
+        [ 'base dict field + literal', '        object a = getValue(this.userAgents, "chrome");', '(this.userAgents != null && this.userAgents.ContainsKey("chrome") ? this.userAgents["chrome"] : null)' ],
+        [ 'object key casts like the helper', '        object a = getValue(this.balance, key);', '(this.balance != null && key != null && this.balance.ContainsKey((string)key) ? this.balance[(string)key] : null)' ],
+        [ 'string key on a param dict', '        object a = getValue(d, s);', '(d != null && s != null && d.ContainsKey(s) ? d[s] : null)' ],
+        [ 'order book receiver', '        object a = getValue(ob, "nonce");', '(ob != null && ob.ContainsKey("nonce") ? ob["nonce"] : null)' ],
+        [ 'list field + int loop index', '        for (int i = 0; i < 3; i++)\n        {\n            object a = getValue(this.symbols, i);\n        }', '(this.symbols != null && i < this.symbols.Count ? this.symbols[i] : null)' ],
+        [ 'int expression index', '        List<object> xs = new List<object>() {};\n        int n = xs.Count;\n        object a = getValue(xs, (n - 1));', '(xs != null && (n - 1) < xs.Count ? xs[(n - 1)] : null)' ],
+        [ 'string char compared', '        string? c = null;\n        if ((getValue(c, 0) is "-")) { }', '((c != null ? c[0].ToString() : null) is "-")' ],
+    ];
+    const keeps: [string, string][] = [
+        [ 'object receiver', '        object o = null;\n        object a = getValue(o, "k");' ],
+        [ 'object index on a list', '        List<object> xs = new List<object>() {};\n        object i = 0;\n        object a = getValue(xs, i);' ],
+        [ 'string char not compared', '        string? c = null;\n        object a = getValue(c, 0);' ],
+        [ 'unknown field', '        object a = getValue(this.fees, "trading");' ],
+        [ 'Int64 expression index', '        List<object> xs = new List<object>() {};\n        Int64 n = 2;\n        object a = getValue(xs, (n - 1));' ],
+    ];
+    for (const [ name, body, expected ] of cases) {
+        const out = hx4C18NativeGetValue (wrap (body));
+        if (!out.includes (expected)) problems.push (`hx4 C18 ${name}: ${out.slice (-400)}`);
+    }
+    for (const [ name, body ] of keeps) {
+        const out = hx4C18NativeGetValue (wrap (body));
+        if (out !== wrap (body)) problems.push (`hx4 C18 keeps ${name}: ${out.slice (-400)}`);
+    }
+    const tests = wrap ('        object a = getValue(this.userAgents, "chrome");', 'Tests');
+    if (hx4C18NativeGetValue (tests) !== tests) problems.push ('hx4 C18 tests namespace changed');
+    return problems;
+}

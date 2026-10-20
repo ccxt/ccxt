@@ -1627,7 +1627,7 @@ export default class weex extends Exchange {
             if ((since === undefined) || (until === undefined)) {
                 const now = this.milliseconds ();
                 const duration = this.parseTimeframe (timeframe) * 1000;
-                let numberOfCandles: Int = maxHistoricalLimit;
+                let numberOfCandles = maxHistoricalLimit;
                 if (limitResolved !== undefined && limitResolved !== null && limitResolved !== 0) {
                     numberOfCandles = limitResolved;
                 }

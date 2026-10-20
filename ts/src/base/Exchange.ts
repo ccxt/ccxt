@@ -6786,7 +6786,7 @@ export class BaseExchange {
         const skipZeroPrices = this.safeBool (options, 'skipZeroPrices', true);
         for (let i = 0; i < oldest; i++) {
             const trade = trades[i];
-            const ts = trade['timestamp'];
+            const ts = this.safeInteger (trade, 'timestamp');
             const price = trade['price'];
             if ((ts === undefined) || (price === undefined)) {
                 continue;

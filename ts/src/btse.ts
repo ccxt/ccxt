@@ -972,10 +972,9 @@ export default class btse extends Exchange {
             period = '7D';
             if (since !== undefined) {
                 const age = this.milliseconds () - since;
-                const day = 86400000;
-                if (age > 14 * day) {
+                if (age > 1209600000) { // 14 days in ms
                     period = '1M';
-                } else if (age > 7 * day) {
+                } else if (age > 604800000) { // 7 days in ms
                     period = '2W';
                 }
             }

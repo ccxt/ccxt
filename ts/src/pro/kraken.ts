@@ -5,7 +5,7 @@ import krakenRest from '../kraken.js';
 import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ChecksumError, AuthenticationError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, List, Fee, Market } from '../base/types.js';
+import type { Int, int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, List, Fee, Market } from '../base/types.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
@@ -989,7 +989,7 @@ export default class kraken extends krakenRest {
             // the level count of this snapshot: a thin market's snapshot can
             // carry fewer levels than the subscription and must not cap the book
             const limit = this.safeInteger (subscription, 'limit', 10);
-            const asksLength = a.length;
+            const asksLength: int = a.length;
             const depth = (asksLength > limit) ? asksLength : limit;
             const depths = this.safeDict (this.options, 'wsOrderBookDepths', {}) as Dict;
             const storedDepth = this.safeInteger (depths, symbol);
@@ -1073,7 +1073,7 @@ export default class kraken extends krakenRest {
         const integer = this.safeString (parts, 0);
         const decimals = this.safeString (parts, 1, '');
         let joinedResult = integer + decimals;
-        let i = 0;
+        let i: int = 0;
         while (joinedResult[i] === '0') {
             i += 1;
         }

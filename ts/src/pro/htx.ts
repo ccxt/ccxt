@@ -746,7 +746,8 @@ export default class htx extends htxRest {
             orderbook.reset (snapshot);
             orderbook['nonce'] = version;
         }
-        if ((prevSeqNum !== undefined) && prevSeqNum > this.safeInteger (orderbook, 'nonce', 0)) {
+        const orderbookNonce = this.safeInteger (orderbook, 'nonce', 0);
+        if ((prevSeqNum !== undefined) && prevSeqNum > orderbookNonce) {
             const checksum: Bool = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum === true) {
                 throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));

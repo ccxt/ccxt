@@ -1200,7 +1200,8 @@ export default class pacifica extends Exchange {
         const oraclePx = this.safeNumber (info, 'oracle');
         const nextFundingRate = this.safeNumber (info, 'next_funding');
         const timestamp = this.safeInteger (info, 'timestamp');
-        const fundingTimestamp = (Math.floor (this.milliseconds () / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
+        const currentHour = this.parseToInt (this.milliseconds () / 60 / 60 / 1000);
+        const fundingTimestamp = (currentHour + 1) * 60 * 60 * 1000;
         return {
             'info': info,
             'symbol': symbol,

@@ -863,10 +863,12 @@ export default class bitso extends Exchange {
                 const duration = this.parseTimeframe (timeframe);
                 request['end'] = this.sum (since, duration * limit * 1000);
             }
-        } else if (limit !== undefined) {
-            const now = this.milliseconds ();
-            request['end'] = now;
-            request['start'] = now - this.parseTimeframe (timeframe) * 1000 * limit;
+        } else {
+            if (limit !== undefined) {
+                const now = this.milliseconds ();
+                request['end'] = now;
+                request['start'] = now - this.parseTimeframe (timeframe) * 1000 * limit;
+            }
         }
         const response = await this.publicGetOhlc (this.extend (request, params));
         //

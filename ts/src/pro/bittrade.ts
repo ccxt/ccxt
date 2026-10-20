@@ -446,7 +446,8 @@ export default class bittrade extends bittradeRest {
         if ((prevSeqNum === undefined) || (seqNum === undefined)) {
             return orderbook;
         }
-        if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        if ((nonce !== undefined) && (prevSeqNum <= nonce) && (seqNum > nonce)) {
             const asks = this.safeList (tick, 'asks', []);
             const bids = this.safeList (tick, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);

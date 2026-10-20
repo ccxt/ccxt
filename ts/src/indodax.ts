@@ -749,7 +749,11 @@ export default class indodax extends Exchange {
             request['from'] = Math.floor (since / 1000);
         } else {
             const duration = this.parseTimeframe (timeframe);
-            request['from'] = now - limitResolved * duration - 1;
+            if (limit === undefined) {
+                request['from'] = now - 1000 * duration - 1;
+            } else {
+                request['from'] = now - limit * duration - 1;
+            }
         }
         const response = await this.publicGetTradingviewHistoryV2 (this.extend (request, paramsOmitted));
         //

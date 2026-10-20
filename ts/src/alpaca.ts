@@ -801,8 +801,8 @@ export default class alpaca extends Exchange {
         let paginate = false;
         let query = undefined;
         [ paginate, query ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
-        let paginationCalls = 10;
-        [ paginationCalls, query ] = this.handleOptionIntegerAndParams (query, 'fetchOHLCV', 'paginationCalls', 10);
+        const [ paginationCalls, queryPagination ] = this.handleOptionIntegerAndParams (query, 'fetchOHLCV', 'paginationCalls', 10);
+        query = queryPagination;
         const request: Dict = {
             'symbols': marketId,
             'loc': loc,

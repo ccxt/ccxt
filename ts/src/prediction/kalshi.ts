@@ -250,7 +250,7 @@ export default class kalshi extends Exchange {
         let cursor: Str = undefined;
         // don't request a full 1000-market page (3+ MB) when the caller wants fewer
         const pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 1000);
-        const limit = Math.min (maxMarkets, pageLimit);
+        const limit = (maxMarkets < pageLimit) ? maxMarkets : pageLimit;
         // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
         // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
         // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override
@@ -1192,7 +1192,10 @@ export default class kalshi extends Exchange {
             }
         } else {
             const defaultLimit = this.safeInteger (this.options, 'defaultFetchOHLCVLimit', 200);
-            const candlesCount = (limit !== undefined) ? limit : defaultLimit;
+            let candlesCount: Int = defaultLimit;
+            if (limit !== undefined) {
+                candlesCount = limit;
+            }
             request['end_ts'] = now;
             request['start_ts'] = now - (candlesCount * tf);
         }

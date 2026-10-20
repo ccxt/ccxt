@@ -1388,7 +1388,7 @@ export default class bigone extends Exchange {
             'period': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limitResolved,
         };
-        if (sinceIsDefined) {
+        if (since !== undefined) {
             // const start = this.parseToInt (since / 1000);
             const duration = this.parseTimeframe (timeframe);
             const endByLimit = this.sum (since, limitResolved * duration * 1000);
@@ -1977,7 +1977,8 @@ export default class bigone extends Exchange {
     }
 
     override nonce (): number {
-        const exchangeTimeCorrection = this.safeInteger (this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
+        const exchangeMillisecondsCorrection = this.safeInteger (this.options, 'exchangeMillisecondsCorrection', 0);
+        const exchangeTimeCorrection = exchangeMillisecondsCorrection * 1000000;
         return this.sum (this.microseconds () * 1000, exchangeTimeCorrection);
     }
 

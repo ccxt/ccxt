@@ -1027,8 +1027,7 @@ export default class coinbaseinternational extends Exchange {
             request['time_from'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            const newLimit = Math.min (limit, 100);
-            request['result_limit'] = newLimit;
+            request['result_limit'] = Math.min (limit, 100);
         }
         const [ portfolios, paramsPortfolios ] = this.handleOptionStringAndParams (paramsMaxEntriesPerRequest, 'fetchDepositsWithdrawals', 'portfolios');
         if (portfolios !== undefined) {

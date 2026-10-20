@@ -950,17 +950,15 @@ export default class hollaex extends Exchange {
         if (paginateOption) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
         }
-        let until: Int = this.safeInteger (paramsPaginate, 'until');
-        const timeDelta = this.parseTimeframe (timeframe) * maxLimit * 1000;
-        let start: Int = since;
         const now = this.milliseconds ();
-        if (until === undefined) {
-            until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        const until = this.safeInteger (paramsPaginate, 'until', now);
+        const timeDelta = this.parseTimeframe (timeframe) * maxLimit * 1000;
+        if (since === undefined) {
+            request['from'] = this.parseToInt ((until - timeDelta) / 1000); // convert to seconds
+        } else {
+            request['from'] = this.parseToInt (since / 1000); // convert to seconds
         }
-        if (start === undefined) {
-            start = until - timeDelta;
-        }
-        request['from'] = this.parseToInt (start / 1000); // convert to seconds
         request['to'] = this.parseToInt (until / 1000); // convert to seconds
         const paramsOmitted: Dict = this.omit (paramsPaginate, 'until');
         const response = await this.publicGetChart (this.extend (request, paramsOmitted));

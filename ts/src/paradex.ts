@@ -863,7 +863,7 @@ export default class paradex extends Exchange {
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, params);
         const hasEnd = ('end_at' in request);
         const paramsOmitted: Dict = this.omit (paramsUntil, [ 'price' ]);
-        const limitResolved = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        const limitResolved: Int = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         if (since !== undefined) {
             requestUntil['start_at'] = since;
             if (!hasEnd) {

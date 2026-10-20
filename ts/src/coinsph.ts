@@ -688,16 +688,18 @@ export default class coinsph extends Exchange {
             const byNumberOfSymbols = this.safeList (config, 'byNumberOfSymbols', []);
             for (let i = 0; i < byNumberOfSymbols.length; i++) {
                 const entry = byNumberOfSymbols[i];
-                if (symbolsAmount >= entry[0]) {
+                const threshold = this.safeInteger (entry, 0);
+                if (threshold !== undefined && symbolsAmount >= threshold) {
                     return entry[1];
                 }
             }
         } else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = params['limit'];
+            const limit = this.safeInteger (params, 'limit');
             const byLimit = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit >= entry[0]) {
+                const threshold = this.safeInteger (entry, 0);
+                if (limit !== undefined && threshold !== undefined && limit >= threshold) {
                     return entry[1];
                 }
             }
@@ -1096,7 +1098,7 @@ export default class coinsph extends Exchange {
             'symbol': market['id'],
             'interval': interval,
         };
-        const limitResolved: Int = (limit === undefined) ? 1000 : limit;
+        const limitResolved = (limit === undefined) ? 1000 : limit;
         if (since !== undefined) {
             request['startTime'] = since;
             // since work properly only when it is "younger" than last "limit" candle

@@ -15498,17 +15498,11 @@ export default class binance extends Exchange {
         const request: Dict = {};
         const msInThirtyDays = 2592000000;
         const now = this.milliseconds ();
-        if (since !== undefined) {
-            request['startTime'] = since;
-        } else {
-            request['startTime'] = now - msInThirtyDays;
-        }
+        const startTime = (since !== undefined) ? since : (now - msInThirtyDays);
+        request['startTime'] = startTime;
         const endTime = this.safeInteger2 (params, 'endTime', 'until');
-        if (endTime !== undefined) {
-            request['endTime'] = endTime;
-        } else {
-            request['endTime'] = now;
-        }
+        const endTimeResolved = (endTime !== undefined) ? endTime : now;
+        request['endTime'] = endTimeResolved;
         const paramsOmitted: Dict = this.omit (params, 'until');
         let response: NullableDict = undefined;
         let responseQuery: Str = undefined;
@@ -15543,7 +15537,7 @@ export default class binance extends Exchange {
             //     }
             //
         } else {
-            if ((request['endTime'] - request['startTime']) > msInThirtyDays) {
+            if ((endTimeResolved - startTime) > msInThirtyDays) {
                 throw new BadRequest (this.id + ' fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.');
             }
             if (limit !== undefined) {

@@ -200,17 +200,20 @@ export default class binance extends Exchange {
      * @returns {object[]} raw market topic objects
      */
     async fetchRawTopics (maxTopics: Int, rest: Dict = {}): Promise<any[]> {
-        const maxTopicsResolved: Int = (maxTopics === undefined) ? this.safeInteger (this.options, 'maxFetchMarketsLimit', 200) : maxTopics;
-        let pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 100);
+        let maxTopicsResolved: int = this.safeInteger (this.options, 'maxFetchMarketsLimit', 200);
+        if (maxTopics !== undefined) {
+            maxTopicsResolved = maxTopics;
+        }
+        let pageLimit: int = this.safeInteger (this.options, 'marketsPageLimit', 100);
         if (pageLimit > 100) {
             pageLimit = 100;
         }
         const collected: any[] = [];
-        let offset = 0;
+        let offset: int = 0;
         while (true) {
-            let reqLimit = pageLimit;
+            let reqLimit: int = pageLimit;
             const collectedLength = collected.length;
-            const remaining = maxTopicsResolved - collectedLength;
+            const remaining: int = maxTopicsResolved - collectedLength;
             if (remaining < reqLimit) {
                 reqLimit = remaining;
             }
@@ -443,11 +446,12 @@ export default class binance extends Exchange {
         const seen: Dict = {};
         const collected: any[] = [];
         const queriesLength = queries.length;
-        let limitResolved: Int = limit;
-        if (limit === undefined) {
-            limitResolved = 20;
-        } else if (limit > 50) {
-            limitResolved = 50;
+        let limitResolved: int = 20;
+        if (limit !== undefined) {
+            limitResolved = limit;
+            if (limit > 50) {
+                limitResolved = 50;
+            }
         }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request: Dict = {
@@ -482,7 +486,7 @@ export default class binance extends Exchange {
         }
         let capped = collected;
         const collectedLength = collected.length;
-        if ((limitResolved !== undefined) && (collectedLength > limitResolved)) {
+        if (collectedLength > limitResolved) {
             capped = this.arraySlice (collected, 0, limitResolved);
         }
         return await this.completeRawTopics (capped);

@@ -984,7 +984,10 @@ export default class grvt extends Exchange {
         const request: Dict = {
             'instrument': this.marketId (symbol),
         };
-        const limitResolved: Int = (limit === undefined) ? 100 : limit;
+        let limitResolved: Int = 100;
+        if (limit !== undefined) {
+            limitResolved = limit;
+        }
         if (limitResolved <= 500) {
             request['depth'] = this.findNearestCeiling ([ 10, 50, 100, 500 ], limitResolved);
         }

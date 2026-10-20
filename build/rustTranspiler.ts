@@ -8978,6 +8978,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.dropNativeCallIsTrue(rustContent);
                 rustContent = this.dropOptionShadowIsTrue(rustContent);
                 rustContent = this.hx4R03DropBoolBoxedIsTrue(rustContent);
+                rustContent = this.hx4R19NativeBoolEquals(rustContent);
+                rustContent = this.hx4R19NativeBoolIsTrue(rustContent);
                 // Last: drop `.clone()` on the value arg of
                 // extend/omit/market/parse_number when the local is dead
                 // afterwards (those callees take the Value by value).
@@ -9711,6 +9713,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.dropNativeCallIsTrue(finalFile);
         finalFile = this.dropOptionShadowIsTrue(finalFile);
         finalFile = this.hx4R03DropBoolBoxedIsTrue(finalFile);
+        finalFile = this.hx4R19NativeBoolEquals(finalFile);
+        finalFile = this.hx4R19NativeBoolIsTrue(finalFile);
         finalFile = this.nativeRequestDictInserts(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
         finalFile = this.typeSafeListLocals(finalFile);
@@ -11951,6 +11955,161 @@ impl std::ops::DerefMut for ${coreName} {
         const lastStmt = Math.max(inner.lastIndexOf(';'), inner.lastIndexOf('}'));
         const tail = inner.slice(lastStmt + 1).trim();
         return returns > 0 && (tail === 'Value::Null' || tail === 'crate::Value::Null');
+    }
+
+    // hx4 R19 — `is_equal(&X, &Value::Bool(b))` -> `X.as_bool() == Some(b)` when X can only hold
+    // `Value::Bool(..)` / `Value::Null` (R03 proof): Bool compares by payload, Null never equals a Bool.
+
+    /** R03's local proof for `name` inside one fn region (single typed `let`, every write bool-boxed). */
+    hx4R19BoolBoxedLocal(name: string, region: string, from: number, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const decls = [...region.matchAll(new RegExp(`let (?:mut )?${name}\\b(\\s*:\\s*Value)?\\s*=\\s*`, 'g'))];
+        if (decls.length !== 1 || decls[0][1] === undefined) return false;
+        const vetoes = [
+            `\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`,
+            `(?:for|if let|while let)\\s+${name}\\s+(?:in|=)`,
+            `&mut\\s+${name}\\b`,
+            `(?<![A-Za-z0-9_.])${name}\\s*(?:[-+*/%|&^]|<<|>>)=`,
+            `\\b${name}\\s*\\)\\s*(?:=>|if\\b)`,
+            `(?<![A-Za-z0-9_.])${name}\\.(?!clone\\(|as_[a-z0-9]+\\(|is_[a-z_]+\\()[a-z_]+\\(`,
+        ];
+        if (vetoes.some(v => new RegExp(v).test(region))) return false;
+        const initAt = (decls[0].index as number) + decls[0][0].length;
+        const initEnd = this.endOfRustStatement(region, initAt);
+        if (initEnd < 0 || !this.hx4R03IsBoolBoxedExpr(content.slice(from + initAt, from + initEnd), content, own, memo)) return false;
+        for (const w of region.matchAll(new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*=(?!=)\\s*`, 'g'))) {
+            const rhsAt = (w.index as number) + w[0].length;
+            const end = this.endOfRustStatement(region, rhsAt);
+            const rhs = end < 0 ? '' : content.slice(from + rhsAt, from + end);
+            if (end < 0 || !(this.hx4R03IsBoolBoxedExpr(rhs, content, own, memo) ||
+                this.hx4R19DestrTmpBoolHead(rhs, region.slice(0, w.index as number), from, content, own, memo))) return false;
+        }
+        return true;
+    }
+
+    /** `__destr_tmp.as_array()..get(0)..` whose nearest preceding `let __destr_tmp = C;` binds a proven bool-tuple call C. */
+    hx4R19DestrTmpBoolHead(rhs: string, before: string, from: number, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
+        const m = /^(__destr_tmp[A-Za-z0-9_]*)\.as_array\(\)\.and_then\(\|__arr\| __arr\.get\(0\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/.exec(rhs.trim());
+        if (m === null) return false;
+        const decls = [...before.matchAll(new RegExp(`let (?:mut )?${m[1]}\\s*=\\s*`, 'g'))];
+        if (decls.length === 0) return false;
+        const d = decls[decls.length - 1];
+        const at = (d.index as number) + d[0].length;
+        const end = this.endOfRustStatement(before, at);
+        if (end < 0 || new RegExp(`(?<![A-Za-z0-9_.])${m[1]}\\s*=(?!=)`).test(before.slice(end))) return false;
+        return this.hx4X03IsBoolTupleCall(content.slice(from + at, from + end).trim(), content, own, memo);
+    }
+
+    /** Rewrites `is_equal(&X, &Value::Bool(b))` in a proven bool slot when X is bool-boxed. */
+    hx4R19NativeBoolEquals(content: string): string {
+        if (!content.includes('is_equal(&') && !content.includes('is_true(&')) return content;
+        this.rustEmittedBoolReturnMethods(content, []);
+        const masked = this.maskStringsAndComments(content);
+        const own = new Set<string>();
+        for (const om of masked.matchAll(/\bfn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>{}()]*>)?\s*\(/g)) own.add(om[1]);
+        const memo = new Map<string, boolean>();
+        const headers: number[] = [0];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const region = masked.slice(from, headers[h + 1]);
+            const localOk = new Map<string, boolean>();
+            for (const sm of region.matchAll(/(?<![A-Za-z0-9_:])is_(?:equal|true)\(&/g)) {
+                const start = from + (sm.index as number);
+                const isTrue = sm[0].startsWith('is_true');
+                const open = start + (isTrue ? 'is_true(' : 'is_equal(').length - 1;
+                const close = this.closeParenAt(content, open);
+                if (close < 0 || close >= headers[h + 1]) continue;
+                const end = close + 1;
+                if (/^\s*(?:\.|==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
+                const args = isTrue ? [content.slice(open + 1, close), '&Value::Bool(true)'] : this.splitTopLevelCommas(content.slice(open + 1, close));
+                if (args.length !== 2) continue;
+                const lit = /^&(?:crate::)?Value::Bool\((true|false)\)$/.exec(args[1].trim());
+                if (lit === null || !args[0].trim().startsWith('&')) continue;
+                // `is_true` sites over non-locals stay with R03 (already rewritten when proven).
+                if (isTrue && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(this.stripOuterParens(args[0].trim().slice(1).trim()))) continue;
+                const lead = content.slice(Math.max(0, start - 12), start);
+                const slot = this.rustIsTrueBoolSlot(content, start, end) ??
+                    (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
+                     /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
+                if (slot === undefined) continue;
+                const inner = this.stripOuterParens(args[0].trim().slice(1).trim());
+                if (inner.includes('is_equal(')) continue;
+                if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(inner)) {
+                    const declAt = region.search(new RegExp(`let (?:mut )?${inner}\\b`));
+                    if (declAt < 0 || declAt > (sm.index as number)) continue;
+                    if (!localOk.has(inner)) localOk.set(inner, this.hx4R19BoolBoxedLocal(inner, region, from, content, own, memo));
+                    if (!localOk.get(inner)) continue;
+                } else if (!this.hx4R03IsBoolBoxedExpr(inner, content, own, memo)) continue;
+                const recv = /^[A-Za-z_][A-Za-z0-9_.]*$/.test(inner) ? inner : `(${inner})`;
+                const cmp = `${recv}.as_bool() == Some(${lit[1]})`;
+                rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
+            }
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    /** A printed expression that is a native Rust `bool`: `&&`/`||`/`!` over `X.as_str().is_some_and(|__s| __s.starts_with|ends_with("lit"))`
+     *  and `X.as_bool() == Some(b)` atoms (`is_true` on a `bool` is the identity). */
+    hx4R19IsNativeBoolExpr(raw: string, depth = 0): boolean {
+        const e = this.stripOuterParens(raw.trim());
+        if (depth > 6 || e === '') return false;
+        if (/^[A-Za-z_][A-Za-z0-9_]*\.as_str\(\)\.is_some_and\(\|__s\| __s\.(?:starts_with|ends_with)\("(?:[^"\\]|\\.)*"\)\)$/.test(e)) return true;
+        if (/^[A-Za-z_][A-Za-z0-9_]*\.as_bool\(\) == Some\((?:true|false)\)$/.test(e)) return true;
+        const parts: string[] = [];
+        let d = 0; let startAt = 0;
+        for (let i = 0; i < e.length; i++) {
+            const c = e[i];
+            if (c === '"') { i = this.endOfRustStringLiteral(e, i) - 1; continue; }
+            if (c === '(' || c === '[' || c === '{') d += 1;
+            else if (c === ')' || c === ']' || c === '}') d -= 1;
+            else if (d === 0 && (e.startsWith('||', i) || e.startsWith('&&', i)) && e[i - 1] === ' ') {
+                parts.push(e.slice(startAt, i)); startAt = i + 2; i += 1;
+            }
+        }
+        parts.push(e.slice(startAt));
+        if (parts.length > 1) return parts.every(pt => this.hx4R19IsNativeBoolExpr(pt, depth + 1));
+        if (e.startsWith('!') && e[1] === '(') return this.hx4R19IsNativeBoolExpr(e.slice(1), depth + 1);
+        return false;
+    }
+
+    /** `is_true(&(E))` with E a native bool expression in a proven bool slot -> `(E)`. */
+    hx4R19NativeBoolIsTrue(content: string): string {
+        if (!content.includes('is_true(&(')) return content;
+        const masked = this.maskStringsAndComments(content);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (const sm of masked.matchAll(/(?<![A-Za-z0-9_:])is_true\(&\(/g)) {
+            const start = sm.index as number;
+            const open = start + 'is_true('.length - 1;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const end = close + 1;
+            if (/^\s*(?:\.|==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
+            const lead = content.slice(Math.max(0, start - 12), start);
+            const slot = this.rustIsTrueBoolSlot(content, start, end) ??
+                (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
+                 /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
+            if (slot === undefined) continue;
+            const inner = content.slice(open + 2, close).trim();
+            if (!inner.startsWith('(') || !this.hx4R19IsNativeBoolExpr(inner)) continue;
+            rewrites.push({ start, end, text: `(${this.stripOuterParens(inner)})` });
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
     }
 }
 

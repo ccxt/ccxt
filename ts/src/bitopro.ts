@@ -910,17 +910,22 @@ export default class bitopro extends Exchange {
         };
         // we need to have a limit argument because "to" and "from" are required
         // supports slightly more than 75k candles atm, but limit here to avoid errors
-        const limitResolved = (limit === undefined) ? 500 : Math.min (limit, 75000);
+        let limitResolved: Int = 500;
+        if (limit !== undefined) {
+            limitResolved = Math.min (limit, 75000);
+        }
         const timeframeInSeconds = this.parseTimeframe (timeframe);
         let alignedSince: Int = undefined;
         if (since === undefined) {
-            request['to'] = this.seconds ();
-            request['from'] = request['to'] - (limitResolved * timeframeInSeconds);
+            const toSeconds = this.seconds ();
+            request['to'] = toSeconds;
+            request['from'] = toSeconds - (limitResolved * timeframeInSeconds);
         } else {
             const timeframeInMilliseconds = timeframeInSeconds * 1000;
             alignedSince = Math.floor (since / timeframeInMilliseconds) * timeframeInMilliseconds;
-            request['from'] = Math.floor (since / 1000);
-            request['to'] = this.sum (request['from'], limitResolved * timeframeInSeconds);
+            const fromSeconds = Math.floor (since / 1000);
+            request['from'] = fromSeconds;
+            request['to'] = this.sum (fromSeconds, limitResolved * timeframeInSeconds);
         }
         const response = await this.publicGetTradingHistoryPair (this.extend (request, params));
         const data = this.safeList (response, 'data', []);
@@ -959,7 +964,7 @@ export default class bitopro extends Exchange {
         }
         let i = 0;
         const candleLength = candles.length;
-        let resultLength = 0;
+        let resultLength: Int = 0;
         while ((resultLength < limit) && (i < candleLength)) {
             const candle = candles[i];
             if (candle[0] === timestamp) {

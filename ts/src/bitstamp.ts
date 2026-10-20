@@ -801,7 +801,7 @@ export default class bitstamp extends Exchange {
         const timestamp = this.safeInteger (options, 'timestamp');
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
-        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
+        if ((timestamp === undefined) || ((expires !== undefined) && ((now - timestamp) > expires))) {
             const response = await this.publicGetMarkets (params);
             //
             //    [
@@ -1218,8 +1218,8 @@ export default class bitstamp extends Exchange {
                 timestamp = this.parse8601 (datetimeString);
             } else {
                 // string unix epoch in seconds
-                timestamp = parseInt (datetimeString);
-                timestamp = timestamp * 1000;
+                const seconds: Int = parseInt (datetimeString);
+                timestamp = seconds * 1000;
             }
         }
         // if it is a private trade
@@ -1359,13 +1359,28 @@ export default class bitstamp extends Exchange {
         const until = this.safeInteger (params, 'until');
         const untilIsDefined = (until !== undefined);
         const limitResolved = (limit === undefined) ? 1000 : limit;
-        if (limit === undefined) {
-            if (since === undefined) {
-                request['limit'] = limitResolved;
+        if (limit !== undefined) {
+            if (since !== undefined) {
+                const start = this.parseToInt (since / 1000);
+                request['start'] = start;
+                let end = this.sum (start, duration * limit - 1);
                 if (untilIsDefined) {
-                    const end = this.parseToInt (until / 1000);
-                    request['start'] = end - (duration * limitResolved) - 1;
-                    request['end'] = end;
+                    end = Math.min (end, this.parseToInt (until / 1000));
+                }
+                request['end'] = end;
+            } else if (untilIsDefined) {
+                const untilEnd = this.parseToInt (until / 1000);
+                request['end'] = untilEnd;
+                request['start'] = untilEnd - (duration * limit) - 1;
+            }
+            request['limit'] = Math.min (limit, 1000); // min 1, max 1000
+        } else {
+            if (since === undefined) {
+                request['limit'] = 1000;
+                if (untilIsDefined) {
+                    const untilEnd = this.parseToInt (until / 1000);
+                    request['start'] = untilEnd - (duration * 1000) - 1;
+                    request['end'] = untilEnd;
                 }
             } else {
                 const start = this.parseToInt (since / 1000);
@@ -1373,25 +1388,10 @@ export default class bitstamp extends Exchange {
                 if (untilIsDefined) {
                     request['end'] = this.parseToInt (until / 1000);
                 } else {
-                    request['end'] = this.sum (start, duration * limitResolved - 1);
+                    request['end'] = this.sum (start, duration * 1000 - 1);
                 }
-                request['limit'] = limitResolved;
+                request['limit'] = 1000;
             }
-        } else {
-            if (since !== undefined) {
-                const start = this.parseToInt (since / 1000);
-                request['start'] = start;
-                let end = this.sum (start, duration * limitResolved - 1);
-                if (untilIsDefined) {
-                    end = Math.min (end, this.parseToInt (until / 1000));
-                }
-                request['end'] = end;
-            } else if (untilIsDefined) {
-                const end = this.parseToInt (until / 1000);
-                request['end'] = end;
-                request['start'] = end - (duration * limitResolved) - 1;
-            }
-            request['limit'] = Math.min (limitResolved, 1000); // min 1, max 1000
         }
         const paramsOmitted: Dict = this.omit (params, 'until');
         const response = await this.publicGetOhlcPair (this.extend (request, paramsOmitted));

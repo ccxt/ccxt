@@ -1031,22 +1031,30 @@ export default class binance extends binanceRest {
                     continue;
                 }
                 const pu = this.safeInteger (messageItem, 'pu');
+                const snapshotNonce = this.safeInteger (orderbook, 'nonce');
+                if (snapshotNonce === undefined) {
+                    // every comparison against an undefined nonce is false, only pu === undefined matches
+                    if ((type === 'linear') && (pu === undefined)) {
+                        this.handleOrderBookMessage (client, messageItem, orderbook);
+                    }
+                    continue;
+                }
                 if (type === 'linear') {
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if (u < orderbook['nonce']) {
+                    if (u < snapshotNonce) {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                    if ((U <= orderbook['nonce']) && (u >= orderbook['nonce']) || (pu === orderbook['nonce'])) {
+                    if ((U <= snapshotNonce) && (u >= snapshotNonce) || (pu === snapshotNonce)) {
                         this.handleOrderBookMessage (client, messageItem, orderbook);
                     }
                 } else {
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if (u <= orderbook['nonce']) {
+                    if (u <= snapshotNonce) {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                    if (((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce'])) {
+                    if (((U - 1) <= snapshotNonce) && ((u - 1) >= snapshotNonce)) {
                         this.handleOrderBookMessage (client, messageItem, orderbook);
                     }
                 }
@@ -1159,7 +1167,8 @@ export default class binance extends binanceRest {
                         }
                         if (conditional) {
                             this.handleOrderBookMessage (client, message, orderbook);
-                            if (nonce < this.safeInteger (orderbook, 'nonce', 0)) {
+                            const newNonce = this.safeInteger (orderbook, 'nonce', 0);
+                            if (nonce < newNonce) {
                                 client.resolve (orderbook, messageHash);
                             }
                         } else {
@@ -1178,7 +1187,8 @@ export default class binance extends binanceRest {
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
                         if ((U <= nonce) || (pu === nonce)) {
                             this.handleOrderBookMessage (client, message, orderbook);
-                            if (nonce <= this.safeInteger (orderbook, 'nonce', 0)) {
+                            const newNonce = this.safeInteger (orderbook, 'nonce', 0);
+                            if (nonce <= newNonce) {
                                 client.resolve (orderbook, messageHash);
                             }
                         } else {
