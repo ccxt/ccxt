@@ -12127,7 +12127,7 @@ export default class binance extends Exchange {
         const market = this.market (symbol);
         if (market['option'] !== true) {
             let subType = 'inverse';
-            if (market['linear']) {
+            if (market['linear'] === true) {
                 subType = 'linear';
             }
             const positions = await this.fetchPositionsRisk ([ symbol ], this.extend ({ 'symbol': market['id'], 'subType': subType }, params));
