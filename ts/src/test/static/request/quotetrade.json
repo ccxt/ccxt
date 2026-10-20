@@ -218,7 +218,8 @@
                 },
                 "output": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"quote_trade_get_orders\",\"arguments\":{}}}",
                 "options": {
-                    "mcpRequestId": 0
+                    "mcpRequestId": 0,
+                    "mcpSendSecret": true
                 }
             }
         ]

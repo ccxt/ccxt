@@ -183,13 +183,13 @@ export default class quotetrade extends quotetradeRest {
     /** @ignore */
     async handleWsRequestTimeout (client: Client, hash: string, deadline: number) {
         if (!(hash in client.futures)) {
-            return;
+            return undefined;
         }
         const remaining = deadline - this.milliseconds ();
         if (remaining > 0) {
             const interval = this.parseToInt (Math.min (250, remaining));
             this.delay (interval, this.handleWsRequestTimeout, client, hash, deadline);
-            return;
+            return undefined;
         }
         delete client.subscriptions[hash];
         client.reject (new RequestTimeout (this.id + ' WS response timed out; reconcile the client order id before another submission'), hash);

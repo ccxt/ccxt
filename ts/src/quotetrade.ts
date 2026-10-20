@@ -19,7 +19,7 @@ export default class quotetrade extends Exchange {
             'rateLimit': 250,
             'headers': { 'Accept': 'application/json, text/event-stream' },
             'certified': false,
-            'pro': false,
+            'pro': true,
             'dex': true,
             'has': {
                 'CORS': undefined,
@@ -47,7 +47,7 @@ export default class quotetrade extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': false,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -71,7 +71,7 @@ export default class quotetrade extends Exchange {
             },
             'requiredCredentials': { 'apiKey': true, 'secret': true, 'uid': false },
             'precisionMode': TICK_SIZE,
-            'options': { 'defaultType': 'swap', 'disableLeverage': true },
+            'options': { 'defaultType': 'swap', 'disableLeverage': true, 'mcpSendSecret': false },
             'features': {
                 'default': {
                     'sandbox': false,
@@ -813,11 +813,13 @@ export default class quotetrade extends Exchange {
     /**
      * @method
      * @name quotetrade#fetchOrders
-     * @description Fetch all states from one bounded managed-parent page.
+     * @description Fetch all states from one bounded managed-parent page. The legacy API has no all-states order list, so has['fetchOrders'] is false and this method requires params.apiManaged=true or params.apiVersion='v3'.
      * @param {string} symbol unified market symbol
      * @param {int} since earliest timestamp in milliseconds
      * @param {int} limit maximum results
      * @param {object} params exchange-specific parameters
+     * @param {boolean} [params.apiManaged] must be true unless params.apiVersion is 'v3'
+     * @param {string} [params.apiVersion] 'v3' selects the managed-parent order list
      * @returns {object} native response or unified result as documented
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
@@ -925,7 +927,8 @@ export default class quotetrade extends Exchange {
     /**
      * @method
      * @name quotetrade#callMcpTool
-     * @description Native MCP call. Returns the documented native structured result, not a fabricated unified structure.
+     * @description Native MCP call. Returns the documented native structured result, not a fabricated unified structure. The hosted MCP signs private tools on the caller's behalf, so it must receive the raw API secret; private tools therefore require the explicit opt-in options['mcpSendSecret'] = true (default false). Public tools never send credentials.
+     * @see https://quote.trade/mcp/discovery
      * @param {string} name native MCP tool name
      * @param {object} args arguments from the live MCP tool schema
      * @returns {object} native response or unified result as documented
@@ -955,7 +958,7 @@ export default class quotetrade extends Exchange {
     }
 
     /** @ignore */
-    // Native MCP credentials are sent only to the explicitly configured MCP host.
+    // Private MCP calls send the raw API secret only to the configured MCP host, and only after options.mcpSendSecret opt-in.
     async mcpRpc (method: string, params: Dict, authenticated = false): Promise<Dict> {
         const next = this.safeInteger (this.options, 'mcpRequestId', 0) + 1;
         this.options['mcpRequestId'] = next;
@@ -979,6 +982,9 @@ export default class quotetrade extends Exchange {
             const mcpHeaders: Dict = { 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream' };
             if (authenticated) {
                 this.checkRequiredCredentials ();
+                if (!this.safeBool (this.options, 'mcpSendSecret', false)) {
+                    throw new NotSupported (this.id + ' private MCP tools send the raw API secret to the MCP host; set options.mcpSendSecret = true to allow it, or use the HMAC-signed REST and WebSocket methods');
+                }
                 mcpHeaders['X-MBX-APIKEY'] = this.apiKey;
                 mcpHeaders['X-MBX-APISECRET'] = this.secret;
             }

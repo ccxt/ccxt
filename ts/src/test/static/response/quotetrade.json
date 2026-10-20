@@ -1506,7 +1506,8 @@
                     }
                 },
                 "options": {
-                    "mcpRequestId": 0
+                    "mcpRequestId": 0,
+                    "mcpSendSecret": true
                 }
             }
         ]
