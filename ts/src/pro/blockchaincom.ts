@@ -193,7 +193,7 @@ export default class blockchaincom extends blockchaincomRest {
             const request = this.safeDict (client.subscriptions, messageHash);
             const timeframeId = this.safeString (request, 'granularity');
             const timeframe = this.findTimeframe (timeframeId);
-            const ohlcv = this.safeList (message, 'price', []);
+            const ohlcv = this.parseOHLCV (this.safeList (message, 'price', []));
             this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {

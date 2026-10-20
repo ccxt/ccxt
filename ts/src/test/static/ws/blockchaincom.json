@@ -1,0 +1,46 @@
+{
+    "exchange": "blockchaincom",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOHLCV": [
+            {
+                "description": "spot ohlcv 1m, update frame carries volume as a string",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ],
+                "url": "wss://ws.blockchain.info/mercury-gateway/v1/ws",
+                "messages": [
+                    {
+                        "seqnum": 0,
+                        "event": "subscribed",
+                        "channel": "prices",
+                        "symbol": "BTC-USDT",
+                        "granularity": 60
+                    },
+                    {
+                        "seqnum": 1,
+                        "event": "updated",
+                        "channel": "prices",
+                        "symbol": "BTC-USDT",
+                        "price": [ 1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, "0" ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "action": "subscribe",
+                        "channel": "prices",
+                        "symbol": "BTC-USDT",
+                        "granularity": 60
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [ 1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, 0 ]
+                    ]
+                ]
+            }
+        ]
+    }
+}
