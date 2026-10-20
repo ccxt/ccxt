@@ -56,7 +56,7 @@
                         "clientOrderId": "bybit1"
                     }
                 ],
-                "output": { "symbol": "LTCUSDT", "orderLinkId": "bybit1", "category": "spot", "qty": "0.22", "price": "73", "clientOrderId": "bybit1" }
+                "output": { "symbol": "LTCUSDT", "orderLinkId": "bybit1", "category": "spot", "qty": "0.22", "price": "73" }
             }
         ],
         "fetchCurrencies": [
