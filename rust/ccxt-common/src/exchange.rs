@@ -1467,6 +1467,20 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let resp = req.send().await?;
         let status = resp.status().as_u16();
         let reason = resp.status().canonical_reason().unwrap_or("");
+        // expose the response headers the way the other ports do (last_response_headers and
+        // the `headers` argument of handle_errors): venues read them, e.g. grvt takes its
+        // session cookie and account id from Set-Cookie / X-Grvt-Account-Id on sign-in.
+        // reqwest lowercases header names; repeated headers are joined with ", " like node-fetch
+        let mut response_headers: HashMap<String, Value> = HashMap::new();
+        for name in resp.headers().keys() {
+            let joined = resp.headers().get_all(name).iter()
+                .filter_map(|v| v.to_str().ok())
+                .collect::<Vec<&str>>()
+                .join(", ");
+            response_headers.insert(name.as_str().to_string(), Value::Str(joined.into()));
+        }
+        let response_headers_value = Value::Map(response_headers.into_iter().collect());
+        self.last_response_headers = response_headers_value.clone();
         let text   = resp.text().await?;
         HTTP_NANOS.fetch_add(__http_t0.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed);
@@ -1496,7 +1510,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             Value::Str(reason.into()),
             Value::Str(url.to_string().into()),
             Value::Str(method.to_string().into()),
-            Value::Null,
+            response_headers_value,
             Value::Str(text.clone().into()),
             json.clone(),
             Value::Null,
