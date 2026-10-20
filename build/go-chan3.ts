@@ -413,7 +413,9 @@ function goChan3ResolvedImports (content: string): string {
     if (m === null) {
         throw new Error ('GOCHAN3: ws2 switch needs import "sync" but the file has no ccxt import line');
     }
-    return content.substring (0, m.index + m[0].length) + 'import "sync"\n' + content.substring (m.index + m[0].length);
+    // gofmt separates the package clause from the first import with a blank line
+    const sep = m[0].startsWith ('package ') ? '\n' : '';
+    return content.substring (0, m.index + m[0].length) + sep + 'import "sync"\n' + content.substring (m.index + m[0].length);
 }
 
 type Edit = { start: number, end: number, text: string };

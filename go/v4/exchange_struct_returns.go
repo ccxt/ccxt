@@ -290,7 +290,7 @@ func StructDictToMap[T any](d map[string]T, to func(T) map[string]any) map[strin
 	return out
 }
 
-func TickerMapFromMap(data any) map[string]Ticker { return StructDictFromMap(data, TickerFromMap) }
+func TickerMapFromMap(data any) map[string]Ticker       { return StructDictFromMap(data, TickerFromMap) }
 func TickerMapToMap(d map[string]Ticker) map[string]any { return StructDictToMap(d, TickerToMap) }
 func FundingRateMapFromMap(data any) map[string]FundingRate {
 	return StructDictFromMap(data, FundingRateFromMap)
@@ -310,7 +310,9 @@ func TradingFeeInterfaceMapFromMap(data any) map[string]TradingFeeInterface {
 func TradingFeeInterfaceMapToMap(d map[string]TradingFeeInterface) map[string]any {
 	return StructDictToMap(d, TradingFeeInterfaceToMap)
 }
-func LeverageMapFromMap(data any) map[string]Leverage { return StructDictFromMap(data, LeverageFromMap) }
+func LeverageMapFromMap(data any) map[string]Leverage {
+	return StructDictFromMap(data, LeverageFromMap)
+}
 func LeverageMapToMap(d map[string]Leverage) map[string]any {
 	return StructDictToMap(d, LeverageToMap)
 }
@@ -676,7 +678,9 @@ func WatchResolved[T any](v any) T {
 }
 
 // Watch wraps a core's Watch call and resolves its channel element to T.
-func Watch[T any](ex interface{ Watch(args ...any) <-chan AsyncResult[any] }, args ...any) <-chan AsyncResult[T] {
+func Watch[T any](ex interface {
+	Watch(args ...any) <-chan AsyncResult[any]
+}, args ...any) <-chan AsyncResult[T] {
 	ch := make(chan AsyncResult[T], 1)
 	go func() {
 		defer close(ch)
@@ -691,7 +695,9 @@ func Watch[T any](ex interface{ Watch(args ...any) <-chan AsyncResult[any] }, ar
 }
 
 // WatchMultiple wraps a core's WatchMultiple call and resolves its channel element to T.
-func WatchMultiple[T any](ex interface{ WatchMultiple(args ...any) <-chan AsyncResult[any] }, args ...any) <-chan AsyncResult[T] {
+func WatchMultiple[T any](ex interface {
+	WatchMultiple(args ...any) <-chan AsyncResult[any]
+}, args ...any) <-chan AsyncResult[T] {
 	ch := make(chan AsyncResult[T], 1)
 	go func() {
 		defer close(ch)
@@ -1382,4 +1388,3 @@ func StringSliceToList(s []string) []any {
 func StringElementToAny(s string) any {
 	return s
 }
-
