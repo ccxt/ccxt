@@ -14,7 +14,9 @@ add_library (ccxt_base STATIC
 )
 
 # the package root is the include root: consumers say `#include "ccxt/base/…"`
-target_include_directories (ccxt_base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories (ccxt_base PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_link_libraries (ccxt_base PUBLIC Threads::Threads CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
 if (simdjson_FOUND)
     target_link_libraries (ccxt_base PUBLIC simdjson::simdjson)
@@ -23,10 +25,13 @@ endif ()
 
 # parseJson/serialise/json hot paths are header-heavy and pay ~12x at -O0
 # (parsing the 22MB markets payload drops from ~17s to ~2.5s at -O2).
+# CCXT_FAST_BUILD=ON drops these per-TU -O2 props to the global -O0 for a
+# much lighter single-exchange build (slower runtime hot paths).
 # -Wno-deprecated-declarations: the secp256k1 sign/verify helpers use the
 # legacy EC_KEY API — deprecated since OpenSSL 3.0 but fully functional;
 # strict runners escalate the deprecation to an error. (EVP migration is the
 # long-term fix; the API must not move until signatures are re-verified.)
+if (NOT CCXT_FAST_BUILD)
 set_source_files_properties (ccxt/base/ExchangeBase.cpp PROPERTIES COMPILE_OPTIONS "-O2;-Wno-deprecated-declarations")
 # per-key/per-value free helpers (getValue/setValue/isEqual/safeString/…) that
 # setMarkets-style generated code calls millions of times through std::any.
@@ -35,3 +40,8 @@ set_source_files_properties (ccxt/base/helpers.cpp PROPERTIES COMPILE_OPTIONS "-
 set_source_files_properties (ccxt/base/JsonView.cpp PROPERTIES COMPILE_OPTIONS "-O2")
 # same EC_KEY/OpenSSL 3.0 deprecation treatment as ExchangeBase.cpp.
 set_source_files_properties (ccxt/base/Crypto.cpp PROPERTIES COMPILE_OPTIONS "-O2;-Wno-deprecated-declarations")
+else ()
+# still silence the OpenSSL deprecations even at -O0
+set_source_files_properties (ccxt/base/ExchangeBase.cpp PROPERTIES COMPILE_OPTIONS "-Wno-deprecated-declarations")
+set_source_files_properties (ccxt/base/Crypto.cpp PROPERTIES COMPILE_OPTIONS "-Wno-deprecated-declarations")
+endif ()
