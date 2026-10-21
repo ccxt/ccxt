@@ -2643,7 +2643,7 @@ func (this *Okx) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ...any
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var response map[string]any = r.Value
+	var response map[string]any = MapTyped(r.Raw)
 	//
 	//     {
 	//         "code": "0",

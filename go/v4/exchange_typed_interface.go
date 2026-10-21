@@ -496,6 +496,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "poloniex":
 		itf := NewPoloniex(options)
 		return itf
+	case "polymarket":
+		itf := NewPolymarket(options)
+		return itf
 	case "revolutx":
 		itf := NewRevolutx(options)
 		return itf
