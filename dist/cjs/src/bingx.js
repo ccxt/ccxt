@@ -631,6 +631,8 @@ class bingx extends bingx$1["default"] {
                     '100419': errors.PermissionDenied, // {"code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347}
                     '100437': errors.BadRequest, // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                     '101204': errors.InsufficientFunds, // {"code":101204,"msg":"","data":{}}
+                    '101205': errors.InvalidOrder, // {"code":101205,"msg":"No position to close","data":{}}
+                    '101400': errors.InvalidOrder, // {"code":101400,"msg":"The minimum order amount is 0.0001 BTC.","data":{}}
                     '110425': errors.InvalidOrder, // {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
                     '100490': errors.BadSymbol, // spot trading pair is offline
                     '101481': errors.DuplicateOrderId,

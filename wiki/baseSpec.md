@@ -6313,6 +6313,7 @@ get the list of most recent trades for a particular symbol
 * [kucoin](/exchanges/kucoin.md#fetchtrades)
 * [latoken](/exchanges/latoken.md#fetchtrades)
 * [lbank](/exchanges/lbank.md#fetchtrades)
+* [lighter](/exchanges/lighter.md#fetchtrades)
 * [luno](/exchanges/luno.md#fetchtrades)
 * [mercado](/exchanges/mercado.md#fetchtrades)
 * [mexc](/exchanges/mexc.md#fetchtrades)

@@ -218874,6 +218874,8 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                     '100419': _base_errors_js__rspack_import_2.PermissionDenied,
                     '100437': _base_errors_js__rspack_import_2.BadRequest,
                     '101204': _base_errors_js__rspack_import_2.InsufficientFunds,
+                    '101205': _base_errors_js__rspack_import_2.InvalidOrder,
+                    '101400': _base_errors_js__rspack_import_2.InvalidOrder,
                     '110425': _base_errors_js__rspack_import_2.InvalidOrder,
                     '100490': _base_errors_js__rspack_import_2.BadSymbol,
                     '101481': _base_errors_js__rspack_import_2.DuplicateOrderId,
@@ -433169,7 +433171,7 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransfer': false,
@@ -436088,6 +436090,53 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
+     * @name lighter#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.lighter.xyz/reference/recenttrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */ async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'market_id': market['id'],
+            'limit': 100
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min(limit, 100);
+        }
+        const response = await this.publicGetRecentTrades(this.extend(request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "trades": [
+        //             {
+        //                 "trade_id": 35564491385,
+        //                 "type": "trade",
+        //                 "market_id": 0,
+        //                 "size": "0.0003",
+        //                 "price": "2385.57",
+        //                 "usd_amount": "0.715671",
+        //                 "ask_id": 281478054267183,
+        //                 "bid_id": 562946767299880,
+        //                 "ask_account_id": 723632,
+        //                 "bid_account_id": 317087,
+        //                 "is_maker_ask": false,
+        //                 "timestamp": 1792497687525
+        //             }
+        //         ]
+        //     }
+        //
+        const trades = this.safeList(response, 'trades', []);
+        return this.parseTrades(trades, market, since, limit);
+    }
+    /**
+     * @method
      * @name lighter#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://apidocs.lighter.xyz/reference/trades
@@ -436216,6 +436265,10 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
                 side = 'buy';
                 orderId = this.safeString(trade, 'bid_id');
             }
+        }
+        // public trades use Lighter's taker-side convention
+        if (side === undefined && isMakerAsk !== undefined) {
+            side = isMakerAsk === true ? 'buy' : 'sell';
         }
         let takerOrMaker = undefined;
         if (side !== undefined && isMakerAsk !== undefined) {
