@@ -2691,7 +2691,11 @@ pub trait ExchangeBase:
     fn set_markets(&mut self, mut markets: Value, optional_args: &[Value]) -> Value {
         let mut currencies = get_arg(optional_args, 0, Value::Null);
         let mut values: Value = Value::from(vec![]);
-        { let __t = self.create_safe_dictionary(&[]); self.markets_by_id = __t; }
+        // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        let mut marketsById: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         // handle marketId conflicts
         // we insert spot markets first
         let mut marketValues: Value = self.sort_by(self.to_array(markets.clone()), Value::Str("spot".into()), &[Value::Bool(true), Value::Bool(true)]);
@@ -2700,12 +2704,12 @@ pub trait ExchangeBase:
             let mut __for_first_87: bool = true;
             while { if !__for_first_87 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_87 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketValues.len() as i64) as f64) } {
             let mut value: Value = marketValues.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (in_op(&self.markets_by_id, &crate::value::get_value_k(&value, "id"))) {
-                let mut marketsByIdArray: Value = get_value(&self.markets_by_id, &crate::value::get_value_k(&value, "id"));
+            if (in_op(&marketsById, &crate::value::get_value_k(&value, "id"))) {
+                let mut marketsByIdArray: Value = get_value(&marketsById, &crate::value::get_value_k(&value, "id"));
                 append_to_array(&mut marketsByIdArray, value.clone());
-                add_element_to_object(&mut self.markets_by_id, &crate::value::get_value_k(&value, "id"), marketsByIdArray);
+                add_element_to_object(&mut marketsById, &crate::value::get_value_k(&value, "id"), marketsByIdArray);
             }  else {
-                add_element_to_object(&mut self.markets_by_id, &crate::value::get_value_k(&value, "id"), Value::from(vec![value.clone()]));
+                add_element_to_object(&mut marketsById, &crate::value::get_value_k(&value, "id"), Value::from(vec![value.clone()]));
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -2742,6 +2746,7 @@ pub trait ExchangeBase:
         }
         }
         { let __t = self.map_to_safe_map(self.index_by(values.clone(), Value::Str("symbol".into()))); self.markets = __t; }
+        { let __t = self.map_to_safe_map(marketsById); self.markets_by_id = __t; }
         let mut marketsSortedBySymbol: Value = self.keysort(self.markets.clone(), &[]);
         let mut marketsSortedById: Value = self.keysort(self.markets_by_id.clone(), &[]);
         self.symbols = object_keys(&marketsSortedBySymbol);

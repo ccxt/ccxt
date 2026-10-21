@@ -142,6 +142,8 @@ pub mod paradex_typed;
 pub mod phemex_typed;
 #[cfg(feature = "poloniex")]
 pub mod poloniex_typed;
+#[cfg(feature = "polymarket")]
+pub mod polymarket_typed;
 #[cfg(feature = "toobit")]
 pub mod toobit_typed;
 #[cfg(feature = "upbit")]

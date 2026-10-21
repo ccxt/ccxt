@@ -1470,6 +1470,8 @@ pub use crate::exchanges::paymium_typed::Paymium;
 pub use crate::exchanges::phemex_typed::Phemex;
 #[cfg(feature = "poloniex")]
 pub use crate::exchanges::poloniex_typed::Poloniex;
+#[cfg(feature = "polymarket")]
+pub use crate::exchanges::polymarket_typed::Polymarket;
 #[cfg(feature = "revolutx")]
 pub use crate::exchanges::revolutx_typed::Revolutx;
 #[cfg(feature = "tokocrypto")]
@@ -1683,6 +1685,8 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         "phemex" => Some(Box::new(Phemex::new(config))),
         #[cfg(feature = "poloniex")]
         "poloniex" => Some(Box::new(Poloniex::new(config))),
+        #[cfg(feature = "polymarket")]
+        "polymarket" => Some(Box::new(Polymarket::new(config))),
         #[cfg(feature = "revolutx")]
         "revolutx" => Some(Box::new(Revolutx::new(config))),
         #[cfg(feature = "tokocrypto")]
