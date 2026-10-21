@@ -179825,18 +179825,19 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     }
     setMarkets(markets, currencies = undefined) {
         const values = [];
-        this.markets_by_id = this.createSafeDictionary();
+        // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        const marketsById = {};
         // handle marketId conflicts
         // we insert spot markets first
         const marketValues = this.sortBy(this.toArray(markets), 'spot', true, true);
         for(let i = 0; i < marketValues.length; i++){
             const value = marketValues[i];
-            if (value['id'] in this.markets_by_id) {
-                const marketsByIdArray = this.markets_by_id[value['id']];
+            if (value['id'] in marketsById) {
+                const marketsByIdArray = marketsById[value['id']];
                 marketsByIdArray.push(value);
-                this.markets_by_id[value['id']] = marketsByIdArray;
+                marketsById[value['id']] = marketsByIdArray;
             } else {
-                this.markets_by_id[value['id']] = [
+                marketsById[value['id']] = [
                     value
                 ];
             }
@@ -179865,6 +179866,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             values.push(market);
         }
         this.markets = this.mapToSafeMap(this.indexBy(values, 'symbol'));
+        this.markets_by_id = this.mapToSafeMap(marketsById);
         const marketsSortedBySymbol = this.keysort(this.markets);
         const marketsSortedById = this.keysort(this.markets_by_id);
         this.symbols = Object.keys(marketsSortedBySymbol);
