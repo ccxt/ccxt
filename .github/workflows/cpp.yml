@@ -67,6 +67,7 @@ jobs:
           sudo chown -R "$(id -u):$(id -g)" . 2>/dev/null || true
         fi
         cmake -S cpp -B cpp/build -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+          -DCCXT_THIN_ARCHIVES=ON \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
           -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld
     - name: Build (parallel compile)
@@ -147,6 +148,7 @@ jobs:
           sudo chown -R "$(id -u):$(id -g)" . 2>/dev/null || true
         fi
         cmake -S cpp -B cpp/build -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+          -DCCXT_THIN_ARCHIVES=ON \
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
           -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld
     - name: Build (parallel compile)

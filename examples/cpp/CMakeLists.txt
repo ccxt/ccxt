@@ -1,36 +1,37 @@
-cmake_minimum_required (VERSION 3.16)
-project (ccxt-cpp-examples CXX)
+# CCXT C++ examples — the C++ counterparts of examples/rust (same ideas,
+# same output shape, C++ typed API). Each .cpp is one runnable example.
+#
+#   cmake -S examples/cpp -B examples/cpp/build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+#   cmake --build examples/cpp/build --parallel 8
+#   ./examples/cpp/build/binance_basics
+#
+# The examples build the in-tree packages as a subproject, so the first build
+# compiles the engine + the exchange TUs (~10-40 min cold, much faster warm
+# with ccache). Library-only + scoped consumers should use cpp/package.sh or
+# -DCCXT_EXCHANGES=... directly instead.
+cmake_minimum_required (VERSION 3.20)
+project (ccxt-examples CXX)
 
-set (CMAKE_CXX_STANDARD 17)
-set (CMAKE_CXX_STANDARD_REQUIRED ON)
-set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g0")
+# examples don't need the test binaries or the live-test CLI
+set (CCXT_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set (CCXT_BUILD_CLI OFF CACHE BOOL "" FORCE)
 
-# The examples link the ccxt static library built by the main port
-# (cmake -S cpp -B cpp/build && cmake --build cpp/build). The factory registrars
-# are static initialisers, so the link must be WHOLE_ARCHIVE like ccxt-tests.
-if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../../cpp/build/libccxt.a)
-    message (FATAL_ERROR "cpp/build/libccxt.a not found - build the port first (cmake -S cpp -B cpp/build && cmake --build cpp/build)")
-endif ()
-
-add_library (ccxt STATIC IMPORTED)
-set_target_properties (ccxt PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../../cpp/build/libccxt.a)
-
-find_package (CURL REQUIRED)
-find_package (OpenSSL REQUIRED)
-find_package (Threads REQUIRED)
+add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/../../cpp ccxt-cpp)
 
 set (EXAMPLES
-    binance_typed
+    binance_basics
+    binance_active_swap_prices
+    binance_with_proxy
+    binance_order_error_handling
+    multi_exchange_ohlcv_chart
     exchanges_smoke
-    prediction_typed_demo
-)
+    iexchange_demo
+    watch_trades
+    prediction_typed_demo)
 
-foreach (example ${EXAMPLES})
-    add_executable (${example} ${example}.cpp)
-    target_include_directories (${example} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../cpp)
-    target_link_libraries (${example} PRIVATE
-        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>"
-        CURL::libcurl OpenSSL::SSL OpenSSL::Crypto Threads::Threads)
-    target_compile_options (${example} PRIVATE -g0)
+foreach (ex IN LISTS EXAMPLES)
+    add_executable (${ex} ${ex}.cpp)
+    # examples are throwaway binaries: fast compile, no debug info
+    target_compile_options (${ex} PRIVATE -g0 -O0)
+    target_link_libraries (${ex} PRIVATE ccxt ccxt_pro ccxt_prediction)
 endforeach ()

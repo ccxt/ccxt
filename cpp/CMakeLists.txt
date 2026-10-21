@@ -70,7 +70,14 @@ find_package (simdjson QUIET)
 # 'unable to copy file ... reason: Success' failure is that 7.7GB copy.
 # crT stores member REFERENCES instead, so archive updates are O(members)
 # and the giant copy (and its rename race) disappears entirely.
+# HOWEVER: thin archives only work next to the build tree, so an installed
+# or packaged archive breaks. Dev/CI builds opt in with
+# -DCCXT_THIN_ARCHIVES=ON; the default is a normal archive that installs and
+# packages correctly for end users.
+option (CCXT_THIN_ARCHIVES "Use thin static archives (smaller build dir; dev/CI only)" OFF)
+if (CCXT_THIN_ARCHIVES)
 set (CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> crT <TARGET> <LINK_FLAGS> <OBJECTS>")
+endif ()
 
 # ccxt-base: the hand-written engine runtime (see cpp/ccxt-base/CMakeLists.txt).
 # Separate package so runtime edits rebuild only its ~7 TUs, not the venue TUs.
