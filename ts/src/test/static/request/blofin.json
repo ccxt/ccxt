@@ -3,6 +3,16 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "fetchMarkPrice": [
+            {
+                "description": "fetch mark price",
+                "method": "fetchMarkPrice",
+                "url": "https://openapi.blofin.com/api/v1/market/mark-price?instId=ETH-USDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            }
+        ],
         "fetchDepositAddress": [
             {
                 "description": "deposit address for USDT on TRC20",
