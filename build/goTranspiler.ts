@@ -4609,6 +4609,9 @@ class NewTranspiler {
             [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
             
             [/\.Append\(/g, '.(Appender).Append('],
+            // WS caches are stored as any. Clear needs the same interface dispatch
+            // as Append; the any conversion also accepts statically typed caches.
+            [/\b(\w+(?:\.\w+)*)\.Clear\(\)/g, 'any($1).(interface{ Clear() }).Clear()'],
             [/stored\.\(Appender\)\.Append\(this\.ParseOHLCV/g, "stored.Append(this.ParseOHLCV"],
             [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
             // `const stored = new ArrayCache (limit)` prints as a short declaration; the ws regexes
