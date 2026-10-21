@@ -68,7 +68,8 @@ export default class bitfinex extends bitfinexRest {
         const checksum = this.safeBool (this.options, 'checksum', true);
         if ((checksum === true) && (channel === 'book')) {
             const sub = client.subscriptions[messageHash];
-            if ((sub !== undefined) && (sub['checksum'] !== true)) {
+            const subChecksum = this.safeBool (sub, 'checksum');
+            if ((sub !== undefined) && (subChecksum !== true)) {
                 client.subscriptions[messageHash]['checksum'] = true;
                 await client.send ({
                     'event': 'conf',
@@ -1313,7 +1314,8 @@ export default class bitfinex extends bitfinexRest {
         //    }
         //
         if (Array.isArray (message)) {
-            if (message[1] === 'hb') {
+            const heartbeat = this.safeString (message, 1);
+            if (heartbeat === 'hb') {
                 return; // skip heartbeats within subscription channels for now
             }
             const subscription = this.safeDict (client.subscriptions, channelId, {});

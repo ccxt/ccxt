@@ -798,8 +798,8 @@ export default class cryptocom extends Exchange {
             const strike = this.safeString (market, 'strike');
             const marginBuyEnabled = this.safeBool (market, 'margin_buy_enabled');
             const marginSellEnabled = this.safeBool (market, 'margin_sell_enabled');
-            const expiryString = this.omitZero (this.safeString (market, 'expiry_timestamp_ms'));
-            const expiry = (expiryString !== undefined) ? parseInt (expiryString) : undefined;
+            const expiryRaw = this.safeInteger (market, 'expiry_timestamp_ms');
+            const expiry = (expiryRaw === 0) ? undefined : expiryRaw;
             let symbol = base + '/' + quote;
             let type: Str = undefined;
             let contract: Bool = undefined;
@@ -2018,18 +2018,13 @@ export default class cryptocom extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseAddress (addressString: any): [Str, Str] {
-        let address: Str = undefined;
-        let tag: Str = undefined;
-        let rawTag: Str = undefined;
-        if (addressString.indexOf ('?') > 0) {
-            [ address, rawTag ] = addressString.split ('?');
-            const splitted = (rawTag as string).split ('=');
-            tag = splitted[1];
-        } else {
-            address = addressString;
+    parseAddress (addressString: Str): [Str, Str] {
+        if (addressString !== undefined && addressString.indexOf ('?') > 0) {
+            const [ address, rawTag ] = addressString.split ('?');
+            const splitted = rawTag.split ('=');
+            return [ address, splitted[1] ];
         }
-        return [ address, tag ];
+        return [ addressString, undefined ];
     }
 
     /**

@@ -821,10 +821,6 @@ export default class modetrade extends Exchange {
         const amount = this.safeString (trade, 'executed_quantity');
         const order_id = this.safeString (trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
-        const feeCost = this.safeString (fee, 'cost');
-        if ((feeCost !== undefined) && (fee !== undefined)) {
-            fee['cost'] = feeCost;
-        }
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
         const id = this.safeString (trade, 'id');
@@ -913,7 +909,7 @@ export default class modetrade extends Exchange {
         const fundingTimeString = this.safeString (fundingRate, 'last_funding_rate_timestamp');
         const nextFundingTimeString = this.safeString (fundingRate, 'next_funding_time');
         const millisecondsInterval = Precise.stringSub (nextFundingTimeString, fundingTimeString);
-        const fundingSymbol = (marketValue !== undefined) ? marketValue['symbol'] : undefined;
+        const fundingSymbol = this.safeString (marketValue, 'symbol');
         return {
             'info': fundingRate,
             'symbol': fundingSymbol,
@@ -1699,7 +1695,8 @@ export default class modetrade extends Exchange {
         const hasStopLoss = stopLoss !== undefined;
         const hasTakeProfit = takeProfit !== undefined;
         const algoType = this.safeString (params, 'algoType');
-        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue (params, 'childOrders') !== undefined);
+        const paramsChildOrders = this.safeValue (params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
@@ -1818,7 +1815,8 @@ export default class modetrade extends Exchange {
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
+        const childOrders = this.safeValue (params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (childOrders !== undefined);
         let response: Dict;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder (request);
@@ -1887,7 +1885,8 @@ export default class modetrade extends Exchange {
             const triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
             const stopLoss = this.safeDict (orderParams, 'stopLoss');
             const takeProfit = this.safeDict (orderParams, 'takeProfit');
-            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (orderParams, 'childOrders') !== undefined);
+            const childOrders = this.safeValue (orderParams, 'childOrders');
+            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (childOrders !== undefined);
             if (isConditional) {
                 throw new NotSupported (this.id + ' createOrders() only support non-stop order');
             }
@@ -1950,7 +1949,8 @@ export default class modetrade extends Exchange {
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
-        const isConditional = (triggerPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
+        const childOrders = this.safeValue (params, 'childOrders');
+        const isConditional = (triggerPrice !== undefined) || (childOrders !== undefined);
         let orderQtyKey: Str = 'order_quantity';
         if (isConditional) {
             orderQtyKey = 'quantity';

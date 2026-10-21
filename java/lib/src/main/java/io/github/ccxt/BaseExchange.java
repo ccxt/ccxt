@@ -106,13 +106,13 @@ public class BaseExchange {
         Object backoff = (wsOptions == null) ? null : Helpers.GetValue(wsOptions, "backoff");
         if (backoff != null) {
             Object value = Helpers.GetValue(backoff, "base");
-            if (value != null) { base = Helpers.toInt64(value); }
+            if (value != null) { base = switch (value) { case Long hx4J42l -> hx4J42l.longValue(); case Integer hx4J42i -> hx4J42i.longValue(); case Double hx4J42d -> hx4J42d.longValue(); case Float hx4J42f -> hx4J42f.longValue(); case java.math.BigDecimal hx4J42b -> hx4J42b.longValue(); default -> Long.parseLong(String.valueOf(value)); }; }
             value = Helpers.GetValue(backoff, "factor");
-            if (value != null) { factor = Helpers.toInt64(value); }
+            if (value != null) { factor = switch (value) { case Long hx4J42l -> hx4J42l.longValue(); case Integer hx4J42i -> hx4J42i.longValue(); case Double hx4J42d -> hx4J42d.longValue(); case Float hx4J42f -> hx4J42f.longValue(); case java.math.BigDecimal hx4J42b -> hx4J42b.longValue(); default -> Long.parseLong(String.valueOf(value)); }; }
             value = Helpers.GetValue(backoff, "max");
-            if (value != null) { maxDelay = Helpers.toInt64(value); }
+            if (value != null) { maxDelay = switch (value) { case Long hx4J42l -> hx4J42l.longValue(); case Integer hx4J42i -> hx4J42i.longValue(); case Double hx4J42d -> hx4J42d.longValue(); case Float hx4J42f -> hx4J42f.longValue(); case java.math.BigDecimal hx4J42b -> hx4J42b.longValue(); default -> Long.parseLong(String.valueOf(value)); }; }
             value = Helpers.GetValue(backoff, "stableAfter");
-            if (value != null) { stableAfter = Helpers.toInt64(value); }
+            if (value != null) { stableAfter = switch (value) { case Long hx4J42l -> hx4J42l.longValue(); case Integer hx4J42i -> hx4J42i.longValue(); case Double hx4J42d -> hx4J42d.longValue(); case Float hx4J42f -> hx4J42f.longValue(); case java.math.BigDecimal hx4J42b -> hx4J42b.longValue(); default -> Long.parseLong(String.valueOf(value)); }; }
         }
         long now = this.milliseconds();
         long attempts = 0L;
@@ -742,7 +742,7 @@ public class BaseExchange {
             crc = (crc >>> 8) ^ crc32Table[(crc ^ s.charAt(i)) & 0xFF];
         }
         long unsigned = ((long)(crc ^ (-1))) & 0xFFFFFFFFL;
-        boolean isSigned = Helpers.isTrue(signed);
+        boolean isSigned = (switch ((Object) (signed)) { case null -> false; case Boolean hx4J40v0 -> hx4J40v0.booleanValue(); case Long hx4J40v0 -> hx4J40v0 != 0L; case Integer hx4J40v0 -> hx4J40v0 != 0; case Double hx4J40v0 -> hx4J40v0 != 0.0; case String hx4J40v0 -> !hx4J40v0.isEmpty(); case java.util.List<?> hx4J40v0 -> !hx4J40v0.isEmpty(); case java.util.Map<?, ?> hx4J40v0 -> true; default -> false; });
         if (isSigned && unsigned >= 0x80000000L) {
             return unsigned - 0x100000000L;
         }
@@ -870,7 +870,7 @@ public class BaseExchange {
 
     public Object isDictionary(Object value)
     {
-        return Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArray(value));
+        return (switch ((Object) ((switch ((Object) ((!(((Object) (value)) == null)))) { case null -> false; case Boolean hx4J40v3 -> hx4J40v3.booleanValue(); case Long hx4J40v3 -> hx4J40v3 != 0L; case Integer hx4J40v3 -> hx4J40v3 != 0; case Double hx4J40v3 -> hx4J40v3 != 0.0; case String hx4J40v3 -> !hx4J40v3.isEmpty(); case java.util.List<?> hx4J40v3 -> !hx4J40v3.isEmpty(); case java.util.Map<?, ?> hx4J40v3 -> true; default -> false; }) && (switch ((Object) (((value instanceof java.util.Map)))) { case null -> false; case Boolean hx4J40v1 -> hx4J40v1.booleanValue(); case Long hx4J40v1 -> hx4J40v1 != 0L; case Integer hx4J40v1 -> hx4J40v1 != 0; case Double hx4J40v1 -> hx4J40v1 != 0.0; case String hx4J40v1 -> !hx4J40v1.isEmpty(); case java.util.List<?> hx4J40v1 -> !hx4J40v1.isEmpty(); case java.util.Map<?, ?> hx4J40v1 -> true; default -> false; }))) { case null -> false; case Boolean hx4J40v4 -> hx4J40v4.booleanValue(); case Long hx4J40v4 -> hx4J40v4 != 0L; case Integer hx4J40v4 -> hx4J40v4 != 0; case Double hx4J40v4 -> hx4J40v4 != 0.0; case String hx4J40v4 -> !hx4J40v4.isEmpty(); case java.util.List<?> hx4J40v4 -> !hx4J40v4.isEmpty(); case java.util.Map<?, ?> hx4J40v4 -> true; default -> false; }) && !(switch ((Object) ((switch ((Object) (value)) { case null -> false; case java.util.List<?> hx4J44v0 -> true; case Object hx4J44v0 -> hx4J44v0.getClass().isArray(); }))) { case null -> false; case Boolean hx4J40v0 -> hx4J40v0.booleanValue(); case Long hx4J40v0 -> hx4J40v0 != 0L; case Integer hx4J40v0 -> hx4J40v0 != 0; case Double hx4J40v0 -> hx4J40v0 != 0.0; case String hx4J40v0 -> !hx4J40v0.isEmpty(); case java.util.List<?> hx4J40v0 -> !hx4J40v0.isEmpty(); case java.util.Map<?, ?> hx4J40v0 -> true; default -> false; });
     }
 
     public String ethGetAddressFromPrivateKey(Object privateKey) {
@@ -3927,7 +3927,7 @@ public class BaseExchange {
             return new Pair<>(value, this.omit(parameters, new ArrayList<Object>(Arrays.asList(optionName, defaultOptionName))));
         }
         // routed methods like "watchTrades > watchTradesForSymbols" (handleParamString of callerMethodName)
-        String callerMethodName = this.safeString(parameters, "callerMethodName", Helpers.toStringArg(methodName));
+        String callerMethodName = this.safeString(parameters, "callerMethodName", java.util.Objects.toString(methodName, null));
         java.util.Map<String, Object> paramsCallerMethodName = (callerMethodName != null) ? this.omit(parameters, "callerMethodName") : parameters;
         Object exchangeWideMethodOptions = this.safeValue(this.options, callerMethodName);
         if (exchangeWideMethodOptions != null) {

@@ -1848,7 +1848,10 @@ export default class tokocrypto extends Exchange {
         // only supported for spot/margin api
         const typeResolved: OrderType = (postOnly === true) ? 'LIMIT_MAKER' : type;
         // post only is expressed by the order type here, not by a time force
-        const timeInForceResolved: Str = (postOnly === true) ? undefined : requestedTimeInForce;
+        let timeInForceResolved: Str = requestedTimeInForce;
+        if (postOnly === true) {
+            timeInForceResolved = undefined;
+        }
         const initialUppercaseType = typeResolved.toUpperCase ();
         let uppercaseType = initialUppercaseType;
         const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');

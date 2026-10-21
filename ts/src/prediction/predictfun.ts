@@ -297,11 +297,7 @@ export default class predictfun extends Exchange {
     override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
         // the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
         // overrides it so a caller can pass the slug the same way fetchEvents () takes it
-        const paramSlug = this.safeString (params, 'slug');
-        let slug = id;
-        if (paramSlug !== undefined) {
-            slug = paramSlug;
-        }
+        const slug = this.safeString (params, 'slug', id);
         if (slug === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchEvent() requires the "id" argument or the "slug" parameter');
         }
@@ -1421,7 +1417,8 @@ export default class predictfun extends Exchange {
         let outcomeFound = false;
         for (let i = 0; i < rawOutcomesLength; i++) {
             const candidate = rawOutcomes[i];
-            if (this.safeInteger (candidate, 'indexSet') === indexSet) {
+            const candidateIndexSet = this.safeInteger (candidate, 'indexSet');
+            if (candidateIndexSet === indexSet) {
                 rawOutcome = candidate;
                 outcomeFound = true;
                 break;
@@ -3098,7 +3095,7 @@ export default class predictfun extends Exchange {
         // silently leaving those two languages with a stale cache
         const subMessageHashesLength = subMessageHashes.length;
         for (let i = 0; i < subMessageHashesLength; i++) {
-            const subHash = subMessageHashes[i];
+            const subHash = this.safeString (subMessageHashes, i);
             if ((subHash === 'orders') || (subHash === 'myTrades')) {
                 this.cleanCache ({
                     'topic': subHash,
@@ -3121,7 +3118,7 @@ export default class predictfun extends Exchange {
     override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let messageHash = 'orders';
         let outcomeResolved: Str = outcome;
-        if (outcomeResolved !== undefined) {
+        if (outcome !== undefined) {
             await this.loadOutcome (outcomeResolved);
             const outcomeObj = this.outcome (outcomeResolved);
             outcomeResolved = this.safeOutcomeSymbol (undefined, outcomeObj);
@@ -3156,7 +3153,7 @@ export default class predictfun extends Exchange {
     override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         let messageHash = 'myTrades';
         let outcomeResolved: Str = outcome;
-        if (outcomeResolved !== undefined) {
+        if (outcome !== undefined) {
             await this.loadOutcome (outcomeResolved);
             const outcomeObj = this.outcome (outcomeResolved);
             outcomeResolved = this.safeOutcomeSymbol (undefined, outcomeObj);
@@ -3621,7 +3618,8 @@ export default class predictfun extends Exchange {
         for (let i = 0; i < outcomesLength; i++) {
             const candidate = outcomes[i];
             const info = this.safeDict (candidate, 'info', {});
-            if (this.safeInteger (info, 'indexSet') === outcomeIndex) {
+            const candidateIndexSet = this.safeInteger (info, 'indexSet');
+            if (candidateIndexSet === outcomeIndex) {
                 return candidate;
             }
         }

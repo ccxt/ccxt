@@ -3133,10 +3133,12 @@ export default class lbank extends Exchange {
                 const cacheSecretAsPem = this.safeBool (this.options, 'cacheSecretAsPem', true);
                 let pem: Str = undefined;
                 if (cacheSecretAsPem === true) {
-                    pem = this.safeString (this.options, 'pem');
-                    if (pem === undefined) {
+                    const cachedPem = this.safeString (this.options, 'pem');
+                    if (cachedPem === undefined) {
                         pem = this.convertSecretToPem (this.encode (this.secret));
                         this.options['pem'] = pem;
+                    } else {
+                        pem = cachedPem;
                     }
                 } else {
                     pem = this.convertSecretToPem (this.encode (this.secret));

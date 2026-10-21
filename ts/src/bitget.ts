@@ -2319,8 +2319,9 @@ export default class bitget extends Exchange {
                     symbol = symbol + ':' + settle;
                 } else if (symbolType === 'delivery') {
                     expiry = this.safeInteger (market, 'deliveryTime');
-                    expiryDatetime = this.iso8601 (expiry);
-                    const expiryParts = (expiryDatetime as string).split ('-');
+                    const expiryIso = this.iso8601 (expiry) as string;
+                    expiryDatetime = expiryIso;
+                    const expiryParts = expiryIso.split ('-');
                     const yearPart = this.safeString (expiryParts, 0, '');
                     const dayPart = this.safeString (expiryParts, 2, '');
                     const year = yearPart.slice (2, 4);
@@ -2537,7 +2538,6 @@ export default class bitget extends Exchange {
                 continue;
             }
             let settleId: Str = undefined;
-            let settle: Str = undefined;
             if (category === 'USDT-FUTURES') {
                 settleId = 'USDT';
             } else if (category === 'USDC-FUTURES') {
@@ -2545,9 +2545,7 @@ export default class bitget extends Exchange {
             } else if (category === 'COIN-FUTURES') {
                 settleId = base;
             }
-            if (settleId !== undefined) {
-                settle = this.safeCurrencyCode (settleId);
-            }
+            const settle = this.safeCurrencyCode (settleId);
             let symbol = base + '/' + quote;
             let type: Str = undefined;
             let swap = false;
@@ -2586,8 +2584,9 @@ export default class bitget extends Exchange {
                     symbol = symbol + ':' + settle;
                 } else if (symbolType === 'delivery') {
                     expiry = this.safeInteger (market, 'deliveryTime');
-                    expiryDatetime = this.iso8601 (expiry);
-                    const expiryParts = (expiryDatetime as string).split ('-');
+                    const expiryIso = this.iso8601 (expiry) as string;
+                    expiryDatetime = expiryIso;
+                    const expiryParts = expiryIso.split ('-');
                     const yearPart = this.safeString (expiryParts, 0, '');
                     const dayPart = this.safeString (expiryParts, 2, '');
                     const year = yearPart.slice (2, 4);
@@ -6084,7 +6083,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const ordersRequests: List = [];
-        let symbol: Str = undefined;
+        let symbol: Str = this.safeString (this.safeDict (orders, 0), 'symbol');
         let marginMode: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
@@ -6159,7 +6158,7 @@ export default class bitget extends Exchange {
             return await this.createUtaOrders (orders, paramsUTA);
         }
         const ordersRequests: List = [];
-        let symbol: Str = undefined;
+        let symbol: Str = this.safeString (this.safeDict (orders, 0), 'symbol');
         let marginMode: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
@@ -8886,9 +8885,9 @@ export default class bitget extends Exchange {
             request['category'] = productType;
             response = await this.privateUtaGetV3PositionCurrentPosition (this.extend (request, paramsPaginate));
         } else if (method === 'privateMixGetV2MixPositionAllPosition') {
-            let marginCoin = this.safeString (paramsPaginate, 'marginCoin', 'USDT');
+            let marginCoin: Str = this.safeString (paramsPaginate, 'marginCoin', 'USDT');
             if (market !== undefined) {
-                marginCoin = market['settleId'] as string;
+                marginCoin = this.safeString (market, 'settleId');
             } else if (productType === 'USDT-FUTURES') {
                 marginCoin = 'USDT';
             } else if (productType === 'USDC-FUTURES') {

@@ -2470,7 +2470,7 @@ const csharpComments: any = {};
 function csharpWorkerThreads () {
     const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
     if (requested > 0) {
-        return requested;
+        return Math.min (requested, 3);
     }
     return Math.max (1, Math.min (2, os.availableParallelism ()));
 }
@@ -9345,7 +9345,7 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true, c
     const c30Out = hx4C30NativeMath (objectNull, c33Out);
     const c31Out = (objectNull && c31) ? hx4C31NativeMath (c30Out) : c30Out;
     const c30Again = hx4C30NativeMath (objectNull, c31Out);
-    return hx4C32NativeCompare (objectNull, c30Again);
+    return hx4C34NativeEqualityInOp (objectNull, hx4C36NativeSlice (objectNull, hx4C35NativeHelperCalls (objectNull, hx4C32NativeCompare (objectNull, c30Again)))); // hx4 C34..C36
 }
 
 function nativeC07HelperCalls (content: string): string {
@@ -9555,7 +9555,7 @@ export function csharpHx4SelfTest (): string[] {
         };
         const keeps = (body: string, extra = '') => {
             const out = run (body, extra);
-            assert.ok (out.includes ('isEqual(') || out.includes ('(((object)('), `expected the helper to stay\n${out}`); // hx4 C33: exact inline forms
+            assert.ok (out.includes ('isEqual(') || out.includes ('(((object)(') || out.includes ('static (c34x, c34y) =>'), `expected the helper to stay\n${out}`); // hx4 C33/C34: exact inline forms
         };
 
         // positives
@@ -9785,6 +9785,9 @@ export function csharpHx4SelfTest (): string[] {
     problems.push (...hx4C28SelfTest ()); // hx4 C28
     problems.push (...hx4C26SelfTest ()); // hx4 C26
     problems.push (...hx4C32SnippetChecks ()); // hx4 C32
+    problems.push (...hx4C34SnippetChecks ()); // hx4 C34
+    problems.push (...hx4C35SnippetChecks ()); // hx4 C35
+    problems.push (...hx4C36SnippetChecks ()); // hx4 C36
     return problems.concat (hx4C17SelfTest ());
 }
 
@@ -13405,5 +13408,238 @@ function hx4C33SnippetChecks (): string[] {
     }
     if (hx4C33NativeHelperCalls (false, wrap ('        if (isTrue(x)) { }')) !== wrap ('        if (isTrue(x)) { }')) problems.push ('hx4 C33 objectNull=false changed');
     if (hx4C33NativeHelperCalls (true, wrap ('        if (isTrue(x)) { }', 'Tests')) !== wrap ('        if (isTrue(x)) { }', 'Tests')) problems.push ('hx4 C33 tests namespace changed');
+    return problems;
+}
+
+// hx4 C34 — final-text tail after C32: every remaining isEqual(a, b) / inOp(obj, key) -> the helper body
+// (Exchange.TranspileHelpers.cs isEqual + IsInteger + isNumber, InOp) inlined as a static lambda over the same
+// boxes; both inOp overloads answer InOp's IDictionary branch for a Dictionary<string, object> + string pair.
+export function hx4C34NativeEqualityInOp (objectNull: boolean, content: string): string {
+    if (!objectNull || !/(?<![\w.])(?:isEqual|inOp)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
+        return content;
+    }
+    const isInt = 'bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; }';
+    const eq = 'try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; }';
+    const inOp = 'if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false;';
+    const inline = (helper: string, a: string, b: string) => (helper === 'isEqual')
+        ? '((Func<object, object, bool>)(static (c34x, c34y) => { ' + isInt + ' ' + eq + ' }))(' + a + ', ' + b + ')'
+        : '((Func<object, object, bool>)(static (c34o, c34k) => { ' + inOp + ' }))(' + a + ', ' + b + ')';
+    const call = /(?<![\w.])(isEqual|inOp)\(/g;
+    const lines = content.split ('\n');
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        // rightmost call first: an operand never holds an unrewritten call when its container is replaced
+        for (let guard = 0; guard < 64; guard++) {
+            const masked = csharpHelperMaskLine (lines[i]);
+            const all = Array.from (masked.matchAll (call));
+            let done = true;
+            for (let k = all.length - 1; k >= 0; k--) {
+                const m = all[k];
+                const open = m.index + m[0].length - 1;
+                const close = csharpHelperCallEnd (masked, open);
+                if (close === undefined) continue;
+                const comma = csharpHelperTopLevelComma (masked, open, close);
+                if ((comma === undefined) || (csharpHelperTopLevelComma (masked, comma, close) !== undefined)) continue;
+                const a = lines[i].substring (open + 1, comma).trim ();
+                const b = lines[i].substring (comma + 1, close).trim ();
+                if ((a.length === 0) || (b.length === 0)) continue;
+                lines[i] = lines[i].substring (0, m.index) + inline (m[1], a, b) + lines[i].substring (close + 1);
+                changed = true;
+                done = false;
+                break;
+            }
+            if (done) break;
+        }
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// hx4 C34 snippet checks (run from csharpHx4SelfTest)
+function hx4C34SnippetChecks (): string[] {
+    const problems: string[] = [];
+    const wrap = (body: string, ns = 'ccxt') => `namespace ${ns};\npublic partial class t : Exchange\n{\n    public virtual object f(object x, object y)\n    {\n${body}\n    }\n}\n`;
+    const left = (out: string) => /(?<![\w.])(?:isEqual|inOp)\(/.test (out.split ('\n').map (csharpHelperMaskLine).join ('\n'));
+    const cases: [string, string, string][] = [
+        [ 'isEqual names', '        if (isEqual(x, y)) { }', 'if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(' ],
+        [ 'isEqual args kept', '        if (!isEqual(getValue(x, "a"), this.f(x, y))) { }', ' }))(getValue(x, "a"), this.f(x, y))) { }' ],
+        [ 'inOp names', '        if (inOp(x, y)) { }', 'if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false;' ],
+        [ 'nested', '        if (isEqual(inOp(x, y), true)) { }', ' }))(((Func<object, object, bool>)(static (c34o, c34k) => {' ],
+        [ 'two on a line', '        bool b = inOp(x, y) && isEqual(y, x);', ' }))(x, y) && ((Func<object, object, bool>)(static (c34x, c34y) => {' ],
+        [ 'string untouched', '        string s = "isEqual(a, b)"; bool b = isEqual(x, y);', 'string s = "isEqual(a, b)";' ],
+    ];
+    for (const [ name, body, expected ] of cases) {
+        const out = hx4C34NativeEqualityInOp (true, wrap (body));
+        if (!out.includes (expected) || left (out)) problems.push (`hx4 C34 ${name}: ${out.slice (-500)}`);
+        if (hx4C34NativeEqualityInOp (true, out) !== out) problems.push (`hx4 C34 ${name}: not idempotent`);
+    }
+    const early = wrap ('        if (isEqual(x, y)) { }');
+    if (hx4C34NativeEqualityInOp (false, early) !== early) problems.push ('hx4 C34 fired in a non-final pass');
+    if (hx4C34NativeEqualityInOp (true, wrap ('        if (inOp(x, y)) { }', 'Tests')) !== wrap ('        if (inOp(x, y)) { }', 'Tests')) problems.push ('hx4 C34 tests namespace changed');
+    return problems;
+}
+
+// hx4 C35 — final-text tail: parseInt / parseFloat / toFixed become the helper body as a static lambda
+// (same code, same box, same exceptions/culture; argument evaluated once), and a divide(...) whose operand is a
+// C30 object-lambda call (C# binds the object overload) gets C31's object-overload inline form.
+export function hx4C35NativeHelperCalls (objectNull: boolean, content: string): string {
+    if (!objectNull || !/(?<![\w.])(?:parseInt|parseFloat|toFixed|divide)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
+        return content;
+    }
+    const bodies = {
+        'parseInt': '((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))',
+        'parseFloat': '((Func<object, object>)(static (object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))',
+        'toFixed': '((Func<object, object, object>)(static (object hx4pa, object hx4pb) => Math.Round((double)hx4pa, (int)hx4pb)))',
+    };
+    const lambdaHead = '((Func<object, object, object>)(static (object hx4a, object hx4b) =>';
+    // the C30 object-lambda invocation `((Func<...>)(static ...))(X, Y)`: static type object
+    const isObjectLambdaCall = (text: string): boolean => {
+        const t = hx4C05StripParens (text);
+        if (!t.startsWith (lambdaHead)) return false;
+        const f = hx4C05ClosingParen (t, 0);
+        return (f !== undefined) && (t[f + 1] === '(') && (hx4C05ClosingParen (t, f + 1) === t.length - 1);
+    };
+    let counter = Math.max (-1, ...Array.from (content.matchAll (/\bc35v(\d+)\b/g), (m) => Number (m[1]))) + 1;
+    const rewrite = (text: string): string => {
+        let out = '';
+        let last = 0;
+        const callRe = /(?<![A-Za-z0-9_.])(parseInt|parseFloat|toFixed|divide)\(/g;
+        let m;
+        while ((m = callRe.exec (text)) !== null) {
+            const open = m.index + m[0].length - 1;
+            const close = hx4C05ClosingParen (text, open);
+            if (close === undefined) continue;
+            const inner = rewrite (text.slice (open + 1, close));
+            let native: string | undefined;
+            if (m[1] === 'divide') {
+                const comma = csharpHelperTopLevelComma (text, open, close);
+                if ((comma !== undefined) && (csharpHelperTopLevelComma (text, comma, close) === undefined)) {
+                    const rawA = text.slice (open + 1, comma);
+                    const rawB = text.slice (comma + 1, close);
+                    if (isObjectLambdaCall (rawA) || isObjectLambdaCall (rawB)) {
+                        const A = rewrite (rawA).trim ();
+                        const B = rewrite (rawB).trim ();
+                        const x = 'c35v' + (counter++);
+                        const y = 'c35v' + (counter++);
+                        native = '((((((object)(' + A + ')) is var ' + x + ') && (((object)(' + B + ')) is var ' + y + ')) ? (((' + x + ' == null) || (' + y + ' == null)) ? null : (object)(Convert.ToDouble(' + x + ') / Convert.ToDouble(' + y + '))) : null))';
+                    }
+                }
+            } else {
+                const comma = csharpHelperTopLevelComma (text, open, close);
+                const arity = (comma === undefined) ? 1 : ((csharpHelperTopLevelComma (text, comma, close) === undefined) ? 2 : 3);
+                if ((inner.trim () !== '') && (arity === ((m[1] === 'toFixed') ? 2 : 1))) native = '(' + bodies[m[1]] + '(' + inner + '))';
+            }
+            out += text.slice (last, m.index) + (native ?? (m[1] + '(' + inner + ')'));
+            last = close + 1;
+            callRe.lastIndex = close + 1;
+        }
+        return out + text.slice (last);
+    };
+    const lines = content.split ('\n');
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        const masked = csharpHelperMaskLine (lines[i]);
+        if (!/(?<![\w.])(?:parseInt|parseFloat|toFixed|divide)\(/.test (masked) || lines[i].includes ('\u0001')) continue;
+        if (/\b(?:public|private|protected|internal)\b[^=]*\b(?:parseInt|parseFloat|toFixed|divide)\(/.test (masked)) continue; // a declaration
+        const comment = masked.indexOf ('//');
+        const code = (comment < 0) ? lines[i] : lines[i].slice (0, comment);
+        const strings = [];
+        const opaque = code.replace (/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, (s) => { strings.push (s); return '\u0001' + '\u0002'.repeat (s.length - 2) + '\u0001'; });
+        const saved = counter;
+        const text = rewrite (opaque);
+        let k = 0;
+        const rewritten = text.replace (/\u0001\u0002*\u0001/g, () => strings[k++]);
+        if ((k !== strings.length) || (rewritten === code)) { counter = saved; continue; }
+        lines[i] = rewritten + ((comment < 0) ? '' : lines[i].slice (comment));
+        changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// hx4 C35 snippet checks (run from csharpHx4SelfTest)
+function hx4C35SnippetChecks (): string[] {
+    const problems: string[] = [];
+    const wrap = (body: string, ns = 'ccxt') => `namespace ${ns};\npublic partial class t : Exchange\n{\n    public virtual object f(object o, object id)\n    {\n${body}\n    }\n}\n`;
+    const helper = /(?<![\w.])(?:parseInt|parseFloat|toFixed|divide)\(/;
+    const cases: [string, string, string][] = [
+        [ 'parseInt', '        Int64? x = parseInt(id);', 'Int64? x = (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(id));' ],
+        [ 'parseFloat in dict', '        object r = new Dictionary<string, object>() { { "cost", parseFloat(getValue(o, "a(")) } };', '(object hx4pa) => { object hx4pv = null; try { hx4pv = (Convert.ToDouble(hx4pa, global::System.Globalization.CultureInfo.InvariantCulture.NumberFormat)); } catch (Exception) { } return hx4pv; }))(getValue(o, "a(")))' ],
+        [ 'toFixed nested', '        return toFixed(parseFloat(o), 8);', 'return (((Func<object, object, object>)(static (object hx4pa, object hx4pb) => Math.Round((double)hx4pa, (int)hx4pb)))((((Func<object, object>)' ],
+        [ 'divide of object lambda', '        object r = divide(((Func<object, object, object>)(static (object hx4a, object hx4b) => hx4a))(o, id), 2.0); // c', 'object r = ((((((object)(((Func<object, object, object>)(static (object hx4a, object hx4b) => hx4a))(o, id))) is var c35v0) && (((object)(2.0)) is var c35v1)) ? (((c35v0 == null) || (c35v1 == null)) ? null : (object)(Convert.ToDouble(c35v0) / Convert.ToDouble(c35v1))) : null)); // c' ],
+    ];
+    for (const [ name, body, expected ] of cases) {
+        const out = hx4C35NativeHelperCalls (true, wrap (body));
+        if (!out.includes (expected)) problems.push (`hx4 C35 ${name}: ${out.slice (-600)}`);
+        if (helper.test (out.replace (/\/\/.*$/gm, ''))) problems.push (`hx4 C35 ${name}: helper left`);
+        if (hx4C35NativeHelperCalls (true, out) !== out) problems.push (`hx4 C35 ${name}: not idempotent`);
+    }
+    const keeps = [ '        object r = divide(o, id);', '        object r = this.parseInt(o);', '        // parseInt(o)' ];
+    for (const body of keeps) {
+        if (hx4C35NativeHelperCalls (true, wrap (body)) !== wrap (body)) problems.push (`hx4 C35 keeps ${body}`);
+    }
+    if (hx4C35NativeHelperCalls (false, wrap ('        object r = parseInt(o);')) !== wrap ('        object r = parseInt(o);')) problems.push ('hx4 C35 fired in a non-final pass');
+    if (hx4C35NativeHelperCalls (true, wrap ('        object r = parseInt(o);', 'Tests')) !== wrap ('        object r = parseInt(o);', 'Tests')) problems.push ('hx4 C35 tests namespace changed');
+    return problems;
+}
+
+// hx4 C36 — final-text tail: every `slice(s, a, b)` call (string helper, any operand box) becomes the
+// helper body of Exchange.TranspileHelpers.cs `Slice` inlined as a static lambda (renamed locals, each
+// argument evaluated once, left to right). Final pass only; the tests namespace keeps the helper.
+export function hx4C36NativeSlice (finalPass: boolean, content: string): string {
+    const call = /(?<![\w.])slice\(/g;
+    if (!finalPass || !/(?<![\w.])slice\(/.test (content) || /^namespace Tests\b/m.test (content)) {
+        return content;
+    }
+    const body = '((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))';
+    const lines = content.split ('\n');
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        let out = lines[i];
+        for (let guard = 0; guard < 64; guard++) {
+            const masked = csharpHelperMaskLine (out);
+            const all = Array.from (masked.matchAll (call));
+            let done = true;
+            for (let k = all.length - 1; k >= 0; k--) {
+                const m = all[k];
+                const open = m.index + m[0].length - 1;
+                const close = csharpHelperCallEnd (masked, open);
+                if (close === undefined) continue;
+                const c1 = csharpHelperTopLevelComma (masked, open, close);
+                const c2 = (c1 === undefined) ? undefined : csharpHelperTopLevelComma (masked, c1, close);
+                if ((c2 === undefined) || (csharpHelperTopLevelComma (masked, c2, close) !== undefined)) continue;
+                out = out.substring (0, m.index) + body + out.substring (open, close + 1) + out.substring (close + 1);
+                done = false;
+                break;
+            }
+            if (done) break;
+        }
+        if (out !== lines[i]) {
+            lines[i] = out;
+            changed = true;
+        }
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// hx4 C36 snippet checks (run from csharpHx4SelfTest)
+function hx4C36SnippetChecks (): string[] {
+    const problems: string[] = [];
+    const wrap = (body: string, ns = 'ccxt') => `namespace ${ns};\npublic partial class t : Exchange\n{\n    public virtual object f(object x, object y)\n    {\n${body}\n    }\n}\n`;
+    const cases: [string, string, string][] = [
+        [ 'two bounds', '        string s = slice(x, 0, y);', '=> { if (s36s == null) { return null; }' ],
+        [ 'null end', '        string s = slice(x, -64, null);', '}))(x, -64, null);' ],
+        [ 'nested', '        string s = slice(slice(x, 1, null), 0, y);', '}))(((Func<object, object, object, string>)(static' ],
+        [ 'in concat', '        string s = (slice(x, 0, 2) + \"-\") + slice(x, 2, null);', '}))(x, 2, null);' ],
+    ];
+    for (const [ name, body, expected ] of cases) {
+        const out = hx4C36NativeSlice (true, wrap (body));
+        if (!out.includes (expected) || /(?<![\w.])slice\(/.test (csharpHelperMaskLine (out.split ('\n')[5]))) problems.push (`hx4 C36 ${name}: ${out.slice (-400)}`);
+        if (hx4C36NativeSlice (true, out) !== out) problems.push (`hx4 C36 ${name}: not idempotent`);
+    }
+    const keeps = [ '        string s = x.slice(0, 2);', '        string s = \"slice(x, 0, 1)\";', '        // slice(x, 0, 1)', '        object s = this.slice(x, 0, 1);' ];
+    for (const body of keeps) {
+        if (hx4C36NativeSlice (true, wrap (body)) !== wrap (body)) problems.push (`hx4 C36 keeps ${body}`);
+    }
+    if (hx4C36NativeSlice (false, wrap ('        string s = slice(x, 0, y);')) !== wrap ('        string s = slice(x, 0, y);')) problems.push ('hx4 C36 non-final pass changed');
+    if (hx4C36NativeSlice (true, wrap ('        string s = slice(x, 0, y);', 'Tests')) !== wrap ('        string s = slice(x, 0, y);', 'Tests')) problems.push ('hx4 C36 tests namespace changed');
     return problems;
 }

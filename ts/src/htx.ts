@@ -1712,11 +1712,12 @@ export default class htx extends Exchange {
             let inverse: Bool = undefined;
             // check if parsed market is contract
             if (contract) {
-                id = this.safeString (market, 'contract_code');
-                if (id === undefined) {
+                const contractId = this.safeString (market, 'contract_code');
+                if (contractId === undefined) {
                     throw new ExchangeError (this.id + ' method() missing id');
                 }
-                lowercaseId = id.toLowerCase ();
+                id = this.safeString (market, 'contract_code');
+                lowercaseId = contractId.toLowerCase ();
                 const delivery_date = this.safeString (market, 'delivery_date');
                 const business_type = this.safeString (market, 'business_type');
                 future = delivery_date !== undefined;
@@ -1725,10 +1726,7 @@ export default class htx extends Exchange {
                 inverse = !linear;
                 if (swap) {
                     marketType = 'swap';
-                    if (id === undefined) {
-                        throw new ExchangeError (this.id + ' method() missing id');
-                    }
-                    const parts = id.split ('-');
+                    const parts = contractId.split ('-');
                     baseId = this.safeStringLower (market, 'symbol');
                     quoteId = this.safeStringLower (parts, 1);
                     settleId = inverse ? baseId : quoteId;
@@ -1750,16 +1748,19 @@ export default class htx extends Exchange {
                 }
             } else {
                 marketType = 'spot';
-                baseId = this.safeString (market, 'base-currency');
-                quoteId = this.safeString (market, 'quote-currency');
-                if (quoteId === undefined) {
+                const spotBaseId = this.safeString (market, 'base-currency');
+                const spotQuoteId = this.safeString (market, 'quote-currency');
+                if (spotQuoteId === undefined) {
                     throw new ExchangeError (this.id + ' method() missing quoteId');
                 }
-                if (baseId === undefined) {
+                if (spotBaseId === undefined) {
                     throw new ExchangeError (this.id + ' method() missing baseId');
                 }
-                id = baseId + quoteId;
-                lowercaseId = id.toLowerCase ();
+                baseId = spotBaseId;
+                quoteId = spotQuoteId;
+                const spotId = spotBaseId + spotQuoteId;
+                id = spotId;
+                lowercaseId = spotId.toLowerCase ();
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -2575,9 +2576,10 @@ export default class htx extends Exchange {
         const timestamp = this.safeIntegerN (trade, [ 'ts', 'created-at', 'created_at', 'create_date', 'created_time' ]);
         const order = this.safeString2 (trade, 'order-id', 'order_id');
         let side = this.safeString2 (trade, 'direction', 'side');
+        const rawType = this.safeString (trade, 'type');
         let type = this.safeString (trade, 'type');
-        if ((type !== undefined) && (type.indexOf ('-') >= 0)) {
-            const typeParts = type.split ('-');
+        if ((rawType !== undefined) && (rawType.indexOf ('-') >= 0)) {
+            const typeParts = rawType.split ('-');
             side = typeParts[0];
             type = typeParts[1];
         }
@@ -3899,9 +3901,6 @@ export default class htx extends Exchange {
         }
         if (this.safeString (balance, 'type') === 'trade') {
             account['free'] = this.safeString (balance, 'balance');
-        }
-        if (account === undefined) {
-            throw new ExchangeError (this.id + ' parseMarginBalanceHelper() could not resolve account');
         }
         if (this.safeString (balance, 'type') === 'frozen') {
             account['used'] = this.safeString (balance, 'balance');
@@ -6507,10 +6506,7 @@ export default class htx extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        let limitValue: Int = limit;
-        if (limit === undefined || limit > 100) {
-            limitValue = 100;
-        }
+        const limitValue = (limit === undefined || limit > 100) ? 100 : limit;
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6526,9 +6522,7 @@ export default class htx extends Exchange {
         if (currency !== undefined) {
             request['currency'] = currency['id'];
         }
-        if (limitValue !== undefined) {
-            request['size'] = limitValue; // max 100
-        }
+        request['size'] = limitValue; // max 100
         const response = await this.spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
         //
         //    {
@@ -6572,10 +6566,7 @@ export default class htx extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        let limitValue: Int = limit;
-        if (limit === undefined || limit > 100) {
-            limitValue = 100;
-        }
+        const limitValue = (limit === undefined || limit > 100) ? 100 : limit;
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6591,9 +6582,7 @@ export default class htx extends Exchange {
         if (currency !== undefined) {
             request['currency'] = currency['id'];
         }
-        if (limitValue !== undefined) {
-            request['size'] = limitValue; // max 100
-        }
+        request['size'] = limitValue; // max 100
         const response = await this.spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
         //
         //    {

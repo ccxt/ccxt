@@ -3905,7 +3905,7 @@ export default class phemex extends Exchange {
         if (firstSymbol !== undefined) {
             market = this.market (firstSymbol);
             settle = this.safeString (market, 'settle');
-            code = market['settle'];
+            code = this.safeString (market, 'settle');
         } else {
             [ settle, paramsSettle ] = this.handleOptionStringAndParams (paramsOmitted, 'fetchPositions', 'settle', code);
         }
@@ -4283,7 +4283,8 @@ export default class phemex extends Exchange {
             request['limit'] = limit;
         }
         let response: Dict;
-        const isStableSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
+        const marketSettle = this.safeString (market, 'settle');
+        const isStableSettled = marketSettle === 'USDT' || marketSettle === 'USDC';
         if (isStableSettled) {
             response = await this.privateGetApiDataGFuturesFundingFees (this.extend (request, params));
         } else {
@@ -4337,7 +4338,8 @@ export default class phemex extends Exchange {
             return value;
         }
         // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
-        const isStableSettled = market['settle'] === 'USDT' || market['settle'] === 'USDC';
+        const marketSettle = this.safeString (market, 'settle');
+        const isStableSettled = marketSettle === 'USDT' || marketSettle === 'USDC';
         if (isStableSettled) {
             return value;
         }
@@ -5561,7 +5563,7 @@ export default class phemex extends Exchange {
         if (firstSymbol !== undefined) {
             market = this.market (firstSymbol);
             settle = this.safeString (market, 'settle');
-            code = market['settle'];
+            code = this.safeString (market, 'settle');
         } else {
             [ settle, paramsSettle ] = this.handleOptionStringAndParams (paramsOmitted, 'fetchPositionsADLRank', 'settle', code);
         }

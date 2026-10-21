@@ -999,7 +999,7 @@ export default class woo extends wooRest {
         }
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
-        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
         if (symbolResolved !== undefined) {
             messageHash += ':' + symbolResolved;
         }
@@ -1040,7 +1040,7 @@ export default class woo extends wooRest {
         }
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = 'myTrades';
-        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
         if (symbolResolved !== undefined) {
             messageHash += ':' + symbolResolved;
         }

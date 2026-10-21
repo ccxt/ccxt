@@ -2016,7 +2016,7 @@ export default class xt extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 's');
-        let marketType: Str = (market !== undefined) ? this.safeString (market, 'type') : undefined;
+        let marketType = this.safeString (market, 'type');
         const hasSpotKeys = ('cv' in ticker) || ('aq' in ticker);
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
@@ -2367,7 +2367,7 @@ export default class xt extends Exchange {
         //    }
         //
         const marketId = this.safeString2 (trade, 's', 'symbol');
-        let marketType: Str = (market !== undefined) ? this.safeString (market, 'type') : undefined;
+        let marketType = this.safeString (market, 'type');
         const hasSpotKeys = ('b' in trade) || ('bizType' in trade) || ('oi' in trade);
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
@@ -2704,7 +2704,7 @@ export default class xt extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async createContractOrder (symbol: string, type: OrderType, side: any, amount: any, price: Num = undefined, params: Dict = {}): Promise<Order> {
+    async createContractOrder (symbol: string, type: OrderType, side: OrderSide, amount: any, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5889,14 +5889,8 @@ export default class xt extends Exchange {
             const timestamp = this.numberToString (this.nonce ());
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
                 const id = 'CCXT';
-                if (query === undefined) {
-                    throw new NullResponse (this.id + ' sign() returned empty body');
-                }
                 if (payload.indexOf ('future') > -1) {
                     query['clientMedia'] = id;
-                    if (query === undefined) {
-                        throw new NullResponse (this.id + ' sign() returned empty body');
-                    }
                 } else {
                     query['media'] = id;
                 }

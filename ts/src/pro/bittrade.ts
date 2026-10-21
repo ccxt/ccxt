@@ -307,8 +307,8 @@ export default class bittrade extends bittradeRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         // only supports a limit of 150 at this time
-        const limitValue: Int = (limit === undefined) ? 150 : limit;
-        const messageHash = 'market.' + market['id'] + '.mbp.' + limitValue.toString ();
+        const limitValue: Int = 150;
+        const messageHash = 'market.' + market['id'] + '.mbp.150';
         const api = this.safeString (this.options, 'api', 'api');
         const hostname: Dict = { 'hostname': this.hostname };
         const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
@@ -496,7 +496,7 @@ export default class bittrade extends bittradeRest {
             // no active subscription holds a book for this symbol, drop the delta
             return;
         }
-        if (orderbook['nonce'] === undefined) {
+        if (this.safeInteger (orderbook, 'nonce') === undefined) {
             orderbook.cache.push (message);
         } else {
             this.handleOrderBookMessage (client, message, orderbook);

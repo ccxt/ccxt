@@ -1862,7 +1862,7 @@ export default class kraken extends Exchange {
         return market;
     }
 
-    getDelistedMarketById (id: any) {
+    getDelistedMarketById (id: Str): any {
         if (id === undefined) {
             return id;
         }
@@ -2032,12 +2032,7 @@ export default class kraken extends Exchange {
         const orderOmitted: Dict = this.omit (order, 'usingCost');
         const description = this.safeDict (orderOmitted, 'descr', {});
         const orderDescriptionObj = this.safeDict (orderOmitted, 'descr'); // can be null
-        let orderDescription: Str = undefined;
-        if (orderDescriptionObj !== undefined) {
-            orderDescription = this.safeString (orderDescriptionObj, 'order');
-        } else {
-            orderDescription = this.safeString (orderOmitted, 'descr');
-        }
+        const orderDescription = (orderDescriptionObj !== undefined) ? this.safeString (orderDescriptionObj, 'order') : this.safeString (orderOmitted, 'descr');
         let side: Str = undefined;
         let rawType: Str = undefined;
         let marketId: Str = undefined;

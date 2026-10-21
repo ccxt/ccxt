@@ -1660,18 +1660,16 @@ export default class grvt extends Exchange {
         let addressTo = this.safeString (transaction, 'to_account_id');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        if ('transfer_metadata' in transaction) {
-            const metaData = this.omitZero (this.safeString (transaction, 'transfer_metadata'));
-            if (metaData !== undefined) {
-                const parsedMeta = this.parseJson (metaData);
-                direction = this.safeStringLower (parsedMeta, 'direction');
-                txId = this.safeString (parsedMeta, 'provider_tx_id');
-                networkCode = this.networkIdToCode (this.safeString (parsedMeta, 'chainid'), code);
-                if (direction === 'withdrawal') {
-                    addressTo = this.safeString (parsedMeta, 'endpoint');
-                } else if (direction === 'deposit') {
-                    addressFrom = this.safeString (parsedMeta, 'endpoint');
-                }
+        const metaData = this.omitZero (this.safeString (transaction, 'transfer_metadata'));
+        if (metaData !== undefined) {
+            const parsedMeta = this.parseJson (metaData);
+            direction = this.safeStringLower (parsedMeta, 'direction');
+            txId = this.safeString (parsedMeta, 'provider_tx_id');
+            networkCode = this.networkIdToCode (this.safeString (parsedMeta, 'chainid'), code);
+            if (direction === 'withdrawal') {
+                addressTo = this.safeString (parsedMeta, 'endpoint');
+            } else if (direction === 'deposit') {
+                addressFrom = this.safeString (parsedMeta, 'endpoint');
             }
         }
         const timestamp = this.safeIntegerProduct2 (transaction, 'event_time', 'initiated_time', 0.000001);
@@ -2223,7 +2221,10 @@ export default class grvt extends Exchange {
             const market = this.market (leg['instrument']);
             const precisionValue = this.precisionFromString (this.safeString (market['precision'], 'base'));
             const sizeMultiplier = Math.pow (10, precisionValue);
-            const size = leg['size'];
+            const size = this.safeString (leg, 'size');
+            if (size === undefined) {
+                throw new ArgumentsRequired (this.id + ' order leg requires a size');
+            }
             const sizeParts = size.split ('.');
             const sizeDec = this.safeString (sizeParts, 1, '');
             const sizeDecLength = sizeDec.length + 0; // php tr
@@ -2236,8 +2237,8 @@ export default class grvt extends Exchange {
                 'isBuyingContract': leg['is_buying_asset'],
             };
             const limitPrice = this.safeString (leg, 'limit_price');
-            if (this.omitZero (limitPrice) !== undefined) {
-                const price = leg['limit_price'];
+            if ((limitPrice !== undefined) && (this.omitZero (limitPrice) !== undefined)) {
+                const price = limitPrice;
                 const limitParts = price.split ('.');
                 const limitDec = this.safeString (limitParts, 1, '');
                 const limitDecLength = limitDec.length + 0; // php tr

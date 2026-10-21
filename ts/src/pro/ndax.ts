@@ -231,7 +231,7 @@ export default class ndax extends ndaxRest {
         const payload: Dict = {
             'OMSId': omsId,
             'InstrumentId': this.safeInteger (market, 'id'), // conditionally optional
-            'Interval': parseInt (this.safeString (this.timeframes, timeframe, timeframe)),
+            'Interval': this.parseToInt (this.safeString (this.timeframes, timeframe, timeframe)),
             'IncludeLastCount': 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
         };
         const request: Dict = {
@@ -305,7 +305,7 @@ export default class ndax extends ndaxRest {
                 ];
                 const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
                 const length: number = stored.length;
-                if ((length > 0) && (parsed[0] === stored[length - 1][0])) {
+                if ((length > 0) && (candleTimestamp === this.safeInteger (stored[length - 1], 0))) {
                     const previous = stored[length - 1];
                     const parsedHigh = this.safeFloat (ohlcv, 1);
                     const previousHigh = this.safeFloat (previous, 1);

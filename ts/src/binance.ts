@@ -3465,7 +3465,7 @@ export default class binance extends Exchange {
         }
         const fetchMargins = this.safeBool (this.options, 'fetchMargins', false);
         for (let i = 0; i < fetchMarkets.length; i++) {
-            const marketType = fetchMarkets[i];
+            const marketType = this.safeString (fetchMarkets, i);
             if (marketType === 'spot') {
                 promisesRaw.push (this.publicGetExchangeInfo (params));
                 if ((fetchMargins === true) && this.checkRequiredCredentials (false) && (isDemoEnv !== true)) {
@@ -7746,12 +7746,15 @@ export default class binance extends Exchange {
         }
         const request: Dict = {};
         let market: Market = undefined;
-        let stock: Bool = undefined;
+        let stock = false;
         let paramsStock = undefined;
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'fetchOrder', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = this.safeBool (market, 'stock', false);
+            stock = false;
+            if (this.safeBool (market, 'stock', false)) {
+                stock = true;
+            }
             if (stock !== true) {
                 request['symbol'] = market['id'];
             }
@@ -7868,11 +7871,14 @@ export default class binance extends Exchange {
         }
         const request: Dict = {};
         let market: Market = undefined;
-        let stock: Bool = undefined;
+        let stock = false;
         [ stock, paramsPaginate ] = this.handleOptionBoolAndParams (paramsPaginate, 'fetchOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = this.safeBool (market, 'stock', false);
+            stock = false;
+            if (this.safeBool (market, 'stock', false)) {
+                stock = true;
+            }
             request['symbol'] = market['id'];
         }
         let type: Str = undefined;
@@ -8222,11 +8228,14 @@ export default class binance extends Exchange {
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, paramsMarginMode ] = this.handleOptionBoolAndParams2 (paramsMarginMode, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBoolN (paramsMarginMode, [ 'stop', 'trigger', 'conditional' ]);
-        let stock: Bool = undefined;
+        let stock = false;
         [ stock, paramsMarginMode ] = this.handleOptionBoolAndParams (paramsMarginMode, 'fetchOpenOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = this.safeBool (market, 'stock', false);
+            stock = false;
+            if (this.safeBool (market, 'stock', false)) {
+                stock = true;
+            }
             if (stock !== true) {
                 request['symbol'] = market['id'];
             }
@@ -8547,12 +8556,15 @@ export default class binance extends Exchange {
      */
     override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         let market: Market = undefined;
-        let stock: Bool = undefined;
+        let stock = false;
         let paramsStock = undefined;
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'fetchClosedOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = this.safeBool (market, 'stock', false);
+            stock = false;
+            if (this.safeBool (market, 'stock', false)) {
+                stock = true;
+            }
         } else if (!stock) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
@@ -8591,12 +8603,15 @@ export default class binance extends Exchange {
      */
     override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         let market: Market = undefined;
-        let stock: Bool = undefined;
+        let stock = false;
         let paramsStock = undefined;
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'fetchCanceledOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = this.safeBool (market, 'stock', false);
+            stock = false;
+            if (this.safeBool (market, 'stock', false)) {
+                stock = true;
+            }
         } else if (!stock) {
             throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument');
         }
@@ -8635,12 +8650,15 @@ export default class binance extends Exchange {
      */
     override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         let market: Market = undefined;
-        let stock: Bool = undefined;
+        let stock = false;
         let paramsStock = undefined;
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'fetchCanceledAndClosedOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = this.safeBool (market, 'stock', false);
+            stock = false;
+            if (this.safeBool (market, 'stock', false)) {
+                stock = true;
+            }
         } else if (!stock) {
             throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
         }
@@ -8686,12 +8704,15 @@ export default class binance extends Exchange {
         }
         const request: Dict = {};
         let market: Market = undefined;
-        let stock: Bool = undefined;
+        let stock = false;
         let paramsStock = undefined;
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'cancelOrder', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = this.safeBool (market, 'stock', false);
+            stock = false;
+            if (this.safeBool (market, 'stock', false)) {
+                stock = true;
+            }
             if (stock !== true) {
                 request['symbol'] = market['id'];
             }
@@ -8820,12 +8841,15 @@ export default class binance extends Exchange {
         }
         const request: Dict = {};
         let market: Market = undefined;
-        let stock: Bool = undefined;
+        let stock = false;
         let paramsStock = undefined;
         [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'cancelAllOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = this.safeBool (market, 'stock', false);
+            stock = false;
+            if (this.safeBool (market, 'stock', false)) {
+                stock = true;
+            }
             if (stock !== true) {
                 request['symbol'] = market['id'];
             }
@@ -9149,11 +9173,14 @@ export default class binance extends Exchange {
         let market: Market = undefined;
         let type: Str = undefined;
         let marginMode: Str = undefined;
-        let stock: Bool = undefined;
+        let stock = false;
         [ stock, paramsPaginate ] = this.handleOptionBoolAndParams (paramsPaginate, 'fetchMyTrades', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            stock = this.safeBool (market, 'stock', false);
+            stock = false;
+            if (this.safeBool (market, 'stock', false)) {
+                stock = true;
+            }
             request['symbol'] = market['id'];
         }
         [ type, paramsPaginate ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, paramsPaginate);
@@ -10152,9 +10179,10 @@ export default class binance extends Exchange {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        request['type'] = this.safeString (params, 'type');
+        const requestType = this.safeString (params, 'type');
+        request['type'] = requestType;
         let paramsOmitted: Dict = this.omit (params, 'type');
-        if (request['type'] === undefined) {
+        if (requestType === undefined) {
             const symbol = this.safeString (paramsOmitted, 'symbol');
             let market: Market = undefined;
             if (symbol !== undefined) {
@@ -11432,7 +11460,7 @@ export default class binance extends Exchange {
         let initialMarginPercentageString: Str = undefined;
         if (leverageString !== undefined) {
             initialMarginPercentageString = Precise.stringDiv ('1', leverageString, 8);
-            const leverage = parseInt (leverageString);
+            const leverage = this.parseToInt (leverageString);
             const rational = this.isRoundNumber (1000 % leverage);
             if (!rational) {
                 initialMarginPercentageString = Precise.stringDiv (Precise.stringAdd (initialMarginPercentageString, '1e-8'), '1', 8);
@@ -11774,7 +11802,7 @@ export default class binance extends Exchange {
         let initialMarginPercentageString: Str = undefined;
         const leverageString = this.omitZero (this.safeString (position, 'leverage')); // portfolio-margin accounts may return leverage "0", see #29244
         if (leverageString !== undefined) {
-            const leverage = parseInt (leverageString);
+            const leverage = this.parseToInt (leverageString);
             const rational = this.isRoundNumber (1000 % leverage);
             initialMarginPercentageString = Precise.stringDiv ('1', leverageString, 8);
             if (!rational) {
@@ -13308,8 +13336,8 @@ export default class binance extends Exchange {
 
     override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
-        const urls = this.urls;
-        if (!(apiName in urls['api'])) {
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        if (!(apiName in apiUrls)) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
         const baseApiUrl = this.safeString (this.urls['api'], apiName);

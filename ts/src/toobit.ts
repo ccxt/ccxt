@@ -812,8 +812,9 @@ export default class toobit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<MarketInterface[]> {
-        let response = this.safeDict (this.options, 'exchangeInfo');
-        if (response !== undefined) {
+        const cachedInfo = this.safeDict (this.options, 'exchangeInfo');
+        let response = cachedInfo;
+        if (cachedInfo !== undefined) {
             this.options['exchangeInfo'] = undefined; // reset it to avoid using old cached data
         } else {
             response = await this.commonGetApiV1ExchangeInfo (params);
@@ -1175,19 +1176,12 @@ export default class toobit extends Exchange {
         const amountString = this.safeString2 (trade, 'q', 'qty');
         const isBuyer = this.safeBool (trade, 'isBuyer');
         let side: Str = undefined;
-        let isBuyerMaker = this.safeBool (trade, 'ibm');
-        if (isBuyerMaker === undefined) {
-            const isBuyerTaker = this.safeBool (trade, 'm');
-            if (isBuyerTaker !== undefined) {
-                isBuyerMaker = !isBuyerTaker;
-            }
-        }
+        const isBuyerMaker = this.safeBool (trade, 'ibm');
+        const isBuyerTaker = this.safeBool (trade, 'm');
         if (isBuyerMaker !== undefined) {
-            if (isBuyerMaker) {
-                side = 'sell';
-            } else {
-                side = 'buy';
-            }
+            side = (isBuyerMaker === true) ? 'sell' : 'buy';
+        } else if (isBuyerTaker !== undefined) {
+            side = (isBuyerTaker === true) ? 'buy' : 'sell';
         } else {
             if (isBuyer === true) {
                 side = 'buy';
@@ -1438,9 +1432,10 @@ export default class toobit extends Exchange {
         const timestamp = this.safeInteger (ticker, 't');
         const last = this.safeString (ticker, 'c');
         let baseVolume = this.safeString (ticker, 'v');
-        if ((marketResolved['contract'] === true) && (marketResolved['contractSize'] !== undefined)) {
+        const contractSize = this.safeNumber (marketResolved, 'contractSize');
+        if ((marketResolved['contract'] === true) && (contractSize !== undefined)) {
             // 'v' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.stringMul (baseVolume, this.numberToString (marketResolved['contractSize']));
+            baseVolume = Precise.stringMul (baseVolume, this.numberToString (contractSize));
         }
         return this.safeTicker ({
             'symbol': marketResolved['symbol'],
@@ -2013,10 +2008,8 @@ export default class toobit extends Exchange {
             }
             rawSideLower = this.safeString (sideParts, 0);
         }
-        let triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
-        if (triggerPrice === '0.0') {
-            triggerPrice = undefined;
-        }
+        // omitZero already maps '0.0' to undefined
+        const triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'orderId'),

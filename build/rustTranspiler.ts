@@ -9006,6 +9006,8 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.whileTrueToLoop(rustContent);
                 rustContent = this.r28Truth(rustContent); // hx4 R28
                 rustContent = this.hx4R29InlineCollectionHelpers(rustContent);
+                rustContent = this.r31Str(rustContent); // hx4 R31
+                rustContent = this.r32Native(rustContent); // hx4 R32
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9732,6 +9734,8 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.whileTrueToLoop(finalFile);
         finalFile = this.r28Truth(finalFile); // hx4 R28
         finalFile = this.hx4R29InlineCollectionHelpers(finalFile);
+        finalFile = this.r31Str(finalFile); // hx4 R31
+        finalFile = this.r32Native(finalFile); // hx4 R32
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -12585,6 +12589,139 @@ impl std::ops::DerefMut for ${coreName} {
                 const text = build(name, this.splitTopLevelCommas(inner));
                 if (text === undefined) continue;
                 if (name === 'remove' && !/^\s*;/.test(content.slice(close + 1, close + 8))) continue;
+                rewrites.push({ start, end: close + 1, text });
+            }
+            if (rewrites.length === 0) break;
+            let out = ''; let at = 0;
+            for (const r of rewrites) {
+                if (r.start < at) continue;
+                out += content.slice(at, r.start) + r.text;
+                at = r.end;
+            }
+            content = out + content.slice(at);
+        }
+        return content;
+    }
+
+    // hx4 R31 — string helpers print `runtime.rs`'s own body inline (each arg bound once, innermost-first).
+    // `stringify_simple` is private: scalars inline, the `__precise` dict goes through the public
+    // `runtime::stringify_param` alias, other containers through `Display` exactly like the helper.
+    r31Str(content: string): string {
+        const names = [ 'to_string_val', 'join', 'split', 'replace_str', 'ends_with', 'starts_with', 'pad_end', 'pad_start', 'to_fixed' ];
+        if (!names.some(n => content.includes(n + '('))) return content;
+        const str = (v: string) => `(match ${v} { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(${v}), __o => format!("{}", __o) })`;
+        const i64v = (v: string) => `(match ${v} { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1i64 } else { 0i64 }), _ => None })`;
+        const pad = (a: string[], start: boolean) => `({ let __r31s: &Value = ${a[0]}; let __r31l: &Value = ${a[1]}; let __r31p: &Value = ${a[2]}; let __t: usize = match ${i64v('__r31l')} { Some(__v) => __v as usize, None => 0 }; let __p: String = match __r31p { Value::Str(__x) => __x.to_string(), _ => " ".to_string() }; match __r31s { Value::Str(__sv) => { if __sv.chars().count() >= __t { Value::Str(__sv.clone()) } else { let __need = __t - __sv.chars().count(); let __fill = __p.repeat((__need / __p.chars().count().max(1)).max(1)); Value::Str(${start ? 'format!("{}{}", __fill, __sv)' : 'format!("{}{}", __sv, __fill)'}.into()) } } _ => Value::Null } })`;
+        const build = (name: string, args: string[]): string | undefined => {
+            const a = args.map(s => s.trim());
+            if (name === 'to_string_val' && a.length === 1) {
+                return `({ let __r31v: &Value = ${a[0]}; Value::Str(${str('__r31v')}.into()) })`;
+            }
+            if (name === 'join' && a.length === 2) {
+                return `({ let __r31a: &Value = ${a[0]}; let __r31d: &Value = ${a[1]}; let __r31j: String = ${str('__r31d')}; match __r31a { Value::Arr(__a) => Value::Str(__a.iter().map(|__r31e| ${str('__r31e')}).collect::<Vec<String>>().join(&__r31j).into()), _ => Value::Str(String::new().into()) } })`;
+            }
+            if (name === 'split' && a.length === 2) {
+                return `({ let __r31a: &Value = ${a[0]}; let __r31d: &Value = ${a[1]}; match (__r31a, __r31d) { (Value::Str(__s), Value::Str(__d)) => Value::Array(__s.split(__d.as_ref()).map(|__x| Value::Str(__x.to_string().into())).collect()), _ => Value::Array(vec![]) } })`;
+            }
+            if (name === 'replace_str' && a.length === 3) {
+                return `({ let __r31a: &Value = ${a[0]}; let __r31o: &Value = ${a[1]}; let __r31n: &Value = ${a[2]}; match (__r31a, __r31o, __r31n) { (Value::Str(__s), Value::Str(__o), Value::Str(__n)) => Value::Str(__s.replace(__o.as_ref(), __n.as_ref()).into()), _ => __r31a.clone() } })`;
+            }
+            if ((name === 'starts_with' || name === 'ends_with') && a.length === 2) {
+                return `({ let __r31a: &Value = ${a[0]}; let __r31b: &Value = ${a[1]}; match (__r31a, __r31b) { (Value::Str(__h), Value::Str(__x)) => __h.${name}(__x.as_ref()), _ => false } })`;
+            }
+            if ((name === 'pad_start' || name === 'pad_end') && a.length === 3) return pad(a, name === 'pad_start');
+            if (name === 'to_fixed' && a.length === 2) {
+                return `({ let __r31x: &Value = ${a[0]}; let __r31g: &Value = ${a[1]}; let __d: usize = match ${i64v('__r31g')} { Some(__v) => __v.max(0) as usize, None => 0 }; let __n: f64 = match __r31x { Value::Int(__i) => *__i as f64, Value::Float(__f) => *__f, Value::Str(__s) => __s.trim().parse::<f64>().unwrap_or(0.0), _ => 0.0 }; Value::Str(format!("{:.*}", __d, __n).into()) })`;
+            }
+            return undefined;
+        };
+        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str|ends_with|starts_with|pad_end|pad_start|to_fixed)\(/g;
+        for (let round = 0; round < 8; round++) {
+            const masked = this.maskStringsAndComments(content);
+            const rewrites: Array<{ start: number, end: number, text: string }> = [];
+            for (const m of masked.matchAll(re)) {
+                const start = m.index as number;
+                const name = m[1];
+                if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
+                const open = start + name.length;
+                const close = this.closeParenAt(content, open);
+                if (close < 0) continue;
+                const inner = content.slice(open + 1, close);
+                if (new RegExp(re.source).test(this.maskStringsAndComments(inner))) continue;
+                const text = build(name, this.splitTopLevelCommas(inner));
+                if (text === undefined) continue;
+                rewrites.push({ start, end: close + 1, text });
+            }
+            if (rewrites.length === 0) break;
+            let out = ''; let at = 0;
+            for (const r of rewrites) {
+                if (r.start < at) continue;
+                out += content.slice(at, r.start) + r.text;
+                at = r.end;
+            }
+            content = out + content.slice(at);
+        }
+        return content;
+    }
+
+    // hx4 R32 — `is_instance` / `is_function` / `object_values` / `shift` print runtime.rs's own body inline:
+    // is_instance = `[cls]` containment OR leading `[Kind]` in cls's errorHierarchy subtree; is_function is
+    // always false; object_values filters the ws tags; shift pops a clone (by-value arg, as the helper).
+    r32Native(content: string): string {
+        const names = [ 'is_instance', 'is_function', 'object_values', 'shift' ];
+        if (!names.some(n => content.includes(n + '('))) return content;
+        const subtree = (cls: string): string[] | undefined => {
+            const find = (node: any): any => {
+                for (const k of Object.keys(node)) {
+                    if (k === cls) return node[k];
+                    const r = find(node[k]);
+                    if (r !== undefined) return r;
+                }
+                return undefined;
+            };
+            const root = find(errorHierarchy);
+            if (root === undefined) return undefined;
+            const out: string[] = [];
+            const walk = (node: any) => { for (const k of Object.keys(node)) { out.push(k); walk(node[k]); } };
+            walk(root);
+            return out;
+        };
+        const build = (name: string, args: string[]): string | undefined => {
+            const a = args.map(s => s.trim());
+            if (name === 'is_function' && a.length === 1 && a[0].startsWith('&')) {
+                return `({ let _: &Value = ${a[0]}; false })`;
+            }
+            if (name === 'object_values' && a.length === 1 && a[0].startsWith('&')) {
+                return `({ let __r32o: &Value = ${a[0]}; match __r32o { Value::Dict(__m) => Value::List(__m.iter().filter(|(__k, _)| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|(_, __v)| __v.clone()).collect()), _ => Value::List(vec![]) } })`;
+            }
+            if (name === 'shift' && a.length === 1) {
+                return `({ let mut __r32a: Value = ${a[0]}; match &mut __r32a { Value::Arr(__a) if !__a.is_empty() => std::sync::Arc::make_mut(__a).remove(0), _ => Value::Null } })`;
+            }
+            if (name === 'is_instance' && a.length === 2 && a[0].startsWith('&')) {
+                const m = /^&Value::Str\("([A-Za-z0-9_]+)"\.(?:into|to_string)\(\)\)$/.exec(a[1]);
+                if (m === null) return undefined;
+                const cls = m[1];
+                const subs = subtree(cls) ?? [];
+                const walk = subs.length === 0 ? '' : ` || matches!(__s.find('[').and_then(|__a| __s[__a + 1..].find(']').map(|__b| &__s[__a + 1..__a + 1 + __b])), Some(${subs.map(x => `"${x}"`).join(' | ')}))`;
+                return `({ let __r32v: &Value = ${a[0]}; matches!(__r32v, Value::Str(__s) if __s.contains("[${cls}]")${walk}) })`;
+            }
+            return undefined;
+        };
+        const re = /(?<![A-Za-z0-9_:.])(is_instance|is_function|object_values|shift)\(/g;
+        for (let round = 0; round < 8; round++) {
+            const masked = this.maskStringsAndComments(content);
+            const rewrites: Array<{ start: number, end: number, text: string }> = [];
+            for (const m of masked.matchAll(re)) {
+                const start = m.index as number;
+                const name = m[1];
+                if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
+                const open = start + name.length;
+                const close = this.closeParenAt(content, open);
+                if (close < 0) continue;
+                const inner = content.slice(open + 1, close);
+                if (/(?<![A-Za-z0-9_:.])(is_instance|is_function|object_values|shift)\(/.test(this.maskStringsAndComments(inner))) continue;
+                const text = build(name, this.splitTopLevelCommas(inner));
+                if (text === undefined) continue;
                 rewrites.push({ start, end: close + 1, text });
             }
             if (rewrites.length === 0) break;

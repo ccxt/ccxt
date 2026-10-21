@@ -562,7 +562,8 @@ export default class bitfinex extends Exchange {
     }
 
     isFiat (code: any): boolean {
-        return (code in this.options['fiat']);
+        const fiat = this.safeDict (this.options, 'fiat', {});
+        return (code in fiat);
     }
 
     getCurrencyName (code: string): string {
@@ -906,7 +907,8 @@ export default class bitfinex extends Exchange {
         const name = this.safeString (label, 1);
         const pool = this.safeList (indexed['pool'], id, []);
         const rawType = this.safeString (pool, 1);
-        const isCryptoCoin = (rawType !== undefined) || (id in indexed['explorer']); // "hacky" solution
+        const explorer = this.safeDict (indexed, 'explorer', {});
+        const isCryptoCoin = (rawType !== undefined) || (id in explorer); // "hacky" solution
         const type = isCryptoCoin ? 'crypto' : undefined;
         const feeValues = this.safeList (indexed['fees'], id, []);
         const fees = this.safeList (feeValues, 1, []);
@@ -1009,8 +1011,7 @@ export default class bitfinex extends Exchange {
             }
             const type = this.safeString (balance, 0);
             const currencyId = this.safeStringLower (balance, 1, '');
-            const start = (currencyId as string).length - 2;
-            const isDerivativeCode = (currencyId as string).slice (start) === 'f0';
+            const isDerivativeCode = (currencyId !== undefined) && (currencyId.endsWith ('f0') === true);
             // this will only filter the derivative codes if the requestedType is 'derivatives'
             const derivativeCondition = (!isDerivative || isDerivativeCode);
             if ((accountType === type) && derivativeCondition) {
@@ -1163,8 +1164,7 @@ export default class bitfinex extends Exchange {
         let currencyId: Str = undefined;
         if (type === 'derivatives') {
             currencyId = this.safeString (underlying, 0, transferId);
-            const start = (currencyId as string).length - 2;
-            const isDerivativeCode = (currencyId as string).slice (start) === 'F0';
+            const isDerivativeCode = (currencyId as string).endsWith ('F0');
             if (!isDerivativeCode) {
                 currencyId = currencyId + 'F0';
             }
@@ -1210,7 +1210,7 @@ export default class bitfinex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         };
-        const priceIndex = (fullRequest['precision'] === 'R0') ? 1 : 0;
+        const priceIndex = (this.safeString (fullRequest, 'precision') === 'R0') ? 1 : 0;
         const orders = this.toArray (orderbook);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
@@ -1831,11 +1831,12 @@ export default class bitfinex extends Exchange {
         request['type'] = orderType;
         // flag values may be summed to combine flags
         let flags = 0;
-        if (postOnly) {
-            flags = this.sum (flags, 4096);
-        }
-        if (reduceOnly === true) {
-            flags = this.sum (flags, 1024);
+        if (postOnly && (reduceOnly === true)) {
+            flags = 5120;
+        } else if (postOnly) {
+            flags = 4096;
+        } else if (reduceOnly === true) {
+            flags = 1024;
         }
         if (flags !== 0) {
             request['flags'] = flags;
@@ -2605,9 +2606,10 @@ export default class bitfinex extends Exchange {
                 feeCost = Precise.stringAbs (feeCost);
             }
             amount = this.safeNumber (data, 5);
-            id = this.safeInteger (data, 0);
+            const withdrawId = this.safeInteger (data, 0);
+            id = withdrawId;
             status = 'ok';
-            if (id === 0) {
+            if (withdrawId === 0) {
                 id = undefined;
                 status = 'failed';
             }
@@ -3889,7 +3891,7 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        const marginStatusRaw = data[0];
+        const marginStatusRaw = this.safeInteger (data, 0);
         let marginStatus: Str = 'failed';
         if (marginStatusRaw === 1) {
             marginStatus = 'ok';
@@ -4033,11 +4035,12 @@ export default class bitfinex extends Exchange {
         }
         // flag values may be summed to combine flags
         let flags = 0;
-        if (postOnly) {
-            flags = this.sum (flags, 4096);
-        }
-        if (reduceOnly === true) {
-            flags = this.sum (flags, 1024);
+        if (postOnly && (reduceOnly === true)) {
+            flags = 5120;
+        } else if (postOnly) {
+            flags = 4096;
+        } else if (reduceOnly === true) {
+            flags = 1024;
         }
         if (flags !== 0) {
             request['flags'] = flags;

@@ -1070,7 +1070,7 @@ export default class kraken extends krakenRest {
 
     formatNumber (data: string): string {
         const parts = data.split ('.');
-        const integer = this.safeString (parts, 0);
+        const integer = this.safeString (parts, 0, '');
         const decimals = this.safeString (parts, 1, '');
         let joinedResult = integer + decimals;
         while ((joinedResult.length > 0) && (joinedResult[0] === '0')) {
@@ -1408,8 +1408,9 @@ export default class kraken extends krakenRest {
                 if (length === limit && (previousOrder === undefined)) {
                     const first = stored[0];
                     const symbolsByOrderId = this.safeDict (this.options, 'symbolsByOrderId', {});
-                    if (first['id'] in symbolsByOrderId) {
-                        delete symbolsByOrderId[first['id']];
+                    const firstId = this.safeString (first, 'id');
+                    if ((firstId !== undefined) && (firstId in symbolsByOrderId)) {
+                        delete symbolsByOrderId[firstId];
                     }
                 }
                 stored.append (newOrder);

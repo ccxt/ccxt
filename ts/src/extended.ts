@@ -2503,12 +2503,12 @@ export default class extended extends Exchange {
     }
 
     async fetchExtendedAccount (params: Dict = {}): Promise<any> {
-        let account = this.safeDict (this.options, 'account');
-        if (account !== undefined) {
-            return account;
+        const cachedAccount = this.safeDict (this.options, 'account');
+        if (cachedAccount !== undefined) {
+            return cachedAccount;
         }
         const accountData = await this.fetchAccount (params);
-        account = accountData['info'];
+        const account = accountData['info'];
         this.options['account'] = account;
         return account;
     }
@@ -2975,8 +2975,10 @@ export default class extended extends Exchange {
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         let market: Market = undefined;
+        let orderSymbol: Str = symbol;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            orderSymbol = market['symbol'];
         }
         let response = undefined;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
@@ -3001,7 +3003,6 @@ export default class extended extends Exchange {
         //     }
         //
         const orderId = (clientOrderId === undefined) ? id : undefined;
-        const orderSymbol = (market === undefined) ? symbol : market['symbol'];
         return this.safeOrder ({
             'info': response,
             'id': orderId,
@@ -3469,7 +3470,8 @@ export default class extended extends Exchange {
         const domainTypeHash = this.convertToBigInt (this.extendedStarknetGetSelectorFromName (
             '"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")'
         ));
-        const isTestnet = this.urls['api']['rest'].indexOf ('sepolia') >= 0;
+        const restUrl = this.safeString (this.urls['api'], 'rest', '');
+        const isTestnet = restUrl.indexOf ('sepolia') >= 0;
         let defaultChainId: Str = 'SN_MAIN';
         if (isTestnet) {
             defaultChainId = 'SN_SEPOLIA';

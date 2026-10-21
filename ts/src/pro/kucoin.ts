@@ -1989,7 +1989,10 @@ export default class kucoin extends kucoinRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
+        let symbolResolved: Str = symbol;
+        if (market !== undefined) {
+            symbolResolved = this.safeString (market, 'symbol');
+        }
         let messageHash = 'orders';
         if (symbolResolved !== undefined) {
             messageHash = messageHash + ':' + symbolResolved;
@@ -2416,7 +2419,10 @@ export default class kucoin extends kucoinRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
+        let symbolResolved: Str = symbol;
+        if (market !== undefined) {
+            symbolResolved = this.safeString (market, 'symbol');
+        }
         if (market !== undefined) {
             messageHash = messageHash + ':' + market['symbol'];
         }

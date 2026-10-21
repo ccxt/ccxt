@@ -975,7 +975,8 @@ export default class phemex extends phemexRest {
             cachedTrades.append (parsed);
             const symbol = parsed['symbol'];
             if (type === undefined) {
-                type = (market['settle'] === 'USDT') ? 'perpetual' : market['type'];
+                const marketSettle = this.safeString (market, 'settle');
+                type = (marketSettle === 'USDT') ? 'perpetual' : market['type'];
             }
             if (symbol !== undefined) {
                 marketIds[symbol] = true;

@@ -602,7 +602,7 @@ export default class polymarket extends Exchange {
             }
             const restPages = await Promise.all (restPromises);
             for (let ri = 0; ri < restPages.length; ri++) {
-                const page = (restPages[ri] !== undefined) ? restPages[ri] : [];
+                const page = this.safeList (restPages, ri, []);
                 const pageLength = page.length;
                 for (let pi = 0; pi < pageLength; pi++) {
                     allRawEvents.push (page[pi]);
@@ -1580,7 +1580,8 @@ export default class polymarket extends Exchange {
             let belongs = (this.safeString (trade, 'order') === id) || (this.safeString (info, 'taker_order_id') === id);
             const makerOrders = this.safeList (info, 'maker_orders', []);
             for (let j = 0; j < makerOrders.length; j++) {
-                if (this.safeString (makerOrders[j], 'order_id') === id) {
+                const makerOrder = this.safeDict (makerOrders, j);
+                if (this.safeString (makerOrder, 'order_id') === id) {
                     belongs = true;
                 }
             }
@@ -2115,7 +2116,7 @@ export default class polymarket extends Exchange {
         const builderRaw = this.safeStringLower2 (params, 'builder', 'builderCode', this.safeStringLower (this.options, 'builder'));
         let builderBytes32 = bytes32Zero;
         if (builderRaw !== undefined) {
-            let builderHex = this.remove0xPrefix (builderRaw);
+            const builderHex = this.remove0xPrefix (builderRaw);
             if (builderHex.length <= 40) {
                 const builderFeeEnabled = this.safeBool (this.options, 'builderFee', true);
                 let feeRate = 0;
@@ -2124,13 +2125,13 @@ export default class polymarket extends Exchange {
                 }
                 let feeHex = this.intToBase16 (feeRate);
                 feeHex = feeHex.padStart (24, '0');
-                let addressHex = builderHex;
-                addressHex = addressHex.padStart (40, '0');
-                builderHex = feeHex + addressHex;
+                const addressHex = builderHex.padStart (40, '0');
+                const packedHex = feeHex + addressHex;
+                builderBytes32 = '0x' + packedHex;
             } else {
-                builderHex = builderHex.padStart (64, '0');
+                const paddedHex = builderHex.padStart (64, '0');
+                builderBytes32 = '0x' + paddedHex;
             }
-            builderBytes32 = '0x' + builderHex;
         }
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
@@ -2815,9 +2816,8 @@ export default class polymarket extends Exchange {
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
                 // in a chain, leaving the inner call as an (invalid) method call
-                let normalizedSecret = secret as string;
-                normalizedSecret = normalizedSecret.replaceAll ('-', '+');
-                normalizedSecret = normalizedSecret.replaceAll ('_', '/');
+                const plusSecret = secret.replaceAll ('-', '+');
+                const normalizedSecret = plusSecret.replaceAll ('_', '/');
                 const secretBytes = this.base64ToBinary (normalizedSecret);
                 let signature = this.hmac (this.encode (auth), secretBytes, sha256, 'base64');
                 // url-safe base64, preserving '=' padding (matches the reference client)
@@ -2850,7 +2850,8 @@ export default class polymarket extends Exchange {
         let result = '';
         for (let i = 0; i < addrChars.length; i++) {
             const ch = addrChars[i];
-            if (upperNibbles.indexOf (hashChars[i]) >= 0) {
+            const hashCh = hashChars[i];
+            if (upperNibbles.indexOf (hashCh) >= 0) {
                 result = result + ch.toUpperCase ();
             } else {
                 result = result + ch;

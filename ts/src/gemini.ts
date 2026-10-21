@@ -577,7 +577,8 @@ export default class gemini extends Exchange {
         if (numTables < 2) {
             throw new NotSupported (error);
         }
-        const rows = tables[1].split ("\n<tr>\n"); // eslint-disable-line quotes
+        const table = this.safeString (tables, 1, '');
+        const rows = table.split ("\n<tr>\n"); // eslint-disable-line quotes
         const numRows = rows.length;
         if (numRows < 2) {
             throw new NotSupported (error);
@@ -598,20 +599,24 @@ export default class gemini extends Exchange {
             //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            const marketIdRaw = cells[0].replace ('<td>', '');
+            const cell0 = this.safeString (cells, 0, '');
+            const marketIdRaw = cell0.replace ('<td>', '');
             const marketId = marketIdRaw.replace ('*', '');
             // const base = this.safeCurrencyCode (baseId);
-            const minAmountString = cells[1].replace ('<td>', '');
+            const cell1 = this.safeString (cells, 1, '');
+            const minAmountString = cell1.replace ('<td>', '');
             const minAmountParts = minAmountString.split (' ');
             const minAmount = this.safeNumber (minAmountParts, 0);
-            const amountPrecisionString = cells[2].replace ('<td>', '');
+            const cell2 = this.safeString (cells, 2, '');
+            const amountPrecisionString = cell2.replace ('<td>', '');
             const amountPrecisionParts = amountPrecisionString.split (' ');
             const idLength = marketId.length;
             const startingIndex = idLength - 3;
-            const pricePrecisionString = cells[3].replace ('<td>', '');
+            const cell3 = this.safeString (cells, 3, '');
+            const pricePrecisionString = cell3.replace ('<td>', '');
             const pricePrecisionParts = pricePrecisionString.split (' ');
             const quoteId = this.safeStringLower (pricePrecisionParts, 1, marketId.slice (startingIndex, idLength));
-            const baseId = this.safeStringLower (amountPrecisionParts, 1, marketId.replace (quoteId, ''));
+            const baseId = this.safeStringLower (amountPrecisionParts, 1, marketId.replace (quoteId as string, ''));
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             if ((base === undefined) || (quote === undefined)) {
@@ -859,10 +864,10 @@ export default class gemini extends Exchange {
             const lowerCaseId = marketIdWithoutPerp.toLowerCase ();
             if (lowerCaseId in conflictingMarkets) {
                 const conflictingMarket = conflictingMarkets[lowerCaseId];
-                baseId = conflictingMarket['base'];
-                quoteId = conflictingMarket['quote'];
+                baseId = this.safeString (conflictingMarket, 'base');
+                quoteId = this.safeString (conflictingMarket, 'quote');
                 if (isPerp) {
-                    settleId = conflictingMarket['quote'];
+                    settleId = this.safeString (conflictingMarket, 'quote');
                 }
             } else {
                 const quoteCurrencies = this.handleOption ('fetchMarketsFromAPI', 'quoteCurrencies', []);

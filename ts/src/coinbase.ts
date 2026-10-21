@@ -820,13 +820,13 @@ export default class coinbase extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     override async createDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
-        let accountId = this.safeString (params, 'account_id');
+        let accountId: Str = this.safeString (params, 'account_id');
         const paramsOmitted: Dict = this.omit (params, 'account_id');
         if (accountId === undefined) {
             await this.loadAccounts ();
             for (let i = 0; i < this.accounts.length; i++) {
                 const account = this.accounts[i];
-                if (account['code'] === code && account['type'] === 'wallet') {
+                if ((this.safeString (account, 'code') === code) && (this.safeString (account, 'type') === 'wallet')) {
                     accountId = this.safeString (account, 'id');
                     break;
                 }
@@ -2550,7 +2550,7 @@ export default class coinbase extends Exchange {
             if (this.safeString (paramsMarketType, 'cursor') === undefined) {
                 let accounts = this.safeList (response, 'accounts', []);
                 let page = response;
-                let cursor = this.safeString (page, 'cursor');
+                let cursor: Str = this.safeString (page, 'cursor');
                 while (this.safeBool (page, 'has_next', false) && (cursor !== undefined) && (cursor !== '')) {
                     request['cursor'] = cursor;
                     page = await this.v3PrivateGetBrokerageAccounts (this.extend (request, paramsMarketType));
@@ -3026,7 +3026,7 @@ export default class coinbase extends Exchange {
         await this.loadAccounts (false, params);
         for (let i = 0; i < this.accounts.length; i++) {
             const account = this.accounts[i];
-            if (account['code'] === code) {
+            if (this.safeString (account, 'code') === code) {
                 return account['id'];
             }
         }
@@ -3048,7 +3048,7 @@ export default class coinbase extends Exchange {
     }
 
     async prepareAccountRequestWithCurrencyCode (code: Str = undefined, limit: Int = undefined, params: Dict = {}): Promise<[Dict, Dict]> {
-        let accountId = this.safeString2 (params, 'account_id', 'accountId');
+        let accountId: Str = this.safeString2 (params, 'account_id', 'accountId');
         const paramsOmitted: Dict = this.omit (params, [ 'account_id', 'accountId' ]);
         if (accountId === undefined) {
             if (code === undefined) {
@@ -4284,7 +4284,7 @@ export default class coinbase extends Exchange {
             'amount': this.numberToString (amount),
             'currency': currency['id'],
         };
-        let accountId = this.safeString2 (paramsWithdrawTag, 'account_id', 'accountId');
+        let accountId: Str = this.safeString2 (paramsWithdrawTag, 'account_id', 'accountId');
         const paramsOmitted: Dict = this.omit (paramsWithdrawTag, [ 'account_id', 'accountId' ]);
         if (accountId === undefined) {
             if (code === undefined) {
@@ -4529,7 +4529,7 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let accountId = this.safeString2 (params, 'account_id', 'accountId');
+        let accountId: Str = this.safeString2 (params, 'account_id', 'accountId');
         const paramsOmitted: Dict = this.omit (params, [ 'account_id', 'accountId' ]);
         if (accountId === undefined) {
             if (code === undefined) {
@@ -4604,7 +4604,7 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let accountId = this.safeString2 (params, 'account_id', 'accountId');
+        let accountId: Str = this.safeString2 (params, 'account_id', 'accountId');
         const paramsOmitted: Dict = this.omit (params, [ 'account_id', 'accountId' ]);
         if (accountId === undefined) {
             if (code === undefined) {

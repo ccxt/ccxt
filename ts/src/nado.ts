@@ -564,8 +564,9 @@ export default class nado extends Exchange {
             };
             placeOrder['trigger'] = trigger;
         }
-        let appendix = this.safeString (paramsRecvWindow, 'appendix');
-        if (appendix === undefined) {
+        const rawAppendix = this.safeString (paramsRecvWindow, 'appendix');
+        let appendix = rawAppendix;
+        if (rawAppendix === undefined) {
             appendix = this.createOrderAppendix (isTriggerOrder, paramsRecvWindow);
         }
         order['appendix'] = appendix;
@@ -669,8 +670,9 @@ export default class nado extends Exchange {
         const [ recvWindow, paramsRecvWindow ] = this.handleOptionIntegerAndParams (paramsExpiration, 'editOrder', 'recvWindow', 5000);
         const cancelNonce = this.createOrderNonce (recvWindow);
         const orderNonce = Precise.stringAdd (cancelNonce, '1');
-        let appendix = this.safeString (paramsRecvWindow, 'appendix');
-        if (appendix === undefined) {
+        const rawAppendix = this.safeString (paramsRecvWindow, 'appendix');
+        let appendix = rawAppendix;
+        if (rawAppendix === undefined) {
             appendix = this.createOrderAppendix (false, paramsRecvWindow);
         }
         const requestId = this.safeInteger (paramsRecvWindow, 'id');
@@ -2368,10 +2370,13 @@ export default class nado extends Exchange {
                 side = 'buy';
             }
         }
-        let price: Str = this.safeString (trade, 'price');
-        if (price === undefined) {
-            const parsedPrice = this.parseX18 (this.safeString (order, 'priceX18'));
-            price = (parsedPrice === undefined) ? undefined : this.numberToString (parsedPrice);
+        const tradePrice = this.safeString (trade, 'price');
+        let price: Str = tradePrice;
+        if (tradePrice === undefined) {
+            const orderPriceX18 = this.safeString (order, 'priceX18');
+            if (orderPriceX18 !== undefined) {
+                price = this.numberToString (this.parseX18 (orderPriceX18));
+            }
         }
         let takerOrMaker: Str = undefined;
         const isTaker = this.safeBool (trade, 'is_taker');
@@ -2953,8 +2958,9 @@ export default class nado extends Exchange {
                     status = 'canceled';
                 }
             } else {
-                status = this.safeString (order, 'status', 'rejected');
-                if ((status === 'success') || (status.indexOf ('waiting') >= 0)) {
+                const rawStatus = this.safeString (order, 'status', 'rejected');
+                status = rawStatus;
+                if ((rawStatus === 'success') || (rawStatus.indexOf ('waiting') >= 0)) {
                     status = 'open';
                 }
             }

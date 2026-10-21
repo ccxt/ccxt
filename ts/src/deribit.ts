@@ -1409,7 +1409,8 @@ export default class deribit extends Exchange {
         if (symbolsNormalized !== undefined) {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const market = this.market (symbolsNormalized[i]);
-                if (code !== undefined && code !== market['base']) {
+                const marketBase = this.safeString (market, 'base');
+                if (code !== undefined && code !== marketBase) {
                     throw new BadRequest (this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency');
                 }
                 if (code === undefined) {

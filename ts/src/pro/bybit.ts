@@ -971,12 +971,14 @@ export default class bybit extends bybitRest {
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         let channel = 'orderbook.';
-        let limit = this.safeInteger (params, 'limit');
-        const paramsOmitted: Dict = (limit !== undefined) ? this.omit (params, 'limit') : params;
-        if (limit === undefined) {
+        const limitParam = this.safeInteger (params, 'limit');
+        const paramsOmitted: Dict = (limitParam !== undefined) ? this.omit (params, 'limit') : params;
+        let defaultLimit = 500;
+        if (limitParam === undefined) {
             const firstMarket = this.market (symbolsNormalized[0]);
-            limit = (firstMarket['spot'] === true) ? 50 : 500;
+            defaultLimit = (firstMarket['spot'] === true) ? 50 : 500;
         }
+        const limit = (limitParam === undefined) ? defaultLimit : limitParam;
         channel += limit.toString ();
         const subMessageHashes: string[] = [];
         const messageHashes: string[] = [];
@@ -1043,7 +1045,7 @@ export default class bybit extends bybitRest {
         //     }
         //
         const topic = this.safeString (message, 'topic', '');
-        const limit = topic.split ('.')[1];
+        const limit = this.safeString (topic.split ('.'), 1);
         const isSpot = client.url.indexOf ('spot') >= 0;
         const type = this.safeString (message, 'type');
         const isSnapshot = (type === 'snapshot');

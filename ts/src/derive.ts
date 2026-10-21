@@ -3667,7 +3667,7 @@ export default class derive extends Exchange {
         }
         const fromId = this.parseToInt (fromAccount);
         // the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
-        const toId = (toAccount === undefined) ? 0 : this.parseToInt (toAccount);
+        const toId = this.parseToInt ((toAccount === undefined) ? 0 : toAccount);
         const amountString = this.numberToString (amount);
         const maxFeeUsd = this.safeString (params, 'max_fee_usd', '0');
         const newSubaccountManager = this.safeInteger (params, 'new_subaccount_manager', 0);
@@ -4330,10 +4330,9 @@ export default class derive extends Exchange {
             if (apiName === 'private') {
                 const now = this.numberToString (this.nonce ());
                 const signature = this.signMessage (now, this.privateKey);
-                let deriveWalletAddress = this.safeString (this.options, 'deriveWalletAddress');
-                if ((deriveWalletAddress === undefined) || (deriveWalletAddress === '')) {
-                    deriveWalletAddress = this.walletAddress; // v3: the owner wallet is the user's own EOA
-                }
+                const configuredWalletAddress = this.safeString (this.options, 'deriveWalletAddress');
+                // v3: the owner wallet is the user's own EOA
+                const deriveWalletAddress = ((configuredWalletAddress === undefined) || (configuredWalletAddress === '')) ? this.walletAddress : configuredWalletAddress;
                 postHeaders['X-DeriveWallet'] = deriveWalletAddress;
                 postHeaders['X-DeriveTimestamp'] = now;
                 postHeaders['X-DeriveSignature'] = signature;

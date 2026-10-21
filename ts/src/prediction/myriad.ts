@@ -270,8 +270,7 @@ export default class myriad extends Exchange {
                 'limit': limit,
             }, rest));
             const responseIsArray = Array.isArray (response);
-            const foundList = (responseIsArray) ? response : this.safeList (response, 'data', []);
-            const found = (foundList !== undefined) ? foundList : [];
+            const found = (responseIsArray) ? response : this.safeList (response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const networkId = this.safeString (raw, 'networkId');
@@ -318,8 +317,7 @@ export default class myriad extends Exchange {
                 'trading_model': tradingModel,
             }, rest));
             const responseIsArray = Array.isArray (response);
-            const rawMarketsList = (responseIsArray) ? response : this.safeList (response, 'data', []);
-            const rawMarkets = (rawMarketsList !== undefined) ? rawMarketsList : [];
+            const rawMarkets = (responseIsArray) ? response : this.safeList (response, 'data', []);
             const rawMarketsLength = rawMarkets.length;
             if (rawMarketsLength === 0) {
                 break;
@@ -448,8 +446,7 @@ export default class myriad extends Exchange {
                 'limit': limit,
             }, rest));
             const responseIsArray = Array.isArray (response);
-            const foundList = (responseIsArray) ? response : this.safeList (response, 'data', []);
-            const found = (foundList !== undefined) ? foundList : [];
+            const found = (responseIsArray) ? response : this.safeList (response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const questionId = this.safeString (raw, 'id');
@@ -490,8 +487,7 @@ export default class myriad extends Exchange {
             }
             const response = await this.myriadPublicGetQuestions (this.extend (request, rest));
             const responseIsArray = Array.isArray (response);
-            const rawQuestionsList = (responseIsArray) ? response : this.safeList (response, 'data', []);
-            const rawQuestions = (rawQuestionsList !== undefined) ? rawQuestionsList : [];
+            const rawQuestions = (responseIsArray) ? response : this.safeList (response, 'data', []);
             const rawQuestionsLength = rawQuestions.length;
             if (rawQuestionsLength === 0) {
                 break;
@@ -930,14 +926,11 @@ export default class myriad extends Exchange {
             defaultTif = 'FOK';
         }
         const timeInForce = this.safeStringUpper (params, 'timeInForce', defaultTif);
-        let priceValue = price;
-        if (priceValue === undefined) {
-            if (isMarket) {
-                priceValue = (sideInt === 0) ? 1 : 0;
-            } else {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price for limit orders');
-            }
+        if ((price === undefined) && !isMarket) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price for limit orders');
         }
+        const marketPrice = (sideInt === 0) ? 1 : 0;
+        const priceValue = (price !== undefined) ? price : marketPrice;
         let priceWei = this.toOrderbookWei (priceValue);
         if (Precise.stringLt (priceWei, '1')) {
             priceWei = '1';
@@ -1386,14 +1379,10 @@ export default class myriad extends Exchange {
         const outcomeObj = this.safeOutcome (composite, market);
         const marketSlug = this.safeString (trade, 'marketSlug', marketId);
         const outcomeTitle = this.safeString (trade, 'outcomeTitle', rawOutcomeId);
-        let outcome = this.safeString (outcomeObj, 'outcome');
-        if (outcome === undefined) {
-            outcome = this.slugToOutcomeSymbol (marketSlug, marketSlug, outcomeTitle);
-        }
-        let marketSymbol = this.safeString (outcomeObj, 'market');
-        if (marketSymbol === undefined) {
-            marketSymbol = this.slugToMarketSymbol (marketSlug, marketSlug);
-        }
+        const outcomeValue = this.safeString (outcomeObj, 'outcome');
+        const outcome = (outcomeValue !== undefined) ? outcomeValue : this.slugToOutcomeSymbol (marketSlug, marketSlug, outcomeTitle);
+        const marketSymbolValue = this.safeString (outcomeObj, 'market');
+        const marketSymbol = (marketSymbolValue !== undefined) ? marketSymbolValue : this.slugToMarketSymbol (marketSlug, marketSlug);
         let label = this.safeString (outcomeObj, 'label');
         if (label === undefined) {
             label = outcomeTitle;
@@ -1452,10 +1441,8 @@ export default class myriad extends Exchange {
         if ((requestedStatus === 'open') || (requestedStatus === 'cancelled') || (requestedStatus === 'canceled') || (requestedStatus === 'expired')) {
             return [];
         }
-        let trader = this.safeString2 (params, 'trader', 'address');
-        if (trader === undefined) {
-            trader = this.walletAddressOrUndefined ();
-        }
+        const traderParam = this.safeString2 (params, 'trader', 'address');
+        const trader = (traderParam !== undefined) ? traderParam : this.walletAddressOrUndefined ();
         if (trader === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
         }
@@ -2947,8 +2934,7 @@ export default class myriad extends Exchange {
         //     }
         //
         const responseIsArray = Array.isArray (response);
-        const rowsList = (responseIsArray) ? response : this.safeList (response, 'data', []);
-        const rows = (rowsList !== undefined) ? rowsList : [];
+        const rows = (responseIsArray) ? response : this.safeList (response, 'data', []);
         const trades: any[] = [];
         for (let i = 0; i < rows.length; i++) {
             const row = this.safeDict (rows, i);
@@ -3594,7 +3580,7 @@ export default class myriad extends Exchange {
             const marketId = this.safeString (info, 'marketId');
             const channel = 'prices:' + networkId + ':' + marketId;
             resolvedSymbols.push (this.safeOutcomeSymbol (outcomes[i], outcomeObj));
-            if (this.safeValue (seenChannels, channel) === undefined) {
+            if (!(channel in seenChannels)) {
                 seenChannels[channel] = true;
                 const requestId = this.requestId (url);
                 const subscribeMsg: Dict = { 'subscribe': { 'channel': channel }, 'id': requestId };

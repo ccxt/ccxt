@@ -674,7 +674,8 @@ export default class digifinex extends Exchange {
             // const status = this.safeString (market, 'status');
             // const active = (status === 'TRADING');
             //
-            let isAllowed = this.safeInteger (market, 'is_allow', 1);
+            const isAllowedRaw = this.safeInteger (market, 'is_allow', 1);
+            let isTradingSwap = false;
             let type = (defaultType === 'margin') ? 'margin' : 'spot';
             const spot = settle === undefined;
             const swap = !spot;
@@ -689,10 +690,10 @@ export default class digifinex extends Exchange {
                 isLinear = (isInverse !== true) ? true : false;
                 const isTrading = this.safeBool (market, 'isTrading');
                 if (isTrading === true) {
-                    isAllowed = 1;
+                    isTradingSwap = true;
                 }
             }
-            const isActive = (isAllowed !== 0);
+            const isActive = isTradingSwap || (isAllowedRaw !== 0);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -1874,7 +1875,7 @@ export default class digifinex extends Exchange {
         }
         request[marketIdRequest] = market['id'];
         let postOnly = this.isPostOnly (isMarketOrder, false, paramsMarginMode);
-        let postOnlyParsed: Int = undefined;
+        let postOnlyParsed = 0;
         let paramsRequest = undefined;
         if (swap) {
             const reduceOnly = this.safeBool (paramsMarginMode, 'reduceOnly', false);
@@ -1948,7 +1949,7 @@ export default class digifinex extends Exchange {
             request['amount'] = quantity;
         }
         if (postOnly) {
-            if ((postOnlyParsed !== undefined) && (postOnlyParsed !== 0)) {
+            if (postOnlyParsed !== 0) {
                 request['post_only'] = postOnlyParsed;
             } else {
                 request['post_only'] = postOnly;
@@ -2329,6 +2330,7 @@ export default class digifinex extends Exchange {
         let type: Str = undefined;
         let reduceOnly: Bool = undefined;
         let side = this.safeString (order, 'type');
+        const sideRaw = this.safeString (order, 'type');
         const marketId = this.safeString2 (order, 'symbol', 'instrument_id');
         const symbol = this.safeSymbol (marketId, market);
         const marketResolved: Market = this.market (symbol);
@@ -2349,16 +2351,16 @@ export default class digifinex extends Exchange {
                 }
             }
             // 1 open long, 2 open short, 3 close long, 4 close short
-            if (side === '1') {
+            if (sideRaw === '1') {
                 side = 'buy';
                 reduceOnly = false;
-            } else if (side === '2') {
+            } else if (sideRaw === '2') {
                 side = 'sell';
                 reduceOnly = false;
-            } else if (side === '3') {
+            } else if (sideRaw === '3') {
                 side = 'sell';
                 reduceOnly = true;
-            } else if (side === '4') {
+            } else if (sideRaw === '4') {
                 side = 'buy';
                 reduceOnly = true;
             }
@@ -2367,8 +2369,8 @@ export default class digifinex extends Exchange {
         } else {
             timestamp = this.safeTimestamp (order, 'created_date');
             lastTradeTimestamp = this.safeTimestamp (order, 'finished_date');
-            if (side !== undefined) {
-                const parts = side.split ('_');
+            if (sideRaw !== undefined) {
+                const parts = sideRaw.split ('_');
                 const numParts = parts.length;
                 if (numParts > 1) {
                     side = parts[0];
@@ -4708,7 +4710,7 @@ export default class digifinex extends Exchange {
         }
         let url = apiUrl + payload;
         const query = this.omit (params, this.extractParams (path));
-        let urlencoded: Str = undefined;
+        let urlencoded = '';
         if (signed && (pathPart === '/swap/v2') && (method === 'POST')) {
             urlencoded = JSON.stringify (params);
         } else {
@@ -4721,7 +4723,7 @@ export default class digifinex extends Exchange {
                 nonce = this.milliseconds ().toString ();
                 auth = nonce + method + payload;
                 if (method === 'GET') {
-                    if ((urlencoded !== undefined) && (urlencoded !== '')) {
+                    if ((urlencoded !== '')) {
                         auth += '?' + urlencoded;
                     }
                 } else if (method === 'POST') {
@@ -4733,11 +4735,11 @@ export default class digifinex extends Exchange {
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             if (method === 'GET') {
-                if ((urlencoded !== undefined) && (urlencoded !== '')) {
+                if ((urlencoded !== '')) {
                     url += '?' + urlencoded;
                 }
             }
-            const hasPostBody = (method === 'POST') && (urlencoded !== undefined) && (urlencoded !== '');
+            const hasPostBody = (method === 'POST') && (urlencoded !== '');
             let requestBody = undefined;
             if (hasPostBody) {
                 requestBody = urlencoded;
@@ -4749,7 +4751,7 @@ export default class digifinex extends Exchange {
             };
             return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         } else {
-            if ((urlencoded !== undefined) && (urlencoded !== '')) {
+            if ((urlencoded !== '')) {
                 url += '?' + urlencoded;
             }
         }

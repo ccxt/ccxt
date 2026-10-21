@@ -7,7 +7,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OrderNotFillable, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import type Client from '../base/ws/Client.js';
-import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, NullableDict, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -330,11 +330,7 @@ export default class sxbet extends Exchange {
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
         // letters+digits only so it survives shortenSlug in one atomic word)
-        // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
-        // transpiler's ARRAY hint (count()), which breaks on a string — this form emits
-        // strlen()/len() correctly in both python and php
-        const hashLength = this.parseToInt (marketHash.length);
-        const hashSuffix = marketHash.slice (hashLength - 6);
+        const hashSuffix = marketHash.slice (-6);
         const marketSlug = this.shortenSlug (outcomeOneName) + '_' + hashSuffix;
         const marketSymbol = this.slugToMarketSymbol (eventSlug, marketSlug);
         const status = this.safeStringUpper (raw, 'status');
@@ -1697,13 +1693,13 @@ export default class sxbet extends Exchange {
     override async fetchSettlements (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionSettlement[]> {
         this.checkRequiredCredentials ();
         const request: Dict = { 'status': 'SETTLED' };
-        let wantedOutcomeId: Str = undefined;
+        let outcomeObj: NullableDict = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
-            const outcomeObj = this.outcome (outcome);
+            outcomeObj = this.outcome (outcome);
             request['marketHash'] = this.safeString (outcomeObj['info'], 'marketHash', '');
-            wantedOutcomeId = this.safeString (outcomeObj, 'outcomeId');
         }
+        const wantedOutcomeId = this.safeString (outcomeObj, 'outcomeId');
         if (since !== undefined) {
             request['startDate'] = this.iso8601 (since);
         }
@@ -1761,10 +1757,7 @@ export default class sxbet extends Exchange {
         const winner = this.safeInteger (settlement, 'outcome');
         const isVoid = (winner === 0);
         const heldNumber = (isBettingOutcomeOne) ? 1 : 2;
-        let won: any = undefined;
-        if ((winner !== undefined) && !isVoid) {
-            won = (winner === heldNumber);
-        }
+        const won = ((winner !== undefined) && !isVoid) ? (winner === heldNumber) : undefined;
         const usdcDecimals = '1000000';
         const stake = Precise.stringDiv (this.safeString (trade, 'totalStake', '0'), usdcDecimals, 6);
         const payout = Precise.stringDiv (this.safeString (settlement, 'settleReturnAmount', '0'), usdcDecimals, 6);

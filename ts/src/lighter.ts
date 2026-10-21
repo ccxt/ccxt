@@ -5,7 +5,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict, Status, Endpoint } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, Bool, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict, Status, Endpoint } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------
@@ -442,19 +442,10 @@ export default class lighter extends Exchange {
     }
 
     getLighterPrivateKey (strAccountIndex: string, strApiKeyIndex: string) {
-        if (!('auths' in this.options)) {
-            return undefined;
-        }
-        if (!(strAccountIndex in this.options['auths'])) {
-            return undefined;
-        }
-        if (!(strApiKeyIndex in this.options['auths'][strAccountIndex])) {
-            return undefined;
-        }
-        if (!('lighterPrivateKey' in this.options['auths'][strAccountIndex][strApiKeyIndex])) {
-            return undefined;
-        }
-        return this.options['auths'][strAccountIndex][strApiKeyIndex]['lighterPrivateKey'];
+        const auths = this.safeDict (this.options, 'auths');
+        const accountAuths = this.safeDict (auths, strAccountIndex);
+        const apiKeyAuths = this.safeDict (accountAuths, strApiKeyIndex);
+        return this.safeString (apiKeyAuths, 'lighterPrivateKey');
     }
 
     /**
@@ -2395,16 +2386,13 @@ export default class lighter extends Exchange {
         const marketId = this.safeString (order, 'market_index');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (order, 'timestamp');
-        let isAsk = this.safeBool (order, 'is_ask');
-        if (isAsk === undefined) {
-            const isAskAsInteger = this.safeInteger (order, 'is_ask');
-            if (isAskAsInteger !== undefined) {
-                isAsk = isAskAsInteger === 1;
-            }
-        }
+        const isAsk = this.safeBool (order, 'is_ask');
+        const isAskAsInteger = this.safeInteger (order, 'is_ask');
         let side: Str = undefined;
         if (isAsk !== undefined) {
-            side = isAsk ? 'sell' : 'buy';
+            side = (isAsk === true) ? 'sell' : 'buy';
+        } else if (isAskAsInteger !== undefined) {
+            side = (isAskAsInteger === 1) ? 'sell' : 'buy';
         }
         let type = this.safeString (order, 'type');
         if (type === undefined) {
@@ -2423,19 +2411,13 @@ export default class lighter extends Exchange {
             }
         }
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
-        let tif: Str = undefined;
         const tifAsInteger = this.safeInteger (order, 'time_in_force');
-        if (tifAsInteger !== undefined) {
-            tif = this.parseOrderTimeInForceInteger (tifAsInteger);
-        } else {
-            tif = this.safeString (order, 'time_in_force');
-        }
-        let reduceOnly = this.safeBool (order, 'reduce_only');
-        if (reduceOnly === undefined) {
-            const reduceOnlyAsInteger = this.safeInteger (order, 'reduce_only');
-            if (reduceOnlyAsInteger !== undefined) {
-                reduceOnly = reduceOnlyAsInteger === 1;
-            }
+        const tif = (tifAsInteger !== undefined) ? this.parseOrderTimeInForceInteger (tifAsInteger) : this.safeString (order, 'time_in_force');
+        const reduceOnlyAsBool = this.safeBool (order, 'reduce_only');
+        const reduceOnlyAsInteger = this.safeInteger (order, 'reduce_only');
+        let reduceOnly: Bool = reduceOnlyAsBool;
+        if ((reduceOnlyAsBool === undefined) && (reduceOnlyAsInteger !== undefined)) {
+            reduceOnly = (reduceOnlyAsInteger === 1);
         }
         const status = this.safeString (order, 'status');
         return this.safeOrder ({
@@ -3077,7 +3059,7 @@ export default class lighter extends Exchange {
         }
         let takerOrMaker: Str = undefined;
         if (side !== undefined && isMakerAsk !== undefined) {
-            const isMaker = (side === 'sell') ? isMakerAsk : !isMakerAsk;
+            const isMaker = (side === 'sell') ? (isMakerAsk === true) : (isMakerAsk === false);
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         return this.safeTrade ({

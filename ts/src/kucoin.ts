@@ -6083,10 +6083,7 @@ export default class kucoin extends Exchange {
                 response = await this.privateGetOrdersOrderId (this.extend (request, paramsOmitted));
             }
         }
-        let responseData = this.safeDict (response, 'data', {});
-        if (Array.isArray (responseData)) {
-            responseData = this.safeValue (responseData, 0);
-        }
+        const responseData = this.safeDict (response, 'data', {});
         return this.parseOrder (responseData, market);
     }
 

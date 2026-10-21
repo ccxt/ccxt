@@ -2170,10 +2170,10 @@ export default class bitstamp extends Exchange {
         if ('amount' in transaction) {
             amount = this.safeString (transaction, 'amount');
         } else if (currency !== undefined) {
-            amount = this.safeString (transaction, currency['id'], amount);
+            amount = this.safeString (transaction, currency['id']);
             feeCurrency = currency['code'];
         } else if ((code !== undefined) && (currencyId !== undefined)) {
-            amount = this.safeString (transaction, currencyId, amount);
+            amount = this.safeString (transaction, currencyId);
             feeCurrency = code;
         }
         if (amount !== undefined) {
@@ -2436,7 +2436,8 @@ export default class bitstamp extends Exchange {
         } else {
             const parsedTransaction = this.parseTransaction (item, currency);
             let direction: Str = undefined;
-            const hasTransactionCurrency = !('amount' in item) && ('currency' in parsedTransaction) && (parsedTransaction['currency'] !== undefined);
+            const transactionCurrency = this.safeString (parsedTransaction, 'currency');
+            const hasTransactionCurrency = !('amount' in item) && (transactionCurrency !== undefined);
             let currencyResolved = currency;
             if (hasTransactionCurrency) {
                 currencyResolved = this.currency (this.safeString (parsedTransaction, 'currency'));
@@ -2444,7 +2445,7 @@ export default class bitstamp extends Exchange {
             if ('amount' in item) {
                 const amount = this.safeString (item, 'amount');
                 direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
-            } else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
+            } else if (transactionCurrency !== undefined) {
                 const amount = this.safeString (item, this.safeString (currencyResolved, 'id'));
                 direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
             }

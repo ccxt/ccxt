@@ -350,20 +350,20 @@ export default class delta extends Exchange {
         const quote = 'USDT';
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
+        const hasSlash = symbol.indexOf ('/') > -1;
         let base: Str = undefined;
-        let expiry: Str = undefined;
         let optionType: Str = undefined;
-        if (symbol.indexOf ('/') > -1) {
+        if (hasSlash) {
             base = this.safeString (symbolBase, 0);
-            expiry = this.safeString (optionParts, 1);
             optionType = this.safeString (optionParts, 3);
         } else {
             base = this.safeString (optionParts, 1);
-            expiry = this.safeString (optionParts, 3);
             optionType = this.safeString (optionParts, 0);
         }
-        if (expiry !== undefined) {
-            expiry = expiry.slice (4) + expiry.slice (2, 4) + expiry.slice (0, 2);
+        const rawExpiry = this.safeString (optionParts, hasSlash ? 1 : 3);
+        let expiry: Str = undefined;
+        if (rawExpiry !== undefined) {
+            expiry = rawExpiry.slice (4) + rawExpiry.slice (2, 4) + rawExpiry.slice (0, 2);
         }
         const settle = quote;
         const strike = this.safeString (optionParts, 2);
@@ -1670,7 +1670,7 @@ export default class delta extends Exchange {
             windowSeconds = limit * duration;
         }
         let until = this.safeIntegerProduct (params, 'until', 0.001);
-        const untilIsDefined = (until !== undefined);
+        const untilIsDefined = until !== undefined;
         if (untilIsDefined) {
             until = this.parseToInt (until);
         }

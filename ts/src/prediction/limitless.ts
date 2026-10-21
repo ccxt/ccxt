@@ -288,8 +288,7 @@ export default class limitless extends Exchange {
                     if (Array.isArray (response)) {
                         responseRows = response;
                     }
-                    const rawPageMarkets = this.safeList (response, 'data', responseRows);
-                    const page_markets = (rawPageMarkets !== undefined) ? rawPageMarkets : [];
+                    const page_markets = this.safeList (response, 'data', responseRows);
                     const pageMarketsLength = page_markets.length;
                     if (pageMarketsLength === 0) {
                         break;
@@ -1113,7 +1112,11 @@ export default class limitless extends Exchange {
         const prices = this.safeList (raw, 'prices', []);
         const pricesLength = prices.length;
         if ((lastStr === undefined) && (pricesLength > 0)) {
-            lastStr = (isYes) ? this.safeString (prices, 0) : this.safeString (prices, 1);
+            if (isYes) {
+                lastStr = this.safeString (prices, 0);
+            } else {
+                lastStr = this.safeString (prices, 1);
+            }
         }
         // volume and book sizes are in USDC micro-units (6 decimals)
         const rawVolume = this.safeString (raw, 'volume');
@@ -1424,8 +1427,7 @@ export default class limitless extends Exchange {
         if (Array.isArray (response)) {
             responseRows = response;
         }
-        const rawHistoryList = this.safeList (response, 'data', this.safeList (response, 'prices', responseRows));
-        const rawHistory = (rawHistoryList !== undefined) ? rawHistoryList : [];
+        const rawHistory = this.safeList (response, 'data', this.safeList (response, 'prices', responseRows));
         let history: any[] = rawHistory;
         const rawHistoryLength = rawHistory.length;
         if (rawHistoryLength > 0) {
@@ -2209,7 +2211,8 @@ export default class limitless extends Exchange {
         const response = await this.limitlessPrivatePostOrders (this.extend (request, paramsValue));
         const parsedOrder = this.parsePredictionOrder (response, outcomeObj);
         // the create-order response omits a status field; a freshly accepted order is open
-        if (parsedOrder['status'] === undefined) {
+        const parsedStatus = this.safeString (parsedOrder, 'status');
+        if (parsedStatus === undefined) {
             parsedOrder['status'] = 'open';
         }
         return parsedOrder;
@@ -2250,11 +2253,11 @@ export default class limitless extends Exchange {
         return this.signMessage (msg, this.privateKey);
     }
 
-    hashMessage (message: any) {
+    hashMessage (message: any): string {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any) {
+    signHash (hash: string, privateKey: string) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
@@ -2265,7 +2268,7 @@ export default class limitless extends Exchange {
         return result.toLowerCase ();
     }
 
-    signMessage (message: any, privateKey: any) {
+    signMessage (message: any, privateKey: string) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -2365,10 +2368,12 @@ export default class limitless extends Exchange {
         const response = await this.limitlessPrivateDeleteOrdersOrderId (this.extend (request, params));
         // the delete response carries no order body, so backfill the id and the resulting status
         const order = this.parsePredictionOrder (response);
-        if (order['id'] === undefined) {
+        const orderId = this.safeString (order, 'id');
+        if (orderId === undefined) {
             order['id'] = id;
         }
-        if (order['status'] === undefined) {
+        const orderStatus = this.safeString (order, 'status');
+        if (orderStatus === undefined) {
             order['status'] = 'canceled';
         }
         return order as PredictionOrder;
@@ -3182,8 +3187,7 @@ export default class limitless extends Exchange {
      */
     override sign (path: string, api: string[] = [ 'limitless' ], method = 'GET', params: Dict = {}) {
         const apiGroup: string = api[0];
-        const apiLength = api.length;
-        const access: string = (apiLength > 1) ? api[1] : 'public';
+        const access = this.safeString (api, 1, 'public');
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['limitless']);
         let url = '/' + this.implodeParams (path, params);
@@ -3196,17 +3200,14 @@ export default class limitless extends Exchange {
         let bodyValue: any = undefined;
         if (access === 'private') {
             let bodyString = '';
-            if (headersValue === undefined) {
-                headersValue = {};
-            }
+            headersValue = {};
             if (method === 'POST' && (querystring !== '')) {
                 bodyString = this.json (query);
                 bodyValue = bodyString;
-                const headerDefaults = (headersValue !== undefined) ? headersValue : {};
                 headersValue = this.extend ({
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                }, headerDefaults);
+                }, headersValue);
             }
             this.checkRequiredCredentials ();
             const timestamp = this.iso8601 (this.milliseconds ());
@@ -3250,7 +3251,7 @@ export default class limitless extends Exchange {
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error
-        if (statusCode === 400) {
+        if (statusCodeInt === 400) {
             throw new BadRequest (feedback);
         }
         return undefined;

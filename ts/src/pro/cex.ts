@@ -379,12 +379,12 @@ export default class cex extends cexRest {
             return;
         }
         this.tickers[symbol] = ticker;
-        let messageHash: Str = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + symbol;
         client.resolve (ticker, messageHash);
         client.resolve (ticker, 'tickers');
-        messageHash = this.safeString (message, 'oid');
-        if (messageHash !== undefined) {
-            client.resolve (ticker, messageHash);
+        const oid = this.safeString (message, 'oid');
+        if (oid !== undefined) {
+            client.resolve (ticker, oid);
         }
     }
 

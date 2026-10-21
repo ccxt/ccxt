@@ -1110,9 +1110,10 @@ export default class poloniex extends Exchange {
         const marketId = this.safeString2 (ticker, 'symbol', 's');
         const marketResolved: Market = this.safeMarket (marketId);
         let baseVolume = this.safeString2 (ticker, 'quantity', 'qty');
-        if ((marketResolved['contract'] === true) && (marketResolved['contractSize'] !== undefined)) {
+        const contractSize = this.safeNumber (marketResolved, 'contractSize');
+        if ((marketResolved['contract'] === true) && (contractSize !== undefined)) {
             // 'quantity' counts contracts, and a ticker reports base volume
-            baseVolume = Precise.stringMul (baseVolume, this.numberToString (marketResolved['contractSize']));
+            baseVolume = Precise.stringMul (baseVolume, this.numberToString (contractSize));
         }
         const relativeChange = this.safeString2 (ticker, 'dailyChange', 'dc');
         const percentage = Precise.stringMul (relativeChange, '100');
@@ -2138,10 +2139,12 @@ export default class poloniex extends Exchange {
             const rawOrder = orders[i];
             const symbol: string = rawOrder['symbol'];
             const marketInner = this.market (symbol);
+            const marketInnerType = this.safeString (marketInner, 'type');
+            const marketType = this.safeString (market, 'type');
             if (market === undefined) {
                 market = marketInner;
                 isContract = (marketInner['contract'] === true);
-            } else if (market['type'] !== marketInner['type']) {
+            } else if (marketType !== marketInnerType) {
                 throw new BadRequest (this.id + ' createOrders() requires all orders to be of the same market type, either spot or swap');
             }
             const type: OrderType = rawOrder['type'];
@@ -3409,8 +3412,8 @@ export default class poloniex extends Exchange {
                 const chainsLength = childChains.length;
                 if (chainsLength > 0) {
                     for (let j = 0; j < childChains.length; j++) {
-                        let networkId = childChains[j];
-                        networkId = networkId.replace (code, '');
+                        const rawNetworkId = this.safeString (childChains, j, '');
+                        const networkId = rawNetworkId.replace (code, '');
                         const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
                         const networkInfo = this.safeDict (response, networkId);
                         const networkObject: Dict = {};

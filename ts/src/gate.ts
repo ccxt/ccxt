@@ -3021,9 +3021,11 @@ export default class gate extends Exchange {
         }
         let ticker: NullableDict = undefined;
         if (market['option'] === true) {
+            const optionMarketId = this.safeString (market, 'id');
             for (let i = 0; i < (response as List).length; i++) {
                 const entry = response[i];
-                if (this.safeString (entry, 'name') === market['id']) {
+                const entryName = this.safeString (entry, 'name');
+                if (entryName === optionMarketId) {
                     ticker = entry;
                     break;
                 }
@@ -6164,13 +6166,14 @@ export default class gate extends Exchange {
             'currency': currency['id'], // todo: currencies have network-junctions
             'amount': truncated,
         };
-        if (!(fromId in this.options['accountsByType'])) {
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        if (!(fromId in accountsByType)) {
             request['from'] = 'margin';
             request['currency_pair'] = fromId;
         } else {
             request['from'] = fromId;
         }
-        if (!(toId in this.options['accountsByType'])) {
+        if (!(toId in accountsByType)) {
             request['to'] = 'margin';
             request['currency_pair'] = toId;
         } else {

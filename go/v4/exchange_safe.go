@@ -796,7 +796,7 @@ func (this *BaseExchange) SafeNumberOmitZero(obj any, key any, defaultValue ...a
 	}
 	var value *string = this.SafeString(obj, key)
 	var final any = this.ParseNumber(this.OmitZero(value))
-	if IsEqual(final, nil) {
+	if derefScalar(final) == nil {
 		return toFloat64Ptr(defVal)
 	}
 	return toFloat64Ptr(final)

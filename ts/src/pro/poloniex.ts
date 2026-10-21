@@ -171,8 +171,7 @@ export default class poloniex extends poloniexRest {
             if (symbols === undefined) {
                 throw new ArgumentsRequired (this.id + ' subscribe() symbols is required');
             }
-            const ids = this.marketIds (symbols);
-            marketIds = (ids === undefined) ? [] : ids;
+            marketIds = this.marketIds (symbols);
         }
         const symbolsSuffix = (symbols === undefined) ? '' : symbols.join (',');
         let symbolsHash: Str = undefined;

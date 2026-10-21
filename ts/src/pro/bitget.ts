@@ -2420,7 +2420,7 @@ export default class bitget extends bitgetRest {
         if (!uta) {
             args['coin'] = 'default';
         }
-        const instTypeLower = (instType === undefined) ? '' : instType.toLowerCase ();
+        const instTypeLower = this.safeStringLower (args, 'instType', '');
         const messageHash = 'balance:' + instTypeLower;
         return await this.watchPrivate (uta, messageHash, messageHash, args, paramsRequest);
     }

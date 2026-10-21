@@ -2363,11 +2363,8 @@ export default class weex extends Exchange {
         if (isTrigger && (isStopLoss || isTakeProfit)) {
             throw new BadRequest (this.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
-        let reduceOnly = this.safeBool (query, 'reduceOnly');
-        if (isStopLoss || isTakeProfit) {
-            reduceOnly = true;
-        }
-        const isReduceOnly = (reduceOnly === true);
+        const reduceOnly = this.safeBool (query, 'reduceOnly');
+        const isReduceOnly = isStopLoss || isTakeProfit || (reduceOnly === true);
         let positionSide = 'LONG';
         if (isReduceOnly) {
             if (side === 'buy') {
@@ -3272,7 +3269,7 @@ export default class weex extends Exchange {
     handleOrderOrPositionError (errorCode: Str, errorMessage: Str, order: Dict) {
         const errorCodeValue: string = (errorCode === undefined) ? '' : errorCode;
         const errorMessageValue: string = (errorMessage === undefined) ? '' : errorMessage;
-        if ((errorCodeValue === '') && (errorMessageValue === '')) {
+        if (((errorCode === undefined) || (errorCode === '')) && ((errorMessage === undefined) || (errorMessage === ''))) {
             // some endpoints could return an empty string if there is no error
             return;
         }
@@ -3613,8 +3610,9 @@ export default class weex extends Exchange {
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('endTime', request, paramsPaginate);
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
-        const hasSince = ('startTime' in requestUntil);
-        const hasUntil = ('endTime' in requestUntil);
+        const hasSince = (since !== undefined);
+        const until = this.safeInteger2 (paramsPaginate, 'until', 'till');
+        const hasUntil = (until !== undefined);
         if (hasSince && !hasUntil) {
             requestUntil['endTime'] = this.milliseconds ();
         } else if (hasUntil && !hasSince) {

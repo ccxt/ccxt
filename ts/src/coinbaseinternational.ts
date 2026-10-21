@@ -1473,8 +1473,8 @@ export default class coinbaseinternational extends Exchange {
             settleId = quoteId;
             symbol += ':' + quoteId;
         }
-        const isLinear = isSpot ? undefined : (settleId === quoteId);
-        const isInverse = isSpot ? undefined : (settleId !== quoteId);
+        const isLinear = isSpot ? undefined : true;
+        const isInverse = isSpot ? undefined : false;
         if (marketId === undefined) {
             throw new ExchangeError (this.id + ' parseMarket() missing marketId');
         }

@@ -544,7 +544,9 @@ export default class backpack extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
-        const [ stock, query ] = this.handleStockParams ('fetchCurrencies', params);
+        const selection = this.handleStockParams ('fetchCurrencies', params);
+        const stock = this.safeBool (selection, 0, false);
+        const query = this.safeDict (selection, 1, {});
         const response = await this.publicGetApiV1Assets (query);
         //
         //     [
@@ -572,7 +574,7 @@ export default class backpack extends Exchange {
         const currencies: Currencies = {};
         for (let i = 0; i < response.length; i++) {
             const currency = this.parseCurrency (response[i]);
-            if ((stock !== true) || (currency['type'] === 'stock')) {
+            if ((stock !== true) || (this.safeString (currency, 'type') === 'stock')) {
                 currencies[currency['code']] = currency;
             }
         }
@@ -662,7 +664,9 @@ export default class backpack extends Exchange {
         if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
-        const [ stock, query ] = this.handleStockParams ('fetchMarkets', params);
+        const selection = this.handleStockParams ('fetchMarkets', params);
+        const stock = this.safeBool (selection, 0, false);
+        const query = this.safeDict (selection, 1, {});
         const marketType = this.safeString (query, 'marketType');
         const defaultTypes = (marketType === undefined) ? [ 'SPOT', 'PERP', 'RFQ' ] : [ marketType ];
         const requestedTypes = this.safeList (query, 'marketType', defaultTypes);
@@ -1069,7 +1073,7 @@ export default class backpack extends Exchange {
         const quoteCode = (fromIsStock) ? toCode : fromCode;
         const symbol = stockCode + '.RFQ/' + quoteCode;
         const market = this.safeDict (this.markets, symbol);
-        if ((market === undefined) || (market['executionModel'] !== 'rfq') || (market['stock'] !== true)) {
+        if ((market === undefined) || (this.safeString (market, 'executionModel') !== 'rfq') || !this.safeBool (market, 'stock', false)) {
             throw new BadSymbol (this.id + ' conversion requires a listed stock RFQ market: ' + symbol);
         }
         return market as MarketInterface;
@@ -1092,7 +1096,7 @@ export default class backpack extends Exchange {
             throw new ArgumentsRequired (this.id + ' parseConversion() requires source and destination currencies');
         }
         const market = this.rfqConversionMarket (fromCode, toCode);
-        const fromIsBase = fromCode === market['base'];
+        const fromIsBase = fromCode === this.safeString (market, 'base');
         const filled = this.safeNumber (order, 'filled');
         const cost = this.safeNumber (order, 'cost');
         const fee = this.safeDict (order, 'fee');

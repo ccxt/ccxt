@@ -3257,13 +3257,12 @@ export default class okx extends Exchange {
         const isReduceOnly = (this.safeBool (params, 'reduceOnly', false)) || (closeFraction !== undefined);
         const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2 (params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so as to be extended into the request
-        let margin: Bool = false;
-        if ((marginMode !== undefined) && (marginMode !== 'cash')) {
-            margin = true;
-        } else {
+        const marginModeIsExplicit = (marginMode !== undefined) && (marginMode !== 'cash');
+        if (!marginModeIsExplicit) {
             marginMode = defaultMarginMode;
-            margin = this.safeBool (params, 'margin', false);
         }
+        const marginParam = this.safeBool (params, 'margin', false);
+        const margin = marginModeIsExplicit || (marginParam === true);
         // position side / hedged options only apply to swap and future orders
         const isSwapOrFuture = (contract === true) && ((market['swap'] === true) || (market['future'] === true));
         const [ positionSide, paramsPositionSide ] = this.handleOptionStringAndParams (params, 'createOrder', 'positionSide');
@@ -5259,7 +5258,10 @@ export default class okx extends Exchange {
             // 'limit': 100, // default 100, max 100
         };
         const [ marginModeOption, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchLedger', paramsOmitted);
-        const marginMode: Str = (marginModeOption === undefined) ? this.safeString (paramsMarginMode, 'mgnMode') : marginModeOption;
+        let marginMode: Str = marginModeOption;
+        if (marginMode === undefined) {
+            marginMode = this.safeString (paramsMarginMode, 'mgnMode');
+        }
         if (method !== 'privateGetAssetBills') {
             if (marginMode !== undefined) {
                 request['mgnMode'] = marginMode;
@@ -8756,10 +8758,7 @@ export default class okx extends Exchange {
         }
         const request: Dict = {};
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true, true);
-        let symbolsLength: Int = undefined;
-        if (symbolsNormalized !== undefined) {
-            symbolsLength = symbolsNormalized.length;
-        }
+        const symbolsLength = (symbolsNormalized === undefined) ? 0 : symbolsNormalized.length;
         if ((symbolsNormalized === undefined) || (symbolsLength !== 1)) {
             const uly = this.safeString (params, 'uly');
             if (uly !== undefined) {

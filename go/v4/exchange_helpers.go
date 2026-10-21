@@ -16,6 +16,9 @@ import (
 // serialize writes in AddElementToObject to avoid concurrent map writes in hot WS paths
 var addElementMu sync.Mutex
 
+// AddElementMu is the same lock, for InOp inlined into generated code of other packages
+var AddElementMu = &addElementMu
+
 func UnWrapType(value any) any {
 	// converts from wrapped types to basic types
 	// like OrderBook, Ticker, Trade, etc to map[string]any or []any

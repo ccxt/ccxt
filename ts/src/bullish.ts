@@ -1383,11 +1383,11 @@ export default class bullish extends Exchange {
         const maxDelta = duration * maxLimit * 1000;
         let startTime: Int = since;
         // both of since and until are required
-        if (startTime === undefined && untilParam === undefined) {
+        if (since === undefined && untilParam === undefined) {
             const now = this.milliseconds ();
             until = now;
             startTime = now - maxDelta;
-        } else if ((startTime === undefined) && (untilParam !== undefined)) {
+        } else if ((since === undefined) && (untilParam !== undefined)) {
             startTime = untilParam - maxDelta;
         } else if (untilParam === undefined) {
             until = this.sum (startTime, maxDelta);
@@ -2278,9 +2278,8 @@ export default class bullish extends Exchange {
     }
 
     async loadAccount (params: Dict = {}): Promise<string> {
-        let tradingAccountId: Str = undefined;
-        let paramsTradingAccountId = undefined;
-        [ tradingAccountId, paramsTradingAccountId ] = this.handleOptionStringAndParams (params, 'loadAccount', 'tradingAccountId');
+        const [ tradingAccountIdOption, paramsTradingAccountId ] = this.handleOptionStringAndParams (params, 'loadAccount', 'tradingAccountId');
+        let tradingAccountId: Str = tradingAccountIdOption;
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts (paramsTradingAccountId);
             const accounts = this.toArray (response);
@@ -2431,9 +2430,10 @@ export default class bullish extends Exchange {
         const safeResponse = this.toArray (response);
         const length = safeResponse.length;
         let data = this.safeDict (safeResponse, 0, {});
-        let network: Str = undefined;
-        network = this.handleNetworkCodeAndParams (params)[0];
-        const networkDefinedByUser = network !== undefined;
+        const networkAndParams = this.handleNetworkCodeAndParams (params);
+        const networkParam: Str = networkAndParams[0];
+        const networkDefinedByUser = networkParam !== undefined;
+        let network: Str = networkParam;
         if ((length > 1) || (networkDefinedByUser)) {
             // some currencies have multiple networks
             if (network === undefined) {
@@ -2831,7 +2831,7 @@ export default class bullish extends Exchange {
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
         let until = this.safeInteger (requestUntil, 'createdAtDatetime[lte]');
         // current endpoint requires both since and until parameters
-        if (startTimestamp === undefined) {
+        if (since === undefined) {
             startTimestamp = now - 1000 * 60 * 60 * 24 * 90; // Only the last 90 days of data is available for querying
         }
         if (until === undefined) {

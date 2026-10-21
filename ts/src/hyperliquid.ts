@@ -920,7 +920,7 @@ export default class hyperliquid extends Exchange {
             const innerBaseTokenInfo = this.safeDict (baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             const amountPrecisionStr = this.safeString (innerBaseTokenInfo, 'szDecimals');
-            const amountPrecision = parseInt ((amountPrecisionStr as string));
+            const amountPrecision = this.parseToInt (amountPrecisionStr);
             const price = this.safeNumber (extraData, 'midPx');
             let pricePrecision = 0;
             if (price !== undefined) {
@@ -1054,7 +1054,7 @@ export default class hyperliquid extends Exchange {
         const taker = this.safeNumber (fees, 'taker');
         const maker = this.safeNumber (fees, 'maker');
         const amountPrecisionStr = this.safeString (market, 'szDecimals');
-        const amountPrecision = parseInt ((amountPrecisionStr as string));
+        const amountPrecision = this.parseToInt (amountPrecisionStr);
         const price = this.safeNumber (market, 'markPx', 0);
         let pricePrecision = 0;
         if (price !== undefined) {
@@ -2182,7 +2182,7 @@ export default class hyperliquid extends Exchange {
         await this.initializeClient ();
         const market = this.market (symbol);
         const nonce = this.incrementingNonce ();
-        const isBuy = ((side as string).toUpperCase () === 'BUY');
+        const isBuy = (side.toUpperCase () === 'BUY');
         const randomize = this.safeBool (params, 'randomize', false);
         const paramsOmitted: Dict = this.omit (params, 'randomize');
         const [ vaultAddressOption, paramsVault ] = this.handleOptionStringAndParams (paramsOmitted, 'createOrder', 'vaultAddress');
@@ -2293,7 +2293,7 @@ export default class hyperliquid extends Exchange {
         }
         const market = this.market (symbol);
         const typeValue: Str = type.toUpperCase ();
-        const sideValue: Str = (side as string).toUpperCase ();
+        const sideValue: Str = side.toUpperCase ();
         const isMarket = (typeValue === 'MARKET');
         const isBuy = (sideValue === 'BUY');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
@@ -3336,10 +3336,7 @@ export default class hyperliquid extends Exchange {
         }
         for (let i = 0; i < historicalOrders.length; i++) {
             const rawOrder = historicalOrders[i];
-            let entry = this.safeDict (rawOrder, 'order');
-            if (entry === undefined) {
-                entry = rawOrder;
-            }
+            const entry = this.safeDict (rawOrder, 'order', rawOrder);
             const oid = this.safeString (entry, 'oid');
             if (oid !== undefined) {
                 if (!(oid in deduplicatedByOid)) {
@@ -3530,10 +3527,7 @@ export default class hyperliquid extends Exchange {
                 'status': 'rejected',
             });
         }
-        let entry = this.safeDictN (order, [ 'order', 'resting', 'filled' ]);
-        if (entry === undefined) {
-            entry = order;
-        }
+        const entry = this.safeDictN (order, [ 'order', 'resting', 'filled' ], order);
         const filled = this.safeDict (order, 'filled', {});
         const coin = this.safeString (entry, 'coin');
         let marketId: Str = undefined;
@@ -5254,7 +5248,7 @@ export default class hyperliquid extends Exchange {
     override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config: Dict = {}) {
         if (('byType' in config) && ('type' in params)) {
             const type = params['type'];
-            const byType = config['byType'] as Dict;
+            const byType = this.safeDict (config, 'byType', {});
             if (type in byType) {
                 return byType[type];
             }

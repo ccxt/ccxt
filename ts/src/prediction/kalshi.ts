@@ -271,14 +271,11 @@ export default class kalshi extends Exchange {
                 const parsed = this.parseBinaryMarketToOutcomes (raw);
                 const eventTicker = this.safeString (raw, 'event_ticker');
                 const eventTitle = this.safeString (raw, 'title', eventTicker);
-                let eventKey: Str = undefined;
-                if (eventTitle !== undefined && eventTitle !== '') {
-                    eventKey = this.shortenSlug (eventTitle);
-                }
+                const eventKey: string = (eventTitle !== undefined && eventTitle !== '') ? this.shortenSlug (eventTitle) : '';
                 for (let j = 0; j < parsed.length; j++) {
                     const m = parsed[j];
                     flatMarkets.push (m);
-                    if ((eventKey !== undefined) && (eventKey !== '')) {
+                    if (eventKey !== '') {
                         if (!(eventKey in eventsDict)) {
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
@@ -903,8 +900,8 @@ export default class kalshi extends Exchange {
         //
         const marketAny = market;
         const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
-        const outcomeLabel = (market !== undefined && market !== null) ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES')) : 'YES';
-        const isNo = outcomeLabel.toUpperCase () === 'NO';
+        const outcomeLabel = (market !== undefined && market !== null) ? this.safeStringUpper (market, 'label', this.safeStringUpper (market['info'], 'outcomeLabel', 'YES')) : 'YES';
+        const isNo = outcomeLabel === 'NO';
         const timestamp = this.parse8601 (this.safeString (raw, 'updated_time'));
         const outcome = this.safeString (outcomeObj, 'outcome');
         const yesAsk = this.safeNumber (raw, 'yes_ask_dollars');
@@ -1067,7 +1064,7 @@ export default class kalshi extends Exchange {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
-        const isNo = outcomeObj['label'] === 'NO';
+        const isNo = this.safeString (outcomeObj, 'label') === 'NO';
         const request: Dict = {
             'ticker': ticker,
         };
@@ -1434,10 +1431,8 @@ export default class kalshi extends Exchange {
         for (let i = 0; i < fillsLength; i++) {
             trades.push (this.parseMyTrade (fills[i], outcomeObj));
         }
-        let wantedOutcome: Str = undefined;
-        if (outcome !== undefined) {
-            wantedOutcome = this.safeString (this.outcome (outcome), 'outcome');
-        }
+        const wantedOutcomeObj: Dict = (outcome !== undefined) ? this.outcome (outcome) : {};
+        const wantedOutcome = this.safeString (wantedOutcomeObj, 'outcome');
         const result: any[] = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
@@ -1636,10 +1631,8 @@ export default class kalshi extends Exchange {
         for (let i = 0; i < rawSettlementsLength; i++) {
             parsed.push (this.parseSettlement (rawSettlements[i]));
         }
-        let wantedOutcome: Str = undefined;
-        if (outcome !== undefined) {
-            wantedOutcome = this.safeString (this.outcome (outcome), 'outcome');
-        }
+        const wantedOutcomeObj: Dict = (outcome !== undefined) ? this.outcome (outcome) : {};
+        const wantedOutcome = this.safeString (wantedOutcomeObj, 'outcome');
         const result: any[] = [];
         for (let i = 0; i < parsed.length; i++) {
             const settlement = parsed[i];
@@ -2006,7 +1999,7 @@ export default class kalshi extends Exchange {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
-        const isNo = (outcomeObj['label'] === 'NO');
+        const isNo = (this.safeString (outcomeObj, 'label') === 'NO');
         const isBuy = (side === 'buy');
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
@@ -2015,13 +2008,10 @@ export default class kalshi extends Exchange {
         if (isBuy) {
             bookSide = 'bid';
         }
-        let yesPrice = price;
         if (isNo) {
             bookSide = (isBuy) ? 'ask' : 'bid';
-            if (price !== undefined) {
-                yesPrice = this.parseNumber (Precise.stringSub ('1', this.numberToString (price)));
-            }
         }
+        const yesPrice = (isNo && (price !== undefined)) ? this.parseNumber (Precise.stringSub ('1', this.numberToString (price))) : price;
         const isMarket = (type === 'market');
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
@@ -2072,7 +2062,7 @@ export default class kalshi extends Exchange {
         if (remainingCount !== undefined) {
             order['remaining'] = remainingCount;
         }
-        if (order['status'] === undefined) {
+        if (this.safeString (order, 'status') === undefined) {
             let resolvedStatus = 'open';
             if ((remainingCount !== undefined) && (remainingCount === 0)) {
                 resolvedStatus = 'closed';
@@ -2133,10 +2123,10 @@ export default class kalshi extends Exchange {
         // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
         const order = this.parsePredictionOrder (this.safeDict (response, 'order', response), outcomeObj);
-        if (order['id'] === undefined) {
+        if (this.safeString (order, 'id') === undefined) {
             order['id'] = id;
         }
-        if (order['status'] === undefined) {
+        if (this.safeString (order, 'status') === undefined) {
             order['status'] = 'canceled';
         }
         return order;
@@ -2397,7 +2387,7 @@ export default class kalshi extends Exchange {
         const ordered: string[] = [];
         const collectedLength = collected.length;
         for (let ci = 0; ci < collectedLength; ci++) {
-            const st = collected[ci];
+            const st = this.safeString (collected, ci);
             const already = this.safeString (seen, st);
             if ((st !== undefined) && (st !== '') && (already === undefined)) {
                 seen[st] = st;

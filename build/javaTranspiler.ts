@@ -66,7 +66,7 @@ function overwriteFileAndFolder(path: string, content: string) {
     // spelling last, so every regex pass above still matches on the fully-qualified form.
     if (path.endsWith('.java')) {
         content = nativeJavaStringAdd(content);
-        content = applyJavaImports(path.includes('/java/lib/') ? nativeJavaJ40(content) : content); // hx4 J40
+        content = applyJavaImports(path.includes('/java/lib/') ? nativeJavaJ44(nativeJavaJ43(nativeJavaJ42(nativeJavaJ41(nativeJavaJ40(content))))) : content); // hx4 J40
     }
     overwriteFile(path, content);
 }
@@ -2031,7 +2031,7 @@ function ss02Record (printer: any, declaration: any, javaType: string | undefine
 function javaWorkerThreads () {
     const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
     if (requested > 0) {
-        return requested;
+        return Math.min (requested, 3);
     }
     return Math.max (1, Math.min (2, os.availableParallelism ()));
 }
@@ -3176,7 +3176,7 @@ class NewTranspiler {
             replaceInFile(filename, pattern, replacement);
         }
         const contents = fs.readFileSync(filename, 'utf8');
-        const withImports = nativeJavaJ38(nativeJavaJ36MultiplySubtract(ensureJavaImports(contents, shortened.imports)));
+        const withImports = nativeJavaJ42(nativeJavaJ38(nativeJavaJ36MultiplySubtract(ensureJavaImports(contents, shortened.imports)))); // hx4 J42
         if (withImports !== contents) {
             fs.writeFileSync(filename, withImports);
         }
@@ -5771,7 +5771,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest());
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest(), j10CounterSelfTest(), j11MapLocalsSelfTest(), j04ArithmeticSelfTest(), j12ParamTypesSelfTest(), j13ListLocalsSelfTest(), j14ScalarLocalsSelfTest(), j15SelfTest(), j17ReturnsSelfTest(), j19CompareSelfTest(), j20ParamCompareSelfTest(), j22CoreArgsSelfTest(), j23ArithmeticSelfTest(), j24ArithmeticSelfTest(), j25CompareSelfTest(), j26MapLocalsSelfTest(), j27ArithmeticSelfTest(), j28CompareSelfTest(), j29ContainersSelfTest(), j30SelfTest(), j31ArithmeticSelfTest(), j36SelfTest(), j32DivModNegSelfTest(), j37SelfTest(), j38SelfTest(), j39SelfTest(), j40SelfTest(), j41SelfTest(), j42SelfTest(), j43SelfTest(), j44SelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7482,6 +7482,9 @@ function hx4J21BaseNativePasses (transpiler: any, body: string): string {
     content = nativeJavaJ39Containers(content); // hx4 J39
     content = nativeJavaJ40(nativeJavaStringAdd(content)); // hx4 J40
     content = nativeJavaJ38(nativeJavaJ36MultiplySubtract(nativeJavaJ37DivModNeg(content))); // hx4 J36..J38 post-J40
+    content = nativeJavaJ41(content); // hx4 J41
+    content = nativeJavaJ43(content); // hx4 J43
+    content = nativeJavaJ44(content); // hx4 J44
     return content;
 }
 
@@ -9609,6 +9612,253 @@ function j40SelfTest (): string[] {
         const out = nativeJavaJ40 (cls (body));
         const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.');
         if (!ok) problems.push (`hx4 J40: ${name}\n${out}`);
+    }
+    return problems;
+}
+
+// hx4 J41
+// Helpers.slice / Helpers.getIndexOf -> non-capturing inline lambdas that replay Helpers.Slice / getIndexOf
+// (and Helpers.toInt) exactly; operands are evaluated once, left to right, and the static types stay String / int.
+function j41Inline (name: string, args: string[]): string | undefined {
+    if (name === 'getIndexOf' && args.length === 2) {
+        return '((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof java.util.List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(' + args[0] + ', ' + args[1] + ')';
+    }
+    if (name === 'slice' && args.length === 3) {
+        const toInt = 'java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); ';
+        const body = 'if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; ' + toInt
+            + 'int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; '
+            + 'if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return \"\"; return hx4J41s.substring(hx4J41b); } '
+            + 'int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; '
+            + 'if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e);';
+        return '((java.util.function.Function<Object[], String>) (hx4J41a) -> { ' + body + ' }).apply(new Object[] { ' + args.join(', ') + ' })';
+    }
+    return undefined;
+}
+
+export function nativeJavaJ41 (content: string): string {
+    if (!/Helpers\.(?:slice|getIndexOf)\(/.test(content)) { return content; }
+    let masked = j05Mask(content);
+    let from = masked.length;
+    for (;;) {
+        const at = masked.lastIndexOf('Helpers.', from);
+        if (at === -1) { break; }
+        from = at - 1;
+        if (at > 0 && /[\w.]/.test(masked[at - 1])) { continue; }
+        const head = /^Helpers\.(slice|getIndexOf)\(/.exec(masked.slice(at, at + 24));
+        if (head === null) { continue; }
+        const open = at + head[0].length - 1;
+        const end = j05Close(masked, open);
+        if (end === -1) { continue; }
+        const argsM = splitTopLevelArgs(masked.slice(open + 1, end - 1));
+        const args: string[] = []; let p = open + 1;
+        for (const m of argsM) { args.push(content.slice(p, p + m.length).trim()); p += m.length + 1; }
+        const repl = j41Inline(head[1], args);
+        if (repl === undefined) { continue; }
+        content = content.slice(0, at) + repl + content.slice(end);
+        masked = j05Mask(content);
+    }
+    return content;
+}
+
+// hx4 J41: snippet checks (`--audit-string-types --self-test`)
+function j41SelfTest (): string[] {
+    const problems: string[] = [];
+    const cases: [string, string][] = [
+        [ '        String b = Helpers.slice(id, 0, Helpers.getIndexOf(id, "/"));', '.applyAsInt(id, "/") })' ],
+        [ '        String b = Helpers.slice(Helpers.slice(h, -64, null), 1, null);', '.apply(new Object[] { ((java.util.function.Function' ],
+        [ '        // Helpers.slice(a, 0, 1)', '// Helpers.slice(a, 0, 1)' ],
+        [ '        String q = "Helpers.slice(a, 0, 1)";', '"Helpers.slice(a, 0, 1)"' ],
+    ];
+    for (const [ body, expect ] of cases) {
+        const out = nativeJavaJ41 (body);
+        if (!out.includes (expect) || /Helpers\.(?:slice|getIndexOf)\(/.test (out.replace (/\/\/.*|"[^"]*"/g, ''))) problems.push (`hx4 J41: ${body}\n${out}`);
+    }
+    return problems;
+}
+
+// hx4 J42: Helpers.parseInt/parseFloat become inline pattern switches replaying Helpers.toLong/toDouble
+// exactly (parseInt: unparseable -> null; parseFloat: unparseable or null -> 0.0, a throwing toString -> null).
+function j42Rewrite (name: string, x: string, v: string): string {
+    if (name === 'parseInt') {
+        return `((Long) (switch ((Object) (${x})) { case null -> (Long) null; case Long ${v} -> ${v}; case Integer ${v} -> Long.valueOf(${v}.longValue()); case Double ${v} -> Long.valueOf(${v}.longValue()); case Float ${v} -> Long.valueOf(${v}.longValue()); case java.math.BigDecimal ${v} -> Long.valueOf(${v}.longValue()); case Object ${v} -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(${v}))); } catch (Exception ${v}e) { yield (Long) null; } } }))`;
+    }
+    return `((Double) (switch ((Object) (${x})) { case null -> Double.valueOf(0.0); case Double ${v} -> Double.valueOf(${v}.doubleValue()); case Float ${v} -> Double.valueOf(${v}.doubleValue()); case Long ${v} -> Double.valueOf(${v}.doubleValue()); case Integer ${v} -> Double.valueOf(${v}.doubleValue()); case java.math.BigDecimal ${v} -> Double.valueOf(${v}.doubleValue()); case Object ${v} -> { String ${v}s; try { ${v}s = String.valueOf(${v}); } catch (Exception ${v}e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(${v}s)); } catch (NumberFormatException ${v}e) { yield Double.valueOf(0.0); } } }))`;
+}
+
+export function nativeJavaJ42 (content: string): string {
+    if (!/Helpers\.(?:parseInt|parseFloat)\(/.test(content)) { return content; }
+    let masked = j05Mask(content);
+    let from = masked.length;
+    let n = 1 + Math.max(-1, ...[ ...content.matchAll(/hx4J42v(\d+)/g) ].map((m) => Number(m[1])));
+    for (;;) {
+        const at = masked.lastIndexOf('Helpers.', from);
+        if (at === -1) { break; }
+        from = at - 1;
+        if (at > 0 && /[\w.]/.test(masked[at - 1])) { continue; }
+        const head = /^Helpers\.(parseInt|parseFloat)\(/.exec(masked.slice(at, at + 24));
+        if (head === null) { continue; }
+        const open = at + head[0].length - 1;
+        const end = j05Close(masked, open);
+        if (end === -1) { continue; }
+        // a bare statement `Helpers.x(..);` is not a legal native expression statement
+        if (/[;{}]\s*$/.test(masked.slice(Math.max(0, at - 200), at)) && /^\s*;/.test(masked.slice(end))) { continue; }
+        const argsM = splitTopLevelArgs(masked.slice(open + 1, end - 1));
+        if (argsM.length !== 1) { continue; }
+        const x = content.slice(open + 1, end - 1).trim();
+        content = content.slice(0, at) + j42Rewrite(head[1], x, 'hx4J42v' + (n++)) + content.slice(end);
+        masked = j05Mask(content);
+    }
+    return content;
+}
+
+// hx4 J42: snippet checks (`--audit-string-types --self-test`)
+function j42SelfTest (): string[] {
+    const problems: string[] = [];
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p)\n    {\n${body}\n    }\n}`;
+    const cases: [string, string, string | undefined][] = [
+        [ 'parseInt', '        Object x = Helpers.parseInt(p);', 'Object x = ((Long) (switch ((Object) (p))' ],
+        [ 'parseFloat nested', '        return Helpers.parseFloat(Helpers.parseInt(p));', 'case Object hx4J42v1 ->' ],
+        [ 'string arg', '        return Helpers.parseInt("a)b");', '(switch ((Object) ("a)b"))' ],
+        [ 'statement', '        Helpers.parseInt(p);', undefined ],
+    ];
+    for (const [ name, body, expect ] of cases) {
+        const out = nativeJavaJ42 (cls (body));
+        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.');
+        if (!ok) problems.push (`hx4 J42: ${name}\n${out}`);
+    }
+    if (nativeJavaJ42 (nativeJavaJ42 (cls ('        Object x = Helpers.parseInt(p);'))) !== nativeJavaJ42 (cls ('        Object x = Helpers.parseInt(p);'))) problems.push ('hx4 J42: not idempotent');
+    return problems;
+}
+
+// hx4 J43: Helpers.replace/replaceAll/split/padEnd as curried lambdas replaying the Helpers.java
+// bodies verbatim (args evaluated once, left to right; no captures; same static return type).
+function j43Rewrite (name: string, args: string[], n: number): string | undefined {
+    const [ a, b, c ] = [ 'hx4J43a' + n, 'hx4J43b' + n, 'hx4J43c' + n ];
+    const x = args.map ((s) => s.trim ());
+    const F = 'java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>';
+    if (args.length === 3 && name === 'replace') {
+        return `((${F}) ${a} -> (${b}, ${c}) -> { if (${a} == null) { return null; } String ${a}s = String.valueOf(${a}); String ${a}f = (${b} == null) ? "" : String.valueOf(${b}); String ${a}r = (${c} == null) ? "" : String.valueOf(${c}); return ${a}s.replaceFirst(java.util.regex.Pattern.quote(${a}f), java.util.regex.Matcher.quoteReplacement(${a}r)); }).apply(${x[0]}).apply(${x[1]}, ${x[2]})`;
+    }
+    if (args.length === 3 && name === 'replaceAll') {
+        return `((${F}) ${a} -> (${b}, ${c}) -> { if (${a} == null) { return null; } String ${a}s = String.valueOf(${a}); String ${a}f = (${b} == null) ? "" : String.valueOf(${b}); if (${a}f.isEmpty()) { return ${a}s; } String ${a}r = (${c} == null) ? "" : String.valueOf(${c}); return ${a}s.replace(${a}f, ${a}r); }).apply(${x[0]}).apply(${x[1]}, ${x[2]})`;
+    }
+    if (args.length === 3 && name === 'padEnd') {
+        const toInt = `(${b} instanceof Integer ? (Integer) ${b} : ${b} instanceof Long ? ((Long) ${b}).intValue() : ${b} instanceof Double ? ((Double) ${b}).intValue() : ${b} instanceof Float ? ((Float) ${b}).intValue() : ${b} instanceof java.math.BigDecimal ? ((java.math.BigDecimal) ${b}).intValue() : ${b} instanceof String ? Integer.parseInt((String) ${b}) : Integer.parseInt(String.valueOf(${b})))`;
+        return `((${F}) ${a} -> (${b}, ${c}) -> { int ${a}n = ${toInt}; String ${a}s = (${a} == null) ? null : ${a}.toString(); String ${a}p = (${c} == null) ? null : ${c}.toString(); if (${a}p.isEmpty()) { throw new IllegalArgumentException("padStr must not be empty"); } while (${a}s.length() < ${a}n) { ${a}s += ${a}p; } return ${a}s.substring(0, ${a}n); }).apply(${x[0]}).apply(${x[1]}, ${x[2]})`;
+    }
+    if (args.length === 2 && name === 'split') {
+        return `((java.util.function.BiFunction<Object, Object, Object>) (${a}, ${b}) -> { if (${a} == null || ${b} == null) { return java.util.Collections.emptyList(); } return java.util.Arrays.asList(String.valueOf(${a}).split(java.util.regex.Pattern.quote(String.valueOf(${b})))); }).apply(${x[0]}, ${x[1]})`;
+    }
+    return undefined;
+}
+
+export function nativeJavaJ43 (content: string): string {
+    if (!/Helpers\.(replace|replaceAll|split|padEnd)\(/.test (content)) { return content; }
+    let masked = j05Mask (content);
+    let from = masked.length;
+    let n = 1 + Math.max (-1, ...[ ...content.matchAll (/hx4J43a(\d+)/g) ].map ((m) => Number (m[1])));
+    for (;;) {
+        const at = masked.lastIndexOf ('Helpers.', from);
+        if (at === -1) { break; }
+        from = at - 1;
+        if (at > 0 && /[\w.]/.test (masked[at - 1])) { continue; }
+        const head = /^Helpers\.(replace|replaceAll|split|padEnd)\(/.exec (masked.slice (at, at + 40));
+        if (head === null) { continue; }
+        const open = at + head[0].length - 1;
+        const end = j05Close (masked, open);
+        if (end === -1) { continue; }
+        const argsM = splitTopLevelArgs (masked.slice (open + 1, end - 1));
+        const args: string[] = []; let p = open + 1;
+        for (const m of argsM) { args.push (content.slice (p, p + m.length)); p += m.length + 1; }
+        const repl = j43Rewrite (head[1], args, n++);
+        if (repl === undefined) { continue; }
+        content = content.slice (0, at) + repl + content.slice (end);
+        masked = j05Mask (content);
+    }
+    return content;
+}
+
+// hx4 J43: snippet checks (`--audit-string-types --self-test`)
+function j43SelfTest (): string[] {
+    const problems: string[] = [];
+    const cases: [string, string][] = [
+        [ 'String x = Helpers.replace(((String)s), ".", "");', '.apply(((String)s)).apply(".", "")' ],
+        [ 'String x = Helpers.replaceAll(s, (String)"-", (String)"+");', 'replace(hx4J43a0f, hx4J43a0r)' ],
+        [ 'List<Object> x = (List<Object>) Helpers.split(m.get("a,b"), ",");', '.apply(m.get("a,b"), ",")' ],
+        [ 'String x = Helpers.padEnd(f, ((Number)6).intValue(), ((String)"0").charAt(0));', 'padStr must not be empty' ],
+        [ 'Object x = Helpers.parseInt(Helpers.replace(Helpers.replace(s, "a", "b"), "c", ""));', '.apply(s).apply("a", "b")' ],
+    ];
+    for (const [ src, expect ] of cases) {
+        const out = nativeJavaJ43 (src);
+        if (!out.includes (expect) || /Helpers\.(replace|replaceAll|split|padEnd)\(/.test (out)) { problems.push (`hx4 J43: ${src}\n${out}`); }
+    }
+    return problems;
+}
+
+// hx4 J44: isInstance / isArray / inOp / isEqual / isTrue as inline pattern switches or lambdas that
+// replay Helpers.java exactly (isInstance unwraps CompletionException/ExecutionException causes).
+function j44Rewrite (name: string, args: string[], n: number): string | undefined {
+    const v = 'hx4J44v' + n;
+    if (name === 'isInstance') {
+        const t = args.length === 2 ? args[1].trim() : '';
+        if (!/^[A-Za-z_][\w.]*\.class$/.test(t)) { return undefined; }
+        return `(switch ((Object) (${args[0].trim()})) { case null -> false; case Throwable ${v} -> { Throwable ${v}u = ${v}; while ((${v}u instanceof java.util.concurrent.CompletionException || ${v}u instanceof java.util.concurrent.ExecutionException) && ${v}u.getCause() != null) { ${v}u = ${v}u.getCause(); } yield ${t}.isInstance(${v}u); } case Object ${v} -> ${t}.isInstance(${v}); })`;
+    }
+    if (name === 'isArray') {
+        if (args.length !== 1) { return undefined; }
+        return `(switch ((Object) (${args[0].trim()})) { case null -> false; case java.util.List<?> ${v} -> true; case Object ${v} -> ${v}.getClass().isArray(); })`;
+    }
+    if (name === 'inOp') {
+        if (args.length !== 2) { return undefined; }
+        return `((java.util.function.BiPredicate<Object, Object>) (${v}A, ${v}B) -> { if (${v}A == null || ${v}B == null) { return false; } if (${v}A instanceof java.util.List<?> ${v}l) { return ${v}l.contains(${v}B); } if (${v}A instanceof java.util.Map<?, ?> ${v}m) { return ${v}B instanceof String && ${v}m.containsKey(${v}B); } return false; }).test(${args[0].trim()}, ${args[1].trim()})`;
+    }
+    return undefined;
+}
+
+export function nativeJavaJ44 (content: string): string {
+    // isEqual / isTrue go through J40's exact replicas first
+    if (/Helpers\.(?:isEqual|isTrue)\(/.test(content)) { content = nativeJavaJ40(content); }
+    if (!/Helpers\.(?:isInstance|isArray|inOp)\(/.test(content)) { return content; }
+    let masked = j05Mask(content);
+    let from = masked.length;
+    let n = 1 + Math.max(-1, ...[ ...content.matchAll(/hx4J44v(\d+)/g) ].map((m) => Number(m[1])));
+    for (;;) {
+        const at = masked.lastIndexOf('Helpers.', from);
+        if (at === -1) { break; }
+        from = at - 1;
+        if (at > 0 && /[\w.]/.test(masked[at - 1])) { continue; }
+        const head = /^Helpers\.(isInstance|isArray|inOp)\(/.exec(masked.slice(at, at + 40));
+        if (head === null) { continue; }
+        const open = at + head[0].length - 1;
+        const end = j05Close(masked, open);
+        if (end === -1) { continue; }
+        if (/[;{}]\s*$/.test(masked.slice(Math.max(0, at - 200), at)) && /^\s*;/.test(masked.slice(end))) { continue; }
+        const argsM = splitTopLevelArgs(masked.slice(open + 1, end - 1));
+        const args: string[] = []; let p = open + 1;
+        for (const m of argsM) { args.push(content.slice(p, p + m.length)); p += m.length + 1; }
+        const repl = j44Rewrite(head[1], args, n++);
+        if (repl === undefined) { continue; }
+        content = content.slice(0, at) + repl + content.slice(end);
+        masked = j05Mask(content);
+    }
+    return content;
+}
+
+// hx4 J44: snippet checks (`--audit-string-types --self-test`)
+function j44SelfTest (): string[] {
+    const problems: string[] = [];
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, Object q)\n    {\n${body}\n    }\n}`;
+    const cases: [string, string, string | undefined][] = [
+        [ 'isInstance', '        try {} catch(Exception e) { if (Helpers.isInstance(e, AuthenticationError.class)) {} }', 'yield AuthenticationError.class.isInstance(hx4J44v0u);' ],
+        [ 'isArray', '        if (Helpers.isArray(p)) {}', 'case java.util.List<?> hx4J44v0 -> true;' ],
+        [ 'inOp nested', '        if (Helpers.inOp(p, Helpers.GetValue(q, "id"))) {}', '.test(p, Helpers.GetValue(q, "id"))' ],
+        [ 'isTrue', '        if (Helpers.isTrue(p)) {}', 'case Boolean hx4J40v0' ],
+        [ 'statement', '        Helpers.isArray(p);', undefined ],
+    ];
+    for (const [ name, body, expect ] of cases) {
+        const out = nativeJavaJ44 (cls (body));
+        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !/Helpers\.(?:isInstance|isArray|inOp|isEqual|isTrue)\(/.test (out);
+        if (!ok) problems.push (`hx4 J44: ${name}\n${out}`);
     }
     return problems;
 }

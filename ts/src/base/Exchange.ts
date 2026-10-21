@@ -6190,7 +6190,10 @@ export class BaseExchange {
                     position['initialMargin'] = this.parseNumber (derivedEntryMargin);
                     marginString = derivedEntryMargin;
                     position['positionMargin'] = this.parseNumber (derivedEntryMargin);
-                    const derivedCollateral = (unrealizedPnlString !== undefined) ? Precise.stringAdd (derivedEntryMargin, unrealizedPnlString) : derivedEntryMargin;
+                    let derivedCollateral: Str = derivedEntryMargin;
+                    if (unrealizedPnlString !== undefined) {
+                        derivedCollateral = Precise.stringAdd (derivedEntryMargin, unrealizedPnlString);
+                    }
                     if (Precise.stringGt (derivedCollateral, '0')) {
                         collateralString = derivedCollateral;
                         position['collateral'] = this.parseNumber (derivedCollateral);
@@ -6201,15 +6204,19 @@ export class BaseExchange {
                 const totalSize = Precise.stringMul (contractsString, contractSizeString);
                 if (Precise.stringGt (marginBuffer, '0') && Precise.stringGt (totalSize, '0')) {
                     const bufferPerUnit = Precise.stringDiv (marginBuffer, totalSize);
-                    let derivedLp: Str = undefined;
+                    let derivedLp = Precise.stringAdd (entryPriceString, bufferPerUnit);
+                    if (side === 'long') {
+                        derivedLp = Precise.stringSub (entryPriceString, bufferPerUnit);
+                    }
                     if (isInverse) {
                         const invEntry = Precise.stringDiv ('1', entryPriceString);
-                        const invLp = (side === 'long') ? Precise.stringAdd (invEntry, bufferPerUnit) : Precise.stringSub (invEntry, bufferPerUnit);
-                        if (Precise.stringGt (invLp, '0')) {
-                            derivedLp = Precise.stringDiv ('1', invLp);
+                        let invDerivedLp = Precise.stringSub (invEntry, bufferPerUnit);
+                        if (side === 'long') {
+                            invDerivedLp = Precise.stringAdd (invEntry, bufferPerUnit);
                         }
-                    } else {
-                        derivedLp = (side === 'long') ? Precise.stringSub (entryPriceString, bufferPerUnit) : Precise.stringAdd (entryPriceString, bufferPerUnit);
+                        // 1 / invDerivedLp keeps its sign (undefined at 0), so the > 0 guard below
+                        // rejects exactly the values a separate invDerivedLp > 0 check would
+                        derivedLp = Precise.stringDiv ('1', invDerivedLp);
                     }
                     if ((derivedLp !== undefined) && Precise.stringGt (derivedLp, '0')) {
                         liquidationPriceString = derivedLp;
@@ -6221,15 +6228,19 @@ export class BaseExchange {
                 const totalSize = Precise.stringMul (contractsString, contractSizeString);
                 if (Precise.stringGt (marginBuffer, '0') && Precise.stringGt (totalSize, '0')) {
                     const bufferPerUnit = Precise.stringDiv (marginBuffer, totalSize);
-                    let derivedEp: Str = undefined;
+                    let derivedEp = Precise.stringSub (liquidationPriceString, bufferPerUnit);
+                    if (side === 'long') {
+                        derivedEp = Precise.stringAdd (liquidationPriceString, bufferPerUnit);
+                    }
                     if (isInverse) {
                         const invLp = Precise.stringDiv ('1', liquidationPriceString);
-                        const invEp = (side === 'long') ? Precise.stringSub (invLp, bufferPerUnit) : Precise.stringAdd (invLp, bufferPerUnit);
-                        if (Precise.stringGt (invEp, '0')) {
-                            derivedEp = Precise.stringDiv ('1', invEp);
+                        let invEp = Precise.stringAdd (invLp, bufferPerUnit);
+                        if (side === 'long') {
+                            invEp = Precise.stringSub (invLp, bufferPerUnit);
                         }
-                    } else {
-                        derivedEp = (side === 'long') ? Precise.stringAdd (liquidationPriceString, bufferPerUnit) : Precise.stringSub (liquidationPriceString, bufferPerUnit);
+                        // 1 / invEp keeps its sign (undefined at 0), so the > 0 guard below
+                        // rejects exactly the values a separate invEp > 0 check would
+                        derivedEp = Precise.stringDiv ('1', invEp);
                     }
                     if ((derivedEp !== undefined) && Precise.stringGt (derivedEp, '0')) {
                         entryPriceString = derivedEp;
@@ -6273,29 +6284,41 @@ export class BaseExchange {
             // 1. notional <-> markPrice / contracts / contractSize
             if ((notionalString === undefined) && hasMarkPrice && hasContracts && hasContractSize) {
                 const totalSize = Precise.stringMul (contractsString, contractSizeString);
-                const derivedNotional = isInverse ? Precise.stringDiv (totalSize, markPriceString) : Precise.stringMul (totalSize, markPriceString);
+                let derivedNotional = Precise.stringMul (totalSize, markPriceString);
+                if (isInverse) {
+                    derivedNotional = Precise.stringDiv (totalSize, markPriceString);
+                }
                 if (Precise.stringGt (derivedNotional, '0')) {
                     notionalString = derivedNotional;
                     position['notional'] = this.parseNumber (derivedNotional);
                 }
             } else if ((markPriceString === undefined) && (entryPriceString === undefined) && (lastPriceString === undefined) && hasNotional && hasContracts && hasContractSize) {
                 const totalSize = Precise.stringMul (contractsString, contractSizeString);
-                const derivedMark = isInverse ? Precise.stringDiv (totalSize, notionalString) : Precise.stringDiv (notionalString, totalSize);
+                let derivedMark = Precise.stringDiv (notionalString, totalSize);
+                if (isInverse) {
+                    derivedMark = Precise.stringDiv (totalSize, notionalString);
+                }
                 if (Precise.stringGt (derivedMark, '0')) {
                     markPriceString = derivedMark;
                     position['markPrice'] = this.parseNumber (derivedMark);
                 }
             } else if ((contractsString === undefined) && hasNotional && hasMarkPrice && hasContractSize) {
-                const derivedContracts = isInverse ? Precise.stringDiv (Precise.stringMul (notionalString, markPriceString), contractSizeString) : Precise.stringDiv (notionalString, Precise.stringMul (markPriceString, contractSizeString));
-                if (Precise.stringGt (derivedContracts, '0')) {
-                    contractsString = derivedContracts;
-                    position['contracts'] = this.parseNumber (derivedContracts);
+                let notionalContracts = Precise.stringDiv (notionalString, Precise.stringMul (markPriceString, contractSizeString));
+                if (isInverse) {
+                    notionalContracts = Precise.stringDiv (Precise.stringMul (notionalString, markPriceString), contractSizeString);
+                }
+                if (Precise.stringGt (notionalContracts, '0')) {
+                    contractsString = notionalContracts;
+                    position['contracts'] = this.parseNumber (notionalContracts);
                 }
             } else if ((contractSizeString === undefined) && hasNotional && hasMarkPrice && hasContracts) {
-                const derivedContractSize = isInverse ? Precise.stringDiv (Precise.stringMul (notionalString, markPriceString), contractsString) : Precise.stringDiv (notionalString, Precise.stringMul (markPriceString, contractsString));
-                if (Precise.stringGt (derivedContractSize, '0')) {
-                    contractSizeString = derivedContractSize;
-                    position['contractSize'] = this.parseNumber (derivedContractSize);
+                let notionalContractSize = Precise.stringDiv (notionalString, Precise.stringMul (markPriceString, contractsString));
+                if (isInverse) {
+                    notionalContractSize = Precise.stringDiv (Precise.stringMul (notionalString, markPriceString), contractsString);
+                }
+                if (Precise.stringGt (notionalContractSize, '0')) {
+                    contractSizeString = notionalContractSize;
+                    position['contractSize'] = this.parseNumber (notionalContractSize);
                 }
             }
             // 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
