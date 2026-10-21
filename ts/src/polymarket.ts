@@ -8,7 +8,7 @@ import { ExchangeError, AuthenticationError, BadRequest, BadSymbol, RateLimitExc
 import { TICK_SIZE, ROUND, TRUNCATE, SIGNIFICANT_DIGITS } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, Int, Str, Strings, Num, Market, Currencies, Currency, NullableDict, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, List, Endpoint, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification } from './base/types.js';
+import type { Dict, Int, Str, Strings, Num, Market, Currencies, Currency, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, List, Endpoint, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2803,7 +2803,7 @@ export default class polymarket extends Exchange {
         return result;
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
+    override calculateRateLimiterCost (api: string[], method: any, path: any, params: any, config = {}) {
         if (path === 'account/orders') {
             return ('order_id' in params) ? 1 : 10;
         }
@@ -2830,14 +2830,15 @@ export default class polymarket extends Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiType = api[0];
+        let url = this.urls['api'][apiType] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const headersResolved: Dict = {
             'Accept': 'application/json',
         };
-        let bodyResolved: Str = body;
-        if (api === 'trade') {
+        let bodyResolved: Str = undefined;
+        if (apiType === 'trade') {
             // the params hold the signed operation envelope assembled by the
             // calling method, the signature authenticates so no headers apply
             bodyResolved = this.json (query);
@@ -2850,7 +2851,7 @@ export default class polymarket extends Exchange {
                     url += '?' + this.urlencode (query);
                 }
             }
-            if (api === 'private') {
+            if (apiType === 'private') {
                 const credentials = this.safeDict (this.options, 'proxyCredentials', {});
                 headersResolved['POLYMARKET-PROXY'] = this.safeString (credentials, 'proxy');
                 headersResolved['POLYMARKET-SECRET'] = this.safeString (credentials, 'secret');

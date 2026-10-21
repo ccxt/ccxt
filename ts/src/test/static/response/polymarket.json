@@ -1644,9 +1644,9 @@
                         "datetime": "2026-09-04T18:29:25.789Z",
                         "lastUpdateTimestamp": null,
                         "initialMargin": 7.97,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.10006277463904582,
                         "maintenanceMargin": 3.99,
-                        "maintenanceMarginPercentage": null,
+                        "maintenanceMarginPercentage": 0.050094161958568736,
                         "entryPrice": 79650,
                         "notional": 79.65,
                         "leverage": 10,
@@ -1654,7 +1654,7 @@
                         "realizedPnl": null,
                         "contracts": 0.001,
                         "contractSize": 1,
-                        "marginRatio": null,
+                        "marginRatio": 0.5006,
                         "liquidationPrice": 72000,
                         "markPrice": null,
                         "lastPrice": null,
@@ -1664,7 +1664,8 @@
                         "percentage": -1.25,
                         "hedged": false,
                         "stopLossPrice": null,
-                        "takeProfitPrice": null
+                        "takeProfitPrice": null,
+                        "positionMargin": null
                     },
                     {
                         "info": {
@@ -1689,9 +1690,9 @@
                         "datetime": "2026-09-04T18:29:25.789Z",
                         "lastUpdateTimestamp": null,
                         "initialMargin": 15.4,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.2,
                         "maintenanceMargin": 1.93,
-                        "maintenanceMarginPercentage": null,
+                        "maintenanceMarginPercentage": 0.025064935064935064,
                         "entryPrice": 7700,
                         "notional": 77,
                         "leverage": 5,
@@ -1699,8 +1700,8 @@
                         "realizedPnl": null,
                         "contracts": 0.01,
                         "contractSize": 1,
-                        "marginRatio": null,
-                        "liquidationPrice": null,
+                        "marginRatio": 0.1253,
+                        "liquidationPrice": 9047,
                         "markPrice": null,
                         "lastPrice": null,
                         "collateral": 15.4,
@@ -1709,7 +1710,8 @@
                         "percentage": 1.62,
                         "hedged": false,
                         "stopLossPrice": null,
-                        "takeProfitPrice": null
+                        "takeProfitPrice": null,
+                        "positionMargin": 15.4
                     }
                 ]
             }
