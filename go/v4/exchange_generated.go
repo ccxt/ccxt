@@ -2448,7 +2448,8 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 	currencies := GetArg(optionalArgs, 0, nil)
 	_ = currencies
 	var values []any = []any{}
-	this.Markets_by_id = this.CreateSafeDictionary()
+	// build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+	var marketsById map[string]any = map[string]any{}
 	// handle marketId conflicts
 	// we insert spot markets first
 	var marketValues []any = this.SortBy(this.ToArray(markets), "spot", true, true)
@@ -2459,12 +2460,12 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		if InOp(this.Markets_by_id, GetValue(value, "id")) {
-			var marketsByIdArray any = GetValue(this.Markets_by_id, GetValue(value, "id"))
+		if InOp(marketsById, GetValue(value, "id")) {
+			var marketsByIdArray any = GetValue(marketsById, GetValue(value, "id"))
 			AppendToArray(&marketsByIdArray, value)
-			AddElementToObject(this.Markets_by_id, GetValue(value, "id"), marketsByIdArray)
+			AddElementToObject(marketsById, GetValue(value, "id"), marketsByIdArray)
 		} else {
-			AddElementToObject(this.Markets_by_id, GetValue(value, "id"), []any{value})
+			AddElementToObject(marketsById, GetValue(value, "id"), []any{value})
 		}
 		// strip undefined-valued keys from the parsed market before deepExtend,
 		// otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -2491,6 +2492,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		values = append(values, MarketTyped(market))
 	}
 	this.Markets = this.MapToSafeMap(this.IndexBy(values, "symbol"))
+	this.Markets_by_id = this.MapToSafeMap(marketsById)
 	var marketsSortedBySymbol map[string]any = this.Keysort(this.Markets)
 	var marketsSortedById map[string]any = this.Keysort(this.Markets_by_id)
 	this.Symbols = ObjectKeys(marketsSortedBySymbol)
@@ -5786,11 +5788,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan EndpointResult[map[str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes700215 map[string]any = MapTyped(r.Value)
-	if retRes700215 == nil {
+	var retRes700415 map[string]any = MapTyped(r.Value)
+	if retRes700415 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes700215, Raw: retRes700215}
+		ch <- EndpointResult[map[string]any]{Value: retRes700415, Raw: retRes700415}
 	}
 	return nil
 }
@@ -11836,12 +11838,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan EndpointResult[
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11357, _ := r.Value.([]any)
-	var retRes1045015 []any = listRecv11357
-	if retRes1045015 == nil {
+	listRecv11359, _ := r.Value.([]any)
+	var retRes1045215 []any = listRecv11359
+	if retRes1045215 == nil {
 		ch <- EndpointResult[[]any]{}
 	} else {
-		ch <- EndpointResult[[]any]{Value: retRes1045015, Raw: retRes1045015}
+		ch <- EndpointResult[[]any]{Value: retRes1045215, Raw: retRes1045215}
 	}
 	return nil
 }
