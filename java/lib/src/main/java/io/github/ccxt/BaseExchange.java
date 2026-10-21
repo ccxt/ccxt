@@ -6344,21 +6344,22 @@ public Object describe()
     public Object setMarkets(Object markets, Object currencies)
     {
         List<Object> values = new ArrayList<Object>(Arrays.asList());
-        this.markets_by_id = this.createSafeDictionary();
+        // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        Map<String, Object> marketsById = new HashMap<String, Object>() {{}};
         // handle marketId conflicts
         // we insert spot markets first
         List<Object> marketValues = this.sortBy(this.toArray(markets), "spot", true, true);
         for (var i = 0; i < ((List<?>)marketValues).size(); i++)
         {
             Object value = (marketValues == null || i < 0 || i >= marketValues.size() ? null : marketValues.get(i));
-            if (Helpers.inOp(this.markets_by_id, Helpers.GetValue(value, "id")))
+            if (Helpers.inOp(marketsById, Helpers.GetValue(value, "id")))
             {
-                Object marketsByIdArray = ((Object)Helpers.GetValue(this.markets_by_id, Helpers.GetValue(value, "id")));
+                Object marketsByIdArray = ((Object)Helpers.GetValue(marketsById, Helpers.GetValue(value, "id")));
                 ((List<Object>)marketsByIdArray).add(value);
-                Helpers.addElementToObject(this.markets_by_id, Helpers.GetValue(value, "id"), marketsByIdArray);
+                Helpers.addElementToObject(marketsById, Helpers.GetValue(value, "id"), marketsByIdArray);
             } else
             {
-                Helpers.addElementToObject(this.markets_by_id, Helpers.GetValue(value, "id"), new ArrayList<Object>(Arrays.asList(value)));
+                Helpers.addElementToObject(marketsById, Helpers.GetValue(value, "id"), new ArrayList<Object>(Arrays.asList(value)));
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -6390,6 +6391,7 @@ public Object describe()
             ((List<Object>)values).add(market);
         }
         this.markets = this.mapToSafeMap(this.indexBy(values, "symbol"));
+        this.markets_by_id = this.mapToSafeMap(marketsById);
         Map<String,Object> marketsSortedBySymbol = this.keysort(this.markets);
         Map<String,Object> marketsSortedById = this.keysort(this.markets_by_id);
         this.symbols = new ArrayList<String>(marketsSortedBySymbol.keySet());
