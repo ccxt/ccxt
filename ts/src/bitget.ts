@@ -3461,9 +3461,8 @@ export default class bitget extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
         }
         const result: DepositAddress[] = [];
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        params = this.omit (params, 'chain');
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
+        const paramsOmitted = this.omit (paramsNetworkCode, 'chain');
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const currency = this.currency (code);
@@ -3484,7 +3483,7 @@ export default class bitget extends Exchange {
                     'coin': currency['id'],
                     'chain': networkId,
                 };
-                const response = await this.privateSpotGetV2SpotWalletDepositAddress (this.extend (request, params));
+                const response = await this.privateSpotGetV2SpotWalletDepositAddress (this.extend (request, paramsOmitted));
                 const data = this.safeDict (response, 'data', {});
                 const parsed = this.parseDepositAddress (data, currency);
                 // The request network is authoritative when Bitget returns an alias or an empty chain field.

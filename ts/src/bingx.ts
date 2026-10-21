@@ -5555,14 +5555,13 @@ export default class bingx extends Exchange {
         if (codes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
         }
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsOmitted ] = this.handleNetworkCodeAndParams (params);
         let result: DepositAddress[] = [];
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const currency = this.currency (code);
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
-            const recvWindow = this.safeInteger (params, 'recvWindow', defaultRecvWindow);
+            const recvWindow = this.safeInteger (paramsOmitted, 'recvWindow', defaultRecvWindow);
             const request: Dict = {
                 'coin': currency['id'],
                 'offset': 0,
@@ -5573,7 +5572,7 @@ export default class bingx extends Exchange {
             if (networkId !== undefined) {
                 request['network'] = networkId;
             }
-            const response = await this.walletsV1PrivateGetCapitalDepositAddress (this.extend (request, params));
+            const response = await this.walletsV1PrivateGetCapitalDepositAddress (this.extend (request, paramsOmitted));
             const responseData = this.safeDict (response, 'data', {});
             const data = this.safeList (responseData, 'data', []);
             // Keep every row because BingX can return multiple configured addresses for the same network.

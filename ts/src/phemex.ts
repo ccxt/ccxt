@@ -3612,9 +3612,8 @@ export default class phemex extends Exchange {
         if (codes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
         }
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        params = this.omit (params, 'chainName');
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
+        const paramsOmitted = this.omit (paramsNetworkCode, 'chainName');
         const result: DepositAddress[] = [];
         // Phemex exposes active deposit chains separately for every currency.
         for (let i = 0; i < codes.length; i++) {
@@ -3625,7 +3624,7 @@ export default class phemex extends Exchange {
             const chainRequest: Dict = {
                 'currency': currency['id'],
             };
-            const chainResponse = await this.privateGetPhemexDepositWalletsApiChainCfg (this.extend (chainRequest, params));
+            const chainResponse = await this.privateGetPhemexDepositWalletsApiChainCfg (this.extend (chainRequest, paramsOmitted));
             const chains = this.safeList (chainResponse, 'data', []);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
@@ -3645,7 +3644,7 @@ export default class phemex extends Exchange {
                     'currency': currency['id'],
                     'chainName': chainName,
                 };
-                const response = await this.privateGetExchangeWalletsV2DepositAddress (this.extend (request, params));
+                const response = await this.privateGetExchangeWalletsV2DepositAddress (this.extend (request, paramsOmitted));
                 const data = this.safeDict (response, 'data', {});
                 const address = this.safeString (data, 'address');
                 const tag = this.safeString (data, 'tag');

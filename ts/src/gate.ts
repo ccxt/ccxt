@@ -2445,8 +2445,7 @@ export default class gate extends Exchange {
         if (codes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
         }
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsOmitted ] = this.handleNetworkCodeAndParams (params);
         let result: DepositAddress[] = [];
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -2454,7 +2453,7 @@ export default class gate extends Exchange {
             const request: Dict = {
                 'currency': currency['id'],
             };
-            const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
+            const response = await this.privateWalletGetDepositAddress (this.extend (request, paramsOmitted));
             const chains: Dict[] = this.safeList (response, 'multichain_addresses', []);
             const successfulChains: List = [];
             for (let j = 0; j < chains.length; j++) {

@@ -4924,8 +4924,7 @@ export default class mexc extends Exchange {
         if (codes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
         }
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsOmitted ] = this.handleNetworkCodeAndParams (params);
         let result: DepositAddress[] = [];
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -4950,7 +4949,7 @@ export default class mexc extends Exchange {
                     request['network'] = networkId;
                 }
             }
-            const response = await this.spotPrivateGetCapitalDepositAddress (this.extend (request, params));
+            const response = await this.spotPrivateGetCapitalDepositAddress (this.extend (request, paramsOmitted));
             // Keep every row because MEXC returns each configured address separately.
             let parsed = this.parseDepositAddresses (response, [ currency['code'] ], false);
             if (networkId !== undefined) {

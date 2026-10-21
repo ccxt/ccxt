@@ -10401,8 +10401,7 @@ export default class binance extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
         }
         const result: DepositAddress[] = [];
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsOmitted ] = this.handleNetworkCodeAndParams (params);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const currency = this.currency (code);
@@ -10423,7 +10422,7 @@ export default class binance extends Exchange {
                     'coin': currency['id'],
                     'network': networkId,
                 };
-                const response = await this.sapiGetCapitalDepositAddressList (this.extend (request, params));
+                const response = await this.sapiGetCapitalDepositAddressList (this.extend (request, paramsOmitted));
                 const responseLength = response.length;
                 for (let k = 0; k < responseLength; k++) {
                     const parsed = this.parseDepositAddress (response[k], currency);

@@ -3385,10 +3385,9 @@ export default class kraken extends Exchange {
         // DepositAddresses omits the chain, so derive its unified network from the deposit-method label.
         const depositMethodNetworks = this.safeDict (this.options, 'depositMethodNetworks', {});
         const networkIds = Object.keys (depositMethodNetworks);
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const methodParams = this.omit (params, [ 'method', 'new' ]);
-        params = this.omit (params, 'method');
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
+        const methodParams = this.omit (paramsNetworkCode, [ 'method', 'new' ]);
+        const paramsOmitted = this.omit (paramsNetworkCode, 'method');
         const result: DepositAddress[] = [];
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -3417,7 +3416,7 @@ export default class kraken extends Exchange {
                     'asset': currency['id'],
                     'method': method,
                 };
-                const response = await this.privatePostDepositAddresses (this.extend (request, params));
+                const response = await this.privatePostDepositAddresses (this.extend (request, paramsOmitted));
                 const addresses = this.safeList (response, 'result', []);
                 for (let k = 0; k < addresses.length; k++) {
                     const parsed = this.parseDepositAddress (addresses[k], currency);

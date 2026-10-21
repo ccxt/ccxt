@@ -6019,8 +6019,7 @@ export default class bybit extends Exchange {
         if (codes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
         }
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsOmitted ] = this.handleNetworkCodeAndParams (params);
         let result: DepositAddress[] = [];
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -6031,7 +6030,7 @@ export default class bybit extends Exchange {
             if (networkCode !== undefined) {
                 request['chainType'] = this.networkCodeToId (networkCode, currency['code']);
             }
-            const response = await this.privateGetV5AssetDepositQueryAddress (this.extend (request, params));
+            const response = await this.privateGetV5AssetDepositQueryAddress (this.extend (request, paramsOmitted));
             const responseResult = this.safeDict (response, 'result', {});
             const chains = this.safeList (responseResult, 'chains', []);
             // Keep every row because more than one configured address may share a network.
