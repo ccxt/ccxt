@@ -4,7 +4,7 @@ import { ExchangeError, ArgumentsRequired, InsufficientFunds, AuthenticationErro
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, IndexType, NullableDict, FeeString, int, Status, Endpoint } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, IndexType, NullableDict, FeeString, int, Status, Endpoint, OrderBookL3 } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -93,6 +93,7 @@ export default class bitfinex extends Exchange {
                 'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchL3OrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
@@ -352,7 +353,7 @@ export default class bitfinex extends Exchange {
             'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'fetchOrderBook': {
-                    'precision': 'R0', // P0, P1, P2, P3, P4, R0
+                    'precision': 'P0', // P0, P1, P2, P3, P4, R0
                 },
                 'fetchCurrencies': {
                     'defaultPrecision': 8, // default currency precision
@@ -1187,10 +1188,15 @@ export default class bitfinex extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        const [ precision, paramsWithoutPrecision ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'precision', 'P0');
+        const orderbook = await this.fetchOrderBookHelper (precision, symbol, limit, paramsWithoutPrecision);
+        return orderbook as OrderBook;
+    }
+
+    async fetchOrderBookHelper (precision: Str, symbol: string, limit: Int = undefined, params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const precision = this.handleOption ('fetchOrderBook', 'precision', 'R0');
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1210,7 +1216,8 @@ export default class bitfinex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         };
-        const priceIndex = (fullRequest['precision'] === 'R0') ? 1 : 0;
+        const isL3 = (precision === 'R0');
+        const priceIndex = isL3 ? 1 : 0;
         const orders = this.toArray (orderbook);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
@@ -1221,11 +1228,27 @@ export default class bitfinex extends Exchange {
             if (Precise.stringGt (signedAmount, '0')) {
                 side = 'bids';
             }
-            result[side].push ([ price, this.parseNumber (amount) ]);
+            const line = isL3 ? [ price, this.parseNumber (amount), this.safeNumber (order, 0) ] : [ price, this.parseNumber (amount) ];
+            result[side].push (line);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
-        return result as OrderBook;
+        return result;
+    }
+
+    /**
+     * @method
+     * @name bitfinex#fetchL3OrderBook
+     * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.bitfinex.com/reference/rest-public-book
+     * @param {string} symbol unified market symbol
+     * @param {int} [limit] max number of orders to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    override async fetchL3OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBookL3> {
+        const orderbook = await this.fetchOrderBookHelper ('R0', symbol, limit, params);
+        return orderbook as OrderBookL3;
     }
 
     override parseTicker (ticker: List, market: Market = undefined): Ticker {
