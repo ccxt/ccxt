@@ -16,7 +16,9 @@
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchClosedOrders](#fetchclosedorders)
 * [createOrder](#createorder)
+* [createOrders](#createorders)
 * [editOrder](#editorder)
+* [cancelOrders](#cancelorders)
 * [cancelAllOrders](#cancelallorders)
 * [fetchOrder](#fetchorder)
 * [fetchOrderTrades](#fetchordertrades)
@@ -26,6 +28,8 @@
 * [createDepositAddress](#createdepositaddress)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [transfer](#transfer)
+* [fetchTransfer](#fetchtransfer)
+* [fetchTransfers](#fetchtransfers)
 * [withdraw](#withdraw)
 * [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 * [fetchWithdrawals](#fetchwithdrawals)
@@ -324,6 +328,33 @@ poloniex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
+<a name="createOrders" id="createorders"></a>
+
+### createOrders{docsify-ignore}
+create a list of trade orders, all orders must be of the same market type, either spot or swap
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://api-docs.poloniex.com/spot/api/private/order#create-multiple-orders
+- https://api-docs.poloniex.com/v3/futures/api/trade/place-multiple-orders
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint, applied to every order |
+| params.marginMode | <code>string</code> | No | *swap only* 'cross' or 'isolated', defaults to 'cross' |
+| params.posSide | <code>string</code> | No | *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly |
+
+
+```javascript
+poloniex.createOrders (orders, params?)
+```
+
+
 <a name="editOrder" id="editorder"></a>
 
 ### editOrder{docsify-ignore}
@@ -353,6 +384,33 @@ edit a trade order
 
 ```javascript
 poloniex.editOrder (id, symbol, type, side, amount?, price?, params?)
+```
+
+
+<a name="cancelOrders" id="cancelorders"></a>
+
+### cancelOrders{docsify-ignore}
+cancel multiple orders
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://api-docs.poloniex.com/spot/api/private/order#cancel-multiple-orders-by-ids
+- https://api-docs.poloniex.com/v3/futures/api/trade/cancel-multiple-orders
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
+| symbol | <code>string</code> | No | unified market symbol, required for swap markets |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderIds | <code>Array&lt;string&gt;</code> | No | alternative to ids, cancel by client order ids |
+
+
+```javascript
+poloniex.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -570,6 +628,52 @@ poloniex.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
+<a name="fetchTransfer" id="fetchtransfer"></a>
+
+### fetchTransfer{docsify-ignore}
+fetch a transfer
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-record  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | transfer id |
+| code | <code>string</code> | No | not used by poloniex fetchTransfer |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.fetchTransfer (id, code?, params?)
+```
+
+
+<a name="fetchTransfers" id="fetchtransfers"></a>
+
+### fetchTransfers{docsify-ignore}
+fetch a history of internal transfers made on an account
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-records  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code of the currency transferred |
+| since | <code>int</code> | No | the earliest time in ms to fetch transfers for |
+| limit | <code>int</code> | No | the maximum number of transfer structures to retrieve, default 100, max 1000 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch transfers for |
+
+
+```javascript
+poloniex.fetchTransfers (code?, since?, limit?, params?)
+```
+
+
 <a name="withdraw" id="withdraw"></a>
 
 ### withdraw{docsify-ignore}
@@ -585,12 +689,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-poloniex.withdraw (code, amount, address, tag, params?)
+poloniex.withdraw (code, amount, address, params?)
 ```
 
 

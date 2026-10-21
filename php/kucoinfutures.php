@@ -25,6 +25,7 @@ class kucoinfutures extends kucoin {
                 'swap' => true,
                 'future' => true,
                 'option' => null,
+                'editOrder' => false,
                 'fetchBidsAsks' => true,
                 'transfer' => true,
             ),
@@ -73,7 +74,6 @@ class kucoinfutures extends kucoin {
             'amount' => $amountToPrecision,
         );
         $toAccountString = $this->parse_transfer_type($toAccount);
-        $response = null;
         if ($toAccountString === 'TRADE' || $toAccountString === 'MAIN') {
             $request['recAccountType'] = $toAccountString;
             $response = $this->futuresPrivatePostTransferOut($this->extend($request, $params));

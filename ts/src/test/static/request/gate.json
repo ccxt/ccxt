@@ -95,11 +95,10 @@
                     "USDT",
                     5,
                     "Xoz7xtobD2Rm8aYXH6VHmE4rnePTXevbHcWQ3RRo3adC",
-                    null,
                     {
-                        "network": "SOL"
+                      "network": "SOL"
                     }
-                ],
+                  ],
                 "output": { "currency": "USDT", "address": "Xoz7xtobD2Rm8aYXH6VHmE4rnePTXevbHcWQ3RRo3adC", "amount": "5", "chain": "SOL" }
             }
         ],
@@ -158,6 +157,19 @@
                     50
                 ],
                 "output": { "contract": "LTC_USDT", "size": 1, "price": "50" }
+            },
+            {
+                "description": "Swap limit buy order with decimal contract size",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders",
+                "input": [
+                    "RAVE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1.4,
+                    18
+                ],
+                "output": "{\"contract\":\"RAVE_USDT\",\"size\":\"1.4\",\"price\":\"18\"}"
             },
             {
                 "description": "Spot market buy with createMarketBuyOrderRequiresPrice set to false",
@@ -263,6 +275,22 @@
                 "output": { "initial": { "contract": "LTC_USDT", "size": 1, "price": "70" }, "trigger": { "price_type": 0, "price": "90", "rule": 1 } }
             },
             {
+                "description": "swap trigger order with decimal contract size",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders",
+                "input": [
+                  "RAVE/USDT:USDT",
+                  "limit",
+                  "sell",
+                  0.4,
+                  18,
+                  {
+                    "stopLossPrice": 17
+                  }
+                ],
+                "output": "{\"initial\":{\"contract\":\"RAVE_USDT\",\"amount\":\"-0.4\",\"price\":\"18\"},\"trigger\":{\"price_type\":0,\"price\":\"17\",\"rule\":2}}"
+            },
+            {
                 "description": "swap market buy",
                 "method": "createOrder",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/orders",
@@ -272,7 +300,7 @@
                   "buy",
                   1
                 ],
-                "output": { "contract": "XRP_USDT", "size": 1, "price": "0", "tif": "ioc" }
+                "output": { "contract": "XRP_USDT", "size": "1", "price": "0", "tif": "ioc" }
             },
             {
                 "description": "swap market sell",
@@ -284,7 +312,20 @@
                   "sell",
                   1
                 ],
-                "output": { "contract": "XRP_USDT", "size": -1, "price": "0", "tif": "ioc" }
+                "output": { "contract": "XRP_USDT", "size": "-1", "price": "0", "tif": "ioc" }
+            },
+            {
+                "description": "swap limit order with decimal size on a 0.1-step market",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders",
+                "input": [
+                  "ETH/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.3,
+                  2000
+                ],
+                "output": { "contract": "ETH_USDT", "size": "0.3", "price": "2000" }
             },
             {
                 "description": "unified spot create a limit order",
@@ -421,6 +462,34 @@
                   101
                 ],
                 "output": { "currency_pair": "LTC_USDT", "account": "futures", "size": -2, "price": "101" }
+            },
+            {
+                "description": "edit swap order with decimal contract size",
+                "method": "editOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders/436745134771",
+                "input": [
+                  "436745134771",
+                  "RAVE/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1.4,
+                  18.2
+                ],
+                "output": "{\"currency_pair\":\"RAVE_USDT\",\"account\":\"futures\",\"size\":\"-1.4\",\"price\":\"18.2\"}"
+            },
+            {
+                "description": "edit swap order with decimal size on a 0.1-step market",
+                "method": "editOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders/436745134772",
+                "input": [
+                  "436745134772",
+                  "XRP/USDT:USDT",
+                  "limit",
+                  "sell",
+                  0.5,
+                  1.3
+                ],
+                "output": { "currency_pair": "XRP_USDT", "account": "futures", "size": "-0.5", "price": "1.3" }
             },
             {
                 "description": "unified spot edit an order",
@@ -961,7 +1030,7 @@
             {
                 "description": "Fetch Leverage Tiers - swap",
                 "method": "fetchLeverageTiers",
-                "url": "https://api.gateio.ws/api/v4/futures/usdt/contracts",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/risk_limit_tiers?limit=100&offset=0",
                 "input": [
                     null,
                     {
@@ -972,11 +1041,24 @@
             {
                 "description": "Fetch Leverage Tiers - future",
                 "method": "fetchLeverageTiers",
-                "url": "https://api.gateio.ws/api/v4/delivery/btc/contracts",
+                "url": "https://api.gateio.ws/api/v4/delivery/btc/risk_limit_tiers?limit=100&offset=0",
                 "input": [
                     null,
                     {
                         "type": "future"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch leverage tiers with a contract page size and offset",
+                "method": "fetchLeverageTiers",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/risk_limit_tiers?limit=2&offset=4",
+                "input": [
+                    null,
+                    {
+                        "type": "swap",
+                        "limit": 2,
+                        "offset": 4
                     }
                 ]
             }

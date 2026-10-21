@@ -12,13 +12,13 @@ use ccxt::exchange::Exchange;
 /// static dispatch). `BaseCore` `Deref`s to `Exchange`, so field access and
 /// `to_value()` still work unchanged.
 pub fn make_exchange(config: Value) -> ccxt::exchange::BaseCore {
-    let mut core = ccxt::exchange::BaseCore::new(Exchange::new(Some(config)));
+    let mut core = ccxt::exchange::BaseCore::new(Exchange::new(Some(config.clone())));
     // `Exchange::new` no longer runs `after_construct`: a derived Core's
     // `init()` calls it last, once its describe() has been applied (mirroring
     // the TS constructor). A bare `Exchange` has no such Core, so run it here
     // — `test.afterConstructor` and anything reading networksById / features /
     // the tokenBucket depends on it.
-    ccxt::exchange_generated::ExchangeBase::after_construct(&mut core);
+    ccxt::exchange_generated::ExchangeBase::after_construct(&mut core, &[config]);
     core
 }
 
@@ -170,6 +170,7 @@ pub mod shared {
     pub fn assert_timestamp<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_timestamp_and_datetime<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_currency_code<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_unified_network_code<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_structure<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_non_emtpy_array<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_non_empty_array<E: AsValue>(_e: E, _args: &[Value]) {}

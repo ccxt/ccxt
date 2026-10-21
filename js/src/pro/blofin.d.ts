@@ -4,7 +4,6 @@ import Client from '../base/ws/Client.js';
 export default class blofin extends blofinRest {
     describe(): any;
     ping(client: Client): string;
-    handlePong(client: Client, message: any): void;
     /**
      * @method
      * @name blofin#watchTrades
@@ -168,7 +167,7 @@ export default class blofin extends blofinRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     handlePositions(client: Client, message: Dict): void;
-    parseWsPosition(position: any, market?: Market): Position;
+    parseWsPosition(position: Dict, market?: Market): Position;
     /**
      * @method
      * @name blofin#watchFundingRate
@@ -178,7 +177,7 @@ export default class blofin extends blofinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    watchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     handleFundingRate(client: Client, message: Dict): void;
     watchMultipleWrapper(isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray?: any, params?: Dict): Promise<any>;
     getSubscriptionRequest(args: any): {

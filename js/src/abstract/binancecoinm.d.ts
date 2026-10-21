@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import _binance from '../binance.js';
-interface binance {
+declare abstract class binance extends _binance {
     sapiGetCopyTradingFuturesUserStatus(params?: {}): Promise<Dict>;
     sapiGetCopyTradingFuturesLeadSymbol(params?: {}): Promise<Dict>;
     sapiGetSystemStatus(params?: {}): Promise<Dict>;
@@ -470,6 +470,8 @@ interface binance {
     dapiPrivateGetOpenOrder(params?: {}): Promise<Dict>;
     dapiPrivateGetOpenOrders(params?: {}): Promise<List>;
     dapiPrivateGetOpenAlgoOrders(params?: {}): Promise<List>;
+    dapiPrivateGetAlgoOrder(params?: {}): Promise<Dict>;
+    dapiPrivateGetAllAlgoOrders(params?: {}): Promise<List>;
     dapiPrivateGetAllOrders(params?: {}): Promise<List>;
     dapiPrivateGetBalance(params?: {}): Promise<List>;
     dapiPrivateGetAccount(params?: {}): Promise<Dict>;
@@ -503,6 +505,7 @@ interface binance {
     dapiPrivatePutBatchOrders(params?: {}): Promise<List>;
     dapiPrivateDeleteOrder(params?: {}): Promise<Dict>;
     dapiPrivateDeleteAlgoOrder(params?: {}): Promise<Dict>;
+    dapiPrivateDeleteAlgoOpenOrders(params?: {}): Promise<Dict>;
     dapiPrivateDeleteAllOpenOrders(params?: {}): Promise<List>;
     dapiPrivateDeleteBatchOrders(params?: {}): Promise<List>;
     dapiPrivateDeleteListenKey(params?: {}): Promise<Dict>;
@@ -823,7 +826,5 @@ interface binance {
     papiDeleteMarginOrderList(params?: {}): Promise<Dict>;
     papiDeleteListenKey(params?: {}): Promise<Dict>;
     papiV2GetUmAccount(params?: {}): Promise<Dict>;
-}
-declare abstract class binance extends _binance {
 }
 export default binance;

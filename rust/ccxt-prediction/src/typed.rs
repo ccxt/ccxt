@@ -148,8 +148,8 @@ pub trait TypedExchangeExt: TypedExchange {
         }
     }
     /// Typed `withdraw`.
-    fn withdraw<'a>(&'a mut self, code: &str, amount: f64, address: &str, tag: Option<&str>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Transaction>> + Send + 'a {
-        let __args: Vec<Value> = vec![Value::from(code), Value::Float(amount), Value::from(address), tag.map(Value::from).unwrap_or(Value::Null), params.into().into_value()];
+    fn withdraw<'a>(&'a mut self, code: &str, amount: f64, address: &str, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Transaction>> + Send + 'a {
+        let __args: Vec<Value> = vec![Value::from(code), Value::Float(amount), Value::from(address), params.into().into_value()];
         async move {
             let v = self.call_raw("withdraw", __args).await?;
             Ok(Transaction::from_value(v))
@@ -868,11 +868,11 @@ pub trait TypedExchangeExt: TypedExchange {
         }
     }
     /// Typed `fetchL3OrderBook`.
-    fn fetch_l3_order_book<'a>(&'a mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<OrderBook>> + Send + 'a {
+    fn fetch_l3_order_book<'a>(&'a mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<OrderBookL3>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_l3_order_book", __args).await?;
-            Ok(OrderBook::from_value(v))
+            Ok(OrderBookL3::from_value(v))
         }
     }
     /// Typed `fetchTrades`.
@@ -1286,14 +1286,23 @@ pub trait TypedExchangeExt: TypedExchange {
 }
 impl<T: TypedExchange + ?Sized> TypedExchangeExt for T {}
 
+#[cfg(feature = "binance")]
 pub use crate::prediction::binance_typed::Binance;
+#[cfg(feature = "hyperliquid")]
 pub use crate::prediction::hyperliquid_typed::Hyperliquid;
+#[cfg(feature = "kalshi")]
 pub use crate::prediction::kalshi_typed::Kalshi;
+#[cfg(feature = "limitless")]
 pub use crate::prediction::limitless_typed::Limitless;
+#[cfg(feature = "myriad")]
 pub use crate::prediction::myriad_typed::Myriad;
+#[cfg(feature = "opinion")]
 pub use crate::prediction::opinion_typed::Opinion;
+#[cfg(feature = "polymarket")]
 pub use crate::prediction::polymarket_typed::Polymarket;
+#[cfg(feature = "predictfun")]
 pub use crate::prediction::predictfun_typed::Predictfun;
+#[cfg(feature = "sxbet")]
 pub use crate::prediction::sxbet_typed::Sxbet;
 
 /// Construct a boxed typed wrapper by exchange id — the typed analog of
@@ -1302,14 +1311,23 @@ pub use crate::prediction::sxbet_typed::Sxbet;
 /// for an unknown id.
 pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedExchange>> {
     match id {
+        #[cfg(feature = "binance")]
         "binance" => Some(Box::new(Binance::new(config))),
+        #[cfg(feature = "hyperliquid")]
         "hyperliquid" => Some(Box::new(Hyperliquid::new(config))),
+        #[cfg(feature = "kalshi")]
         "kalshi" => Some(Box::new(Kalshi::new(config))),
+        #[cfg(feature = "limitless")]
         "limitless" => Some(Box::new(Limitless::new(config))),
+        #[cfg(feature = "myriad")]
         "myriad" => Some(Box::new(Myriad::new(config))),
+        #[cfg(feature = "opinion")]
         "opinion" => Some(Box::new(Opinion::new(config))),
+        #[cfg(feature = "polymarket")]
         "polymarket" => Some(Box::new(Polymarket::new(config))),
+        #[cfg(feature = "predictfun")]
         "predictfun" => Some(Box::new(Predictfun::new(config))),
+        #[cfg(feature = "sxbet")]
         "sxbet" => Some(Box::new(Sxbet::new(config))),
         _ => None,
     }

@@ -61,7 +61,7 @@ class bittrade extends bittrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.detail';
         const api = this.safeString(this.options, 'api', 'api');
@@ -75,7 +75,7 @@ class bittrade extends bittrade$1["default"] {
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'params': params,
         };
         return await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
@@ -130,7 +130,7 @@ class bittrade extends bittrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.trade.detail';
         const api = this.safeString(this.options, 'api', 'api');
@@ -144,14 +144,15 @@ class bittrade extends bittrade$1["default"] {
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'params': params,
         };
         const trades = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -213,7 +214,7 @@ class bittrade extends bittrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
         const api = this.safeString(this.options, 'api', 'api');
@@ -227,15 +228,16 @@ class bittrade extends bittrade$1["default"] {
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'timeframe': timeframe,
             'params': params,
         };
         const ohlcv = await this.watch(url, messageHash, this.extend(request, params), messageHash, subscription);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -271,7 +273,7 @@ class bittrade extends bittrade$1["default"] {
             stored = new Cache.ArrayCacheByTimestamp(limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
-        const tick = this.safeValue(message, 'tick');
+        const tick = this.safeDict(message, 'tick');
         const parsed = this.parseOHLCV(tick, market);
         stored.append(parsed);
         client.resolve(stored, ch);
@@ -293,10 +295,10 @@ class bittrade extends bittrade$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         // only supports a limit of 150 at this time
-        limit = (limit === undefined) ? 150 : limit;
-        const messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString();
+        const limitValue = (limit === undefined) ? 150 : limit;
+        const messageHash = 'market.' + market['id'] + '.mbp.' + limitValue.toString();
         const api = this.safeString(this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
         const url = this.implodeParams(this.urls['api']['ws'][api]['public'], hostname);
@@ -308,8 +310,8 @@ class bittrade extends bittrade$1["default"] {
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
-            'limit': limit,
+            'symbol': symbolValue,
+            'limit': limitValue,
             'params': params,
             'method': this.handleOrderBookSubscription,
         };
@@ -341,7 +343,11 @@ class bittrade extends bittrade$1["default"] {
         const symbol = this.safeString(subscription, 'symbol');
         const messageHash = this.safeString(subscription, 'messageHash');
         const timestamp = this.safeInteger(message, 'ts');
-        const orderbook = this.orderbooks[symbol];
+        const orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            // the book was removed (unwatch/cleanCache) before the snapshot arrived
+            return;
+        }
         const data = this.safeDict(message, 'data');
         const snapshot = this.parseOrderBook(data, symbol);
         snapshot['nonce'] = this.safeInteger(data, 'seqNum');
@@ -361,7 +367,7 @@ class bittrade extends bittrade$1["default"] {
         try {
             const symbol = this.safeString(subscription, 'symbol');
             const limit = this.safeInteger(subscription, 'limit');
-            const params = this.safeValue(subscription, 'params');
+            const params = this.safeDict(subscription, 'params');
             const api = this.safeString(this.options, 'api', 'api');
             const hostname = { 'hostname': this.hostname };
             const url = this.implodeParams(this.urls['api']['ws'][api]['public'], hostname);
@@ -466,7 +472,11 @@ class bittrade extends bittrade$1["default"] {
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const symbol = this.safeSymbol(marketId);
-        const orderbook = this.orderbooks[symbol];
+        const orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            // no active subscription holds a book for this symbol, drop the delta
+            return;
+        }
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push(message);
         }
@@ -481,10 +491,12 @@ class bittrade extends bittrade$1["default"] {
             return;
         }
         const limit = this.safeInteger(subscription, 'limit');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
         }
-        this.orderbooks[symbol] = this.orderBook({}, limit);
+        const orderbook = this.orderbooks[symbol];
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
         // watch the snapshot in a separate async call
         this.spawn(this.watchOrderBookSnapshot, client, message, subscription);
     }
@@ -596,8 +608,12 @@ class bittrade extends bittrade$1["default"] {
             const subscription = this.safeDict(subscriptionsById, id);
             if (subscription !== undefined) {
                 const errorCode = this.safeString(message, 'err-code');
+                const errorMessage = this.safeString(message, 'err-msg');
+                const feedback = this.id + ' ' + this.json(message);
                 try {
-                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, this.json(message));
+                    this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+                    this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+                    throw new errors.ExchangeError(feedback);
                 }
                 catch (e) {
                     const messageHash = this.safeString(subscription, 'messageHash');

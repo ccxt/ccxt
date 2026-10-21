@@ -2221,5 +2221,165 @@
         },
         "tierBased": false,
         "percentage": true
+    },
+    "BTC/USD:BTC": {
+        "id": "BTC_USD",
+        "lowercaseId": null,
+        "symbol": "BTC/USD:BTC",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "BTC",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "BTC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": false,
+        "inverse": true,
+        "subType": "inverse",
+        "taker": 0.0002,
+        "maker": 0,
+        "contractSize": 100,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 125
+            },
+            "amount": {
+                "min": 1,
+                "max": 2800
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "BTC_USD",
+            "displayName": "BTC_USD永续",
+            "displayNameEn": "BTC_USD PERPETUAL",
+            "positionOpenType": 3,
+            "baseCoin": "BTC",
+            "quoteCoin": "USD",
+            "baseCoinName": "BTC",
+            "quoteCoinName": "USD",
+            "futureType": 1,
+            "settleCoin": "BTC",
+            "contractSize": 100,
+            "minLeverage": 1,
+            "maxLeverage": 125,
+            "countryConfigContractMaxLeverage": 0,
+            "priceScale": 1,
+            "volScale": 0,
+            "amountScale": 8,
+            "priceUnit": 0.1,
+            "volUnit": 1,
+            "minVol": 1,
+            "maxVol": 2800,
+            "bidLimitPriceRate": 0.1,
+            "askLimitPriceRate": 0.1,
+            "takerFeeRate": 0.0002,
+            "makerFeeRate": 0,
+            "maintenanceMarginRate": 0.004,
+            "initialMarginRate": 0.008,
+            "riskBaseVol": 2800,
+            "riskIncrVol": 2800,
+            "riskLongShortSwitch": 0,
+            "riskIncrMmr": 0.004,
+            "riskIncrImr": 0.004,
+            "riskLevelLimit": 1,
+            "priceCoefficientVariation": 0.004,
+            "indexOrigin": [
+                "BITSTAMP",
+                "COINBASE",
+                "KRAKEN"
+            ],
+            "state": 0,
+            "isNew": false,
+            "isHot": false,
+            "isHidden": false,
+            "conceptPlate": [
+                "mc-trade-zone-pow",
+                "mc-trade-zone-mainly"
+            ],
+            "conceptPlateId": [
+                12,
+                50
+            ],
+            "riskLimitType": "BY_VOLUME",
+            "maxNumOrders": [
+                200,
+                50
+            ],
+            "marketOrderMaxLevel": 20,
+            "marketOrderPriceLimitRate1": 0.1,
+            "marketOrderPriceLimitRate2": 0.005,
+            "triggerProtect": 0.1,
+            "appraisal": 0,
+            "showAppraisalCountdown": 0,
+            "automaticDelivery": 0,
+            "apiAllowed": true,
+            "depthStepList": [
+                "0.1",
+                "1",
+                "10",
+                "100"
+            ],
+            "limitMaxVol": 2800,
+            "threshold": 0,
+            "baseCoinIconUrl": "https://public.mocortech.com/coin/F20250612182226438Ba037qttKoGcrm.png",
+            "id": 77,
+            "vid": "febc9973be4d4d53bb374476239eb219",
+            "baseCoinId": "febc9973be4d4d53bb374476239eb219",
+            "createTime": 1608718223000,
+            "openingTime": 0,
+            "openingCountdownOption": 1,
+            "showBeforeOpen": true,
+            "isMaxLeverage": false,
+            "isZeroFeeRate": false,
+            "riskLimitMode": "INCREASE",
+            "isZeroFeeSymbol": false,
+            "liquidationFeeRate": 0.0004,
+            "feeRateMode": "NORMAL",
+            "leverageFeeRates": [],
+            "tieredFeeRates": [],
+            "type": 1,
+            "stopOnlyFair": false,
+            "preMarket": false,
+            "typeLabel": 0,
+            "fn": "BTC_USD永续",
+            "feeRateType": "BASE",
+            "tagIdList": [
+                8
+            ],
+            "tempMaxLeverageLimited": false,
+            "regularMaxLeverage": 125
+        },
+        "tierBased": false,
+        "percentage": true
     }
 }

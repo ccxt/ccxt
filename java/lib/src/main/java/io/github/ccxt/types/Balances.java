@@ -8,6 +8,7 @@ public final class Balances extends TypedMap {
     public Map<String, Double> free;
     public Map<String, Double> used;
     public Map<String, Double> total;
+    public Map<String, Double> debt;
     public Long timestamp;
     public String datetime;
     public Map<String, Object> info;
@@ -23,6 +24,7 @@ public final class Balances extends TypedMap {
         this.free = new LinkedHashMap<>();
         this.used = new LinkedHashMap<>();
         this.total = new LinkedHashMap<>();
+        this.debt = new LinkedHashMap<>();
         Object freeRaw = TypeHelper.safeValue(data, "free");
         if (freeRaw instanceof Map<?, ?> freeMap) {
             for (Map.Entry<String, Object> entry : ((Map<String, Object>) freeMap).entrySet()) {
@@ -44,9 +46,16 @@ public final class Balances extends TypedMap {
                 this.total.put(entry.getKey(), val);
             }
         }
+        Object debtRaw = TypeHelper.safeValue(data, "debt");
+        if (debtRaw instanceof Map<?, ?> debtMap) {
+            for (Map.Entry<String, Object> entry : ((Map<String, Object>) debtMap).entrySet()) {
+                Double val = entry.getValue() instanceof Number n ? n.doubleValue() : null;
+                this.debt.put(entry.getKey(), val);
+            }
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             String key = entry.getKey();
-            if (!"info".equals(key) && !"free".equals(key) && !"used".equals(key) && !"total".equals(key)
+            if (!"info".equals(key) && !"free".equals(key) && !"used".equals(key) && !"total".equals(key) && !"debt".equals(key)
                     && !"timestamp".equals(key) && !"datetime".equals(key) && entry.getValue() instanceof Map) {
                 this.balances.put(key, new Balance(entry.getValue()));
             }

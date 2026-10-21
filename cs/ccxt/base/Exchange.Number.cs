@@ -27,11 +27,6 @@ public partial class BaseExchange
     public static int NO_PADDING = 5;             // zero-padding mode
     public static int PAD_WITH_ZERO = 6;
 
-    // Cached on first use: `Regex.Replace (input, pattern, ...)` goes through the static
-    // Regex cache (bounded, guarded lookup) on every call. A `static readonly Regex` runs
-    // the exact same pattern with the exact same options and skips that lookup entirely.
-    private static readonly Regex exponentPrefixRegex = new Regex(@"^[-+]?\d\.?\d*[eE]", RegexOptions.None);
-
     public object precisionConstants = new
     {
         ROUND,
@@ -320,10 +315,14 @@ public partial class BaseExchange
         if (value2 == null)
             return 0;
         var value = (string)value2;
-        if (value.IndexOf('e') > -1 || value.IndexOf('E') > -1)
+        var exponentIndex = value.IndexOf('e');
+        if (exponentIndex < 0)
         {
-            var numStr = exponentPrefixRegex.Replace(value, "");
-            return (Int32.Parse(numStr) * -1);
+            exponentIndex = value.IndexOf('E');
+        }
+        if (exponentIndex >= 0)
+        {
+            return (Int32.Parse(value.Substring(exponentIndex + 1)) * -1);
         }
         value = value.TrimEnd('0');
         // The former `Regex.Replace (value, "/0+$/g", "")` here was a JS regex literal pasted

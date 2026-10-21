@@ -188,7 +188,7 @@
                 "description": "edit order takeProfit and stopLoss prices",
                 "method": "editOrder",
                 "input": [
-                    1001112132350609,
+                    "1001112132350609",
                     "DOGE/USDT:USDT",
                     "limit",
                     "buy",
@@ -238,7 +238,7 @@
                 "description": "edit order amount and price",
                 "method": "editOrder",
                 "input": [
-                    1001111677169084,
+                    "1001111677169084",
                     "DOGE/USDT:USDT",
                     "limit",
                     "buy",
@@ -925,6 +925,7 @@
                         "leverage": null,
                         "unrealizedPnl": null,
                         "realizedPnl": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "entryPrice": 4105.33,
                         "markPrice": null,
@@ -1001,16 +1002,17 @@
                         "leverage": 75,
                         "unrealizedPnl": null,
                         "realizedPnl": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "entryPrice": 0.18408,
                         "markPrice": null,
                         "liquidationPrice": 1e-05,
                         "marginMode": "cross",
                         "hedged": true,
-                        "maintenanceMargin": 0.049088,
+                        "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
-                        "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "initialMargin": 0.049088,
+                        "initialMarginPercentage": 0.013333333333333332,
                         "marginRatio": null,
                         "lastUpdateTimestamp": 1760709419000,
                         "lastPrice": null,
@@ -1042,7 +1044,7 @@
                 "description": "cancel trigger order",
                 "method": "cancelOrder",
                 "input": [
-                    1001112135133243,
+                    "1001112135133243",
                     "DOGE/USDT:USDT",
                     {
                         "trigger": true
@@ -1097,7 +1099,7 @@
                 "description": "Cancel order",
                 "method": "cancelOrder",
                 "input": [
-                    1001441400627435,
+                    "1001441400627435",
                     "ETH/USDT"
                 ],
                 "httpResponse": {

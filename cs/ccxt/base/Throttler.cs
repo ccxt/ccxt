@@ -174,7 +174,7 @@ public class Throttler
 
 
     // move this elsewhere later
-    private dict extend(object aa, object bb)
+    private Dictionary<string, object> extend(object aa, object bb)
     {
 
         var a = (dict)aa;

@@ -1,0 +1,17 @@
+{
+    "HandleAccountIndex": "[]any",
+    "HandleBuilderFeeApproval": "bool",
+    "HandleNetworkIdAndParams": "[]any",
+    "HandlePortfolioAndParams": "[]any",
+    "HandleUTAAndParams": "[]any",
+    "LoadAccountInfos": "bool",
+    "LoadCurrencyNetworks": "bool",
+    "LoadMigrationStatus": "bool",
+    "LoadMultiSignAddress": "*string",
+    "ReduceMargin": "map[string]any?",
+    "RepayMargin": "map[string]any",
+    "SetContractLeverage": "map[string]any",
+    "SignAndCancelAllOrders": "[]any",
+    "SignAndCancelOrder": "[]any",
+    "SignAndCreateOrder": "[]any"
+}

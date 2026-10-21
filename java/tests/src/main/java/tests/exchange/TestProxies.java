@@ -45,7 +45,7 @@ public class TestProxies extends BaseTest {
         String encodedSlash = "%2F";
         String ipCheckUrl = (((("https" + encodedColon) + encodedSlash) + encodedSlash) + "api.ipify.org");
         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{ipCheckUrl})).join();
-        Assert(java.util.Objects.equals(response, proxyServerIp), (((Helpers.add((((exchange.id + " ") + method) + " test failed. Returned response is "), response) + " while it should be \"") + proxyServerIp) + "\""));
+        Assert(java.util.Objects.equals(response, proxyServerIp), (((((((exchange.id + " ") + method) + " test failed. Returned response is ") + response) + " while it should be \"") + proxyServerIp) + "\""));
         // reset the instance property
         TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
         return true;
@@ -67,7 +67,7 @@ public class TestProxies extends BaseTest {
         exchange.httpProxy = (("http://" + proxyServerIp) + ":8911");
         String ipCheckUrl = "https://api.ipify.org/";
         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{ipCheckUrl})).join();
-        Assert(java.util.Objects.equals(response, proxyServerIp), (((Helpers.add((((exchange.id + " ") + method) + " test failed. Returned response is "), response) + " while it should be \"") + proxyServerIp) + "\""));
+        Assert(java.util.Objects.equals(response, proxyServerIp), (((((((exchange.id + " ") + method) + " test failed. Returned response is ") + response) + " while it should be \"") + proxyServerIp) + "\""));
         // reset the instance property
         TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
         return true;
@@ -86,7 +86,7 @@ public class TestProxies extends BaseTest {
         var httpProxy = ((List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(1);
         var httpsProxy = ((List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(2);
         var socksProxy = ((List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(3);
-        List<Object> possibleOptionsArray = new ArrayList<Object>(Arrays.asList("proxyUrl", "proxyUrlCallback", "proxy_url", "proxy_url_callback", "httpProxy", "httpProxyCallback", "http_proxy", "http_proxy_callback", "httpsProxy", "httpsProxyCallback", "https_proxy", "https_proxy_callback", "socksProxy", "socksProxyCallback", "socks_proxy", "socks_proxy_callback"));
+        List<String> possibleOptionsArray = new ArrayList<String>(Arrays.asList("proxyUrl", "proxyUrlCallback", "proxy_url", "proxy_url_callback", "httpProxy", "httpProxyCallback", "http_proxy", "http_proxy_callback", "httpsProxy", "httpsProxyCallback", "https_proxy", "https_proxy_callback", "socksProxy", "socksProxyCallback", "socks_proxy", "socks_proxy_callback"));
         for (var i = 0; i < ((List<?>)possibleOptionsArray).size(); i++)
         {
             for (var j = 0; j < ((List<?>)possibleOptionsArray).size(); j++)

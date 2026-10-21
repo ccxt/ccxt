@@ -1,5 +1,5 @@
 import poloniexRest from '../poloniex.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, Market, List } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class poloniex extends poloniexRest {
     describe(): any;
@@ -191,6 +191,8 @@ export default class poloniex extends poloniexRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: Dict): Promise<Balances>;
+    setBalanceCache(client: Client, type: string): void;
+    loadBalanceSnapshot(client: Client, messageHash: string, type: string): Promise<void>;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     handleOHLCV(client: Client, message: Dict): Dict;
     handleTrade(client: Client, message: Dict): Dict;
@@ -202,7 +204,6 @@ export default class poloniex extends poloniexRest {
     handleTicker(client: Client, message: Dict): Dict;
     handleOrderBook(client: Client, message: Dict): void;
     handleBalance(client: Client, message: Dict): void;
-    parseWsBalance(response: List): Balances;
     handleMyTrades(client: Client, parsedTrade: Trade): void;
     handlePong(client: Client): void;
     handleMessage(client: Client, message: Dict): void;

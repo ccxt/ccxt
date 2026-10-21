@@ -18,6 +18,6 @@ func TestImplodeParams() {
 		"extra_param":  "should_be_ignored",
 	}
 	var expected string = "v2/watchlists/1m/BTC/USDT"
-	var result any = exchange.ImplodeParams(path, params)
-	assert((result == expected), ccxt.Add(ccxt.Add(ccxt.Add("implodeParams did not produce the expected result: ", result), " != "), expected))
+	var result string = exchange.ImplodeParams(path, params)
+	assert((result == expected), "implodeParams did not produce the expected result: "+result+" != "+expected)
 }

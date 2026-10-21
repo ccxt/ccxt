@@ -1,9 +1,10 @@
 import htxRest from '../htx.js';
 import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class htx extends htxRest {
     describe(): any;
-    requestId(): any;
+    requestId(): string;
     /**
      * @method
      * @name htx#watchTicker
@@ -25,7 +26,7 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     handleTicker(client: Client, message: Dict): Dict;
     /**
      * @method
@@ -52,7 +53,7 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     handleTrades(client: Client, message: Dict): Dict;
     /**
      * @method
@@ -111,7 +112,7 @@ export default class htx extends htxRest {
      */
     unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     handleOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): void;
-    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<any>;
+    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<WsOrderBook | undefined>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: Dict): void;

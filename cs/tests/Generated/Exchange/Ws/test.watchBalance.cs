@@ -12,8 +12,8 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchBalance";
         Int64 now = exchange.milliseconds();
-        object ends = (now + 15000);
-        while (isLessThan(now, ends))
+        Int64 ends = (now + 15000);
+        while (now < ends)
         {
             object response = new Dictionary<string, object>() {};
             bool success = true;

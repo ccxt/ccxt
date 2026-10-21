@@ -1,0 +1,18 @@
+{
+  "WatchTicker": "map[string]any",
+  "WatchTickers": "map[string]any",
+  "WatchBidsAsks": "map[string]any",
+  "WatchBalance": "map[string]any",
+  "WatchTrades": "[]any",
+  "WatchTradesForSymbols": "[]any",
+  "WatchOHLCV": "[]any",
+  "WatchOrders": "[]any",
+  "WatchOrdersForSymbols": "[]any",
+  "WatchMyTrades": "[]any",
+  "WatchMyTradesForSymbols": "[]any",
+  "WatchPositions": "[]any",
+  "CreateOrderWs": "map[string]any",
+  "CancelOrderWs": "map[string]any",
+  "EditOrderWs": "map[string]any",
+  "CancelAllOrdersWs": "[]any"
+}

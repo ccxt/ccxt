@@ -276,6 +276,7 @@
             "liquidationPrice": null,
             "markPrice": null,
             "lastPrice": 0.13579,
+            "positionMargin": null,
             "collateral": null,
             "marginMode": null,
             "side": "long",
@@ -1250,7 +1251,7 @@
                   }
                 }
               },
-              "ETH": {
+              "ERC20": {
                 "info": {
                   "chainType": "Ethereum",
                   "confirmation": "6",
@@ -1266,7 +1267,7 @@
                   "safeConfirmNumber": "64"
                 },
                 "id": "ETH",
-                "network": "ETH",
+                "network": "ERC20",
                 "active": null,
                 "deposit": true,
                 "withdraw": true,
@@ -3493,11 +3494,13 @@
     "fetchOrder": [
       {
         "description": "fetch spot buy closed order",
-        "disabled": true,
         "method": "fetchOrder",
         "input": [
           "1609602210852247040",
-          "BTC/USDT"
+          "BTC/USDT",
+          {
+            "acknowledged": true
+          }
         ],
         "httpResponse": {
           "retCode": "0",
@@ -3617,23 +3620,15 @@
           "triggerPrice": null,
           "takeProfitPrice": null,
           "stopLossPrice": null,
-          "amount": 50,
+          "amount": 0.001614,
           "cost": 49.97980168,
           "average": 30966.41,
           "filled": 0.001614,
           "remaining": 0,
           "status": "closed",
-          "fee": {
-            "cost": "0.000001614",
-            "currency": "BTC"
-          },
+          "fee": null,
           "trades": [],
-          "fees": [
-            {
-              "cost": 1.614e-06,
-              "currency": "BTC"
-            }
-          ]
+          "fees": []
         }
       },
       {
@@ -4656,8 +4651,8 @@
             "lastUpdateTimestamp": 1770811200032,
             "initialMargin": 101.1025483,
             "initialMarginPercentage": 0.44017568226926046,
-            "maintenanceMargin": null,
-            "maintenanceMarginPercentage": null,
+            "maintenanceMargin": 4.4079259,
+            "maintenanceMarginPercentage": 0.0191910275561753,
             "entryPrice": 0.01961459,
             "notional": 229.68681,
             "leverage": 2,
@@ -4669,6 +4664,7 @@
             "liquidationPrice": 0.04102339,
             "markPrice": 0.017203,
             "lastPrice": null,
+            "positionMargin": null,
             "collateral": 0,
             "marginMode": null,
             "side": "short",
@@ -4794,6 +4790,7 @@
             "liquidationPrice": null,
             "markPrice": 0.14235,
             "lastPrice": null,
+            "positionMargin": null,
             "collateral": 0,
             "marginMode": null,
             "side": "short",
@@ -4910,11 +4907,12 @@
             "realizedPnl": null,
             "contracts": 1.2,
             "contractSize": 1,
-            "marginRatio": 0.0692,
+            "marginRatio": 0.0415,
             "liquidationPrice": null,
             "markPrice": 71.1,
             "lastPrice": null,
-            "collateral": 11.699649,
+            "positionMargin": 11.699649,
+            "collateral": 19.500274,
             "marginMode": null,
             "side": "long",
             "percentage": 60.21,
@@ -5031,6 +5029,7 @@
           "liquidationPrice": null,
           "markPrice": 68,
           "lastPrice": null,
+          "positionMargin": null,
           "collateral": 0,
           "marginMode": null,
           "side": null,
@@ -5136,19 +5135,20 @@
           "lastUpdateTimestamp": 1768898436202,
           "initialMargin": 1.1e-07,
           "initialMarginPercentage": 0.010208583000000422,
-          "maintenanceMargin": 0,
-          "maintenanceMarginPercentage": 0,
+          "maintenanceMargin": 0.00005,
+          "maintenanceMarginPercentage": 4.640265000000192,
           "entryPrice": 92850.51067781,
-          "notional": 1.0775246672334e-05,
+          "notional": 0.000010775246672334,
           "leverage": 10,
           "unrealizedPnl": null,
           "realizedPnl": -1e-08,
           "contracts": 1,
           "contractSize": 1,
-          "marginRatio": 0,
+          "marginRatio": 45.8715,
           "liquidationPrice": 100,
           "markPrice": 92805.3,
           "lastPrice": null,
+          "positionMargin": 1.09e-06,
           "collateral": 1.09e-06,
           "marginMode": null,
           "side": "long",
@@ -6937,6 +6937,7 @@
             "liquidationPrice": null,
             "markPrice": null,
             "lastPrice": 55563,
+            "positionMargin": null,
             "collateral": null,
             "marginMode": null,
             "side": "long",

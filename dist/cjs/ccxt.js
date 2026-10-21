@@ -28,7 +28,6 @@ var bitfinex = require('./src/bitfinex.js');
 var bitflyer = require('./src/bitflyer.js');
 var bitget = require('./src/bitget.js');
 var bithumb = require('./src/bithumb.js');
-var bitmex = require('./src/bitmex.js');
 var bitopro = require('./src/bitopro.js');
 var bitrue = require('./src/bitrue.js');
 var bitso = require('./src/bitso.js');
@@ -52,7 +51,6 @@ var coinbase = require('./src/coinbase.js');
 var coinbaseexchange = require('./src/coinbaseexchange.js');
 var coinbaseinternational = require('./src/coinbaseinternational.js');
 var coincheck = require('./src/coincheck.js');
-var coinex = require('./src/coinex.js');
 var coinmate = require('./src/coinmate.js');
 var coinone = require('./src/coinone.js');
 var coinsph = require('./src/coinsph.js');
@@ -104,6 +102,7 @@ var paradex = require('./src/paradex.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
+var polymarket = require('./src/polymarket.js');
 var revolutx = require('./src/revolutx.js');
 var tokocrypto = require('./src/tokocrypto.js');
 var toobit = require('./src/toobit.js');
@@ -128,7 +127,6 @@ var bingx$1 = require('./src/pro/bingx.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitget$1 = require('./src/pro/bitget.js');
 var bithumb$1 = require('./src/pro/bithumb.js');
-var bitmex$1 = require('./src/pro/bitmex.js');
 var bitopro$1 = require('./src/pro/bitopro.js');
 var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
@@ -146,7 +144,6 @@ var coinbase$1 = require('./src/pro/coinbase.js');
 var coinbaseexchange$1 = require('./src/pro/coinbaseexchange.js');
 var coinbaseinternational$1 = require('./src/pro/coinbaseinternational.js');
 var coincheck$1 = require('./src/pro/coincheck.js');
-var coinex$1 = require('./src/pro/coinex.js');
 var coinone$1 = require('./src/pro/coinone.js');
 var cryptocom$1 = require('./src/pro/cryptocom.js');
 var deepcoin$1 = require('./src/pro/deepcoin.js');
@@ -185,6 +182,7 @@ var pacifica$1 = require('./src/pro/pacifica.js');
 var paradex$1 = require('./src/pro/paradex.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
+var polymarket$1 = require('./src/pro/polymarket.js');
 var toobit$1 = require('./src/pro/toobit.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var weex$1 = require('./src/pro/weex.js');
@@ -198,13 +196,13 @@ var kalshi = require('./src/prediction/kalshi.js');
 var limitless = require('./src/prediction/limitless.js');
 var myriad = require('./src/prediction/myriad.js');
 var opinion = require('./src/prediction/opinion.js');
-var polymarket = require('./src/prediction/polymarket.js');
+var polymarket$2 = require('./src/prediction/polymarket.js');
 var predictfun = require('./src/prediction/predictfun.js');
 var sxbet = require('./src/prediction/sxbet.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.83';
+const version = '4.5.89';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -224,7 +222,6 @@ const exchanges = {
     'bitflyer': bitflyer["default"],
     'bitget': bitget["default"],
     'bithumb': bithumb["default"],
-    'bitmex': bitmex["default"],
     'bitopro': bitopro["default"],
     'bitrue': bitrue["default"],
     'bitso': bitso["default"],
@@ -248,7 +245,6 @@ const exchanges = {
     'coinbaseexchange': coinbaseexchange["default"],
     'coinbaseinternational': coinbaseinternational["default"],
     'coincheck': coincheck["default"],
-    'coinex': coinex["default"],
     'coinmate': coinmate["default"],
     'coinone': coinone["default"],
     'coinsph': coinsph["default"],
@@ -300,6 +296,7 @@ const exchanges = {
     'paymium': paymium["default"],
     'phemex': phemex["default"],
     'poloniex': poloniex["default"],
+    'polymarket': polymarket["default"],
     'revolutx': revolutx["default"],
     'tokocrypto': tokocrypto["default"],
     'toobit': toobit["default"],
@@ -326,7 +323,6 @@ const pro = {
     'bitfinex': bitfinex$1["default"],
     'bitget': bitget$1["default"],
     'bithumb': bithumb$1["default"],
-    'bitmex': bitmex$1["default"],
     'bitopro': bitopro$1["default"],
     'bitrue': bitrue$1["default"],
     'bitstamp': bitstamp$1["default"],
@@ -344,7 +340,6 @@ const pro = {
     'coinbaseexchange': coinbaseexchange$1["default"],
     'coinbaseinternational': coinbaseinternational$1["default"],
     'coincheck': coincheck$1["default"],
-    'coinex': coinex$1["default"],
     'coinone': coinone$1["default"],
     'cryptocom': cryptocom$1["default"],
     'deepcoin': deepcoin$1["default"],
@@ -383,6 +378,7 @@ const pro = {
     'paradex': paradex$1["default"],
     'phemex': phemex$1["default"],
     'poloniex': poloniex$1["default"],
+    'polymarket': polymarket$1["default"],
     'toobit': toobit$1["default"],
     'upbit': upbit$1["default"],
     'weex': weex$1["default"],
@@ -401,7 +397,7 @@ const prediction = {
     'limitless': limitless["default"],
     'myriad': myriad["default"],
     'opinion': opinion["default"],
-    'polymarket': polymarket["default"],
+    'polymarket': polymarket$2["default"],
     'predictfun': predictfun["default"],
     'sxbet': sxbet["default"],
 };
@@ -479,7 +475,6 @@ exports.bitfinex = bitfinex["default"];
 exports.bitflyer = bitflyer["default"];
 exports.bitget = bitget["default"];
 exports.bithumb = bithumb["default"];
-exports.bitmex = bitmex["default"];
 exports.bitopro = bitopro["default"];
 exports.bitrue = bitrue["default"];
 exports.bitso = bitso["default"];
@@ -503,7 +498,6 @@ exports.coinbase = coinbase["default"];
 exports.coinbaseexchange = coinbaseexchange["default"];
 exports.coinbaseinternational = coinbaseinternational["default"];
 exports.coincheck = coincheck["default"];
-exports.coinex = coinex["default"];
 exports.coinmate = coinmate["default"];
 exports.coinone = coinone["default"];
 exports.coinsph = coinsph["default"];
@@ -555,6 +549,7 @@ exports.paradex = paradex["default"];
 exports.paymium = paymium["default"];
 exports.phemex = phemex["default"];
 exports.poloniex = poloniex["default"];
+exports.polymarket = polymarket["default"];
 exports.revolutx = revolutx["default"];
 exports.tokocrypto = tokocrypto["default"];
 exports.toobit = toobit["default"];

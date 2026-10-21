@@ -76,7 +76,7 @@ public partial class testMainClass : BaseTest
             {
                 throw e;
             }
-            throw new Exception ((string)add(add(add(exchange.id, " "), method), " failed to resubscribe after unwatch, indicating potential cleanup issues")) ;
+            throw new Exception (add(add(add(exchange.id, " "), method), " failed to resubscribe after unwatch, indicating potential cleanup issues")) ;
         }
         // Verify resubscription works
         assert(((resubscribeResponse is IList<object>) || (resubscribeResponse.GetType().IsGenericType && resubscribeResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must allow resubscription after unwatch, returned "), exchange.json(resubscribeResponse)));

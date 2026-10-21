@@ -27,6 +27,7 @@
 * [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
 * [withdraw](#withdraw)
+* [fetchTrades](#fetchtrades)
 * [fetchMyTrades](#fetchmytrades)
 * [setLeverage](#setleverage)
 * [setMarginMode](#setmarginmode)
@@ -558,15 +559,38 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | No |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.accountIndex | <code>string</code> | No | account index |
 | params.apiKeyIndex | <code>string</code> | No | api key index |
 | params.routeType | <code>int</code> | No | wallet type, 0: perp, 1: spot, default is 0 |
 
 
 ```javascript
-lighter.withdraw (code, amount, address, tag?, params?)
+lighter.withdraw (code, amount, address, params?)
+```
+
+
+<a name="fetchTrades" id="fetchtrades"></a>
+
+### fetchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**: https://apidocs.lighter.xyz/reference/recenttrades  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch, default 100, max 100 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+lighter.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
