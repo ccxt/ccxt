@@ -645,6 +645,8 @@ class bingx(Exchange, ImplicitAPI):
                     '100419': PermissionDenied,  # {"code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347}
                     '100437': BadRequest,  # {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                     '101204': InsufficientFunds,  # {"code":101204,"msg":"","data":{}}
+                    '101205': InvalidOrder,  # {"code":101205,"msg":"No position to close","data":{}}
+                    '101400': InvalidOrder,  # {"code":101400,"msg":"The minimum order amount is 0.0001 BTC.","data":{}}
                     '110425': InvalidOrder,  # {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
                     '100490': BadSymbol,  # spot trading pair is offline
                     '101481': DuplicateOrderId,
