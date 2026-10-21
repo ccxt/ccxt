@@ -4145,6 +4145,8 @@ func (this *Derive) ParsePosition(position any, optionalArgs ...any) any {
 	var markPrice *string = this.SafeString(position, "mark_price")
 	var timestamp *int64 = this.SafeInteger(position, "creation_timestamp")
 	var unrealisedPnl *string = this.SafeString(position, "unrealized_pnl")
+	var initialMarginString *string = Precise.StringAbs(this.SafeString(position, "initial_margin"))
+	var maintenanceMarginString *string = Precise.StringAbs(this.SafeString(position, "maintenance_margin"))
 	size = Precise.StringAbs(size)
 	var notional *string = Precise.StringMul(size, markPrice)
 	return this.SafePosition(map[string]any{
@@ -4154,11 +4156,11 @@ func (this *Derive) ParsePosition(position any, optionalArgs ...any) any {
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
 		"lastUpdateTimestamp":         nil,
-		"initialMargin":               this.SafeNumber(position, "initial_margin"),
-		"initialMarginPercentage":     nil,
-		"maintenanceMargin":           this.SafeNumber(position, "maintenance_margin"),
-		"maintenanceMarginPercentage": nil,
-		"entryPrice":                  nil,
+		"initialMargin":               this.ParseNumber(initialMarginString),
+		"initialMarginPercentage":     this.ParseNumber(Precise.StringDiv(initialMarginString, notional, 8)),
+		"maintenanceMargin":           this.ParseNumber(maintenanceMarginString),
+		"maintenanceMarginPercentage": this.ParseNumber(Precise.StringDiv(maintenanceMarginString, notional, 8)),
+		"entryPrice":                  this.SafeNumber2(position, "average_price", "average_price_excl_fees"),
 		"notional":                    this.ParseNumber(notional),
 		"leverage":                    this.SafeNumber(position, "leverage"),
 		"unrealizedPnl":               this.ParseNumber(unrealisedPnl),
@@ -4221,11 +4223,11 @@ func (this *Derive) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322819 []any = ListTyped(r1.Value)
-		if retRes322819 == nil {
+		var retRes323019 []any = ListTyped(r1.Value)
+		if retRes323019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes322819}
+			ch <- AsyncResult[any]{Value: retRes323019}
 		}
 		return nil
 	}
@@ -5533,17 +5535,14 @@ func (this *Derive) Nonce() any {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Derive) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -5552,7 +5551,7 @@ func (this *Derive) Sign(path string, optionalArgs ...any) any {
 		var postHeaders map[string]any = map[string]any{
 			"Content-Type": "application/json",
 		}
-		if api == "private" {
+		if apiName != nil && *apiName == "private" {
 			var now *string = this.NumberToString(this.Nonce())
 			var signature string = this.SignMessage(now, this.PrivateKey)
 			var deriveWalletAddress any = DerefScalar(this.SafeString(this.Options, "deriveWalletAddress"))
@@ -5574,8 +5573,8 @@ func (this *Derive) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 

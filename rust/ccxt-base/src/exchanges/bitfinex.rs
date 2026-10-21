@@ -1469,8 +1469,8 @@ impl BitfinexCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_317: bool = true;
-            while { if !__for_first_317 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_317 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
+            let mut __for_first_334: bool = true;
+            while { if !__for_first_334 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_334 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
             let mut pairObj: Value = self.safe_list(markets.clone(), i.clone(), &[]);
             let mut id: Value = self.safe_string_upper(pairObj.clone(), Value::Int(0), &[]);
             let mut market: Value = self.safe_value(pairObj, Value::Int(1), &[Value::Map({
@@ -1712,8 +1712,8 @@ impl BitfinexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_318: bool = true;
-            while { if !__for_first_318 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_318 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&get_value(&indexed, &Value::Str("networks".into()))).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_335: bool = true;
+            while { if !__for_first_335 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_335 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&get_value(&indexed, &Value::Str("networks".into()))).as_f64().unwrap_or(f64::NAN) } {
             let mut networkObj: Value = self.safe_list(match &indexed { Value::Dict(__m15) => __m15.get("networks").cloned().unwrap_or(Value::Null), _ => Value::Null }, i.clone(), &[]);
             let mut networkId: Value = self.safe_string(networkObj.clone(), Value::Int(0), &[]);
             let mut valuesList: Value = self.safe_list(networkObj, Value::Int(1), &[]);
@@ -1734,8 +1734,8 @@ impl BitfinexCore {
         let mut allowedIds: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_319: bool = true;
-            while { if !__for_first_319 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_319 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+            let mut __for_first_336: bool = true;
+            while { if !__for_first_336 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_336 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             let mut id: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (ends_with(&id, &Value::Str("F0".into()))) {
                 continue;
@@ -1750,8 +1750,8 @@ impl BitfinexCore {
         let mut arr: Value = self.to_array(allowedIds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_320: bool = true;
-            while { if !__for_first_320 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_320 = false; i.as_f64().unwrap_or(f64::NAN) < ((arr.len() as i64) as f64) } {
+            let mut __for_first_337: bool = true;
+            while { if !__for_first_337 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_337 = false; i.as_f64().unwrap_or(f64::NAN) < ((arr.len() as i64) as f64) } {
             let mut parsed: Value = self.parse_currency_custom(arr.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), indexed.clone(), indexedNetworks.clone());
             let mut code: Value = parsed.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), parsed); }
@@ -1788,8 +1788,8 @@ impl BitfinexCore {
         let mut networkIds: Value = self.safe_list(indexedNetworks, id.clone(), &[Value::from(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_321: bool = true;
-            while { if !__for_first_321 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_321 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkIds.len() as i64) as f64) } {
+            let mut __for_first_338: bool = true;
+            while { if !__for_first_338 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_338 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkIds.len() as i64) as f64) } {
             // safeString instead of raw access: the venue config payload can carry numeric
             // network ids, and the raw value flows into toLowerCase and a dictionary key,
             // which hard-casts to string in the C# build and throws InvalidCastException
@@ -1804,7 +1804,7 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), networkId.clone());
         m.insert("id".to_string(), to_lower(&networkId));
-        m.insert("network".to_string(), networkId);
+        m.insert("network".to_string(), network.clone());
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Bool(self.safe_integer(dwStatuses.clone(), Value::Int(1), &[]).as_f64() == Some(1.0)));
         m.insert("withdraw".to_string(), Value::Bool(self.safe_integer(dwStatuses, Value::Int(2), &[]).as_f64() == Some(1.0)));
@@ -1900,8 +1900,8 @@ impl BitfinexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_322: bool = true;
-            while { if !__for_first_322 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_322 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            let mut __for_first_339: bool = true;
+            while { if !__for_first_339 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_339 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_list(balances.clone(), i.clone(), &[]);
             let mut account: Value = self.account();
             let mut interest: Value = self.safe_string(balance.clone(), Value::Int(3), &[]);
@@ -2154,8 +2154,8 @@ impl BitfinexCore {
         let mut orders: Value = self.to_array(orderbook);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_323: bool = true;
-            while { if !__for_first_323 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_323 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_340: bool = true;
+            while { if !__for_first_340 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_340 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut order: Value = orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut price: Value = self.safe_number(order.clone(), priceIndex.clone(), &[]);
             let mut signedAmount: Value = self.safe_string(order, Value::Int(2), &[]);
@@ -2252,9 +2252,7 @@ impl BitfinexCore {
             bid = self.safe_string(ticker.clone(), (match (&(Value::Int(2)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             ask = self.safe_string(ticker.clone(), (match (&(Value::Int(5)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             change = self.safe_string(ticker.clone(), (match (&(Value::Int(8)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
-            // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
-            // branch reads at index 6 and scales
-            percentage = crate::precise::Precise::stringMul(&self.safe_string(ticker.clone(), (match (&(Value::Int(9)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]), &Value::Str("100".into()));
+            // funding DAILY_CHANGE_RELATIVE is not change / (last - change), let safeTicker derive percentage
             volume = self.safe_string(ticker.clone(), (match (&(Value::Int(11)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             high = self.safe_string(ticker.clone(), (match (&(Value::Int(12)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             low = self.safe_string(ticker.clone(), (match (&(Value::Int(13)), &(minusIndex)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
@@ -2521,8 +2519,8 @@ impl BitfinexCore {
         let mut tradesList: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_324: bool = true;
-            while { if !__for_first_324 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_324 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut __for_first_341: bool = true;
+            while { if !__for_first_341 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_341 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             append_to_array(&mut tradesList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
@@ -2674,8 +2672,8 @@ impl BitfinexCore {
         if (flags != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_325: bool = true;
-                while { if !__for_first_325 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_325 = false; i.as_f64().unwrap_or(f64::NAN) < ((flags.len() as i64) as f64) } {
+                let mut __for_first_342: bool = true;
+                while { if !__for_first_342 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_342 = false; i.as_f64().unwrap_or(f64::NAN) < ((flags.len() as i64) as f64) } {
                 if (flags.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_str() == Some("postOnly")) {
                     postOnly = Value::Bool(true);
                 }
@@ -2955,8 +2953,8 @@ impl BitfinexCore {
         let mut ordersRequests: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_326: bool = true;
-            while { if !__for_first_326 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_326 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_343: bool = true;
+            while { if !__for_first_343 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_343 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
@@ -3006,8 +3004,8 @@ impl BitfinexCore {
         let mut data: Value = self.safe_list(response, Value::Int(4), &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_327: bool = true;
-            while { if !__for_first_327 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_327 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_344: bool = true;
+            while { if !__for_first_344 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_344 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut individualOrder: Value = get_value(&entry, &Value::Int(4));
             append_to_array(&mut results, Value::Map({
@@ -3051,8 +3049,8 @@ impl BitfinexCore {
         let mut ordersList: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_328: bool = true;
-            while { if !__for_first_328 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_328 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_345: bool = true;
+            while { if !__for_first_345 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_345 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             append_to_array(&mut ordersList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
@@ -3144,8 +3142,8 @@ impl BitfinexCore {
         let mut numericIds: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_329: bool = true;
-            while { if !__for_first_329 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_329 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+            let mut __for_first_346: bool = true;
+            while { if !__for_first_346 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_346 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             // numericIds[i] = this.parseToNumeric (ids[i]);
             append_to_array(&mut numericIds, self.parse_to_numeric(ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)));
         }
@@ -3215,8 +3213,8 @@ impl BitfinexCore {
         let mut ordersList: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_330: bool = true;
-            while { if !__for_first_330 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_330 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_347: bool = true;
+            while { if !__for_first_347 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_347 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             append_to_array(&mut ordersList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
@@ -3374,8 +3372,8 @@ impl BitfinexCore {
         let mut ordersList: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_331: bool = true;
-            while { if !__for_first_331 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_331 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+            let mut __for_first_348: bool = true;
+            while { if !__for_first_348 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_348 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             append_to_array(&mut ordersList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&response, &i));
@@ -3485,8 +3483,8 @@ impl BitfinexCore {
         let mut ordersList: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_332: bool = true;
-            while { if !__for_first_332 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_332 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+            let mut __for_first_349: bool = true;
+            while { if !__for_first_349 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_349 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             append_to_array(&mut ordersList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&response, &i));
@@ -3540,8 +3538,8 @@ impl BitfinexCore {
         let mut tradesList: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_333: bool = true;
-            while { if !__for_first_333 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_333 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
+            let mut __for_first_350: bool = true;
+            while { if !__for_first_350 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_350 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
             append_to_array(&mut tradesList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), rawTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
@@ -3602,8 +3600,8 @@ impl BitfinexCore {
         let mut tradesList: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_334: bool = true;
-            while { if !__for_first_334 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_334 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+            let mut __for_first_351: bool = true;
+            while { if !__for_first_351 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_351 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             append_to_array(&mut tradesList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&response, &i));
@@ -3663,7 +3661,8 @@ impl BitfinexCore {
         }
         let mut currency: Value = self.currency(code.clone());
         // if not provided explicitly we will try to match using the currency name
-        let mut network: Value = self.safe_string_k(params.clone(), "network", &[code.clone()]);
+        let mut networkParam: Value = self.safe_string_k(params.clone(), "network", &[code.clone()]);
+        let mut network: Value = self.safe_string(self.networkAliases.clone(), networkParam.clone(), &[networkParam.clone()]);
         let mut currencyNetworks: Value = self.safe_dict_k(currency, "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3993,8 +3992,8 @@ impl BitfinexCore {
         let mut takerFeeDeriv: Value = self.safe_number(takerData, Value::Int(5), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_335: bool = true;
-            while { if !__for_first_335 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_335 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.symbols.len() as i64) as f64) } {
+            let mut __for_first_352: bool = true;
+            while { if !__for_first_352 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_352 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.symbols.len() as i64) as f64) } {
             let mut symbol: Value = self.symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: Value = Value::Map({
@@ -4100,7 +4099,8 @@ impl BitfinexCore {
         }
         let mut currency: Value = self.currency(code.clone());
         // if not provided explicitly we will try to match using the currency name
-        let mut network: Value = self.safe_string_k(paramsWithdrawTag.clone(), "network", &[code.clone()]);
+        let mut networkParam: Value = self.safe_string_k(paramsWithdrawTag.clone(), "network", &[code.clone()]);
+        let mut network: Value = self.safe_string(self.networkAliases.clone(), networkParam.clone(), &[networkParam.clone()]);
         let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::Str("network".into()), &[]);
         let mut currencyNetworks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4240,8 +4240,8 @@ impl BitfinexCore {
         let mut positionsList: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_336: bool = true;
-            while { if !__for_first_336 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_336 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
+            let mut __for_first_353: bool = true;
+            while { if !__for_first_353 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_353 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
             append_to_array(&mut positionsList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), rawPositions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
@@ -4339,34 +4339,35 @@ impl BitfinexCore {
 }
 
     pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        if (api.as_str() == Some("v1")) {
-            request = Value::Str(format!("{}{}", api, request).into());
+        if (apiName.as_str() == Some("v1")) {
+            request = Value::Str(format!("{}{}", apiName, request).into());
         }  else {
             request = Value::Str(format!("{}{}", self.version.clone(), request).into());
         }
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), request).into());
         let mut requestBody: Value = Value::Null;
         let mut requestHeaders: Value = Value::Null;
-        if (api.as_str() == Some("public")) {
+        if (apiName.as_str() == Some("public")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }
         }
-        if (api.as_str() == Some("private")) {
+        if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
             let mut nonce: Value = to_string_val(&self.incrementing_nonce());
@@ -4382,8 +4383,8 @@ impl BitfinexCore {
                 m
             });
         }
-        let mut bodyResolved: Value = (if (requestBody == Value::Null) { body } else { requestBody });
-        let mut headersResolved: Value = (if (requestHeaders == Value::Null) { headers } else { requestHeaders });
+        let mut bodyResolved: Value = requestBody;
+        let mut headersResolved: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
@@ -4576,8 +4577,8 @@ impl BitfinexCore {
         let mut ledgerObjects: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_337: bool = true;
-            while { if !__for_first_337 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_337 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+            let mut __for_first_354: bool = true;
+            while { if !__for_first_354 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_354 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut item: Value = get_value(&response, &i);
             let mut item: Value = get_value(&response, &i);
             append_to_array(&mut ledgerObjects, Value::Map({
@@ -4707,8 +4708,8 @@ impl BitfinexCore {
         let mut rates: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_338: bool = true;
-            while { if !__for_first_338 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_338 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawRatesData.len() as i64) as f64) } {
+            let mut __for_first_355: bool = true;
+            while { if !__for_first_355 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_355 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawRatesData.len() as i64) as f64) } {
             let mut fr: Value = rawRatesData.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut rate: Value = self.parse_funding_rate_history(fr, &[market.clone()]);
             append_to_array(&mut rates, rate);
@@ -4719,8 +4720,8 @@ impl BitfinexCore {
         let mut ratesLength: Value = Value::Int(rawRates.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_339: bool = true;
-            while { if !__for_first_339 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_339 = false; i.as_f64().unwrap_or(f64::NAN) < ratesLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_356: bool = true;
+            while { if !__for_first_356 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_356 = false; i.as_f64().unwrap_or(f64::NAN) < ratesLength.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(ratesLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             let mut valueAtIndex: Value = get_value(&rawRates, &index);
             let mut valueAtIndex: Value = get_value(&rawRates, &index);

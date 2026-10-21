@@ -486,7 +486,7 @@ func (this *Hashkey) Describe() any {
 				"TRC20":        "TRC20",
 				"Tron":         "TRC20",
 				"TON":          "TON",
-				"BSC(BEP20)":   "BSC",
+				"BSC(BEP20)":   "BEP20",
 				"Klaytn":       "KLAYTN",
 			},
 			"defaultNetwork": "ERC20",
@@ -1383,9 +1383,9 @@ func (this *Hashkey) ParseCurrency(rawCurrency any) map[string]any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(network, "chainType")
-		var networkCode any = this.NetworkCodeToId(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(parsedNetworks, networkCode, map[string]any{
+			parsedNetworks[*networkCode] = map[string]any{
 				"id":      networkId,
 				"network": networkCode,
 				"limits": map[string]any{
@@ -1404,7 +1404,7 @@ func (this *Hashkey) ParseCurrency(rawCurrency any) map[string]any {
 				"fee":       this.SafeNumber(network, "withdrawFee"),
 				"precision": nil,
 				"info":      network,
-			})
+			}
 		}
 	}
 	var rawType *string = this.SafeString(rawCurrency, "tokenType")
@@ -2272,7 +2272,7 @@ func (this *Hashkey) ParseSwapBalance(balance map[string]any) any {
  * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
  * @param {string} code unified currency code (default is 'USDT')
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
+ * @param {string} [params.network] network for fetch deposit address (default is 'ERC20')
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Hashkey) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -2301,7 +2301,7 @@ func (this *Hashkey) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	var paramsNetworkCode map[string]any = MapTyped(networkCodeInParamsparamsNetworkCodeVariable[1])
 	var networkCode any = func() any {
 		if IsEqual(networkCodeInParams, nil) {
-			return this.DefaultNetworkCode(code)
+			return this.SafeString(this.SafeDict(this.Options, "defaultNetworks", map[string]any{}), code, this.SafeString(this.Options, "defaultNetwork"))
 		}
 		return networkCodeInParams
 	}()
@@ -5487,23 +5487,20 @@ func (this *Hashkey) ParseTradingFee(fee any, optionalArgs ...any) map[string]an
 	}
 }
 func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = *apiUrl + "/" + path
 	var query string
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
 		var additionalParams map[string]any = map[string]any{
@@ -5542,7 +5539,7 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 		headersSigned["broker_sign"] = signature
 		var bodyResolved any = func() any {
 			if method == "GET" {
-				return body
+				return nil
 			}
 			return bodySigned
 		}()
@@ -5561,8 +5558,8 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Hashkey) CustomUrlencode(optionalArgs ...any) string {
@@ -5896,7 +5893,7 @@ func (this *Hashkey) FetchBalance(params ...any) (Balances, error) {
  * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
  * @param {string} code unified currency code (default is 'USDT')
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
+ * @param {string} [params.network] network for fetch deposit address (default is 'ERC20')
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Hashkey) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {

@@ -63,6 +63,10 @@ public partial class testMainClass : BaseTest
         IDictionary<string, object> networks = exchange.safeDict(entry, "networks", new Dictionary<string, object>() {});
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         int networkKeysLength = networkKeys.Count;
+        for (int i = 0; i < networkKeysLength; i++)
+        {
+            testSharedMethods.assertUnifiedNetworkCode(exchange, skippedProperties, method, entry, (networkKeys != null && i < networkKeys.Count ? networkKeys[i] : null));
+        }
         if ((networkKeysLength == 0) && (inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))
         {
             return;

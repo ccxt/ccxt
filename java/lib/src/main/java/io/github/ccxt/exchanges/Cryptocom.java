@@ -2749,13 +2749,17 @@ public class Cryptocom extends CryptocomApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            String network = this.safeStringUpper(parameters, "network");
+            String networkParam = this.safeStringUpper(parameters, "network");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
             Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, paramsOmitted)).join();
             Object depositAddresses = depositAddressesRaw;
-            if (((Map<?, ?>)depositAddresses).containsKey(network))
+            if (!java.util.Objects.equals(networkParam, null))
             {
-                return Helpers.GetValue(depositAddresses, network);
+                String network = this.safeString(this.networkAliases, networkParam, networkParam);
+                if (((Map<?, ?>)depositAddresses).containsKey(network))
+                {
+                    return Helpers.GetValue(depositAddresses, network);
+                }
             }
             List<String> keys = new ArrayList<String>(((Map<String, Object>)depositAddresses).keySet());
             return Helpers.GetValue(depositAddresses, (keys == null || 0 >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(0)));
@@ -4397,12 +4401,12 @@ public class Cryptocom extends CryptocomApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
-        String type = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
+        String type = this.safeString(api, 0);
+        String access = this.safeString(api, 1);
         String apiUrl = this.safeString(this.urls.get("api"), type);
         if (java.util.Objects.equals(apiUrl, null))
         {

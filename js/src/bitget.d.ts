@@ -1130,5 +1130,5 @@ export default class bitget extends Exchange {
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     nonce(): number;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

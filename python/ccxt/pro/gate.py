@@ -110,6 +110,13 @@ class gate(ccxt.async_support.gate):
                 },
             },
             'options': {
+                'ws': {
+                    'options': {
+                        'headers': {
+                            'X-Gate-Size-Decimal': '1',  # contract sizes are pushed as decimal strings instead of rounded-down integers
+                        },
+                    },
+                },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'watchTradesSubscriptions': {},
@@ -1564,8 +1571,8 @@ class gate(ccxt.async_support.gate):
             elif event == 'finish':
                 status = self.safe_string(parsed, 'status')
                 if status is None:
-                    left = self.safe_integer(info, 'left')
-                    parsed['status'] = 'closed' if (left == 0) else 'canceled'
+                    left = self.safe_string(info, 'left')
+                    parsed['status'] = 'closed' if Precise.string_equals(left, '0') else 'canceled'
             stored.append(parsed)
             symbol = parsed['symbol']
             market = self.market(symbol)
@@ -2062,8 +2069,10 @@ class gate(ccxt.async_support.gate):
     def get_market_type_by_url(self, url: str) -> str:
         findBy = {
             'op-': 'option',
+            '/ws/options/': 'option',
             'delivery': 'future',
             'fx': 'swap',
+            '/ws/futures/': 'swap',
         }
         keys = list(findBy.keys())
         for i in range(0, len(keys)):

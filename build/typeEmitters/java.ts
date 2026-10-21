@@ -95,6 +95,7 @@ const VIEW_BASES: Record<string, boolean> = {
  */
 const SKIPPED: Record<string, string> = {
     'OrderBook': 'bespoke constructor (unwraps io.github.ccxt.ws.WsOrderBook and guards null data) - no drift against TS',
+    'OrderBookL3': 'bespoke constructor (mixed [Double, Double, String] rows, guards null data)',
     'Balances': 'bespoke constructor (flattens free/used/total/debt sub-maps and the per-currency Balance rows)',
     'Network': 'no TS declaration (models an entry of CurrencyInterface.networks, typed Dictionary<any> in TS)',
     'NetworkLimits': 'no TS declaration (nested inside the Java-only Network POJO)',
@@ -276,7 +277,7 @@ function scalarFor (tsType: string, fieldName: string): Scalar | undefined {
         }
         return { 'javaType': 'Double', 'accessor': 'safeFloat' };
     }
-    if (t === 'Str' || t === 'string' || t === 'OrderSide' || t === 'OrderType' || t === 'MarketType' || t === 'SubType' || t === 'DefaultType' || t === 'DefaultSubType') {
+    if (t === 'Str' || t === 'string' || t === 'OrderSide' || t === 'OrderType' || t === 'MarketType' || t === 'SubType' || t === 'DefaultType' || t === 'DefaultSubType' || t === 'NetworkCode') {
         return { 'javaType': 'String', 'accessor': 'safeString' };
     }
     if (t === 'Bool' || t === 'boolean') {

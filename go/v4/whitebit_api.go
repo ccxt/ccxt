@@ -9,7 +9,7 @@ package ccxt
 
 // WebGetV1Healthcheck returns a channel that yields a JSON object.
 func (this *Whitebit) WebGetV1Healthcheck(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/healthcheck", "web", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[map[string]any](this, "v1/healthcheck", []string{"web"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetMarkets returns a channel that yields a JSON object.

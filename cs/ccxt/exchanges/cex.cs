@@ -310,7 +310,7 @@ public partial class cex : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "bitcoin" },
                     { "ERC20", "ERC20" },
-                    { "BSC20", "binancesmartchain" },
+                    { "BEP20", "binancesmartchain" },
                     { "DOGE", "dogecoin" },
                     { "ALGO", "algorand" },
                     { "XLM", "stellar" },
@@ -322,7 +322,7 @@ public partial class cex : Exchange
                     { "THETA", "theta" },
                     { "XTZ", "tezos" },
                     { "TIA", "celestia" },
-                    { "CRONOS", "cronos" },
+                    { "CRC20", "cronos" },
                     { "MATIC", "polygon" },
                     { "TON", "ton" },
                     { "TRC20", "tron" },
@@ -2021,19 +2021,20 @@ public partial class cex : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if ((api is "public"))
+        if ((apiName is "public"))
         {
             if ((method == "GET"))
             {
@@ -2077,8 +2078,8 @@ public partial class cex : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

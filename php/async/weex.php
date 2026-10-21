@@ -529,9 +529,7 @@ class weex extends Exchange {
                 ),
                 'networks' => array(
                     'BEP20' => 'BEP20(BSC)',
-                    'BSC' => 'BEP20(BSC)',
                     'ERC20' => 'ERC20',
-                    'ETH' => 'ERC20',
                     'POLYGON' => 'POLYGON(MATIC)',
                     'MATIC' => 'POLYGON(MATIC)',
                     'ARBITRUM' => 'ARBITRUM(ARB)',
@@ -1362,7 +1360,8 @@ class weex extends Exchange {
             'ask' => $this->safe_string($ticker, 'askPrice'),
             'askVolume' => $this->safe_string($ticker, 'askQty'),
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'openPrice'),
+            // openPrice comes from a different window than priceChange/priceChangePercent, so open is derived from last - change
+            'open' => null,
             'close' => $this->safe_string($ticker, 'lastPrice'),
             'last' => $this->safe_string($ticker, 'lastPrice'),
             'previousClose' => null,
@@ -3981,27 +3980,39 @@ class weex extends Exchange {
         $notional = $this->safe_string($position, 'openValue');
         $size = $this->safe_string($position, 'size');
         $entryPrice = Precise::string_div($notional, $size);
+        $unrealizePnl = $this->safe_string($position, 'unrealizePnl');
+        $isolatedMargin = $this->omit_zero($this->safe_string_2($position, 'isolatedMargin', 'marginSize'));
+        $collateralString = null;
+        if (($marginMode === 'isolated') && ($isolatedMargin !== null)) {
+            $collateralString = ($unrealizePnl !== null) ? Precise::string_add($isolatedMargin, $unrealizePnl) : $isolatedMargin;
+        }
+        $initialMarginString = $this->omit_zero($this->safe_string_2($position, 'marginSize', 'isolatedMargin'));
+        $marginString = null;
+        if ($marginMode === 'isolated') {
+            $marginString = $isolatedMargin;
+        }
         return $this->safe_position(array(
             'symbol' => $marketResolved['symbol'],
             'id' => $this->safe_string_2($position, 'id', 'positionId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'contracts' => $this->parse_number($size),
-            'contractSize' => null,
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'side' => $this->safe_string_lower($position, 'side'),
             'notional' => $this->parse_number($notional),
             'leverage' => $this->safe_number($position, 'leverage'),
-            'unrealizedPnl' => $this->safe_number($position, 'unrealizePnl'),
+            'unrealizedPnl' => $this->parse_number($unrealizePnl),
             'realizedPnl' => null,
-            'collateral' => null,
+            'positionMargin' => $this->parse_number($marginString),
+            'collateral' => $this->parse_number($collateralString),
             'entryPrice' => $this->parse_number($entryPrice),
             'markPrice' => null,
-            'liquidationPrice' => $this->safe_number($position, 'liquidatePrice'),
+            'liquidationPrice' => $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidatePrice'))),
             'marginMode' => $marginMode,
             'hedged' => $hedged,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
-            'initialMargin' => $this->safe_number($position, 'marginSize'),
+            'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => null,
             'marginRatio' => null,
             'lastUpdateTimestamp' => $this->safe_integer($position, 'updatedTime'),
@@ -4572,7 +4583,8 @@ class weex extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);
@@ -4581,9 +4593,9 @@ class weex extends Exchange {
                 $endpoint .= '?' . $this->urlencode($query);
             }
         }
-        $isPrivate = ($api === 'private') || ($api === 'contractPrivate');
+        $isPrivate = ($apiName === 'private') || ($apiName === 'contractPrivate');
         $hasJsonBody = $isPrivate && (($method === 'POST') || $isBatch);
-        $requestBody = $body;
+        $requestBody = null;
         if ($hasJsonBody) {
             $requestBody = $this->json($query);
         }
@@ -4615,7 +4627,7 @@ class weex extends Exchange {
                 'User-Agent' => 'ccxt',
             );
         }
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }

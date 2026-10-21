@@ -103,7 +103,7 @@ public partial class lighter : Exchange
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
-                { "fetchTrades", false },
+                { "fetchTrades", true },
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", false },
                 { "fetchTransfer", false },
@@ -1704,7 +1704,7 @@ public partial class lighter : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = Math.Min(limit.Value, 100);
+            request["limit"] = Math.Min(limit.Value, 250);
         }
         Dictionary<string, object> response = await this.publicGetOrderBookOrders(this.extend(request, parameters));
         //
@@ -2388,6 +2388,15 @@ public partial class lighter : Exchange
                 leverage = ((double)100 / imf);
             }
         }
+        string? contractsString = this.safeString(position, "position");
+        string? positionValueString = this.safeString(position, "position_value");
+        string? markPriceString = Precise.stringDiv(positionValueString, contractsString);
+        // allocated_margin is the isolated collateral balance (0 for cross)
+        double? positionMargin = null;
+        if (marginMode == "isolated")
+        {
+            positionMargin = this.safeNumber(position, "allocated_margin");
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -2397,13 +2406,14 @@ public partial class lighter : Exchange
             { "isolated", (marginMode == "isolated") },
             { "hedged", null },
             { "side", side },
-            { "contracts", this.safeNumber(position, "position") },
+            { "contracts", this.parseNumber(contractsString) },
             { "contractSize", null },
             { "entryPrice", this.safeNumber(position, "avg_entry_price") },
-            { "markPrice", null },
-            { "notional", this.safeNumber(position, "position_value") },
+            { "markPrice", this.parseNumber(markPriceString) },
+            { "notional", this.parseNumber(positionValueString) },
             { "leverage", leverage },
-            { "collateral", this.safeNumber(position, "allocated_margin") },
+            { "positionMargin", positionMargin },
+            { "collateral", null },
             { "initialMargin", null },
             { "maintenanceMargin", null },
             { "initialMarginPercentage", null },
@@ -3358,6 +3368,59 @@ public partial class lighter : Exchange
 
     /**
      * @method
+     * @name lighter#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.lighter.xyz/reference/recenttrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "market_id", (market.ContainsKey("id") ? market["id"] : null) },
+            { "limit", 100 },
+        };
+        if ((limit != null))
+        {
+            request["limit"] = Math.Min(limit.Value, 100);
+        }
+        Dictionary<string, object> response = await this.publicGetRecentTrades(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 200,
+        //         "trades": [
+        //             {
+        //                 "trade_id": 35564491385,
+        //                 "type": "trade",
+        //                 "market_id": 0,
+        //                 "size": "0.0003",
+        //                 "price": "2385.57",
+        //                 "usd_amount": "0.715671",
+        //                 "ask_id": 281478054267183,
+        //                 "bid_id": 562946767299880,
+        //                 "ask_account_id": 723632,
+        //                 "bid_account_id": 317087,
+        //                 "is_maker_ask": false,
+        //                 "timestamp": 1792497687525
+        //             }
+        //         ]
+        //     }
+        //
+        List<object> trades = this.safeList(response, "trades", new List<object>() {});
+        return this.parseTrades(trades, market, since, limit);
+    }
+
+    /**
+     * @method
      * @name lighter#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://apidocs.lighter.xyz/reference/trades
@@ -3509,6 +3572,11 @@ public partial class lighter : Exchange
                 side = "buy";
                 orderId = this.safeString(trade, "bid_id");
             }
+        }
+        // public trades use Lighter's taker-side convention
+        if (((side == null)) && ((isMakerAsk != null)))
+        {
+            side = ((isMakerAsk == true)) ? "buy" : "sell";
         }
         string? takerOrMaker = null;
         if ((side != null) && (isMakerAsk != null))
@@ -3939,13 +4007,14 @@ public partial class lighter : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         object url = null;
-        if ((api is "root"))
+        if ((apiName is "root"))
         {
             string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "public");
             if ((baseApiUrl == null))
@@ -3955,7 +4024,7 @@ public partial class lighter : Exchange
             url = this.implodeHostname(baseApiUrl);
         } else
         {
-            string? baseApiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+            string? baseApiUrl2 = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
             if ((baseApiUrl2 == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3963,7 +4032,7 @@ public partial class lighter : Exchange
             url = ((((this.implodeHostname(baseApiUrl2) + "/api/") + this.version) + "/") + path);
         }
         Dictionary<string, object> authHeaders = null;
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             authHeaders = new Dictionary<string, object>() {
                 { "Authorization", this.createAuth(parameters) },
@@ -3985,20 +4054,20 @@ public partial class lighter : Exchange
             }
             url = add(url, ("?" + this.rawencode(parameters)));
         }
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
-                { "body", body },
+                { "body", null },
                 { "headers", authHeaders },
             };
         }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

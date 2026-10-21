@@ -2643,9 +2643,10 @@ export default class bitvavo extends Exchange {
         //
         return this.parseDepositWithdrawFees(response, codes, 'symbol');
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const query = this.omit(params, this.extractParams(path));
         let url = '/' + this.version + '/' + this.implodeParams(path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
@@ -2654,7 +2655,7 @@ export default class bitvavo extends Exchange {
                 url += '?' + this.urlencode(query);
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             let payload = '';
             if (!getOrDelete) {
@@ -2677,7 +2678,7 @@ export default class bitvavo extends Exchange {
                 requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }

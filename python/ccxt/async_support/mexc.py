@@ -538,9 +538,9 @@ class mexc(Exchange, ImplicitAPI):
                     },
                 },
                 'defaultType': 'spot',  # spot, swap
-                'defaultNetwork': 'ETH',
+                'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
-                    'ETH': 'ETH',
+                    'ETH': 'ERC20',
                     'USDT': 'ERC20',
                     'USDC': 'ERC20',
                     'BTC': 'BTC',
@@ -740,9 +740,9 @@ class mexc(Exchange, ImplicitAPI):
                     # OKB <> OKT (for usdt it's exception) for OKC, PMEER, FLARE, STRD, ZEL, FUND, "NONE", CRING, FREETON, QTZ  (probably unique network is meant), HT, BSC(RACAV1), BSC(RACAV2), AMBROSUS, BAJUN, NOM. their individual info is at https://www.mexc.com/api/platform/asset/spot/{COINNAME}
                 },
                 'networksById': {
-                    'BNB Smart Chain(BEP20-RACAV1)': 'BSC',
-                    'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
-                    'BNB Smart Chain(BEP20)': 'BSC',
+                    'BNB Smart Chain(BEP20-RACAV1)': 'BEP20',
+                    'BNB Smart Chain(BEP20-RACAV2)': 'BEP20',
+                    'BNB Smart Chain(BEP20)': 'BEP20',
                     'Ethereum(ERC20)': 'ERC20',
                     # TODO: unified names undecided for PEPE COIN BSC, SMART BLOCKCHAIN, f(x)Core, Syscoin Rollux, Syscoin UTXO,
                     # zkSync Era, zkSync Lite, Darwinia Smart Chain, Arbitrum One(ARB-Bridged), Optimism(OP-Bridged), Polygon(MATIC-Bridged)
@@ -2943,7 +2943,7 @@ class mexc(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         marketType, query = self.handle_market_type_and_params('fetchOrdersByIds', market, params)
         if marketType == 'spot':
-            raise BadRequest(self.id + ' fetchOrdersByIds() is not supported for ' + marketType)
+            raise NotSupported(self.id + ' fetchOrdersByIds() is not supported for ' + marketType)
         else:
             request['order_ids'] = ','.join(ids)
             response = await self.contractPrivateGetOrderBatchQuery(self.extend(request, query))
@@ -3258,7 +3258,7 @@ class mexc(Exchange, ImplicitAPI):
         market = self.market(symbol) if (symbol is not None) else None
         marketType = self.handle_market_type_and_params('cancelOrders', market, params)
         if marketType == 'spot':
-            raise BadRequest(self.id + ' cancelOrders() is not supported for ' + marketType)
+            raise NotSupported(self.id + ' cancelOrders() is not supported for ' + marketType)
         else:
             response = await self.contractPrivatePostOrderCancel(ids)  # the request cannot be changed or extended. The only way to send.
             #
@@ -3727,7 +3727,7 @@ class mexc(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         if market['spot'] is not True:
-            raise BadRequest(self.id + ' fetchTradingFee() supports spot markets only')
+            raise NotSupported(self.id + ' fetchTradingFee() supports spot markets only')
         request = {
             'symbol': market['id'],
         }
@@ -5168,24 +5168,34 @@ class mexc(Exchange, ImplicitAPI):
         symbol = marketResolved['symbol']
         contracts = self.safe_string(position, 'holdVol')
         entryPrice = self.safe_number(position, 'openAvgPrice')
-        initialMargin = self.safe_string(position, 'im')
+        initialMargin = self.omit_zero(self.safe_string(position, 'im'))
+        unrealizedPnl = self.safe_string(position, 'unRealizedPnl')
         rawSide = self.safe_string(position, 'positionType')
         side = 'long' if (rawSide == '1') else 'short'
-        openType = self.safe_string(position, 'margin_mode')
+        openType = self.safe_string_2(position, 'openType', 'margin_mode')
         marginType = 'isolated' if (openType == '1') else 'cross'
+        collateralString = None
+        marginString = None
+        if (marginType == 'isolated') and (initialMargin is not None):
+            # im is the margin mexc holds in the position; funding settles to the available balance
+            collateralString = initialMargin
+            marginString = collateralString
+            if unrealizedPnl is not None:
+                collateralString = Precise.string_add(collateralString, unrealizedPnl)
         leverage = self.safe_number(position, 'leverage')
-        liquidationPrice = self.safe_number(position, 'liquidatePrice')
+        liquidationPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'liquidatePrice')))
         timestamp = self.safe_integer(position, 'updateTime')
         return self.safe_position({
             'info': position,
             'id': None,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
-            'contractSize': None,
+            'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'entryPrice': entryPrice,
-            'collateral': None,
+            'positionMargin': self.parse_number(marginString),
+            'collateral': self.parse_number(collateralString),
             'side': side,
-            'unrealizedPnl': None,
+            'unrealizedPnl': self.parse_number(unrealizedPnl),
             'leverage': self.parse_number(leverage),
             'percentage': None,
             'marginMode': marginType,
@@ -5240,9 +5250,7 @@ class mexc(Exchange, ImplicitAPI):
             #
             data = self.safe_dict(response, 'data', {})
             return self.parse_transfer(data)
-        elif marketType == 'swap':
-            raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
-        raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
+        raise NotSupported(self.id + ' fetchTransfer() is not supported for ' + marketType)
 
     async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
@@ -5960,7 +5968,7 @@ class mexc(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         if market['spot'] is True:
-            raise BadSymbol(self.id + ' setMarginMode() supports contract markets only')
+            raise NotSupported(self.id + ' setMarginMode() supports contract markets only')
         marginModeLower = marginMode.lower()
         if marginModeLower != 'isolated' and marginModeLower != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
@@ -5986,9 +5994,9 @@ class mexc(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        requestHeaders = None
+        requestBody = None
         section = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
         pathValue = self.implode_params(path, params)

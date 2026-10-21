@@ -2355,11 +2355,11 @@ class dydx(Exchange, ImplicitAPI):
                 return wallet
         raise ArgumentsRequired(self.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.')
 
-    def sign(self, path: str, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, section: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
         pathWithParams = self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], section)
+        apiUrl = self.safe_string(self.urls['api'], section[0])
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl
@@ -2374,8 +2374,8 @@ class dydx(Exchange, ImplicitAPI):
             requestHeaders = {
                 'Content-type': 'application/json',
             }
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
-        bodyResult = requestBody if (requestBody is not None) else body
+        headersResult = requestHeaders
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

@@ -174,7 +174,93 @@ export default class nado extends Exchange {
                 '1w': 604800,
                 '4w': 2419200,
             },
-            'features': {},
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'createOrder': {
+                        // the trigger service documents spot product ids, but a spot
+                        // trigger order has not been confirmed against the venue yet
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '1000': RateLimitExceeded,
@@ -3116,12 +3202,9 @@ export default class nado extends Exchange {
         return marketId;
     }
 
-    override sign (path: string, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [], method = 'GET', params: Dict = {}): Dict {
         let requestBody: Str = undefined;
-        let endpoint = api[0];
-        if (typeof api === 'string') {
-            endpoint = api;
-        }
+        const endpoint = api[0];
         const baseApiUrl = this.safeString (this.urls['api'], endpoint);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
@@ -3143,7 +3226,7 @@ export default class nado extends Exchange {
             headersValue['Content-Type'] = 'application/json';
             requestBody = this.json (query);
         }
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue };
     }
 

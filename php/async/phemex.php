@@ -622,8 +622,8 @@ class phemex extends Exchange {
                     'BEP20' => 'BNB',
                 ),
                 'defaultNetworks' => array(
-                    'USDT' => 'ETH',
-                    'MKR' => 'ETH',
+                    'USDT' => 'ERC20',
+                    'MKR' => 'ERC20',
                 ),
                 'defaultSubType' => 'linear',
                 'accountsByType' => array(
@@ -3666,7 +3666,9 @@ class phemex extends Exchange {
         $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_upper_2($params, 'network', 'chainName', $defaultNetwork);
         $paramsOmitted = $this->omit($params, 'network');
-        $network = $this->safe_string($networks, $network, $network);
+        if ($network !== null) {
+            $network = $this->safe_string($networks, $this->safe_string($this->networkAliases, $network, $network), $network);
+        }
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a network parameter');
         } else {
@@ -4830,7 +4832,8 @@ class phemex extends Exchange {
         return $tiers;
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $query = $this->omit($params, $this->extract_params($path));
         $requestPath = '/' . $this->implode_params($path, $params);
         $url = $requestPath;
@@ -4843,7 +4846,7 @@ class phemex extends Exchange {
         }
         $requestBody = null;
         $privateHeaders = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = $this->seconds();
             $xPhemexRequestExpiry = $this->safe_integer($this->options, 'x-phemex-request-expiry', 60);
@@ -4869,17 +4872,17 @@ class phemex extends Exchange {
             $auth = $requestPath . $queryString . $expiryString . $payload;
             $privateHeaders['x-phemex-request-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         }
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $this->implode_hostname($baseApiUrl) . $url;
-        $isPrivatePost = ($api === 'private') && ($method === 'POST');
-        $bodyResolved = $body;
+        $isPrivatePost = ($apiName === 'private') && ($method === 'POST');
+        $bodyResolved = null;
         if ($isPrivatePost) {
             $bodyResolved = $requestBody;
         }
-        $requestHeaders = ($api === 'private') ? $privateHeaders : $headers;
+        $requestHeaders = ($apiName === 'private') ? $privateHeaders : null;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $requestHeaders );
     }
 

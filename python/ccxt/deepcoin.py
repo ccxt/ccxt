@@ -332,7 +332,7 @@ class deepcoin(Exchange, ImplicitAPI):
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'ARBITRUM': 'ARBITRUM',
-                    'BSC': 'BSC(BEP20)',
+                    'BEP20': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',
                     'ADA': 'Cardano',
@@ -1171,6 +1171,8 @@ class deepcoin(Exchange, ImplicitAPI):
         defaultNetwork = self.safe_string(defaultNetworks, code)
         if (network is None) or (network == ''):
             network = defaultNetwork
+        if network is not None:
+            network = self.safe_string(self.networkAliases, network, network)
         paramsOmitted = self.omit(params, 'network') if (network is not None) else params
         addressess = self.fetch_deposit_addresses([code], paramsOmitted)
         length = len(addressess)
@@ -2461,6 +2463,12 @@ class deepcoin(Exchange, ImplicitAPI):
         marketId = self.safe_string(position, 'instId')
         marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_integer(position, 'cTime')
+        marginMode = self.safe_string(position, 'mgnMode')
+        useMargin = self.safe_number(position, 'useMargin')
+        # useMargin is the margin held in the position (excludes unrealized pnl)
+        positionMargin = None
+        if marginMode == 'isolated':
+            positionMargin = useMargin
         return self.safe_position({
             'symbol': marketResolved['symbol'],
             'id': self.safe_string(position, 'posId'),
@@ -2471,17 +2479,18 @@ class deepcoin(Exchange, ImplicitAPI):
             'side': self.safe_string(position, 'posSide'),
             'notional': None,
             'leverage': self.parse_number(self.omit_zero(self.safe_string(position, 'lever'))),
-            'unrealizedPnl': None,
+            'unrealizedPnl': self.safe_number(position, 'unrealizedProfit'),
             'realizedPnl': None,
+            'positionMargin': positionMargin,
             'collateral': None,
             'entryPrice': self.safe_number(position, 'avgPx'),
             'markPrice': None,
             'liquidationPrice': self.safe_number(position, 'liqPx'),
-            'marginMode': self.safe_string(position, 'mgnMode'),
+            'marginMode': marginMode,
             'hedged': True,
-            'maintenanceMargin': self.safe_number(position, 'useMargin'),
+            'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'initialMargin': None,
+            'initialMargin': useMargin,
             'initialMarginPercentage': None,
             'marginRatio': None,
             'lastUpdateTimestamp': self.safe_integer(position, 'uTime'),
@@ -2858,17 +2867,18 @@ class deepcoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_order(data, market)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         requestPath = path
         if method == 'GET':
             query = self.urlencode(params)
             if len(query) > 0:
                 requestPath += '?' + query
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + requestPath
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             timestamp = self.milliseconds()
             dateTime = self.iso8601(timestamp)
@@ -2879,14 +2889,14 @@ class deepcoin(Exchange, ImplicitAPI):
                 'DC-ACCESS-PASSPHRASE': self.password,
                 'appid': '200103',
             }
-            requestBody = self.json(params) if (method != 'GET') else body
+            requestBody = self.json(params) if (method != 'GET') else None
             if method != 'GET':
                 privateHeaders['Content-Type'] = 'application/json'
                 payload += requestBody
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             privateHeaders['DC-ACCESS-SIGN'] = signature
             return {'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         data = self.safe_dict(response, 'data', {})

@@ -5028,6 +5028,10 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	}
 	var positionSide *string = this.SafeString(position, "positionSide")
 	var hedged bool = (positionSide == nil || *positionSide != "BOTH")
+	var isolatedWalletString *string = nil
+	if marginMode != nil && *marginMode == "isolated" {
+		isolatedWalletString = this.SafeString(position, "isolatedWallet")
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -5037,6 +5041,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 		"unrealizedPnl":               unrealizedPnl,
 		"leverage":                    this.ParseNumber(leverageString),
 		"liquidationPrice":            liquidationPrice,
+		"positionMargin":              this.ParseNumber(isolatedWalletString),
 		"collateral":                  collateral,
 		"notional":                    notional,
 		"markPrice":                   markPrice,
@@ -5095,11 +5100,11 @@ func (this *Aster) fetchPositionsRiskBody(ch chan AsyncResult[[]any], optionalAr
 	}
 	var request map[string]any = map[string]any{}
 
-	listEp4718 := <-this.FapiPrivateGetV3PositionRisk(this.Extend(request, params))
-	if listEp4718.Err != nil {
-		panic(listEp4718.Err)
+	listEp4723 := <-this.FapiPrivateGetV3PositionRisk(this.Extend(request, params))
+	if listEp4723.Err != nil {
+		panic(listEp4723.Err)
 	}
-	var response []any = listEp4718.Value
+	var response []any = listEp4723.Value
 	//
 	//     [
 	//         {
@@ -5177,11 +5182,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes380119 []any = r.Value
-		if retRes380119 == nil {
+		var retRes380619 []any = r.Value
+		if retRes380619 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes380119}
+			ch <- AsyncResult[any]{Value: retRes380619}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
@@ -5190,11 +5195,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes380319 []any = r1.Value
-		if retRes380319 == nil {
+		var retRes380819 []any = r1.Value
+		if retRes380819 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes380319}
+			ch <- AsyncResult[any]{Value: retRes380819}
 		}
 		return nil
 	} else {
@@ -5435,6 +5440,10 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	}
 	var positionSide *string = this.SafeString(position, "positionSide")
 	var hedged bool = (positionSide == nil || *positionSide != "BOTH")
+	var isolatedWalletString *string = nil
+	if marginMode == "isolated" {
+		isolatedWalletString = this.SafeString(position, "isolatedWallet")
+	}
 	return map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -5454,6 +5463,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 		"marginRatio":                 marginRatio,
 		"liquidationPrice":            liquidationPrice,
 		"markPrice":                   nil,
+		"positionMargin":              this.ParseNumber(isolatedWalletString),
 		"collateral":                  collateral,
 		"marginMode":                  marginMode,
 		"side":                        side,
@@ -5534,11 +5544,11 @@ func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[any], optionalAr
 	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets")
 	if (leverageBrackets == nil) || (reload == true) {
 
-		listEp5108 := <-this.FapiPrivateGetV3LeverageBracket(params)
-		if listEp5108.Err != nil {
-			panic(listEp5108.Err)
+		listEp5118 := <-this.FapiPrivateGetV3LeverageBracket(params)
+		if listEp5118.Err != nil {
+			panic(listEp5118.Err)
 		}
-		var response []any = listEp5108.Value
+		var response []any = listEp5118.Value
 		//
 		//    [
 		//        {
@@ -5683,6 +5693,9 @@ func (this *Aster) withdrawBody(ch chan EndpointResult[map[string]any], code str
 	// TODO: check how ARBI signature would work
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper(paramsWithdrawTag, "network")
+	if network != nil {
+		network = this.SafeString(this.NetworkAliases, network, network) // accepts aliases like ETH for ERC20
+	}
 	network = this.SafeString(networks, network, network)
 	if (chainId == nil) && (network != nil) {
 		var chainIds map[string]any = SafeMapTyped(this.Options, "networksToChainId")
@@ -5841,26 +5854,23 @@ func (this *Aster) SignHash(hash any, privateKey string) string {
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
 func (this *Aster) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = *baseApiUrl + "/" + path
-	if (api == "fapiPublic") || (api == "sapiPublic") {
+	if (apiName != nil && *apiName == "fapiPublic") || (apiName != nil && *apiName == "sapiPublic") {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Rawencode(params))
 		}
-	} else if (api == "fapiPrivate") || (api == "sapiPrivate") {
+	} else if (apiName != nil && *apiName == "fapiPrivate") || (apiName != nil && *apiName == "sapiPrivate") {
 		this.CheckRequiredCredentials()
 		var nonce int64 = this.Milliseconds() * 1000
 		// Sign using EIP-712 typed data per the AsterSignTransaction spec
@@ -5952,8 +5962,8 @@ func (this *Aster) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Aster) EncodeValuesWithJson(values any) string {

@@ -209,7 +209,7 @@ class foxbit extends foxbit$1["default"] {
                     'cardano': 'ADA',
                     'cosmos': 'ATOM',
                     'dogecoin': 'DOGE',
-                    'erc20': 'ETH',
+                    'erc20': 'ERC20',
                     'hedera': 'HBAR',
                     'litecoin': 'LTC',
                     'near': 'NEAR',
@@ -233,7 +233,7 @@ class foxbit extends foxbit$1["default"] {
                     'ADA': 'cardano',
                     'ATOM': 'cosmos',
                     'DOGE': 'dogecoin',
-                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
                     'HBAR': 'hedera',
                     'LTC': 'litecoin',
                     'NEAR': 'near',
@@ -1717,7 +1717,15 @@ class foxbit extends foxbit$1["default"] {
         const bestAsk = this.safeDict(best, 'ask');
         const bestBid = this.safeDict(best, 'bid');
         const lastTrade = this.safeDict(ticker, 'last_trade');
-        const lastPrice = this.safeString(lastTrade, 'price');
+        let lastPrice = this.safeString(lastTrade, 'price');
+        let change = this.safeString(rolling_24h, 'price_change');
+        let percentage = this.safeString(rolling_24h, 'price_change_percent');
+        // never-traded markets report all-zero placeholders instead of omitting the values
+        if (Precise["default"].stringEq(lastPrice, '0')) {
+            lastPrice = undefined;
+            change = undefined;
+            percentage = undefined;
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': this.parseDate(this.safeString(lastTrade, 'date')),
@@ -1733,8 +1741,8 @@ class foxbit extends foxbit$1["default"] {
             'close': lastPrice,
             'last': lastPrice,
             'previousClose': undefined,
-            'change': this.safeString(rolling_24h, 'price_change'),
-            'percentage': this.safeString(rolling_24h, 'price_change_percent'),
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString(rolling_24h, 'volume'),
             'quoteVolume': this.safeString(rolling_24h, 'quote_volume'),
@@ -1915,7 +1923,7 @@ class foxbit extends foxbit$1["default"] {
             'txid': this.safeString(cryptoDetails, 'transaction_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString(transaction, 'network_code'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network_code'), currencyCode),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -2003,7 +2011,7 @@ class foxbit extends foxbit$1["default"] {
             'fee': fee,
         };
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const version = api[0];
         let urlPath = api[1];
         let fullPath = '/rest/' + version + '/' + this.implodeParams(path, params);
@@ -2038,7 +2046,7 @@ class foxbit extends foxbit$1["default"] {
                 }
             }
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (method === 'POST' || method === 'PUT') {
             requestBody = this.json(paramsOmitted);
         }

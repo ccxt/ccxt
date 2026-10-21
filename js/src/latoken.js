@@ -1870,9 +1870,10 @@ export default class latoken extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const request = '/' + this.version + '/' + this.implodeParams(path, params);
         let requestString = request;
         const query = this.omit(params, this.extractParams(path));
@@ -1882,7 +1883,7 @@ export default class latoken extends Exchange {
                 requestString += '?' + urlencodedQuery;
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const auth = method + request + urlencodedQuery;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);

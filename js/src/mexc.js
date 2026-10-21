@@ -524,9 +524,9 @@ export default class mexc extends Exchange {
                     },
                 },
                 'defaultType': 'spot', // spot, swap
-                'defaultNetwork': 'ETH',
+                'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
-                    'ETH': 'ETH',
+                    'ETH': 'ERC20',
                     'USDT': 'ERC20',
                     'USDC': 'ERC20',
                     'BTC': 'BTC',
@@ -726,9 +726,9 @@ export default class mexc extends Exchange {
                     // OKB <> OKT (for usdt it's exception) for OKC, PMEER, FLARE, STRD, ZEL, FUND, "NONE", CRING, FREETON, QTZ  (probably unique network is meant), HT, BSC(RACAV1), BSC(RACAV2), AMBROSUS, BAJUN, NOM. their individual info is at https://www.mexc.com/api/platform/asset/spot/{COINNAME}
                 },
                 'networksById': {
-                    'BNB Smart Chain(BEP20-RACAV1)': 'BSC',
-                    'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
-                    'BNB Smart Chain(BEP20)': 'BSC',
+                    'BNB Smart Chain(BEP20-RACAV1)': 'BEP20',
+                    'BNB Smart Chain(BEP20-RACAV2)': 'BEP20',
+                    'BNB Smart Chain(BEP20)': 'BEP20',
                     'Ethereum(ERC20)': 'ERC20',
                     // TODO: unified names undecided for PEPE COIN BSC, SMART BLOCKCHAIN, f(x)Core, Syscoin Rollux, Syscoin UTXO,
                     // zkSync Era, zkSync Lite, Darwinia Smart Chain, Arbitrum One(ARB-Bridged), Optimism(OP-Bridged), Polygon(MATIC-Bridged)
@@ -3102,7 +3102,7 @@ export default class mexc extends Exchange {
         }
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrdersByIds', market, params);
         if (marketType === 'spot') {
-            throw new BadRequest(this.id + ' fetchOrdersByIds() is not supported for ' + marketType);
+            throw new NotSupported(this.id + ' fetchOrdersByIds() is not supported for ' + marketType);
         }
         else {
             request['order_ids'] = ids.join(',');
@@ -3452,7 +3452,7 @@ export default class mexc extends Exchange {
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
         const [marketType] = this.handleMarketTypeAndParams('cancelOrders', market, params);
         if (marketType === 'spot') {
-            throw new BadRequest(this.id + ' cancelOrders() is not supported for ' + marketType);
+            throw new NotSupported(this.id + ' cancelOrders() is not supported for ' + marketType);
         }
         else {
             const response = await this.contractPrivatePostOrderCancel(ids); // the request cannot be changed or extended. The only way to send.
@@ -3941,7 +3941,7 @@ export default class mexc extends Exchange {
         }
         const market = this.market(symbol);
         if (market['spot'] !== true) {
-            throw new BadRequest(this.id + ' fetchTradingFee() supports spot markets only');
+            throw new NotSupported(this.id + ' fetchTradingFee() supports spot markets only');
         }
         const request = {
             'symbol': market['id'],
@@ -5474,24 +5474,36 @@ export default class mexc extends Exchange {
         const symbol = marketResolved['symbol'];
         const contracts = this.safeString(position, 'holdVol');
         const entryPrice = this.safeNumber(position, 'openAvgPrice');
-        const initialMargin = this.safeString(position, 'im');
+        const initialMargin = this.omitZero(this.safeString(position, 'im'));
+        const unrealizedPnl = this.safeString(position, 'unRealizedPnl');
         const rawSide = this.safeString(position, 'positionType');
         const side = (rawSide === '1') ? 'long' : 'short';
-        const openType = this.safeString(position, 'margin_mode');
+        const openType = this.safeString2(position, 'openType', 'margin_mode');
         const marginType = (openType === '1') ? 'isolated' : 'cross';
+        let collateralString = undefined;
+        let marginString = undefined;
+        if ((marginType === 'isolated') && (initialMargin !== undefined)) {
+            // im is the margin mexc holds in the position; funding settles to the available balance
+            collateralString = initialMargin;
+            marginString = collateralString;
+            if (unrealizedPnl !== undefined) {
+                collateralString = Precise.stringAdd(collateralString, unrealizedPnl);
+            }
+        }
         const leverage = this.safeNumber(position, 'leverage');
-        const liquidationPrice = this.safeNumber(position, 'liquidatePrice');
+        const liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, 'liquidatePrice')));
         const timestamp = this.safeInteger(position, 'updateTime');
         return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
             'contracts': this.parseNumber(contracts),
-            'contractSize': undefined,
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'entryPrice': entryPrice,
-            'collateral': undefined,
+            'positionMargin': this.parseNumber(marginString),
+            'collateral': this.parseNumber(collateralString),
             'side': side,
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.parseNumber(unrealizedPnl),
             'leverage': this.parseNumber(leverage),
             'percentage': undefined,
             'marginMode': marginType,
@@ -5548,10 +5560,7 @@ export default class mexc extends Exchange {
             const data = this.safeDict(response, 'data', {});
             return this.parseTransfer(data);
         }
-        else if (marketType === 'swap') {
-            throw new BadRequest(this.id + ' fetchTransfer() is not supported for ' + marketType);
-        }
-        throw new BadRequest(this.id + ' fetchTransfer() is not supported for ' + marketType);
+        throw new NotSupported(this.id + ' fetchTransfer() is not supported for ' + marketType);
     }
     /**
      * @method
@@ -6313,7 +6322,7 @@ export default class mexc extends Exchange {
         }
         const market = this.market(symbol);
         if (market['spot'] === true) {
-            throw new BadSymbol(this.id + ' setMarginMode() supports contract markets only');
+            throw new NotSupported(this.id + ' setMarginMode() supports contract markets only');
         }
         const marginModeLower = marginMode.toLowerCase();
         if (marginModeLower !== 'isolated' && marginModeLower !== 'cross') {
@@ -6344,9 +6353,9 @@ export default class mexc extends Exchange {
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const section = this.safeString(api, 0);
         const access = this.safeString(api, 1);
         const pathValue = this.implodeParams(path, params);

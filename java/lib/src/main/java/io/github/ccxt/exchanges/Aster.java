@@ -4433,6 +4433,11 @@ public class Aster extends AsterApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
+        String isolatedWalletString = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            isolatedWalletString = this.safeString(position, "isolatedWallet");
+        }
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("info", position);
         mapLiteral8.put("id", null);
@@ -4442,6 +4447,7 @@ public class Aster extends AsterApi
         mapLiteral8.put("unrealizedPnl", unrealizedPnl);
         mapLiteral8.put("leverage", this.parseNumber(leverageString));
         mapLiteral8.put("liquidationPrice", liquidationPrice);
+        mapLiteral8.put("positionMargin", this.parseNumber(isolatedWalletString));
         mapLiteral8.put("collateral", collateral);
         mapLiteral8.put("notional", notional);
         mapLiteral8.put("markPrice", markPrice);
@@ -4776,6 +4782,11 @@ public class Aster extends AsterApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
+        String isolatedWalletString = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            isolatedWalletString = this.safeString(position, "isolatedWallet");
+        }
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("info", position);
@@ -4796,6 +4807,7 @@ public class Aster extends AsterApi
             h2kMap3.put("marginRatio", marginRatio);
             h2kMap3.put("liquidationPrice", liquidationPrice);
             h2kMap3.put("markPrice", null);
+            h2kMap3.put("positionMargin", this.parseNumber(isolatedWalletString));
             h2kMap3.put("collateral", collateral);
             h2kMap3.put("marginMode", marginMode);
             h2kMap3.put("side", side);
@@ -4993,6 +5005,10 @@ public class Aster extends AsterApi
             // TODO: check how ARBI signature would work
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String network = this.safeStringUpper(paramsWithdrawTag, "network");
+            if (!java.util.Objects.equals(network, null))
+            {
+                network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+            }
             network = this.safeString(networks, network, network);
             if ((java.util.Objects.equals(chainId, null)) && (!java.util.Objects.equals(network, null)))
             {
@@ -5143,21 +5159,22 @@ public class Aster extends AsterApi
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((baseApiUrl + "/") + path);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPublic") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiPublic"))
+        if (java.util.Objects.equals(apiName, "fapiPublic") || java.util.Objects.equals(apiName, "sapiPublic"))
         {
             if (((Map<String, Object>)parameters).size() > 0)
             {
                 url = (url + ("?" + this.rawencode(parameters)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivate") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiPrivate"))
+        } else if (java.util.Objects.equals(apiName, "fapiPrivate") || java.util.Objects.equals(apiName, "sapiPrivate"))
         {
             this.checkRequiredCredentials(true);
             Long nonce = (this.milliseconds() * 1000L);
@@ -5259,8 +5276,8 @@ public class Aster extends AsterApi
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);
             h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", body);
-            h2kMap5.put("headers", headers);
+            h2kMap5.put("body", null);
+            h2kMap5.put("headers", null);
             return h2kMap5;
         }
     }

@@ -523,9 +523,7 @@ class weex extends weex$1["default"] {
                 },
                 'networks': {
                     'BEP20': 'BEP20(BSC)',
-                    'BSC': 'BEP20(BSC)',
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
                     'POLYGON': 'POLYGON(MATIC)',
                     'MATIC': 'POLYGON(MATIC)',
                     'ARBITRUM': 'ARBITRUM(ARB)',
@@ -1327,7 +1325,8 @@ class weex extends weex$1["default"] {
             'ask': this.safeString(ticker, 'askPrice'),
             'askVolume': this.safeString(ticker, 'askQty'),
             'vwap': undefined,
-            'open': this.safeString(ticker, 'openPrice'),
+            // openPrice comes from a different window than priceChange/priceChangePercent, so open is derived from last - change
+            'open': undefined,
             'close': this.safeString(ticker, 'lastPrice'),
             'last': this.safeString(ticker, 'lastPrice'),
             'previousClose': undefined,
@@ -3817,27 +3816,39 @@ class weex extends weex$1["default"] {
         const notional = this.safeString(position, 'openValue');
         const size = this.safeString(position, 'size');
         const entryPrice = Precise["default"].stringDiv(notional, size);
+        const unrealizePnl = this.safeString(position, 'unrealizePnl');
+        const isolatedMargin = this.omitZero(this.safeString2(position, 'isolatedMargin', 'marginSize'));
+        let collateralString = undefined;
+        if ((marginMode === 'isolated') && (isolatedMargin !== undefined)) {
+            collateralString = (unrealizePnl !== undefined) ? Precise["default"].stringAdd(isolatedMargin, unrealizePnl) : isolatedMargin;
+        }
+        const initialMarginString = this.omitZero(this.safeString2(position, 'marginSize', 'isolatedMargin'));
+        let marginString = undefined;
+        if (marginMode === 'isolated') {
+            marginString = isolatedMargin;
+        }
         return this.safePosition({
             'symbol': marketResolved['symbol'],
             'id': this.safeString2(position, 'id', 'positionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'contracts': this.parseNumber(size),
-            'contractSize': undefined,
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'side': this.safeStringLower(position, 'side'),
             'notional': this.parseNumber(notional),
             'leverage': this.safeNumber(position, 'leverage'),
-            'unrealizedPnl': this.safeNumber(position, 'unrealizePnl'),
+            'unrealizedPnl': this.parseNumber(unrealizePnl),
             'realizedPnl': undefined,
-            'collateral': undefined,
+            'positionMargin': this.parseNumber(marginString),
+            'collateral': this.parseNumber(collateralString),
             'entryPrice': this.parseNumber(entryPrice),
             'markPrice': undefined,
-            'liquidationPrice': this.safeNumber(position, 'liquidatePrice'),
+            'liquidationPrice': this.parseNumber(this.omitZero(this.safeString(position, 'liquidatePrice'))),
             'marginMode': marginMode,
             'hedged': hedged,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'initialMargin': this.safeNumber(position, 'marginSize'),
+            'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': undefined,
             'marginRatio': undefined,
             'lastUpdateTimestamp': this.safeInteger(position, 'updatedTime'),
@@ -4333,7 +4344,8 @@ class weex extends weex$1["default"] {
         super.setSandboxMode(enable);
         this.options['sandboxMode'] = enable;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let endpoint = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const isBatch = (path.indexOf('batch') >= 0);
@@ -4342,9 +4354,9 @@ class weex extends weex$1["default"] {
                 endpoint += '?' + this.urlencode(query);
             }
         }
-        const isPrivate = (api === 'private') || (api === 'contractPrivate');
+        const isPrivate = (apiName === 'private') || (apiName === 'contractPrivate');
         const hasJsonBody = isPrivate && ((method === 'POST') || isBatch);
-        let requestBody = body;
+        let requestBody = undefined;
         if (hasJsonBody) {
             requestBody = this.json(query);
         }
@@ -4377,7 +4389,7 @@ class weex extends weex$1["default"] {
                 'User-Agent': 'ccxt',
             };
         }
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }

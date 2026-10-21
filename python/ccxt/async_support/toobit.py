@@ -460,7 +460,6 @@ class toobit(Exchange, ImplicitAPI):
                 'networks': {
                     'BTC': 'BTC',
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'BEP20': 'BSC',
                     'TRC20': 'TRX',
                     'SOL': 'SOL',
@@ -1224,6 +1223,8 @@ class toobit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.price]: "mark" or "index" for mark price and index price candles
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
@@ -1233,17 +1234,29 @@ class toobit(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        if since is not None:
-            request['startTime'] = since
         until = self.safe_integer(params, 'until')
-        if until is not None:
-            request['endTime'] = until
         paramsOmitted = self.omit(params, 'until') if (until is not None) else params
+        endpoint, paramsPrice = self.handle_option_string_and_params(paramsOmitted, 'fetchOHLCV', 'price')
+        isPriceKlines = (endpoint == 'index') or (endpoint == 'mark')
+        startKey = 'startTime'
+        endKey = 'endTime'
+        if isPriceKlines:
+            startKey = 'from'
+            endKey = 'to'
+        if since is not None:
+            request[startKey] = since
+        if until is not None:
+            request[endKey] = until
+        elif isPriceKlines and (since is not None):
+            # mark and index klines walk backwards from `to` and ignore a lone `from`
+            duration = self.parse_timeframe(timeframe)
+            requestedLimit = 2000 if (limit is None) else limit  # exchange default
+            request['to'] = self.sum(since, duration * requestedLimit * 1000)
         if limit is not None:
             request['limit'] = limit
         response = []
-        endpoint, paramsPrice = self.handle_option_string_and_params(paramsOmitted, 'fetchOHLCV', 'price')
         if endpoint == 'index':
+            request['symbol'] = self.safe_string(market['info'], 'indexToken')  # index klines take the index id instead of the market id
             response = await self.commonGetQuoteV1IndexKlines(self.extend(request, paramsPrice))
             #
             #     {
@@ -1313,6 +1326,8 @@ class toobit(Exchange, ImplicitAPI):
         candles = []
         if isinstance(response, list):
             candles = response
+        else:
+            candles = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
@@ -1393,9 +1408,9 @@ class toobit(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, 'h'),
             'low': self.safe_string(ticker, 'l'),
-            'bid': None,
+            'bid': self.safe_string(ticker, 'b'),
             'bidVolume': None,
-            'ask': None,
+            'ask': self.safe_string(ticker, 'a'),
             'askVolume': None,
             'vwap': None,
             'open': self.safe_string(ticker, 'o'),
@@ -1449,7 +1464,7 @@ class toobit(Exchange, ImplicitAPI):
             'symbol': marketResolved['symbol'],
             'timestamp': None,
             'datetime': None,
-            'price': self.safe_number_omit_zero(entry, 'price'),
+            'price': self.safe_number_omit_zero(entry, 'p'),
             'side': None,
             'info': entry,
         }
@@ -3049,7 +3064,7 @@ class toobit(Exchange, ImplicitAPI):
             'unrealizedPnl': self.safe_number(position, 'unrealizedPnL'),
             'side': side,
             'contracts': self.parse_number(quantity),
-            'contractSize': None,
+            'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'timestamp': None,
             'datetime': None,
             'hedged': None,
@@ -3064,8 +3079,9 @@ class toobit(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = baseApiUrl
@@ -3074,7 +3090,7 @@ class toobit(Exchange, ImplicitAPI):
         isDelete = method == 'DELETE'
         extraQuery = {}
         query = self.omit(params, self.extract_params(path))
-        if api != 'private':
+        if apiName != 'private':
             # Public endpoints
             if not isPost:
                 if len(query) > 0:
@@ -3097,7 +3113,7 @@ class toobit(Exchange, ImplicitAPI):
                     privateBody = self.json(query)
             else:
                 queryString = self.urlencode(queryExtended)
-            payloadBody = body
+            payloadBody = None
             if isPost or isDelete:
                 payloadBody = privateBody
             payload = queryString
@@ -3115,11 +3131,11 @@ class toobit(Exchange, ImplicitAPI):
                 'X-BB-API-PLATFORM': self.safe_string(self.options, 'brokerId', '177321641268789'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-            requestBody = body
+            requestBody = None
             if isPost or isDelete:
                 requestBody = privateBody
             return {'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

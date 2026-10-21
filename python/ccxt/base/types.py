@@ -160,6 +160,7 @@ class Position(TypedDict):
     leverage: Num
     unrealizedPnl: Num
     realizedPnl: Num
+    positionMargin: Num
     collateral: Num
     entryPrice: Num
     markPrice: Num
@@ -268,6 +269,15 @@ class Balances(dict[str, Balance]):
 
 
 class OrderBook(TypedDict):
+    asks: list[list[Num]]
+    bids: list[list[Num]]
+    datetime: Str
+    timestamp: Int
+    nonce: Int
+    symbol: Str
+
+
+class OrderBookL3(TypedDict):
     asks: list[list[Num]]
     bids: list[list[Num]]
     datetime: Str

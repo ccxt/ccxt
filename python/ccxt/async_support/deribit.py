@@ -3796,12 +3796,13 @@ class deribit(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        request = '/' + 'api/' + self.version + '/' + api + '/' + path
-        if api == 'public':
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        request = '/' + 'api/' + self.version + '/' + apiName + '/' + path
+        if apiName == 'public':
             if len(params) > 0:
                 request += '?' + self.urlencode(params)
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             timestamp = str(self.milliseconds())
@@ -3818,12 +3819,12 @@ class deribit(Exchange, ImplicitAPI):
             if baseApiUrl is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             signedUrl = baseApiUrl + request
-            return {'url': signedUrl, 'method': method, 'body': body, 'headers': signedHeaders}
+            return {'url': signedUrl, 'method': method, 'body': None, 'headers': signedHeaders}
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + request
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (response is None) or (response is None):

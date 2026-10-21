@@ -532,9 +532,7 @@ class weex(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'BEP20': 'BEP20(BSC)',
-                    'BSC': 'BEP20(BSC)',
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
                     'POLYGON': 'POLYGON(MATIC)',
                     'MATIC': 'POLYGON(MATIC)',
                     'ARBITRUM': 'ARBITRUM(ARB)',
@@ -1312,7 +1310,8 @@ class weex(Exchange, ImplicitAPI):
             'ask': self.safe_string(ticker, 'askPrice'),
             'askVolume': self.safe_string(ticker, 'askQty'),
             'vwap': None,
-            'open': self.safe_string(ticker, 'openPrice'),
+            # openPrice comes from a different window than priceChange/priceChangePercent, so open is derived from last - change
+            'open': None,
             'close': self.safe_string(ticker, 'lastPrice'),
             'last': self.safe_string(ticker, 'lastPrice'),
             'previousClose': None,
@@ -3551,27 +3550,37 @@ class weex(Exchange, ImplicitAPI):
         notional = self.safe_string(position, 'openValue')
         size = self.safe_string(position, 'size')
         entryPrice = Precise.string_div(notional, size)
+        unrealizePnl = self.safe_string(position, 'unrealizePnl')
+        isolatedMargin = self.omit_zero(self.safe_string_2(position, 'isolatedMargin', 'marginSize'))
+        collateralString = None
+        if (marginMode == 'isolated') and (isolatedMargin is not None):
+            collateralString = Precise.string_add(isolatedMargin, unrealizePnl) if (unrealizePnl is not None) else isolatedMargin
+        initialMarginString = self.omit_zero(self.safe_string_2(position, 'marginSize', 'isolatedMargin'))
+        marginString = None
+        if marginMode == 'isolated':
+            marginString = isolatedMargin
         return self.safe_position({
             'symbol': marketResolved['symbol'],
             'id': self.safe_string_2(position, 'id', 'positionId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'contracts': self.parse_number(size),
-            'contractSize': None,
+            'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'side': self.safe_string_lower(position, 'side'),
             'notional': self.parse_number(notional),
             'leverage': self.safe_number(position, 'leverage'),
-            'unrealizedPnl': self.safe_number(position, 'unrealizePnl'),
+            'unrealizedPnl': self.parse_number(unrealizePnl),
             'realizedPnl': None,
-            'collateral': None,
+            'positionMargin': self.parse_number(marginString),
+            'collateral': self.parse_number(collateralString),
             'entryPrice': self.parse_number(entryPrice),
             'markPrice': None,
-            'liquidationPrice': self.safe_number(position, 'liquidatePrice'),
+            'liquidationPrice': self.parse_number(self.omit_zero(self.safe_string(position, 'liquidatePrice'))),
             'marginMode': marginMode,
             'hedged': hedged,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'initialMargin': self.safe_number(position, 'marginSize'),
+            'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': None,
             'marginRatio': None,
             'lastUpdateTimestamp': self.safe_integer(position, 'updatedTime'),
@@ -4032,16 +4041,17 @@ class weex(Exchange, ImplicitAPI):
         super(weex, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         endpoint = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         isBatch = (path.find('batch') >= 0)
         if not isBatch and ((method == 'GET') or (method == 'DELETE')):
             if len(query) > 0:
                 endpoint += '?' + self.urlencode(query)
-        isPrivate = (api == 'private') or (api == 'contractPrivate')
+        isPrivate = (apiName == 'private') or (apiName == 'contractPrivate')
         hasJsonBody = isPrivate and ((method == 'POST') or isBatch)
-        requestBody = body
+        requestBody = None
         if hasJsonBody:
             requestBody = self.json(query)
         requestHeaders = None
@@ -4068,7 +4078,7 @@ class weex(Exchange, ImplicitAPI):
             requestHeaders = {
                 'User-Agent': 'ccxt',
             }
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = baseApiUrl

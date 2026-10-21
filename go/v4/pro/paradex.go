@@ -31,9 +31,11 @@ func (this *Paradex) Describe() any {
 			"watchTickers":          true,
 			"watchOrderBook":        true,
 			"watchOrders":           true,
+			"watchMyTrades":         true,
+			"watchPositions":        true,
 			"watchTrades":           true,
 			"watchTradesForSymbols": false,
-			"watchBalance":          false,
+			"watchBalance":          true,
 			"watchOHLCV":            false,
 		},
 		"urls": map[string]any{
@@ -135,7 +137,7 @@ func (this *Paradex) HandleAuthenticationMessage(client any, message any) {
  * @method
  * @name paradex#watchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://docs.paradex.trade/ws/web-socket-channels/trades/trades
+ * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -236,7 +238,7 @@ func (this *Paradex) HandleTrade(client any, message map[string]any) any {
  * @method
  * @name paradex#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.paradex.trade/ws/web-socket-channels/order-book/order-book
+ * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -351,7 +353,7 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
  * @method
  * @name paradex#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -409,7 +411,7 @@ func (this *Paradex) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], s
  * @method
  * @name paradex#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -487,7 +489,7 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], 
  * @method
  * @name paradex#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://docs.paradex.trade/ws/web-socket-channels/orders/orders
+ * @see https://docs.paradex.trade/ws/web-socket-channels/orders-market-symbol/orders-market-symbol
  * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -603,6 +605,380 @@ func (this *Paradex) HandleOrder(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 	}
 }
+
+/**
+ * @method
+ * @name paradex#watchMyTrades
+ * @description watches information on multiple trades made by the user
+ * @see https://docs.paradex.trade/ws/web-socket-channels/fills-market-symbol/fills-market-symbol
+ * @param {string} [symbol] unified market symbol of the market trades were made in
+ * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [limit] the maximum number of trade structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+ */
+func (this *Paradex) WatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
+	go this.watchMyTradesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Paradex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var messageHash any = "myTrades"
+	var channel any = "fills."
+	var symbolResolved any = func() any {
+		if symbol != nil {
+			return this.Symbol(symbol)
+		}
+		return symbol
+	}()
+	if symbol != nil {
+		var market map[string]any = this.Market(symbol)
+		channel = ccxt.Add(channel, market["id"])
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
+	} else {
+		channel = ccxt.Add(channel, "ALL")
+	}
+	var url any = this.GetWsUrl()
+	var request map[string]any = map[string]any{
+		"jsonrpc": "2.0",
+		"method":  "subscribe",
+		"params": map[string]any{
+			"channel": channel,
+		},
+	}
+
+	r2 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), channel)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
+	var limitResolved *int64 = limit
+	if this.NewUpdates {
+		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolResolved, limit)
+	}
+
+	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true)}
+	return nil
+}
+func (this *Paradex) HandleMyTrade(client any, message map[string]any) {
+	//
+	//     {
+	//         "jsonrpc": "2.0",
+	//         "method": "subscription",
+	//         "params": {
+	//             "channel": "fills.ALL",
+	//             "data": {
+	//                 "id": "1718947571560201703986670001",
+	//                 "side": "BUY",
+	//                 "liquidity": "TAKER",
+	//                 "market": "BTC-USD-PERP",
+	//                 "order_id": "1718947571540201703992340000",
+	//                 "price": "64852.9",
+	//                 "size": "0.01",
+	//                 "fee": "0.1945587",
+	//                 "fee_currency": "USDC",
+	//                 "created_at": 1718947571569,
+	//                 "remaining_size": "0",
+	//                 "client_id": "",
+	//                 "fill_type": "FILL"
+	//             }
+	//         }
+	//     }
+	//
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var trade map[string]any = ccxt.MapTyped(ccxt.TradeToMap(this.ParseTrade(data)))
+	var symbol *string = this.SafeString(trade, "symbol")
+	if this.MyTrades == nil {
+		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
+		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
+	}
+	var trades any = this.MyTrades
+	trades.(ccxt.Appender).Append(trade)
+	var messageHash string = "myTrades"
+	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
+	if symbol != nil {
+		client.(ccxt.ClientInterface).Resolve(trades, messageHash+":"+*symbol)
+	}
+}
+
+/**
+ * @method
+ * @name paradex#watchPositions
+ * @description watch all open positions
+ * @see https://docs.paradex.trade/ws/web-socket-channels/positions/positions
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {int} [since] the earliest time in ms to fetch positions for
+ * @param {int} [limit] the maximum number of positions to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ */
+func (this *Paradex) WatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
+	go this.watchPositionsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Paradex) watchPositionsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	// one channel carries every market
+	var channel string = "positions"
+	var url any = this.GetWsUrl()
+	var request map[string]any = map[string]any{
+		"jsonrpc": "2.0",
+		"method":  "subscribe",
+		"params": map[string]any{
+			"channel": channel,
+		},
+	}
+	var messageHashes []any = []any{}
+	var symbolsLength int = 0
+	if symbolsNormalized != nil {
+		symbolsLength = len(symbolsNormalized)
+	}
+	if symbolsLength == 0 {
+		messageHashes = append(messageHashes, channel)
+	} else {
+		for i := 0; i < symbolsLength; i++ {
+			messageHashes = append(messageHashes, ccxt.Add(channel+":", func() any {
+				if i >= 0 && i < len(symbolsNormalized) {
+					return symbolsNormalized[i]
+				}
+				return nil
+			}()))
+		}
+	}
+
+	r2 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), []any{channel})
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	newPositions := r2.Value
+	if this.NewUpdates {
+
+		var resolved []any
+		switch resolvedBox := newPositions.(type) {
+		case []any:
+			resolved = resolvedBox
+		case ccxt.IArrayCache:
+			resolved = resolvedBox.ToArray()
+		case nil:
+		default:
+			panic(ccxt.ExchangeError("resolved value is not []any"))
+		}
+		ch <- ccxt.AsyncResult[[]any]{Value: resolved}
+		return nil
+	}
+
+	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true)}
+	return nil
+}
+func (this *Paradex) HandlePositions(client any, message map[string]any) {
+	//
+	//     {
+	//         "jsonrpc": "2.0",
+	//         "method": "subscription",
+	//         "params": {
+	//             "channel": "positions",
+	//             "data": {
+	//                 "id": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3-BTC-USD-PERP",
+	//                 "market": "BTC-USD-PERP",
+	//                 "status": "OPEN",
+	//                 "side": "LONG",
+	//                 "size": "0.01",
+	//                 "average_entry_price": "64839.96053748",
+	//                 "unrealized_pnl": "-2.39677214",
+	//                 "leverage": "5",
+	//                 "cost_usd": "648.529",
+	//                 "created_at": 1718947571560,
+	//                 "last_updated_at": 1718950074249,
+	//                 "liquidation_price": ""
+	//             }
+	//         }
+	//     }
+	//
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	if this.Positions == nil {
+		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
+	}
+	var cache any = this.Positions
+	var position map[string]any = ccxt.MapTyped(this.ParsePosition(data))
+	var symbol *string = ccxt.SafeStringPtr(position["symbol"])
+	var newPositions []any = []any{}
+	// one position per market, so a fill through zero flips its side: the cache keys by
+	// symbol and side, and the opposite side it still holds is flattened here
+	var side *string = this.SafeString(position, "side")
+	var cached any = this.FilterBySymbolSinceLimit(cache, symbol, nil, nil, true)
+	for i := 0; i < ccxt.GetArrayLength(cached); i++ {
+		var previous any = ccxt.GetValue(cached, i)
+		var previousSide *string = this.SafeString(previous, "side")
+		var previousContracts *string = this.SafeString(previous, "contracts")
+		var isOpposite bool = (side != nil) && (previousSide != nil) && (previousSide != side && (previousSide == nil || side == nil || *previousSide != *side))
+		if isOpposite && (previousContracts != nil) && !ccxt.Precise.StringEq(previousContracts, "0") {
+			var flattened map[string]any = this.Extend(previous, map[string]any{
+				"contracts":           this.ParseNumber("0"),
+				"lastUpdateTimestamp": this.SafeInteger(position, "lastUpdateTimestamp"),
+			})
+			cache.(ccxt.Appender).Append(flattened)
+			newPositions = append(newPositions, flattened)
+		}
+	}
+	cache.(ccxt.Appender).Append(position)
+	newPositions = append(newPositions, position)
+	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
+	client.(ccxt.ClientInterface).Resolve(newPositions, ccxt.Add("positions:", symbol))
+}
+
+/**
+ * @method
+ * @name paradex#watchBalance
+ * @description watch the margin balance of the account in its settlement asset: total is the account
+ * value, free the free collateral and used the initial margin requirement
+ * @see https://docs.paradex.trade/ws/web-socket-channels/account/account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+ */
+func (this *Paradex) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+	go this.watchBalanceBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Paradex) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+
+	r1 := <-this.AuthenticateAsync()
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var channel string = "account"
+	var url any = this.GetWsUrl()
+	var request map[string]any = map[string]any{
+		"jsonrpc": "2.0",
+		"method":  "subscribe",
+		"params": map[string]any{
+			"channel": channel,
+		},
+	}
+
+	r2 := <-this.Watch(url, "balance", this.DeepExtend(request, params), channel)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var resolved map[string]any
+	switch resolvedBox := r2.Value.(type) {
+	case map[string]any:
+		resolved = resolvedBox
+	case *sync.Map:
+		resolved = ccxt.SafeMapToMap(resolvedBox)
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
+	}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	return nil
+}
+func (this *Paradex) HandleBalance(client any, message map[string]any) {
+	//
+	//     {
+	//         "jsonrpc": "2.0",
+	//         "method": "subscription",
+	//         "params": {
+	//             "channel": "account",
+	//             "data": {
+	//                 "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512b",
+	//                 "account_value": "1000.5",
+	//                 "free_collateral": "900.5",
+	//                 "initial_margin_requirement": "100",
+	//                 "maintenance_margin_requirement": "50",
+	//                 "margin_cushion": "950.5",
+	//                 "seq_no": 20,
+	//                 "settlement_asset": "USDC",
+	//                 "status": "ACTIVE",
+	//                 "total_collateral": "1000",
+	//                 "updated_at": 1718950074249
+	//             }
+	//         }
+	//     }
+	//
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	this.Balance = this.ParseWsBalance(data)
+	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
+}
+func (this *Paradex) ParseWsBalance(data map[string]any) any {
+	// the account channel carries margin, not token holdings: the account value (collateral with
+	// unrealized pnl) is the total, the free collateral what can still back a new position, and the
+	// initial margin the part the open positions hold, free + used = total as the venue computes them
+	var timestamp *int64 = this.SafeInteger(data, "updated_at")
+	var result map[string]any = map[string]any{
+		"info":      data,
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+	}
+	var code *string = this.SafeCurrencyCode(this.SafeString(data, "settlement_asset"))
+	var account map[string]any = this.Account()
+	account["total"] = this.SafeString(data, "account_value")
+	account["free"] = this.SafeString(data, "free_collateral")
+	account["used"] = this.SafeString(data, "initial_margin_requirement")
+	if code != nil {
+		result[*code] = account
+	}
+	return this.SafeBalance(result)
+}
 func (this *Paradex) HandleTicker(client any, message map[string]any) any {
 	//
 	//     {
@@ -693,7 +1069,7 @@ func (this *Paradex) watchFundingRateBody(ch chan ccxt.AsyncResult[any], symbol 
  * @method
  * @name paradex#watchFundingRates
  * @description watch the funding rate for multiple markets
- * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
  * @param {string[]} [symbols] a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -881,6 +1257,17 @@ func (this *Paradex) ParseSbeMessage(message any) any {
 		if !ccxt.IsEqual(data, nil) {
 			channel = ccxt.Add("orders.", ccxt.GetValue(data, "market"))
 		}
+	} else if ccxt.IsEqual(templateId, 21) {
+		data = this.ParseSbeFill(frameHex, blockLength, frameLength)
+		if !ccxt.IsEqual(data, nil) {
+			channel = ccxt.Add("fills.", ccxt.GetValue(data, "market"))
+		}
+	} else if ccxt.IsEqual(templateId, 22) {
+		data = this.ParseSbePosition(frameHex, blockLength, frameLength)
+		channel = "positions"
+	} else if ccxt.IsEqual(templateId, 23) {
+		data = this.ParseSbeAccount(frameHex, blockLength, frameLength)
+		channel = "account"
 	}
 	if ccxt.IsEqual(data, nil) {
 		return nil
@@ -1215,21 +1602,7 @@ func (this *Paradex) ParseSbeOrder(frameHex any, blockLength any, frameLength an
 		"2": "EXPIRE_TAKER",
 		"3": "EXPIRE_BOTH",
 	}
-	var flagNames []any = []any{"REDUCE_ONLY", "STOP_CONDITION_BELOW_TRIGGER", "STOP_CONDITION_ABOVE_TRIGGER", "INTERACTIVE", "TARGET_STRATEGY_VWAP", "MMP"}
-	var flags []any = []any{}
-	var flagBits any = this.SbeReadUint(frameHex, 133, 1)
-	for i := 0; i < len(flagNames); i++ {
-		var bit int64 = this.ParseToInt(ccxt.Mod(flagBits, 2))
-		if bit == 1 {
-			flags = append(flags, func() any {
-				if i >= 0 && i < len(flagNames) {
-					return ccxt.DerefScalar(flagNames[i])
-				}
-				return nil
-			}())
-		}
-		flagBits = this.ParseToInt(ccxt.Divide((ccxt.Subtract(flagBits, bit)), 2))
-	}
+	var flags any = this.SbeReadFlags(frameHex, 133, []any{"REDUCE_ONLY", "STOP_CONDITION_BELOW_TRIGGER", "STOP_CONDITION_ABOVE_TRIGGER", "INTERACTIVE", "TARGET_STRATEGY_VWAP", "MMP"})
 	var order map[string]any = map[string]any{
 		"account":         this.SbeReadAddress(frameHex, 84),
 		"avg_fill_price":  this.SbeReadDecimal(frameHex, 60),
@@ -1258,6 +1631,186 @@ func (this *Paradex) ParseSbeOrder(frameHex any, blockLength any, frameLength an
 		order["cancel_reason"] = ccxt.GetValue(strings, 3)
 	}
 	return order
+}
+func (this *Paradex) SbeReadFlags(frameHex any, offset any, names any) any {
+	// a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
+	var flags []any = []any{}
+	var bits any = this.SbeReadUint(frameHex, offset, 1)
+	for i := 0; i < ccxt.GetArrayLength(names); i++ {
+		var bit int64 = this.ParseToInt(ccxt.Mod(bits, 2))
+		if (bit == 1) && (ccxt.GetValue(names, i) != "") {
+			flags = append(flags, ccxt.GetValue(names, i))
+		}
+		bits = this.ParseToInt(ccxt.Divide((ccxt.Subtract(bits, bit)), 2))
+	}
+	return flags
+}
+func (this *Paradex) ParseSbeFill(frameHex any, blockLength any, frameLength any) any {
+	//
+	// FillEvent (templateId 21), 116-byte block (107 before the 1:2 flags and orderbookSeqNo)
+	//
+	//     ts int64, seq int64 (nullable), fillType uint8, side uint8, liquidity uint8, price int64,
+	//     size int64, fee int64, realizedPnl int64 (nullable), createdAt int64, account [32]byte,
+	//     underlyingPrice int64, realizedFunding int64, flags uint8, orderbookSeqNo uint64, then the
+	//     fillId, orderId, clientOrderId, tradeId, market and feeCurrency (1:2) strings
+	//
+	if ccxt.IsLessThan(blockLength, 107) {
+		return nil
+	}
+	var strings any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 6, frameLength)
+	var stringsLength int = func() int {
+		if ccxt.IsEqual(strings, nil) {
+			return 0
+		}
+		return ccxt.GetArrayLength(strings)
+	}()
+	if stringsLength < 5 {
+		return nil
+	}
+	var fillTypes map[string]any = map[string]any{
+		"1": "FILL",
+		"2": "LIQUIDATION",
+		"3": "UNWIND_TRANSFER",
+		"4": "SETTLE_MARKET",
+		"5": "RPI",
+		"6": "BLOCK_TRADE",
+	}
+	var sides map[string]any = map[string]any{
+		"1": "BUY",
+		"2": "SELL",
+	}
+	var liquidities map[string]any = map[string]any{
+		"1": "MAKER",
+		"2": "TAKER",
+	}
+	var fill map[string]any = map[string]any{
+		"account":          this.SbeReadAddress(frameHex, 67),
+		"client_id":        ccxt.GetValue(strings, 2),
+		"created_at":       this.SbeReadTimestamp(frameHex, 59),
+		"fee":              this.SbeReadDecimal(frameHex, 43),
+		"fee_currency":     this.SafeString(strings, 5),
+		"fill_type":        this.SbeReadEnum(frameHex, 24, fillTypes),
+		"id":               ccxt.GetValue(strings, 0),
+		"liquidity":        this.SbeReadEnum(frameHex, 26, liquidities),
+		"market":           ccxt.GetValue(strings, 4),
+		"order_id":         ccxt.GetValue(strings, 1),
+		"price":            this.SbeReadDecimal(frameHex, 27),
+		"realized_funding": this.SbeReadDecimal(frameHex, 107),
+		"realized_pnl":     this.SbeReadDecimal(frameHex, 51),
+		"side":             this.SbeReadEnum(frameHex, 25, sides),
+		"size":             this.SbeReadDecimal(frameHex, 35),
+		"underlying_price": this.SbeReadDecimal(frameHex, 99),
+	}
+	if ccxt.IsGreaterThanOrEqual(blockLength, 116) {
+		// lowercase, as the JSON feed spells fill flags
+		fill["flags"] = this.SbeReadFlags(frameHex, 115, []any{"interactive", "rpi", "fastfill", "", "", "", "", "unknown"})
+		fill["orderbook_seq_no"] = this.SbeReadInt64(frameHex, 116)
+	}
+	return fill
+}
+func (this *Paradex) ParseSbePosition(frameHex any, blockLength any, frameLength any) any {
+	//
+	// PositionEvent (templateId 22), 154-byte block
+	//
+	//     ts int64, seq int64, side uint8, size int64 (absolute), avgEntryPrice int64,
+	//     unrealizedPnl int64, realizedPnl int64, markPrice int64 (always null), liquidationPrice
+	//     int64 (nullable), leverage int64, updatedAt int64, account [32]byte, avgEntryPriceUsd
+	//     int64, cost int64, costUsd int64, cachedFundingIndex int64, unrealizedFundingPnl int64,
+	//     status uint8, then the market and lastFillId strings
+	//
+	if ccxt.IsLessThan(blockLength, 154) {
+		return nil
+	}
+	var strings any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 2, frameLength)
+	var stringsLength int = func() int {
+		if ccxt.IsEqual(strings, nil) {
+			return 0
+		}
+		return ccxt.GetArrayLength(strings)
+	}()
+	if stringsLength < 1 {
+		return nil
+	}
+	var sides map[string]any = map[string]any{
+		"1": "LONG",
+		"2": "SHORT",
+	}
+	var statuses map[string]any = map[string]any{
+		"1": "OPEN",
+		"2": "CLOSED",
+	}
+	var side any = this.SbeReadEnum(frameHex, 24, sides)
+	var account string = this.SbeReadAddress(frameHex, 89)
+	// the frame carries the size unsigned, the JSON channel signs it negative for a short
+	var size any = this.SbeReadDecimal(frameHex, 25)
+	if (ccxt.IsEqual(side, "SHORT")) && (!ccxt.IsEqual(size, "0")) {
+		size = ccxt.Precise.StringNeg(size)
+	}
+	return map[string]any{
+		"account":                 account,
+		"average_entry_price":     this.SbeReadDecimal(frameHex, 33),
+		"average_entry_price_usd": this.SbeReadDecimal(frameHex, 121),
+		"cached_funding_index":    this.SbeReadDecimal(frameHex, 145),
+		"cost":                    this.SbeReadDecimal(frameHex, 129),
+		"cost_usd":                this.SbeReadDecimal(frameHex, 137),
+		"id":                      ccxt.Add(account+"-", ccxt.GetValue(strings, 0)),
+		"last_fill_id":            this.SafeString(strings, 1),
+		"last_updated_at":         this.SbeReadTimestamp(frameHex, 81),
+		"leverage":                this.SbeReadDecimal(frameHex, 73),
+		"liquidation_price":       this.SbeReadDecimal(frameHex, 65),
+		"market":                  ccxt.GetValue(strings, 0),
+		"realized_positional_pnl": this.SbeReadDecimal(frameHex, 49),
+		"seq_no":                  this.SbeReadInt64(frameHex, 16),
+		"side":                    side,
+		"size":                    size,
+		"status":                  this.SbeReadEnum(frameHex, 161, statuses),
+		"unrealized_funding_pnl":  this.SbeReadDecimal(frameHex, 153),
+		"unrealized_pnl":          this.SbeReadDecimal(frameHex, 41),
+	}
+}
+func (this *Paradex) ParseSbeAccount(frameHex any, blockLength any, frameLength any) any {
+	//
+	// AccountEvent (templateId 23), 121-byte block (113 before the 1:2 lastSeenNotification)
+	//
+	//     ts int64, seq int64, totalCollateral int64, freeCollateral int64, initialMarginReq int64,
+	//     maintenanceMarginReq int64, accountValue int64, unrealizedPnl int64 (nullable), updatedAt
+	//     int64, account [32]byte, marginCushion int64, status uint8, lastSeenNotification int64,
+	//     then the settlementAsset string
+	//
+	if ccxt.IsLessThan(blockLength, 113) {
+		return nil
+	}
+	var strings any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 1, frameLength)
+	var stringsLength int = func() int {
+		if ccxt.IsEqual(strings, nil) {
+			return 0
+		}
+		return ccxt.GetArrayLength(strings)
+	}()
+	if stringsLength < 1 {
+		return nil
+	}
+	var statuses map[string]any = map[string]any{
+		"1": "ACTIVE",
+		"2": "LIQUIDATION",
+	}
+	var account map[string]any = map[string]any{
+		"account":                        this.SbeReadAddress(frameHex, 80),
+		"account_value":                  this.SbeReadDecimal(frameHex, 56),
+		"free_collateral":                this.SbeReadDecimal(frameHex, 32),
+		"initial_margin_requirement":     this.SbeReadDecimal(frameHex, 40),
+		"maintenance_margin_requirement": this.SbeReadDecimal(frameHex, 48),
+		"margin_cushion":                 this.SbeReadDecimal(frameHex, 112),
+		"seq_no":                         this.SbeReadInt64(frameHex, 16),
+		"settlement_asset":               ccxt.GetValue(strings, 0),
+		"status":                         this.SbeReadEnum(frameHex, 120, statuses),
+		"total_collateral":               this.SbeReadDecimal(frameHex, 24),
+		"updated_at":                     this.SbeReadTimestamp(frameHex, 72),
+	}
+	if ccxt.IsGreaterThanOrEqual(blockLength, 121) {
+		account["last_seen_notification"] = this.SbeReadTimestamp(frameHex, 121)
+	}
+	return account
 }
 func (this *Paradex) HandleErrorMessage(client any, message any) bool {
 	//
@@ -1345,6 +1898,9 @@ func (this *Paradex) HandleMessage(client any, message any) {
 			"markets_summary": this.HandleTicker,
 			"orders":          this.HandleOrder,
 			"funding_data":    this.HandleFundingRate,
+			"fills":           this.HandleMyTrade,
+			"positions":       this.HandlePositions,
+			"account":         this.HandleBalance,
 		}
 		var method any = this.SafeValue(methods, name)
 		if !ccxt.IsEqual(method, nil) {
@@ -1371,7 +1927,7 @@ func (this *Paradex) Init(userConfig map[string]any) {
  * @method
  * @name paradex#watchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://docs.paradex.trade/ws/web-socket-channels/trades/trades
+ * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -1397,7 +1953,7 @@ func (this *Paradex) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
  * @method
  * @name paradex#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.paradex.trade/ws/web-socket-channels/order-book/order-book
+ * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1422,7 +1978,7 @@ func (this *Paradex) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
  * @method
  * @name paradex#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1446,7 +2002,7 @@ func (this *Paradex) WatchTicker(symbol string, options ...ccxt.WatchTickerOptio
  * @method
  * @name paradex#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1470,7 +2026,7 @@ func (this *Paradex) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tic
  * @method
  * @name paradex#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://docs.paradex.trade/ws/web-socket-channels/orders/orders
+ * @see https://docs.paradex.trade/ws/web-socket-channels/orders-market-symbol/orders-market-symbol
  * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1489,6 +2045,76 @@ func (this *Paradex) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Ord
 		return nil, r.Err
 	}
 	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name paradex#watchMyTrades
+ * @description watches information on multiple trades made by the user
+ * @see https://docs.paradex.trade/ws/web-socket-channels/fills-market-symbol/fills-market-symbol
+ * @param {string} [symbol] unified market symbol of the market trades were made in
+ * @param {int} [since] the earliest time in ms to fetch trades for
+ * @param {int} [limit] the maximum number of trade structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+ */
+func (this *Paradex) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Trade, error) {
+
+	opts := ccxt.WatchMyTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name paradex#watchPositions
+ * @description watch all open positions
+ * @see https://docs.paradex.trade/ws/web-socket-channels/positions/positions
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {int} [since] the earliest time in ms to fetch positions for
+ * @param {int} [limit] the maximum number of positions to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ */
+func (this *Paradex) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {
+
+	opts := ccxt.WatchPositionsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []ccxt.Position = ccxt.NewPositionArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name paradex#watchBalance
+ * @description watch the margin balance of the account in its settlement asset: total is the account
+ * value, free the free collateral and used the initial margin requirement
+ * @see https://docs.paradex.trade/ws/web-socket-channels/account/account
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+ */
+func (this *Paradex) WatchBalance(params ...any) (ccxt.Balances, error) {
+	r := <-this.WatchBalanceAsync(params...)
+	if r.Err != nil {
+		return ccxt.Balances{}, r.Err
+	}
+	var res ccxt.Balances = ccxt.NewBalances(r.Value)
 	return res, nil
 }
 
@@ -1520,7 +2146,7 @@ func (this *Paradex) WatchFundingRate(symbol string, options ...ccxt.WatchFundin
  * @method
  * @name paradex#watchFundingRates
  * @description watch the funding rate for multiple markets
- * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
  * @param {string[]} [symbols] a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}

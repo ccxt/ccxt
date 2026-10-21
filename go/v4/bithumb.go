@@ -501,7 +501,7 @@ func (this *Bithumb) Describe() any {
 		},
 		"options": map[string]any{
 			"generation": 2,
-			"fetchTickersGeneration2MaxMarketIdsPerRequest": 300,
+			"fetchTickersGeneration2MaxMarketIdsPerRequest": 200,
 			"createMarketBuyOrderRequiresPrice":             true,
 			"quoteCurrencies": map[string]any{
 				"KRW": map[string]any{
@@ -1206,31 +1206,26 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 		}
 		var marketIdsChunks []any = []any{}
 		var promises []any = []any{}
-		if symbols != nil {
-			request["markets"] = Join(marketIds, ",")
-			marketIdsChunks = append(marketIdsChunks, marketIds)
-			promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, paramsGeneration)))
-		} else {
-			var maxMarketIdsPerRequest any = this.SafeInteger(this.Options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300)
-			if (IsEqual(maxMarketIdsPerRequest, nil)) || (IsLessThan(maxMarketIdsPerRequest, 1)) {
-				maxMarketIdsPerRequest = 300
-			}
-			var marketIdsChunk []any = []any{}
-			for i := 0; i < marketIdsLength; i++ {
-				marketIdsChunk = append(marketIdsChunk, func() any {
-					if i >= 0 && i < len(marketIds) {
-						return DerefScalar(marketIds[i])
-					}
-					return nil
-				}())
-				var marketIdsChunkLength int = len(marketIdsChunk)
-				var isLastMarketId bool = (i == (marketIdsLength - 1))
-				if (IsGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId {
-					marketIdsChunks = append(marketIdsChunks, marketIdsChunk)
-					request["markets"] = Join(marketIdsChunk, ",")
-					promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, paramsGeneration)))
-					marketIdsChunk = []any{}
+		// the exchange rejects more than 200 market ids per request
+		var maxMarketIdsPerRequest any = this.SafeInteger(this.Options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200)
+		if (IsEqual(maxMarketIdsPerRequest, nil)) || (IsLessThan(maxMarketIdsPerRequest, 1)) {
+			maxMarketIdsPerRequest = 200
+		}
+		var marketIdsChunk []any = []any{}
+		for i := 0; i < marketIdsLength; i++ {
+			marketIdsChunk = append(marketIdsChunk, func() any {
+				if i >= 0 && i < len(marketIds) {
+					return DerefScalar(marketIds[i])
 				}
+				return nil
+			}())
+			var marketIdsChunkLength int = len(marketIdsChunk)
+			var isLastMarketId bool = (i == (marketIdsLength - 1))
+			if (IsGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId {
+				marketIdsChunks = append(marketIdsChunks, marketIdsChunk)
+				request["markets"] = Join(marketIdsChunk, ",")
+				promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, paramsGeneration)))
+				marketIdsChunk = []any{}
 			}
 		}
 		//
@@ -1278,9 +1273,9 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 				response = GetValue(response, "data")
 			}
 			var expectedMarketId any = nil
-			var marketIdsChunk []any = SafeListTyped(marketIdsChunks, i)
-			var firstMarketId *string = this.SafeString(marketIdsChunk, 0)
-			if (firstMarketId != nil) && (this.SafeString(marketIdsChunk, 1) == nil) {
+			var requestedMarketIds []any = SafeListTyped(marketIdsChunks, i)
+			var firstMarketId *string = this.SafeString(requestedMarketIds, 0)
+			if (firstMarketId != nil) && (this.SafeString(requestedMarketIds, 1) == nil) {
 				expectedMarketId = firstMarketId
 			}
 			var tickers []any = []any{}
@@ -2274,11 +2269,11 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes185415 map[string]any = r1.Value
-	if retRes185415 == nil {
+	var retRes184815 map[string]any = r1.Value
+	if retRes184815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes185415}
+		ch <- AsyncResult[any]{Value: retRes184815}
 	}
 	return nil
 }
@@ -3309,11 +3304,11 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[any], order any,
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes265215 map[string]any = r.Value
-	if retRes265215 == nil {
+	var retRes264615 map[string]any = r.Value
+	if retRes264615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes265215}
+		ch <- AsyncResult[any]{Value: retRes264615}
 	}
 	return nil
 }
@@ -3410,7 +3405,7 @@ func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code s
 			}
 			request["address"] = address
 			request["currency"] = currency["id"]
-			request["net_type"] = network
+			request["net_type"] = this.NetworkCodeToId(network, code)
 			request["amount"] = this.NumberToString(amount)
 			if !IsEqual(destinationRequest, nil) {
 				request["secondary_address"] = destinationRequest
@@ -3430,7 +3425,7 @@ func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code s
 		request["currency"] = currency["id"]
 		request["units"] = amount
 		if network != nil {
-			request["net_type"] = network
+			request["net_type"] = this.NetworkCodeToId(network, code)
 		}
 		if !IsEqual(destinationRequest, nil) {
 			request["destination"] = destinationRequest
@@ -3506,7 +3501,7 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) map[
 		"txid":        this.SafeString(transaction, "txid"),
 		"timestamp":   timestamp,
 		"datetime":    datetime,
-		"network":     this.SafeString(transaction, "net_type"),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "net_type"), currencyResolved["code"]),
 		"addressFrom": nil,
 		"address":     nil,
 		"addressTo":   nil,
@@ -3736,22 +3731,22 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 	if code != nil && *code == "KRW" {
 		currency = this.Currency(code)
 
-		listEp3504 := <-this.PrivateGetV1WithdrawsKrw(this.Extend(request, paramsGeneration))
-		if listEp3504.Err != nil {
-			panic(listEp3504.Err)
+		listEp3499 := <-this.PrivateGetV1WithdrawsKrw(this.Extend(request, paramsGeneration))
+		if listEp3499.Err != nil {
+			panic(listEp3499.Err)
 		}
-		response = listEp3504.Value
+		response = listEp3499.Value
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
 			request["currency"] = GetValue(currency, "id")
 		}
 
-		listEp3511 := <-this.PrivateGetV1Withdraws(this.Extend(request, paramsGeneration))
-		if listEp3511.Err != nil {
-			panic(listEp3511.Err)
+		listEp3506 := <-this.PrivateGetV1Withdraws(this.Extend(request, paramsGeneration))
+		if listEp3506.Err != nil {
+			panic(listEp3506.Err)
 		}
-		response = listEp3511.Value
+		response = listEp3506.Value
 	}
 
 	//
@@ -3900,22 +3895,22 @@ func (this *Bithumb) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 	if code != nil && *code == "KRW" {
 		currency = this.Currency(code)
 
-		listEp3650 := <-this.PrivateGetV1DepositsKrw(this.Extend(request, paramsGeneration))
-		if listEp3650.Err != nil {
-			panic(listEp3650.Err)
+		listEp3645 := <-this.PrivateGetV1DepositsKrw(this.Extend(request, paramsGeneration))
+		if listEp3645.Err != nil {
+			panic(listEp3645.Err)
 		}
-		response = listEp3650.Value
+		response = listEp3645.Value
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
 			request["currency"] = GetValue(currency, "id")
 		}
 
-		listEp3657 := <-this.PrivateGetV1Deposits(this.Extend(request, paramsGeneration))
-		if listEp3657.Err != nil {
-			panic(listEp3657.Err)
+		listEp3652 := <-this.PrivateGetV1Deposits(this.Extend(request, paramsGeneration))
+		if listEp3652.Err != nil {
+			panic(listEp3652.Err)
 		}
-		response = listEp3657.Value
+		response = listEp3652.Value
 	}
 
 	//
@@ -3980,7 +3975,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan AsyncResult[any], code str
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " " + code + " createDepositAddress() requires a network parameter"))
 	}
-	request["net_type"] = network
+	request["net_type"] = this.NetworkCodeToId(network, code)
 
 	r1 := <-this.PrivatePostV1DepositsGenerateCoinAddress(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -4041,7 +4036,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " " + code + " fetchDepositAddress() requires a network parameter"))
 	}
-	request["net_type"] = network
+	request["net_type"] = this.NetworkCodeToId(network, code)
 
 	r1 := <-this.PrivateGetV1DepositsCoinAddress(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -4095,11 +4090,11 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan AsyncResult[any], optiona
 		panic(BadRequest(this.Id + " fetchDepositAddresses() is only supported for the generation 2 API"))
 	}
 
-	listEp3820 := <-this.PrivateGetV1DepositsCoinAddresses(paramsGeneration)
-	if listEp3820.Err != nil {
-		panic(listEp3820.Err)
+	listEp3815 := <-this.PrivateGetV1DepositsCoinAddresses(paramsGeneration)
+	if listEp3815.Err != nil {
+		panic(listEp3815.Err)
 	}
-	var response []any = listEp3820.Value
+	var response []any = listEp3815.Value
 
 	//
 	//     [
@@ -4137,7 +4132,7 @@ func (this *Bithumb) ParseDepositAddress(response any, optionalArgs ...any) map[
 	return map[string]any{
 		"info":     response,
 		"currency": code,
-		"network":  this.SafeString(response, "net_type"),
+		"network":  this.NetworkIdToCode(this.SafeString(response, "net_type"), code),
 		"address":  address,
 		"tag":      this.SafeString(response, "secondary_address"),
 	}
@@ -4188,20 +4183,17 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 	return result
 }
 func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var requestHeaders map[string]any = nil
 	var requestBody any = nil
 	var endpoint string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4210,7 +4202,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 	var queryKeys []string = ObjectKeys(query)
 	var queryKeysLength int = len(queryKeys)
 	var hasQuery bool = (queryKeysLength > 0)
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		requestHeaders = map[string]any{
 			"OPEN-API-PARTNER": "CCXT",
 		}
@@ -4274,18 +4266,8 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 	}
-	var headersResult any = func() any {
-		if requestHeaders != nil {
-			return requestHeaders
-		}
-		return headers
-	}()
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
+	var headersResult any = requestHeaders
+	var bodyResult any = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,

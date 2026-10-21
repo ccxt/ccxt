@@ -3060,7 +3060,7 @@ public partial class bitrue : Exchange
             string? networkId = this.safeString(parts, 1);
             if ((networkId != null))
             {
-                network = networkId.ToUpper();
+                network = this.networkIdToCode(networkId.ToUpper());
             }
         }
         string? code = this.safeCurrencyCode(currencyId, currency);
@@ -3494,9 +3494,9 @@ public partial class bitrue : Exchange
         return ccxt.BaseExchange.ToMarginModification(this.parseMarginModification(response, market));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? requestBody = null;
@@ -3590,8 +3590,8 @@ public partial class bitrue : Exchange
                 url = url + ("?" + this.urlencode(paramsOmitted));
             }
         }
-        object bodyResult = ((requestBody == null)) ? body : requestBody;
-        object headersResult = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResult = requestBody;
+        Dictionary<string, object> headersResult = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

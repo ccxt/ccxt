@@ -1,5 +1,5 @@
 import Exchange from './abstract/phemex.js';
-import type { TransferEntry, Balances, Currency, CurrencyInterface, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, NullableDict, List, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL } from './base/types.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, List, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL } from './base/types.js';
 /**
  * @class phemex
  * @augments Exchange
@@ -378,7 +378,7 @@ export default class phemex extends Exchange {
      */
     fetchLeverageTiers(symbols?: Strings, params?: Dict): Promise<LeverageTiers>;
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     /**
      * @method
      * @name phemex#setLeverage

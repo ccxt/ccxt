@@ -74,12 +74,6 @@ class blofin(ccxt.async_support.blofin):
     def ping(self, client: Client):
         return 'ping'
 
-    def handle_pong(self, client: Client, message: object):
-        #
-        #   'pong'
-        #
-        client.lastPong = self.milliseconds()
-
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
@@ -723,7 +717,6 @@ class blofin(ccxt.async_support.blofin):
         #
         methods = {
             # public
-            'pong': self.handle_pong,
             'trades': self.handle_trades,
             'books': self.handle_order_book,
             'tickers': self.handle_ticker,
@@ -737,7 +730,8 @@ class blofin(ccxt.async_support.blofin):
         }
         method = None
         if message == 'pong':
-            method = self.safe_value(methods, 'pong')
+            client.lastPong = self.milliseconds()
+            return
         else:
             event = self.safe_string(message, 'event')
             if event == 'subscribe':

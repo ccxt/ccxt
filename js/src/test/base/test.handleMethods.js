@@ -58,23 +58,6 @@ function helperTestHandleMarketTypeAndParams() {
     // fake assertion to avoid unused vars
     assert(params1 !== undefined || params2 !== undefined || params3 !== undefined || params4 !== undefined || params5 !== undefined || params6 !== undefined);
 }
-function helperTestHandleNetworkRequest() {
-    const exchange = new ccxt.Exchange({
-        'id': 'sampleexchange',
-        'options': {
-            'networks': {
-                'XYZ': 'Xyz',
-            }
-        },
-    });
-    exchange.currencies = exchange.createSafeDictionary(); // todo: initialize in C# base files
-    const currencyCode = 'ETH'; // todo: in future with complex cases
-    // no-case
-    const [request1, params1] = exchange.handleRequestNetwork({ 'network': 'XYZ' }, {}, 'chain_id', currencyCode, false);
-    assert(!('network' in params1));
-    assert('chain_id' in request1);
-    assert(request1['chain_id'] === 'Xyz');
-}
 function helperTestHandleTypedOptions() {
     const exchange = new ccxt.Exchange({
         'id': 'sampleexchange',
@@ -99,7 +82,6 @@ function helperTestHandleTypedOptions() {
 }
 function testHandleMethods() {
     helperTestHandleMarketTypeAndParams();
-    helperTestHandleNetworkRequest();
     helperTestHandleTypedOptions();
 }
 export default testHandleMethods;

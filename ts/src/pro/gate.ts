@@ -105,6 +105,13 @@ export default class gate extends gateRest {
                 },
             },
             'options': {
+                'ws': {
+                    'options': {
+                        'headers': {
+                            'X-Gate-Size-Decimal': '1', // contract sizes are pushed as decimal strings instead of rounded-down integers
+                        },
+                    },
+                },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'watchTradesSubscriptions': {},
@@ -1724,8 +1731,8 @@ export default class gate extends gateRest {
             } else if (event === 'finish') {
                 const status = this.safeString (parsed, 'status');
                 if (status === undefined) {
-                    const left = this.safeInteger (info, 'left');
-                    parsed['status'] = (left === 0) ? 'closed' : 'canceled';
+                    const left = this.safeString (info, 'left');
+                    parsed['status'] = Precise.stringEquals (left, '0') ? 'closed' : 'canceled';
                 }
             }
             stored.append (parsed);
@@ -2276,8 +2283,10 @@ export default class gate extends gateRest {
     getMarketTypeByUrl (url: string): string {
         const findBy: Dict = {
             'op-': 'option',
+            '/ws/options/': 'option',
             'delivery': 'future',
             'fx': 'swap',
+            '/ws/futures/': 'swap',
         };
         const keys = Object.keys (findBy);
         for (let i = 0; i < keys.length; i++) {

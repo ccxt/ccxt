@@ -1032,9 +1032,9 @@ public class Mexc extends MexcApi
                     }} );
                 }} );
                 put( "defaultType", "spot" );
-                put( "defaultNetwork", "ETH" );
+                put( "defaultNetwork", "ERC20" );
                 put( "defaultNetworks", new HashMap<String, Object>() {{
-                    put( "ETH", "ETH" );
+                    put( "ETH", "ERC20" );
                     put( "USDT", "ERC20" );
                     put( "USDC", "ERC20" );
                     put( "BTC", "BTC" );
@@ -1066,9 +1066,9 @@ public class Mexc extends MexcApi
                     put( "RSK", "RBTC" );
                 }} );
                 put( "networksById", new HashMap<String, Object>() {{
-                    put( "BNB Smart Chain(BEP20-RACAV1)", "BSC" );
-                    put( "BNB Smart Chain(BEP20-RACAV2)", "BSC" );
-                    put( "BNB Smart Chain(BEP20)", "BSC" );
+                    put( "BNB Smart Chain(BEP20-RACAV1)", "BEP20" );
+                    put( "BNB Smart Chain(BEP20-RACAV2)", "BEP20" );
+                    put( "BNB Smart Chain(BEP20)", "BEP20" );
                     put( "Ethereum(ERC20)", "ERC20" );
                 }} );
                 put( "recvWindow", (5L * 1000L) );
@@ -3607,7 +3607,7 @@ public class Mexc extends MexcApi
             Map<String, Object> query = marketTypequeryVariable.second();
             if (java.util.Objects.equals(marketType, "spot"))
             {
-                throw new BadRequest(((this.id + " fetchOrdersByIds() is not supported for ") + marketType)) ;
+                throw new NotSupported(((this.id + " fetchOrdersByIds() is not supported for ") + marketType)) ;
             } else
             {
                 request.put("order_ids", String.join(",", (List<String>)ids));
@@ -4005,7 +4005,7 @@ public class Mexc extends MexcApi
             String marketType = marketTypeVariable.first();
             if (java.util.Objects.equals(marketType, "spot"))
             {
-                throw new BadRequest(((this.id + " cancelOrders() is not supported for ") + marketType)) ;
+                throw new NotSupported(((this.id + " cancelOrders() is not supported for ") + marketType)) ;
             } else
             {
                 Map<String, Object> response = (this.contractPrivatePostOrderCancel(ids)).join(); // the request cannot be changed or extended. The only way to send.
@@ -4521,7 +4521,7 @@ public class Mexc extends MexcApi
             Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(market.get("spot"), true))
             {
-                throw new BadRequest((this.id + " fetchTradingFee() supports spot markets only")) ;
+                throw new NotSupported((this.id + " fetchTradingFee() supports spot markets only")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
@@ -6235,43 +6235,57 @@ public class Mexc extends MexcApi
         String symbol = (String) marketResolved.get("symbol");
         String contracts = this.safeString(position, "holdVol");
         Double entryPrice = this.safeNumber(position, "openAvgPrice", (Object) null);
-        String initialMargin = this.safeString(position, "im");
+        String initialMargin = this.omitZero(this.safeString(position, "im"));
+        String unrealizedPnl = this.safeString(position, "unRealizedPnl");
         String rawSide = this.safeString(position, "positionType");
         String side = (((java.util.Objects.equals(rawSide, "1")))) ? "long" : "short";
-        String openType = this.safeString(position, "margin_mode");
+        String openType = this.safeString2(position, "openType", "margin_mode");
         String marginType = (((java.util.Objects.equals(openType, "1")))) ? "isolated" : "cross";
+        String collateralString = null;
+        String marginString = null;
+        if ((java.util.Objects.equals(marginType, "isolated")) && (!java.util.Objects.equals(initialMargin, null)))
+        {
+            // im is the margin mexc holds in the position; funding settles to the available balance
+            collateralString = initialMargin;
+            marginString = collateralString;
+            if (!java.util.Objects.equals(unrealizedPnl, null))
+            {
+                collateralString = Precise.stringAdd(collateralString, unrealizedPnl);
+            }
+        }
         Double leverage = this.safeNumber(position, "leverage", (Object) null);
-        Double liquidationPrice = this.safeNumber(position, "liquidatePrice", (Object) null);
+        Double liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidatePrice")));
         Long timestamp = this.safeInteger(position, "updateTime");
-        return this.safePosition(new HashMap<String, Object>() {{
-            put( "info", position );
-            put( "id", null );
-            put( "symbol", symbol );
-            put( "contracts", Mexc.this.parseNumber(contracts) );
-            put( "contractSize", null );
-            put( "entryPrice", entryPrice );
-            put( "collateral", null );
-            put( "side", side );
-            put( "unrealizedPnl", null );
-            put( "leverage", Mexc.this.parseNumber(leverage) );
-            put( "percentage", null );
-            put( "marginMode", marginType );
-            put( "notional", null );
-            put( "markPrice", null );
-            put( "lastPrice", null );
-            put( "liquidationPrice", liquidationPrice );
-            put( "initialMargin", Mexc.this.parseNumber(initialMargin) );
-            put( "initialMarginPercentage", null );
-            put( "maintenanceMargin", null );
-            put( "maintenanceMarginPercentage", null );
-            put( "marginRatio", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Mexc.this.iso8601(timestamp) );
-            put( "hedged", null );
-            put( "stopLossPrice", null );
-            put( "takeProfitPrice", null );
-            put( "lastUpdateTimestamp", null );
-        }});
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("info", position);
+        mapLiteral8.put("id", null);
+        mapLiteral8.put("symbol", symbol);
+        mapLiteral8.put("contracts", this.parseNumber(contracts));
+        mapLiteral8.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral8.put("entryPrice", entryPrice);
+        mapLiteral8.put("positionMargin", this.parseNumber(marginString));
+        mapLiteral8.put("collateral", this.parseNumber(collateralString));
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("unrealizedPnl", this.parseNumber(unrealizedPnl));
+        mapLiteral8.put("leverage", this.parseNumber(leverage));
+        mapLiteral8.put("percentage", null);
+        mapLiteral8.put("marginMode", marginType);
+        mapLiteral8.put("notional", null);
+        mapLiteral8.put("markPrice", null);
+        mapLiteral8.put("lastPrice", null);
+        mapLiteral8.put("liquidationPrice", liquidationPrice);
+        mapLiteral8.put("initialMargin", this.parseNumber(initialMargin));
+        mapLiteral8.put("initialMarginPercentage", null);
+        mapLiteral8.put("maintenanceMargin", null);
+        mapLiteral8.put("maintenanceMarginPercentage", null);
+        mapLiteral8.put("marginRatio", null);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("hedged", null);
+        mapLiteral8.put("stopLossPrice", null);
+        mapLiteral8.put("takeProfitPrice", null);
+        mapLiteral8.put("lastUpdateTimestamp", null);
+        return this.safePosition(mapLiteral8);
     }
 
     /**
@@ -6317,11 +6331,8 @@ public class Mexc extends MexcApi
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseTransfer(data, (Map<String, Object>) null);
-            } else if (java.util.Objects.equals(marketType, "swap"))
-            {
-                throw new BadRequest(((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
             }
-            throw new BadRequest(((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
+            throw new NotSupported(((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
         }).thenApply(TransferEntry::new);
 
     }
@@ -7198,7 +7209,7 @@ public class Mexc extends MexcApi
             Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                throw new BadSymbol((this.id + " setMarginMode() supports contract markets only")) ;
+                throw new NotSupported((this.id + " setMarginMode() supports contract markets only")) ;
             }
             String marginModeLower = ((String)marginMode).toLowerCase();
             if (!java.util.Objects.equals(marginModeLower, "isolated") && !java.util.Objects.equals(marginModeLower, "cross"))
@@ -7237,12 +7248,12 @@ public class Mexc extends MexcApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        Object requestBody = body;
-        String section = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
+        Object requestHeaders = null;
+        Object requestBody = null;
+        String section = this.safeString(api, 0);
+        String access = this.safeString(api, 1);
         String pathValue = (String) this.implodeParams(path, parameters);
         Object paramsValue = this.omit(parameters, this.extractParams(path));
         String url = null;

@@ -375,9 +375,8 @@ class bithumb(Exchange, ImplicitAPI):
             },
             'options': {
                 'generation': 2,  # either API generation 1 or 2
-                # Bithumb v2 ticker endpoint returns HTTP 414 when the `markets` query string is too long.
-                # Keep this conservative to reduce requests while staying below URL-length limits.
-                'fetchTickersGeneration2MaxMarketIdsPerRequest': 300,
+                # Bithumb v2 ticker endpoint rejects more than 200 ids in `markets`
+                'fetchTickersGeneration2MaxMarketIdsPerRequest': 200,
                 'createMarketBuyOrderRequiresPrice': True,
                 'quoteCurrencies': {
                     'KRW': {
@@ -971,24 +970,20 @@ class bithumb(Exchange, ImplicitAPI):
                 return result
             marketIdsChunks = []
             promises = []
-            if symbols is not None:
-                request['markets'] = ','.join(marketIds)
-                marketIdsChunks.append(marketIds)
-                promises.append(self.publicGetV1Ticker(self.extend(request, paramsGeneration)))
-            else:
-                maxMarketIdsPerRequest = self.safe_integer(self.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 300)
-                if (maxMarketIdsPerRequest is None) or (maxMarketIdsPerRequest < 1):
-                    maxMarketIdsPerRequest = 300
-                marketIdsChunk = []
-                for i in range(0, marketIdsLength):
-                    marketIdsChunk.append(marketIds[i])
-                    marketIdsChunkLength = len(marketIdsChunk)
-                    isLastMarketId = (i == (marketIdsLength - 1))
-                    if (marketIdsChunkLength >= maxMarketIdsPerRequest) or isLastMarketId:
-                        marketIdsChunks.append(marketIdsChunk)
-                        request['markets'] = ','.join(marketIdsChunk)
-                        promises.append(self.publicGetV1Ticker(self.extend(request, paramsGeneration)))
-                        marketIdsChunk = []
+            # the exchange rejects more than 200 market ids per request
+            maxMarketIdsPerRequest = self.safe_integer(self.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200)
+            if (maxMarketIdsPerRequest is None) or (maxMarketIdsPerRequest < 1):
+                maxMarketIdsPerRequest = 200
+            marketIdsChunk = []
+            for i in range(0, marketIdsLength):
+                marketIdsChunk.append(marketIds[i])
+                marketIdsChunkLength = len(marketIdsChunk)
+                isLastMarketId = (i == (marketIdsLength - 1))
+                if (marketIdsChunkLength >= maxMarketIdsPerRequest) or isLastMarketId:
+                    marketIdsChunks.append(marketIdsChunk)
+                    request['markets'] = ','.join(marketIdsChunk)
+                    promises.append(self.publicGetV1Ticker(self.extend(request, paramsGeneration)))
+                    marketIdsChunk = []
             #
             #     [
             #         {
@@ -1028,9 +1023,9 @@ class bithumb(Exchange, ImplicitAPI):
                 if self.is_dictionary(response) and ('data' in response) and (response['data'] is not None):
                     response = response['data']
                 expectedMarketId = None
-                marketIdsChunk = self.safe_list(marketIdsChunks, i, [])
-                firstMarketId = self.safe_string(marketIdsChunk, 0)
-                if (firstMarketId is not None) and (self.safe_string(marketIdsChunk, 1) is None):
+                requestedMarketIds = self.safe_list(marketIdsChunks, i, [])
+                firstMarketId = self.safe_string(requestedMarketIds, 0)
+                if (firstMarketId is not None) and (self.safe_string(requestedMarketIds, 1) is None):
                     expectedMarketId = firstMarketId
                 tickers = []
                 if isinstance(response, list):
@@ -2551,7 +2546,7 @@ class bithumb(Exchange, ImplicitAPI):
                     raise ArgumentsRequired(self.id + ' ' + code + ' withdraw() requires a network parameter')
                 request['address'] = address
                 request['currency'] = currency['id']
-                request['net_type'] = network
+                request['net_type'] = self.network_code_to_id(network, code)
                 request['amount'] = self.number_to_string(amount)
                 if destinationRequest is not None:
                     request['secondary_address'] = destinationRequest
@@ -2579,7 +2574,7 @@ class bithumb(Exchange, ImplicitAPI):
             request['currency'] = currency['id']
             request['units'] = amount
             if network is not None:
-                request['net_type'] = network
+                request['net_type'] = self.network_code_to_id(network, code)
             if destinationRequest is not None:
                 request['destination'] = destinationRequest
             if receiverType is not None:
@@ -2635,7 +2630,7 @@ class bithumb(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': self.safe_string(transaction, 'net_type'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'net_type'), currencyResolved['code']),
             'addressFrom': None,
             'address': None,
             'addressTo': None,
@@ -2938,7 +2933,7 @@ class bithumb(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsGeneration, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' ' + code + ' createDepositAddress() requires a network parameter')
-        request['net_type'] = network
+        request['net_type'] = self.network_code_to_id(network, code)
         response = await self.privatePostV1DepositsGenerateCoinAddress(self.extend(request, paramsOmitted))
         #
         #     {
@@ -2975,7 +2970,7 @@ class bithumb(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsGeneration, 'network')
         if network is None:
             raise ArgumentsRequired(self.id + ' ' + code + ' fetchDepositAddress() requires a network parameter')
-        request['net_type'] = network
+        request['net_type'] = self.network_code_to_id(network, code)
         response = await self.privateGetV1DepositsCoinAddress(self.extend(request, paramsOmitted))
         #
         #     {
@@ -3036,7 +3031,7 @@ class bithumb(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': code,
-            'network': self.safe_string(response, 'net_type'),
+            'network': self.network_id_to_code(self.safe_string(response, 'net_type'), code),
             'address': address,
             'tag': self.safe_string(response, 'secondary_address'),
         }
@@ -3078,11 +3073,12 @@ class bithumb(Exchange, ImplicitAPI):
                 result += encodedKey + '=' + encodedValue
         return result
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         requestHeaders = None
         requestBody = None
         endpoint = '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(apiUrl) + endpoint
@@ -3090,7 +3086,7 @@ class bithumb(Exchange, ImplicitAPI):
         queryKeys = list(query.keys())
         queryKeysLength = len(queryKeys)
         hasQuery = (queryKeysLength > 0)
-        if api == 'public':
+        if apiName == 'public':
             requestHeaders = {
                 'OPEN-API-PARTNER': 'CCXT',
             }
@@ -3143,8 +3139,8 @@ class bithumb(Exchange, ImplicitAPI):
                     'Api-Nonce': nonce,
                     'OPEN-API-PARTNER': 'CCXT',
                 }
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
-        bodyResult = requestBody if (requestBody is not None) else body
+        headersResult = requestHeaders
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

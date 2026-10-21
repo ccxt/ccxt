@@ -1227,15 +1227,16 @@ class cryptomus extends Exchange {
         );
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $endpoint = $this->implode_params($path, $params);
         $paramsOmitted = $this->omit($params, $this->extract_params($path));
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $endpoint;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $jsonParams = '';
             $privateHeaders = array(
@@ -1254,7 +1255,7 @@ class cryptomus extends Exchange {
             $stringToSign = $jsonParamsBase64 . $this->secret;
             $signature = $this->hash($this->encode($stringToSign), 'md5');
             $privateHeaders['sign'] = $signature;
-            $privateBody = ($method !== 'GET') ? $jsonParams : $body;
+            $privateBody = ($method !== 'GET') ? $jsonParams : null;
             return array( 'url' => $url, 'method' => $method, 'body' => $privateBody, 'headers' => $privateHeaders );
         } else {
             $query = $this->urlencode($paramsOmitted);
@@ -1262,7 +1263,7 @@ class cryptomus extends Exchange {
                 $url .= '?' . $query;
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

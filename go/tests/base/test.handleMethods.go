@@ -60,29 +60,6 @@ func HelperTestHandleMarketTypeAndParams() {
 	// fake assertion to avoid unused vars
 	Assert(!ccxt.IsEqual(params1, nil) || !ccxt.IsEqual(params2, nil) || !ccxt.IsEqual(params3, nil) || !ccxt.IsEqual(params4, nil) || !ccxt.IsEqual(params5, nil) || !ccxt.IsEqual(params6, nil))
 }
-func HelperTestHandleNetworkRequest() {
-	exchange := ccxt.NewExchange().(*ccxt.Exchange)
-	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]any{
-		"id": "sampleexchange",
-		"options": map[string]any{
-			"networks": map[string]any{
-				"XYZ": "Xyz",
-			},
-		},
-	}, map[string]any{}, exchange)
-	exchange.Currencies = exchange.CreateSafeDictionary() // todo: initialize in C# base files
-	var currencyCode string = "ETH"                       // todo: in future with complex cases
-	// no-case
-	request1params1Variable := exchange.HandleRequestNetwork(map[string]any{
-		"network": "XYZ",
-	}, map[string]any{}, "chain_id", currencyCode, false)
-	request1 := ccxt.GetValue(request1params1Variable, 0)
-	params1 := ccxt.GetValue(request1params1Variable, 1)
-	Assert(!(ccxt.InOp(params1, "network")))
-	Assert(ccxt.InOp(request1, "chain_id"))
-	Assert(ccxt.IsEqual(ccxt.GetValue(request1, "chain_id"), "Xyz"))
-}
 func HelperTestHandleTypedOptions() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
@@ -115,6 +92,5 @@ func HelperTestHandleTypedOptions() {
 }
 func TestHandleMethods() {
 	HelperTestHandleMarketTypeAndParams()
-	HelperTestHandleNetworkRequest()
 	HelperTestHandleTypedOptions()
 }

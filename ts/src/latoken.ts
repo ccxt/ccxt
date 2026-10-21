@@ -1885,9 +1885,10 @@ export default class latoken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestHeaders: NullableDict = headers;
-        let requestBody: Str = body;
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let requestString = request;
         const query = this.omit (params, this.extractParams (path));
@@ -1897,7 +1898,7 @@ export default class latoken extends Exchange {
                 requestString += '?' + urlencodedQuery;
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const auth = method + request + urlencodedQuery;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha512);

@@ -1291,7 +1291,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchOHLCV': 'List<OHLCV>',
     'fetchOHLCVWs': 'List<OHLCV>',
     'fetchL2OrderBook': 'OrderBook',
-    'fetchL3OrderBook': 'OrderBook',
+    'fetchL3OrderBook': 'OrderBookL3',
     'fetchNonce': 'Int64',
     'fetchOpenInterest': 'OpenInterest',
     'fetchOpenInterestHistory': 'List<OpenInterest>',
@@ -3046,7 +3046,6 @@ class NewTranspiler {
             // never rewritten, so a typed override would be CS0508.
             'fetchCurrenciesWs',
             'loadMarketsHelper',
-            'createNetworksByIdObject',
             'setMarketsFromExchange',
             'setLastRequest',
             'setLastRestRequestTimestamp',

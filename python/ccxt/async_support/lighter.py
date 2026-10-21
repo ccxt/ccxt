@@ -115,7 +115,7 @@ class lighter(Exchange, ImplicitAPI):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
-                'fetchTrades': False,
+                'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransfer': False,
@@ -1321,7 +1321,7 @@ class lighter(Exchange, ImplicitAPI):
             'limit': 100,
         }
         if limit is not None:
-            request['limit'] = min(limit, 100)
+            request['limit'] = min(limit, 250)
         response = await self.publicGetOrderBookOrders(self.extend(request, params))
         #
         #     {
@@ -1923,6 +1923,13 @@ class lighter(Exchange, ImplicitAPI):
             imf = self.parse_to_int(imfStr)
             if imf > 0:
                 leverage = 100 / imf
+        contractsString = self.safe_string(position, 'position')
+        positionValueString = self.safe_string(position, 'position_value')
+        markPriceString = Precise.string_div(positionValueString, contractsString)
+        # allocated_margin is the isolated collateral balance (0 for cross)
+        positionMargin = None
+        if marginMode == 'isolated':
+            positionMargin = self.safe_number(position, 'allocated_margin')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -1932,13 +1939,14 @@ class lighter(Exchange, ImplicitAPI):
             'isolated': (marginMode == 'isolated'),
             'hedged': None,
             'side': side,
-            'contracts': self.safe_number(position, 'position'),
+            'contracts': self.parse_number(contractsString),
             'contractSize': None,
             'entryPrice': self.safe_number(position, 'avg_entry_price'),
-            'markPrice': None,
-            'notional': self.safe_number(position, 'position_value'),
+            'markPrice': self.parse_number(markPriceString),
+            'notional': self.parse_number(positionValueString),
             'leverage': leverage,
-            'collateral': self.safe_number(position, 'allocated_margin'),
+            'positionMargin': positionMargin,
+            'collateral': None,
             'initialMargin': None,
             'maintenanceMargin': None,
             'initialMarginPercentage': None,
@@ -2726,6 +2734,52 @@ class lighter(Exchange, ImplicitAPI):
         response = await self.publicPostSendTx(request)
         return self.parse_transaction(response)
 
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+        """
+        get the list of most recent trades for a particular symbol
+
+        https://apidocs.lighter.xyz/reference/recenttrades
+
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch, default 100, max 100
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market_id': market['id'],
+            'limit': 100,
+        }
+        if limit is not None:
+            request['limit'] = min(limit, 100)
+        response = await self.publicGetRecentTrades(self.extend(request, params))
+        #
+        #     {
+        #         "code": 200,
+        #         "trades": [
+        #             {
+        #                 "trade_id": 35564491385,
+        #                 "type": "trade",
+        #                 "market_id": 0,
+        #                 "size": "0.0003",
+        #                 "price": "2385.57",
+        #                 "usd_amount": "0.715671",
+        #                 "ask_id": 281478054267183,
+        #                 "bid_id": 562946767299880,
+        #                 "ask_account_id": 723632,
+        #                 "bid_account_id": 317087,
+        #                 "is_maker_ask": false,
+        #                 "timestamp": 1792497687525
+        #             }
+        #         ]
+        #     }
+        #
+        trades = self.safe_list(response, 'trades', [])
+        return self.parse_trades(trades, market, since, limit)
+
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
@@ -2849,6 +2903,9 @@ class lighter(Exchange, ImplicitAPI):
             elif accountIndex == bidAccountId:
                 side = 'buy'
                 orderId = self.safe_string(trade, 'bid_id')
+        # public trades use Lighter's taker-side convention
+        if (side is None) and (isMakerAsk is not None):
+            side = 'buy' if (isMakerAsk is True) else 'sell'
         takerOrMaker = None
         if side is not None and isMakerAsk is not None:
             isMaker = isMakerAsk if (side == 'sell') else not isMakerAsk
@@ -3144,20 +3201,21 @@ class lighter(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path: str, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params={}):
+        apiName = api[0]
         url = None
-        if api == 'root':
+        if apiName == 'root':
             baseApiUrl = self.safe_string(self.urls['api'], 'public')
             if baseApiUrl is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = self.implode_hostname(baseApiUrl)
         else:
-            baseApiUrl2 = self.safe_string(self.urls['api'], api)
+            baseApiUrl2 = self.safe_string(self.urls['api'], apiName)
             if baseApiUrl2 is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = self.implode_hostname(baseApiUrl2) + '/api/' + self.version + '/' + path
         authHeaders = None
-        if api == 'private':
+        if apiName == 'private':
             authHeaders = {
                 'Authorization': self.create_auth(params),
             }
@@ -3168,9 +3226,9 @@ class lighter(Exchange, ImplicitAPI):
                 }
                 return {'url': url, 'method': method, 'body': params, 'headers': multipartHeaders}
             url += '?' + self.rawencode(params)
-        if api == 'private':
-            return {'url': url, 'method': method, 'body': body, 'headers': authHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        if apiName == 'private':
+            return {'url': url, 'method': method, 'body': None, 'headers': authHeaders}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (response is None) or (response is None):

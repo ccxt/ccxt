@@ -367,10 +367,7 @@ func (this *Kraken) Describe() any {
 			"marketsByAltname":        map[string]any{},
 			"delistedMarketsById":     map[string]any{},
 			"inactiveCurrencies":      []any{"CAD", "USD", "JPY", "GBP"},
-			"networks": map[string]any{
-				"ETH": "ERC20",
-				"TRX": "TRC20",
-			},
+			"networks":                map[string]any{},
 			"depositMethods": map[string]any{
 				"1INCH":      "1inch" + " " + "(1INCH)",
 				"AAVE":       "Aave",
@@ -1513,11 +1510,11 @@ func (this *Kraken) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes122319 []any = ListTyped(r1.Value)
-		if retRes122319 == nil {
+		var retRes122019 []any = ListTyped(r1.Value)
+		if retRes122019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes122319}
+			ch <- AsyncResult[any]{Value: retRes122019}
 		}
 		return nil
 	}
@@ -2168,11 +2165,11 @@ func (this *Kraken) createMarketOrderWithCostBody(ch chan AsyncResult[map[string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes169515 map[string]any = r1.Value
-	if retRes169515 == nil {
+	var retRes169215 map[string]any = r1.Value
+	if retRes169215 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes169515}
+		ch <- AsyncResult[map[string]any]{Value: retRes169215}
 	}
 	return nil
 }
@@ -2209,11 +2206,11 @@ func (this *Kraken) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes171215 map[string]any = r1.Value
-	if retRes171215 == nil {
+	var retRes170915 map[string]any = r1.Value
+	if retRes170915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes171215}
+		ch <- AsyncResult[any]{Value: retRes170915}
 	}
 	return nil
 }
@@ -4243,11 +4240,11 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes320619 []any = ListTyped(r1.Value)
-		if retRes320619 == nil {
+		var retRes320319 []any = ListTyped(r1.Value)
+		if retRes320319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes320619}
+			ch <- AsyncResult[any]{Value: retRes320319}
 		}
 		return nil
 	}
@@ -4365,11 +4362,11 @@ func (this *Kraken) createDepositAddressBody(ch chan AsyncResult[any], code stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes329715 map[string]any = MapTyped(r.Value)
-	if retRes329715 == nil {
+	var retRes329415 map[string]any = MapTyped(r.Value)
+	if retRes329415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes329715}
+		ch <- AsyncResult[any]{Value: retRes329415}
 	}
 	return nil
 }
@@ -4466,8 +4463,9 @@ func (this *Kraken) fetchDepositAddressBody(ch chan AsyncResult[any], code strin
 	}
 	var currency map[string]any = this.Currency(code)
 	var network *string = this.SafeStringUpper(params, "network")
-	var networks map[string]any = SafeMapTyped(this.Options, "networks")
-	network = this.SafeString(networks, network, network) // support ETH > ERC20 aliases
+	if network != nil {
+		network = this.SafeString(this.NetworkAliases, network, network)
+	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 	var codeResolved string = code
 	if (code == "USDT") && (network != nil && *network == "TRC20") {
@@ -4809,11 +4807,11 @@ func (this *Kraken) transferOutBody(ch chan AsyncResult[any], code any, amount a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes361915 map[string]any = r.Value
-	if retRes361915 == nil {
+	var retRes361715 map[string]any = r.Value
+	if retRes361715 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes361915}
+		ch <- AsyncResult[any]{Value: retRes361715}
 	}
 	return nil
 }
@@ -4912,23 +4910,20 @@ func (this *Kraken) ParseTransfer(transfer any, optionalArgs ...any) map[string]
 	}
 }
 func (this *Kraken) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var url any = Add(Add(Add("/"+this.Version+"/", api), "/"), path)
-	if api == "public" {
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var url string = "/" + this.Version + "/" + *apiName + "/" + path
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			// rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
-			url = Add(url, "?"+this.UrlencodeNested(params))
+			url += "?" + this.UrlencodeNested(params)
 		}
-	} else if api == "private" {
+	} else if apiName != nil && *apiName == "private" {
 		var price *string = this.SafeString(params, "price")
 		var isTriggerPercent bool = false
 		if price != nil {
@@ -4971,11 +4966,11 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 		} else {
 			headersSigned["Content-Type"] = "application/x-www-form-urlencoded"
 		}
-		var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+		var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 		if baseApiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
-		var urlSigned *string = SafeStringPtr(Add(baseApiUrl, url))
+		var urlSigned string = *baseApiUrl + url
 		return map[string]any{
 			"url":     urlSigned,
 			"method":  method,
@@ -4985,15 +4980,15 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	} else {
 		url = "/" + path
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	return map[string]any{
-		"url":     Add(apiUrl, url),
+		"url":     *apiUrl + url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Kraken) Nonce() any {

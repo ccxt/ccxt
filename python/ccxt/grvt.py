@@ -208,12 +208,11 @@ class grvt(Exchange, ImplicitAPI):
                     'ARBITRUM': '42161',
                     'AVAXC': '43114',
                     'BASE': '8453',
-                    'BSC': '56',
-                    'ETH': '1',
+                    'BEP20': '56',
                     'ERC20': '1',
                     'OP': '10',
                     'SOL': '900',
-                    'TRX': '728126428',
+                    'TRC20': '728126428',
                     'ZKSYNCERA': '324',
                     'KAIA': '8217',
                 },
@@ -2309,12 +2308,17 @@ class grvt(Exchange, ImplicitAPI):
         side = 'short'
         if isLong:
             side = 'long'
+        # isolated_balance is the wallet balance reserved for the isolated position
+        marginMode = self.safe_string_lower(position, 'margin_type')
+        positionMargin = None
+        if marginMode == 'isolated':
+            positionMargin = self.safe_number(position, 'isolated_balance')
         return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_symbol(marketId, market),
             'notional': self.parse_number(Precise.string_abs(self.safe_string(position, 'notional'))),
-            'marginMode': None,
+            'marginMode': marginMode,
             'liquidationPrice': self.safe_number(position, 'est_liquidation_price'),
             'entryPrice': self.safe_number(position, 'entry_price'),
             'unrealizedPnl': self.safe_number(position, 'unrealized_pnl'),
@@ -2328,10 +2332,11 @@ class grvt(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastUpdateTimestamp': self.safe_integer(position, 'lastUpdateTime'),
-            'maintenanceMargin': self.safe_number(position, 'maintenanceMargin'),
+            'maintenanceMargin': self.safe_number_2(position, 'isolated_mm', 'maintenanceMargin'),
             'maintenanceMarginPercentage': None,
+            'positionMargin': positionMargin,
             'collateral': None,
-            'initialMargin': self.safe_number(position, 'initialMargin'),
+            'initialMargin': self.safe_number_2(position, 'isolated_im', 'initialMargin'),
             'initialMarginPercentage': None,
             'leverage': self.safe_number(position, 'leverage'),
             'marginRatio': None,
@@ -3142,12 +3147,13 @@ class grvt(Exchange, ImplicitAPI):
         self.options['requestId'] = requestId
         return requestId
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        requestHeaders = None
+        requestBody = None
         requestPath = path
         query = self.omit(params, self.extract_params(requestPath))
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + requestPath
@@ -3170,7 +3176,7 @@ class grvt(Exchange, ImplicitAPI):
                 requestBody = '{}'
             else:
                 requestBody = self.json(params)
-        isPrivate = api.startswith('private')
+        isPrivate = apiName.startswith('private')
         if isPrivate is True:
             self.check_required_credentials()
             if queryString != '':

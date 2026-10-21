@@ -102,7 +102,7 @@ func (this *Woo) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash any,
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var urlUid any = ""
-	if this.Uid != "" {
+	if (!ccxt.IsEqual(this.Uid, nil)) && (this.Uid != "") {
 		urlUid = ccxt.Add("/", this.Uid)
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public"), urlUid))
@@ -130,7 +130,7 @@ func (this *Woo) unwatchPublicBody(ch chan ccxt.AsyncResult[any], subHash any, s
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var urlUid any = ""
-	if this.Uid != "" {
+	if (!ccxt.IsEqual(this.Uid, nil)) && (this.Uid != "") {
 		urlUid = ccxt.Add("/", this.Uid)
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public"), urlUid))
@@ -203,7 +203,7 @@ func (this *Woo) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 	var market map[string]any = this.Market(symbol)
 	var topic any = ccxt.Add(ccxt.Add(market["id"], "@"), method)
 	var urlUid any = ""
-	if this.Uid != "" {
+	if (!ccxt.IsEqual(this.Uid, nil)) && (this.Uid != "") {
 		urlUid = ccxt.Add("/", this.Uid)
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public"), urlUid))

@@ -493,7 +493,7 @@ func (this *Blockchaincom) fetchOrderBookBody(ch chan AsyncResult[map[string]any
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.FetchL3OrderBookAsync(symbol, limit, params)
+	r := <-this.FetchL2OrderBookAsync(symbol, limit, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -549,7 +549,7 @@ func (this *Blockchaincom) fetchL3OrderBookBody(ch chan EndpointResult[map[strin
 	}
 	var response map[string]any = r1.Value
 
-	chValue := this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "px", "qty")
+	chValue := this.ParseOrderBookL3(response, market["symbol"], nil, "bids", "asks", "px", "qty", "num")
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
@@ -1823,37 +1823,34 @@ func (this *Blockchaincom) fetchOrderBody(ch chan AsyncResult[map[string]any], i
 	return nil
 }
 func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var requestPath string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + requestPath
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var isPrivate bool = (api == "private")
+	var isPrivate bool = (apiName != nil && *apiName == "private")
 	var privateHeaders map[string]any = map[string]any{
 		"X-API-Token": this.Secret,
 	}
-	var requestHeaders any = headers
+	var requestHeaders map[string]any = nil
 	if isPrivate {
 		requestHeaders = privateHeaders
 	}
 	var isPrivatePost bool = isPrivate && (method != "GET")
-	var requestBody any = body
+	var requestBody *string = nil
 	if isPrivatePost {
-		requestBody = this.Json(query)
+		requestBody = SafeStringPtr(this.Json(query))
 	}
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
@@ -1962,7 +1959,7 @@ func (this *Blockchaincom) FetchOrderBook(symbol string, options ...FetchOrderBo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Blockchaincom) FetchL3OrderBook(symbol string, options ...FetchL3OrderBookOptions) (OrderBook, error) {
+func (this *Blockchaincom) FetchL3OrderBook(symbol string, options ...FetchL3OrderBookOptions) (OrderBookL3, error) {
 
 	opts := FetchL3OrderBookOptionsStruct{}
 
@@ -1971,9 +1968,9 @@ func (this *Blockchaincom) FetchL3OrderBook(symbol string, options ...FetchL3Ord
 	}
 	r := <-this.FetchL3OrderBookAsync(symbol, opts.Limit, opts.Params)
 	if r.Err != nil {
-		return OrderBook{}, r.Err
+		return OrderBookL3{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Raw)
+	var res OrderBookL3 = NewOrderBookL3(r.Raw)
 	return res, nil
 }
 func (this *Blockchaincom) FetchL2OrderBook(symbol string, options ...FetchL2OrderBookOptions) (OrderBook, error) {

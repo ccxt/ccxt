@@ -330,12 +330,11 @@ public partial class grvt : Exchange
                     { "ARBITRUM", "42161" },
                     { "AVAXC", "43114" },
                     { "BASE", "8453" },
-                    { "BSC", "56" },
-                    { "ETH", "1" },
+                    { "BEP20", "56" },
                     { "ERC20", "1" },
                     { "OP", "10" },
                     { "SOL", "900" },
-                    { "TRX", "728126428" },
+                    { "TRC20", "728126428" },
                     { "ZKSYNCERA", "324" },
                     { "KAIA", "8217" },
                 } },
@@ -2840,12 +2839,19 @@ public partial class grvt : Exchange
         {
             side = "long";
         }
+        // isolated_balance is the wallet balance reserved for the isolated position
+        string? marginMode = this.safeStringLower(position, "margin_type");
+        double? positionMargin = null;
+        if (marginMode == "isolated")
+        {
+            positionMargin = this.safeNumber(position, "isolated_balance");
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", this.safeSymbol(marketId, market) },
             { "notional", this.parseNumber(Precise.stringAbs(this.safeString(position, "notional"))) },
-            { "marginMode", null },
+            { "marginMode", marginMode },
             { "liquidationPrice", this.safeNumber(position, "est_liquidation_price") },
             { "entryPrice", this.safeNumber(position, "entry_price") },
             { "unrealizedPnl", this.safeNumber(position, "unrealized_pnl") },
@@ -2859,10 +2865,11 @@ public partial class grvt : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastUpdateTimestamp", this.safeInteger(position, "lastUpdateTime") },
-            { "maintenanceMargin", this.safeNumber(position, "maintenanceMargin") },
+            { "maintenanceMargin", this.safeNumber2(position, "isolated_mm", "maintenanceMargin") },
             { "maintenanceMarginPercentage", null },
+            { "positionMargin", positionMargin },
             { "collateral", null },
-            { "initialMargin", this.safeNumber(position, "initialMargin") },
+            { "initialMargin", this.safeNumber2(position, "isolated_im", "initialMargin") },
             { "initialMarginPercentage", null },
             { "leverage", this.safeNumber(position, "leverage") },
             { "marginRatio", null },
@@ -3781,16 +3788,17 @@ public partial class grvt : Exchange
         return requestId;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         object requestPath = path;
         object query = this.omit(parameters, this.extractParams(requestPath));
-        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3823,7 +3831,7 @@ public partial class grvt : Exchange
                 requestBody = this.json(parameters);
             }
         }
-        bool isPrivate = ((string)api).StartsWith("private");
+        bool isPrivate = ((string)apiName).StartsWith("private");
         if ((isPrivate == true))
         {
             this.checkRequiredCredentials();
@@ -3836,7 +3844,7 @@ public partial class grvt : Exchange
             };
             if (((((string)requestPath).EndsWith("auth/api_key/login") == true)) || ((((string)requestPath).EndsWith("auth/wallet/login") == true)))
             {
-                ((IDictionary<string,object>)requestHeaders)["Cookie"] = "rm=true;";
+                requestHeaders["Cookie"] = "rm=true;";
             } else
             {
                 string? accountId = this.safeString(this.options, "AuthAccountId");
@@ -3845,8 +3853,8 @@ public partial class grvt : Exchange
                 {
                     throw new AuthenticationError ((this.id + " : at first, you need to authenticate with exchange using signIn() method.")) ;
                 }
-                ((IDictionary<string,object>)requestHeaders)["Cookie"] = cookieValue;
-                ((IDictionary<string,object>)requestHeaders)["X-Grvt-Account-Id"] = accountId;
+                requestHeaders["Cookie"] = cookieValue;
+                requestHeaders["X-Grvt-Account-Id"] = accountId;
             }
         }
         return new Dictionary<string, object>() {

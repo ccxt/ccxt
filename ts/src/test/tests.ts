@@ -1919,6 +1919,78 @@ class testMainClass {
         return true;
     }
 
+    assertStaticIsolatedPosition (exchange: Exchange, entry: any) {
+        if (!exchange.isDictionary (entry)) {
+            return true;
+        }
+        const marginMode = exchange.safeString (entry, 'marginMode');
+        if (marginMode !== 'isolated') {
+            return true;
+        }
+        const side = exchange.safeString (entry, 'side');
+        const entryPrice = exchange.safeNumber (entry, 'entryPrice');
+        const liquidationPrice = exchange.safeNumber (entry, 'liquidationPrice');
+        const contracts = exchange.safeNumber (entry, 'contracts');
+        const contractSize = exchange.safeNumber (entry, 'contractSize');
+        const maintenanceMargin = exchange.safeNumber (entry, 'maintenanceMargin');
+        const collateral = exchange.safeNumber (entry, 'collateral');
+        const initialMargin = exchange.safeNumber (entry, 'initialMargin');
+        const unrealizedPnl = exchange.safeNumber (entry, 'unrealizedPnl');
+        if ((entryPrice !== undefined) && (liquidationPrice !== undefined) && (entryPrice > 0) && (liquidationPrice > 0)) {
+            if (side === 'long') {
+                this.assertStaticError (liquidationPrice < entryPrice, 'isolated long liquidationPrice should be less than entryPrice', entryPrice, liquidationPrice);
+            } else if (side === 'short') {
+                this.assertStaticError (liquidationPrice > entryPrice, 'isolated short liquidationPrice should be greater than entryPrice', entryPrice, liquidationPrice);
+            }
+        }
+        let entryMargin = undefined;
+        if (collateral !== undefined) {
+            if ((unrealizedPnl !== undefined) && (collateral !== initialMargin)) {
+                entryMargin = collateral - unrealizedPnl;
+            } else {
+                entryMargin = collateral;
+            }
+        } else if (initialMargin !== undefined) {
+            entryMargin = initialMargin;
+        }
+        if ((entryMargin !== undefined) && (entryPrice !== undefined) && (liquidationPrice !== undefined) && (contracts !== undefined) && (contractSize !== undefined) && (maintenanceMargin !== undefined)) {
+            if ((entryMargin > 0) && (entryPrice > 0) && (liquidationPrice > 0) && (contracts > 0) && (contractSize > 0) && (maintenanceMargin > 0)) {
+                const symbol = exchange.safeString (entry, 'symbol');
+                const market = (symbol !== undefined) ? exchange.safeDict (exchange.markets, symbol) : undefined;
+                const isInverse = (market !== undefined) && exchange.safeBool (market, 'inverse', false);
+                let priceDiff = 0;
+                if (isInverse) {
+                    const invEntry = 1 / entryPrice;
+                    const invLiq = 1 / liquidationPrice;
+                    priceDiff = (invEntry > invLiq) ? (invEntry - invLiq) : (invLiq - invEntry);
+                } else {
+                    priceDiff = (entryPrice > liquidationPrice) ? (entryPrice - liquidationPrice) : (liquidationPrice - entryPrice);
+                }
+                const lossFromEntry = priceDiff * contracts * contractSize;
+                const calculatedMm = entryMargin - lossFromEntry;
+                this.assertStaticError (calculatedMm > 0, 'isolated position remaining collateral at liquidationPrice should be greater than 0', maintenanceMargin, calculatedMm);
+                const mmDiff = (calculatedMm > maintenanceMargin) ? (calculatedMm - maintenanceMargin) : (maintenanceMargin - calculatedMm);
+                const maxTolerance = entryMargin * 0.05;
+                this.assertStaticError (mmDiff <= maxTolerance, 'isolated position maintenanceMargin does not match remaining collateral at liquidationPrice', maintenanceMargin, calculatedMm);
+            }
+        }
+        return true;
+    }
+
+    assertStaticIsolatedPositions (exchange: Exchange, method: string, output: any) {
+        if ((method === 'fetchPosition') || (method === 'fetchPositions') || (method === 'fetchPositionsForSymbol') || (method === 'fetchPositionsRisk')) {
+            if (Array.isArray (output)) {
+                const outputLength = output.length;
+                for (let i = 0; i < outputLength; i++) {
+                    this.assertStaticIsolatedPosition (exchange, output[i]);
+                }
+            } else if (exchange.isDictionary (output)) {
+                this.assertStaticIsolatedPosition (exchange, output);
+            }
+        }
+        return true;
+    }
+
     assertStaticResponseOutput (exchange: Exchange, skipKeys: string[], computedResult: any, storedResult: any) {
         this.assertNewAndStoredOutput (exchange, skipKeys, computedResult, storedResult, false);
     }
@@ -2007,9 +2079,11 @@ class testMainClass {
             if (!isSync ()) {
                 const unifiedResult = await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
                 this.assertStaticResponseOutput (mockedExchange, skipKeys, unifiedResult, expectedResult);
+                this.assertStaticIsolatedPositions (mockedExchange, method, expectedResult);
             } else {
                 const unifiedResultSync = callExchangeMethodDynamicallySync (exchange, method, this.sanitizeDataInput (data['input']));
                 this.assertStaticResponseOutput (mockedExchange, skipKeys, unifiedResultSync, expectedResult);
+                this.assertStaticIsolatedPositions (mockedExchange, method, expectedResult);
             }
         }
         catch (e) {
@@ -2328,6 +2402,10 @@ class testMainClass {
         if (exchangeName === 'grvt') {
             options['apiKey'] = "";
             options['secret'] = "";
+        }
+        if (exchangeName === 'backpack') {
+            // Ed25519 requires a base64-encoded 32-byte seed, not the generic dummy secret.
+            options['secret'] = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
         }
         const exchange = initExchange (exchangeName, options, isWs);
         if (currencies !== undefined) {
@@ -2741,6 +2819,36 @@ class testMainClass {
         // inverse swap
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
         assert (clientOrderIdInverse.startsWith (inverseSwapId) === true, 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
+        // defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
+        exchange.extendExchangeOptions ({ 'defaultType': 'swap' });
+        let swapNoSubTypeRequest: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            swapNoSubTypeRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const swapNoSubTypeId = swapNoSubTypeRequest['newClientOrderId'];
+        assert (swapNoSubTypeId.startsWith (swapId) === true, 'binance - defaultType swap without subType clientOrderId: ' + swapNoSubTypeId + ' does not start with swapId' + swapId);
+        exchange.extendExchangeOptions ({ 'defaultSubType': 'linear' });
+        let swapLinearRequest: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            swapLinearRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const swapLinearId = swapLinearRequest['newClientOrderId'];
+        assert (swapLinearId.startsWith (swapId) === true, 'binance - defaultType swap linear clientOrderId: ' + swapLinearId + ' does not start with swapId' + swapId);
+        exchange.extendExchangeOptions ({ 'defaultSubType': 'inverse' });
+        let swapInverseRequest: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USD', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            swapInverseRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const swapInverseId = swapInverseRequest['newClientOrderId'];
+        assert (swapInverseId.startsWith (inverseSwapId) === true, 'binance - defaultType swap inverse clientOrderId: ' + swapInverseId + ' does not start with inverseSwapId' + inverseSwapId);
+        exchange.extendExchangeOptions ({ 'defaultType': 'spot' });
+        exchange.extendExchangeOptions ({ 'defaultSubType': 'linear' });
         // linear swap conditional order
         let swapAlgoOrderRequest: Dict = {};
         try {

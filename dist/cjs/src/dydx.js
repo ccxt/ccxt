@@ -2461,11 +2461,11 @@ class dydx extends dydx$1["default"] {
         }
         throw new errors.ArgumentsRequired(this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
         const pathWithParams = this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], section);
+        const apiUrl = this.safeString(this.urls['api'], section[0]);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2484,8 +2484,8 @@ class dydx extends dydx$1["default"] {
                 'Content-type': 'application/json',
             };
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

@@ -170,6 +170,7 @@ pub mod shared {
     pub fn assert_timestamp<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_timestamp_and_datetime<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_currency_code<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_unified_network_code<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_structure<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_non_emtpy_array<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_non_empty_array<E: AsValue>(_e: E, _args: &[Value]) {}

@@ -962,16 +962,14 @@ func WithFetchWebEndpointEndRegex(endRegex string) FetchWebEndpointOptions {
 }
 
 type Fetch2OptionsStruct struct {
-	Api     *any
-	Method  *string
-	Params  *map[string]any
-	Headers *any
-	Body    *any
+	Api    *[]string
+	Method *string
+	Params *map[string]any
 }
 
 type Fetch2Options func(opts *Fetch2OptionsStruct)
 
-func WithFetch2Api(api any) Fetch2Options {
+func WithFetch2Api(api []string) Fetch2Options {
 	return func(opts *Fetch2OptionsStruct) {
 		opts.Api = &api
 	}
@@ -986,18 +984,6 @@ func WithFetch2Method(method string) Fetch2Options {
 func WithFetch2Params(params map[string]any) Fetch2Options {
 	return func(opts *Fetch2OptionsStruct) {
 		opts.Params = &params
-	}
-}
-
-func WithFetch2Headers(headers any) Fetch2Options {
-	return func(opts *Fetch2OptionsStruct) {
-		opts.Headers = &headers
-	}
-}
-
-func WithFetch2Body(body any) Fetch2Options {
-	return func(opts *Fetch2OptionsStruct) {
-		opts.Body = &body
 	}
 }
 
@@ -4913,6 +4899,37 @@ func WithFetchAccountPositionsSymbols(symbols []string) FetchAccountPositionsOpt
 
 func WithFetchAccountPositionsParams(params map[string]any) FetchAccountPositionsOptions {
 	return func(opts *FetchAccountPositionsOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchStockIndicativeQuoteOptionsStruct struct {
+	Params *map[string]any
+}
+
+type FetchStockIndicativeQuoteOptions func(opts *FetchStockIndicativeQuoteOptionsStruct)
+
+func WithFetchStockIndicativeQuoteParams(params map[string]any) FetchStockIndicativeQuoteOptions {
+	return func(opts *FetchStockIndicativeQuoteOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type CreateRfqOrderOptionsStruct struct {
+	Price  *float64
+	Params *map[string]any
+}
+
+type CreateRfqOrderOptions func(opts *CreateRfqOrderOptionsStruct)
+
+func WithCreateRfqOrderPrice(price float64) CreateRfqOrderOptions {
+	return func(opts *CreateRfqOrderOptionsStruct) {
+		opts.Price = &price
+	}
+}
+
+func WithCreateRfqOrderParams(params map[string]any) CreateRfqOrderOptions {
+	return func(opts *CreateRfqOrderOptionsStruct) {
 		opts.Params = &params
 	}
 }
