@@ -2633,11 +2633,17 @@ async function runMain () {
     if (proOnly) {
         // pro (WebSocket) tier: ts/src/pro/<id>.ts -> cpp/ccxt/pro/<id>.h. Named ids
         // or the whole ws-fixture-backed set (static/ws/<id>.json dir listing).
-        const proIds = ids.length
+        // Prediction-tier venues are excluded: the port wraps them in the
+        // prediction hierarchy, so their pro class (which derives the REST
+        // class) has no REST counterpart to compile against.
+        const predictionSet: Set<string> = new Set (
+            JSON.parse (fs.readFileSync ('./exchanges.json', 'utf8')).prediction || []);
+        const proIds = (ids.length
             ? ids
             : fs.readdirSync ('./ts/src/test/static/ws/')
                   .filter ((f) => f.endsWith ('.json'))
-                  .map ((f) => f.replace ('.json', ''));
+                  .map ((f) => f.replace ('.json', '')))
+                  .filter ((id) => !predictionSet.has (id));
         driver.transpileProExchangeFiles (proIds, force);
         return;
     }
