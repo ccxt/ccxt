@@ -3180,9 +3180,11 @@ func (this *Gate) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 }
 func (this *Gate) GetMarketTypeByUrl(url any) any {
 	var findBy map[string]any = map[string]any{
-		"op-":      "option",
-		"delivery": "future",
-		"fx":       "swap",
+		"op-":          "option",
+		"/ws/options/": "option",
+		"delivery":     "future",
+		"fx":           "swap",
+		"/ws/futures/": "swap",
 	}
 	var keys []string = nil
 	if findBy != nil {

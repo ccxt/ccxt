@@ -767,6 +767,7 @@ class kucoin extends kucoin$1["default"] {
                     '300003': errors.InsufficientFunds,
                     '300012': errors.InvalidOrder,
                     '404000': errors.NotSupported, // URL Not Found -- The requested resource could not be found
+                    '300011': errors.InvalidOrder,
                     '300009': errors.InvalidOrder, // {"msg":"No open positions to close.","code":"300009"}
                     '330008': errors.InsufficientFunds, // {"msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008"}
                 },
@@ -2629,7 +2630,10 @@ class kucoin extends kucoin$1["default"] {
         const networkCode = this.networkIdToCode(networkId, this.safeString(currencyResolved, 'code'));
         if (networkCode !== undefined) {
             result['networks'][networkCode] = {
-                'withdraw': minWithdrawFee,
+                'withdraw': {
+                    'fee': minWithdrawFee,
+                    'percentage': false,
+                },
                 'deposit': {
                     'fee': undefined,
                     'percentage': undefined,
@@ -4092,12 +4096,8 @@ class kucoin extends kucoin$1["default"] {
         let response;
         if (testOrder === true) {
             if (isMarginOrder) {
-                if (hf === true) {
-                    response = await this.privatePostHfMarginOrderTest(orderRequest);
-                }
-                else {
-                    response = await this.privatePostMarginOrderTest(orderRequest);
-                }
+                // the classic margin order endpoints are deprecated
+                response = await this.privatePostHfMarginOrderTest(orderRequest);
             }
             else if (hf === true) {
                 response = await this.privatePostHfOrdersTest(orderRequest);
@@ -4115,12 +4115,7 @@ class kucoin extends kucoin$1["default"] {
             }
         }
         else if (isMarginOrder) {
-            if (hf === true) {
-                response = await this.privatePostHfMarginOrder(orderRequest);
-            }
-            else {
-                response = await this.privatePostMarginOrder(orderRequest);
-            }
+            response = await this.privatePostHfMarginOrder(orderRequest);
         }
         else if (useSync) {
             response = await this.privatePostHfOrdersSync(orderRequest);
@@ -4209,7 +4204,7 @@ class kucoin extends kucoin$1["default"] {
         }
         else if (isMarginOrder) {
             if (marginMode === 'isolated') {
-                request['marginModel'] = 'isolated';
+                request['isIsolated'] = true;
             }
         }
         let postOnly = undefined;
@@ -4932,6 +4927,9 @@ class kucoin extends kucoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        if (market['contract'] === true) {
+            throw new errors.NotSupported(this.id + ' editOrder() supports spot markets only');
+        }
         const request = {
             'symbol': market['id'],
         };
@@ -5603,7 +5601,12 @@ class kucoin extends kucoin$1["default"] {
                 request['startAt'] = since;
             }
             if (limit !== undefined) {
-                request['pageSize'] = limit;
+                if (limit < 10) {
+                    request['pageSize'] = 10; // minimum page size, the result is trimmed to the limit
+                }
+                else {
+                    request['pageSize'] = limit;
+                }
             }
             if ((until !== undefined) && (until !== 0)) {
                 request['endAt'] = until;
@@ -6018,8 +6021,9 @@ class kucoin extends kucoin$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        if (id === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires an id argument');
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientOid');
+        if ((id === undefined) && (clientOrderId === undefined)) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires an id argument or a clientOrderId parameter');
         }
         let uta = await this.isUTAEnabled();
         let paramsRequest = undefined;
@@ -6140,9 +6144,9 @@ class kucoin extends kucoin$1["default"] {
                 response = await this.privateGetOrdersOrderId(this.extend(request, paramsOmitted));
             }
         }
-        let responseData = this.safeDict(response, 'data', {});
+        let responseData = this.safeValue(response, 'data', {});
         if (Array.isArray(responseData)) {
-            responseData = this.safeValue(responseData, 0);
+            responseData = this.safeDict(responseData, 0, {});
         }
         return this.parseOrder(responseData, market);
     }
@@ -7761,7 +7765,15 @@ class kucoin extends kucoin$1["default"] {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseTransaction(data, currency);
+        const transaction = this.parseTransaction(data, currency);
+        // the response only has the withdrawalId
+        const withdrawal = this.extend(transaction, {
+            'type': 'withdrawal',
+            'amount': this.parseNumber(amountString),
+            'address': address,
+            'addressTo': address,
+        });
+        return withdrawal;
     }
     parseTransactionStatus(status) {
         const statuses = {
@@ -7931,7 +7943,12 @@ class kucoin extends kucoin$1["default"] {
             request['currency'] = currency['id'];
         }
         if (limit !== undefined) {
-            request['pageSize'] = limit;
+            if (limit < 10) {
+                request['pageSize'] = 10; // minimum page size, the result is trimmed to the limit
+            }
+            else {
+                request['pageSize'] = limit;
+            }
         }
         [request, paramsRequest] = this.handleUntilOption('endAt', request, paramsRequest);
         let response = undefined;
@@ -8086,7 +8103,12 @@ class kucoin extends kucoin$1["default"] {
             request['currency'] = currency['id'];
         }
         if (limit !== undefined) {
-            request['pageSize'] = limit;
+            if (limit < 10) {
+                request['pageSize'] = 10; // minimum page size, the result is trimmed to the limit
+            }
+            else {
+                request['pageSize'] = limit;
+            }
         }
         [request, paramsRequest] = this.handleUntilOption('endAt', request, paramsRequest);
         let response = undefined;
@@ -9145,7 +9167,6 @@ class kucoin extends kucoin$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        await this.loadAccounts();
         let uta = await this.isUTAEnabled();
         let paramsRequest = undefined;
         [uta, paramsRequest] = this.handleOptionBoolAndParams(params, 'fetchLedger', 'uta', uta);
@@ -9213,7 +9234,12 @@ class kucoin extends kucoin$1["default"] {
                 request['limit'] = limit;
             }
             else {
-                request['pageSize'] = limit;
+                if (limit < 10) {
+                    request['pageSize'] = 10; // minimum page size, the result is trimmed to the limit
+                }
+                else {
+                    request['pageSize'] = limit;
+                }
             }
         }
         let response;
@@ -9352,9 +9378,14 @@ class kucoin extends kucoin$1["default"] {
             timestamp = this.parseToInt(timestampId.slice(0, 13));
         }
         const currencyId = this.safeString(info, 'currency');
+        let rate = this.safeStringN(info, ['dailyIntRate', 'dayRatio', 'currentRateDaily']);
+        const hourlyRate = this.safeString(info, 'hourlyBorrowRate');
+        if ((rate === undefined) && (hourlyRate !== undefined)) {
+            rate = Precise["default"].stringMul(hourlyRate, '24');
+        }
         return {
             'currency': this.safeCurrencyCode(currencyId, currency),
-            'rate': this.safeNumberN(info, ['dailyIntRate', 'dayRatio', 'currentRateDaily']),
+            'rate': this.parseNumber(rate),
             'period': 86400000,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -9718,7 +9749,26 @@ class kucoin extends kucoin$1["default"] {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.utaPrivateGetAccountInterestLimits(this.extend(request, params));
+        let uta = await this.isUTAEnabled();
+        let paramsRequest = undefined;
+        [uta, paramsRequest] = this.handleOptionBoolAndParams(params, 'fetchCrossBorrowRate', 'uta', uta);
+        if (!uta) {
+            const responseClassic = await this.privateGetMarginBorrowRate(this.extend(request, paramsRequest));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "vipLevel": 0,
+            //             "items": [ { "currency": "USDT", "hourlyBorrowRate": "0.00000597", "annualizedBorrowRate": "0.0523" } ]
+            //         }
+            //     }
+            //
+            const dataClassic = this.safeDict(responseClassic, 'data', {});
+            const items = this.safeList(dataClassic, 'items', []);
+            const item = this.safeDict(items, 0, {});
+            return this.parseBorrowRate(item, currency);
+        }
+        const response = await this.utaPrivateGetAccountInterestLimits(this.extend(request, paramsRequest));
         //
         //     {
         //         "code": "200000",
@@ -9950,7 +10000,7 @@ class kucoin extends kucoin$1["default"] {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams(symbol, params);
+        const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('fetchLeverage', params, 'cross');
         if (marginMode !== 'cross') {
             throw new errors.NotSupported(this.id + ' fetchLeverage() currently supports only params["marginMode"] = "cross"');
         }
@@ -9979,6 +10029,17 @@ class kucoin extends kucoin$1["default"] {
         return this.extend(parsed, {
             'marginMode': marginMode,
         });
+    }
+    parseLeverage(leverage, market = undefined) {
+        const marketId = this.safeString(leverage, 'symbol');
+        const leverageValue = this.safeInteger(leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
+            'marginMode': undefined,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        };
     }
     /**
      * @method
@@ -10065,7 +10126,7 @@ class kucoin extends kucoin$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams(symbol, params);
+        const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('setLeverage', params);
         if ((marginMode !== undefined) && (marginMode !== 'cross')) {
             throw new errors.NotSupported(this.id + ' setLeverage() currently supports only params["marginMode"] = "cross" for contracts');
         }
@@ -10094,7 +10155,8 @@ class kucoin extends kucoin$1["default"] {
             response = await this.futuresPrivatePostChangeCrossUserLeverage(this.extend(request, paramsUta));
         }
         const data = this.safeDict(response, 'data', {});
-        const leverageNum = this.safeNumber(data, 'leverage');
+        // the classic endpoint returns data: true, fall back to the requested leverage
+        const leverageNum = this.safeNumber(data, 'leverage', leverage);
         return {
             'info': response,
             'symbol': market['symbol'],
@@ -11041,7 +11103,9 @@ class kucoin extends kucoin$1["default"] {
             market = this.market(symbol);
             isContractMarket = market['contract'];
             if (isContractMarket !== true) {
-                uta = true; // spot market orders can only be cancelled via the uta endpoint
+                if (!uta) {
+                    throw new errors.NotSupported(this.id + ' cancelOrders() supports spot markets only for unified trading accounts');
+                }
             }
         }
         else if (uta) {
@@ -11140,7 +11204,7 @@ class kucoin extends kucoin$1["default"] {
         const uuid = this.uuid();
         const request = {
             'symbol': market['id'],
-            'margin': this.amountToPrecision(symbol, amount),
+            'margin': this.numberToString(amount),
             'bizNo': uuid,
         };
         const response = await this.futuresPrivatePostPositionMarginDepositMargin(this.extend(request, params));
@@ -11195,7 +11259,7 @@ class kucoin extends kucoin$1["default"] {
         //
         const data = this.safeDict(response, 'data', {});
         return this.extend(this.parseMarginModification(data, market), {
-            'amount': this.amountToPrecision(symbol, amount),
+            'amount': amount,
             'direction': 'in',
         });
     }
@@ -11215,7 +11279,7 @@ class kucoin extends kucoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const amountString = this.amountToPrecision(symbol, amount);
+        const amountString = this.numberToString(amount);
         const request = {
             'symbol': market['id'],
             'withdrawAmount': amountString,
@@ -11455,7 +11519,8 @@ class kucoin extends kucoin$1["default"] {
         const market = this.market(symbol);
         let clientOrderId = this.safeString(params, 'clientOrderId');
         const testOrder = this.safeBool(params, 'test', false);
-        const paramsOmitted = this.omit(params, ['test', 'clientOrderId']);
+        const marginMode = this.safeStringUpper(params, 'marginMode');
+        const paramsOmitted = this.omit(params, ['test', 'clientOrderId', 'marginMode']);
         if (clientOrderId === undefined) {
             clientOrderId = this.numberToString(this.nonce());
         }
@@ -11465,6 +11530,9 @@ class kucoin extends kucoin$1["default"] {
             'clientOid': clientOrderId,
             'type': 'market',
         };
+        if (marginMode !== undefined) {
+            request['marginMode'] = marginMode;
+        }
         let response = undefined;
         if (testOrder === true) {
             response = await this.futuresPrivatePostOrdersTest(this.extend(request, paramsOmitted));

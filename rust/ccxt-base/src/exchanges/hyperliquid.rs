@@ -132,6 +132,7 @@ impl crate::exchange_generated::ExchangeBase for HyperliquidCore {
                 "amount_to_precision" => self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "approve_builder_fee" => self.approve_builder_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "build_approve_builder_fee_sig" => self.build_approve_builder_fee_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "build_send_asset_sig" => self.build_send_asset_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "build_usd_class_send_sig" => self.build_usd_class_send_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "build_usd_send_sig" => self.build_usd_send_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "build_user_abstraction_sig" => self.build_user_abstraction_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -2507,6 +2508,57 @@ impl HyperliquidCore {
     Value::Null
 }
 
+    pub fn build_send_asset_sig(&self, mut message: Value) -> Value {
+        let mut messageTypes: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("HyperliquidTransaction:SendAsset".to_string(), Value::from(vec![Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), Value::Str("hyperliquidChain".into()));
+        m.insert("type".to_string(), Value::Str("string".into()));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), Value::Str("destination".into()));
+        m.insert("type".to_string(), Value::Str("string".into()));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), Value::Str("sourceDex".into()));
+        m.insert("type".to_string(), Value::Str("string".into()));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), Value::Str("destinationDex".into()));
+        m.insert("type".to_string(), Value::Str("string".into()));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), Value::Str("token".into()));
+        m.insert("type".to_string(), Value::Str("string".into()));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), Value::Str("amount".into()));
+        m.insert("type".to_string(), Value::Str("string".into()));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), Value::Str("fromSubAccount".into()));
+        m.insert("type".to_string(), Value::Str("string".into()));
+    m
+}), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("name".to_string(), Value::Str("nonce".into()));
+        m.insert("type".to_string(), Value::Str("uint64".into()));
+    m
+})]));
+            m
+        });
+        return self.sign_user_signed_action(messageTypes, message);
+
+    Value::Null
+}
+
     pub fn build_withdraw_sig(&self, mut message: Value) -> Value {
         let mut messageTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2780,7 +2832,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             let mut response: Value = Value::Null;
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                let __ws_arg_17 = self.extend(request, &[paramsEnableUnifiedMargin.clone()]);
+                // the request keys win: a caller's own 'type' or 'user' params (e.g. transfer's
+                // type 'swap') must not overwrite the info query, which would silently fail here
+                let __ws_arg_17 = self.extend(paramsEnableUnifiedMargin.clone(), &[request]);
                 let mut rawResponse: Value = self.public_post_info(&[__ws_arg_17]).await;
                 if matches!(&rawResponse, Value::Str(_)) {
                     response = rawResponse.clone();
@@ -5593,13 +5647,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @method
  * @name hyperliquid#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-from-spot-account-to-perp-account-and-vice-versa
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-between-sub-accounts
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#send-asset
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
- * @param {string} fromAccount account to transfer from *spot, swap*
- * @param {string} toAccount account to transfer to *swap, spot or address*
+ * @param {string} fromAccount account to transfer from *spot, swap, main or a sub-account address*
+ * @param {string} toAccount account to transfer to *swap, spot, main or a sub-account address*
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.vaultAddress] the vault address for order
+ * @param {string} [params.vaultAddress] spot <> swap only, moves the balance inside this vault or sub-account instead of the main account
+ * @param {string} [params.type] main <> sub-account only, 'spot' moves the spot ledger instead of the perp ledger
+ * @param {string} [params.method] main <> sub-account only, 'sendAsset' forces the unified-account route, 'subAccountTransfer' forces the legacy sub-account actions; defaults to sendAsset when the account abstraction is unifiedAccount
+ * @param {boolean} [params.enableUnifiedMargin] main <> sub-account only, skips the abstraction lookup and states whether the account is unified
+ * @param {string} [params.sourceDex] sendAsset only, perp dex to move from, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+ * @param {string} [params.destinationDex] sendAsset only, perp dex to move to, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+ * @param {string} [params.user] sendAsset only, the master wallet address, defaults to walletAddress
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
     pub async fn transfer(&mut self, mut code: Value, mut amount: Value, mut fromAccount: Value, mut toAccount: Value, optional_args: &[Value]) -> Value {
@@ -5672,10 +5734,72 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" transfer() only support main <> subaccount transfer".into()))));
         }
         self.check_address(&[subAccountAddress.clone()]);
-        // hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
+        let mut transferType: Option<String> = self.safe_string_k(params.clone(), "type", &[]).as_str().map(str::to_owned);
+        // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
+        // unified account is active", a unified account has to move balances with sendAsset instead
+        let mut transferMethod: Value = Value::Null;
+        let mut query: Value = params;
+        { let __destr_tmp = self.handle_option_and_params(query.clone(), Value::Str("transfer".into()), Value::Str("method".into()), &[]); transferMethod = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); query = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut masterAddress: Value = Value::Null;
+        { let __destr_tmp = self.handle_public_address(Value::Str("transfer".into()), query.clone()); masterAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); query = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut useSendAsset: bool = transferMethod.as_str() == Some("sendAsset");
+        if (transferMethod == Value::Null) {
+            let mut isUnified: Value = Value::Null;
+            { let __destr_tmp = self.is_unified_enabled(Value::Str("transfer".into()), &[masterAddress.clone(), Value::Bool(false), query.clone()]).await; isUnified = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); query = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+            useSendAsset = isUnified.as_bool() == Some(true);
+        }
+        if useSendAsset {
+            let mut paramsSendAsset: Value = query;
+            let mut sendAssetCurrency: Value = self.currency(code.clone());
+            let mut sendAssetCurrencyInfo: Value = self.safe_dict_k(sendAssetCurrency.clone(), "info", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            let mut sendAssetToken: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(sendAssetCurrencyInfo.clone(), "name", &[]), Value::Str(":".into())).into()), self.safe_string_k(sendAssetCurrencyInfo, "tokenId", &[])).into());
+            // '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
+            // keeps every balance in the spot clearinghouse so spot is the default on both sides
+            let mut defaultDex: Value = (if ((transferType.as_deref() == Some("swap")) || (transferType.as_deref() == Some("perp"))) { Value::Str("".into()) } else { Value::Str("spot".into()) });
+            let mut sourceDex: Value = self.safe_string_k(paramsSendAsset.clone(), "sourceDex", &[defaultDex.clone()]);
+            let mut destinationDex: Value = self.safe_string_k(paramsSendAsset, "destinationDex", &[defaultDex]);
+            let mut sendAssetPayload: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("hyperliquidChain".to_string(), (if (isSandboxMode.as_bool() == Some(true)) { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
+                    m.insert("destination".to_string(), (if isDeposit.as_bool() == Some(true) { subAccountAddress.clone() } else { masterAddress }));
+                    m.insert("sourceDex".to_string(), sourceDex.clone());
+                    m.insert("destinationDex".to_string(), destinationDex.clone());
+                    m.insert("token".to_string(), sendAssetToken.clone());
+                    m.insert("amount".to_string(), self.number_to_string(amount.clone()));
+                    m.insert("fromSubAccount".to_string(), (if isDeposit.as_bool() == Some(true) { Value::Str("".into()) } else { subAccountAddress.clone() }));
+                    m.insert("nonce".to_string(), nonce.clone());
+                m
+            });
+            let mut sendAssetSig: Value = self.build_send_asset_sig(sendAssetPayload.clone());
+            let mut sendAssetRequest: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("action".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("hyperliquidChain".to_string(), match &sendAssetPayload { Value::Dict(__m15) => __m15.get("hyperliquidChain").cloned().unwrap_or(Value::Null), _ => Value::Null });
+        m.insert("signatureChainId".to_string(), Value::Str("0x66eee".into()));
+        m.insert("type".to_string(), Value::Str("sendAsset".into()));
+        m.insert("destination".to_string(), match &sendAssetPayload { Value::Dict(__m15) => __m15.get("destination").cloned().unwrap_or(Value::Null), _ => Value::Null });
+        m.insert("sourceDex".to_string(), sourceDex);
+        m.insert("destinationDex".to_string(), destinationDex);
+        m.insert("token".to_string(), sendAssetToken);
+        m.insert("amount".to_string(), match &sendAssetPayload { Value::Dict(__m15) => __m15.get("amount").cloned().unwrap_or(Value::Null), _ => Value::Null });
+        m.insert("fromSubAccount".to_string(), match &sendAssetPayload { Value::Dict(__m15) => __m15.get("fromSubAccount").cloned().unwrap_or(Value::Null), _ => Value::Null });
+        m.insert("nonce".to_string(), nonce.clone());
+    m
+}));
+                    m.insert("nonce".to_string(), nonce.clone());
+                    m.insert("signature".to_string(), sendAssetSig);
+                m
+            });
+            let mut sendAssetResponse: Value = self.private_post_exchange(&[sendAssetRequest]).await;
+            return self.parse_transfer(sendAssetResponse, &[sendAssetCurrency]);
+        }
+        // a standard account keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
         // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
         // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
-        let mut transferType: Option<String> = self.safe_string_k(params, "type", &[]).as_str().map(str::to_owned);
         let mut isUsdc: bool = to_upper(&code).as_str() == Some("USDC");
         if isUsdc && (transferType.as_deref() != Some("spot")) {
             // Transfer USDC with subAccountTransfer
@@ -5697,7 +5821,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
-            return self.parse_transfer(response.clone(), &[]);
+            return self.parse_transfer(response.clone(), &[self.safe_currency(code.clone(), &[])]);
         }  else {
             // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
             // expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
@@ -5705,7 +5829,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a currency code for spot sub-account transfers".into()))));
             }
             let mut currency: Value = self.currency(code);
-            let mut currencyInfo: Value = self.safe_dict_k(currency, "info", &[Value::Map({
+            let mut currencyInfo: Value = self.safe_dict_k(currency.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5730,7 +5854,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             let mut response: Value = self.private_post_exchange(&[request]).await;
-            return self.parse_transfer(response, &[]);
+            return self.parse_transfer(response, &[currency]);
         }
 
     Value::Null

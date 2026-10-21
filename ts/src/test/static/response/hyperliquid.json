@@ -2948,6 +2948,70 @@
         ],
         "transfer": [
             {
+                "description": "transfer from  sub-account to main",
+                "method": "transfer",
+                "input": [
+                    "USDC",
+                    5,
+                    "0x56a1cc0d72cf557718c8488991278ab3c78e10ff",
+                    "main"
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "default"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "ok",
+                        "response": {
+                            "type": "default"
+                        }
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDC",
+                    "amount": null,
+                    "fromAccount": null,
+                    "toAccount": null,
+                    "status": "ok"
+                }
+            },
+            {
+                "description": "transfer from main to sub-account",
+                "method": "transfer",
+                "input": [
+                    "USDC",
+                    5,
+                    "main",
+                    "0x56a1cc0d72cf557718c8488991278ab3c78e10ff"
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "default"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "ok",
+                        "response": {
+                            "type": "default"
+                        }
+                    },
+                    "id": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "currency": "USDC",
+                    "amount": null,
+                    "fromAccount": null,
+                    "toAccount": null,
+                    "status": "ok"
+                }
+            },
+            {
                 "description": "transfer",
                 "method": "transfer",
                 "input": [

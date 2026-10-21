@@ -1024,6 +1024,8 @@ public partial class bingx : Exchange
                     { "100419", typeof(PermissionDenied) },
                     { "100437", typeof(BadRequest) },
                     { "101204", typeof(InsufficientFunds) },
+                    { "101205", typeof(InvalidOrder) },
+                    { "101400", typeof(InvalidOrder) },
                     { "110425", typeof(InvalidOrder) },
                     { "100490", typeof(BadSymbol) },
                     { "101481", typeof(DuplicateOrderId) },
@@ -4654,7 +4656,7 @@ public partial class bingx : Exchange
             { "status", this.parseOrderStatus(statusId) },
             { "fee", new Dictionary<string, object>() {
                 { "currency", feeCurrencyCode },
-                { "cost", Precise.stringAbs(feeCost) },
+                { "cost", this.parseNumber(Precise.stringAbs(feeCost)) },
             } },
             { "trades", null },
             { "reduceOnly", this.safeBool2(orderData, "reduceOnly", "ro") },

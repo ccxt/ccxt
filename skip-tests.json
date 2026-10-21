@@ -246,8 +246,6 @@
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
-                "taker": "is undefined",
-                "maker": "is undefined",
                 "currencyIdAndCode": "not all currencies are available"
             },
             "ticker": {
@@ -257,7 +255,10 @@
                 "spread": "same bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/269550508#L3581",
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:253"
             },
-            "fetchTickers": "tmp skip, todo",
+            "fetchTickers": {
+                "checkActiveSymbols": "fetchTickers () returns one market type per call (defaultType), the check counts active markets of all types",
+                "comparePercentage": "priceChangePercent is rounded to two decimals by the venue"
+            },
             "fetchCurrencies": {
                 "limits": "min/max essup temrporarily"
             },
@@ -265,20 +266,12 @@
                 "compareToNextItem": "multiple bid prices are equal https://app.travis-ci.com/github/ccxt/ccxt/builds/265172859#L2745"
             },
             "fetchPositions": {
-                "marginRatio": "undefined",
                 "stopLossPrice": "undefined",
                 "takeProfitPrice": "undefined",
-                "initialMarginPercentage": "undefined",
                 "hedged": "undefined",
                 "timestamp": "undefined",
                 "datetime": "undefined",
-                "lastUpdateTimestamp": "undefined",
-                "maintenanceMargin": "undefined",
-                "contractSize": "undefined",
-                "markPrice": "undefined",
-                "lastPrice": "undefined",
-                "percentage": "undefined",
-                "liquidationPrice": "undefined"
+                "lastPrice": "undefined"
             }
         }
     },
@@ -2196,7 +2189,13 @@
         "httpsProxy": "http://188.245.226.105:8911",
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
-            "createOrder": "Polymarket geo-blocks order placement and CI runs via an EU proxy (403 from /order); verified live locally + the signed payload is covered by the static request fixtures"
+            "createOrder": "Polymarket geo-blocks order placement and CI runs via an EU proxy (403 from /order); verified live locally + the signed payload is covered by the static request fixtures",
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "perps collateral is pUSD only; BTC/ETH are perpetual-contract underlyings, not depositable or withdrawable assets, so their deposit/withdraw flags are false by design"
+            },
+            "fetchTrades": {
+                "sideSequence": "venue data: info/trades returns same-millisecond fills unsorted, e.g. two fills at timestamp 1792566132107 on BTC/USD:PUSD, both buys at 82716 then 82714, so the price direction cannot be checked against the side"
+            }
         },
         "preferredPredictionOutcome": "DEMOCRATIC_PRESIDENTIAL_NOMINEE_2028_BERNIE_SANDERS_WIN_2028_DEMOCRATIC_PRESIDENTIAL_NOMINATION_879:YES",
         "predictionNote": "liquid book, resolves 2028; C#/Go/Java dict ordering otherwise scans onto placeholder markets (Another team / Person Y) whose CLOB books 404; the harness falls back to a scan if this pin goes stale"
@@ -2709,6 +2708,9 @@
         "httpsProxy": "http://188.245.226.105:8911",
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
+            "fetchTrades": {
+                "sideSequence": "venue data: separate taker orders fill in the same block at one timestamp, live recentTrades BTC showed 81501.7 sell -> 81502.1 sell at one timestamp from two different ask accounts"
+            },
             "watchTicker.go": "Go test harness repanics the NotSupported thrown for spot symbols (the market_stats channel is swap-only) instead of skipping it like the other languages, recheck 2026-12-17",
             "watchTickers.go": "Go test harness repanics the NotSupported thrown for spot symbols (the market_stats channel is swap-only) instead of skipping it like the other languages, recheck 2026-12-17",
             "loadMarkets": {

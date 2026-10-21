@@ -2364,8 +2364,10 @@ class gate extends \ccxt\async\gate {
     public function get_market_type_by_url(string $url): string {
         $findBy = array(
             'op-' => 'option',
+            '/ws/options/' => 'option',
             'delivery' => 'future',
             'fx' => 'swap',
+            '/ws/futures/' => 'swap',
         );
         $keys = is_array($findBy) ? array_keys($findBy) : array();
         for ($i = 0; $i < count($keys); $i++) {
