@@ -39,6 +39,12 @@ if (CCXT_USE_JEMALLOC)
     endif ()
 endif ()
 
+# Library consumers building a single exchange don't need the test binaries or
+# the live-test CLI: turn both off and a scoped build compiles only the engine
+# + tier TUs (no test-harness TU, no -O2 CLI TU). CI/dev keep the defaults ON.
+option (CCXT_BUILD_TESTS "Build the test binaries (value/base/typed smokes, ccxt-tests, probes)" ON)
+option (CCXT_BUILD_CLI "Build the ccxt-cli live-test binary" ON)
+
 find_package (Threads REQUIRED)
 
 # libcurl is located and linked but not yet called: fetch() throws NotSupported this
@@ -102,6 +108,8 @@ target_include_directories (ccxt_headers INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries (ccxt_pro PUBLIC ccxt_headers ccxt_base)
 target_link_libraries (ccxt_prediction PUBLIC ccxt_headers ccxt_base)
 
+if (CCXT_BUILD_TESTS)
+
 # The value model underpins everything else (ordered dicts, reference semantics), so it
 # is its own binary and runs first.
 add_executable (ccxt-value-tests tests/test_value_model.cpp)
@@ -130,6 +138,10 @@ add_executable (ccxt-typed-smoke tests/typed_smoke.cpp)
 target_link_libraries (ccxt-typed-smoke PRIVATE ccxt ccxt_pro)
 target_compile_options (ccxt-typed-smoke PRIVATE -g0)
 
+endif () # CCXT_BUILD_TESTS
+
+if (CCXT_BUILD_CLI)
+
 # live-test CLI: ccxt-cli <exchangeId> <method> [args...] -- runs real HTTP calls
 add_executable (ccxt-cli cli/main.cpp)
 target_link_libraries (ccxt-cli PRIVATE
@@ -144,6 +156,10 @@ target_link_libraries (ccxt-cli PRIVATE
 # fort for the CLI binary specifically.
 target_compile_options (ccxt-cli PRIVATE -g0 -O2)
 
+endif () # CCXT_BUILD_CLI
+
+
+if (CCXT_BUILD_TESTS)
 
 enable_testing ()
 # ccxt-tests reads fixtures and keys.json relative to the repo root
@@ -165,3 +181,5 @@ target_link_libraries (setmarkets-probe PRIVATE
     "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt_pro>"
     "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt_prediction>")
 target_compile_options (setmarkets-probe PRIVATE -g0 -O2)
+
+endif () # CCXT_BUILD_TESTS
