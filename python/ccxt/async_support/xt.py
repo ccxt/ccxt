@@ -632,10 +632,8 @@ class xt(Exchange, ImplicitAPI):
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
-                    'TRX': 'Tron',
                     'BEP20': 'BNB Smart Chain',
                     'BEP2': 'BNB-BEP2',
-                    'ETH': 'Ethereum',
                     'AVAX': 'AVAX C-Chain',
                     'GAL': 'GAL(FT)',
                     'ALEO': 'ALEO(IOU)',
@@ -1978,7 +1976,11 @@ class xt(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market, '_', marketType)
         symbol = marketResolved['symbol']
         timestamp = self.safe_integer(ticker, 't')
-        percentage = self.safe_string_2(ticker, 'cr', 'r')
+        open = self.safe_string(ticker, 'o')
+        # spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
+        percentage = self.safe_string(ticker, 'r')
+        if open is None:
+            percentage = self.safe_string_2(ticker, 'cr', 'r')
         if percentage is not None:
             percentage = Precise.string_mul(percentage, '100')
         baseVolume = self.safe_string_2(ticker, 'a', 'q')
@@ -2003,11 +2005,11 @@ class xt(Exchange, ImplicitAPI):
             'ask': self.safe_number(ticker, 'ap'),
             'askVolume': self.safe_number(ticker, 'aq'),
             'vwap': None,
-            'open': self.safe_string(ticker, 'o'),
+            'open': open,
             'close': self.safe_string(ticker, 'c'),
             'last': self.safe_string(ticker, 'c'),
             'previousClose': None,
-            'change': self.safe_number(ticker, 'cv'),
+            'change': None,
             'percentage': self.parse_number(percentage),
             'average': None,
             'baseVolume': baseVolume,
@@ -5522,7 +5524,7 @@ class xt(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: object = [], method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: str, api: list[str] = [], method='GET', params={}):
         signed = api[0] == 'private'
         endpoint = api[1]
         request = '/' + self.implode_params(path, params)
@@ -5593,7 +5595,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             if urlencoded != '':
                 url += '?' + urlencoded
-        bodyValue = body
+        bodyValue = None
         if signed:
             bodyValue = signedBody
         return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}

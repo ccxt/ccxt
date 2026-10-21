@@ -3731,6 +3731,8 @@ public class Derive extends DeriveApi
         String markPrice = this.safeString(position, "mark_price");
         Long timestamp = this.safeInteger(position, "creation_timestamp");
         String unrealisedPnl = this.safeString(position, "unrealized_pnl");
+        String initialMarginString = Precise.stringAbs(this.safeString(position, "initial_margin"));
+        String maintenanceMarginString = Precise.stringAbs(this.safeString(position, "maintenance_margin"));
         size = Precise.stringAbs(size);
         String notional = Precise.stringMul(size, markPrice);
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
@@ -3740,11 +3742,11 @@ public class Derive extends DeriveApi
         mapLiteral6.put("timestamp", timestamp);
         mapLiteral6.put("datetime", this.iso8601(timestamp));
         mapLiteral6.put("lastUpdateTimestamp", null);
-        mapLiteral6.put("initialMargin", this.safeNumber(position, "initial_margin", (Object) null));
-        mapLiteral6.put("initialMarginPercentage", null);
-        mapLiteral6.put("maintenanceMargin", this.safeNumber(position, "maintenance_margin", (Object) null));
-        mapLiteral6.put("maintenanceMarginPercentage", null);
-        mapLiteral6.put("entryPrice", null);
+        mapLiteral6.put("initialMargin", this.parseNumber(initialMarginString));
+        mapLiteral6.put("initialMarginPercentage", this.parseNumber(Precise.stringDiv(initialMarginString, notional, 8)));
+        mapLiteral6.put("maintenanceMargin", this.parseNumber(maintenanceMarginString));
+        mapLiteral6.put("maintenanceMarginPercentage", this.parseNumber(Precise.stringDiv(maintenanceMarginString, notional, 8)));
+        mapLiteral6.put("entryPrice", this.safeNumber2(position, "average_price", "average_price_excl_fees", (Object) null));
         mapLiteral6.put("notional", this.parseNumber(notional));
         mapLiteral6.put("leverage", this.safeNumber(position, "leverage", (Object) null));
         mapLiteral6.put("unrealizedPnl", this.parseNumber(unrealisedPnl));
@@ -4984,9 +4986,10 @@ public class Derive extends DeriveApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4997,7 +5000,7 @@ public class Derive extends DeriveApi
             Map<String, Object> postHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
             }};
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+            if (java.util.Objects.equals(apiName, "private"))
             {
                 String now = this.numberToString(this.nonce());
                 String signature = this.signMessage(now, this.privateKey);
@@ -5024,8 +5027,8 @@ public class Derive extends DeriveApi
             HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
             h2kMap4.put("url", url);
             h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap4.put("body", body);
-            h2kMap4.put("headers", headers);
+            h2kMap4.put("body", null);
+            h2kMap4.put("headers", null);
             return h2kMap4;
         }
     }

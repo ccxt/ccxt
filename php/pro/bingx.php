@@ -1163,7 +1163,7 @@ class bingx extends \ccxt\async\bingx {
         }
         $uuid = $this->uuid();
         $baseUrl = null;
-        $request = array();
+        $request = null;
         if ($type === 'swap') {
             if ($subType === 'inverse') {
                 throw new NotSupported($this->id . ' watchMyTrades is not supported for inverse swap markets yet');

@@ -2160,12 +2160,15 @@ export default class cryptocom extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
-        const network = this.safeStringUpper (params, 'network');
+        const networkParam = this.safeStringUpper (params, 'network');
         const paramsOmitted: Dict = this.omit (params, [ 'network' ]);
         const depositAddressesRaw = await this.fetchDepositAddressesByNetwork (code, paramsOmitted);
         const depositAddresses: Dict = depositAddressesRaw;
-        if ((network as string) in depositAddresses) {
-            return depositAddresses[(network as string)];
+        if (networkParam !== undefined) {
+            const network = this.safeString (this.networkAliases, networkParam, networkParam);
+            if (network in depositAddresses) {
+                return depositAddresses[network];
+            }
         }
         const keys = Object.keys (depositAddresses);
         return depositAddresses[keys[0]];
@@ -3620,9 +3623,9 @@ export default class cryptocom extends Exchange {
         };
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestHeaders: NullableDict = headers;
-        let requestBody: Str = body;
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const type = this.safeString (api, 0);
         const access = this.safeString (api, 1);
         const apiUrl = this.safeString (this.urls['api'], type);

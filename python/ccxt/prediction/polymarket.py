@@ -2483,21 +2483,18 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # unique when two identical orders are signed within the same millisecond
         return self.milliseconds()
 
-    def sign(self, path: str, api: object = 'gamma', method='GET', params: dict = {}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['gamma'], method='GET', params: dict = {}):
         """
  @ignore
         builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints
         :param str path: the endpoint path
-        :param string|str[] api: the api group and access level
+        :param str[] api: the api group and access level
         :param str method: the http method
         :param dict params: the request parameters
-        :param dict [headers]: request headers
-        :param str [body]: the request body
         :returns dict: a dict with url, method, body and headers
         """
-        # api is either a string ('gamma') or array (['gamma', 'public'])
-        apiGroup = api if isinstance(api, str) else api[0]
-        access = 'public' if isinstance(api, str) else api[1]
+        apiGroup = api[0]
+        access = self.safe_string(api, 1, 'public')
         baseUrls = self.urls['api']
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['gamma'])
         url = baseUrl + '/' + self.implode_params(path, params)
@@ -2511,7 +2508,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         query = {}
         if not isArrayBody:
             query = self.omit(params, self.extract_params(path))
-        bodyValue = body
+        bodyValue = None
         if method == 'GET':
             # array-valued params must repeat the key (gamma's clob_token_ids rejects
             # comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -2535,7 +2532,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             queryKeysLength = len(queryKeys)
             if queryKeysLength > 0:
                 bodyValue = self.json(query)
-        headerDefaults = headers if (headers is not None) else {}
+        headerDefaults = {}
         headersValue = self.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',

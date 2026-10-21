@@ -252,7 +252,7 @@ class bigone extends Exchange {
                     'DOGE' => 'Dogecoin',
                     'XEC' => 'ECash',
                     'EOS' => 'EOS',
-                    'ETH' => 'Ethereum',
+                    'ERC20' => 'Ethereum',
                     'ETC' => 'EthereumClassic',
                     'ETHW' => 'EthereumPow',
                     'FTM' => 'Fantom',
@@ -2052,17 +2052,18 @@ class bigone extends Exchange {
         return $this->sum($this->microseconds() * 1000, $exchangeTimeCorrection);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $bodySigned = null;
         $query = $this->omit($params, $this->extract_params($path));
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $baseUrl = $this->implode_hostname($apiUrl);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $headersValue = array();
-        if ($api === 'public' || $api === 'webExchange' || $api === 'contractPublic') {
+        if ($apiName === 'public' || $apiName === 'webExchange' || $apiName === 'contractPublic') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
@@ -2087,7 +2088,7 @@ class bigone extends Exchange {
             }
         }
         $headersValue['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
-        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
+        $bodyResolved = $bodySigned;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersValue );
     }
 
@@ -2137,7 +2138,7 @@ class bigone extends Exchange {
             throw new ExchangeError($this->id . ' fetchDepositAddress() returned empty address response');
         }
         $chainsIndexedById = $this->index_by($data, 'chain');
-        $selectedNetworkId = $this->select_network_id_from_raw_networks($code, $networkCode, $chainsIndexedById);
+        $selectedNetworkId = $this->select_network_key_from_networks($code, $networkCode, $chainsIndexedById, false);
         $addressObject = $this->safe_dict($chainsIndexedById, $selectedNetworkId, array());
         $address = $this->safe_string($addressObject, 'value');
         $tag = $this->safe_string($addressObject, 'memo');

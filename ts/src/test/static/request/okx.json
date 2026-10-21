@@ -547,7 +547,7 @@
                         "posSide": "long"
                     }
                 ],
-                "output": { "instId": "BTC-USDT-SWAP", "side": "sell", "ordType": "move_order_stop", "sz": "1", "tdMode": "cross", "callbackSpread": "100", "clOrdId": "6b9ad766b55dBCDE7633f9e8e410983c", "tag": "6b9ad766b55dBCDE", "trailingPrice": "100", "reduceOnly": true, "posSide": "long" }
+                "output": { "instId": "BTC-USDT-SWAP", "side": "sell", "ordType": "move_order_stop", "sz": "1", "tdMode": "cross", "callbackSpread": "100", "clOrdId": "6b9ad766b55dBCDE7633f9e8e410983c", "tag": "6b9ad766b55dBCDE", "reduceOnly": true, "posSide": "long" }
             },
             {
                 "description": "spot limit sell with selfTradePrevention",
@@ -1945,6 +1945,16 @@
                 "url": "https://www.okx.com/api/v5/market/ticker?instId=BTC-USD-241227-60000-P",
                 "input": [
                   "BTC/USD:BTC-241227-60000-P"
+                ]
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "swap leverage tiers",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://www.okx.com/api/v5/public/position-tiers?instType=SWAP&tdMode=cross&instFamily=BTC-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ],

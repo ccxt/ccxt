@@ -2230,8 +2230,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         return normalized.toLowerCase();
     }
-    sign(path, api = 'public', method = 'POST', params = {}, headers = undefined, body = undefined) {
-        const apiGroup = Array.isArray(api) ? api[0] : api;
+    sign(path, api = ['public'], method = 'POST', params = {}) {
+        const apiGroup = api[0];
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let baseUrl;
         if (sandboxMode === true) {
@@ -2243,8 +2243,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             baseUrl = this.safeString(apiUrls, apiGroup, this.safeString(apiUrls, 'public', ''));
         }
         const url = baseUrl + '/' + path;
-        let headersValue = headers;
-        let bodyValue = body;
+        let headersValue = undefined;
+        let bodyValue = undefined;
         if (method === 'POST') {
             headersValue = { 'Content-Type': 'application/json' };
             bodyValue = this.json(params);

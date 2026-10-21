@@ -1321,7 +1321,7 @@ class lighter(Exchange, ImplicitAPI):
             'limit': 100,
         }
         if limit is not None:
-            request['limit'] = min(limit, 100)
+            request['limit'] = min(limit, 250)
         response = self.publicGetOrderBookOrders(self.extend(request, params))
         #
         #     {
@@ -1923,6 +1923,13 @@ class lighter(Exchange, ImplicitAPI):
             imf = self.parse_to_int(imfStr)
             if imf > 0:
                 leverage = 100 / imf
+        contractsString = self.safe_string(position, 'position')
+        positionValueString = self.safe_string(position, 'position_value')
+        markPriceString = Precise.string_div(positionValueString, contractsString)
+        # allocated_margin is the isolated collateral balance (0 for cross)
+        positionMargin = None
+        if marginMode == 'isolated':
+            positionMargin = self.safe_number(position, 'allocated_margin')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -1932,13 +1939,14 @@ class lighter(Exchange, ImplicitAPI):
             'isolated': (marginMode == 'isolated'),
             'hedged': None,
             'side': side,
-            'contracts': self.safe_number(position, 'position'),
+            'contracts': self.parse_number(contractsString),
             'contractSize': None,
             'entryPrice': self.safe_number(position, 'avg_entry_price'),
-            'markPrice': None,
-            'notional': self.safe_number(position, 'position_value'),
+            'markPrice': self.parse_number(markPriceString),
+            'notional': self.parse_number(positionValueString),
             'leverage': leverage,
-            'collateral': self.safe_number(position, 'allocated_margin'),
+            'positionMargin': positionMargin,
+            'collateral': None,
             'initialMargin': None,
             'maintenanceMargin': None,
             'initialMarginPercentage': None,
@@ -3144,20 +3152,21 @@ class lighter(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path: str, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params={}):
+        apiName = api[0]
         url = None
-        if api == 'root':
+        if apiName == 'root':
             baseApiUrl = self.safe_string(self.urls['api'], 'public')
             if baseApiUrl is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = self.implode_hostname(baseApiUrl)
         else:
-            baseApiUrl2 = self.safe_string(self.urls['api'], api)
+            baseApiUrl2 = self.safe_string(self.urls['api'], apiName)
             if baseApiUrl2 is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = self.implode_hostname(baseApiUrl2) + '/api/' + self.version + '/' + path
         authHeaders = None
-        if api == 'private':
+        if apiName == 'private':
             authHeaders = {
                 'Authorization': self.create_auth(params),
             }
@@ -3168,9 +3177,9 @@ class lighter(Exchange, ImplicitAPI):
                 }
                 return {'url': url, 'method': method, 'body': params, 'headers': multipartHeaders}
             url += '?' + self.rawencode(params)
-        if api == 'private':
-            return {'url': url, 'method': method, 'body': body, 'headers': authHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        if apiName == 'private':
+            return {'url': url, 'method': method, 'body': None, 'headers': authHeaders}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (response is None) or (response is None):

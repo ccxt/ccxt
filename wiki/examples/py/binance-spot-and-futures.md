@@ -67,7 +67,7 @@ async def main():
             'id': 'binance',
             'symbols': ['BTC/USDT', 'ETH/USDT'],
             'options': {
-                'defaultType': 'future',
+                'defaultType': 'swap',
             },
         },
     }

@@ -1872,6 +1872,22 @@ class hyperliquid extends Exchange {
         return $this->sign_user_signed_action($messageTypes, $message);
     }
 
+    public function build_send_asset_sig(array $message): array {
+        $messageTypes = array(
+            'HyperliquidTransaction:SendAsset' => array(
+                array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
+                array( 'name' => 'destination', 'type' => 'string' ),
+                array( 'name' => 'sourceDex', 'type' => 'string' ),
+                array( 'name' => 'destinationDex', 'type' => 'string' ),
+                array( 'name' => 'token', 'type' => 'string' ),
+                array( 'name' => 'amount', 'type' => 'string' ),
+                array( 'name' => 'fromSubAccount', 'type' => 'string' ),
+                array( 'name' => 'nonce', 'type' => 'uint64' ),
+            ),
+        );
+        return $this->sign_user_signed_action($messageTypes, $message);
+    }
+
     public function build_withdraw_sig(array $message): array {
         $messageTypes = array(
             'HyperliquidTransaction:Withdraw' => array(
@@ -2060,7 +2076,9 @@ class hyperliquid extends Exchange {
             );
             $response = null;
             try {
-                $rawResponse = Async\await($this->publicPostInfo($this->extend($request, $paramsEnableUnifiedMargin)));
+                // the request keys win: a caller's own 'type' or 'user' params (e.g. transfer's
+                // type 'swap') must not overwrite the info query, which would silently fail here
+                $rawResponse = Async\await($this->publicPostInfo($this->extend($paramsEnableUnifiedMargin, $request)));
                 if (gettype($rawResponse) === 'string') {
                     $response = $rawResponse;
                 }
@@ -4190,6 +4208,12 @@ class hyperliquid extends Exchange {
             $initialMargin = $marginUsed;
         }
         $percentage = Precise::string_mul(Precise::string_div($absRawUnrealizedPnl, $marginUsed), '100');
+        $positionValueString = $this->safe_string($entry, 'positionValue');
+        $markPriceString = Precise::string_div($positionValueString, $size);
+        $marginString = null;
+        if ($isIsolated) {
+            $marginString = $initialMargin;
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -4202,9 +4226,10 @@ class hyperliquid extends Exchange {
             'contracts' => $this->parse_number($size),
             'contractSize' => null,
             'entryPrice' => $this->safe_number($entry, 'entryPx'),
-            'markPrice' => null,
-            'notional' => $this->safe_number($entry, 'positionValue'),
+            'markPrice' => $this->parse_number($markPriceString),
+            'notional' => $this->parse_number($positionValueString),
             'leverage' => $this->safe_number($leverage, 'value'),
+            'positionMargin' => $this->parse_number($marginString),
             'collateral' => $this->parse_number($marginUsed),
             'initialMargin' => $this->parse_number($initialMargin),
             'maintenanceMargin' => null,
@@ -4213,6 +4238,7 @@ class hyperliquid extends Exchange {
             'unrealizedPnl' => $this->parse_number($rawUnrealizedPnl),
             'liquidationPrice' => $this->safe_number($entry, 'liquidationPx'),
             'marginMode' => $marginMode,
+            'marginRatio' => null,
             'percentage' => $this->parse_number($percentage),
         ));
     }
@@ -4454,14 +4480,22 @@ class hyperliquid extends Exchange {
         /**
          * transfer $currency internally between wallets on the same account
          *
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-from-spot-account-to-perp-account-and-vice-versa
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-between-sub-accounts
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#send-asset
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
-         * @param {string} $fromAccount account to transfer from *spot, swap*
-         * @param {string} $toAccount account to transfer to *swap, spot or address*
+         * @param {string} $fromAccount account to transfer from *spot, swap, main or a sub-account address*
+         * @param {string} $toAccount account to transfer to *swap, spot, main or a sub-account address*
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->vaultAddress] the vault address for order
+         * @param {string} [$params->vaultAddress] spot <> swap only, moves the balance inside this vault or sub-account instead of the main account
+         * @param {string} [$params->type] main <> sub-account only, 'spot' moves the spot ledger instead of the perp ledger
+         * @param {string} [$params->method] main <> sub-account only, 'sendAsset' forces the unified-account route, 'subAccountTransfer' forces the legacy sub-account actions; defaults to sendAsset when the account abstraction is unifiedAccount
+         * @param {boolean} [$params->enableUnifiedMargin] main <> sub-account only, skips the abstraction lookup and states whether the account is unified
+         * @param {string} [$params->sourceDex] sendAsset only, perp dex to move from, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+         * @param {string} [$params->destinationDex] sendAsset only, perp dex to move to, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+         * @param {string} [$params->user] sendAsset only, the master wallet address, defaults to walletAddress
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
         $this->check_required_credentials();
@@ -4523,10 +4557,66 @@ class hyperliquid extends Exchange {
             throw new NotSupported($this->id . ' transfer() only support main <> subaccount transfer');
         }
         $this->check_address($subAccountAddress);
-        // hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
+        $transferType = $this->safe_string($params, 'type');
+        // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
+        // unified account is active", a unified account has to move balances with sendAsset instead
+        $transferMethod = null;
+        $query = $params;
+        list($transferMethod, $query) = $this->handle_option_and_params($query, 'transfer', 'method');
+        $masterAddress = null;
+        list($masterAddress, $query) = $this->handle_public_address('transfer', $query);
+        $useSendAsset = ($transferMethod === 'sendAsset');
+        if ($transferMethod === null) {
+            $isUnified = null;
+            list($isUnified, $query) = Async\await($this->is_unified_enabled('transfer', $masterAddress, false, $query));
+            $useSendAsset = ($isUnified === true);
+        }
+        if ($useSendAsset) {
+            $paramsSendAsset = $query;
+            $sendAssetCurrency = $this->currency($code);
+            $sendAssetCurrencyInfo = $this->safe_dict($sendAssetCurrency, 'info', array());
+            $sendAssetToken = $this->safe_string($sendAssetCurrencyInfo, 'name') . ':' . $this->safe_string($sendAssetCurrencyInfo, 'tokenId');
+            // '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
+            // keeps every balance in the spot clearinghouse so spot is the default on both sides
+            $defaultDex = (($transferType === 'swap') || ($transferType === 'perp')) ? '' : 'spot';
+            $sourceDex = $this->safe_string($paramsSendAsset, 'sourceDex', $defaultDex);
+            $destinationDex = $this->safe_string($paramsSendAsset, 'destinationDex', $defaultDex);
+            $sendAssetPayload = array(
+                'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+                'destination' => ($isDeposit) ? $subAccountAddress : $masterAddress,
+                'sourceDex' => $sourceDex,
+                'destinationDex' => $destinationDex,
+                'token' => $sendAssetToken,
+                'amount' => $this->number_to_string($amount),
+                'fromSubAccount' => ($isDeposit) ? '' : $subAccountAddress,
+                'nonce' => $nonce,
+            );
+            $sendAssetSig = $this->build_send_asset_sig($sendAssetPayload);
+            $sendAssetRequest = array(
+                'action' => array(
+                    'hyperliquidChain' => $sendAssetPayload['hyperliquidChain'],
+                    'signatureChainId' => '0x66eee',
+                    'type' => 'sendAsset',
+                    'destination' => $sendAssetPayload['destination'],
+                    'sourceDex' => $sourceDex,
+                    'destinationDex' => $destinationDex,
+                    'token' => $sendAssetToken,
+                    'amount' => $sendAssetPayload['amount'],
+                    'fromSubAccount' => $sendAssetPayload['fromSubAccount'],
+                    'nonce' => $nonce,
+                ),
+                'nonce' => $nonce,
+                'signature' => $sendAssetSig,
+            );
+            $sendAssetResponse = Async\await($this->privatePostExchange($sendAssetRequest));
+            //
+            // {'response': {'type': 'default'}, 'status': 'ok'}
+            //
+            return $this->parse_transfer($sendAssetResponse, $sendAssetCurrency);
+        }
+        // a standard account keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
         // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
         // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
-        $transferType = $this->safe_string($params, 'type');
         $isUsdc = (strtoupper($code) === 'USDC');
         if ($isUsdc && ($transferType !== 'spot')) {
             // Transfer USDC with subAccountTransfer
@@ -4547,7 +4637,7 @@ class hyperliquid extends Exchange {
             //
             // {'response': {'type': 'default'}, 'status': 'ok'}
             //
-            return $this->parse_transfer($response);
+            return $this->parse_transfer($response, $this->safe_currency($code));
         } else {
             // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
             // expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
@@ -4573,7 +4663,7 @@ class hyperliquid extends Exchange {
                 'signature' => $sig,
             );
             $response = Async\await($this->privatePostExchange($request));
-            return $this->parse_transfer($response);
+            return $this->parse_transfer($response, $currency);
         }
     }
 
@@ -5414,8 +5504,9 @@ class hyperliquid extends Exchange {
         return null;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -5424,18 +5515,18 @@ class hyperliquid extends Exchange {
         $postHeaders = array(
             'Content-Type' => 'application/json',
         );
-        $requestHeaders = $headers;
+        $requestHeaders = null;
         if ($isPost) {
             $requestHeaders = $postHeaders;
         }
-        $requestBody = $body;
+        $requestBody = null;
         if ($isPost) {
             $requestBody = $this->json($params);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
             $type = $params['type'];
             $byType = $config['byType'];

@@ -403,6 +403,10 @@ public partial class okx : ccxt.okx
     public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
         string? symbolValue = this.symbol(symbol);
         Dictionary<string, object> fr = ccxt.BaseExchange.FromFundingRates(await this.WatchFundingRates(new List<object>() {symbolValue}, parameters));
         return ccxt.BaseExchange.ToFundingRate((fr != null && symbolValue != null && fr.ContainsKey(symbolValue) ? fr[symbolValue] : null));
@@ -510,6 +514,10 @@ public partial class okx : ccxt.okx
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
         (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTicker", "channel", "tickers");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
@@ -578,6 +586,10 @@ public partial class okx : ccxt.okx
     public async override Task<ccxt.Ticker> WatchMarkPrice(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
         (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchMarkPrice", "channel", "mark-price");
         string? channel = channelparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
@@ -2796,6 +2808,37 @@ public partial class okx : ccxt.okx
         return ccxt.BaseExchange.ToOrderList(await this.watch(url, messageHash, request, messageHash));
     }
 
+    public virtual void handleCancelOrders(WebSocketClient client, Dictionary<string, object> message)
+    {
+        //
+        //    {
+        //        "id": "1512",
+        //        "op": "batch-cancel-orders",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "2510789768709120",
+        //                "sCode": "0",
+        //                "sMsg": ""
+        //            }
+        //        ],
+        //        "code": "0",
+        //        "msg": ""
+        //    }
+        //
+        string? messageHash = this.safeString(message, "id");
+        List<object> args = this.safeList(message, "data", new List<object>() {});
+        args = this.filterBy(args, "sCode", "0");
+        if (this.isEmpty(args))
+        {
+            string? method = this.safeString(message, "op");
+            string stringMsg = this.json(message);
+            this.handleErrors(1, "",((string)client.url), method, new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+        }
+        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(args, null, null, null));
+        client.resolve(orders, messageHash);
+    }
+
     public virtual void handleCancelAllOrders(WebSocketClient client, Dictionary<string, object> message)
     {
         //
@@ -2983,6 +3026,7 @@ public partial class okx : ccxt.okx
                 { "amend-order", this.handlePlaceOrders },
                 { "batch-amend-orders", this.handlePlaceOrders },
                 { "cancel-order", this.handlePlaceOrders },
+                { "batch-cancel-orders", this.handleCancelOrders },
                 { "mass-cancel", this.handleCancelAllOrders },
             };
             Delegate method = ((Delegate)this.safeValue(methods, eventVar));
@@ -3067,6 +3111,11 @@ public partial class okx : ccxt.okx
         string subMessageHash = ((("multi:" + channel) + ":") + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
+        // watchOHLCV subscribes through subscribe () under channel:marketId
+        if ((symbol != null))
+        {
+            this.cleanUnsubscription(client, ((channel + ":") + this.marketId(symbol)), null);
+        }
         if (((symbol != null)) && ((timeframe != null)) && (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
         {
             ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);

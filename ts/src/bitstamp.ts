@@ -2628,7 +2628,7 @@ export default class bitstamp extends Exchange {
         const name = this.getCurrencyName (code);
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
         // through request(), called here directly to avoid dynamic dispatch
-        const response = await this.request (name + '_address/', 'private', 'POST', params);
+        const response = await this.request (name + '_address/', [ 'private' ], 'POST', params);
         const address = this.safeString (response, 'address');
         const tag = this.safeString2 (response, 'memo_id', 'destination_tag');
         this.checkAddress (address);
@@ -2681,7 +2681,7 @@ export default class bitstamp extends Exchange {
             request['address'] = address;
             // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             // route through request(), called here directly to avoid dynamic dispatch
-            response = await this.request (name + '_withdrawal/', 'private', 'POST', this.extend (request, paramsWithdrawTag));
+            response = await this.request (name + '_withdrawal/', [ 'private' ], 'POST', this.extend (request, paramsWithdrawTag));
         } else {
             currency = this.currency (code);
             request['iban'] = address;
@@ -2767,8 +2767,9 @@ export default class bitstamp extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method: any = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const apiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2776,7 +2777,7 @@ export default class bitstamp extends Exchange {
         url += this.version + '/';
         url += this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const isPrivatePost = (api !== 'public') && (method === 'POST');
+        const isPrivatePost = (apiName !== 'public') && (method === 'POST');
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
         const emptyPostBody = this.urlencode ({ 'foo': 'bar' });
@@ -2784,12 +2785,12 @@ export default class bitstamp extends Exchange {
         if (Object.keys (query).length > 0) {
             postBody = this.urlencode (query);
         }
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (isPrivatePost) {
             requestBody = postBody;
         }
         let privateHeaders: NullableDict = undefined;
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
@@ -2818,7 +2819,7 @@ export default class bitstamp extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             privateHeaders['X-Auth-Signature'] = signature;
         }
-        const requestHeaders: NullableDict = (api === 'public') ? headers : privateHeaders;
+        const requestHeaders: NullableDict = (apiName === 'public') ? undefined : privateHeaders;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 

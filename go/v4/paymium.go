@@ -901,16 +901,12 @@ func (this *Paymium) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Paymium) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -918,7 +914,7 @@ func (this *Paymium) Sign(path string, optionalArgs ...any) any {
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if api == "public" {
+	if GetValue(api, 0) == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
@@ -932,7 +928,7 @@ func (this *Paymium) Sign(path string, optionalArgs ...any) any {
 			"Api-Nonce": nonce,
 		}
 		var hasQuery bool = (len(ObjectKeys(query)) > 0)
-		var signedBody any = body
+		var signedBody any = nil
 		if (method == "POST") && hasQuery {
 			signedBody = this.Json(query)
 		}
@@ -959,8 +955,8 @@ func (this *Paymium) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Paymium) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

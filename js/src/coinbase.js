@@ -1863,7 +1863,8 @@ export default class coinbase extends Exchange {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        const tradingDisabled = this.safeBool(market, 'is_disabled');
+        const isDisabled = this.safeBool(market, 'is_disabled');
+        const tradingDisabled = (isDisabled === true) || (this.safeBool(market, 'trading_disabled') === true);
         let symbol = base + '/' + quote;
         let type = undefined;
         if (isSwap) {
@@ -5327,7 +5328,7 @@ export default class coinbase extends Exchange {
         }
         return this.milliseconds() - timeDifference;
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         let requestBody = undefined;
         let requestHeaders = undefined;
         const version = this.safeString(api, 0);
@@ -5435,8 +5436,8 @@ export default class coinbase extends Exchange {
                 }
             }
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

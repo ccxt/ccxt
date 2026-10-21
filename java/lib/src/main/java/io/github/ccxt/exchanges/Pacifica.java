@@ -3349,8 +3349,13 @@ public class Pacifica extends PacificaApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
         String margin = this.safeString(position, "margin");
-        String marginMode = (((!java.util.Objects.equals(margin, null) && !java.util.Objects.equals(margin, "0")))) ? "isolated" : "cross";
-        Boolean isIsolated = (java.util.Objects.equals(marginMode, "isolated"));
+        Boolean rawIsolated = (Boolean) this.safeBool(position, "isolated", (Object) null);
+        Object isIsolated = (!java.util.Objects.equals(margin, null) && !java.util.Objects.equals(margin, "0"));
+        if (!java.util.Objects.equals(rawIsolated, null))
+        {
+            isIsolated = rawIsolated;
+        }
+        String marginMode = ((Helpers.isTrue(isIsolated))) ? "isolated" : "cross";
         String side = this.safeString(position, "side");
         if (!java.util.Objects.equals(side, null))
         {
@@ -3372,13 +3377,13 @@ public class Pacifica extends PacificaApi
         mapLiteral11.put("markPrice", null);
         mapLiteral11.put("notional", null);
         mapLiteral11.put("leverage", null);
-        mapLiteral11.put("collateral", margin);
+        mapLiteral11.put("collateral", this.safeNumber(position, "margin", (Object) null));
         mapLiteral11.put("initialMargin", null);
         mapLiteral11.put("maintenanceMargin", null);
         mapLiteral11.put("initialMarginPercentage", null);
         mapLiteral11.put("maintenanceMarginPercentage", null);
         mapLiteral11.put("unrealizedPnl", null);
-        mapLiteral11.put("liquidationPrice", null);
+        mapLiteral11.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
         mapLiteral11.put("marginMode", marginMode);
         mapLiteral11.put("percentage", null);
         return this.safePosition(mapLiteral11);
@@ -4455,16 +4460,17 @@ public class Pacifica extends PacificaApi
         return null;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String requestBody = body;
+        String requestBody = null;
         Boolean isTestnet = this.isSandboxModeEnabled;
         String urlKey = "api";
         if (Boolean.TRUE.equals(isTestnet))
         {
             urlKey = "test";
         }
-        String baseApiUrl = this.safeString(Helpers.GetValue(this.urls, urlKey), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String baseApiUrl = this.safeString(Helpers.GetValue(this.urls, urlKey), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;

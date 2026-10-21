@@ -1931,12 +1931,10 @@ export default class binance extends Exchange {
      * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: string, api: any = 'sapi', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
-        const apiGroup: string = typeof api === 'string' ? api : api[0];
+    override sign (path: string, api: string[] = [ 'sapi' ], method = 'GET', params: Dict = {}) {
+        const apiGroup: string = api[0];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['sapi'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
@@ -1957,7 +1955,7 @@ export default class binance extends Exchange {
         const headersValue: any = {
             'X-MBX-APIKEY': this.apiKey,
         };
-        let bodyValue: any = body;
+        let bodyValue: any = undefined;
         if ((method === 'GET') || (method === 'DELETE')) {
             url = url + '?' + querystring;
         } else {

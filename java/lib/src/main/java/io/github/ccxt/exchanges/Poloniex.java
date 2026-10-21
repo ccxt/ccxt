@@ -117,8 +117,8 @@ public class Poloniex extends PoloniexApi
                 put( "fetchTradingFee", false );
                 put( "fetchTradingFees", true );
                 put( "fetchTransactions", "emulated" );
-                put( "fetchTransfer", false );
-                put( "fetchTransfers", false );
+                put( "fetchTransfer", true );
+                put( "fetchTransfers", true );
                 put( "fetchVolatilityHistory", false );
                 put( "fetchWithdrawals", true );
                 put( "reduceMargin", true );
@@ -544,7 +544,6 @@ public class Poloniex extends PoloniexApi
                     put( "BEP20", "BSC" );
                     put( "ERC20", "ETH" );
                     put( "TRC20", "TRX" );
-                    put( "TRX", "TRX" );
                 }} );
                 put( "networksById", new HashMap<String, Object>() {{
                     put( "TRX", "TRC20" );
@@ -574,6 +573,8 @@ public class Poloniex extends PoloniexApi
                 put( "accountsById", new HashMap<String, Object>() {{
                     put( "exchange", "spot" );
                     put( "futures", "future" );
+                    put( "SPOT", "spot" );
+                    put( "FUTURES", "future" );
                 }} );
             }} );
             put( "features", new HashMap<String, Object>() {{
@@ -3511,7 +3512,7 @@ public class Poloniex extends PoloniexApi
             exchangeNetworkId = networkEntry.get("id");
         } else
         {
-            exchangeNetworkId = networkCode;
+            exchangeNetworkId = this.networkCodeToId((String) (networkCode), code);
         }
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("currency", exchangeNetworkId);
@@ -3568,9 +3569,10 @@ public class Poloniex extends PoloniexApi
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
-            String toId = this.safeString(accountsByType, toAccount, fromAccount);
+            String toId = this.safeString(accountsByType, toAccount, toAccount);
+            Object amountToPrecision = this.currencyToPrecision((String) (code), amount, (String) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "amount", Poloniex.this.currencyToPrecision((String) (code), amount, (String) null) );
+                put( "amount", amountToPrecision );
                 put( "currency", currency.get("id") );
                 put( "fromAccount", fromId );
                 put( "toAccount", toId );
@@ -3581,28 +3583,152 @@ public class Poloniex extends PoloniexApi
             //        "transferId" : "168041074"
             //    }
             //
-            return this.parseTransfer(response, currency);
+            return this.extend(this.parseTransfer(response, currency), new HashMap<String, Object>() {{
+                put( "amount", Poloniex.this.parseNumber(amountToPrecision) );
+                put( "fromAccount", fromAccount );
+                put( "toAccount", toAccount );
+            }});
         }).thenApply(TransferEntry::new);
 
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchTransfer
+     * @description fetch a transfer
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-record
+     * @param {string} id transfer id
+     * @param {string} [code] not used by poloniex fetchTransfer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<TransferEntry> fetchTransfer(String id, String code, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "id", id );
+            }};
+            Map<String, Object> response = (this.privateGetAccountsTransferId(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "id": "342284495",
+            //         "fromAccount": "FUTURES",
+            //         "toAccount": "SPOT",
+            //         "currency": "USDT",
+            //         "amount": "6",
+            //         "state": "SUCCESS",
+            //         "createTime": 1787154736417
+            //     }
+            //
+            return this.parseTransfer(response, (Map<String, Object>) null);
+        }).thenApply(TransferEntry::new);
+
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-records
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve, default 100, max 1000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> currency = null;
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(code, null))
+            {
+                currency = this.currency((String) (code));
+                request.put("currency", currency.get("id"));
+            }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("startTime", since);
+            }
+            if (!java.util.Objects.equals(limit, null))
+            {
+                request.put("limit", limit);
+            }
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
+            List<Object> response = (this.privateGetAccountsTransfer(this.extend(requestUntil, paramsUntil))).join();
+            //
+            //     [
+            //         {
+            //             "id": "342284495",
+            //             "fromAccount": "FUTURES",
+            //             "toAccount": "SPOT",
+            //             "currency": "USDT",
+            //             "amount": "6",
+            //             "state": "SUCCESS",
+            //             "createTime": 1787154736417
+            //         }
+            //     ]
+            //
+            return this.parseTransfers(response, currency, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
+
+    }
+
+    public String parseTransferStatus(String status)
+    {
+        Map<String, Object> statuses = new HashMap<String, Object>() {{
+            put( "SUCCESS", "ok" );
+            put( "PROCESSING", "pending" );
+            put( "PROCESSSING", "pending" );
+            put( "FAILED", "failed" );
+        }};
+        return this.safeString(statuses, status, status);
     }
 
     public Object parseTransfer(Object transfer, Map<String, Object> currency)
     {
         //
-        //    {
-        //        "transferId" : "168041074"
-        //    }
+        // transfer
         //
+        //     {
+        //         "transferId" : "168041074"
+        //     }
+        //
+        // fetchTransfer, fetchTransfers
+        //
+        //     {
+        //         "id": "342284495",
+        //         "fromAccount": "FUTURES",
+        //         "toAccount": "SPOT",
+        //         "currency": "USDT",
+        //         "amount": "6",
+        //         "state": "SUCCESS",
+        //         "createTime": 1787154736417
+        //     }
+        //
+        Long timestamp = this.safeInteger(transfer, "createTime");
+        String fromAccountId = this.safeString(transfer, "fromAccount");
+        String toAccountId = this.safeString(transfer, "toAccount");
+        Map<String, Object> accountIds = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "info", transfer );
-            put( "id", Poloniex.this.safeString(transfer, "transferId") );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "currency", Poloniex.this.safeString(currency, "id") );
-            put( "amount", null );
-            put( "fromAccount", null );
-            put( "toAccount", null );
-            put( "status", null );
+            put( "id", Poloniex.this.safeString2(transfer, "id", "transferId") );
+            put( "timestamp", timestamp );
+            put( "datetime", Poloniex.this.iso8601(timestamp) );
+            put( "currency", Poloniex.this.safeCurrencyCode(Poloniex.this.safeString(transfer, "currency"), currency) );
+            put( "amount", Poloniex.this.safeNumber(transfer, "amount", (Object) null) );
+            put( "fromAccount", Poloniex.this.safeString(accountIds, fromAccountId, fromAccountId) );
+            put( "toAccount", Poloniex.this.safeString(accountIds, toAccountId, toAccountId) );
+            put( "status", Poloniex.this.parseTransferStatus(Poloniex.this.safeString(transfer, "state")) );
         }};
     }
 
@@ -4425,39 +4551,45 @@ public class Poloniex extends PoloniexApi
         String leverage = this.safeString(position, "lever");
         String initialMargin = this.safeString(position, "im");
         String notional = Precise.stringMul(leverage, initialMargin);
-        String qty = this.safeString(position, "qty");
-        String avgPrice = this.safeString(position, "openAvgPx");
-        String collateral = Precise.stringMul(qty, avgPrice);
+        Object positionMargin = null;
+        String collateral = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            positionMargin = this.omitZero(this.safeString(position, "mgn"));
+            String upl = this.safeString(position, "upl");
+            collateral = ((((!java.util.Objects.equals(positionMargin, null)) && (!java.util.Objects.equals(upl, null))))) ? Precise.stringAdd(positionMargin, upl) : null;
+        }
         // todo: some more fields
-        return this.safePosition(new HashMap<String, Object>() {{
-            put( "info", position );
-            put( "id", null );
-            put( "symbol", marketResolved.get("symbol") );
-            put( "notional", notional );
-            put( "marginMode", marginMode );
-            put( "liquidationPrice", Poloniex.this.safeNumber(position, "liqPx", (Object) null) );
-            put( "entryPrice", Poloniex.this.safeNumber(position, "openAvgPx", (Object) null) );
-            put( "unrealizedPnl", Poloniex.this.safeNumber(position, "upl", (Object) null) );
-            put( "percentage", null );
-            put( "contracts", Poloniex.this.safeNumber(position, "qty", (Object) null) );
-            put( "contractSize", null );
-            put( "markPrice", Poloniex.this.safeNumber(position, "markPx", (Object) null) );
-            put( "lastPrice", null );
-            put( "side", Poloniex.this.safeStringLower(position, "posSide") );
-            put( "hedged", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Poloniex.this.iso8601(timestamp) );
-            put( "lastUpdateTimestamp", null );
-            put( "maintenanceMargin", Poloniex.this.safeNumber(position, "mm", (Object) null) );
-            put( "maintenanceMarginPercentage", null );
-            put( "collateral", collateral );
-            put( "initialMargin", initialMargin );
-            put( "initialMarginPercentage", null );
-            put( "leverage", Helpers.parseInt(leverage) );
-            put( "marginRatio", Poloniex.this.safeNumber(position, "mgnRatio", (Object) null) );
-            put( "stopLossPrice", Poloniex.this.safeNumber(position, "slTrgPx", (Object) null) );
-            put( "takeProfitPrice", Poloniex.this.safeNumber(position, "tpTrgPx", (Object) null) );
-        }});
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("info", position);
+        mapLiteral9.put("id", null);
+        mapLiteral9.put("symbol", marketResolved.get("symbol"));
+        mapLiteral9.put("notional", notional);
+        mapLiteral9.put("marginMode", marginMode);
+        mapLiteral9.put("liquidationPrice", this.safeNumber(position, "liqPx", (Object) null));
+        mapLiteral9.put("entryPrice", this.safeNumber(position, "openAvgPx", (Object) null));
+        mapLiteral9.put("unrealizedPnl", this.safeNumber(position, "upl", (Object) null));
+        mapLiteral9.put("percentage", null);
+        mapLiteral9.put("contracts", this.safeNumber(position, "qty", (Object) null));
+        mapLiteral9.put("contractSize", null);
+        mapLiteral9.put("markPrice", this.safeNumber(position, "markPx", (Object) null));
+        mapLiteral9.put("lastPrice", null);
+        mapLiteral9.put("side", this.safeStringLower(position, "posSide"));
+        mapLiteral9.put("hedged", null);
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("lastUpdateTimestamp", null);
+        mapLiteral9.put("maintenanceMargin", this.safeNumber(position, "mm", (Object) null));
+        mapLiteral9.put("maintenanceMarginPercentage", null);
+        mapLiteral9.put("collateral", this.parseNumber(collateral));
+        mapLiteral9.put("positionMargin", this.parseNumber(positionMargin));
+        mapLiteral9.put("initialMargin", initialMargin);
+        mapLiteral9.put("initialMarginPercentage", null);
+        mapLiteral9.put("leverage", Helpers.parseInt(leverage));
+        mapLiteral9.put("marginRatio", this.safeNumber(position, "mgnRatio", (Object) null));
+        mapLiteral9.put("stopLossPrice", this.safeNumber(position, "slTrgPx", (Object) null));
+        mapLiteral9.put("takeProfitPrice", this.safeNumber(position, "tpTrgPx", (Object) null));
+        return this.safePosition(mapLiteral9);
     }
 
     public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Map<String, Object> parameters)
@@ -4564,11 +4696,12 @@ public class Poloniex extends PoloniexApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Boolean isArray = (parameters instanceof List);
         Object url = ((Map<String, Object>)this.urls.get("api")).get("spot");
-        if (this.inArray(java.util.Objects.requireNonNullElse(api, "public"), new ArrayList<Object>(Arrays.asList("swapPublic", "swapPrivate"))))
+        if (this.inArray(apiName, new ArrayList<Object>(Arrays.asList("swapPublic", "swapPrivate"))))
         {
             url = ((Map<String, Object>)this.urls.get("api")).get("swap");
         }
@@ -4580,7 +4713,7 @@ public class Poloniex extends PoloniexApi
         String implodedPath = (String) this.implodeParams(path, parameters);
         String bodyJson = null;
         Map<String, Object> signedHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "swapPublic"))
+        if (java.util.Objects.equals(apiName, "public") || java.util.Objects.equals(apiName, "swapPublic"))
         {
             url = (url + ("/" + implodedPath));
             if (((Map<String, Object>)query).size() > 0)
@@ -4623,8 +4756,8 @@ public class Poloniex extends PoloniexApi
                 put( "signature", signature );
             }};
         }
-        String bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
-        Object headersResolved = (((java.util.Objects.equals(signedHeaders, null)))) ? headers : signedHeaders;
+        String bodyResolved = bodyJson;
+        Map<String, Object> headersResolved = signedHeaders;
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("url", url);

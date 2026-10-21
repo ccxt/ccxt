@@ -3464,18 +3464,15 @@ public class Polymarket extends PolymarketApi
      * @name polymarket#sign
      * @description builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        // api is either a string ('gamma') or array (['gamma', 'public'])
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "gamma") instanceof String))) ? java.util.Objects.requireNonNullElse(api, "gamma") : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "gamma"), 0);
-        Object access = (((java.util.Objects.requireNonNullElse(api, "gamma") instanceof String))) ? "public" : Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "gamma"), 1);
+        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String access = this.safeString(api, 1, "public");
         Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("gamma"));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
@@ -3493,7 +3490,7 @@ public class Polymarket extends PolymarketApi
         {
             query = this.omit(parameters, this.extractParams(path));
         }
-        Object bodyValue = body;
+        String bodyValue = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
@@ -3532,7 +3529,7 @@ public class Polymarket extends PolymarketApi
                 bodyValue = this.json(query);
             }
         }
-        Object headerDefaults = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
+        Map<String, Object> headerDefaults = new HashMap<String, Object>() {{}};
         Map<String, Object> headersValue = this.extend(new HashMap<String, Object>() {{
             put( "Accept", "application/json" );
             put( "Content-Type", "application/json" );
@@ -3587,7 +3584,7 @@ public class Polymarket extends PolymarketApi
                 Object auth = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + requestPath);
                 if (!java.util.Objects.equals(bodyValue, null))
                 {
-                    auth = Helpers.add(auth, bodyValue);
+                    auth = (auth + bodyValue);
                 }
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
@@ -3617,10 +3614,6 @@ public class Polymarket extends PolymarketApi
             h2kMap1.put("headers", headersValue);
             return h2kMap1;
         }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 
     public String hashMessage(Object message)

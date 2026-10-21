@@ -876,7 +876,7 @@ class htx extends Exchange {
                     'LTC' => 'LTC',
                     'XRP' => 'XRP',
                     'XLM' => 'XLM',
-                    'CRONOS' => 'CRO',
+                    'CRC20' => 'CRO',
                     'CRO' => 'CRO',
                     'GLMR' => 'GLMR',
                     'POLYGON' => 'MATIC',
@@ -6444,7 +6444,7 @@ class htx extends Exchange {
         $currency = $this->currency($code);
         list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
         $indexedAddresses = $this->fetch_deposit_addresses_by_network($code, $paramsOmited);
-        $selectedNetworkCode = $this->select_network_code_from_unified_networks($currency['code'], $networkCode, $indexedAddresses);
+        $selectedNetworkCode = $this->select_network_key_from_networks($currency['code'], $networkCode, $indexedAddresses, true);
         return $this->safe_value($indexedAddresses, $selectedNetworkCode);
     }
 
@@ -7576,7 +7576,7 @@ class htx extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $signedHeaders = null;
         $signedBody = null;
         $pathString = $path;
@@ -7588,15 +7588,17 @@ class htx extends Exchange {
         } else {
             $query = $this->omit($params, $this->extract_params($path));
         }
-        if (gettype($api) === 'string') {
+        $apiLength = count($api);
+        if ($apiLength === 1) {
             // signing implementation for the old endpoints
-            if (($api === 'public') || ($api === 'private')) {
+            $apiName = $api[0];
+            if (($apiName === 'public') || ($apiName === 'private')) {
                 $url .= $this->version;
-            } elseif (($api === 'v2Public') || ($api === 'v2Private')) {
+            } elseif (($apiName === 'v2Public') || ($apiName === 'v2Private')) {
                 $url .= 'v2';
             }
             $url .= '/' . $this->implode_params($path, $params);
-            if ($api === 'private' || $api === 'v2Private') {
+            if ($apiName === 'private' || $apiName === 'v2Private') {
                 $this->check_required_credentials();
                 $timestamp = $this->ymdhms($this->nonce(), 'T');
                 $request = array(
@@ -7637,7 +7639,7 @@ class htx extends Exchange {
                     $url .= '?' . $this->urlencode($query);
                 }
             }
-            $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+            $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
             if ($baseApiUrl === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
@@ -7735,8 +7737,8 @@ class htx extends Exchange {
                 'hostname' => $finalHostname,
             )) . $url;
         }
-        $headersResolved = ($signedHeaders !== null) ? $signedHeaders : $headers;
-        $bodyResolved = ($signedBody !== null) ? $signedBody : $body;
+        $headersResolved = $signedHeaders;
+        $bodyResolved = $signedBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

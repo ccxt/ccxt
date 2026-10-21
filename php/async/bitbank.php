@@ -1147,16 +1147,17 @@ class bitbank extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $query = $this->omit($params, $this->extract_params($path));
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $this->implode_hostname($apiUrl) . '/';
         $requestBody = null;
         $requestHeaders = null;
-        if (($api === 'public') || ($api === 'markets')) {
+        if (($apiName === 'public') || ($apiName === 'markets')) {
             $url .= $this->implode_params($path, $params);
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
@@ -1200,8 +1201,8 @@ class bitbank extends Exchange {
                 $requestHeaders['ACCESS-NONCE'] = $nonce;
             }
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

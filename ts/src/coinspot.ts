@@ -759,12 +759,13 @@ export default class coinspot extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestHeaders: NullableDict = headers;
-        let requestBody: Str = body;
-        const isVersionedApi = Array.isArray (api);
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
+        const apiLength = api.length;
+        const isVersionedApi = apiLength > 1;
         const version = isVersionedApi ? api[0] : undefined;
-        const accessType = isVersionedApi ? api[1] : api;
+        const accessType = isVersionedApi ? api[1] : api[0];
         const endpoint = '/' + this.implodeParams (path, params);
         let fullPath: Str = endpoint;
         if (version !== undefined) {

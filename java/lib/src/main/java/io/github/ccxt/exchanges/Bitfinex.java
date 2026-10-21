@@ -1229,7 +1229,7 @@ public class Bitfinex extends BitfinexApi
                 HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
                 mapLiteral1.put("info", networkId);
                 mapLiteral1.put("id", networkId.toLowerCase());
-                mapLiteral1.put("network", networkId);
+                mapLiteral1.put("network", network);
                 mapLiteral1.put("active", null);
                 mapLiteral1.put("deposit", java.util.Objects.equals(this.safeInteger(dwStatuses, 1), 1L));
                 mapLiteral1.put("withdraw", java.util.Objects.equals(this.safeInteger(dwStatuses, 2), 1L));
@@ -1648,9 +1648,7 @@ public class Bitfinex extends BitfinexApi
             bid = this.safeString(ticker, (2L - ((long) minusIndex)));
             ask = this.safeString(ticker, (5L - ((long) minusIndex)));
             change = this.safeString(ticker, (8L - ((long) minusIndex)));
-            // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
-            // branch reads at index 6 and scales
-            percentage = Precise.stringMul(this.safeString(ticker, (9L - ((long) minusIndex))), "100");
+            // funding DAILY_CHANGE_RELATIVE is not change / (last - change), let safeTicker derive percentage
             volume = this.safeString(ticker, (11L - ((long) minusIndex)));
             high = this.safeString(ticker, (12L - ((long) minusIndex)));
             low = this.safeString(ticker, (13L - ((long) minusIndex)));
@@ -3016,7 +3014,8 @@ public class Bitfinex extends BitfinexApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             // if not provided explicitly we will try to match using the currency name
-            String network = this.safeString(parameters, "network", code);
+            String networkParam = this.safeString(parameters, "network", code);
+            String network = this.safeString(this.networkAliases, networkParam, networkParam);
             Map<String, Object> currencyNetworks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
             Map<String, Object> currencyNetwork = (Map<String, Object>) this.safeDict(currencyNetworks, network, (Object) null);
             String networkId = this.safeString(currencyNetwork, "id");
@@ -3466,7 +3465,8 @@ public class Bitfinex extends BitfinexApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             // if not provided explicitly we will try to match using the currency name
-            String network = this.safeString(paramsWithdrawTag, "network", code);
+            String networkParam = this.safeString(paramsWithdrawTag, "network", code);
+            String network = this.safeString(this.networkAliases, networkParam, networkParam);
             Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
             Map<String, Object> currencyNetworks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
             Map<String, Object> currencyNetwork = (Map<String, Object>) this.safeDict(currencyNetworks, network, (Object) null);
@@ -3687,18 +3687,19 @@ public class Bitfinex extends BitfinexApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object request = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v1"))
+        if (java.util.Objects.equals(apiName, "v1"))
         {
-            request = Helpers.add(java.util.Objects.requireNonNullElse(api, "public"), request);
+            request = Helpers.add(apiName, request);
         } else
         {
             request = (this.version + request);
         }
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3706,14 +3707,14 @@ public class Bitfinex extends BitfinexApi
         String url = ((apiUrl + "/") + request);
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
@@ -3728,8 +3729,8 @@ public class Bitfinex extends BitfinexApi
                 put( "Content-Type", "application/json" );
             }};
         }
-        String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResolved = requestBody;
+        Map<String, Object> headersResolved = requestHeaders;
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);

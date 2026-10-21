@@ -10,607 +10,808 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 abstract class Exchange extends _Exchange {
     publicSpotGetCurrencies (params = {}): Promise<Dict> {
-        return this.request ("currencies", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('currencies', [ 'public', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     publicSpotGetDepth (params = {}): Promise<Dict> {
-        return this.request ("depth", ["public","spot"], 'GET', params, undefined, undefined, {"cost":10});
+        return this.request ('depth', [ 'public', 'spot' ], 'GET', params, { 'cost': 10 });
     }
+
     publicSpotGetKline (params = {}): Promise<Dict> {
-        return this.request ("kline", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('kline', [ 'public', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     publicSpotGetSymbol (params = {}): Promise<Dict> {
-        return this.request ("symbol", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('symbol', [ 'public', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     publicSpotGetTicker (params = {}): Promise<Dict> {
-        return this.request ("ticker", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('ticker', [ 'public', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     publicSpotGetTickerBook (params = {}): Promise<Dict> {
-        return this.request ("ticker/book", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('ticker/book', [ 'public', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     publicSpotGetTickerPrice (params = {}): Promise<Dict> {
-        return this.request ("ticker/price", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('ticker/price', [ 'public', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     publicSpotGetTicker24h (params = {}): Promise<Dict> {
-        return this.request ("ticker/24h", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('ticker/24h', [ 'public', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     publicSpotGetTime (params = {}): Promise<Dict> {
-        return this.request ("time", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('time', [ 'public', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     publicSpotGetTradeHistory (params = {}): Promise<Dict> {
-        return this.request ("trade/history", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/history', [ 'public', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     publicSpotGetTradeRecent (params = {}): Promise<Dict> {
-        return this.request ("trade/recent", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade/recent', [ 'public', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     publicSpotGetWalletSupportCurrency (params = {}): Promise<Dict> {
-        return this.request ("wallet/support/currency", ["public","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('wallet/support/currency', [ 'public', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicContractRiskBalance (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/contract/risk-balance", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/contract/risk-balance', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicContractOpenInterest (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/contract/open-interest", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/contract/open-interest', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicLeverageBracketDetail (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/leverage/bracket/detail", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/leverage/bracket/detail', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicLeverageBracketList (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/leverage/bracket/list", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/leverage/bracket/list', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicQAggTicker (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/agg-ticker", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/agg-ticker', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicQAggTickers (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/agg-tickers", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/agg-tickers', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicQDeal (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/deal", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/deal', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicQDepth (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/depth", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/depth', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicQFundingRate (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/funding-rate", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/funding-rate', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicQFundingRateRecord (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/funding-rate-record", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/funding-rate-record', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicQIndexPrice (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/index-price", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/index-price', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicQKline (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/kline", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/kline', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicQMarkPrice (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/mark-price", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/mark-price', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicQSymbolIndexPrice (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/symbol-index-price", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/symbol-index-price', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicQSymbolMarkPrice (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/symbol-mark-price", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/symbol-mark-price', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicQTicker (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/ticker", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/ticker', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicQTickerBooks (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/ticker/books", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/ticker/books', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicQTickers (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/tickers", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/tickers', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicLinearGetFutureMarketV1PublicSymbolCoins (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/symbol/coins", ["public","linear"], 'GET', params, undefined, undefined, {"cost":3.33});
+        return this.request ('future/market/v1/public/symbol/coins', [ 'public', 'linear' ], 'GET', params, { 'cost': 3.33 });
     }
+
     publicLinearGetFutureMarketV1PublicSymbolDetail (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/symbol/detail", ["public","linear"], 'GET', params, undefined, undefined, {"cost":3.33});
+        return this.request ('future/market/v1/public/symbol/detail', [ 'public', 'linear' ], 'GET', params, { 'cost': 3.33 });
     }
+
     publicLinearGetFutureMarketV1PublicSymbolList (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/symbol/list", ["public","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/symbol/list', [ 'public', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicContractRiskBalance (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/contract/risk-balance", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/contract/risk-balance', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicContractOpenInterest (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/contract/open-interest", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/contract/open-interest', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicLeverageBracketDetail (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/leverage/bracket/detail", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/leverage/bracket/detail', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicLeverageBracketList (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/leverage/bracket/list", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/leverage/bracket/list', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicQAggTicker (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/agg-ticker", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/agg-ticker', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicQAggTickers (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/agg-tickers", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/agg-tickers', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicQDeal (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/deal", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/deal', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicQDepth (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/depth", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/depth', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicQFundingRate (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/funding-rate", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/funding-rate', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicQFundingRateRecord (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/funding-rate-record", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/funding-rate-record', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicQIndexPrice (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/index-price", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/index-price', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicQKline (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/kline", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/kline', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicQMarkPrice (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/mark-price", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/mark-price', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicQSymbolIndexPrice (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/symbol-index-price", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/symbol-index-price', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicQSymbolMarkPrice (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/symbol-mark-price", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/symbol-mark-price', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicQTicker (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/ticker", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/ticker', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicQTickerBooks (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/ticker/books", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/ticker/books', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicQTickers (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/q/tickers", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/q/tickers', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     publicInverseGetFutureMarketV1PublicSymbolCoins (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/symbol/coins", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":3.33});
+        return this.request ('future/market/v1/public/symbol/coins', [ 'public', 'inverse' ], 'GET', params, { 'cost': 3.33 });
     }
+
     publicInverseGetFutureMarketV1PublicSymbolDetail (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/symbol/detail", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":3.33});
+        return this.request ('future/market/v1/public/symbol/detail', [ 'public', 'inverse' ], 'GET', params, { 'cost': 3.33 });
     }
+
     publicInverseGetFutureMarketV1PublicSymbolList (params = {}): Promise<Dict> {
-        return this.request ("future/market/v1/public/symbol/list", ["public","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/market/v1/public/symbol/list', [ 'public', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateSpotGetBalance (params = {}): Promise<Dict> {
-        return this.request ("balance", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('balance', [ 'private', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     privateSpotGetBalances (params = {}): Promise<Dict> {
-        return this.request ("balances", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('balances', [ 'private', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     privateSpotGetBatchOrder (params = {}): Promise<Dict> {
-        return this.request ("batch-order", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('batch-order', [ 'private', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     privateSpotGetDepositAddress (params = {}): Promise<Dict> {
-        return this.request ("deposit/address", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('deposit/address', [ 'private', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     privateSpotGetDepositHistory (params = {}): Promise<Dict> {
-        return this.request ("deposit/history", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('deposit/history', [ 'private', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     privateSpotGetHistoryOrder (params = {}): Promise<Dict> {
-        return this.request ("history-order", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('history-order', [ 'private', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     privateSpotGetOpenOrder (params = {}): Promise<Dict> {
-        return this.request ("open-order", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('open-order', [ 'private', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     privateSpotGetOrder (params = {}): Promise<Dict> {
-        return this.request ("order", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('order', [ 'private', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     privateSpotGetOrderOrderId (params = {}): Promise<Dict> {
-        return this.request ("order/{orderId}", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('order/{orderId}', [ 'private', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     privateSpotGetTrade (params = {}): Promise<Dict> {
-        return this.request ("trade", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('trade', [ 'private', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     privateSpotGetWithdrawHistory (params = {}): Promise<Dict> {
-        return this.request ("withdraw/history", ["private","spot"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('withdraw/history', [ 'private', 'spot' ], 'GET', params, { 'cost': 1 });
     }
+
     privateSpotPostOrder (params = {}): Promise<Dict> {
-        return this.request ("order", ["private","spot"], 'POST', params, undefined, undefined, {"cost":0.2});
+        return this.request ('order', [ 'private', 'spot' ], 'POST', params, { 'cost': 0.2 });
     }
+
     privateSpotPostWithdraw (params = {}): Promise<Dict> {
-        return this.request ("withdraw", ["private","spot"], 'POST', params, undefined, undefined, {"cost":10});
+        return this.request ('withdraw', [ 'private', 'spot' ], 'POST', params, { 'cost': 10 });
     }
+
     privateSpotPostBalanceTransfer (params = {}): Promise<Dict> {
-        return this.request ("balance/transfer", ["private","spot"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('balance/transfer', [ 'private', 'spot' ], 'POST', params, { 'cost': 1 });
     }
+
     privateSpotPostBalanceAccountTransfer (params = {}): Promise<Dict> {
-        return this.request ("balance/account/transfer", ["private","spot"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('balance/account/transfer', [ 'private', 'spot' ], 'POST', params, { 'cost': 1 });
     }
+
     privateSpotPostWsToken (params = {}): Promise<Dict> {
-        return this.request ("ws-token", ["private","spot"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('ws-token', [ 'private', 'spot' ], 'POST', params, { 'cost': 1 });
     }
+
     privateSpotDeleteBatchOrder (params = {}): Promise<Dict> {
-        return this.request ("batch-order", ["private","spot"], 'DELETE', params, undefined, undefined, {"cost":1});
+        return this.request ('batch-order', [ 'private', 'spot' ], 'DELETE', params, { 'cost': 1 });
     }
+
     privateSpotDeleteOpenOrder (params = {}): Promise<Dict> {
-        return this.request ("open-order", ["private","spot"], 'DELETE', params, undefined, undefined, {"cost":1});
+        return this.request ('open-order', [ 'private', 'spot' ], 'DELETE', params, { 'cost': 1 });
     }
+
     privateSpotDeleteOrderOrderId (params = {}): Promise<Dict> {
-        return this.request ("order/{orderId}", ["private","spot"], 'DELETE', params, undefined, undefined, {"cost":1});
+        return this.request ('order/{orderId}', [ 'private', 'spot' ], 'DELETE', params, { 'cost': 1 });
     }
+
     privateSpotPutOrderOrderId (params = {}): Promise<Dict> {
-        return this.request ("order/{orderId}", ["private","spot"], 'PUT', params, undefined, undefined, {"cost":1});
+        return this.request ('order/{orderId}', [ 'private', 'spot' ], 'PUT', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureCopytradeUserV1CopyTradeCurrentFollowingV2 (params = {}): Promise<Dict> {
-        return this.request ("future/copytrade/user/v1/copy-trade/current-following-v2", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/copytrade/user/v1/copy-trade/current-following-v2', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureCopytradeUserV1CopyTradeFollowerBalanceBill (params = {}): Promise<Dict> {
-        return this.request ("future/copytrade/user/v1/copy-trade/follower-balance-bill", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/copytrade/user/v1/copy-trade/follower-balance-bill', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureCopytradeUserV1CopyTradeFollowerPosition (params = {}): Promise<Dict> {
-        return this.request ("future/copytrade/user/v1/copy-trade/follower-position", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/copytrade/user/v1/copy-trade/follower-position', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1EntrustPlanDetail (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/plan-detail", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/plan-detail', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1EntrustPlanList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/plan-list", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/plan-list', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1EntrustPlanListHistory (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/plan-list-history", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/plan-list-history', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1EntrustProfitDetail (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/profit-detail", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/profit-detail', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1EntrustProfitList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/profit-list", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/profit-list', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1EntrustProfitListHistory (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/profit-list-history", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/profit-list-history', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1EntrustReversePlanList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/reverse-plan-list", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/reverse-plan-list', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1EntrustReversePlanListHistory (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/reverse-plan-list-history", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/reverse-plan-list-history', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1EntrustTrackDetail (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/track-detail", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/track-detail', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1EntrustTrackList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/track-list", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/track-list', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1EntrustTrackListHistory (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/track-list-history", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/track-list-history', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1OrderEntrustList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order-entrust/list", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order-entrust/list', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1OrderDetail (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/detail", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/detail', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1OrderList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/list", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/list', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1OrderListHistory (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/list-history", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/list-history', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1OrderTradeHistory (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/trade-history", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/trade-history', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1PositionListHistory (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/position/list-history", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/position/list-history', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1PositionCrossMarginSymbol (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/position/cross-margin/{symbol}", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/position/cross-margin/{symbol}', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1PositionLeverageList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/position/leverage/list", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/position/leverage/list', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1PositionListActive (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/position/list/active", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/position/list/active', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1OrderTradeList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/trade-list", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/trade-list', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureTradeV1OrderTradeListAll (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/trade-list-all", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/trade-list-all', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureUserV1AccountInfo (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/account/info", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/account/info', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureUserV1AutoDeleverageHistory (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/auto-deleverage/history", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/auto-deleverage/history', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureUserV1BalanceBills (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/balance/bills", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/balance/bills', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureUserV1BalanceDetail (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/balance/detail", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/balance/detail', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureUserV1BalanceFundingRateList (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/balance/funding-rate-list", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/balance/funding-rate-list', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureUserV1BalanceList (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/balance/list", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/balance/list', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureUserV1CompatBalanceCoin (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/compat/balance/{coin}", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/compat/balance/{coin}', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureUserV1PositionAdl (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/adl", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/adl', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureUserV1PositionBreakList (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/break-list", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/break-list', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureUserV1PositionList (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/list", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/list', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureUserV1TakerOverList (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/taker-over/list", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/taker-over/list', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureUserV1UserStepRate (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/user/step-rate", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/user/step-rate', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureUserV1UserCollectionList (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/user/collection/list", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/user/collection/list', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearGetFutureUserV1UserListenKey (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/user/listen-key", ["private","linear"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/user/listen-key', [ 'private', 'linear' ], 'GET', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1EntrustCancelAllPlan (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/cancel-all-plan", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/cancel-all-plan', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1EntrustCancelAllProfitStop (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/cancel-all-profit-stop", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/cancel-all-profit-stop', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1EntrustCancelAllTrack (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/cancel-all-track", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/cancel-all-track', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1EntrustCancelPlan (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/cancel-plan", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/cancel-plan', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1EntrustCancelProfitStop (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/cancel-profit-stop", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/cancel-profit-stop', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1EntrustCreatePlan (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/create-plan", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/create-plan', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1EntrustCancelTrack (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/cancel-track", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/cancel-track', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1EntrustCreateProfit (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/create-profit", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/create-profit', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1EntrustCreateTrack (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/create-track", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/create-track', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1EntrustUpdateProfitStop (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/update-profit-stop", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/update-profit-stop', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1OrderCancel (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/cancel", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/cancel', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1OrderCancelAll (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/cancel-all", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/cancel-all', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1OrderCreate (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/create", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/create', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1OrderCreateBatch (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/create-batch", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/create-batch', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureTradeV1OrderUpdate (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/update", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/update', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureUserV1AccountOpen (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/account/open", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/account/open', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureUserV1PositionAdjustLeverage (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/adjust-leverage", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/adjust-leverage', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureUserV1PositionAutoMargin (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/auto-margin", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/auto-margin', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureUserV1PositionCloseAll (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/close-all", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/close-all', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureUserV1PositionMargin (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/margin", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/margin', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureUserV1UserCollectionAdd (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/user/collection/add", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/user/collection/add', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureUserV1UserCollectionCancel (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/user/collection/cancel", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/user/collection/cancel', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateLinearPostFutureUserV1PositionChangeType (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/change-type", ["private","linear"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/change-type', [ 'private', 'linear' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1EntrustPlanDetail (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/plan-detail", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/plan-detail', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1EntrustPlanList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/plan-list", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/plan-list', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1EntrustPlanListHistory (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/plan-list-history", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/plan-list-history', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1EntrustProfitDetail (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/profit-detail", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/profit-detail', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1EntrustProfitList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/profit-list", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/profit-list', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1EntrustProfitListHistory (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/profit-list-history", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/profit-list-history', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1EntrustReversePlanList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/reverse-plan-list", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/reverse-plan-list', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1EntrustReversePlanListHistory (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/reverse-plan-list-history", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/reverse-plan-list-history', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1EntrustTrackDetail (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/track-detail", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/track-detail', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1EntrustTrackList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/track-list", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/track-list', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1EntrustTrackListHistory (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/track-list-history", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/track-list-history', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1OrderEntrustList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order-entrust/list", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order-entrust/list', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1OrderDetail (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/detail", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/detail', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1OrderList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/list", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/list', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1OrderListHistory (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/list-history", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/list-history', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1OrderTradeHistory (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/trade-history", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/trade-history', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1PositionListHistory (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/position/list-history", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/position/list-history', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1PositionCrossMarginSymbol (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/position/cross-margin/{symbol}", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/position/cross-margin/{symbol}', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1PositionLeverageList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/position/leverage/list", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/position/leverage/list', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1PositionListActive (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/position/list/active", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/position/list/active', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1OrderTradeList (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/trade-list", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/trade-list', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureTradeV1OrderTradeListAll (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/trade-list-all", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/trade-list-all', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureUserV1AccountInfo (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/account/info", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/account/info', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureUserV1AutoDeleverageHistory (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/auto-deleverage/history", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/auto-deleverage/history', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureUserV1BalanceBills (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/balance/bills", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/balance/bills', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureUserV1BalanceDetail (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/balance/detail", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/balance/detail', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureUserV1BalanceFundingRateList (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/balance/funding-rate-list", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/balance/funding-rate-list', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureUserV1BalanceList (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/balance/list", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/balance/list', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureUserV1CompatBalanceCoin (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/compat/balance/{coin}", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/compat/balance/{coin}', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureUserV1PositionAdl (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/adl", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/adl', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureUserV1PositionBreakList (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/break-list", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/break-list', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureUserV1PositionList (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/list", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/list', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureUserV1TakerOverList (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/taker-over/list", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/taker-over/list', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureUserV1UserStepRate (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/user/step-rate", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/user/step-rate', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureUserV1UserCollectionList (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/user/collection/list", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/user/collection/list', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInverseGetFutureUserV1UserListenKey (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/user/listen-key", ["private","inverse"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/user/listen-key', [ 'private', 'inverse' ], 'GET', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1EntrustCancelAllPlan (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/cancel-all-plan", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/cancel-all-plan', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1EntrustCancelAllProfitStop (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/cancel-all-profit-stop", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/cancel-all-profit-stop', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1EntrustCancelAllTrack (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/cancel-all-track", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/cancel-all-track', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1EntrustCancelPlan (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/cancel-plan", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/cancel-plan', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1EntrustCancelProfitStop (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/cancel-profit-stop", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/cancel-profit-stop', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1EntrustCreatePlan (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/create-plan", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/create-plan', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1EntrustCancelTrack (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/cancel-track", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/cancel-track', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1EntrustCreateProfit (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/create-profit", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/create-profit', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1EntrustCreateTrack (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/create-track", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/create-track', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1EntrustUpdateProfitStop (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/entrust/update-profit-stop", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/entrust/update-profit-stop', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1OrderCancel (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/cancel", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/cancel', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1OrderCancelAll (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/cancel-all", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/cancel-all', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1OrderCreate (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/create", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/create', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1OrderCreateBatch (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/create-batch", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/create-batch', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureTradeV1OrderUpdate (params = {}): Promise<Dict> {
-        return this.request ("future/trade/v1/order/update", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/trade/v1/order/update', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureUserV1AccountOpen (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/account/open", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/account/open', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureUserV1PositionAdjustLeverage (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/adjust-leverage", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/adjust-leverage', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureUserV1PositionAutoMargin (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/auto-margin", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/auto-margin', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureUserV1PositionCloseAll (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/close-all", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/close-all', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureUserV1PositionMargin (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/margin", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/margin', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureUserV1UserCollectionAdd (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/user/collection/add", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/user/collection/add', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureUserV1UserCollectionCancel (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/user/collection/cancel", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/user/collection/cancel', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateInversePostFutureUserV1PositionChangeType (params = {}): Promise<Dict> {
-        return this.request ("future/user/v1/position/change-type", ["private","inverse"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('future/user/v1/position/change-type', [ 'private', 'inverse' ], 'POST', params, { 'cost': 1 });
     }
+
     privateUserGetUserAccount (params = {}): Promise<Dict> {
-        return this.request ("user/account", ["private","user"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('user/account', [ 'private', 'user' ], 'GET', params, { 'cost': 1 });
     }
+
     privateUserGetUserAccountApiKey (params = {}): Promise<Dict> {
-        return this.request ("user/account/api-key", ["private","user"], 'GET', params, undefined, undefined, {"cost":1});
+        return this.request ('user/account/api-key', [ 'private', 'user' ], 'GET', params, { 'cost': 1 });
     }
+
     privateUserPostUserAccount (params = {}): Promise<Dict> {
-        return this.request ("user/account", ["private","user"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('user/account', [ 'private', 'user' ], 'POST', params, { 'cost': 1 });
     }
+
     privateUserPostUserAccountApiKey (params = {}): Promise<Dict> {
-        return this.request ("user/account/api-key", ["private","user"], 'POST', params, undefined, undefined, {"cost":1});
+        return this.request ('user/account/api-key', [ 'private', 'user' ], 'POST', params, { 'cost': 1 });
     }
+
     privateUserPutUserAccountApiKey (params = {}): Promise<Dict> {
-        return this.request ("user/account/api-key", ["private","user"], 'PUT', params, undefined, undefined, {"cost":1});
+        return this.request ('user/account/api-key', [ 'private', 'user' ], 'PUT', params, { 'cost': 1 });
     }
+
     privateUserDeleteUserAccountApiKeyId (params = {}): Promise<Dict> {
-        return this.request ("user/account/{apiKeyId}", ["private","user"], 'DELETE', params, undefined, undefined, {"cost":1});
+        return this.request ('user/account/{apiKeyId}', [ 'private', 'user' ], 'DELETE', params, { 'cost': 1 });
     }
 }
-export default Exchange
+
+export default Exchange;

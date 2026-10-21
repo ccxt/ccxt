@@ -364,7 +364,11 @@ class bittrade extends \ccxt\async\bittrade {
         $symbol = $this->safe_string($subscription, 'symbol');
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $timestamp = $this->safe_integer($message, 'ts');
-        $orderbook = $this->orderbooks[$symbol];
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            // the book was removed (unwatch/cleanCache) before the snapshot arrived
+            return;
+        }
         $data = $this->safe_dict($message, 'data');
         $snapshot = $this->parse_order_book($data, $symbol);
         $snapshot['nonce'] = $this->safe_integer($data, 'seqNum');
@@ -497,7 +501,11 @@ class bittrade extends \ccxt\async\bittrade {
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $symbol = $this->safe_symbol($marketId);
-        $orderbook = $this->orderbooks[$symbol];
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            // no active subscription holds a book for this symbol, drop the delta
+            return;
+        }
         if ($orderbook['nonce'] === null) {
             $orderbook->cache[] = $message;
         } else {
@@ -639,8 +647,12 @@ class bittrade extends \ccxt\async\bittrade {
             $subscription = $this->safe_dict($subscriptionsById, $id);
             if ($subscription !== null) {
                 $errorCode = $this->safe_string($message, 'err-code');
+                $errorMessage = $this->safe_string($message, 'err-msg');
+                $feedback = $this->id . ' ' . $this->json($message);
                 try {
-                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $this->json($message));
+                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+                    throw new ExchangeError($feedback);
                 } catch (Exception $e) {
                     $messageHash = $this->safe_string($subscription, 'messageHash');
                     $client->reject($e, $messageHash);

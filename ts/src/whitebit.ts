@@ -3211,7 +3211,7 @@ export default class whitebit extends Exchange {
             'txid': this.safeString (transaction, 'transactionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.safeString (transaction, 'network'),
+            'network': this.networkIdToCode (this.safeString (transaction, 'network'), this.safeCurrencyCode (currencyId, currencyResolved)),
             'addressFrom': (method === '1') ? address : undefined,
             'address': address,
             'addressTo': (method === '2') ? address : undefined,
@@ -4268,11 +4268,11 @@ export default class whitebit extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
         const query = this.omit (params, this.extractParams (path));
         const version = this.safeValue (api, 0);
         const accessibility = this.safeString (api, 1);
-        const publicHeaders: Dict = (headers === undefined) ? {} : headers;
+        const publicHeaders: Dict = {};
         publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams (path, params);
         const apiUrl = this.safeString (this.urls['api'][version], accessibility);
@@ -4305,7 +4305,7 @@ export default class whitebit extends Exchange {
             };
         }
         const isPrivate = (accessibility === 'private');
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (isPrivate) {
             requestBody = privateBody;
         }

@@ -498,14 +498,14 @@ class hitbtc(Exchange, ImplicitAPI):
             'options': {
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
-                    'ETH': 'ETH',
+                    'ETH': 'ERC20',
                     'USDT': 'TRC20',
                 },
                 'networks': {
                     # mainnet network ids are in lowercase for BTC & ETH
                     'BTC': 'btc',
                     'OMNI': 'BTC',
-                    'ETH': 'eth',
+                    # native ETH mainnet id is 'eth', ERC20 tokens use 'ETH'
                     'ERC20': 'ETH',
                     'ETC': 'ETC',
                     'BEP20': 'BSC',
@@ -995,7 +995,8 @@ class hitbtc(Exchange, ImplicitAPI):
             rawNetwork = rawNetworks[j]
             networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
             networkCode = self.network_id_to_code(networkId, code)
-            networkCode = networkCode.upper() if (networkCode is not None) else code  # as hitbtc is white label, ensure we safeguard from possible bugs
+            networkCodeUpper = networkCode.upper() if (networkCode is not None) else None
+            networkCode = self.safe_string(self.networkAliases, networkCodeUpper, networkCodeUpper) if (networkCodeUpper is not None) else code  # as hitbtc is white label, ensure we safeguard from possible bugs
             if networkCode is not None:
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -1049,7 +1050,8 @@ class hitbtc(Exchange, ImplicitAPI):
         request = {
             'currency': currency['id'],
         }
-        network = self.safe_string_upper(params, 'network')
+        networkInput = self.safe_string_upper(params, 'network')
+        network = self.safe_string(self.networkAliases, networkInput, networkInput) if (networkInput is not None) else None
         if (network is not None) and (code == 'USDT'):
             networks = self.safe_dict(self.options, 'networks')
             parsedNetwork = self.safe_string(networks, network)
@@ -1087,7 +1089,8 @@ class hitbtc(Exchange, ImplicitAPI):
         request = {
             'currency': currency['id'],
         }
-        network = self.safe_string_upper(params, 'network')
+        networkInput = self.safe_string_upper(params, 'network')
+        network = self.safe_string(self.networkAliases, networkInput, networkInput) if (networkInput is not None) else None
         if (network is not None) and (code == 'USDT'):
             networks = self.safe_dict(self.options, 'networks')
             parsedNetwork = self.safe_string(networks, network)
@@ -2648,10 +2651,12 @@ class hitbtc(Exchange, ImplicitAPI):
         if code != 'USDT':
             raise ExchangeError(self.id + ' convertCurrencyNetwork() only supports USDT currently')
         networks = self.safe_dict(self.options, 'networks', {})
-        fromNetworkValue = fromNetwork.upper()
-        toNetworkValue = toNetwork.upper()
-        fromNetworkValue2 = self.safe_string(networks, fromNetworkValue)  # handle ETH>ERC20 alias
-        toNetworkValue2 = self.safe_string(networks, toNetworkValue)  # handle ETH>ERC20 alias
+        fromNetworkUpper = fromNetwork.upper()
+        toNetworkUpper = toNetwork.upper()
+        fromNetworkValue = self.safe_string(self.networkAliases, fromNetworkUpper, fromNetworkUpper)
+        toNetworkValue = self.safe_string(self.networkAliases, toNetworkUpper, toNetworkUpper)
+        fromNetworkValue2 = self.safe_string(networks, fromNetworkValue)  # unified code to exchange id
+        toNetworkValue2 = self.safe_string(networks, toNetworkValue)  # unified code to exchange id
         if fromNetworkValue2 == toNetworkValue2:
             raise BadRequest(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork')
         if (fromNetworkValue2 is None) or (toNetworkValue2 is None):
@@ -2694,7 +2699,8 @@ class hitbtc(Exchange, ImplicitAPI):
         if tagWithdrawTag is not None:
             request['payment_id'] = tagWithdrawTag
         networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_upper(paramsWithdrawTag, 'network')
+        networkInput = self.safe_string_upper(paramsWithdrawTag, 'network')
+        network = self.safe_string(self.networkAliases, networkInput, networkInput) if (networkInput is not None) else None
         if (network is not None) and (code == 'USDT'):
             parsedNetwork = self.safe_string(networks, network)
             if parsedNetwork is not None:
@@ -3544,7 +3550,8 @@ class hitbtc(Exchange, ImplicitAPI):
             networkId = self.safe_string(networkEntry, 'network')
             code = self.safe_string(currency, 'code')
             networkCode = self.network_id_to_code(networkId, code)
-            networkCode = networkCode.upper() if (networkCode is not None) else None
+            networkCodeUpper = networkCode.upper() if (networkCode is not None) else None
+            networkCode = self.safe_string(self.networkAliases, networkCodeUpper, networkCodeUpper) if (networkCodeUpper is not None) else None
             withdrawFee = self.safe_number(networkEntry, 'payout_fee')
             isDefault = self.safe_bool(networkEntry, 'default')
             withdrawResult = {
@@ -3643,10 +3650,11 @@ class hitbtc(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         query = self.omit(params, self.extract_params(path))
         implodedPath = self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + implodedPath
@@ -3660,8 +3668,8 @@ class hitbtc(Exchange, ImplicitAPI):
             if queryLength != 0:
                 getRequest = '?' + self.urlencode(query)
                 url = url + getRequest
-        bodyResolved = body if (method == 'GET') else self.json(params)
-        if api == 'private':
+        bodyResolved = None if (method == 'GET') else self.json(params)
+        if apiName == 'private':
             self.check_required_credentials()
             timestamp = str(self.nonce())
             payload = [method, '/api/3/' + implodedPath]

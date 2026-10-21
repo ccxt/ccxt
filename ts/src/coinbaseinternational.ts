@@ -276,7 +276,7 @@ export default class coinbaseinternational extends Exchange {
                     'method': 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
                 },
                 'networksById': {
-                    'ethereum': 'ETH',
+                    'ethereum': 'ERC20',
                     'arbitrum': 'ARBITRUM',
                     'avacchain': 'AVAX',
                     'optimism': 'OPTIMISM',
@@ -2385,7 +2385,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override sign (path: string, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [], method = 'GET', params: Dict = {}): Dict {
         const version = this.safeString (api, 0);
         const signed = this.safeString (api, 1) === 'private';
         let fullPath = '/' + version + '/' + this.implodeParams (path, params);
@@ -2406,7 +2406,7 @@ export default class coinbaseinternational extends Exchange {
         if (hasSignedBody) {
             signedBody = this.json (query);
         }
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (hasSignedBody) {
             requestBody = signedBody;
         }
@@ -2424,7 +2424,7 @@ export default class coinbaseinternational extends Exchange {
                 'CB-ACCESS-KEY': this.apiKey,
             };
         }
-        let requestHeaders: NullableDict = headers;
+        let requestHeaders: NullableDict = undefined;
         if (signed) {
             requestHeaders = signedHeaders;
         }
