@@ -3,6 +3,383 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "spot crypto",
+                "method": "fetchMyTrades",
+                "input": [
+                    "ETH/USD"
+                ],
+                "httpResponse": {
+                    "nd": 91,
+                    "rpnl": {
+                        "data": [
+                            {
+                                "cur": "USD",
+                                "date": "20261019",
+                                "fxRate": 1,
+                                "side": "L",
+                                "positionSide": "long",
+                                "acctid": "U3448646",
+                                "amt": "-12.538768",
+                                "conid": "495759171"
+                            },
+                            {
+                                "cur": "USD",
+                                "date": "20261009",
+                                "fxRate": 1,
+                                "side": "L",
+                                "positionSide": "long",
+                                "acctid": "U3448646",
+                                "amt": "2.184428",
+                                "conid": "495759171"
+                            },
+                            {
+                                "cur": "USD",
+                                "date": "20261013",
+                                "fxRate": 1,
+                                "side": "L",
+                                "positionSide": "long",
+                                "acctid": "U3448646",
+                                "amt": "-0.184645",
+                                "conid": "495759171"
+                            }
+                        ],
+                        "amt": "-10.538985"
+                    },
+                    "currency": "USD",
+                    "from": 1784764800000,
+                    "id": "getTransactions",
+                    "to": 1792540800000,
+                    "transactions": [
+                        {
+                            "cur": "USD",
+                            "date": "Thu Oct 08 00:00:00 EDT 2026",
+                            "rawDate": "20261008",
+                            "fxRate": 1,
+                            "pr": 2417.9,
+                            "qty": 0.08484221,
+                            "acctid": "U3448646",
+                            "amt": -205.139979559,
+                            "conid": 495759171,
+                            "type": "Buy",
+                            "desc": "Ethereum cryptocurrency",
+                            "isRealTime": false
+                        },
+                        {
+                            "cur": "USD",
+                            "date": "Fri Oct 09 00:00:00 EDT 2026",
+                            "rawDate": "20261009",
+                            "fxRate": 1,
+                            "pr": 2484.9,
+                            "qty": -0.08484221,
+                            "acctid": "U3448646",
+                            "amt": 210.824407629,
+                            "conid": 495759171,
+                            "type": "Sell",
+                            "desc": "Ethereum cryptocurrency",
+                            "isRealTime": false
+                        },
+                        {
+                            "cur": "USD",
+                            "date": "Tue Oct 13 00:00:00 EDT 2026",
+                            "rawDate": "20261013",
+                            "fxRate": 1,
+                            "pr": 2508,
+                            "qty": 0.082928,
+                            "acctid": "U3448646",
+                            "amt": -207.983424,
+                            "conid": 495759171,
+                            "type": "Buy",
+                            "desc": "Ethereum cryptocurrency",
+                            "isRealTime": false
+                        },
+                        {
+                            "cur": "USD",
+                            "date": "Tue Oct 13 00:00:00 EDT 2026",
+                            "rawDate": "20261013",
+                            "fxRate": 1,
+                            "pr": 2507.875136251467,
+                            "qty": -0.00398748,
+                            "acctid": "U3448646",
+                            "amt": 10.0001019483,
+                            "conid": 495759171,
+                            "type": "Sell",
+                            "desc": "Ethereum cryptocurrency",
+                            "isRealTime": false
+                        },
+                        {
+                            "cur": "USD",
+                            "date": "Mon Oct 19 00:00:00 EDT 2026",
+                            "rawDate": "20261019",
+                            "fxRate": 1,
+                            "pr": 2402.4999999983334,
+                            "qty": 0.06,
+                            "acctid": "U3448646",
+                            "amt": -144.1499999999,
+                            "conid": 495759171,
+                            "type": "Buy",
+                            "desc": "Ethereum cryptocurrency",
+                            "isRealTime": false
+                        },
+                        {
+                            "cur": "USD",
+                            "date": "Mon Oct 19 00:00:00 EDT 2026",
+                            "rawDate": "20261019",
+                            "fxRate": 1,
+                            "pr": 2403.5606022264687,
+                            "qty": -0.09894052,
+                            "acctid": "U3448646",
+                            "amt": 237.8095358358,
+                            "conid": 495759171,
+                            "type": "Sell",
+                            "desc": "Ethereum cryptocurrency",
+                            "isRealTime": false
+                        },
+                        {
+                            "cur": "USD",
+                            "date": "Wed Oct 21 00:00:00 EDT 2026",
+                            "rawDate": "20261021",
+                            "fxRate": 1,
+                            "pr": 2483.349,
+                            "qty": 0.02,
+                            "acctid": "U3448646",
+                            "amt": -49.66698,
+                            "conid": 495759171,
+                            "type": "Buy",
+                            "desc": "Ethereum cryptocurrency",
+                            "isRealTime": true
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "info": {
+                            "cur": "USD",
+                            "date": "Thu Oct 08 00:00:00 EDT 2026",
+                            "rawDate": "20261008",
+                            "fxRate": 1,
+                            "pr": 2417.9,
+                            "qty": 0.08484221,
+                            "acctid": "U3448646",
+                            "amt": -205.139979559,
+                            "conid": 495759171,
+                            "type": "Buy",
+                            "desc": "Ethereum cryptocurrency",
+                            "isRealTime": false
+                        },
+                        "timestamp": 1791432000000,
+                        "datetime": "2026-10-08T04:00:00.000Z",
+                        "symbol": "ETH/USD",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 2417.9,
+                        "amount": 0.08484221,
+                        "cost": 205.139979559,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "info": {
+                            "cur": "USD",
+                            "date": "Fri Oct 09 00:00:00 EDT 2026",
+                            "rawDate": "20261009",
+                            "fxRate": 1,
+                            "pr": 2484.9,
+                            "qty": -0.08484221,
+                            "acctid": "U3448646",
+                            "amt": 210.824407629,
+                            "conid": 495759171,
+                            "type": "Sell",
+                            "desc": "Ethereum cryptocurrency",
+                            "isRealTime": false
+                        },
+                        "timestamp": 1791518400000,
+                        "datetime": "2026-10-09T04:00:00.000Z",
+                        "symbol": "ETH/USD",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 2484.9,
+                        "amount": 0.08484221,
+                        "cost": 210.824407629,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "info": {
+                            "cur": "USD",
+                            "date": "Tue Oct 13 00:00:00 EDT 2026",
+                            "rawDate": "20261013",
+                            "fxRate": 1,
+                            "pr": 2508,
+                            "qty": 0.082928,
+                            "acctid": "U3448646",
+                            "amt": -207.983424,
+                            "conid": 495759171,
+                            "type": "Buy",
+                            "desc": "Ethereum cryptocurrency",
+                            "isRealTime": false
+                        },
+                        "timestamp": 1791864000000,
+                        "datetime": "2026-10-13T04:00:00.000Z",
+                        "symbol": "ETH/USD",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 2508,
+                        "amount": 0.082928,
+                        "cost": 207.983424,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "info": {
+                            "cur": "USD",
+                            "date": "Tue Oct 13 00:00:00 EDT 2026",
+                            "rawDate": "20261013",
+                            "fxRate": 1,
+                            "pr": 2507.875136251467,
+                            "qty": -0.00398748,
+                            "acctid": "U3448646",
+                            "amt": 10.0001019483,
+                            "conid": 495759171,
+                            "type": "Sell",
+                            "desc": "Ethereum cryptocurrency",
+                            "isRealTime": false
+                        },
+                        "timestamp": 1791864000000,
+                        "datetime": "2026-10-13T04:00:00.000Z",
+                        "symbol": "ETH/USD",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 2507.875136251467,
+                        "amount": 0.00398748,
+                        "cost": 10.0001019483,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "info": {
+                            "cur": "USD",
+                            "date": "Mon Oct 19 00:00:00 EDT 2026",
+                            "rawDate": "20261019",
+                            "fxRate": 1,
+                            "pr": 2402.4999999983334,
+                            "qty": 0.06,
+                            "acctid": "U3448646",
+                            "amt": -144.1499999999,
+                            "conid": 495759171,
+                            "type": "Buy",
+                            "desc": "Ethereum cryptocurrency",
+                            "isRealTime": false
+                        },
+                        "timestamp": 1792382400000,
+                        "datetime": "2026-10-19T04:00:00.000Z",
+                        "symbol": "ETH/USD",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 2402.4999999983334,
+                        "amount": 0.06,
+                        "cost": 144.1499999999,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "info": {
+                            "cur": "USD",
+                            "date": "Mon Oct 19 00:00:00 EDT 2026",
+                            "rawDate": "20261019",
+                            "fxRate": 1,
+                            "pr": 2403.5606022264687,
+                            "qty": -0.09894052,
+                            "acctid": "U3448646",
+                            "amt": 237.8095358358,
+                            "conid": 495759171,
+                            "type": "Sell",
+                            "desc": "Ethereum cryptocurrency",
+                            "isRealTime": false
+                        },
+                        "timestamp": 1792382400000,
+                        "datetime": "2026-10-19T04:00:00.000Z",
+                        "symbol": "ETH/USD",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 2403.5606022264687,
+                        "amount": 0.09894052,
+                        "cost": 237.8095358358,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "info": {
+                            "cur": "USD",
+                            "date": "Wed Oct 21 00:00:00 EDT 2026",
+                            "rawDate": "20261021",
+                            "fxRate": 1,
+                            "pr": 2483.349,
+                            "qty": 0.02,
+                            "acctid": "U3448646",
+                            "amt": -49.66698,
+                            "conid": 495759171,
+                            "type": "Buy",
+                            "desc": "Ethereum cryptocurrency",
+                            "isRealTime": true
+                        },
+                        "timestamp": 1792555200000,
+                        "datetime": "2026-10-21T04:00:00.000Z",
+                        "symbol": "ETH/USD",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 2483.349,
+                        "amount": 0.02,
+                        "cost": 49.66698,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "spot crypto",

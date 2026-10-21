@@ -599,7 +599,9 @@ export default class interactivebrokers extends Exchange {
                     'openOrders': true, // compute 'used' from the open spot orders of the current brokerage session (iserver/account/orders)
                 },
                 'fetchMyTrades': {
-                    'days': 7, // max 7
+                    'days': 7, // max 7, iserver/account/trades
+                    'transactionsDays': 90, // pa/transactions, used for crypto markets
+                    'transactionsCurrency': 'USD',
                 },
                 'createOrder': {
                     'autoConfirmOrderReplies': true, // automatically confirm order warnings via iserver/reply/{replyid}
@@ -2147,18 +2149,46 @@ export default class interactivebrokers extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order, sent as cOID
      * @param {boolean} [params.outsideRTH] allow the order to execute outside regular trading hours
      * @param {string} [params.accountId] the account id, defaults to options["accountId"]
+     * @param {boolean} [params.whatif] if true, the order is only previewed via iserver/account/{accountId}/orders/whatif and not placed, the margin and commission impact is returned in the info field of the order structure
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ accountId, query ] = await this.loadAccountId (params);
+        const [ accountId, accountQuery ] = await this.loadAccountId (params);
+        const whatif = this.safeBool (accountQuery, 'whatif', false);
+        const query = this.omit (accountQuery, 'whatif');
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, query);
         orderRequest['acctId'] = accountId;
         const request: Dict = {
             'accountId': accountId,
             'orders': [ orderRequest ],
         };
+        if (whatif) {
+            const previewResponse = await this.privatePostIserverAccountAccountIdOrdersWhatif (request);
+            //
+            //     {
+            //         "amount": { "amount": "23,000 USD (100 Shares)", "commission": "1 USD", "total": "23,001 USD" },
+            //         "equity": { "current": "50,000", "change": "-1", "after": "49,999" },
+            //         "initial": { "current": "0", "change": "11,500", "after": "11,500" },
+            //         "maintenance": { "current": "0", "change": "10,350", "after": "10,350" },
+            //         "position": { "current": "0", "change": "100", "after": "100" },
+            //         "warn": "21/You are trying to submit an order without having market data for this instrument.",
+            //         "error": null
+            //     }
+            //
+            return this.safeOrder ({
+                'info': previewResponse,
+                'id': undefined,
+                'clientOrderId': this.safeString (orderRequest, 'cOID'),
+                'symbol': market['symbol'],
+                'type': type,
+                'side': side,
+                'amount': amount,
+                'price': price,
+                'status': undefined,
+            }, market);
+        }
         const response = await this.privatePostIserverAccountAccountIdOrders (request);
         const result = await this.ibkrHandleOrderReplies (response, 'createOrder');
         //
@@ -2679,26 +2709,44 @@ export default class interactivebrokers extends Exchange {
     /**
      * @method
      * @name interactivebrokers#fetchMyTrades
-     * @description fetch all trades made by the user over the last days (max 7)
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-trades
-     * @param {string} [symbol] unified market symbol
+     * @description fetch all trades made by the user, over the last days (max 7) via iserver/account/trades, or for crypto markets (which iserver/account/trades does not return) via pa/transactions
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-trade-history
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio-analyst/get-transactions
+     * @param {string} [symbol] unified market symbol, required for crypto markets
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.days] number of days to fetch, max 7
+     * @param {int} [params.days] number of days to fetch, max 7 for iserver/account/trades, default 90 for pa/transactions
+     * @param {string} [params.method] 'privateGetIserverAccountTrades' or 'privatePostPaTransactions', default is 'privatePostPaTransactions' for crypto markets and 'privateGetIserverAccountTrades' otherwise
+     * @param {string} [params.currency] pa/transactions only, the currency to display the amounts in, default 'USD'
+     * @param {string} [params.accountId] pa/transactions only, the account id, defaults to options["accountId"]
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.marketOrNull (symbol);
-        let days = this.safeInteger (this.safeDict (this.options, 'fetchMyTrades', {}), 'days', 7);
+        const options = this.safeDict (this.options, 'fetchMyTrades', {});
+        let defaultMethod = 'privateGetIserverAccountTrades';
+        if (market !== undefined) {
+            const assetClass = this.safeString (market['info'], 'assetClass');
+            if (assetClass === 'CRYPTO') {
+                defaultMethod = 'privatePostPaTransactions';
+            }
+        }
+        const method = this.safeString (params, 'method', defaultMethod);
+        const query = this.omit (params, 'method');
+        if (method === 'privatePostPaTransactions') {
+            return await this.fetchMyTradesFromTransactions (market, since, limit, query);
+        }
+        let days = this.safeInteger (options, 'days', 7);
         if (since !== undefined) {
-            days = Math.min (7, Math.max (1, this.parseToInt (Math.ceil ((this.milliseconds () - since) / 86400000))));
+            const daysPassed = (this.milliseconds () - since) / 86400000;
+            days = Math.min (7, Math.max (1, this.parseToInt (Math.ceil (daysPassed))));
         }
         const request: Dict = {
             'days': days,
         };
-        const response = await this.privateGetIserverAccountTrades (this.extend (request, params));
+        const response = await this.privateGetIserverAccountTrades (this.extend (request, query));
         //
         //     [
         //         {
@@ -2724,7 +2772,156 @@ export default class interactivebrokers extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name interactivebrokers#fetchMyTradesFromTransactions
+     * @description fetches the trades of a single market via pa/transactions, used for crypto markets as iserver/account/trades does not return them
+     * @ignore
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio-analyst/get-transactions
+     * @param {object} market the market to fetch the trades for
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    async fetchMyTradesFromTransactions (market: Market, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (market === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument when fetching trades from pa/transactions');
+        }
+        const options = this.safeDict (this.options, 'fetchMyTrades', {});
+        const [ accountId, accountQuery ] = await this.loadAccountId (params);
+        const [ currency, query ] = this.handleOptionAndParams (accountQuery, 'fetchMyTrades', 'currency', this.safeString (options, 'transactionsCurrency', 'USD'));
+        let days = this.safeInteger (options, 'transactionsDays', 90);
+        if (since !== undefined) {
+            const daysPassed = (this.milliseconds () - since) / 86400000;
+            days = Math.max (1, this.parseToInt (Math.ceil (daysPassed)));
+        }
+        const request: Dict = {
+            'acctIds': [ accountId ],
+            'conids': [ this.parseToInt (market['id']) ], // only one conid at a time is supported
+            'currency': currency,
+            'days': days,
+        };
+        const response = await this.privatePostPaTransactions (this.extend (request, query));
+        //
+        //     {
+        //         "rc": 0,
+        //         "nd": 4,
+        //         "rpnl": { "data": [ ... ], "amt": "12.2516" },
+        //         "currency": "USD",
+        //         "from": 1702270800000,
+        //         "id": "getTransactions",
+        //         "to": 1702530000000,
+        //         "includesRealTime": true,
+        //         "transactions": [
+        //             {
+        //                 "date": "Mon Dec 11 00:00:00 EST 2023",
+        //                 "cur": "USD",
+        //                 "fxRate": 1,
+        //                 "pr": 2428.04,
+        //                 "qty": -0.01,
+        //                 "acctid": "U1234567",
+        //                 "amt": 24.28,
+        //                 "conid": 495759171,
+        //                 "type": "Sell",
+        //                 "desc": "Ethereum"
+        //             }
+        //         ]
+        //     }
+        //
+        const transactions = this.safeList (response, 'transactions', []);
+        return this.parseTrades (transactions, market, since, limit);
+    }
+
+    parseTransactionDate (date: Str): Int {
+        // "Mon Dec 11 00:00:00 EST 2023" -> 2023-12-11T00:00:00-05:00
+        if (date === undefined) {
+            return undefined;
+        }
+        const parts = date.split (' ');
+        const partsLength = parts.length;
+        if (partsLength < 6) {
+            return undefined;
+        }
+        const months: Dict = {
+            'Jan': '01',
+            'Feb': '02',
+            'Mar': '03',
+            'Apr': '04',
+            'May': '05',
+            'Jun': '06',
+            'Jul': '07',
+            'Aug': '08',
+            'Sep': '09',
+            'Oct': '10',
+            'Nov': '11',
+            'Dec': '12',
+        };
+        const offsets: Dict = {
+            'EST': '-05:00',
+            'EDT': '-04:00',
+            'UTC': '+00:00',
+            'GMT': '+00:00',
+        };
+        const month = this.safeString (months, parts[1]);
+        if (month === undefined) {
+            return undefined;
+        }
+        const dayPart = parts[2];
+        const day = dayPart.padStart (2, '0');
+        const offset = this.safeString (offsets, parts[4], '+00:00');
+        return this.parse8601 (parts[5] + '-' + month + '-' + day + 'T' + parts[3] + offset);
+    }
+
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
+        if ('qty' in trade) {
+            //
+            // pa/transactions
+            //
+            //    {
+            //        "cur": "USD",
+            //        "date": "Thu Oct 08 00:00:00 EDT 2026",
+            //        "rawDate": "20261008",
+            //        "fxRate": 1,
+            //        "pr": 2417.9,
+            //        "qty": 0.08484221,
+            //        "acctid": "U3448646",
+            //        "amt": -205.139979559,
+            //        "conid": 495759171,
+            //        "type": "Buy",
+            //        "desc": "Ethereum cryptocurrency",
+            //        "isRealTime": false
+            //    }
+            //
+            const transactionMarketId = this.safeString (trade, 'conid');
+            const transactionMarket = this.safeMarket (transactionMarketId, market);
+            const transactionTimestamp = this.parseTransactionDate (this.safeString (trade, 'date'));
+            const qty = this.safeString (trade, 'qty');
+            const typeId = this.safeStringLower (trade, 'type');
+            let transactionSide: Str = undefined;
+            if (typeId === 'buy') {
+                transactionSide = 'buy';
+            } else if (typeId === 'sell') {
+                transactionSide = 'sell';
+            } else if (qty !== undefined) {
+                transactionSide = Precise.stringLt (qty, '0') ? 'sell' : 'buy';
+            }
+            return this.safeTrade ({
+                'id': undefined,
+                'info': trade,
+                'timestamp': transactionTimestamp,
+                'datetime': this.iso8601 (transactionTimestamp),
+                'symbol': transactionMarket['symbol'],
+                'order': undefined,
+                'type': undefined,
+                'side': transactionSide,
+                'takerOrMaker': undefined,
+                'price': this.safeString (trade, 'pr'),
+                'amount': Precise.stringAbs (qty),
+                'cost': Precise.stringAbs (this.safeString (trade, 'amt')),
+                'fee': undefined,
+            }, transactionMarket);
+        }
         const marketId = this.safeString (trade, 'conid');
         const resolved = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'trade_time_r');

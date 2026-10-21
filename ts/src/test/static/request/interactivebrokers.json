@@ -1,8 +1,19 @@
 {
     "exchange": "interactivebrokers",
-    "skipKeys": [],
+    "skipKeys": ["acctIds"],
     "options": {},
     "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "spot crypto",
+                "method": "fetchMyTrades",
+                "url": "https://api.ibkr.com/v1/api/pa/transactions",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": "{\"acctIds\":[\"U3448646\"],\"conids\":[495759171],\"currency\":\"USD\",\"days\":90}"
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "spot crypto",
