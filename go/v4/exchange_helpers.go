@@ -3116,7 +3116,7 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 					}
 					out := val.Interface()
 					if outcome, isOutcome := out.(UntypedOutcome); isOutcome {
-						ch <- AsyncResult[any]{Value: outcome.Untyped(), Err: outcome.Failure()}
+						ch <- AsyncResult[any]{Value: DynamicValue(outcome.Untyped()), Err: outcome.Failure()}
 					} else {
 						ch <- AsyncResult[any]{Value: out}
 					}

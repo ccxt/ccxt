@@ -1388,3 +1388,61 @@ func StringSliceToList(s []string) []any {
 func StringElementToAny(s string) any {
 	return s
 }
+
+// dynamicLists maps each list-of-struct channel element onto the []any of maps the untyped (TS-shaped) base code reads.
+var dynamicLists = map[reflect.Type]func(any) any{
+	reflect.TypeOf([]Trade(nil)):                func(v any) any { return TradesToList(v.([]Trade)) },
+	reflect.TypeOf([]Order(nil)):                func(v any) any { return OrdersToList(v.([]Order)) },
+	reflect.TypeOf([]OHLCV(nil)):                func(v any) any { return OHLCVsToList(v.([]OHLCV)) },
+	reflect.TypeOf([]Position(nil)):             func(v any) any { return PositionsToList(v.([]Position)) },
+	reflect.TypeOf([]Transaction(nil)):          func(v any) any { return TransactionsToList(v.([]Transaction)) },
+	reflect.TypeOf([]LedgerEntry(nil)):          func(v any) any { return LedgerEntriesToList(v.([]LedgerEntry)) },
+	reflect.TypeOf([]DepositAddress(nil)):       func(v any) any { return DepositAddressesToList(v.([]DepositAddress)) },
+	reflect.TypeOf([]TransferEntry(nil)):        func(v any) any { return TransferEntriesToList(v.([]TransferEntry)) },
+	reflect.TypeOf([]OpenInterest(nil)):         func(v any) any { return OpenInterestsToList(v.([]OpenInterest)) },
+	reflect.TypeOf([]Conversion(nil)):           func(v any) any { return ConversionsToList(v.([]Conversion)) },
+	reflect.TypeOf([]Liquidation(nil)):          func(v any) any { return LiquidationsToList(v.([]Liquidation)) },
+	reflect.TypeOf([]BorrowInterest(nil)):       func(v any) any { return BorrowInterestsToList(v.([]BorrowInterest)) },
+	reflect.TypeOf([]FundingHistory(nil)):       func(v any) any { return FundingHistoriesToList(v.([]FundingHistory)) },
+	reflect.TypeOf([]FundingRateHistory(nil)):   func(v any) any { return FundingRateHistoriesToList(v.([]FundingRateHistory)) },
+	reflect.TypeOf([]LeverageTier(nil)):         func(v any) any { return LeverageTiersToList(v.([]LeverageTier)) },
+	reflect.TypeOf([]MarginModification(nil)):   func(v any) any { return MarginModificationsToList(v.([]MarginModification)) },
+	reflect.TypeOf([]LongShortRatio(nil)):       func(v any) any { return LongShortRatiosToList(v.([]LongShortRatio)) },
+	reflect.TypeOf([]ADL(nil)):                  func(v any) any { return ADLsToList(v.([]ADL)) },
+	reflect.TypeOf([]Account(nil)):              func(v any) any { return AccountsToList(v.([]Account)) },
+	reflect.TypeOf([]PredictionOrder(nil)):      func(v any) any { return PredictionOrdersToList(v.([]PredictionOrder)) },
+	reflect.TypeOf([]PredictionTrade(nil)):      func(v any) any { return PredictionTradesToList(v.([]PredictionTrade)) },
+	reflect.TypeOf([]PredictionPosition(nil)):   func(v any) any { return PredictionPositionsToList(v.([]PredictionPosition)) },
+	reflect.TypeOf([]PredictionEvent(nil)):      func(v any) any { return PredictionEventsToList(v.([]PredictionEvent)) },
+	reflect.TypeOf([]PredictionSettlement(nil)): func(v any) any { return PredictionSettlementsToList(v.([]PredictionSettlement)) },
+	reflect.TypeOf([]MarketInterface(nil)):      func(v any) any { return MarketInterfacesToList(v.([]MarketInterface)) },
+	reflect.TypeOf([]map[string]any(nil)):       func(v any) any { return MapSliceToList(v.([]map[string]any)) },
+	reflect.TypeOf([]string(nil)):               func(v any) any { return StringSliceToList(v.([]string)) },
+}
+
+// DynamicValue is the TS-shaped view of a typed channel value for dynamic (by-name) callers:
+// typed lists become []any of maps and a nil typed list or map becomes untyped nil.
+func DynamicValue(v any) any {
+	switch c := v.(type) {
+	case map[string]any:
+		if c == nil {
+			return nil
+		}
+		return c
+	case []any:
+		if c == nil {
+			return nil
+		}
+		return c
+	}
+	rv := reflect.ValueOf(v)
+	if rv.IsValid() && rv.Kind() == reflect.Slice {
+		if toList, ok := dynamicLists[rv.Type()]; ok {
+			if rv.IsNil() {
+				return nil
+			}
+			return toList(v)
+		}
+	}
+	return v
+}
