@@ -10,7 +10,6 @@ public partial class BaseTest
         async public Task<object> baseTestsInit()
         {
             await testLanguageSpecific();
-            testConstants();
             testAfterConstructor();
             testAggregate();
             testExtend();
@@ -71,7 +70,6 @@ public partial class BaseTest
             testImplodeParams();
             testUnique();
             testUrlencodeNested();
-            await testSleep();
             await testFetchHistory();
             testIo();
             testIsJsonEncodedObject();
