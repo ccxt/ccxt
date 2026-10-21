@@ -6012,7 +6012,7 @@ export default class bybit extends Exchange {
      * @param {string} [params.network] unified network code
      * @returns {object[]} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddresses (codes: Strings = undefined, params: Dict = {}): Promise<DepositAddress[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
