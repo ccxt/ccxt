@@ -3731,6 +3731,8 @@ public class Derive extends DeriveApi
         String markPrice = this.safeString(position, "mark_price");
         Long timestamp = this.safeInteger(position, "creation_timestamp");
         String unrealisedPnl = this.safeString(position, "unrealized_pnl");
+        String initialMarginString = Precise.stringAbs(this.safeString(position, "initial_margin"));
+        String maintenanceMarginString = Precise.stringAbs(this.safeString(position, "maintenance_margin"));
         size = Precise.stringAbs(size);
         String notional = Precise.stringMul(size, markPrice);
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
@@ -3740,11 +3742,11 @@ public class Derive extends DeriveApi
         mapLiteral6.put("timestamp", timestamp);
         mapLiteral6.put("datetime", this.iso8601(timestamp));
         mapLiteral6.put("lastUpdateTimestamp", null);
-        mapLiteral6.put("initialMargin", this.safeNumber(position, "initial_margin", (Object) null));
-        mapLiteral6.put("initialMarginPercentage", null);
-        mapLiteral6.put("maintenanceMargin", this.safeNumber(position, "maintenance_margin", (Object) null));
-        mapLiteral6.put("maintenanceMarginPercentage", null);
-        mapLiteral6.put("entryPrice", null);
+        mapLiteral6.put("initialMargin", this.parseNumber(initialMarginString));
+        mapLiteral6.put("initialMarginPercentage", this.parseNumber(Precise.stringDiv(initialMarginString, notional, 8)));
+        mapLiteral6.put("maintenanceMargin", this.parseNumber(maintenanceMarginString));
+        mapLiteral6.put("maintenanceMarginPercentage", this.parseNumber(Precise.stringDiv(maintenanceMarginString, notional, 8)));
+        mapLiteral6.put("entryPrice", this.safeNumber2(position, "average_price", "average_price_excl_fees", (Object) null));
         mapLiteral6.put("notional", this.parseNumber(notional));
         mapLiteral6.put("leverage", this.safeNumber(position, "leverage", (Object) null));
         mapLiteral6.put("unrealizedPnl", this.parseNumber(unrealisedPnl));

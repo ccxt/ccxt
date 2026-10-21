@@ -525,7 +525,10 @@ public class Independentreserve extends IndependentreserveApi
                             }} );
                         }},
                         "created", null,
-                        "info", id
+                        "info", Helpers.newMap(
+                            "primaryCurrencyCode", baseId,
+                            "secondaryCurrencyCode", quoteId
+                        )
                     ));
                 }
             }
@@ -1470,12 +1473,13 @@ public class Independentreserve extends IndependentreserveApi
                 return h2kMap0;
             }
         }
+        Map<String, Object> headers = new HashMap<String, Object>() {{}};
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
             h2kMap1.put("body", null);
-            h2kMap1.put("headers", null);
+            h2kMap1.put("headers", headers);
             return h2kMap1;
         }
     }

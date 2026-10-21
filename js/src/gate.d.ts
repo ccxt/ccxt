@@ -422,6 +422,8 @@ export default class gate extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
+    isGateFuturesContractWithDecimalSize(market: Market): boolean;
+    getGateFuturesSignedAmount(symbol: Str, side: Str, amount: Num): Str;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     /**
      * @method

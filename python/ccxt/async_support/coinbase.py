@@ -1789,7 +1789,8 @@ class coinbase(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
             return None
-        tradingDisabled = self.safe_bool(market, 'is_disabled')
+        isDisabled = self.safe_bool(market, 'is_disabled')
+        tradingDisabled = (isDisabled is True) or (self.safe_bool(market, 'trading_disabled') is True)
         symbol = base + '/' + quote
         type = None
         if isSwap:

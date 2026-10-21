@@ -4903,6 +4903,37 @@ func WithFetchAccountPositionsParams(params map[string]any) FetchAccountPosition
 	}
 }
 
+type FetchStockIndicativeQuoteOptionsStruct struct {
+	Params *map[string]any
+}
+
+type FetchStockIndicativeQuoteOptions func(opts *FetchStockIndicativeQuoteOptionsStruct)
+
+func WithFetchStockIndicativeQuoteParams(params map[string]any) FetchStockIndicativeQuoteOptions {
+	return func(opts *FetchStockIndicativeQuoteOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type CreateRfqOrderOptionsStruct struct {
+	Price  *float64
+	Params *map[string]any
+}
+
+type CreateRfqOrderOptions func(opts *CreateRfqOrderOptionsStruct)
+
+func WithCreateRfqOrderPrice(price float64) CreateRfqOrderOptions {
+	return func(opts *CreateRfqOrderOptionsStruct) {
+		opts.Price = &price
+	}
+}
+
+func WithCreateRfqOrderParams(params map[string]any) CreateRfqOrderOptions {
+	return func(opts *CreateRfqOrderOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type EditSpotOrderOptionsStruct struct {
 	Price  *float64
 	Params *map[string]any

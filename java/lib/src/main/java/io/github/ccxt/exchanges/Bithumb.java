@@ -521,7 +521,7 @@ public class Bithumb extends BithumbApi
             }} );
             put( "options", new HashMap<String, Object>() {{
                 put( "generation", 2 );
-                put( "fetchTickersGeneration2MaxMarketIdsPerRequest", 300 );
+                put( "fetchTickersGeneration2MaxMarketIdsPerRequest", 200 );
                 put( "createMarketBuyOrderRequiresPrice", true );
                 put( "quoteCurrencies", new HashMap<String, Object>() {{
                     put( "KRW", new HashMap<String, Object>() {{
@@ -1147,7 +1147,7 @@ public class Bithumb extends BithumbApi
             {
                 // Bithumb v2 ticker payloads are inconsistent for all-market calls,
                 // so we aggregate 300 markets per request only when symbols are not provided.
-                Object marketIds = new ArrayList<Object>(Arrays.asList());
+                List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
                 List<String> symbolsForMarketIds = (((java.util.Objects.equals(symbols, null)))) ? this.symbols : symbols;
                 Integer symbolsForMarketIdsLength = ((List<?>)symbolsForMarketIds).size();
                 for (var i = 0; (symbolsForMarketIdsLength != null && i < symbolsForMarketIdsLength); i++)
@@ -1162,31 +1162,24 @@ public class Bithumb extends BithumbApi
                 }
                 List<Object> marketIdsChunks = new ArrayList<Object>(Arrays.asList());
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
-                if (!java.util.Objects.equals(symbols, null))
+                // the exchange rejects more than 200 market ids per request
+                Long maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200);
+                if ((java.util.Objects.equals(maxMarketIdsPerRequest, null)) || (((maxMarketIdsPerRequest == null || maxMarketIdsPerRequest < 1))))
                 {
-                    request.put("markets", String.join(",", (List<String>)marketIds));
-                    ((List<Object>)marketIdsChunks).add(marketIds);
-                    ((List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
-                } else
+                    maxMarketIdsPerRequest = 200L;
+                }
+                Object marketIdsChunk = new ArrayList<Object>(Arrays.asList());
+                for (var i = 0; (marketIdsLength != null && i < marketIdsLength); i++)
                 {
-                    Long maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300);
-                    if ((java.util.Objects.equals(maxMarketIdsPerRequest, null)) || (((maxMarketIdsPerRequest == null || maxMarketIdsPerRequest < 1))))
+                    ((List<Object>)marketIdsChunk).add((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
+                    Integer marketIdsChunkLength = ((List<?>)marketIdsChunk).size();
+                    Boolean isLastMarketId = ((i == ((((long) marketIdsLength) - 1L))));
+                    if (((maxMarketIdsPerRequest == null || (marketIdsChunkLength != null && marketIdsChunkLength >= maxMarketIdsPerRequest))) || Boolean.TRUE.equals(isLastMarketId))
                     {
-                        maxMarketIdsPerRequest = 300L;
-                    }
-                    Object marketIdsChunk = new ArrayList<Object>(Arrays.asList());
-                    for (var i = 0; (marketIdsLength != null && i < marketIdsLength); i++)
-                    {
-                        ((List<Object>)marketIdsChunk).add((marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i)));
-                        Integer marketIdsChunkLength = ((List<?>)marketIdsChunk).size();
-                        Boolean isLastMarketId = ((i == ((((long) marketIdsLength) - 1L))));
-                        if (((maxMarketIdsPerRequest == null || (marketIdsChunkLength != null && marketIdsChunkLength >= maxMarketIdsPerRequest))) || Boolean.TRUE.equals(isLastMarketId))
-                        {
-                            ((List<Object>)marketIdsChunks).add(marketIdsChunk);
-                            request.put("markets", String.join(",", (List<String>)marketIdsChunk));
-                            ((List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
-                            marketIdsChunk = new ArrayList<Object>(Arrays.asList());
-                        }
+                        ((List<Object>)marketIdsChunks).add(marketIdsChunk);
+                        request.put("markets", String.join(",", (List<String>)marketIdsChunk));
+                        ((List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
+                        marketIdsChunk = new ArrayList<Object>(Arrays.asList());
                     }
                 }
                 //
@@ -1231,9 +1224,9 @@ public class Bithumb extends BithumbApi
                         response = Helpers.GetValue(response, "data");
                     }
                     String expectedMarketId = null;
-                    Object marketIdsChunk = this.safeList(marketIdsChunks, i, new ArrayList<Object>(Arrays.asList()));
-                    String firstMarketId = this.safeString(marketIdsChunk, 0);
-                    if ((!java.util.Objects.equals(firstMarketId, null)) && (java.util.Objects.equals(this.safeString(marketIdsChunk, 1), null)))
+                    List<Object> requestedMarketIds = (List<Object>) this.safeList(marketIdsChunks, i, new ArrayList<Object>(Arrays.asList()));
+                    String firstMarketId = this.safeString(requestedMarketIds, 0);
+                    if ((!java.util.Objects.equals(firstMarketId, null)) && (java.util.Objects.equals(this.safeString(requestedMarketIds, 1), null)))
                     {
                         expectedMarketId = firstMarketId;
                     }

@@ -1275,9 +1275,7 @@ class bitfinex(Exchange, ImplicitAPI):
             bid = self.safe_string(ticker, 2 - minusIndex)
             ask = self.safe_string(ticker, 5 - minusIndex)
             change = self.safe_string(ticker, 8 - minusIndex)
-            # DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
-            # branch reads at index 6 and scales
-            percentage = Precise.string_mul(self.safe_string(ticker, 9 - minusIndex), '100')
+            # funding DAILY_CHANGE_RELATIVE is not change / (last - change), let safeTicker derive percentage
             volume = self.safe_string(ticker, 11 - minusIndex)
             high = self.safe_string(ticker, 12 - minusIndex)
             low = self.safe_string(ticker, 13 - minusIndex)

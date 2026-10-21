@@ -408,7 +408,7 @@ class independentreserve extends Exchange {
                         ),
                     ),
                     'created' => null,
-                    'info' => $id,
+                    'info' => array( 'primaryCurrencyCode' => $baseId, 'secondaryCurrencyCode' => $quoteId ),
                 );
             }
         }
@@ -1236,6 +1236,7 @@ class independentreserve extends Exchange {
             $signedHeaders = array( 'Content-Type' => 'application/json' );
             return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $signedHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
+        $headers = array();
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => $headers );
     }
 }

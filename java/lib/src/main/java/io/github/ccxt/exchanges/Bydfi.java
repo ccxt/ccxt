@@ -2608,6 +2608,12 @@ public class Bydfi extends BydfiApi
             contracts = Precise.stringDiv(contracts, contractSize);
         }
         Long timestamp = this.safeInteger(position, "createTime");
+        // raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+        String positionMargin = this.safeString(position, "positionMargin");
+        if ((!java.util.Objects.equals(positionMargin, null)) && !Precise.stringGt(positionMargin, "0"))
+        {
+            positionMargin = null;
+        }
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("info", position);
         mapLiteral4.put("id", this.safeString(position, "id"));
@@ -2616,6 +2622,7 @@ public class Bydfi extends BydfiApi
         mapLiteral4.put("markPrice", this.parseNumber(this.safeString(position, "markPrice")));
         mapLiteral4.put("lastPrice", this.parseNumber(this.safeString(position, "avgClosePositionPrice")));
         mapLiteral4.put("notional", this.parseNumber(this.safeString(position, "closePositionCost")));
+        mapLiteral4.put("positionMargin", this.parseNumber(positionMargin));
         mapLiteral4.put("collateral", null);
         mapLiteral4.put("unrealizedPnl", this.parseNumber(this.safeString(position, "unPnl")));
         mapLiteral4.put("realizedPnl", this.parseNumber(this.safeString(position, "positionProfits")));

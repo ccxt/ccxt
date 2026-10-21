@@ -5025,6 +5025,12 @@ public class Woo extends WooApi
         size = Precise.stringAbs(size);
         String notional = Precise.stringMul(size, markPrice);
         String positionSide = this.safeString(position, "positionSide"); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        String marginMode = this.safeStringLower2(position, "marginMode", "margin_mode");
+        Double positionMargin = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            positionMargin = this.safeNumber2(position, "isolatedMarginAmount", "isolated_margin_amount", (Object) null);
+        }
         HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
         mapLiteral7.put("info", position);
         mapLiteral7.put("id", null);
@@ -5046,8 +5052,9 @@ public class Woo extends WooApi
         mapLiteral7.put("liquidationPrice", this.safeNumber2(position, "estLiqPrice", "est_liq_price", (Object) null));
         mapLiteral7.put("markPrice", this.parseNumber(markPrice));
         mapLiteral7.put("lastPrice", null);
+        mapLiteral7.put("positionMargin", positionMargin);
         mapLiteral7.put("collateral", null);
-        mapLiteral7.put("marginMode", this.safeStringLower2(position, "marginMode", "margin_mode"));
+        mapLiteral7.put("marginMode", marginMode);
         mapLiteral7.put("side", side);
         mapLiteral7.put("percentage", null);
         mapLiteral7.put("hedged", !java.util.Objects.equals(positionSide, "BOTH"));

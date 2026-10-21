@@ -356,7 +356,7 @@ func (this *Bitfinex) HandleOHLCV(client any, message []any, subscription map[st
 	//
 	var data any = this.SafeList(message, 1, []any{})
 	var ohlcvs any = []any{}
-	var first any = this.SafeList(data, 0)
+	var first []any = ccxt.SafeListTyped(data, 0)
 	if first != nil {
 		// snapshot
 		ohlcvs = data
@@ -599,7 +599,9 @@ func (this *Bitfinex) HandleMyTrade(client any, message []any, optionalArgs ...a
 	_ = subscription
 	var name string = "myTrade"
 	var data []any = ccxt.SafeListTyped(message, 2)
-	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
+	var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(map[string]any{
+		"result": data,
+	}))
 	var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
@@ -664,7 +666,9 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 		var length int = len(trades)
 		for i := 0; i < length; i++ {
 			var index any = ccxt.Subtract(ccxt.Subtract(length, i), 1)
-			var parsed any = this.ParseWsTrade(ccxt.GetValue(trades, index), market)
+			var parsed any = this.ParseWsTrade(map[string]any{
+				"result": ccxt.GetValue(trades, index),
+			}, market)
 			stored.(ccxt.Appender).Append(parsed)
 		}
 	} else {
@@ -676,7 +680,9 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 			return
 		}
 		var trade []any = ccxt.SafeListTypedDefault(message, 2, []any{})
-		var parsed any = this.ParseWsTrade(trade, market)
+		var parsed any = this.ParseWsTrade(map[string]any{
+			"result": trade,
+		}, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	if channel != nil {
@@ -684,7 +690,7 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 }
-func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) any {
 	//
 	//    [
 	//        1128060969, // id
@@ -729,7 +735,8 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var numFields int = ccxt.GetArrayLength(trade)
+	var trade []any = ccxt.SafeListTypedDefault(tradeResult, "result", []any{})
+	var numFields int = len(trade)
 	var isPublic bool = (numFields <= 8)
 	var marketId any = nil
 	if !isPublic {

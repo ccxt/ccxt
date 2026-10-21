@@ -2246,6 +2246,9 @@ class testMainClass {
             $options['apiKey'] = '';
             $options['secret'] = '';
         }
+        if ($exchange_name === 'backpack') {
+            $options['secret'] = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+        }
         $exchange = init_exchange($exchange_name, $options, $is_ws);
         if ($currencies !== null) {
             $exchange->currencies = $currencies;

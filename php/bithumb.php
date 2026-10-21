@@ -360,9 +360,8 @@ class bithumb extends Exchange {
             ),
             'options' => array(
                 'generation' => 2, // either API generation 1 or 2
-                // Bithumb v2 ticker endpoint returns HTTP 414 when the `markets` query string is too long.
-                // Keep this conservative to reduce requests while staying below URL-length limits.
-                'fetchTickersGeneration2MaxMarketIdsPerRequest' => 300,
+                // Bithumb v2 ticker endpoint rejects more than 200 ids in `markets`
+                'fetchTickersGeneration2MaxMarketIdsPerRequest' => 200,
                 'createMarketBuyOrderRequiresPrice' => true,
                 'quoteCurrencies' => array(
                     'KRW' => array(
@@ -992,26 +991,21 @@ class bithumb extends Exchange {
             }
             $marketIdsChunks = array();
             $promises = array();
-            if ($symbols !== null) {
-                $request['markets'] = implode(',', $marketIds);
-                $marketIdsChunks[] = $marketIds;
-                $promises[] = $this->publicGetV1Ticker($this->extend($request, $paramsGeneration));
-            } else {
-                $maxMarketIdsPerRequest = $this->safe_integer($this->options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 300);
-                if (($maxMarketIdsPerRequest === null) || ($maxMarketIdsPerRequest < 1)) {
-                    $maxMarketIdsPerRequest = 300;
-                }
-                $marketIdsChunk = array();
-                for ($i = 0; $i < $marketIdsLength; $i++) {
-                    $marketIdsChunk[] = $marketIds[$i];
-                    $marketIdsChunkLength = count($marketIdsChunk);
-                    $isLastMarketId = ($i === ($marketIdsLength - 1));
-                    if (($marketIdsChunkLength >= $maxMarketIdsPerRequest) || $isLastMarketId) {
-                        $marketIdsChunks[] = $marketIdsChunk;
-                        $request['markets'] = implode(',', $marketIdsChunk);
-                        $promises[] = $this->publicGetV1Ticker($this->extend($request, $paramsGeneration));
-                        $marketIdsChunk = array();
-                    }
+            // the exchange rejects more than 200 market ids per request
+            $maxMarketIdsPerRequest = $this->safe_integer($this->options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
+            if (($maxMarketIdsPerRequest === null) || ($maxMarketIdsPerRequest < 1)) {
+                $maxMarketIdsPerRequest = 200;
+            }
+            $marketIdsChunk = array();
+            for ($i = 0; $i < $marketIdsLength; $i++) {
+                $marketIdsChunk[] = $marketIds[$i];
+                $marketIdsChunkLength = count($marketIdsChunk);
+                $isLastMarketId = ($i === ($marketIdsLength - 1));
+                if (($marketIdsChunkLength >= $maxMarketIdsPerRequest) || $isLastMarketId) {
+                    $marketIdsChunks[] = $marketIdsChunk;
+                    $request['markets'] = implode(',', $marketIdsChunk);
+                    $promises[] = $this->publicGetV1Ticker($this->extend($request, $paramsGeneration));
+                    $marketIdsChunk = array();
                 }
             }
             //
@@ -1054,9 +1048,9 @@ class bithumb extends Exchange {
                     $response = $response['data'];
                 }
                 $expectedMarketId = null;
-                $marketIdsChunk = $this->safe_list($marketIdsChunks, $i, array());
-                $firstMarketId = $this->safe_string($marketIdsChunk, 0);
-                if (($firstMarketId !== null) && ($this->safe_string($marketIdsChunk, 1) === null)) {
+                $requestedMarketIds = $this->safe_list($marketIdsChunks, $i, array());
+                $firstMarketId = $this->safe_string($requestedMarketIds, 0);
+                if (($firstMarketId !== null) && ($this->safe_string($requestedMarketIds, 1) === null)) {
                     $expectedMarketId = $firstMarketId;
                 }
                 $tickers = array();

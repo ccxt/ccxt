@@ -1872,6 +1872,103 @@
                         "fees": []
                     }
                 ]
+            },
+            {
+                "description": "paginate stops once the cursor runs out",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USD:USDC",
+                    1718377900000,
+                    null,
+                    {
+                        "paginate": true,
+                        "paginationCalls": 3
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "cursor=eyJwYWdlIjoyfQ": {
+                        "next": null,
+                        "prev": "eyJwYWdlIjoxfQ",
+                        "results": [
+                            {
+                                "id": "1718377995380201703994000002",
+                                "market": "BTC-USD-PERP",
+                                "side": "BUY",
+                                "size": "0.026",
+                                "price": "67643.2",
+                                "created_at": 1718377995388,
+                                "trade_type": "FILL"
+                            }
+                        ]
+                    },
+                    "trades": {
+                        "next": "eyJwYWdlIjoyfQ",
+                        "prev": null,
+                        "results": [
+                            {
+                                "id": "1718377985380201703994000001",
+                                "market": "BTC-USD-PERP",
+                                "side": "BUY",
+                                "size": "0.026",
+                                "price": "67643.2",
+                                "created_at": 1718377985388,
+                                "trade_type": "FILL"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1718377995380201703994000002",
+                            "market": "BTC-USD-PERP",
+                            "side": "BUY",
+                            "size": "0.026",
+                            "price": "67643.2",
+                            "created_at": 1718377995388,
+                            "trade_type": "FILL",
+                            "next": null
+                        },
+                        "id": "1718377995380201703994000002",
+                        "order": null,
+                        "timestamp": 1718377995388,
+                        "datetime": "2024-06-14T15:13:15.388Z",
+                        "symbol": "BTC/USD:USDC",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 67643.2,
+                        "amount": 0.026,
+                        "cost": 1758.7232,
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "id": "1718377985380201703994000001",
+                            "market": "BTC-USD-PERP",
+                            "side": "BUY",
+                            "size": "0.026",
+                            "price": "67643.2",
+                            "created_at": 1718377985388,
+                            "trade_type": "FILL",
+                            "next": "eyJwYWdlIjoyfQ"
+                        },
+                        "id": "1718377985380201703994000001",
+                        "order": null,
+                        "timestamp": 1718377985388,
+                        "datetime": "2024-06-14T15:13:05.388Z",
+                        "symbol": "BTC/USD:USDC",
+                        "type": null,
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 67643.2,
+                        "amount": 0.026,
+                        "cost": 1758.7232,
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
+                    }
+                ]
             }
         ],
         "fetchOpenInterest": [

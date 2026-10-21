@@ -235,7 +235,7 @@ export class BaseExchange {
     [key: string]: any;
 
     // this is updated by vss.js when building
-    static ccxtVersion = '4.5.88';
+    static ccxtVersion = '4.5.89';
 
     options: Dict;
 
@@ -8651,6 +8651,7 @@ export class BaseExchange {
             }
             paginationTimestamp = since;
         }
+        let shouldBreak = false;
         while ((calls < maxCallsPaginationCalls)) {
             calls += 1;
             try {
@@ -8670,6 +8671,7 @@ export class BaseExchange {
                         this.log (backwardMessage);
                     }
                     if (responseLength === 0) {
+                        shouldBreak = true;
                         break;
                     }
                     errors = 0;
@@ -8677,9 +8679,11 @@ export class BaseExchange {
                     const firstElement = this.safeValue (response, 0);
                     paginationTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
                     if (paginationTimestamp === undefined) {
+                        shouldBreak = true;
                         break;
                     }
                     if ((since !== undefined) && (paginationTimestamp <= since)) {
+                        shouldBreak = true;
                         break;
                     }
                 } else {
@@ -8694,6 +8698,7 @@ export class BaseExchange {
                         this.log (forwardMessage);
                     }
                     if (responseLength === 0) {
+                        shouldBreak = true;
                         break;
                     }
                     errors = 0;
@@ -8701,11 +8706,13 @@ export class BaseExchange {
                     const last = this.safeValue (response, responseLength - 1);
                     const lastTimestamp = this.safeInteger (last, 'timestamp', 0);
                     if (lastTimestamp === undefined) {
+                        shouldBreak = true;
                         break;
                     }
                     const nextPaginationTimestamp = lastTimestamp + 1;
                     paginationTimestamp = nextPaginationTimestamp;
                     if ((until !== undefined) && (nextPaginationTimestamp >= until)) {
+                        shouldBreak = true;
                         break;
                     }
                 }
@@ -8714,6 +8721,9 @@ export class BaseExchange {
                 if (errors > maxRetriesOption) {
                     throw e;
                 }
+            }
+            if (shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
         }
         let uniqueResults = result;
@@ -8820,6 +8830,7 @@ export class BaseExchange {
         let result: any[] = [];
         const timeframe = this.safeString (paramsMaxEntriesPerRequest, 'timeframe');
         const paramsOmitted: Dict = this.omit (paramsMaxEntriesPerRequest, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
+        let shouldBreak = false;
         while (i < maxCallsPaginationCalls) {
             try {
                 if (cursorValue !== undefined) {
@@ -8857,6 +8868,7 @@ export class BaseExchange {
                     this.log (cursorMessage);
                 }
                 if (responseLength === 0) {
+                    shouldBreak = true;
                     break;
                 }
                 if (response !== undefined) {
@@ -8865,17 +8877,17 @@ export class BaseExchange {
                 const last = this.safeDict (response, responseLength - 1);
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = undefined; // search for the cursor
+                // guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
                 for (let j = 0; j < responseLength; j++) {
-                    const index = responseLength - j - 1;
-                    const entry = this.safeDict (response, index);
-                    const info = this.safeDict (entry, 'info');
-                    const cursor = (cursorReceived === undefined) ? undefined : this.safeValue (info, cursorReceived);
-                    if (cursor !== undefined) {
-                        cursorValue = cursor;
-                        break;
+                    if (cursorValue === undefined) {
+                        const index = responseLength - j - 1;
+                        const entry = this.safeDict (response, index);
+                        const info = this.safeDict (entry, 'info');
+                        cursorValue = (cursorReceived === undefined) ? undefined : this.safeValue (info, cursorReceived);
                     }
                 }
                 if (cursorValue === undefined) {
+                    shouldBreak = true;
                     break;
                 }
                 const lastTimestamp = this.safeInteger (last, 'timestamp');
@@ -8883,6 +8895,7 @@ export class BaseExchange {
                     throw new ArgumentsRequired (this.id + ' fetchPaginatedCallCursor() requires a since argument');
                 }
                 if (lastTimestamp !== undefined && lastTimestamp < since) {
+                    shouldBreak = true;
                     break;
                 }
             } catch (e) {
@@ -8890,6 +8903,9 @@ export class BaseExchange {
                 if (errors > maxRetriesOption) {
                     throw e;
                 }
+            }
+            if (shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
             i += 1;
         }
@@ -8907,6 +8923,7 @@ export class BaseExchange {
         let i = 0;
         let errors = 0;
         let result: any[] = [];
+        let shouldBreak = false;
         while (i < maxCallsPaginationCalls) {
             try {
                 paramsMaxEntriesPerRequest[pageKey as string] = i + 1;
@@ -8919,6 +8936,7 @@ export class BaseExchange {
                     this.log (incrementalMessage);
                 }
                 if (responseLength === 0) {
+                    shouldBreak = true;
                     break;
                 }
                 result = this.arrayConcat (result, response);
@@ -8927,6 +8945,9 @@ export class BaseExchange {
                 if (errors > maxRetriesOption) {
                     throw e;
                 }
+            }
+            if (shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
             i += 1;
         }

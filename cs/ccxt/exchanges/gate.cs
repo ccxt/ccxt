@@ -2454,6 +2454,16 @@ public partial class gate : Exchange
             contractSize = "1"; // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         }
         string? status = this.safeString(market, "status", "trading"); // or "suspend"
+        double? amountPrecision = this.parseNumber("1");
+        bool? enableDecimal = this.safeBool(market, "enable_decimal", false);
+        string? orderSizeMin = this.safeString(market, "order_size_min");
+        bool swap = marketType == "swap";
+        double? minAmount = this.parseNumber(orderSizeMin);
+        if (swap && (enableDecimal == true) && ((orderSizeMin != null)) && ((minAmount != null)) && Precise.stringGt(orderSizeMin, "0"))
+        {
+            amountPrecision = minAmount;
+        }
+        bool active = (status == "trading");
         return new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -2466,10 +2476,10 @@ public partial class gate : Exchange
             { "type", marketType },
             { "spot", false },
             { "margin", false },
-            { "swap", marketType == "swap" },
-            { "future", marketType == "future" },
+            { "swap", swap },
+            { "future", (marketType == "future") },
             { "option", false },
-            { "active", status == "trading" },
+            { "active", active },
             { "contract", true },
             { "linear", isLinear },
             { "inverse", !isLinear },
@@ -2481,7 +2491,7 @@ public partial class gate : Exchange
             { "strike", null },
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
-                { "amount", this.parseNumber("1") },
+                { "amount", amountPrecision },
                 { "price", this.safeNumber(market, "order_price_round") },
             } },
             { "limits", new Dictionary<string, object>() {
@@ -2490,7 +2500,7 @@ public partial class gate : Exchange
                     { "max", this.safeNumber(market, "leverage_max") },
                 } },
                 { "amount", new Dictionary<string, object>() {
-                    { "min", this.safeNumber(market, "order_size_min") },
+                    { "min", minAmount },
                     { "max", this.safeNumber(market, "order_size_max") },
                 } },
                 { "price", new Dictionary<string, object>() {
@@ -5722,6 +5732,24 @@ public partial class gate : Exchange
         return this.parseOrders(response);
     }
 
+    public virtual bool isGateFuturesContractWithDecimalSize(object market)
+    {
+        IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
+        bool? isSwap = this.safeBool(market, "swap", false);
+        bool? enableDecimal = this.safeBool(info, "enable_decimal", false);
+        return (isSwap == true) && (enableDecimal == true);
+    }
+
+    public virtual object getGateFuturesSignedAmount(object symbol, object side, object amount)
+    {
+        string? amountString = this.amountToPrecision(symbol, amount);
+        if ((side is "sell"))
+        {
+            return Precise.stringNeg(amountString);
+        }
+        return amountString;
+    }
+
     public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, string? side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5787,21 +5815,27 @@ public partial class gate : Exchange
             priceResolved = 0;
         }
         object contractAmount = 0;
+        object signedAmount = null;
+        bool useGateFuturesDecimalSize = false;
         if ((contract == true))
         {
             bool? isClose = this.safeBool(query, "close");
             if ((isClose != true))
             {
-                string? amountToPrecision = this.amountToPrecision(symbol, amount);
-                string? signedAmount = amountToPrecision;
-                if ((side == "sell"))
+                signedAmount = this.getGateFuturesSignedAmount(symbol, side, amount);
+                useGateFuturesDecimalSize = this.isGateFuturesContractWithDecimalSize(market);
+                if (!useGateFuturesDecimalSize)
                 {
-                    signedAmount = Precise.stringNeg(amountToPrecision);
+                    contractAmount = parseInt(((string)signedAmount));
                 }
-                contractAmount = parseInt(signedAmount);
             }
         }
         object amountResolved = ((contract == true)) ? contractAmount : amount;
+        object sizeRequest = amountResolved;
+        if (useGateFuturesDecimalSize)
+        {
+            sizeRequest = signedAmount;
+        }
         Dictionary<string, object> request = null;
         bool nonTriggerOrder = !isTpsl && ((trigger == null));
         if (nonTriggerOrder)
@@ -5811,7 +5845,7 @@ public partial class gate : Exchange
                 // contract order
                 request = new Dictionary<string, object>() {
                     { "contract", (market.ContainsKey("id") ? market["id"] : null) },
-                    { "size", amountResolved },
+                    { "size", sizeRequest },
                 };
                 if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) != true))
                 {
@@ -5924,10 +5958,16 @@ public partial class gate : Exchange
                 request = new Dictionary<string, object>() {
                     { "initial", new Dictionary<string, object>() {
                         { "contract", (market.ContainsKey("id") ? market["id"] : null) },
-                        { "size", amountResolved },
                     } },
                     { "settle", (market.ContainsKey("settleId") ? market["settleId"] : null) },
                 };
+                if (useGateFuturesDecimalSize)
+                {
+                    ((IDictionary<string,object>)GetValue(request, "initial"))["amount"] = signedAmount; // FuturesInitialOrder.amount takes precedence over size
+                } else
+                {
+                    ((IDictionary<string,object>)GetValue(request, "initial"))["size"] = amountResolved;
+                }
                 if ((type == "market"))
                 {
                     ((IDictionary<string,object>)GetValue(request, "initial"))["price"] = "0";
@@ -6094,12 +6134,13 @@ public partial class gate : Exchange
                 request["amount"] = this.amountToPrecision(symbol, amount);
             } else
             {
-                if ((side == "sell"))
+                string? signedAmount = ((string)this.getGateFuturesSignedAmount(symbol, side, amount));
+                if (this.isGateFuturesContractWithDecimalSize(market))
                 {
-                    request["size"] = this.parseToNumeric(Precise.stringNeg(this.amountToPrecision(symbol, amount)));
+                    request["size"] = signedAmount;
                 } else
                 {
-                    request["size"] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                    request["size"] = this.parseToNumeric(signedAmount);
                 }
             }
         }
@@ -8661,8 +8702,16 @@ public partial class gate : Exchange
                 { "Content-Type", "application/json" },
             };
         }
-        string? bodyResolved = bodyJson;
         Dictionary<string, object> headersResolved = signedHeaders;
+        if ((type is "futures"))
+        {
+            if ((headersResolved == null))
+            {
+                headersResolved = new Dictionary<string, object>() {};
+            }
+            headersResolved["X-Gate-Size-Decimal"] = "1";
+        }
+        string? bodyResolved = bodyJson;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

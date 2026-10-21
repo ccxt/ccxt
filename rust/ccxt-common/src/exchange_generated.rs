@@ -8565,6 +8565,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             paginationTimestamp = since.clone();
         }
+        let mut shouldBreak: bool = false;
         while (calls.as_f64().unwrap_or(f64::NAN) < maxCallsPaginationCalls.as_f64().unwrap_or(f64::NAN)) {
             calls = (match (&(calls), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             {
@@ -8584,6 +8585,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         self.log(backwardMessage);
                     }
                     if (responseLength.as_f64() == Some(0.0)) {
+                        shouldBreak = true;
                         break;
                     }
                     errors = Value::Int(0);
@@ -8591,9 +8593,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut firstElement: Value = self.safe_value(response.clone(), Value::Int(0), &[]);
                     paginationTimestamp = self.safe_integer2(firstElement, Value::Str("timestamp".into()), Value::Int(0), &[]);
                     if (paginationTimestamp == Value::Null) {
+                        shouldBreak = true;
                         break;
                     }
                     if (since != Value::Null) && (paginationTimestamp.as_f64().unwrap_or(f64::NAN) <= since.as_f64().unwrap_or(f64::NAN)) {
+                        shouldBreak = true;
                         break;
                     }
                 }  else {
@@ -8608,6 +8612,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         self.log(forwardMessage);
                     }
                     if (responseLength.as_f64() == Some(0.0)) {
+                        shouldBreak = true;
                         break;
                     }
                     errors = Value::Int(0);
@@ -8615,14 +8620,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut last: Value = self.safe_value(response, (match (&(responseLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
                     let mut lastTimestamp: Value = self.safe_integer_k(last, "timestamp", &[Value::Int(0)]);
                     if (lastTimestamp == Value::Null) {
+                        shouldBreak = true;
                         break;
                     }
                     let mut nextPaginationTimestamp: Value = (match (&(lastTimestamp), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
                     paginationTimestamp = nextPaginationTimestamp.clone();
                     if (until != Value::Null) && (nextPaginationTimestamp.as_f64().unwrap_or(f64::NAN) >= until.as_f64().unwrap_or(f64::NAN)) {
+                        shouldBreak = true;
                         break;
                     }
                 }
+            }
+            if shouldBreak {
+                break;
             }
         }
         let mut uniqueResults: Value = result.clone();
@@ -8784,6 +8794,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut result: Value = Value::from(vec![]);
         let mut timeframe: Value = self.safe_string_k(paramsMaxEntriesPerRequest.clone(), "timeframe", &[]);
         let mut paramsOmitted: Value = self.omit(paramsMaxEntriesPerRequest, Value::Str("timeframe".into()), &[]); // reading the timeframe from the method arguments to avoid changing the signature
+        let mut shouldBreak: bool = false;
         while i.as_f64().unwrap_or(f64::NAN) < maxCallsPaginationCalls.as_f64().unwrap_or(f64::NAN) {
             {
                 if (cursorValue != Value::Null) {
@@ -8820,6 +8831,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     self.log(cursorMessage);
                 }
                 if (responseLength.as_f64() == Some(0.0)) {
+                    shouldBreak = true;
                     break;
                 }
                 if (response != Value::Null) {
@@ -8832,17 +8844,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_163: bool = true;
                     while { if !__for_first_163 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_163 = false; j.as_f64().unwrap_or(f64::NAN) < responseLength.as_f64().unwrap_or(f64::NAN) } {
-                    let mut index: Value = (match (&((match (&(responseLength), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-                    let mut entry: Value = self.safe_dict(response.clone(), index, &[]);
-                    let mut info: Value = self.safe_dict_k(entry, "info", &[]);
-                    let mut cursor: Value = (if (cursorReceived == Value::Null) { Value::Null } else { self.safe_value(info, cursorReceived.clone(), &[]) });
-                    if (cursor != Value::Null) {
-                        cursorValue = cursor;
-                        break;
+                    if (cursorValue == Value::Null) {
+                        let mut index: Value = (match (&((match (&(responseLength), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                        let mut entry: Value = self.safe_dict(response.clone(), index, &[]);
+                        let mut info: Value = self.safe_dict_k(entry, "info", &[]);
+                        cursorValue = (if (cursorReceived == Value::Null) { Value::Null } else { self.safe_value(info, cursorReceived.clone(), &[]) });
                     }
                 }
                 }
                 if (cursorValue == Value::Null) {
+                    shouldBreak = true;
                     break;
                 }
                 let mut lastTimestamp: Value = self.safe_integer_k(last, "timestamp", &[]);
@@ -8850,8 +8861,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPaginatedCallCursor() requires a since argument".into()))));
                 }
                 if (lastTimestamp != Value::Null) && lastTimestamp.as_f64().unwrap_or(f64::NAN) < since.as_f64().unwrap_or(f64::NAN) {
+                    shouldBreak = true;
                     break;
                 }
+            }
+            if shouldBreak {
+                break;
             }
             i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
         }
@@ -8886,6 +8901,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut i: Value = Value::Int(0);
         let mut errors: Value = Value::Int(0);
         let mut result: Value = Value::from(vec![]);
+        let mut shouldBreak: bool = false;
         while i.as_f64().unwrap_or(f64::NAN) < maxCallsPaginationCalls.as_f64().unwrap_or(f64::NAN) {
             {
                 add_element_to_object(&mut paramsMaxEntriesPerRequest, &pageKey, (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
@@ -8898,9 +8914,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     self.log(incrementalMessage);
                 }
                 if (responseLength.as_f64() == Some(0.0)) {
+                    shouldBreak = true;
                     break;
                 }
                 result = self.array_concat(result.clone(), response);
+            }
+            if shouldBreak {
+                break;
             }
             i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
         }

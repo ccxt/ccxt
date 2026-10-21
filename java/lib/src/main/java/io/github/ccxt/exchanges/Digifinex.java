@@ -4848,7 +4848,7 @@ public class Digifinex extends DigifinexApi
             marginMode = (((java.util.Objects.equals(marginMode, "crossed")))) ? "cross" : "isolated";
         } else
         {
-            marginMode = "crossed";
+            marginMode = "cross";
         }
         Long timestamp = this.safeInteger(position, "timestamp");
         String side = this.safeString(position, "side");
@@ -4859,6 +4859,25 @@ public class Digifinex extends DigifinexApi
         {
             side = "short";
         }
+        String positionMargin = this.safeString(position, "margin");
+        String unrealizedPnl = this.safeString(position, "unrealized_pnl");
+        String collateralString = null;
+        String marginString = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            String isolatedMargin = this.safeString(position, "posi_balance");
+            if (!java.util.Objects.equals(isolatedMargin, null))
+            {
+                marginString = isolatedMargin;
+                collateralString = (((!java.util.Objects.equals(unrealizedPnl, null)))) ? Precise.stringAdd(isolatedMargin, unrealizedPnl) : isolatedMargin;
+            }
+        }
+        String maintenanceMarginString = this.safeString(position, "maintain_margin");
+        String forceCloseFee = this.omitZero(this.safeString(position, "force_close_fee"));
+        if ((!java.util.Objects.equals(maintenanceMarginString, null)) && (!java.util.Objects.equals(forceCloseFee, null)))
+        {
+            maintenanceMarginString = Precise.stringAdd(maintenanceMarginString, forceCloseFee);
+        }
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("info", position);
         mapLiteral8.put("id", null);
@@ -4867,18 +4886,19 @@ public class Digifinex extends DigifinexApi
         mapLiteral8.put("marginMode", marginMode);
         mapLiteral8.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
         mapLiteral8.put("entryPrice", this.safeNumber2(position, "avg_cost", "entry_price", (Object) null));
-        mapLiteral8.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
-        mapLiteral8.put("contracts", this.safeNumber(position, "avail_position", (Object) null));
+        mapLiteral8.put("unrealizedPnl", this.parseNumber(unrealizedPnl));
+        mapLiteral8.put("contracts", this.safeNumber2(position, "position", "avail_position", (Object) null));
         mapLiteral8.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
-        mapLiteral8.put("markPrice", this.safeNumber(position, "last", (Object) null));
+        mapLiteral8.put("markPrice", this.safeNumber2(position, "mark_price", "last", (Object) null));
         mapLiteral8.put("side", side);
         mapLiteral8.put("hedged", null);
         mapLiteral8.put("timestamp", timestamp);
         mapLiteral8.put("datetime", this.iso8601(timestamp));
-        mapLiteral8.put("maintenanceMargin", this.safeNumber(position, "margin", (Object) null));
+        mapLiteral8.put("maintenanceMargin", this.parseNumber(maintenanceMarginString));
         mapLiteral8.put("maintenanceMarginPercentage", this.safeNumber(position, "maint_margin_ratio", (Object) null));
-        mapLiteral8.put("collateral", null);
-        mapLiteral8.put("initialMargin", null);
+        mapLiteral8.put("positionMargin", this.parseNumber(marginString));
+        mapLiteral8.put("collateral", this.parseNumber(collateralString));
+        mapLiteral8.put("initialMargin", this.parseNumber(positionMargin));
         mapLiteral8.put("initialMarginPercentage", null);
         mapLiteral8.put("leverage", this.safeNumber2(position, "leverage", "leverage_ratio", (Object) null));
         mapLiteral8.put("marginRatio", this.safeNumber(position, "margin_ratio", (Object) null));

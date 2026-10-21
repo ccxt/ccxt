@@ -3203,6 +3203,10 @@ func (this *testMainClass) InitOfflineExchange(exchangeName any, optionalArgs ..
 		options["apiKey"] = ""
 		options["secret"] = ""
 	}
+	if exchangeName == "backpack" {
+		// Ed25519 requires a base64-encoded 32-byte seed, not the generic dummy secret.
+		options["secret"] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+	}
 	var exchange ccxt.ICoreExchange = InitExchange(exchangeName, options, isWs)
 	if !IsEqual(currencies, nil) {
 		exchange.SetCurrencies(currencies)

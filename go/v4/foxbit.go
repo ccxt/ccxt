@@ -2444,6 +2444,14 @@ func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var bestBid map[string]any = SafeMapTyped(best, "bid")
 	var lastTrade map[string]any = SafeMapTyped(ticker, "last_trade")
 	var lastPrice *string = this.SafeString(lastTrade, "price")
+	var change *string = this.SafeString(rolling_24h, "price_change")
+	var percentage *string = this.SafeString(rolling_24h, "price_change_percent")
+	// never-traded markets report all-zero placeholders instead of omitting the values
+	if Precise.StringEq(lastPrice, "0") {
+		lastPrice = nil
+		change = nil
+		percentage = nil
+	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     this.ParseDate(this.SafeString(lastTrade, "date")),
@@ -2459,8 +2467,8 @@ func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"close":         lastPrice,
 		"last":          lastPrice,
 		"previousClose": nil,
-		"change":        this.SafeString(rolling_24h, "price_change"),
-		"percentage":    this.SafeString(rolling_24h, "price_change_percent"),
+		"change":        change,
+		"percentage":    percentage,
 		"average":       nil,
 		"baseVolume":    this.SafeString(rolling_24h, "volume"),
 		"quoteVolume":   this.SafeString(rolling_24h, "quote_volume"),

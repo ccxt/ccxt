@@ -28,6 +28,7 @@ class kucoinfutures extends kucoin {
                 'swap' => true,
                 'future' => true,
                 'option' => null,
+                'editOrder' => false,
                 'fetchBidsAsks' => true,
                 'transfer' => true,
             ),

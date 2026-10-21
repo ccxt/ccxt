@@ -96,14 +96,6 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         return "ping";
     }
 
-    public void handlePong(Client client, Object message)
-    {
-        //
-        //   'pong'
-        //
-        client.lastPong = ((Number)this.milliseconds()).longValue();
-    }
-
     /**
      * @method
      * @name blofin#watchTrades
@@ -1009,7 +1001,6 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         // incoming data updates' examples can be seen under each handler method
         //
         Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "pong", "handlePong");
             put( "trades", "handleTrades");
             put( "books", "handleOrderBook");
             put( "tickers", "handleTicker");
@@ -1023,7 +1014,8 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         Object method = null;
         if (java.util.Objects.equals(message, "pong"))
         {
-            method = this.safeValue(methods, "pong");
+            client.lastPong = ((Number)this.milliseconds()).longValue();
+            return;
         } else
         {
             String eventVar = this.safeString(message, "event");

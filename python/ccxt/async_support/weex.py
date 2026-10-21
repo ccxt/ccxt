@@ -1311,7 +1311,8 @@ class weex(Exchange, ImplicitAPI):
             'ask': self.safe_string(ticker, 'askPrice'),
             'askVolume': self.safe_string(ticker, 'askQty'),
             'vwap': None,
-            'open': self.safe_string(ticker, 'openPrice'),
+            # openPrice comes from a different window than priceChange/priceChangePercent, so open is derived from last - change
+            'open': None,
             'close': self.safe_string(ticker, 'lastPrice'),
             'last': self.safe_string(ticker, 'lastPrice'),
             'previousClose': None,

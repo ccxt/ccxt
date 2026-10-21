@@ -14150,6 +14150,11 @@ public class Binance extends BinanceApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
+        String isolatedWalletString = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            isolatedWalletString = this.safeString(position, "isolatedWallet");
+        }
         {
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("info", position);
@@ -14170,6 +14175,7 @@ public class Binance extends BinanceApi
             h2kMap5.put("marginRatio", marginRatio);
             h2kMap5.put("liquidationPrice", liquidationPrice);
             h2kMap5.put("markPrice", null);
+            h2kMap5.put("positionMargin", this.parseNumber(isolatedWalletString));
             h2kMap5.put("collateral", collateral);
             h2kMap5.put("marginMode", marginMode);
             h2kMap5.put("side", side);
@@ -14405,6 +14411,11 @@ public class Binance extends BinanceApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
+        String isolatedWalletString = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            isolatedWalletString = this.safeString(position, "isolatedWallet");
+        }
         HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
         mapLiteral9.put("info", position);
         mapLiteral9.put("id", null);
@@ -14414,6 +14425,7 @@ public class Binance extends BinanceApi
         mapLiteral9.put("unrealizedPnl", unrealizedPnl);
         mapLiteral9.put("leverage", this.parseNumber(leverageString));
         mapLiteral9.put("liquidationPrice", liquidationPrice);
+        mapLiteral9.put("positionMargin", this.parseNumber(isolatedWalletString));
         mapLiteral9.put("collateral", collateral);
         mapLiteral9.put("notional", notional);
         mapLiteral9.put("markPrice", markPrice);

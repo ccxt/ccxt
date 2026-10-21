@@ -2592,8 +2592,13 @@ export class RustTranspilerBuilder {
             // handle_* cache handlers (and the dispatch entry points) so their
             // writes persist. Gated to WS so the REST/prediction transpile — and
             // its long-green output — is byte-for-byte unchanged.
+            // handle_errors is the one `&self` virtual where venues persist session state read
+            // from the response headers (grvt stores its auth cookie / account id in
+            // this.options there). Promote it when it writes a self field so those writes are
+            // not cloned away; the DerivedExchange forwarder already casts for mut virtuals.
             const seeded = directMutRe.test(body)
-                || (wsSeeds && (refMutRe.test(body) || dispatchRe.test(body)));
+                || (wsSeeds && (refMutRe.test(body) || dispatchRe.test(body)))
+                || (f.name === 'handle_errors' && refMutRe.test(body));
             if (seeded) mutSet.add(f.name);
         }
         // Fixed-point: any fn that calls a known-mut method joins the set.
@@ -8551,15 +8556,15 @@ ${arms.join('\n')}
             } catch (_) { /* REST parent not generated yet */ }
         }
         content = this.promoteSelfMutMethods(content, parentMutSeeds, ws);
-        if (ws) {
-            // Re-strip `&mut self.<field>.clone()` casts: WS handlers just
-            // promoted to `&mut self` above had their field mutations cloned-away
-            // by the earlier `stripMutSelfFieldClones` (which ran while they were
-            // still `&self`). Now that they're `&mut self`, drop the clone so the
-            // write lands on the real field (the orderbook cache persists, so
-            // `watch` resolves a populated book). REST/prediction unaffected.
-            content = this.stripMutSelfFieldClones(content);
-        }
+        // Re-strip `&mut self.<field>.clone()` casts: methods just promoted to
+        // `&mut self` above had their field mutations cloned-away by the earlier
+        // `stripMutSelfFieldClones` (which ran while they were still `&self`). Now
+        // that they're `&mut self`, drop the clone so the write lands on the real
+        // field: WS handlers keep their orderbook cache (so `watch` resolves a
+        // populated book) and a REST `handle_errors` keeps the session state it
+        // stores in this.options (grvt's auth cookie / account id). The pass only
+        // touches `&mut self` methods, so unpromoted REST output is unchanged.
+        content = this.stripMutSelfFieldClones(content);
         // Normalize async receivers: in this codebase every `pub async fn`
         // that touches self takes `&mut self` (they call load_markets / watch
         // / fetch, which cache on self). The regex that stamps this (near the

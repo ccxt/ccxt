@@ -2356,6 +2356,10 @@ class testMainClass {
             options['apiKey'] = "";
             options['secret'] = "";
         }
+        if (exchangeName === 'backpack') {
+            // Ed25519 requires a base64-encoded 32-byte seed, not the generic dummy secret.
+            options['secret'] = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+        }
         const exchange = initExchange(exchangeName, options, isWs);
         if (currencies !== undefined) {
             exchange.currencies = currencies;

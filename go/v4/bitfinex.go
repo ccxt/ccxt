@@ -1739,9 +1739,7 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		bid = this.SafeString(ticker, 2-minusIndex)
 		ask = this.SafeString(ticker, 5-minusIndex)
 		change = this.SafeString(ticker, 8-minusIndex)
-		// DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
-		// branch reads at index 6 and scales
-		percentage = Precise.StringMul(this.SafeString(ticker, 9-minusIndex), "100")
+		// funding DAILY_CHANGE_RELATIVE is not change / (last - change), let safeTicker derive percentage
 		volume = this.SafeString(ticker, 11-minusIndex)
 		high = this.SafeString(ticker, 12-minusIndex)
 		low = this.SafeString(ticker, 13-minusIndex)
@@ -2064,11 +2062,11 @@ func (this *Bitfinex) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes153719 []any = ListTyped(r1.Value)
-		if retRes153719 == nil {
+		var retRes153519 []any = ListTyped(r1.Value)
+		if retRes153519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes153719}
+			ch <- AsyncResult[any]{Value: retRes153519}
 		}
 		return nil
 	}
@@ -2164,11 +2162,11 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes159319 []any = ListTyped(r1.Value)
-		if retRes159319 == nil {
+		var retRes159119 []any = ListTyped(r1.Value)
+		if retRes159119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes159319}
+			ch <- AsyncResult[any]{Value: retRes159119}
 		}
 		return nil
 	}
@@ -3111,11 +3109,11 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes229219 []any = ListTyped(r1.Value)
-		if retRes229219 == nil {
+		var retRes229019 []any = ListTyped(r1.Value)
+		if retRes229019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes229219}
+			ch <- AsyncResult[any]{Value: retRes229019}
 		}
 		return nil
 	}
@@ -3371,11 +3369,11 @@ func (this *Bitfinex) createDepositAddressBody(ch chan AsyncResult[any], code st
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes244815 map[string]any = MapTyped(r1.Value)
-	if retRes244815 == nil {
+	var retRes244615 map[string]any = MapTyped(r1.Value)
+	if retRes244615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes244815}
+		ch <- AsyncResult[any]{Value: retRes244615}
 	}
 	return nil
 }
@@ -4398,11 +4396,11 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes323519 []any = ListTyped(r1.Value)
-		if retRes323519 == nil {
+		var retRes323319 []any = ListTyped(r1.Value)
+		if retRes323319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes323519}
+			ch <- AsyncResult[any]{Value: retRes323319}
 		}
 		return nil
 	}
@@ -4582,11 +4580,11 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes335319 []any = ListTyped(r1.Value)
-		if retRes335319 == nil {
+		var retRes335119 []any = ListTyped(r1.Value)
+		if retRes335119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes335319}
+			ch <- AsyncResult[any]{Value: retRes335119}
 		}
 		return nil
 	}
@@ -4946,11 +4944,11 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], sym
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes363119 []any = ListTyped(r1.Value)
-		if retRes363119 == nil {
+		var retRes362919 []any = ListTyped(r1.Value)
+		if retRes362919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes363119}
+			ch <- AsyncResult[any]{Value: retRes362919}
 		}
 		return nil
 	}
@@ -5125,11 +5123,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[any], symbol str
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes376919 []any = ListTyped(r1.Value)
-		if retRes376919 == nil {
+		var retRes376719 []any = ListTyped(r1.Value)
+		if retRes376719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes376919}
+			ch <- AsyncResult[any]{Value: retRes376719}
 		}
 		return nil
 	}
@@ -5143,11 +5141,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[any], symbol str
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp4883 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
-	if listEp4883.Err != nil {
-		panic(listEp4883.Err)
+	listEp4881 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
+	if listEp4881.Err != nil {
+		panic(listEp4881.Err)
 	}
-	var response []any = listEp4883.Value
+	var response []any = listEp4881.Value
 
 	//
 	//     [

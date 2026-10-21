@@ -401,7 +401,7 @@ class independentreserve(Exchange, ImplicitAPI):
                         },
                     },
                     'created': None,
-                    'info': id,
+                    'info': {'primaryCurrencyCode': baseId, 'secondaryCurrencyCode': quoteId},
                 })
         return result
 
@@ -1110,4 +1110,5 @@ class independentreserve(Exchange, ImplicitAPI):
             signedBody = self.json(query)
             signedHeaders = {'Content-Type': 'application/json'}
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
-        return {'url': url, 'method': method, 'body': None, 'headers': None}
+        headers = {}
+        return {'url': url, 'method': method, 'body': None, 'headers': headers}

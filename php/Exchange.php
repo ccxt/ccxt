@@ -62,7 +62,7 @@ use function abs, array_change_key_case, array_filter, array_is_list, array_key_
     stripos, strlen, strpos, strtolower, strtotime, strtoupper, strtr, strval, substr, sys_get_temp_dir,
     time, trim, unpack, urldecode, urlencode, usleep, usort, var_export;
 
-$version = '4.5.88';
+$version = '4.5.89';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -81,10 +81,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.88';
+    const VERSION = '4.5.89';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.88';
+    public static $ccxt_version = '4.5.89';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -451,6 +451,7 @@ class BaseExchange {
         'paymium',
         'phemex',
         'poloniex',
+        'polymarket',
         'revolutx',
         'tokocrypto',
         'toobit',
@@ -8853,6 +8854,7 @@ class BaseExchange {
             }
             $paginationTimestamp = $since;
         }
+        $shouldBreak = false;
         while (($calls < $maxCallsPaginationCalls)) {
             $calls += 1;
             try {
@@ -8872,6 +8874,7 @@ class BaseExchange {
                         $this->log($backwardMessage);
                     }
                     if ($responseLength === 0) {
+                        $shouldBreak = true;
                         break;
                     }
                     $errors = 0;
@@ -8879,9 +8882,11 @@ class BaseExchange {
                     $firstElement = $this->safe_value($response, 0);
                     $paginationTimestamp = $this->safe_integer_2($firstElement, 'timestamp', 0);
                     if ($paginationTimestamp === null) {
+                        $shouldBreak = true;
                         break;
                     }
                     if (($since !== null) && ($paginationTimestamp <= $since)) {
+                        $shouldBreak = true;
                         break;
                     }
                 } else {
@@ -8896,6 +8901,7 @@ class BaseExchange {
                         $this->log($forwardMessage);
                     }
                     if ($responseLength === 0) {
+                        $shouldBreak = true;
                         break;
                     }
                     $errors = 0;
@@ -8903,11 +8909,13 @@ class BaseExchange {
                     $last = $this->safe_value($response, $responseLength - 1);
                     $lastTimestamp = $this->safe_integer($last, 'timestamp', 0);
                     if ($lastTimestamp === null) {
+                        $shouldBreak = true;
                         break;
                     }
                     $nextPaginationTimestamp = $lastTimestamp + 1;
                     $paginationTimestamp = $nextPaginationTimestamp;
                     if (($until !== null) && ($nextPaginationTimestamp >= $until)) {
+                        $shouldBreak = true;
                         break;
                     }
                 }
@@ -8916,6 +8924,9 @@ class BaseExchange {
                 if ($errors > $maxRetriesOption) {
                     throw $e;
                 }
+            }
+            if ($shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
         }
         $uniqueResults = $result;
@@ -9020,6 +9031,7 @@ class BaseExchange {
         $result = array();
         $timeframe = $this->safe_string($paramsMaxEntriesPerRequest, 'timeframe');
         $paramsOmitted = $this->omit($paramsMaxEntriesPerRequest, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
+        $shouldBreak = false;
         while ($i < $maxCallsPaginationCalls) {
             try {
                 if ($cursorValue !== null) {
@@ -9057,6 +9069,7 @@ class BaseExchange {
                     $this->log($cursorMessage);
                 }
                 if ($responseLength === 0) {
+                    $shouldBreak = true;
                     break;
                 }
                 if ($response !== null) {
@@ -9065,17 +9078,17 @@ class BaseExchange {
                 $last = $this->safe_dict($response, $responseLength - 1);
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 $cursorValue = null; // search for the cursor
+                // guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
                 for ($j = 0; $j < $responseLength; $j++) {
-                    $index = $responseLength - $j - 1;
-                    $entry = $this->safe_dict($response, $index);
-                    $info = $this->safe_dict($entry, 'info');
-                    $cursor = ($cursorReceived === null) ? null : $this->safe_value($info, $cursorReceived);
-                    if ($cursor !== null) {
-                        $cursorValue = $cursor;
-                        break;
+                    if ($cursorValue === null) {
+                        $index = $responseLength - $j - 1;
+                        $entry = $this->safe_dict($response, $index);
+                        $info = $this->safe_dict($entry, 'info');
+                        $cursorValue = ($cursorReceived === null) ? null : $this->safe_value($info, $cursorReceived);
                     }
                 }
                 if ($cursorValue === null) {
+                    $shouldBreak = true;
                     break;
                 }
                 $lastTimestamp = $this->safe_integer($last, 'timestamp');
@@ -9083,6 +9096,7 @@ class BaseExchange {
                     throw new ArgumentsRequired($this->id . ' fetchPaginatedCallCursor() requires a since argument');
                 }
                 if ($lastTimestamp !== null && $lastTimestamp < $since) {
+                    $shouldBreak = true;
                     break;
                 }
             } catch (Exception $e) {
@@ -9090,6 +9104,9 @@ class BaseExchange {
                 if ($errors > $maxRetriesOption) {
                     throw $e;
                 }
+            }
+            if ($shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
             $i += 1;
         }
@@ -9107,6 +9124,7 @@ class BaseExchange {
         $i = 0;
         $errors = 0;
         $result = array();
+        $shouldBreak = false;
         while ($i < $maxCallsPaginationCalls) {
             try {
                 $paramsMaxEntriesPerRequest[$pageKey] = $i + 1;
@@ -9119,6 +9137,7 @@ class BaseExchange {
                     $this->log($incrementalMessage);
                 }
                 if ($responseLength === 0) {
+                    $shouldBreak = true;
                     break;
                 }
                 $result = $this->array_concat($result, $response);
@@ -9127,6 +9146,9 @@ class BaseExchange {
                 if ($errors > $maxRetriesOption) {
                     throw $e;
                 }
+            }
+            if ($shouldBreak) {
+                break; // go turns a break inside try into a panic that only ends the iteration
             }
             $i += 1;
         }

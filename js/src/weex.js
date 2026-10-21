@@ -1326,7 +1326,8 @@ export default class weex extends Exchange {
             'ask': this.safeString(ticker, 'askPrice'),
             'askVolume': this.safeString(ticker, 'askQty'),
             'vwap': undefined,
-            'open': this.safeString(ticker, 'openPrice'),
+            // openPrice comes from a different window than priceChange/priceChangePercent, so open is derived from last - change
+            'open': undefined,
             'close': this.safeString(ticker, 'lastPrice'),
             'last': this.safeString(ticker, 'lastPrice'),
             'previousClose': undefined,

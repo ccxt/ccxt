@@ -1070,6 +1070,8 @@ public class Bingx extends BingxApi
                     put( "100419", PermissionDenied.class );
                     put( "100437", BadRequest.class );
                     put( "101204", InsufficientFunds.class );
+                    put( "101205", InvalidOrder.class );
+                    put( "101400", InvalidOrder.class );
                     put( "110425", InvalidOrder.class );
                     put( "100490", BadSymbol.class );
                     put( "101481", DuplicateOrderId.class );
@@ -3654,6 +3656,17 @@ public class Bingx extends BingxApi
         {
             marginMode = ((Boolean.TRUE.equals(isolated))) ? "isolated" : "cross";
         }
+        String initialMarginString = this.safeString(position, "initialMargin");
+        String unrealizedPnlString = this.safeString(position, "unrealizedProfit");
+        Object collateralString = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            collateralString = this.omitZero(this.safeString(position, "margin"));
+            if ((java.util.Objects.equals(collateralString, null)) && (!java.util.Objects.equals(initialMarginString, null)))
+            {
+                collateralString = (((!java.util.Objects.equals(unrealizedPnlString, null)))) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
+            }
+        }
         Long timestamp = this.safeInteger(position, "openTime");
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("info", position);
@@ -3663,7 +3676,7 @@ public class Bingx extends BingxApi
         mapLiteral8.put("marginMode", marginMode);
         mapLiteral8.put("liquidationPrice", this.safeNumberOmitZero(position, "liquidationPrice", (Object) null));
         mapLiteral8.put("entryPrice", this.safeNumber2(position, "avgPrice", "entryPrice", (Object) null));
-        mapLiteral8.put("unrealizedPnl", this.safeNumber(position, "unrealizedProfit", (Object) null));
+        mapLiteral8.put("unrealizedPnl", this.parseNumber(unrealizedPnlString));
         mapLiteral8.put("realizedPnl", this.safeNumber(position, "realisedProfit", (Object) null));
         mapLiteral8.put("percentage", null);
         mapLiteral8.put("contracts", this.safeNumber(position, "positionAmt", (Object) null));
@@ -3677,8 +3690,8 @@ public class Bingx extends BingxApi
         mapLiteral8.put("lastUpdateTimestamp", this.safeInteger(position, "updateTime"));
         mapLiteral8.put("maintenanceMargin", null);
         mapLiteral8.put("maintenanceMarginPercentage", null);
-        mapLiteral8.put("collateral", null);
-        mapLiteral8.put("initialMargin", this.safeNumber(position, "initialMargin", (Object) null));
+        mapLiteral8.put("collateral", this.parseNumber(collateralString));
+        mapLiteral8.put("initialMargin", this.parseNumber(initialMarginString));
         mapLiteral8.put("initialMarginPercentage", null);
         mapLiteral8.put("leverage", this.safeNumber(position, "leverage", (Object) null));
         mapLiteral8.put("marginRatio", null);
@@ -4801,7 +4814,7 @@ public class Bingx extends BingxApi
         mapLiteral9.put("status", this.parseOrderStatus(statusId));
         HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
         mapLiteral10.put("currency", feeCurrencyCode);
-        mapLiteral10.put("cost", Precise.stringAbs(feeCost));
+        mapLiteral10.put("cost", this.parseNumber(Precise.stringAbs(feeCost)));
         mapLiteral9.put("fee", mapLiteral10);
         mapLiteral9.put("trades", null);
         mapLiteral9.put("reduceOnly", this.safeBool2(orderData, "reduceOnly", "ro", (Object) null));
