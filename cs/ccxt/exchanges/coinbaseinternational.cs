@@ -1339,7 +1339,7 @@ public partial class coinbaseinternational : Exchange
             {
                 continue;
             }
-            object ticker = ccxt.BaseExchange.FromTicker(await this.FetchTicker(symbol, paramsResolved));
+            Dictionary<string, object> ticker = ccxt.BaseExchange.FromTicker(await this.FetchTicker(symbol, paramsResolved));
             tickers[(string)symbol] = ticker;
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbolsResolved, true));

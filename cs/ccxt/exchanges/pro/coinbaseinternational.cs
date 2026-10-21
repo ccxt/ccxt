@@ -636,8 +636,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("watchFundingRate", parameters);
-        object ticker = ccxt.BaseExchange.FromTicker(await this.WatchTicker(symbol, paramsResolved));
-        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(getValue(ticker, "info"), this.market(symbol)));
+        Dictionary<string, object> ticker = ccxt.BaseExchange.FromTicker(await this.WatchTicker(symbol, paramsResolved));
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate((ticker != null && ticker.ContainsKey("info") ? ticker["info"] : null), this.market(symbol)));
     }
 
     /**
@@ -663,14 +663,14 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             await this.loadMarkets();
         }
-        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(symbols, paramsResolved));
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(symbols, paramsResolved));
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> tickerSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        List<object> tickerSymbols = new List<object>(tickers.Keys);
         int tickerSymbolsLength = tickerSymbols.Count;
         for (int i = 0; i < tickerSymbolsLength; i++)
         {
             string? symbol = ((string)(tickerSymbols != null && i < tickerSymbols.Count ? tickerSymbols[i] : null));
-            object ticker = getValue(tickers, symbol);
+            object ticker = (tickers != null && symbol != null && tickers.ContainsKey(symbol) ? tickers[symbol] : null);
             result[(string)symbol] = this.parseFundingRate(getValue(ticker, "info"), this.market(symbol));
         }
         return ccxt.BaseExchange.ToFundingRates(result);
@@ -1041,8 +1041,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         string? symbolResolved = this.symbol(symbol);
-        object ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolResolved, timeframeVar}}, since, limit, paramsResolved));
-        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(ohlcvs, symbolResolved), timeframeVar));
+        Dictionary<string, object> ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolResolved, timeframeVar}}, since, limit, paramsResolved));
+        return ccxt.BaseExchange.ToOHLCVList(getValue((ohlcvs != null && symbolResolved != null && ohlcvs.ContainsKey(symbolResolved) ? ohlcvs[symbolResolved] : null), timeframeVar));
     }
 
     /**
