@@ -832,25 +832,26 @@ class zaif extends zaif$1["default"] {
         const nonce = parseFloat(num);
         return nonce.toFixed(8);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         const baseApiUrl = this.safeString(this.urls['api'], 'rest');
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const baseUrl = baseApiUrl;
         let url = baseUrl + '/';
-        if (api === 'public') {
+        if (apiName === 'public') {
             url += 'api/' + this.version + '/' + this.implodeParams(path, params);
         }
-        else if (api === 'fapi') {
+        else if (apiName === 'fapi') {
             url += 'fapi/' + this.version + '/' + this.implodeParams(path, params);
         }
         else {
             this.checkRequiredCredentials();
-            if (api === 'ecapi') {
+            if (apiName === 'ecapi') {
                 url += 'ecapi';
             }
-            else if (api === 'tlapi') {
+            else if (apiName === 'tlapi') {
                 url += 'tlapi';
             }
             else {
@@ -868,7 +869,7 @@ class zaif extends zaif$1["default"] {
             };
             return { 'url': url, 'method': method, 'body': bodyEncoded, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

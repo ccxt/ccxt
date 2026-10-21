@@ -2069,6 +2069,17 @@ public class BingxApi extends Exchange
     }
 
     /**
+     * Calls the apiAssetV1PrivateGetTransferSupportCoins endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  apiAssetV1PrivateGetTransferSupportCoins (Object... optionalArgs)
+    {
+        return this.callAsync ("apiAssetV1PrivateGetTransferSupportCoins", optionalArgs);
+    }
+
+    /**
      * Calls the apiAssetV1PrivatePostTransfer endpoint.
      *
      * @param optionalArgs the request parameters
@@ -2077,17 +2088,6 @@ public class BingxApi extends Exchange
     public CompletableFuture<Map<String, Object>>  apiAssetV1PrivatePostTransfer (Object... optionalArgs)
     {
         return this.callAsync ("apiAssetV1PrivatePostTransfer", optionalArgs);
-    }
-
-    /**
-     * Calls the apiAssetV1PublicGetTransferSupportCoins endpoint.
-     *
-     * @param optionalArgs the request parameters
-     * @return a JSON object
-     */
-    public CompletableFuture<Map<String, Object>>  apiAssetV1PublicGetTransferSupportCoins (Object... optionalArgs)
-    {
-        return this.callAsync ("apiAssetV1PublicGetTransferSupportCoins", optionalArgs);
     }
 
     /**

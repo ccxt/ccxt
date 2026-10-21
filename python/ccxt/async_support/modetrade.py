@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.modetrade import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction, FundingRateHistory
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -102,8 +102,8 @@ class modetrade(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
-                'fetchTicker': False,
-                'fetchTickers': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -527,6 +527,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         #   {
         #     "symbol": "PERP_BTC_USDC",
+        #     "status": "ACTIVE",
         #     "quote_min": 123,
         #     "quote_max": 100000,
         #     "quote_tick": 0.1,
@@ -552,6 +553,10 @@ class modetrade(Exchange, ImplicitAPI):
         #   }
         #
         marketId = self.safe_string(market, 'symbol', '')
+        status = self.safe_string(market, 'status')
+        active = None
+        if status is not None:
+            active = (status == 'ACTIVE')
         parts = marketId.split('_')
         marketType = 'swap'
         baseId = self.safe_string(parts, 1)
@@ -578,7 +583,7 @@ class modetrade(Exchange, ImplicitAPI):
             'swap': True,
             'future': False,
             'option': False,
-            'active': None,
+            'active': active,
             'contract': True,
             'linear': True,
             'inverse': False,
@@ -631,6 +636,7 @@ class modetrade(Exchange, ImplicitAPI):
         #       "rows": [
         #         {
         #           "symbol": "PERP_BTC_USDC",
+        #           "status": "ACTIVE",
         #           "quote_min": 123,
         #           "quote_max": 100000,
         #           "quote_tick": 0.1,
@@ -1067,6 +1073,130 @@ class modetrade(Exchange, ImplicitAPI):
             })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbolResolved, since, limit)
+
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "display_symbol_name": "BTC",
+        #         "broker_id": null,
+        #         "status": "ACTIVE",
+        #         "index_price": 81559.8,
+        #         "mark_price": 81542.2,
+        #         "sum_unitary_funding": 27744.3,
+        #         "est_funding_rate": 0.00008318,
+        #         "last_funding_rate": 0.0000394,
+        #         "next_funding_time": 1792281600000,
+        #         "open_interest": 42.65602,
+        #         "is_pretge": false,
+        #         "24h_open": 81606.8,
+        #         "24h_close": 81518.1,
+        #         "24h_high": 81706.7,
+        #         "24h_low": 81069.9,
+        #         "24h_volume": 65.48965,
+        #         "24h_amount": 5333323.390584
+        #     }
+        #
+        marketId = self.safe_string(ticker, 'symbol')
+        marketResolved = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        return self.safe_ticker({
+            'symbol': marketResolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, '24h_high'),
+            'low': self.safe_string(ticker, '24h_low'),
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': self.safe_string(ticker, '24h_open'),
+            'close': self.safe_string(ticker, '24h_close'),
+            'last': self.safe_string(ticker, '24h_close'),
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, '24h_volume'),
+            'quoteVolume': self.safe_string(ticker, '24h_amount'),
+            'indexPrice': self.safe_string(ticker, 'index_price'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'info': ticker,
+        }, marketResolved)
+
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.v1PublicGetPublicFuturesSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "success": true,
+        #         "data": {
+        #             "symbol": "PERP_BTC_USDC",
+        #             "24h_close": 81518.1
+        #         },
+        #         "timestamp": 1792270455082
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        timestamp = self.safe_integer(response, 'timestamp')
+        ticker = self.extend({'timestamp': timestamp}, data)
+        return self.parse_ticker(ticker, market)
+
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        response = await self.v1PublicGetPublicFutures(params)
+        #
+        #     {
+        #         "success": true,
+        #         "data": {
+        #             "rows": [
+        #                 {
+        #                     "symbol": "PERP_BTC_USDC",
+        #                     "24h_close": 81518.1
+        #                 }
+        #             ]
+        #         },
+        #         "timestamp": 1792270455518
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        timestamp = self.safe_integer(response, 'timestamp')
+        result = []
+        for i in range(0, len(rows)):
+            row = rows[i]
+            marketId = self.safe_string(row, 'symbol', '')
+            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
+                continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            ticker = self.extend({'timestamp': timestamp}, row)
+            result.append(self.parse_ticker(ticker))
+        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     def parse_income(self, income: dict, market: Market = None) -> dict:
         #
@@ -2887,7 +3017,7 @@ class modetrade(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, section: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
@@ -2939,7 +3069,7 @@ class modetrade(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(paramsSigned)
                     auth += '?' + self.rawencode(paramsSigned)
                 signedHeaders['content-type'] = 'application/x-www-form-urlencoded'
-                signedBody = '' if (method == 'DELETE') else body
+                signedBody = '' if (method == 'DELETE') else None
             secret = self.secret
             if secret.find('ed25519:') >= 0:
                 parts = secret.split('ed25519:')
@@ -2947,7 +3077,7 @@ class modetrade(Exchange, ImplicitAPI):
             signature = self.eddsa(self.encode(auth), self.base58_to_binary(secret), 'ed25519')
             signedHeaders['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (response is None) or (response is None):

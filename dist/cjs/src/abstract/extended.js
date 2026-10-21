@@ -7,211 +7,211 @@ var Exchange$1 = require('../base/Exchange.js');
 // ----------------------------------------------------------------------------
 class Exchange extends Exchange$1["default"] {
     v1PublicGetInfoMarkets(params = {}) {
-        return this.request("info/markets", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('info/markets', ['v1', 'public'], 'GET', params, { 'cost': 1 });
     }
     v1PublicGetInfoAssets(params = {}) {
-        return this.request("info/assets", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('info/assets', ['v1', 'public'], 'GET', params, { 'cost': 1 });
     }
     v1PublicGetInfoAssetsAssetPrice(params = {}) {
-        return this.request("info/assets/{asset}/price", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('info/assets/{asset}/price', ['v1', 'public'], 'GET', params, { 'cost': 1 });
     }
     v1PublicGetInfoMarketsMarketStats(params = {}) {
-        return this.request("info/markets/{market}/stats", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('info/markets/{market}/stats', ['v1', 'public'], 'GET', params, { 'cost': 1 });
     }
     v1PublicGetInfoMarketsMarketOrderbook(params = {}) {
-        return this.request("info/markets/{market}/orderbook", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('info/markets/{market}/orderbook', ['v1', 'public'], 'GET', params, { 'cost': 1 });
     }
     v1PublicGetInfoMarketsMarketTrades(params = {}) {
-        return this.request("info/markets/{market}/trades", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('info/markets/{market}/trades', ['v1', 'public'], 'GET', params, { 'cost': 1 });
     }
     v1PublicGetInfoCandlesMarketCandleType(params = {}) {
-        return this.request("info/candles/{market}/{candleType}", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('info/candles/{market}/{candleType}', ['v1', 'public'], 'GET', params, { 'cost': 1 });
     }
     v1PublicGetInfoMarketFunding(params = {}) {
-        return this.request("info/{market}/funding", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('info/{market}/funding', ['v1', 'public'], 'GET', params, { 'cost': 1 });
     }
     v1PublicGetInfoMarketOpenInterests(params = {}) {
-        return this.request("info/{market}/open-interests", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('info/{market}/open-interests', ['v1', 'public'], 'GET', params, { 'cost': 1 });
     }
     v1PublicGetInfoBuilderDashboard(params = {}) {
-        return this.request("info/builder/dashboard", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('info/builder/dashboard', ['v1', 'public'], 'GET', params, { 'cost': 1 });
     }
     v1PublicGetInterestInfoRateCurves(params = {}) {
-        return this.request("interest/info/rate-curves", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('interest/info/rate-curves', ['v1', 'public'], 'GET', params, { 'cost': 1 });
     }
     v1PublicGetInterestInfoLatestRateCurves(params = {}) {
-        return this.request("interest/info/latest-rate-curves", ["v1", "public"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('interest/info/latest-rate-curves', ['v1', 'public'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserAccounts(params = {}) {
-        return this.request("user/accounts", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/accounts', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserAccountInfo(params = {}) {
-        return this.request("user/account/info", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/account/info', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserBalance(params = {}) {
-        return this.request("user/balance", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/balance', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserSpotBalances(params = {}) {
-        return this.request("user/spot/balances", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/spot/balances', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserAssetOperations(params = {}) {
-        return this.request("user/assetOperations", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/assetOperations', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserPositions(params = {}) {
-        return this.request("user/positions", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/positions', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserPositionsHistory(params = {}) {
-        return this.request("user/positions/history", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/positions/history', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserOrders(params = {}) {
-        return this.request("user/orders", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/orders', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserOrdersHistory(params = {}) {
-        return this.request("user/orders/history", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/orders/history', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserOrdersId(params = {}) {
-        return this.request("user/orders/{id}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/orders/{id}', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserOrdersExternalExternalId(params = {}) {
-        return this.request("user/orders/external/{externalId}", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/orders/external/{externalId}', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserTrades(params = {}) {
-        return this.request("user/trades", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/trades', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserFundingHistory(params = {}) {
-        return this.request("user/funding/history", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/funding/history', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserRebatesStats(params = {}) {
-        return this.request("user/rebates/stats", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/rebates/stats', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserLeverage(params = {}) {
-        return this.request("user/leverage", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/leverage', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserFees(params = {}) {
-        return this.request("user/fees", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/fees', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserBridgeConfig(params = {}) {
-        return this.request("user/bridge/config", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/bridge/config', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserBridgeQuote(params = {}) {
-        return this.request("user/bridge/quote", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/bridge/quote', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserAffiliate(params = {}) {
-        return this.request("user/affiliate", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/affiliate', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserReferralsStatus(params = {}) {
-        return this.request("user/referrals/status", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/referrals/status', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserReferralsLinks(params = {}) {
-        return this.request("user/referrals/links", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/referrals/links', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserReferralsDashboard(params = {}) {
-        return this.request("user/referrals/dashboard", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/referrals/dashboard', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserRewardsEarned(params = {}) {
-        return this.request("user/rewards/earned", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/rewards/earned', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetUserRewardsLeaderboardStats(params = {}) {
-        return this.request("user/rewards/leaderboard/stats", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/rewards/leaderboard/stats', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetPortfolioChartsEquities(params = {}) {
-        return this.request("portfolio/charts/equities", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('portfolio/charts/equities', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetPortfolioChartsPnl(params = {}) {
-        return this.request("portfolio/charts/pnl", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('portfolio/charts/pnl', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetPortfolioChartsPnlPercentage(params = {}) {
-        return this.request("portfolio/charts/pnl/percentage", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('portfolio/charts/pnl/percentage', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetPortfolioChartsPnlCumulative(params = {}) {
-        return this.request("portfolio/charts/pnl/cumulative", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('portfolio/charts/pnl/cumulative', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetPortfolioChartsPnlCumulativePercentage(params = {}) {
-        return this.request("portfolio/charts/pnl/cumulative/percentage", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('portfolio/charts/pnl/cumulative/percentage', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetPortfolioChartsVaultEquities(params = {}) {
-        return this.request("portfolio/charts/vault-equities", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('portfolio/charts/vault-equities', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetPortfolioChartsMaxDrawdown(params = {}) {
-        return this.request("portfolio/charts/max-drawdown", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('portfolio/charts/max-drawdown', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetPortfolioChartsFunding(params = {}) {
-        return this.request("portfolio/charts/funding", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('portfolio/charts/funding', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetPortfolioAccountsSummary(params = {}) {
-        return this.request("portfolio/accounts/summary", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('portfolio/accounts/summary', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetPortfolioAccountsHealth(params = {}) {
-        return this.request("portfolio/accounts/health", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('portfolio/accounts/health', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetPortfolioAccountsPerformance(params = {}) {
-        return this.request("portfolio/accounts/performance", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('portfolio/accounts/performance', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetPortfolioFundingStats(params = {}) {
-        return this.request("portfolio/funding/stats", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('portfolio/funding/stats', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetPortfolioFundingHistory(params = {}) {
-        return this.request("portfolio/funding/history", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('portfolio/funding/history', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetVaultPublicPerformance(params = {}) {
-        return this.request("vault/public/performance", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('vault/public/performance', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetVaultPublicSummary(params = {}) {
-        return this.request("vault/public/summary", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('vault/public/summary', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetBuilderTrades(params = {}) {
-        return this.request("builder/trades", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('builder/trades', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetInterestKeyMetrics(params = {}) {
-        return this.request("interest/key-metrics", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('interest/key-metrics', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetInterestDailyMetrics(params = {}) {
-        return this.request("interest/daily-metrics", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('interest/daily-metrics', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetInterestPaymentChart(params = {}) {
-        return this.request("interest/payment-chart", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('interest/payment-chart', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivateGetInterestPayments(params = {}) {
-        return this.request("interest/payments", ["v1", "private"], 'GET', params, undefined, undefined, { "cost": 1 });
+        return this.request('interest/payments', ['v1', 'private'], 'GET', params, { 'cost': 1 });
     }
     v1PrivatePostUserOrder(params = {}) {
-        return this.request("user/order", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/order', ['v1', 'private'], 'POST', params, { 'cost': 1 });
     }
     v1PrivatePostUserOrderRfq(params = {}) {
-        return this.request("user/order/rfq", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/order/rfq', ['v1', 'private'], 'POST', params, { 'cost': 1 });
     }
     v1PrivatePostUserOrderMassCancel(params = {}) {
-        return this.request("user/order/massCancel", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/order/massCancel', ['v1', 'private'], 'POST', params, { 'cost': 1 });
     }
     v1PrivatePostUserDeadmanswitch(params = {}) {
-        return this.request("user/deadmanswitch", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/deadmanswitch', ['v1', 'private'], 'POST', params, { 'cost': 1 });
     }
     v1PrivatePostUserBridgeQuote(params = {}) {
-        return this.request("user/bridge/quote", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/bridge/quote', ['v1', 'private'], 'POST', params, { 'cost': 1 });
     }
     v1PrivatePostUserWithdrawal(params = {}) {
-        return this.request("user/withdrawal", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/withdrawal', ['v1', 'private'], 'POST', params, { 'cost': 1 });
     }
     v1PrivatePostUserTransfer(params = {}) {
-        return this.request("user/transfer", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/transfer', ['v1', 'private'], 'POST', params, { 'cost': 1 });
     }
     v1PrivatePostUserReferralsUse(params = {}) {
-        return this.request("user/referrals/use", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/referrals/use', ['v1', 'private'], 'POST', params, { 'cost': 1 });
     }
     v1PrivatePostUserReferrals(params = {}) {
-        return this.request("user/referrals", ["v1", "private"], 'POST', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/referrals', ['v1', 'private'], 'POST', params, { 'cost': 1 });
     }
     v1PrivatePutUserReferrals(params = {}) {
-        return this.request("user/referrals", ["v1", "private"], 'PUT', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/referrals', ['v1', 'private'], 'PUT', params, { 'cost': 1 });
     }
     v1PrivatePatchUserLeverage(params = {}) {
-        return this.request("user/leverage", ["v1", "private"], 'PATCH', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/leverage', ['v1', 'private'], 'PATCH', params, { 'cost': 1 });
     }
     v1PrivateDeleteUserOrderId(params = {}) {
-        return this.request("user/order/{id}", ["v1", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/order/{id}', ['v1', 'private'], 'DELETE', params, { 'cost': 1 });
     }
     v1PrivateDeleteUserOrder(params = {}) {
-        return this.request("user/order", ["v1", "private"], 'DELETE', params, undefined, undefined, { "cost": 1 });
+        return this.request('user/order', ['v1', 'private'], 'DELETE', params, { 'cost': 1 });
     }
 }
 

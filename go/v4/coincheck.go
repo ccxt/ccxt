@@ -1364,16 +1364,13 @@ func (this *Coincheck) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Coincheck) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var bodySigned any = nil
 	var headersSigned any = nil
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
@@ -1382,7 +1379,7 @@ func (this *Coincheck) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
@@ -1408,18 +1405,8 @@ func (this *Coincheck) Sign(path string, optionalArgs ...any) any {
 			"ACCESS-SIGNATURE": this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256),
 		}
 	}
-	var headersResolved any = func() any {
-		if headersSigned == nil {
-			return headers
-		}
-		return headersSigned
-	}()
-	var bodyResolved any = func() any {
-		if bodySigned == nil {
-			return body
-		}
-		return bodySigned
-	}()
+	var headersResolved any = headersSigned
+	var bodyResolved any = bodySigned
 	return map[string]any{
 		"url":     url,
 		"method":  method,

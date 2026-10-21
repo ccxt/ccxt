@@ -825,13 +825,10 @@ class gate(Exchange, ImplicitAPI):
                 'networks': {
                     'BTC': 'BTC',
                     'BRC20': 'BTCBRC',  # for eg: ORDI, RATS, ...
-                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'HECO': 'HT',
                     'HRC20': 'HT',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'MATIC': 'MATIC',
@@ -843,7 +840,7 @@ class gate(Exchange, ImplicitAPI):
                     'ARBITRUM_NOVA': 'ARBNOVA',
                     'BASE': 'BASEEVM',
                     'SUI': 'SUI',
-                    'CRONOS': 'CRO',
+                    'CRC20': 'CRO',
                     'CRO': 'CRO',
                     'APT': 'APT',
                     'SCROLL': 'SCROLLETH',
@@ -1698,6 +1695,14 @@ class gate(Exchange, ImplicitAPI):
         if contractSize == '0':
             contractSize = '1'  # 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         status = self.safe_string(market, 'status', 'trading')  # or "suspend"
+        amountPrecision = self.parse_number('1')
+        enableDecimal = self.safe_bool(market, 'enable_decimal', False)
+        orderSizeMin = self.safe_string(market, 'order_size_min')
+        swap = marketType == 'swap'
+        minAmount = self.parse_number(orderSizeMin)
+        if swap and enableDecimal and (orderSizeMin is not None) and (minAmount is not None) and Precise.string_gt(orderSizeMin, '0'):
+            amountPrecision = minAmount
+        active = (status == 'trading')
         return {
             'id': id,
             'symbol': symbol,
@@ -1710,10 +1715,10 @@ class gate(Exchange, ImplicitAPI):
             'type': marketType,
             'spot': False,
             'margin': False,
-            'swap': marketType == 'swap',
-            'future': marketType == 'future',
+            'swap': swap,
+            'future': (marketType == 'future'),
             'option': False,
-            'active': status == 'trading',
+            'active': active,
             'contract': True,
             'linear': isLinear,
             'inverse': not isLinear,
@@ -1725,7 +1730,7 @@ class gate(Exchange, ImplicitAPI):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.parse_number('1'),  # all contracts have this step size
+                'amount': amountPrecision,
                 'price': self.safe_number(market, 'order_price_round'),
             },
             'limits': {
@@ -1734,7 +1739,7 @@ class gate(Exchange, ImplicitAPI):
                     'max': self.safe_number(market, 'leverage_max'),
                 },
                 'amount': {
-                    'min': self.safe_number(market, 'order_size_min'),
+                    'min': minAmount,
                     'max': self.safe_number(market, 'order_size_max'),
                 },
                 'price': {
@@ -2391,7 +2396,7 @@ class gate(Exchange, ImplicitAPI):
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         chainsIndexedByIdRaw = await self.fetch_deposit_addresses_by_network(code, paramsNetworkCode)
         chainsIndexedById = chainsIndexedByIdRaw
-        selectedNetworkIdOrCode = self.select_network_code_from_unified_networks(code, networkCode, chainsIndexedById)
+        selectedNetworkIdOrCode = self.select_network_key_from_networks(code, networkCode, chainsIndexedById, True)
         return chainsIndexedById[selectedNetworkIdOrCode]
 
     def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
@@ -4400,6 +4405,18 @@ class gate(Exchange, ImplicitAPI):
             response = await self.privateFuturesPostSettleBatchOrders(ordersRequests)
         return self.parse_orders(response)
 
+    def is_gate_futures_contract_with_decimal_size(self, market: Market) -> bool:
+        info = self.safe_dict(market, 'info', {})
+        isSwap = self.safe_bool(market, 'swap', False)
+        enableDecimal = self.safe_bool(info, 'enable_decimal', False)
+        return isSwap and enableDecimal
+
+    def get_gate_futures_signed_amount(self, symbol: Str, side: Str, amount: Num) -> Str:
+        amountString = self.amount_to_precision(symbol, amount)
+        if side == 'sell':
+            return Precise.string_neg(amountString)
+        return amountString
+
     def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
@@ -4442,15 +4459,19 @@ class gate(Exchange, ImplicitAPI):
         if isMarketOrder and (contract is True):
             priceResolved = 0
         contractAmount = 0
+        signedAmount = None
+        useGateFuturesDecimalSize = False
         if contract is True:
             isClose = self.safe_bool(query, 'close')
             if isClose is not True:
-                amountToPrecision = self.amount_to_precision(symbol, amount)
-                signedAmount = amountToPrecision
-                if side == 'sell':
-                    signedAmount = Precise.string_neg(amountToPrecision)
-                contractAmount = int(signedAmount)
+                signedAmount = self.get_gate_futures_signed_amount(symbol, side, amount)
+                useGateFuturesDecimalSize = self.is_gate_futures_contract_with_decimal_size(market)
+                if not useGateFuturesDecimalSize:
+                    contractAmount = int(signedAmount)
         amountResolved = contractAmount if (contract is True) else amount
+        sizeRequest = amountResolved
+        if useGateFuturesDecimalSize:
+            sizeRequest = signedAmount
         request = None
         nonTriggerOrder = not isTpsl and (trigger is None)
         if nonTriggerOrder:
@@ -4458,7 +4479,7 @@ class gate(Exchange, ImplicitAPI):
                 # contract order
                 request = {
                     'contract': market['id'],  # filled in prepareRequest above
-                    'size': amountResolved,  # int64, positive = bid, negative = ask
+                    'size': sizeRequest,  # int64 (decimal string on enable_decimal markets), positive = bid, negative = ask
                     # 'iceberg': 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                     # 'close': false, // true to close the position, with size set to 0
                     # 'reduce_only': false, // St as true to be reduce-only order
@@ -4540,7 +4561,7 @@ class gate(Exchange, ImplicitAPI):
                 request = {
                     'initial': {
                         'contract': market['id'],
-                        'size': amountResolved,  # positive = buy, negative = sell, set to 0 to close the position
+                        # positive = buy, negative = sell, set to 0 to close the position
                         # 'price': (price === 0) ? '0' : this.priceToPrecision (symbol, price), // set to 0 to use market price
                         # 'close': false, // set to true if trying to close the position
                         # 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
@@ -4549,6 +4570,10 @@ class gate(Exchange, ImplicitAPI):
                     },
                     'settle': market['settleId'],
                 }
+                if useGateFuturesDecimalSize:
+                    request['initial']['amount'] = signedAmount  # FuturesInitialOrder.amount takes precedence over size
+                else:
+                    request['initial']['size'] = amountResolved
                 if type == 'market':
                     request['initial']['price'] = '0'
                 else:
@@ -4663,10 +4688,11 @@ class gate(Exchange, ImplicitAPI):
             if market['spot'] is True:
                 request['amount'] = self.amount_to_precision(symbol, amount)
             else:
-                if side == 'sell':
-                    request['size'] = self.parse_to_numeric(Precise.string_neg(self.amount_to_precision(symbol, amount)))
+                signedAmount = self.get_gate_futures_signed_amount(symbol, side, amount)
+                if self.is_gate_futures_contract_with_decimal_size(market):
+                    request['size'] = signedAmount
                 else:
-                    request['size'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
+                    request['size'] = self.parse_to_numeric(signedAmount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         if market['spot'] is not True:
@@ -5986,6 +6012,16 @@ class gate(Exchange, ImplicitAPI):
         # gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         # it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
         maintenanceMarginString = self.omit_zero(self.safe_string(position, 'maintenance_margin'))
+        marketInfo = self.safe_dict(marketResolved, 'info', {})
+        takerFeeRate = self.safe_string(marketInfo, 'taker_fee_rate', '0.00075')
+        hasPositiveMarginBalance = (marginBalance is None) or Precise.string_gt(marginBalance, '0')
+        if (initialMarginString is None) and hasPositiveMarginBalance and (notional is not None) and (leverage is not None) and Precise.string_gt(leverage, '0'):
+            closeFee = Precise.string_mul(notional, takerFeeRate)
+            initialMarginString = Precise.string_add(Precise.string_div(notional, leverage), closeFee)
+        liqPriceString = self.omit_zero(self.safe_string(position, 'liq_price'))
+        maintenanceRate = self.omit_zero(self.safe_string(position, 'maintenance_rate'))
+        if (maintenanceMarginString is None) and (liqPriceString is None) and hasPositiveMarginBalance and (notional is not None) and (maintenanceRate is not None):
+            maintenanceMarginString = Precise.string_mul(notional, Precise.string_add(maintenanceRate, takerFeeRate))
         # the margin field is the position margin balance, which excludes the unrealized pnl,
         # the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         # so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -6015,9 +6051,10 @@ class gate(Exchange, ImplicitAPI):
             'contracts': self.parse_number(Precise.string_abs(size)),
             'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'marginRatio': None,
-            'liquidationPrice': self.safe_number(position, 'liq_price'),
+            'liquidationPrice': self.parse_number(liqPriceString),
             'markPrice': self.safe_number(position, 'mark_price'),
             'lastPrice': None,
+            'positionMargin': self.parse_number(marginBalance),
             'collateral': self.parse_number(collateral),
             'marginMode': marginMode,
             'side': side,
@@ -6219,13 +6256,18 @@ class gate(Exchange, ImplicitAPI):
 
     async def fetch_leverage_tiers(self, symbols: Strings = None, params: dict = {}) -> LeverageTiers:
         """
-        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, automatically paginating through all contracts
 
-        https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
-        https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers
+        https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'swap' or 'future'
+        :param str [params.settle]: settlement currency, default 'usdt' for swaps and 'btc' for futures
+        :param int [params.limit]: number of contracts per request, between 1 and 100, default 100
+        :param int [params.offset]: starting contract offset, default 0
+        :param str [params.contract]: exchange-specific contract id to fetch tiers for a single contract
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         if self.markets is None:
@@ -6234,106 +6276,32 @@ class gate(Exchange, ImplicitAPI):
         request, requestParams = self.prepare_request(None, type, query)
         if type != 'future' and type != 'swap':
             raise BadRequest(self.id + ' fetchLeverageTiers only supports swap and future')
-        response: dict
-        if type == 'swap':
-            response = await self.publicFuturesGetSettleContracts(self.extend(request, requestParams))
-        elif type == 'future':
-            response = await self.publicDeliveryGetSettleContracts(self.extend(request, requestParams))
-        else:
-            raise NotSupported(self.id + ' fetchLeverageTiers() not support self market type')
-        #
-        # Perpetual swap
-        #
-        #    [
-        #        {
-        #            "name": "BTC_USDT",
-        #            "type": "direct",
-        #            "quanto_multiplier": "0.0001",
-        #            "ref_discount_rate": "0",
-        #            "order_price_deviate": "0.5",
-        #            "maintenance_rate": "0.005",
-        #            "mark_type": "index",
-        #            "last_price": "38026",
-        #            "mark_price": "37985.6",
-        #            "index_price": "37954.92",
-        #            "funding_rate_indicative": "0.000219",
-        #            "mark_price_round": "0.01",
-        #            "funding_offset": 0,
-        #            "in_delisting": false,
-        #            "risk_limit_base": "1000000",
-        #            "interest_rate": "0.0003",
-        #            "order_price_round": "0.1",
-        #            "order_size_min": 1,
-        #            "ref_rebate_rate": "0.2",
-        #            "funding_interval": 28800,
-        #            "risk_limit_step": "1000000",
-        #            "leverage_min": "1",
-        #            "leverage_max": "100",
-        #            "risk_limit_max": "8000000",
-        #            "maker_fee_rate": "-0.00025",
-        #            "taker_fee_rate": "0.00075",
-        #            "funding_rate": "0.002053",
-        #            "order_size_max": 1000000,
-        #            "funding_next_apply": 1610035200,
-        #            "short_users": 977,
-        #            "config_change_time": 1609899548,
-        #            "trade_size": 28530850594,
-        #            "position_size": 5223816,
-        #            "long_users": 455,
-        #            "funding_impact_value": "60000",
-        #            "orders_limit": 50,
-        #            "trade_id": 10851092,
-        #            "orderbook_id": 2129638396
-        #        }
-        #    ]
-        #
-        # Delivery Futures
-        #
-        #    [
-        #        {
-        #            "name": "BTC_USDT_20200814",
-        #            "underlying": "BTC_USDT",
-        #            "cycle": "WEEKLY",
-        #            "type": "direct",
-        #            "quanto_multiplier": "0.0001",
-        #            "mark_type": "index",
-        #            "last_price": "9017",
-        #            "mark_price": "9019",
-        #            "index_price": "9005.3",
-        #            "basis_rate": "0.185095",
-        #            "basis_value": "13.7",
-        #            "basis_impact_value": "100000",
-        #            "settle_price": "0",
-        #            "settle_price_interval": 60,
-        #            "settle_price_duration": 1800,
-        #            "settle_fee_rate": "0.0015",
-        #            "expire_time": 1593763200,
-        #            "order_price_round": "0.1",
-        #            "mark_price_round": "0.1",
-        #            "leverage_min": "1",
-        #            "leverage_max": "100",
-        #            "maintenance_rate": "1000000",
-        #            "risk_limit_base": "140.726652109199",
-        #            "risk_limit_step": "1000000",
-        #            "risk_limit_max": "8000000",
-        #            "maker_fee_rate": "-0.00025",
-        #            "taker_fee_rate": "0.00075",
-        #            "ref_discount_rate": "0",
-        #            "ref_rebate_rate": "0.2",
-        #            "order_price_deviate": "0.5",
-        #            "order_size_min": 1,
-        #            "order_size_max": 1000000,
-        #            "orders_limit": 50,
-        #            "orderbook_id": 63,
-        #            "trade_id": 26,
-        #            "trade_size": 435,
-        #            "position_size": 130,
-        #            "config_change_time": 1593158867,
-        #            "in_delisting": false
-        #        }
-        #    ]
-        #
-        return self.parse_leverage_tiers(response, symbols, 'name')
+        limit = max(1, min(self.safe_integer(requestParams, 'limit', 100), 100))
+        offset = self.safe_integer(requestParams, 'offset', 0)
+        contract = self.safe_string(requestParams, 'contract', '')
+        paramsOmitted = self.omit(requestParams, ['limit', 'offset'])
+        request['limit'] = limit
+        tiers = {}
+        while(True):
+            request['offset'] = offset
+            response: List
+            if type == 'swap':
+                response = await self.publicFuturesGetSettleRiskLimitTiers(self.extend(request, paramsOmitted))
+            else:
+                response = await self.publicDeliveryGetSettleRiskLimitTiers(self.extend(request, paramsOmitted))
+            # Each page contains all tiers for up to limit contracts, not limit rows.
+            grouped = {}
+            if contract != '':
+                grouped[contract] = response
+            else:
+                grouped = self.group_by(response, 'contract')
+            tiers = self.extend(tiers, grouped)
+            contracts = list(grouped.keys())
+            numContracts = len(contracts)
+            if (contract != '') or (numContracts < limit):
+                break
+            offset = self.sum(offset, limit)
+        return self.parse_leverage_tiers(tiers, symbols)
 
     async def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}) -> list[LeverageTier]:
         """
@@ -6421,7 +6389,7 @@ class gate(Exchange, ImplicitAPI):
             tiers.append({
                 'tier': self.sum(i, 1),
                 'symbol': self.safe_string(market, 'symbol'),
-                'currency': self.safe_string(market, 'base'),
+                'currency': self.safe_string(market, 'settle'),
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': self.safe_number(item, 'maintenance_rate'),
@@ -6725,7 +6693,7 @@ class gate(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method='GET', params: dict = {}) -> dict:
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
         query = self.omit(params, self.extract_params(path))
@@ -6796,7 +6764,7 @@ class gate(Exchange, ImplicitAPI):
                     url += '?' + queryString
                 query = self.omit(query, 'query')
                 bodyJson = self.json(query)
-            bodySigned = body if (bodyJson is None) else bodyJson
+            bodySigned = bodyJson
             bodyPayload = '' if (bodySigned is None) else bodySigned
             bodySignature = self.hash(self.encode(bodyPayload), 'sha512')
             nonce = self.nonce()
@@ -6813,8 +6781,12 @@ class gate(Exchange, ImplicitAPI):
                 'SIGN': signature,
                 'Content-Type': 'application/json',
             }
-        bodyResolved = body if (bodyJson is None) else bodyJson
-        headersResolved = headers if (signedHeaders is None) else signedHeaders
+        headersResolved = signedHeaders
+        if type == 'futures':
+            if headersResolved is None:
+                headersResolved = {}
+            headersResolved['X-Gate-Size-Decimal'] = '1'
+        bodyResolved = bodyJson
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     async def modify_margin_helper(self, symbol: str, amount: Num, params: dict = {}) -> MarginModification:

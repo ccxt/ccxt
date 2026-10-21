@@ -2801,21 +2801,18 @@ class polymarket extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, mixed $api = 'gamma', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('gamma'), $method = 'GET', $params = array()) {
         /**
          * @ignore
-         * builds the request $url and attaches HMAC-SHA256 authentication $headers for private endpoints
+         * builds the request $url and attaches HMAC-SHA256 authentication headers for private endpoints
          * @param {string} $path the endpoint $path
-         * @param {string|string[]} $api the $api group and $access level
+         * @param {string[]} $api the $api group and $access level
          * @param {string} $method the http $method
          * @param {array} $params the request parameters
-         * @param {array} [$headers] request $headers
-         * @param {string} [$body] the request $body
-         * @return {array} a dict with $url, $method, $body and $headers
+         * @return {array} a dict with $url, $method, body and headers
          */
-        // api is either a string ('gamma') or array (['gamma', 'public'])
-        $apiGroup = gettype($api) === 'string' ? $api : $api[0];
-        $access = gettype($api) === 'string' ? 'public' : $api[1];
+        $apiGroup = $api[0];
+        $access = $this->safe_string($api, 1, 'public');
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['gamma']);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
@@ -2831,7 +2828,7 @@ class polymarket extends Exchange {
         if (!$isArrayBody) {
             $query = $this->omit($params, $this->extract_params($path));
         }
-        $bodyValue = $body;
+        $bodyValue = null;
         if ($method === 'GET') {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -2861,7 +2858,7 @@ class polymarket extends Exchange {
                 $bodyValue = $this->json($query);
             }
         }
-        $headerDefaults = ($headers !== null) ? $headers : array();
+        $headerDefaults = array();
         $headersValue = $this->extend(array(
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',

@@ -331,9 +331,7 @@ public partial class hollaex : Exchange
                 { "api-expires", this.parseToInt(divide(this.timeout, 1000)) },
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "btc" },
-                    { "ETH", "eth" },
                     { "ERC20", "eth" },
-                    { "TRX", "trx" },
                     { "TRC20", "trx" },
                     { "XRP", "xrp" },
                     { "XLM", "xlm" },
@@ -1669,11 +1667,11 @@ public partial class hollaex : Exchange
         this.checkAddress(address);
         string? currencyId = this.safeString(depositAddress, "currency");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
-        string? network = this.safeString(depositAddress, "network");
+        string? networkId = this.safeString(depositAddress, "network");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null) },
-            { "network", network },
+            { "network", this.networkIdToCode(networkId, (currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null)) },
             { "address", address },
             { "tag", tag },
         };
@@ -1750,7 +1748,7 @@ public partial class hollaex : Exchange
             addresses = wallet;
         } else
         {
-            addresses = this.filterBy(wallet, "network", network);
+            addresses = this.filterBy(wallet, "network", this.networkCodeToId(network));
         }
         return ccxt.BaseExchange.ToDepositAddressList(this.parseDepositAddresses(addresses, codes, false));
     }
@@ -2224,9 +2222,9 @@ public partial class hollaex : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(coins, codes, "symbol"));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
@@ -2246,7 +2244,7 @@ public partial class hollaex : Exchange
         string url = (apiUrl + requestPath);
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if ((api is "private"))
+        if (isEqual(getValue(api, 0), "private"))
         {
             this.checkRequiredCredentials();
             Int64? defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(divide(this.timeout, 1000)));
@@ -2269,8 +2267,8 @@ public partial class hollaex : Exchange
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             requestHeaders["api-signature"] = signature;
         }
-        object bodyResult = ((requestBody == null)) ? body : requestBody;
-        object headersResult = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResult = requestBody;
+        Dictionary<string, object> headersResult = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

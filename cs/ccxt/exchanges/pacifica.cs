@@ -3177,8 +3177,13 @@ public partial class pacifica : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? margin = this.safeString(position, "margin");
-        string marginMode = ((margin != null) && margin != "0") ? "isolated" : "cross";
-        bool isIsolated = (marginMode == "isolated");
+        bool? rawIsolated = this.safeBool(position, "isolated");
+        bool? isIsolated = ((margin != null) && margin != "0");
+        if ((rawIsolated != null))
+        {
+            isIsolated = rawIsolated;
+        }
+        string marginMode = isIsolated == true ? "isolated" : "cross";
         string? side = this.safeString(position, "side");
         if ((side != null))
         {
@@ -3200,13 +3205,13 @@ public partial class pacifica : Exchange
             { "markPrice", null },
             { "notional", null },
             { "leverage", null },
-            { "collateral", margin },
+            { "collateral", this.safeNumber(position, "margin") },
             { "initialMargin", null },
             { "maintenanceMargin", null },
             { "initialMarginPercentage", null },
             { "maintenanceMarginPercentage", null },
             { "unrealizedPnl", null },
-            { "liquidationPrice", null },
+            { "liquidationPrice", this.safeNumber(position, "liquidation_price") },
             { "marginMode", marginMode },
             { "percentage", null },
         });
@@ -4195,19 +4200,20 @@ public partial class pacifica : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestBody = body;
+        string? requestBody = null;
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = "api";
         if (isTestnet)
         {
             urlKey = "test";
         }
-        string? baseApiUrl = this.safeString(getValue(this.urls, urlKey), api);
+        object apiName = getValue(api, 0);
+        string? baseApiUrl = this.safeString(getValue(this.urls, urlKey), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

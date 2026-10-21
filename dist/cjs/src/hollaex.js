@@ -281,9 +281,7 @@ class hollaex extends hollaex$1["default"] {
                 'api-expires': this.parseToInt(this.timeout / 1000),
                 'networks': {
                     'BTC': 'btc',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'XRP': 'xrp',
                     'XLM': 'xlm',
@@ -1524,11 +1522,11 @@ class hollaex extends hollaex$1["default"] {
         this.checkAddress(address);
         const currencyId = this.safeString(depositAddress, 'currency');
         const currencyResolved = this.safeCurrency(currencyId, currency);
-        const network = this.safeString(depositAddress, 'network');
+        const networkId = this.safeString(depositAddress, 'network');
         return {
             'info': depositAddress,
             'currency': currencyResolved['code'],
-            'network': network,
+            'network': this.networkIdToCode(networkId, currencyResolved['code']),
             'address': address,
             'tag': tag,
         };
@@ -1600,7 +1598,7 @@ class hollaex extends hollaex$1["default"] {
             addresses = wallet;
         }
         else {
-            addresses = this.filterBy(wallet, 'network', network);
+            addresses = this.filterBy(wallet, 'network', this.networkCodeToId(network));
         }
         return this.parseDepositAddresses(addresses, codes, false);
     }
@@ -2045,7 +2043,7 @@ class hollaex extends hollaex$1["default"] {
         const coins = this.safeDict(response, 'coins', {});
         return this.parseDepositWithdrawFees(coins, codes, 'symbol');
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const query = this.omit(params, this.extractParams(path));
         let requestPath = '/' + this.version + '/' + this.implodeParams(path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
@@ -2060,7 +2058,7 @@ class hollaex extends hollaex$1["default"] {
         const url = apiUrl + requestPath;
         let requestBody = undefined;
         let requestHeaders = undefined;
-        if (api === 'private') {
+        if (api[0] === 'private') {
             this.checkRequiredCredentials();
             const defaultExpires = this.safeInteger2(this.options, 'api-expires', 'expires', this.parseToInt(this.timeout / 1000));
             const expires = this.sum(this.seconds(), defaultExpires);
@@ -2080,8 +2078,8 @@ class hollaex extends hollaex$1["default"] {
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             requestHeaders['api-signature'] = signature;
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

@@ -255,13 +255,10 @@ class lbank extends lbank$1["default"] {
                 },
                 'networks': {
                     'ERC20': 'erc20',
-                    'ETH': 'erc20',
                     'TRC20': 'trc20',
-                    'TRX': 'trc20',
                     'OMNI': 'omni',
                     'ASA': 'asa',
                     'BEP20': 'bep20(bsc)',
-                    'BSC': 'bep20(bsc)',
                     'HT': 'heco',
                     'BNB': 'bep2',
                     'BTC': 'btc',
@@ -2276,9 +2273,9 @@ class lbank extends lbank$1["default"] {
         const defaultNetworks = this.safeDict(this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper(defaultNetworks, currencyCode);
         const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        return network;
+        const networkParam = this.safeStringUpper(params, 'network', defaultNetwork); // accepts unified codes and aliases
+        const networkCode = (networkParam !== undefined) ? this.safeString(this.networkAliases, networkParam, networkParam) : undefined;
+        return this.safeString(networks, networkCode, networkCode);
     }
     /**
      * @method
@@ -2356,6 +2353,9 @@ class lbank extends lbank$1["default"] {
         };
         const networks = this.safeDict(this.options, 'networks');
         let network = this.safeStringUpper(params, 'network');
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
+        }
         network = this.safeString(networks, network, network);
         const paramsOmitted = (network !== undefined) ? this.omit(params, 'network') : params;
         if (network !== undefined) {
@@ -2423,7 +2423,10 @@ class lbank extends lbank$1["default"] {
         if (tagWithdrawTag !== undefined) {
             request['memo'] = tagWithdrawTag;
         }
-        const network = this.safeStringUpper2(paramsOmitted, 'network', 'networkName');
+        let network = this.safeStringUpper2(paramsOmitted, 'network', 'networkName');
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
+        }
         const paramsOmitted2 = this.omit(paramsOmitted, ['network', 'networkName']);
         const networks = this.safeDict(this.options, 'networks');
         const networkId = this.safeString(networks, network, network);
@@ -3050,7 +3053,7 @@ class lbank extends lbank$1["default"] {
         }
         return result;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let query = this.omit(params, this.extractParams(path));
         const apiUrl = this.safeString(this.urls['api'], 'rest');
         if (apiUrl === undefined) {
@@ -3125,7 +3128,7 @@ class lbank extends lbank$1["default"] {
             };
             return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     convertSecretToPem(secret) {
         const lineLength = 64;

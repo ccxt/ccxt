@@ -2298,6 +2298,7 @@ impl Exchange {
         );
         put("reduceFees", &self.reduceFees);
         put("minFundingAddressLength", &self.minFundingAddressLength);
+        put("networkAliases", &self.networkAliases);
         put("MAX_VALUE", &self.MAX_VALUE);
         put("returnResponseHeaders", &self.returnResponseHeaders);
         put("httpExceptions", &self.httpExceptions);

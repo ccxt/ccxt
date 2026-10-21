@@ -929,7 +929,7 @@ class bitfinex extends Exchange {
                 $networks[$network] = array(
                     'info' => $networkId,
                     'id' => strtolower($networkId),
-                    'network' => $networkId,
+                    'network' => $network,
                     'active' => null,
                     'deposit' => $this->safe_integer($dwStatuses, 1) === 1,
                     'withdraw' => $this->safe_integer($dwStatuses, 2) === 1,
@@ -1301,9 +1301,7 @@ class bitfinex extends Exchange {
             $bid = $this->safe_string($ticker, 2 - $minusIndex);
             $ask = $this->safe_string($ticker, 5 - $minusIndex);
             $change = $this->safe_string($ticker, 8 - $minusIndex);
-            // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
-            // branch reads at index 6 and scales
-            $percentage = Precise::string_mul($this->safe_string($ticker, 9 - $minusIndex), '100');
+            // funding DAILY_CHANGE_RELATIVE is not change / (last - change), let safeTicker derive percentage
             $volume = $this->safe_string($ticker, 11 - $minusIndex);
             $high = $this->safe_string($ticker, 12 - $minusIndex);
             $low = $this->safe_string($ticker, 13 - $minusIndex);
@@ -2454,7 +2452,8 @@ class bitfinex extends Exchange {
         }
         $currency = $this->currency($code);
         // if not provided explicitly we will try to match using the currency name
-        $network = $this->safe_string($params, 'network', $code);
+        $networkParam = $this->safe_string($params, 'network', $code);
+        $network = $this->safe_string($this->networkAliases, $networkParam, $networkParam);
         $currencyNetworks = $this->safe_dict($currency, 'networks', array());
         $currencyNetwork = $this->safe_dict($currencyNetworks, $network);
         $networkId = $this->safe_string($currencyNetwork, 'id');
@@ -2859,7 +2858,8 @@ class bitfinex extends Exchange {
         }
         $currency = $this->currency($code);
         // if not provided explicitly we will try to match using the currency name
-        $network = $this->safe_string($paramsWithdrawTag, 'network', $code);
+        $networkParam = $this->safe_string($paramsWithdrawTag, 'network', $code);
+        $network = $this->safe_string($this->networkAliases, $networkParam, $networkParam);
         $paramsOmitted = $this->omit($paramsWithdrawTag, 'network');
         $currencyNetworks = $this->safe_dict($currency, 'networks', array());
         $currencyNetwork = $this->safe_dict($currencyNetworks, $network);
@@ -3062,27 +3062,28 @@ class bitfinex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'v1') {
-            $request = $api . $request;
+        if ($apiName === 'v1') {
+            $request = $apiName . $request;
         } else {
             $request = $this->version . $request;
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $request;
         $requestBody = null;
         $requestHeaders = null;
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
             $nonce = (string) $this->incrementing_nonce();
@@ -3096,8 +3097,8 @@ class bitfinex extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 

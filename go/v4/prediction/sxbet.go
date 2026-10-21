@@ -3938,49 +3938,28 @@ func (this *Sxbet) HandleErrors(code any, reason any, url any, method any, heade
  * @name sxbet#sign
  * @description builds the request url and attaches the x-sx-api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
  * @param {string} path the endpoint path
- * @param {string|string[]} api the api group and access level
+ * @param {string[]} api the api group and access level
  * @param {string} method the http method
  * @param {object} params the request parameters
- * @param {object} [headers] request headers
- * @param {string} [body] the request body
  * @returns {object} a dict with url, method, body and headers
  */
 func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
-	api := ccxt.GetArg(optionalArgs, 0, "sxbet")
+	api := ccxt.GetArg(optionalArgs, 0, []any{"sxbet"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := ccxt.GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := ccxt.GetArg(optionalArgs, 4, nil)
-	_ = body
-	var apiGroup any = func() any {
-		if ccxt.IsString(api) {
-			return api
-		}
-		return ccxt.GetValue(api, 0)
-	}()
-	var accessLevel any = func() any {
-		if ccxt.IsString(api) {
-			return "public"
-		}
-		return ccxt.GetValue(api, 1)
-	}()
-	if (ccxt.IsEqual(accessLevel, "private")) && (ccxt.IsEqual(this.ApiKey, nil)) {
+	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
+	var accessLevel *string = this.SafeString(api, 1, "public")
+	if (accessLevel != nil && *accessLevel == "private") && (ccxt.IsEqual(this.ApiKey, nil)) {
 		panic(ccxt.AuthenticationError(this.Id + " " + path + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)"))
 	}
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "sxbet"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var existingHeaders any = func() any {
-		if !ccxt.IsEqual(headers, nil) {
-			return headers
-		}
-		return map[string]any{}
-	}()
+	var existingHeaders map[string]any = map[string]any{}
 	var headersExtended map[string]any = this.Extend(map[string]any{
 		"Accept":       "application/json",
 		"Content-Type": "application/json",
@@ -3995,7 +3974,7 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
 		var hasOrdersList bool = (ccxt.InOp(query, "orders"))
 		sendAsQuery = !hasOrdersList
 	}
-	var bodyValue any = body
+	var bodyValue *string = nil
 	if sendAsQuery {
 		var querystring string = this.Urlencode(query)
 		if querystring != "" {
@@ -4005,7 +3984,7 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
 		var queryKeys []string = ccxt.ObjectKeys(query)
 		var queryKeysLength int = len(queryKeys)
 		if queryKeysLength > 0 {
-			bodyValue = this.Json(query)
+			bodyValue = ccxt.SafeStringPtr(this.Json(query))
 		}
 	}
 	return map[string]any{

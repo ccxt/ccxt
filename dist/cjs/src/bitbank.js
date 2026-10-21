@@ -1067,16 +1067,17 @@ class bitbank extends bitbank$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let query = this.omit(params, this.extractParams(path));
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = this.implodeHostname(apiUrl) + '/';
         let requestBody = undefined;
         let requestHeaders = undefined;
-        if ((api === 'public') || (api === 'markets')) {
+        if ((apiName === 'public') || (apiName === 'markets')) {
             url += this.implodeParams(path, params);
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
@@ -1123,8 +1124,8 @@ class bitbank extends bitbank$1["default"] {
                 requestHeaders['ACCESS-NONCE'] = nonce;
             }
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

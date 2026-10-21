@@ -30,6 +30,7 @@ public partial class BaseTest
             testPrecise();
             testSafeMethods();
             testSafeTicker();
+            testSafePosition();
             testMergeBalanceAccount();
             testBase58ToBinary();
             testToArray();

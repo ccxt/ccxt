@@ -846,22 +846,23 @@ class zaif extends Exchange {
         return sprintf('%.8f', $nonce);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $baseApiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $baseUrl = $baseApiUrl;
         $url = $baseUrl . '/';
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);
-        } elseif ($api === 'fapi') {
+        } elseif ($apiName === 'fapi') {
             $url .= 'fapi/' . $this->version . '/' . $this->implode_params($path, $params);
         } else {
             $this->check_required_credentials();
-            if ($api === 'ecapi') {
+            if ($apiName === 'ecapi') {
                 $url .= 'ecapi';
-            } elseif ($api === 'tlapi') {
+            } elseif ($apiName === 'tlapi') {
                 $url .= 'tlapi';
             } else {
                 $url .= 'tapi';
@@ -878,7 +879,7 @@ class zaif extends Exchange {
             );
             return array( 'url' => $url, 'method' => $method, 'body' => $bodyEncoded, 'headers' => $headersSigned );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

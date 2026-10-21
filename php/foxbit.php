@@ -203,7 +203,7 @@ class foxbit extends Exchange {
                     'cardano' => 'ADA',
                     'cosmos' => 'ATOM',
                     'dogecoin' => 'DOGE',
-                    'erc20' => 'ETH',
+                    'erc20' => 'ERC20',
                     'hedera' => 'HBAR',
                     'litecoin' => 'LTC',
                     'near' => 'NEAR',
@@ -227,7 +227,7 @@ class foxbit extends Exchange {
                     'ADA' => 'cardano',
                     'ATOM' => 'cosmos',
                     'DOGE' => 'dogecoin',
-                    'ETH' => 'erc20',
+                    'ERC20' => 'erc20',
                     'HBAR' => 'hedera',
                     'LTC' => 'litecoin',
                     'NEAR' => 'near',
@@ -1740,6 +1740,14 @@ class foxbit extends Exchange {
         $bestBid = $this->safe_dict($best, 'bid');
         $lastTrade = $this->safe_dict($ticker, 'last_trade');
         $lastPrice = $this->safe_string($lastTrade, 'price');
+        $change = $this->safe_string($rolling_24h, 'price_change');
+        $percentage = $this->safe_string($rolling_24h, 'price_change_percent');
+        // never-traded markets report all-zero placeholders instead of omitting the values
+        if (Precise::string_eq($lastPrice, '0')) {
+            $lastPrice = null;
+            $change = null;
+            $percentage = null;
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $this->parse_date($this->safe_string($lastTrade, 'date')),
@@ -1755,8 +1763,8 @@ class foxbit extends Exchange {
             'close' => $lastPrice,
             'last' => $lastPrice,
             'previousClose' => null,
-            'change' => $this->safe_string($rolling_24h, 'price_change'),
-            'percentage' => $this->safe_string($rolling_24h, 'price_change_percent'),
+            'change' => $change,
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $this->safe_string($rolling_24h, 'volume'),
             'quoteVolume' => $this->safe_string($rolling_24h, 'quote_volume'),
@@ -1944,7 +1952,7 @@ class foxbit extends Exchange {
             'txid' => $this->safe_string($cryptoDetails, 'transaction_id'),
             'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'network' => $this->safe_string($transaction, 'network_code'),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network_code'), $currencyCode),
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -2035,7 +2043,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
         $version = $api[0];
         $urlPath = $api[1];
         $fullPath = '/rest/' . $version . '/' . $this->implode_params($path, $params);
@@ -2070,7 +2078,7 @@ class foxbit extends Exchange {
                 }
             }
         }
-        $requestBody = $body;
+        $requestBody = null;
         if ($method === 'POST' || $method === 'PUT') {
             $requestBody = $this->json($paramsOmitted);
         }

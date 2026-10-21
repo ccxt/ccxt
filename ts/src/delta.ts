@@ -1863,9 +1863,9 @@ export default class delta extends Exchange {
         let side: Str = undefined;
         if (sizeString !== undefined) {
             if (Precise.stringGt (sizeString, '0')) {
-                side = 'buy';
+                side = 'long';
             } else if (Precise.stringLt (sizeString, '0')) {
-                side = 'sell';
+                side = 'short';
             }
         }
         return this.safePosition ({
@@ -1873,7 +1873,7 @@ export default class delta extends Exchange {
             'id': undefined,
             'symbol': symbol,
             'notional': undefined,
-            'marginMode': undefined,
+            'marginMode': this.safeString (position, 'margin_mode'),
             'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'unrealizedPnl': undefined, // todo - realized_pnl ?
@@ -1887,6 +1887,7 @@ export default class delta extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
+            'positionMargin': this.safeNumber (position, 'margin'),
             'collateral': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
@@ -4177,9 +4178,10 @@ export default class delta extends Exchange {
         } as ADL;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = {}, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -4187,11 +4189,11 @@ export default class delta extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        } else if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.seconds ().toString ();
             requestHeaders = {
@@ -4213,8 +4215,8 @@ export default class delta extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             requestHeaders['signature'] = signature;
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 

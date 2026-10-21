@@ -3697,6 +3697,10 @@ export default class aster extends Exchange {
         }
         const positionSide = this.safeString (position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
+        let isolatedWalletString: Str = undefined;
+        if (marginMode === 'isolated') {
+            isolatedWalletString = this.safeString (position, 'isolatedWallet');
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -3706,6 +3710,7 @@ export default class aster extends Exchange {
             'unrealizedPnl': unrealizedPnl,
             'leverage': this.parseNumber (leverageString),
             'liquidationPrice': liquidationPrice,
+            'positionMargin': this.parseNumber (isolatedWalletString),
             'collateral': collateral,
             'notional': notional,
             'markPrice': markPrice,
@@ -3989,6 +3994,10 @@ export default class aster extends Exchange {
         }
         const positionSide = this.safeString (position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
+        let isolatedWalletString: Str = undefined;
+        if (marginMode === 'isolated') {
+            isolatedWalletString = this.safeString (position, 'isolatedWallet');
+        }
         return {
             'info': position,
             'id': undefined,
@@ -4008,6 +4017,7 @@ export default class aster extends Exchange {
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': undefined,
+            'positionMargin': this.parseNumber (isolatedWalletString),
             'collateral': collateral,
             'marginMode': marginMode,
             'side': side,
@@ -4163,6 +4173,9 @@ export default class aster extends Exchange {
         // TODO: check how ARBI signature would work
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeStringUpper (paramsWithdrawTag, 'network');
+        if (network !== undefined) {
+            network = this.safeString (this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+        }
         network = this.safeString (networks, network, network);
         if ((chainId === undefined) && (network !== undefined)) {
             const chainIds = this.safeDict (this.options, 'networksToChainId', {});
@@ -4294,17 +4307,18 @@ export default class aster extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const baseApiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString (this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = baseApiUrl + '/' + path;
-        if (api === 'fapiPublic' || api === 'sapiPublic') {
+        if (apiName === 'fapiPublic' || apiName === 'sapiPublic') {
             if (Object.keys (params).length > 0) {
                 url += '?' + this.rawencode (params);
             }
-        } else if (api === 'fapiPrivate' || api === 'sapiPrivate') {
+        } else if (apiName === 'fapiPrivate' || apiName === 'sapiPrivate') {
             this.checkRequiredCredentials ();
             const nonce = this.milliseconds () * 1000;
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
@@ -4374,7 +4388,7 @@ export default class aster extends Exchange {
                 return { 'url': url, 'method': method, 'body': queryString, 'headers': formHeaders };
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
     encodeValuesWithJson (values: Dict): string {

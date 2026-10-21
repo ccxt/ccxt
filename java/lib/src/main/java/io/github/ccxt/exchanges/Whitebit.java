@@ -3945,7 +3945,7 @@ public class Whitebit extends WhitebitApi
             h2kMap2.put("txid", this.safeString(transaction, "transactionId"));
             h2kMap2.put("timestamp", timestamp);
             h2kMap2.put("datetime", this.iso8601(timestamp));
-            h2kMap2.put("network", this.safeString(transaction, "network"));
+            h2kMap2.put("network", this.networkIdToCode(this.safeString(transaction, "network"), this.safeCurrencyCode(currencyId, currencyResolved)));
             h2kMap2.put("addressFrom", (((java.util.Objects.equals(method, "1")))) ? address : null);
             h2kMap2.put("address", address);
             h2kMap2.put("addressTo", (((java.util.Objects.equals(method, "2")))) ? address : null);
@@ -5142,13 +5142,13 @@ public class Whitebit extends WhitebitApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object query = this.omit(parameters, this.extractParams(path));
-        Object version = this.safeValue(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String accessibility = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
-        Object publicHeaders = (((java.util.Objects.equals(headers, null)))) ? new HashMap<String, Object>() {{}} : headers;
-        ((Map<String, Object>)publicHeaders).put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
+        Object version = this.safeValue(api, 0);
+        String accessibility = this.safeString(api, 1);
+        Map<String, Object> publicHeaders = new HashMap<String, Object>() {{}};
+        publicHeaders.put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
         String pathWithParams = ("/" + this.implodeParams(path, parameters));
         String apiUrl = this.safeString(Helpers.GetValue(this.urls.get("api"), version), accessibility);
         if (java.util.Objects.equals(apiUrl, null))
@@ -5190,12 +5190,12 @@ public class Whitebit extends WhitebitApi
             }};
         }
         Boolean isPrivate = (java.util.Objects.equals(accessibility, "private"));
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(isPrivate))
         {
             requestBody = privateBody;
         }
-        Object requestHeaders = publicHeaders;
+        Map<String, Object> requestHeaders = publicHeaders;
         if (Boolean.TRUE.equals(isPrivate))
         {
             requestHeaders = privateHeaders;

@@ -3017,6 +3017,8 @@ class derive(Exchange, ImplicitAPI):
         markPrice = self.safe_string(position, 'mark_price')
         timestamp = self.safe_integer(position, 'creation_timestamp')
         unrealisedPnl = self.safe_string(position, 'unrealized_pnl')
+        initialMarginString = Precise.string_abs(self.safe_string(position, 'initial_margin'))
+        maintenanceMarginString = Precise.string_abs(self.safe_string(position, 'maintenance_margin'))
         size = Precise.string_abs(size)
         notional = Precise.string_mul(size, markPrice)
         return self.safe_position({
@@ -3026,11 +3028,11 @@ class derive(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastUpdateTimestamp': None,
-            'initialMargin': self.safe_number(position, 'initial_margin'),
-            'initialMarginPercentage': None,
-            'maintenanceMargin': self.safe_number(position, 'maintenance_margin'),
-            'maintenanceMarginPercentage': None,
-            'entryPrice': None,
+            'initialMargin': self.parse_number(initialMarginString),
+            'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notional, 8)),
+            'maintenanceMargin': self.parse_number(maintenanceMarginString),
+            'maintenanceMarginPercentage': self.parse_number(Precise.string_div(maintenanceMarginString, notional, 8)),
+            'entryPrice': self.safe_number_2(position, 'average_price', 'average_price_excl_fees'),
             'notional': self.parse_number(notional),
             'leverage': self.safe_number(position, 'leverage'),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
@@ -4092,8 +4094,9 @@ class derive(Exchange, ImplicitAPI):
         # signs the auth timestamp and feeds incrementingNonce (), which nonceString () extends to the nanosecond-scale action nonce; must be unique per wallet (error 11017) while staying a valid date (error 11018)
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + path
@@ -4101,7 +4104,7 @@ class derive(Exchange, ImplicitAPI):
             postHeaders = {
                 'Content-Type': 'application/json',
             }
-            if api == 'private':
+            if apiName == 'private':
                 now = self.number_to_string(self.nonce())
                 signature = self.sign_message(now, self.privateKey)
                 deriveWalletAddress = self.safe_string(self.options, 'deriveWalletAddress')
@@ -4112,4 +4115,4 @@ class derive(Exchange, ImplicitAPI):
                 postHeaders['X-DeriveSignature'] = signature
             postBody = self.json(params)
             return {'url': url, 'method': method, 'body': postBody, 'headers': postHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}

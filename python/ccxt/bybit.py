@@ -1237,11 +1237,8 @@ class bybit(Exchange, ImplicitAPI):
                 'networks': {
                     'BTC': 'BTC',
                     'BRC20': 'BTC',
-                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'ACA': 'ACA',
@@ -1308,6 +1305,7 @@ class bybit(Exchange, ImplicitAPI):
                     # 'LUNA1': 'LUNA' (Terra)
                 },
                 'networksById': {
+                    'BTC': 'BTC',  # BTC and BRC20 share the id 'BTC', the native chain wins
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'BSC': 'BEP20',
@@ -5728,7 +5726,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         currency = self.currency(code)
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = self.fetch_deposit_addresses_by_network(code, paramsOmited)
-        selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
+        selectedNetworkCode = self.select_network_key_from_networks(currency['code'], networkCode, indexedAddresses, True)
         return self.safe_value(indexedAddresses, selectedNetworkCode)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -6642,7 +6640,13 @@ classic accounts only/ spot not supported*  fetches information on an order made
         lastUpdateTimestamp = self.parse8601(self.safe_string(position, 'updated_at'))
         if lastUpdateTimestamp is None:
             lastUpdateTimestamp = self.safe_integer_2(position, 'updatedTime', 'updatedAt')
-        collateralString = self.safe_string(position, 'positionBalance')
+        # positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
+        positionMarginString = self.omit_zero(self.safe_string(position, 'positionBalance'))
+        collateralString = None
+        if positionMarginString is not None:
+            collateralString = positionMarginString
+            if unrealisedPnl is not None:
+                collateralString = Precise.string_add(positionMarginString, unrealisedPnl)
         entryPrice = self.omit_zero(self.safe_string_n(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']))
         liquidationPrice = self.omit_zero(self.safe_string(position, 'liqPrice'))
         leverage = self.safe_string(position, 'leverage')
@@ -6655,29 +6659,37 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     price = markPrice
                 difference = Precise.string_abs(Precise.string_sub(price, liquidationPrice))
                 collateralString = Precise.string_add(Precise.string_add(Precise.string_mul(difference, size), maintenanceMarginString), unrealisedPnl)
+                positionMarginString = None  # derived from collateral by safePosition
             else:
-                bustPrice = self.safe_string(position, 'bustPrice')
+                bustPrice = self.omit_zero(self.safe_string(position, 'bustPrice'))
+                closingFee = self.omit_zero(self.safe_string(position, 'occClosingFee'))
                 if marketResolved['linear'] is True:
-                    # derived from the following formulas
+                    # derived from the following formula:
                     #  (Entry price - Bust price) * Contracts = Collateral
                     #  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     # Maintenance Margin = (Bust price - Liq price) x Contracts
-                    maintenanceMarginPriceDifference = Precise.string_abs(Precise.string_sub(liquidationPrice, bustPrice))
-                    maintenanceMarginString = Precise.string_mul(maintenanceMarginPriceDifference, size)
-                    # Initial Margin = Contracts x Entry Price / Leverage
+                    if (maintenanceMarginString is None) and (bustPrice is not None) and not Precise.string_eq(bustPrice, liquidationPrice):
+                        maintenanceMarginPriceDifference = Precise.string_abs(Precise.string_sub(liquidationPrice, bustPrice))
+                        maintenanceMarginString = Precise.string_mul(maintenanceMarginPriceDifference, size)
+                    # Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
                     if (entryPrice is not None) and (initialMarginString is None):
                         initialMarginString = Precise.string_div(Precise.string_mul(size, entryPrice), leverage)
+                        if closingFee is not None:
+                            initialMarginString = Precise.string_add(initialMarginString, closingFee)
                 else:
                     # Contracts * (1 / Entry price - 1 / Bust price) = Collateral
                     # Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     # Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     # Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    difference = Precise.string_abs(Precise.string_sub(bustPrice, liquidationPrice))
-                    multiply = Precise.string_mul(bustPrice, liquidationPrice)
-                    maintenanceMarginString = Precise.string_div(Precise.string_mul(size, difference), multiply)
-                    # Initial Margin = Leverage x Contracts / EntryPrice
+                    if (maintenanceMarginString is None) and (bustPrice is not None) and not Precise.string_eq(bustPrice, liquidationPrice):
+                        difference = Precise.string_abs(Precise.string_sub(bustPrice, liquidationPrice))
+                        multiply = Precise.string_mul(bustPrice, liquidationPrice)
+                        maintenanceMarginString = Precise.string_div(Precise.string_mul(size, difference), multiply)
+                    # Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
                     if (entryPrice is not None) and (initialMarginString is None):
                         initialMarginString = Precise.string_div(size, Precise.string_mul(entryPrice, leverage))
+                        if closingFee is not None:
+                            initialMarginString = Precise.string_add(initialMarginString, closingFee)
         maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notional)
         marginRatio = Precise.string_div(maintenanceMarginString, collateralString, 4)
         return self.safe_position({
@@ -6703,6 +6715,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'markPrice': self.parse_number(markPrice),
             'lastPrice': self.safe_number(position, 'avgExitPrice'),
             'collateral': self.parse_number(collateralString),
+            'positionMargin': self.parse_number(positionMarginString),
             'marginMode': None,  # tradeMode was deprecated
             'side': side,
             'percentage': None,
@@ -8457,8 +8470,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         tiers = []
         for i in range(0, len(info)):
             tier = self.safe_dict(info, i)
-            marketId = self.safe_string(info, 'symbol')
-            marketResolved = self.safe_market(marketId)
+            marketId = self.safe_string(tier, 'symbol')
+            marketResolved = self.safe_market(marketId, market, None, 'contract')
             minNotional = self.parse_number('0')
             if i != 0:
                 minNotional = self.safe_number(info[i - 1], 'riskLimitValue')
@@ -9430,17 +9443,18 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return self.safe_string(marginModes, marginMode, marginMode)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         requestBody = None
         requestHeaders = None
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(apiUrl) + '/' + path
-        if api == 'public':
+        if apiName == 'public':
             if len(params) > 0:
                 url += '?' + self.rawencode(params)
-        elif api == 'private':
+        elif apiName == 'private':
             self.check_required_credentials()
             isOpenapi = url.find('openapi') >= 0
             isV3UnifiedMargin = url.find('unified/v3') >= 0
@@ -9520,11 +9534,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     url += '&sign=' + signature
         if method == 'POST':
             brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
-            headersBase = headers if (requestHeaders is None) else requestHeaders
+            headersBase = requestHeaders
             requestHeaders = {} if (headersBase is None) else headersBase
             requestHeaders['Referer'] = brokerId
-        bodyResolved = body if (requestBody is None) else requestBody
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        bodyResolved = requestBody
+        headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

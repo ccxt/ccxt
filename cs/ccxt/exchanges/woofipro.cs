@@ -4047,9 +4047,9 @@ public partial class woofipro : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null)
     {
-        section ??= "public";
+        section ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object version = getValue(section, 0);
@@ -4135,8 +4135,8 @@ public partial class woofipro : Exchange
             string signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
             requestHeaders["orderly-signature"] = this.urlencodeBase64(this.base64ToBinary(signature));
         }
-        object bodyResult = ((requestBody == null)) ? body : requestBody;
-        object headersResult = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResult = requestBody;
+        Dictionary<string, object> headersResult = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

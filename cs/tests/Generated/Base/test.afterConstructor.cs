@@ -126,13 +126,6 @@ public partial class BaseTest
             // options
             //
             Assert(!isEqual(exchange.options, null));
-            // const defaultNetworkCodeReplacements = [
-            //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-            //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-            //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-            //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-            // ];
-            // AssertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
             //
             // credentials
             //

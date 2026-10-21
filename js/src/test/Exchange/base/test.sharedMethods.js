@@ -286,6 +286,15 @@ function assertEqual(exchange, skippedProperties, method, entry, key, compareTo,
         assert(Precise.stringEq(value, compareTo), stringValue(key) + ' key (with a value of ' + stringValue(value) + ') was expected to be equal to ' + stringValue(compareTo) + logText);
     }
 }
+function assertUnifiedNetworkCode(exchange, skippedProperties, method, entry, networkCode) {
+    // returned network codes must be the unified code, never one of its aliases (e.g. ERC20, not ETH)
+    if (('network' in skippedProperties) || (networkCode === undefined)) {
+        return;
+    }
+    const logText = logTemplate(exchange, method, entry);
+    const unifiedCode = exchange.safeString(exchange.networkAliases, networkCode, networkCode);
+    assert(unifiedCode === networkCode, 'network code ' + networkCode + ' is an alias, expected the unified code ' + unifiedCode + logText);
+}
 function assertNonEqual(exchange, skippedProperties, method, entry, key, compareTo, allowNull = true) {
     if (key in skippedProperties) {
         return;
@@ -690,6 +699,7 @@ export default {
     assertLessOrEqual,
     assertEqual,
     assertNonEqual,
+    assertUnifiedNetworkCode,
     assertInteger,
     checkPrecisionAccuracy,
     fetchBestBidAsk,

@@ -139,6 +139,7 @@ pub trait DerivedExchange {
     fn parse_market_leverage_tiers(&self, _info: Value, _market: Value) -> Value { Value::Null }
     fn parse_deposit_withdraw_fee(&self, _fee: Value, _currency: Value) -> Value { Value::Null }
     fn create_expired_option_market(&self, _symbol: Value) -> Value { Value::Null }
+    fn market(&self, _symbol: Value) -> Value { Value::Null }
     // ── prediction-tier parsers (overridden by prediction venues) ────────
     fn parse_prediction_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
     fn parse_prediction_order(&self, _order: Value, _market: Value) -> Value { Value::Null }
@@ -333,6 +334,7 @@ pub struct Exchange {
     pub substituteCommonCurrencyCodes: Value,
     pub reduceFees:                Value,
     pub minFundingAddressLength:   Value,
+    pub networkAliases:            Value,
     pub MAX_VALUE:                 Value,
     pub returnResponseHeaders:     Value,
     pub httpExceptions:            Value,
@@ -613,6 +615,7 @@ impl Exchange {
             substituteCommonCurrencyCodes:     Value::Bool(true),
             reduceFees:                        Value::Bool(true),
             minFundingAddressLength:           Value::Int(1),
+                        networkAliases:                    Value::Dict(std::sync::Arc::new([("ETH".to_string(), Value::Str("ERC20".into())), ("TRX".to_string(), Value::Str("TRC20".into())), ("BSC".to_string(), Value::Str("BEP20".into())), ("BSC20".to_string(), Value::Str("BEP20".into())), ("CRONOS".to_string(), Value::Str("CRC20".into())), ("ARB".to_string(), Value::Str("ARBITRUM".into())), ("ARBONE".to_string(), Value::Str("ARBITRUM".into())), ("ARBNOVA".to_string(), Value::Str("ARBITRUM_NOVA".into()))].into_iter().collect())),
             MAX_VALUE:                         Value::Float(f64::MAX),
             returnResponseHeaders:             Value::Bool(false),
             httpExceptions:                    base_http_exceptions(),
@@ -1177,7 +1180,17 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             .find_map(|v| match v { Value::Str(s) if !s.is_empty() => Some(s.to_string()), _ => None });
         // binary frames are decompressed unless the exchange opts out (mexc, paradex)
         let __decompress_binary = !matches!(crate::get_value(&self.options, &Value::Str("decompressBinary".into())), Value::Bool(false));
-        let client = match crate::pro::ws_client::ensure_client(&url, __ws_proxy, __decompress_binary).await {
+        // options.ws.options.headers ride on the upgrade request, as in the other ports
+        let __ws_options = crate::get_value(&crate::get_value(&self.options, &Value::Str("ws".into())), &Value::Str("options".into()));
+        let __ws_headers: Vec<(String, String)> = match crate::get_value(&__ws_options, &Value::Str("headers".into())) {
+            Value::Dict(m) => m.iter().filter_map(|(k, v)| match v {
+                Value::Str(s) => Some((k.clone(), s.to_string())),
+                Value::Int(n) => Some((k.clone(), n.to_string())),
+                _ => None,
+            }).collect(),
+            _ => Vec::new(),
+        };
+        let client = match crate::pro::ws_client::ensure_client_with_headers(&url, &__ws_headers, __ws_proxy, __decompress_binary).await {
             Ok(c) => c,
             Err(e) => panic!("{}", e),
         };
@@ -1517,11 +1530,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         if matches!(self.mock_response, Value::Null) && matches!(self.mock_response_by_url, Value::Null) {
             self.throttle(&[cost]).await;
         }
-        let api_arg = if scope_segments.len() == 1 {
-            Value::Str(scope_segments[0].clone().into())
-        } else {
-            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect())
-        };
+        let api_arg = Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect());
         let scope_lookup: String = scope_segments.first().cloned().unwrap_or_default();
         // Static dispatch to the derived exchange's sign override.
         let signed = crate::exchange::DerivedExchange::sign(
@@ -1600,11 +1609,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 format!("implicit API method {name} not found in api block"),
             )),
         };
-        let api = if scope_segments.len() == 1 {
-            Value::Str(scope_segments[0].clone().into())
-        } else {
-            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect())
-        };
+        let api = Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect());
         let cost = if matches!(self.enableRateLimit, Value::Bool(true)) {
             self.call_dynamic(
                 "calculate_rate_limiter_cost",
@@ -1625,11 +1630,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             .get(name)
             .cloned()
             .ok_or_else(|| ExchangeError::new("NotSupported", format!("implicit API method {name} not found in api block")))?;
-        let api = if scope_segments.len() == 1 {
-            Value::Str(scope_segments[0].clone().into())
-        } else {
-            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect())
-        };
+        let api = Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect());
         Ok(self.call_dynamic(
             "calculate_rate_limiter_cost",
             vec![api, Value::Str(verb.into()), Value::Str(path.into()), params, config],
@@ -1731,7 +1732,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         <Self as crate::exchange_generated::ExchangeBase>::handle_market_type_and_params(self, method_name, &[market, params, default_value])
     }
     fn super_market(&self, symbol: Value) -> Value {
-        <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol)
+        <Self as crate::exchange_generated::ExchangeBase>::market_non_virtual(self, symbol)
     }
     fn super_amount_to_precision(&self, symbol: Value, amount: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::amount_to_precision(self, symbol, amount)

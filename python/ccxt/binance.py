@@ -1440,7 +1440,6 @@ class binance(Exchange, ImplicitAPI):
                     'funding': 'FUNDING',
                     'margin': 'MARGIN',
                     'cross': 'MARGIN',
-                    'future': 'UMFUTURE',  # backwards compatibility
                     'linear': 'UMFUTURE',
                     'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
@@ -1459,11 +1458,8 @@ class binance(Exchange, ImplicitAPI):
                     'BTCSEGWIT': 'SEGWITBTC',
                     'BTCLIGHTNING': 'LIGHTNING',
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                     'BEP2': 'BNB',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'CHZ2': 'CHZ2',  # Chiliz chain new
                     'XRP': 'XRP',
@@ -2918,10 +2914,11 @@ class binance(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' market() requires a symbol argument')
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
-        # defaultType 'future' resolves spot-style symbols to the derivative market of defaultSubType
+        # defaultType 'swap' resolves spot-style symbols to the perpetual of defaultSubType
         defaultType = self.safe_string(self.options, 'defaultType')
         defaultSubType = self.safe_string(self.options, 'defaultSubType')
-        isLegacy = defaultType == 'future'
+        isLegacy = defaultType == 'swap'
+        isDerivative = isLegacy or (defaultType == 'future')
         isLegacyInverse = isLegacy and (defaultSubType == 'inverse')
         isLegacyLinear = isLegacy and not isLegacyInverse
         if isinstance(symbol, str):
@@ -2939,10 +2936,8 @@ class binance(Exchange, ImplicitAPI):
             elif (self.markets_by_id is not None) and (symbol in self.markets_by_id):
                 markets = self.markets_by_id[symbol]
                 # begin diff
-                if isLegacyLinear:
-                    defaultType = 'linear'
-                elif isLegacyInverse:
-                    defaultType = 'inverse'
+                if isDerivative:
+                    defaultType = 'inverse' if (defaultSubType == 'inverse') else 'linear'
                 elif defaultType is None:
                     defaultType = defaultSubType
                 # end diff
@@ -2952,7 +2947,7 @@ class binance(Exchange, ImplicitAPI):
                         return market
                 return markets[0]
             elif (symbol.find('/') > -1) and (symbol.find(':') < 0):
-                if (defaultType is not None) and (defaultType != 'spot'):
+                if isLegacy:
                     # support legacy symbols
                     base, quote = symbol.split('/')
                     settle = quote
@@ -9678,8 +9673,8 @@ class binance(Exchange, ImplicitAPI):
         if internal is not True:
             defaultType = self.safe_string_2(self.options, 'fetchTransfers', 'defaultType', 'spot')
             fromAccount = self.safe_string(paramsOmitted, 'fromAccount', defaultType)
-            defaultTo = 'future'
-            if fromAccount == 'future':
+            defaultTo = 'swap'
+            if (fromAccount == 'swap') or (fromAccount == 'linear'):
                 defaultTo = 'spot'
             toAccount = self.safe_string(paramsOmitted, 'toAccount', defaultTo)
             type = self.safe_string(paramsOmitted, 'type')
@@ -9957,7 +9952,7 @@ class binance(Exchange, ImplicitAPI):
             for j in range(0, len(networkList)):
                 networkEntry = self.safe_dict(networkList, j)
                 networkId = self.safe_string(networkEntry, 'network')
-                networkCode = self.safe_currency_code(networkId)
+                networkCode = self.network_id_to_code(networkId, code)
                 fee = self.safe_number(networkEntry, 'withdrawFee')
                 if (code is not None) and (networkCode is not None):
                     withdrawFees[code][networkCode] = fee
@@ -10491,7 +10486,7 @@ class binance(Exchange, ImplicitAPI):
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
-        defaultType = self.safe_string_2(self.options, 'fetchFundingRateHistory', 'defaultType', 'future')
+        defaultType = self.safe_string_2(self.options, 'fetchFundingRateHistory', 'defaultType', 'swap')
         type = self.safe_string(paramsPaginate, 'type', defaultType)
         market = None
         if symbol is not None:
@@ -10556,7 +10551,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
-        defaultType = self.safe_string_2(self.options, 'fetchFundingRates', 'defaultType', 'future')
+        defaultType = self.safe_string_2(self.options, 'fetchFundingRates', 'defaultType', 'swap')
         type = self.safe_string(params, 'type', defaultType)
         subType, paramsSubType = self.handle_sub_type_and_params('fetchFundingRates', None, params, 'linear')
         query = self.omit(paramsSubType, 'type')
@@ -10875,6 +10870,9 @@ class binance(Exchange, ImplicitAPI):
             liquidationPrice = self.parse_number(truncatedLiquidationPrice)
         positionSide = self.safe_string(position, 'positionSide')
         hedged = positionSide != 'BOTH'
+        isolatedWalletString = None
+        if marginMode == 'isolated':
+            isolatedWalletString = self.safe_string(position, 'isolatedWallet')
         return {
             'info': position,
             'id': None,
@@ -10894,6 +10892,7 @@ class binance(Exchange, ImplicitAPI):
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': None,
+            'positionMargin': self.parse_number(isolatedWalletString),
             'collateral': collateral,
             'marginMode': marginMode,
             'side': side,
@@ -11092,6 +11091,9 @@ class binance(Exchange, ImplicitAPI):
             percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
         positionSide = self.safe_string(position, 'positionSide')
         hedged = positionSide != 'BOTH'
+        isolatedWalletString = None
+        if marginMode == 'isolated':
+            isolatedWalletString = self.safe_string(position, 'isolatedWallet')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -11101,6 +11103,7 @@ class binance(Exchange, ImplicitAPI):
             'unrealizedPnl': unrealizedPnl,
             'leverage': self.parse_number(leverageString),
             'liquidationPrice': liquidationPrice,
+            'positionMargin': self.parse_number(isolatedWalletString),
             'collateral': collateral,
             'notional': notional,
             'markPrice': markPrice,
@@ -11127,7 +11130,7 @@ class binance(Exchange, ImplicitAPI):
         # it contains useful stuff like the maintenance margin and initial margin for positions
         leverageBrackets = self.safe_dict(self.options, 'leverageBrackets')
         if (leverageBrackets is None) or (reload):
-            defaultType = self.safe_string(self.options, 'defaultType', 'future')
+            defaultType = self.safe_string(self.options, 'defaultType', 'swap')
             type = self.safe_string(params, 'type', defaultType)
             query = self.omit(params, 'type')
             subType = None
@@ -11498,7 +11501,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_leverage_brackets(False, params)
-        defaultType = self.safe_string(self.options, 'defaultType', 'future')
+        defaultType = self.safe_string(self.options, 'defaultType', 'swap')
         type = self.safe_string(params, 'type', defaultType)
         paramsOmitted = self.omit(params, 'type')
         subType, paramsSubType = self.handle_sub_type_and_params('fetchAccountPositions', None, paramsOmitted, 'linear')
@@ -11616,7 +11619,7 @@ class binance(Exchange, ImplicitAPI):
             self.load_markets()
         self.load_leverage_brackets(False, params)
         request = {}
-        defaultType = 'future'
+        defaultType = 'swap'
         defaultType = self.safe_string(self.options, 'defaultType', defaultType)
         type = self.safe_string(params, 'type', defaultType)
         subType = None
@@ -11800,7 +11803,7 @@ class binance(Exchange, ImplicitAPI):
             requestUntil['startTime'] = since
         if limit is not None:
             requestUntil['limit'] = limit
-        defaultType = self.safe_string_2(self.options, 'fetchFundingHistory', 'defaultType', 'future')
+        defaultType = self.safe_string_2(self.options, 'fetchFundingHistory', 'defaultType', 'swap')
         type = self.safe_string(paramsUntil, 'type', defaultType)
         paramsOmitted = self.omit(paramsUntil, 'type')
         response = None
@@ -12462,11 +12465,12 @@ class binance(Exchange, ImplicitAPI):
             return None
         return scheme + '//' + domain + '/'
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         urls = self.urls
-        if not (api in urls['api']):
-            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+        if not (apiName in urls['api']):
+            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints')
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = baseApiUrl
@@ -12492,11 +12496,11 @@ class binance(Exchange, ImplicitAPI):
                     signedBody = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'fapiPrivateV3') or (api == 'papiV2' or api == 'papi' and path != 'ping'):
+        elif (apiName == 'private') or (apiName == 'eapiPrivate') or (apiName == 'sapi' and path != 'system/status') or (apiName == 'sapiV2') or (apiName == 'sapiV3') or (apiName == 'sapiV4') or (apiName == 'dapiPrivate') or (apiName == 'dapiPrivateV2') or (apiName == 'fapiPrivate') or (apiName == 'fapiPrivateV2') or (apiName == 'fapiPrivateV3') or (apiName == 'papiV2' or apiName == 'papi' and path != 'ping'):
             self.check_required_credentials()
             if (url.find('testnet.binancefuture.com') > -1) and self.isSandboxModeEnabled and (not self.safe_bool(self.options, 'disableFuturesSandboxWarning', False)):
                 raise NotSupported(self.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.')
-            requestParams = self.handle_client_order_id(params, api, path, method)
+            requestParams = self.handle_client_order_id(params, apiName, path, method)
             query = None
             # handle batchOrders
             if (path == 'batchOrders') and ((method == 'POST') or (method == 'PUT')):
@@ -12512,7 +12516,7 @@ class binance(Exchange, ImplicitAPI):
             recvWindow = self.safe_integer(requestParams, 'recvWindow')
             if recvWindow is not None:
                 extendedParams['recvWindow'] = recvWindow
-            if (api == 'sapi') and (path == 'asset/dust'):
+            if (apiName == 'sapi') and (path == 'asset/dust'):
                 query = self.urlencode_with_array_repeat(extendedParams)
             elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply') or (path.find('staking') >= 0) or (path.find('simple-earn') >= 0):
                 if (method == 'DELETE') and (path == 'batchOrders'):
@@ -12556,8 +12560,8 @@ class binance(Exchange, ImplicitAPI):
         else:
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
-        headersResolved = signedHeaders if (signedHeaders is not None) else headers
-        bodyResolved = signedBody if (signedBody is not None) else body
+        headersResolved = signedHeaders
+        bodyResolved = signedBody
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def get_exceptions_by_url(self, url: Str, exactOrBroad: str):
@@ -12666,18 +12670,18 @@ class binance(Exchange, ImplicitAPI):
                     return entry[1]
         return self.safe_value(config, 'cost', 1)
 
-    def request(self, path: str, api='public', method: object = 'GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
-        response = self.fetch2(path, api, method, params, headers, body, config)
+    def request(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}, config: dict = {}):
+        response = self.fetch2(path, api, method, params, config)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if api == 'private':
+        if api[0] == 'private':
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
 
     def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: object, params: dict = {}) -> MarginModification:
         # used to modify isolated positions
-        defaultType = self.safe_string(self.options, 'defaultType', 'future')
+        defaultType = self.safe_string(self.options, 'defaultType', 'swap')
         if defaultType == 'spot':
-            defaultType = 'future'
+            defaultType = 'swap'
         type = self.safe_string(params, 'type', defaultType)
         if (type == 'margin') or (type == 'spot'):
             raise NotSupported(self.id + ' add / reduce margin only supported with linear or inverse swap/future markets')

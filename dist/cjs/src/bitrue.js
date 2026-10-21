@@ -2896,7 +2896,7 @@ class bitrue extends bitrue$1["default"] {
             currencyId = this.safeString(parts, 0);
             const networkId = this.safeString(parts, 1);
             if (networkId !== undefined) {
-                network = networkId.toUpperCase();
+                network = this.networkIdToCode(networkId.toUpperCase());
             }
         }
         const code = this.safeCurrencyCode(currencyId, currency);
@@ -3272,7 +3272,7 @@ class bitrue extends bitrue$1["default"] {
         //
         return this.parseMarginModification(response, market);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestBody = undefined;
         let requestHeaders = undefined;
         const type = this.safeString(api, 0);
@@ -3355,8 +3355,8 @@ class bitrue extends bitrue$1["default"] {
                 url += '?' + this.urlencode(paramsOmitted);
             }
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

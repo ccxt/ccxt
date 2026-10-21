@@ -1023,14 +1023,15 @@ class mercado extends mercado$1["default"] {
         // the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/';
         const query = this.omit(params, this.extractParams(path));
-        const isPublic = (api === 'public') || (api === 'v4Public') || (api === 'v4PublicNet');
+        const isPublic = (apiName === 'public') || (apiName === 'v4Public') || (apiName === 'v4PublicNet');
         let privateBody = undefined;
         let privateHeaders = undefined;
         if (isPublic) {
@@ -1057,11 +1058,11 @@ class mercado extends mercado$1["default"] {
         }
         let requestBody = privateBody;
         if (isPublic) {
-            requestBody = body;
+            requestBody = undefined;
         }
         let requestHeaders = privateHeaders;
         if (isPublic) {
-            requestHeaders = headers;
+            requestHeaders = undefined;
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }

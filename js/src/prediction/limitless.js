@@ -3136,16 +3136,15 @@ export default class limitless extends Exchange {
      * @name limitless#sign
      * @description builds the request URL and attaches the lmts authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the api group and access level
+     * @param {string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path, api = 'limitless', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiGroup = typeof api === 'string' ? api : api[0];
-        const access = typeof api === 'string' ? 'public' : api[1];
+    sign(path, api = ['limitless'], method = 'GET', params = {}) {
+        const apiGroup = api[0];
+        const apiLength = api.length;
+        const access = (apiLength > 1) ? api[1] : 'public';
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['limitless']);
         let url = '/' + this.implodeParams(path, params);
@@ -3154,8 +3153,8 @@ export default class limitless extends Exchange {
         if (method === 'GET' && (querystring !== '')) {
             url += '?' + querystring;
         }
-        let headersValue = headers;
-        let bodyValue = body;
+        let headersValue = undefined;
+        let bodyValue = undefined;
         if (access === 'private') {
             let bodyString = '';
             if (headersValue === undefined) {

@@ -3290,6 +3290,8 @@ class derive extends Exchange {
         $markPrice = $this->safe_string($position, 'mark_price');
         $timestamp = $this->safe_integer($position, 'creation_timestamp');
         $unrealisedPnl = $this->safe_string($position, 'unrealized_pnl');
+        $initialMarginString = Precise::string_abs($this->safe_string($position, 'initial_margin'));
+        $maintenanceMarginString = Precise::string_abs($this->safe_string($position, 'maintenance_margin'));
         $size = Precise::string_abs($size);
         $notional = Precise::string_mul($size, $markPrice);
         return $this->safe_position(array(
@@ -3299,11 +3301,11 @@ class derive extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => null,
-            'initialMargin' => $this->safe_number($position, 'initial_margin'),
-            'initialMarginPercentage' => null,
-            'maintenanceMargin' => $this->safe_number($position, 'maintenance_margin'),
-            'maintenanceMarginPercentage' => null,
-            'entryPrice' => null,
+            'initialMargin' => $this->parse_number($initialMarginString),
+            'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notional, 8)),
+            'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
+            'maintenanceMarginPercentage' => $this->parse_number(Precise::string_div($maintenanceMarginString, $notional, 8)),
+            'entryPrice' => $this->safe_number_2($position, 'average_price', 'average_price_excl_fees'),
             'notional' => $this->parse_number($notional),
             'leverage' => $this->safe_number($position, 'leverage'),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
@@ -4472,8 +4474,9 @@ class derive extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -4482,7 +4485,7 @@ class derive extends Exchange {
             $postHeaders = array(
                 'Content-Type' => 'application/json',
             );
-            if ($api === 'private') {
+            if ($apiName === 'private') {
                 $now = $this->number_to_string($this->nonce());
                 $signature = $this->sign_message($now, $this->privateKey);
                 $deriveWalletAddress = $this->safe_string($this->options, 'deriveWalletAddress');
@@ -4496,6 +4499,6 @@ class derive extends Exchange {
             $postBody = $this->json($params);
             return array( 'url' => $url, 'method' => $method, 'body' => $postBody, 'headers' => $postHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 }

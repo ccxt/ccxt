@@ -2628,8 +2628,11 @@ class pacifica(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market)
         symbol = marketResolved['symbol']
         margin = self.safe_string(position, 'margin')
-        marginMode = 'isolated' if (margin is not None and margin != '0') else 'cross'
-        isIsolated = (marginMode == 'isolated')
+        rawIsolated = self.safe_bool(position, 'isolated')
+        isIsolated = (margin is not None and margin != '0')
+        if rawIsolated is not None:
+            isIsolated = rawIsolated
+        marginMode = 'isolated' if isIsolated else 'cross'
         side = self.safe_string(position, 'side')
         if side is not None:
             side = 'long' if (side == 'bid') else 'short'
@@ -2649,13 +2652,13 @@ class pacifica(Exchange, ImplicitAPI):
             'markPrice': None,
             'notional': None,
             'leverage': None,
-            'collateral': margin,
+            'collateral': self.safe_number(position, 'margin'),
             'initialMargin': None,
             'maintenanceMargin': None,
             'initialMarginPercentage': None,
             'maintenanceMarginPercentage': None,
             'unrealizedPnl': None,
-            'liquidationPrice': None,
+            'liquidationPrice': self.safe_number(position, 'liquidation_price'),
             'marginMode': marginMode,
             'percentage': None,
         })
@@ -3465,13 +3468,14 @@ class pacifica(Exchange, ImplicitAPI):
                 raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        requestBody = None
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
         if isTestnet:
             urlKey = 'test'
-        baseApiUrl = self.safe_string(self.urls[urlKey], api)
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls[urlKey], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         host = self.implode_hostname(baseApiUrl)
@@ -3490,7 +3494,7 @@ class pacifica(Exchange, ImplicitAPI):
             headersValue['PF-API-KEY'] = self.options['apiKey']
         return {'url': url, 'method': method, 'body': requestBody, 'headers': headersValue}
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: object, path: object, params: object, config: dict = {}):
         cost = self.safe_string(config, 'cost', '1')
         costNumber = self.parse_number(cost)
         # 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET

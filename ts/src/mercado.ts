@@ -1038,14 +1038,15 @@ export default class mercado extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const apiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/';
         const query: Dict = this.omit (params, this.extractParams (path));
-        const isPublic = (api === 'public') || (api === 'v4Public') || (api === 'v4PublicNet');
+        const isPublic = (apiName === 'public') || (apiName === 'v4Public') || (apiName === 'v4PublicNet');
         let privateBody: Str = undefined;
         let privateHeaders: NullableDict = undefined;
         if (isPublic) {
@@ -1071,11 +1072,11 @@ export default class mercado extends Exchange {
         }
         let requestBody: Str = privateBody;
         if (isPublic) {
-            requestBody = body;
+            requestBody = undefined;
         }
         let requestHeaders: NullableDict = privateHeaders;
         if (isPublic) {
-            requestHeaders = headers;
+            requestHeaders = undefined;
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }

@@ -407,6 +407,7 @@ export default class okx extends okxRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;
+    handleCancelOrders(client: Client, message: Dict): void;
     handleCancelAllOrders(client: Client, message: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleAuthenticate(client: Client, message: Dict): void;

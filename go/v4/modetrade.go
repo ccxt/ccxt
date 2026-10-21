@@ -97,8 +97,8 @@ func (this *Modetrade) Describe() any {
 			"fetchPositions":                       true,
 			"fetchPremiumIndexOHLCV":               false,
 			"fetchStatus":                          true,
-			"fetchTicker":                          false,
-			"fetchTickers":                         false,
+			"fetchTicker":                          true,
+			"fetchTickers":                         true,
 			"fetchTime":                            true,
 			"fetchTrades":                          true,
 			"fetchTradingFee":                      false,
@@ -839,6 +839,7 @@ func (this *Modetrade) ParseMarket(market any) any {
 	//
 	//   {
 	//     "symbol": "PERP_BTC_USDC",
+	//     "status": "ACTIVE",
 	//     "quote_min": 123,
 	//     "quote_max": 100000,
 	//     "quote_tick": 0.1,
@@ -864,6 +865,11 @@ func (this *Modetrade) ParseMarket(market any) any {
 	//   }
 	//
 	var marketId *string = this.SafeString(market, "symbol", "")
+	var status *string = this.SafeString(market, "status")
+	var active any = nil
+	if status != nil {
+		active = (status != nil && *status == "ACTIVE")
+	}
 	var parts []string = strings.Split(*marketId, "_")
 	var marketType string = "swap"
 	var baseId *string = this.SafeString(parts, 1)
@@ -891,7 +897,7 @@ func (this *Modetrade) ParseMarket(market any) any {
 		"swap":           true,
 		"future":         false,
 		"option":         false,
-		"active":         nil,
+		"active":         active,
 		"contract":       true,
 		"linear":         true,
 		"inverse":        false,
@@ -959,6 +965,7 @@ func (this *Modetrade) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs .
 	//       "rows": [
 	//         {
 	//           "symbol": "PERP_BTC_USDC",
+	//           "status": "ACTIVE",
 	//           "quote_min": 123,
 	//           "quote_max": 100000,
 	//           "quote_tick": 0.1,
@@ -1354,11 +1361,11 @@ func (this *Modetrade) fetchFundingIntervalBody(ch chan AsyncResult[map[string]a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes95215 map[string]any = r.Value
-	if retRes95215 == nil {
+	var retRes95915 map[string]any = r.Value
+	if retRes95915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes95215}
+		ch <- AsyncResult[map[string]any]{Value: retRes95915}
 	}
 	return nil
 }
@@ -1522,11 +1529,11 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes104819 []any = ListTyped(r1.Value)
-		if retRes104819 == nil {
+		var retRes105519 []any = ListTyped(r1.Value)
+		if retRes105519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes104819}
+			ch <- AsyncResult[any]{Value: retRes105519}
 		}
 		return nil
 	}
@@ -1593,6 +1600,189 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opt
 	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit)}
+	return nil
+}
+func (this *Modetrade) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+	//
+	//     {
+	//         "symbol": "PERP_BTC_USDC",
+	//         "display_symbol_name": "BTC",
+	//         "broker_id": null,
+	//         "status": "ACTIVE",
+	//         "index_price": 81559.8,
+	//         "mark_price": 81542.2,
+	//         "sum_unitary_funding": 27744.3,
+	//         "est_funding_rate": 0.00008318,
+	//         "last_funding_rate": 0.0000394,
+	//         "next_funding_time": 1792281600000,
+	//         "open_interest": 42.65602,
+	//         "is_pretge": false,
+	//         "24h_open": 81606.8,
+	//         "24h_close": 81518.1,
+	//         "24h_high": 81706.7,
+	//         "24h_low": 81069.9,
+	//         "24h_volume": 65.48965,
+	//         "24h_amount": 5333323.390584
+	//     }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var marketId *string = this.SafeString(ticker, "symbol")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
+	return this.SafeTicker(map[string]any{
+		"symbol":        marketResolved["symbol"],
+		"timestamp":     timestamp,
+		"datetime":      this.Iso8601(timestamp),
+		"high":          this.SafeString(ticker, "24h_high"),
+		"low":           this.SafeString(ticker, "24h_low"),
+		"bid":           nil,
+		"bidVolume":     nil,
+		"ask":           nil,
+		"askVolume":     nil,
+		"vwap":          nil,
+		"open":          this.SafeString(ticker, "24h_open"),
+		"close":         this.SafeString(ticker, "24h_close"),
+		"last":          this.SafeString(ticker, "24h_close"),
+		"previousClose": nil,
+		"change":        nil,
+		"percentage":    nil,
+		"average":       nil,
+		"baseVolume":    this.SafeString(ticker, "24h_volume"),
+		"quoteVolume":   this.SafeString(ticker, "24h_amount"),
+		"indexPrice":    this.SafeString(ticker, "index_price"),
+		"markPrice":     this.SafeString(ticker, "mark_price"),
+		"info":          ticker,
+	}, marketResolved)
+}
+
+/**
+ * @method
+ * @name modetrade#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Modetrade) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Modetrade) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": market["id"],
+	}
+
+	r1 := <-this.V1PublicGetPublicFuturesSymbol(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	//
+	//     {
+	//         "success": true,
+	//         "data": {
+	//             "symbol": "PERP_BTC_USDC",
+	//             "24h_close": 81518.1
+	//         },
+	//         "timestamp": 1792270455082
+	//     }
+	//
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var timestamp *int64 = this.SafeInteger(response, "timestamp")
+	var ticker map[string]any = this.Extend(map[string]any{
+		"timestamp": timestamp,
+	}, data)
+
+	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
+	return nil
+}
+
+/**
+ * @method
+ * @name modetrade#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Modetrade) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Modetrade) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
+
+	r1 := <-this.V1PublicGetPublicFutures(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	//
+	//     {
+	//         "success": true,
+	//         "data": {
+	//             "rows": [
+	//                 {
+	//                     "symbol": "PERP_BTC_USDC",
+	//                     "24h_close": 81518.1
+	//                 }
+	//             ]
+	//         },
+	//         "timestamp": 1792270455518
+	//     }
+	//
+	var data map[string]any = SafeMapTyped(response, "data")
+	var rows []any = SafeListTyped(data, "rows")
+	var timestamp *int64 = this.SafeInteger(response, "timestamp")
+	var result []any = []any{}
+	for i := 0; i < len(rows); i++ {
+		var row any = func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}()
+		var marketId *string = this.SafeString(row, "symbol", "")
+		if (this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId)) {
+			continue
+		}
+		var ticker map[string]any = this.Extend(map[string]any{
+			"timestamp": timestamp,
+		}, row)
+		result = append(result, TickerToMap(this.ParseTicker(ticker)))
+	}
+
+	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(result, "symbol", symbolsNormalized)}
 	return nil
 }
 func (this *Modetrade) ParseIncome(income any, optionalArgs ...any) any {
@@ -1680,11 +1870,11 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan AsyncResult[any], optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes115119 []any = ListTyped(r1.Value)
-		if retRes115119 == nil {
+		var retRes128919 []any = ListTyped(r1.Value)
+		if retRes128919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes115119}
+			ch <- AsyncResult[any]{Value: retRes128919}
 		}
 		return nil
 	}
@@ -2965,11 +3155,11 @@ func (this *Modetrade) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes214719 []any = ListTyped(r1.Value)
-		if retRes214719 == nil {
+		var retRes228519 []any = ListTyped(r1.Value)
+		if retRes228519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes214719}
+			ch <- AsyncResult[any]{Value: retRes228519}
 		}
 		return nil
 	}
@@ -3097,11 +3287,11 @@ func (this *Modetrade) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArg
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes223515 []any = ListTyped(r1.Value)
-	if retRes223515 == nil {
+	var retRes237315 []any = ListTyped(r1.Value)
+	if retRes237315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes223515}
+		ch <- AsyncResult[any]{Value: retRes237315}
 	}
 	return nil
 }
@@ -3154,11 +3344,11 @@ func (this *Modetrade) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalA
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes226015 []any = ListTyped(r1.Value)
-	if retRes226015 == nil {
+	var retRes239815 []any = ListTyped(r1.Value)
+	if retRes239815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes226015}
+		ch <- AsyncResult[any]{Value: retRes239815}
 	}
 	return nil
 }
@@ -3282,11 +3472,11 @@ func (this *Modetrade) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes233219 []any = ListTyped(r1.Value)
-		if retRes233219 == nil {
+		var retRes247019 []any = ListTyped(r1.Value)
+		if retRes247019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes233219}
+			ch <- AsyncResult[any]{Value: retRes247019}
 		}
 		return nil
 	}
@@ -3592,8 +3782,8 @@ func (this *Modetrade) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ..
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3349 := r.Value
-	var currencyRows []any = listRecv3349
+	listRecv3525 := r.Value
+	var currencyRows []any = listRecv3525
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -3710,11 +3900,11 @@ func (this *Modetrade) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes264815 []any = ListTyped(r.Value)
-	if retRes264815 == nil {
+	var retRes278615 []any = ListTyped(r.Value)
+	if retRes278615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes264815}
+		ch <- AsyncResult[any]{Value: retRes278615}
 	}
 	return nil
 }
@@ -3754,11 +3944,11 @@ func (this *Modetrade) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes266615 []any = ListTyped(r.Value)
-	if retRes266615 == nil {
+	var retRes280415 []any = ListTyped(r.Value)
+	if retRes280415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes266615}
+		ch <- AsyncResult[any]{Value: retRes280415}
 	}
 	return nil
 }
@@ -3796,8 +3986,8 @@ func (this *Modetrade) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3537 := r.Value
-	var currencyRows []any = listRecv3537
+	listRecv3713 := r.Value
+	var currencyRows []any = listRecv3713
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 	//
@@ -4334,29 +4524,25 @@ func (this *Modetrade) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
-	section := GetArg(optionalArgs, 0, "public")
+	section := GetArg(optionalArgs, 0, []any{"public"})
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var version any = GetValue(section, 0)
-	var access any = GetValue(section, 1)
+	var version *string = SafeStringPtr(GetValue(section, 0))
+	var access *string = SafeStringPtr(GetValue(section, 1))
 	var pathWithParams string = this.ImplodeParams(path, params)
 	var apiUrl *string = this.SafeString(this.Urls["api"], access)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(Add(*apiUrl+"/", version), "/")
+	var url string = *apiUrl + "/" + *version + "/"
 	var paramsSorted map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
-	if access == "public" {
-		url = Add(url, pathWithParams)
+	if access != nil && *access == "public" {
+		url += pathWithParams
 		if len(paramsSorted) > 0 {
-			url = Add(url, "?"+this.Urlencode(paramsSorted))
+			url += "?" + this.Urlencode(paramsSorted)
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -4382,7 +4568,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 		}
 		var auth any = ""
 		var ts string = ToString(this.Nonce())
-		url = Add(url, pathWithParams)
+		url += pathWithParams
 		var apiKey any = this.ApiKey
 		if GetIndexOf(apiKey, "ed25519:") < 0 {
 			apiKey = Add("ed25519:", apiKey)
@@ -4392,7 +4578,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 			"orderly-key":        apiKey,
 			"orderly-timestamp":  ts,
 		}
-		auth = Add(Add(Add(ts+method+"/", version), "/"), pathWithParams)
+		auth = ts + method + "/" + *version + "/" + pathWithParams
 		var signedBody any = nil
 		if (method == "POST") || (method == "PUT") {
 			signedBody = this.Json(paramsSigned)
@@ -4400,7 +4586,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 			signedHeaders["content-type"] = "application/json"
 		} else {
 			if len(paramsSigned) > 0 {
-				url = Add(url, "?"+this.Urlencode(paramsSigned))
+				url += "?" + this.Urlencode(paramsSigned)
 				auth = Add(auth, "?"+this.Rawencode(paramsSigned))
 			}
 			signedHeaders["content-type"] = "application/x-www-form-urlencoded"
@@ -4408,7 +4594,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 				if method == "DELETE" {
 					return ""
 				}
-				return body
+				return nil
 			}()
 		}
 		var secret any = this.Secret
@@ -4433,8 +4619,8 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Modetrade) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
@@ -4662,6 +4848,54 @@ func (this *Modetrade) FetchFundingRateHistory(options ...FetchFundingRateHistor
 		return nil, r.Err
 	}
 	var res []FundingRateHistory = NewFundingRateHistoryArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name modetrade#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Modetrade) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
+
+	opts := FetchTickerOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchTickerAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Ticker{}, r.Err
+	}
+	var res Ticker = NewTicker(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name modetrade#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Modetrade) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
+
+	opts := FetchTickersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return Tickers{}, r.Err
+	}
+	var res Tickers = NewTickers(r.Value)
 	return res, nil
 }
 
@@ -5623,12 +5857,6 @@ func (this *Modetrade) FetchPositionsRisk(options ...FetchPositionsRiskOptions) 
 }
 func (this *Modetrade) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Modetrade) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTicker(symbol, options...)
-}
-func (this *Modetrade) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickers(options...)
 }
 func (this *Modetrade) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)

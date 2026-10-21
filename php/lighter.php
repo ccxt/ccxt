@@ -1417,7 +1417,7 @@ class lighter extends Exchange {
             'limit' => 100,
         );
         if ($limit !== null) {
-            $request['limit'] = min($limit, 100);
+            $request['limit'] = min($limit, 250);
         }
         $response = $this->publicGetOrderBookOrders($this->extend($request, $params));
         //
@@ -2054,6 +2054,14 @@ class lighter extends Exchange {
                 $leverage = 100 / $imf;
             }
         }
+        $contractsString = $this->safe_string($position, 'position');
+        $positionValueString = $this->safe_string($position, 'position_value');
+        $markPriceString = Precise::string_div($positionValueString, $contractsString);
+        // allocated_margin is the isolated collateral balance (0 for cross)
+        $positionMargin = null;
+        if ($marginMode === 'isolated') {
+            $positionMargin = $this->safe_number($position, 'allocated_margin');
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -2063,13 +2071,14 @@ class lighter extends Exchange {
             'isolated' => ($marginMode === 'isolated'),
             'hedged' => null,
             'side' => $side,
-            'contracts' => $this->safe_number($position, 'position'),
+            'contracts' => $this->parse_number($contractsString),
             'contractSize' => null,
             'entryPrice' => $this->safe_number($position, 'avg_entry_price'),
-            'markPrice' => null,
-            'notional' => $this->safe_number($position, 'position_value'),
+            'markPrice' => $this->parse_number($markPriceString),
+            'notional' => $this->parse_number($positionValueString),
             'leverage' => $leverage,
-            'collateral' => $this->safe_number($position, 'allocated_margin'),
+            'positionMargin' => $positionMargin,
+            'collateral' => null,
             'initialMargin' => null,
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,
@@ -3373,23 +3382,24 @@ class lighter extends Exchange {
         );
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()) {
+        $apiName = $api[0];
         $url = null;
-        if ($api === 'root') {
+        if ($apiName === 'root') {
             $baseApiUrl = $this->safe_string($this->urls['api'], 'public');
             if ($baseApiUrl === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
             $url = $this->implode_hostname($baseApiUrl);
         } else {
-            $baseApiUrl2 = $this->safe_string($this->urls['api'], $api);
+            $baseApiUrl2 = $this->safe_string($this->urls['api'], $apiName);
             if ($baseApiUrl2 === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
             $url = $this->implode_hostname($baseApiUrl2) . '/api/' . $this->version . '/' . $path;
         }
         $authHeaders = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $authHeaders = array(
                 'Authorization' => $this->create_auth($params),
             );
@@ -3403,10 +3413,10 @@ class lighter extends Exchange {
             }
             $url .= '?' . $this->rawencode($params);
         }
-        if ($api === 'private') {
-            return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $authHeaders );
+        if ($apiName === 'private') {
+            return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => $authHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

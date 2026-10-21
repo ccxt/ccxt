@@ -476,7 +476,7 @@ public partial class hashkey : Exchange
                     { "TRC20", "TRC20" },
                     { "Tron", "TRC20" },
                     { "TON", "TON" },
-                    { "BSC(BEP20)", "BSC" },
+                    { "BSC(BEP20)", "BEP20" },
                     { "Klaytn", "KLAYTN" },
                 } },
                 { "defaultNetwork", "ERC20" },
@@ -1315,7 +1315,7 @@ public partial class hashkey : Exchange
         {
             object network = networks[j];
             string? networkId = this.safeString(network, "chainType");
-            string? networkCode = this.networkCodeToId(networkId, code);
+            string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
             {
                 parsedNetworks[(string)networkCode] = new Dictionary<string, object>() {
@@ -2050,7 +2050,7 @@ public partial class hashkey : Exchange
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
      * @param {string} code unified currency code (default is 'USDT')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
+     * @param {string} [params.network] network for fetch deposit address (default is 'ERC20')
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
@@ -2067,7 +2067,7 @@ public partial class hashkey : Exchange
         (string?, object) networkCodeInParamsparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
         string? networkCodeInParams = networkCodeInParamsparamsNetworkCodeVariable.Item1;
         IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeInParamsparamsNetworkCodeVariable.Item2);
-        object networkCode = ((networkCodeInParams == null)) ? this.defaultNetworkCode(code) : networkCodeInParams;
+        string? networkCode = ((networkCodeInParams == null)) ? this.safeString(this.safeDict(this.options, "defaultNetworks", new Dictionary<string, object>() {}), code, this.safeString(this.options, "defaultNetwork")) : networkCodeInParams;
         request["chainType"] = this.networkCodeToId(networkCode, code);
         Dictionary<string, object> response = await this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsNetworkCode));
         //
@@ -4637,19 +4637,20 @@ public partial class hashkey : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((apiUrl + "/") + path);
         string? query = null;
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             Int64 timestamp = this.milliseconds();
@@ -4692,7 +4693,7 @@ public partial class hashkey : Exchange
             }
             headersSigned["INPUT-SOURCE"] = this.safeString(this.options, "broker", "10000700011");
             headersSigned["broker_sign"] = signature;
-            object bodyResolved = ((method == "GET")) ? body : bodySigned;
+            string? bodyResolved = ((method == "GET")) ? null : bodySigned;
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
@@ -4710,8 +4711,8 @@ public partial class hashkey : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

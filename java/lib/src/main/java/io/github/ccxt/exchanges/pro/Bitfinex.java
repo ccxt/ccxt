@@ -299,7 +299,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         List<Object> data = (List<Object>) this.safeList(message, 1, new ArrayList<Object>(Arrays.asList()));
         List<Object> ohlcvs = new ArrayList<Object>(Arrays.asList());
         List<Object> first = (List<Object>) this.safeList(data, 0, (Object) null);
-        if ((first instanceof List))
+        if (!java.util.Objects.equals(first, null))
         {
             // snapshot
             ohlcvs = data;
@@ -486,7 +486,9 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //
         String name = "myTrade";
         List<Object> data = (List<Object>) this.safeList(message, 2, (Object) null);
-        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsTrade(new HashMap<String, Object>() {{
+            put( "result", data );
+        }}, (Map<String, Object>) null);
         String symbol = (String) trade.get("symbol");
         Map<String, Object> market = this.market(symbol);
         String messageHash = ((name + ":") + market.get("id"));
@@ -557,7 +559,9 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             for (var i = 0; (length != null && i < length); i++)
             {
                 Long index = ((((long) length) - ((long) i)) - 1L);
-                Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) ((trades == null || index == null || index.intValue() < 0 || index.intValue() >= trades.size() ? null : trades.get(index.intValue()))), market);
+                Map<String, Object> parsed = this.parseWsTrade(new HashMap<String, Object>() {{
+                    put( "result", (trades == null || index == null || index.intValue() < 0 || index.intValue() >= trades.size() ? null : trades.get(index.intValue())) );
+                }}, market);
                 stored.append(parsed);
             }
         } else
@@ -571,7 +575,9 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 return;
             }
             List<Object> trade = (List<Object>) this.safeList(message, 2, new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (trade), market);
+            Map<String, Object> parsed = this.parseWsTrade(new HashMap<String, Object>() {{
+                put( "result", trade );
+            }}, market);
             stored.append(parsed);
         }
         if (!java.util.Objects.equals(channel, null))
@@ -581,7 +587,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         }
     }
 
-    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsTrade(Map<String, Object> tradeResult, Map<String, Object> market)
     {
         //
         //    [
@@ -625,7 +631,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //       1655110144596
         //    ]
         //
-        Integer numFields = Helpers.getArrayLength(trade);
+        List<Object> trade = (List<Object>) this.safeList(tradeResult, "result", new ArrayList<Object>(Arrays.asList()));
+        Integer numFields = ((List<?>)trade).size();
         Boolean isPublic = (numFields == null || numFields <= 8);
         Object marketId = null;
         if (!Boolean.TRUE.equals(isPublic))

@@ -1808,20 +1808,17 @@ func (this *Bitflyer) ParseFundingRate(contract any, optionalArgs ...any) map[st
 	}
 }
 func (this *Bitflyer) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
 	var bodySigned any = nil
 	var headersSigned any = nil
 	var request string = "/" + this.Version + "/"
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		request += "me/"
 	}
 	request += path
@@ -1836,7 +1833,7 @@ func (this *Bitflyer) Sign(path string, optionalArgs ...any) any {
 	}
 	var baseUrl string = this.ImplodeHostname(apiUrl)
 	var url string = baseUrl + request
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var content []any = []any{nonce, method, request}
@@ -1854,18 +1851,8 @@ func (this *Bitflyer) Sign(path string, optionalArgs ...any) any {
 			"Content-Type":     "application/json",
 		}
 	}
-	var headersResolved any = func() any {
-		if headersSigned == nil {
-			return headers
-		}
-		return headersSigned
-	}()
-	var bodyResolved any = func() any {
-		if bodySigned == nil {
-			return body
-		}
-		return bodySigned
-	}()
+	var headersResolved any = headersSigned
+	var bodyResolved any = bodySigned
 	return map[string]any{
 		"url":     url,
 		"method":  method,

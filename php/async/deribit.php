@@ -4165,14 +4165,15 @@ class deribit extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $request = '/' . 'api/' . $this->version . '/' . $api . '/' . $path;
-        if ($api === 'public') {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $request = '/' . 'api/' . $this->version . '/' . $apiName . '/' . $path;
+        if ($apiName === 'public') {
             if (count($params) > 0) {
                 $request .= '?' . $this->urlencode($params);
             }
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $timestamp = (string) $this->milliseconds();
@@ -4191,14 +4192,14 @@ class deribit extends Exchange {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
             $signedUrl = $baseApiUrl . $request;
-            return array( 'url' => $signedUrl, 'method' => $method, 'body' => $body, 'headers' => $signedHeaders );
+            return array( 'url' => $signedUrl, 'method' => $method, 'body' => null, 'headers' => $signedHeaders );
         }
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $request;
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

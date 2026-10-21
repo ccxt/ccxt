@@ -341,12 +341,11 @@ func (this *Grvt) Describe() any {
 				"ARBITRUM":  "42161",
 				"AVAXC":     "43114",
 				"BASE":      "8453",
-				"BSC":       "56",
-				"ETH":       "1",
+				"BEP20":     "56",
 				"ERC20":     "1",
 				"OP":        "10",
 				"SOL":       "900",
-				"TRX":       "728126428",
+				"TRC20":     "728126428",
 				"ZKSYNCERA": "324",
 				"KAIA":      "8217",
 			},
@@ -1652,11 +1651,11 @@ func (this *Grvt) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes117219 []any = ListTyped(r1.Value)
-		if retRes117219 == nil {
+		var retRes117119 []any = ListTyped(r1.Value)
+		if retRes117119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes117219}
+			ch <- AsyncResult[any]{Value: retRes117119}
 		}
 		return nil
 	}
@@ -1777,11 +1776,11 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes126519 []any = ListTyped(r1.Value)
-		if retRes126519 == nil {
+		var retRes126419 []any = ListTyped(r1.Value)
+		if retRes126419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes126519}
+			ch <- AsyncResult[any]{Value: retRes126419}
 		}
 		return nil
 	}
@@ -2380,11 +2379,11 @@ func (this *Grvt) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...a
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes172019 []any = ListTyped(r2.Value)
-		if retRes172019 == nil {
+		var retRes171919 []any = ListTyped(r2.Value)
+		if retRes171919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes172019}
+			ch <- AsyncResult[any]{Value: retRes171919}
 		}
 		return nil
 	}
@@ -3122,11 +3121,11 @@ func (this *Grvt) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...an
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes228519 []any = ListTyped(r1.Value)
-		if retRes228519 == nil {
+		var retRes228419 []any = ListTyped(r1.Value)
+		if retRes228419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes228519}
+			ch <- AsyncResult[any]{Value: retRes228419}
 		}
 		return nil
 	}
@@ -3137,11 +3136,11 @@ func (this *Grvt) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...an
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["base"] = []any{}
-		retRes229412 := request["base"]
-		AppendToArray(&retRes229412, market["baseId"])
+		retRes229312 := request["base"]
+		AppendToArray(&retRes229312, market["baseId"])
 		request["quote"] = []any{}
-		retRes229612 := request["quote"]
-		AppendToArray(&retRes229612, market["quoteId"])
+		retRes229512 := request["quote"]
+		AppendToArray(&retRes229512, market["quoteId"])
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -3234,10 +3233,10 @@ func (this *Grvt) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...a
 			if market["contract"] != true {
 				panic(BadRequest(this.Id + " fetchPositions() supports contract markets only"))
 			}
-			retRes236516 := request["base"]
-			AppendToArray(&retRes236516, market["baseId"])
-			retRes236616 := request["quote"]
-			AppendToArray(&retRes236616, market["quoteId"])
+			retRes236416 := request["base"]
+			AppendToArray(&retRes236416, market["baseId"])
+			retRes236516 := request["quote"]
+			AppendToArray(&retRes236516, market["quoteId"])
 		}
 	}
 
@@ -3308,12 +3307,18 @@ func (this *Grvt) ParsePosition(position any, optionalArgs ...any) any {
 	if isLong {
 		side = "long"
 	}
+	// isolated_balance is the wallet balance reserved for the isolated position
+	var marginMode *string = this.SafeStringLower(position, "margin_type")
+	var positionMargin *float64 = nil
+	if marginMode != nil && *marginMode == "isolated" {
+		positionMargin = this.SafeNumber(position, "isolated_balance")
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      this.SafeSymbol(marketId, market),
 		"notional":                    this.ParseNumber(Precise.StringAbs(this.SafeString(position, "notional"))),
-		"marginMode":                  nil,
+		"marginMode":                  marginMode,
 		"liquidationPrice":            this.SafeNumber(position, "est_liquidation_price"),
 		"entryPrice":                  this.SafeNumber(position, "entry_price"),
 		"unrealizedPnl":               this.SafeNumber(position, "unrealized_pnl"),
@@ -3327,10 +3332,11 @@ func (this *Grvt) ParsePosition(position any, optionalArgs ...any) any {
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
 		"lastUpdateTimestamp":         this.SafeInteger(position, "lastUpdateTime"),
-		"maintenanceMargin":           this.SafeNumber(position, "maintenanceMargin"),
+		"maintenanceMargin":           this.SafeNumber2(position, "isolated_mm", "maintenanceMargin"),
 		"maintenanceMarginPercentage": nil,
+		"positionMargin":              positionMargin,
 		"collateral":                  nil,
-		"initialMargin":               this.SafeNumber(position, "initialMargin"),
+		"initialMargin":               this.SafeNumber2(position, "isolated_im", "initialMargin"),
 		"initialMarginPercentage":     nil,
 		"leverage":                    this.SafeNumber(position, "leverage"),
 		"marginRatio":                 nil,
@@ -3588,11 +3594,11 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes261719 []any = ListTyped(r1.Value)
-		if retRes261719 == nil {
+		var retRes262319 []any = ListTyped(r1.Value)
+		if retRes262319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes261719}
+			ch <- AsyncResult[any]{Value: retRes262319}
 		}
 		return nil
 	}
@@ -3603,11 +3609,11 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArgs
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["base"] = []any{}
-		retRes262612 := request["base"]
-		AppendToArray(&retRes262612, market["baseId"])
+		retRes263212 := request["base"]
+		AppendToArray(&retRes263212, market["baseId"])
 		request["quote"] = []any{}
-		retRes262812 := request["quote"]
-		AppendToArray(&retRes262812, market["quoteId"])
+		retRes263412 := request["quote"]
+		AppendToArray(&retRes263412, market["quoteId"])
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -3713,11 +3719,11 @@ func (this *Grvt) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any)
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["base"] = []any{}
-		retRes270512 := request["base"]
-		AppendToArray(&retRes270512, market["baseId"])
+		retRes271112 := request["base"]
+		AppendToArray(&retRes271112, market["baseId"])
 		request["quote"] = []any{}
-		retRes270712 := request["quote"]
-		AppendToArray(&retRes270712, market["quoteId"])
+		retRes271312 := request["quote"]
+		AppendToArray(&retRes271312, market["quoteId"])
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -4234,11 +4240,11 @@ func (this *Grvt) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		request["base"] = []any{}
-		retRes313512 := request["base"]
-		AppendToArray(&retRes313512, market["baseId"])
+		retRes314112 := request["base"]
+		AppendToArray(&retRes314112, market["baseId"])
 		request["quote"] = []any{}
-		retRes313712 := request["quote"]
-		AppendToArray(&retRes313712, market["quoteId"])
+		retRes314312 := request["quote"]
+		AppendToArray(&retRes314312, market["quoteId"])
 	}
 
 	r1 := <-this.PrivateTradingPostFullV1CancelAllOrders(this.Extend(request, params))
@@ -4461,21 +4467,18 @@ func (this *Grvt) RequestId() int64 {
 	return requestId
 }
 func (this *Grvt) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
+	var requestHeaders map[string]any = nil
+	var requestBody *string = nil
 	var requestPath string = path
 	var query any = this.Omit(params, this.ExtractParams(requestPath))
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4497,12 +4500,12 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) any {
 		var paramsKeys []string = ObjectKeys(params)
 		var paramsKeysLength int = len(paramsKeys)
 		if paramsKeysLength == 0 {
-			requestBody = "{}"
+			requestBody = SafeStringPtr("{}")
 		} else {
-			requestBody = this.Json(params)
+			requestBody = SafeStringPtr(this.Json(params))
 		}
 	}
-	var isPrivate bool = StartsWith(api, "private")
+	var isPrivate bool = strings.HasPrefix(*apiName, "private")
 	if isPrivate == true {
 		this.CheckRequiredCredentials()
 		if queryString != "" {

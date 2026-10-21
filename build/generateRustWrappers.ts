@@ -62,6 +62,7 @@ const KNOWN_STRUCT_TYPES = new Map<string, string>([
     ['Trade', 'Trade'],
     ['Order', 'Order'],
     ['OrderBook', 'OrderBook'],
+    ['OrderBookL3', 'OrderBookL3'],
     ['MarketInterface', 'Market'],
     ['Market', 'Market'],
     ['CurrencyInterface', 'Currency'],
@@ -214,7 +215,7 @@ const ALLOWED_PREFIXES = [
 // Internal helpers we don't want to emit even though they match a prefix.
 const BLACKLIST = new Set([
     'fetch', 'fetchCurrenciesWs', 'fetchMarketsWs',
-    'loadOrderBook', 'loadMarketsHelper', 'createNetworksByIdObject',
+    'loadOrderBook', 'loadMarketsHelper',
     'setMarketsFromExchange', 'setProperty', 'setProxyAgents',
     'createContractOrder', 'createSpotOrder', 'createSwapOrder', 'createVault',
     'fetchRestOrderBookSafe', 'fetchPortfolioDetails',

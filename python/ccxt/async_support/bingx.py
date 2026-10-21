@@ -71,6 +71,7 @@ class bingx(Exchange, ImplicitAPI):
                 'editOrder': True,
                 'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBidsAsks': True,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -554,13 +555,11 @@ class bingx(Exchange, ImplicitAPI):
                     'asset': {
                         'v1': {
                             'private': {
-                                'post': {
-                                    'transfer': {'cost': 5},
-                                },
-                            },
-                            'public': {
                                 'get': {
                                     'transfer/supportCoins': {'cost': 5},
+                                },
+                                'post': {
+                                    'transfer': {'cost': 5},
                                 },
                             },
                         },
@@ -691,7 +690,7 @@ class bingx(Exchange, ImplicitAPI):
                 'recvWindow': 5 * 1000,  # 5 sec
                 'broker': 'CCXT',
                 'defaultNetworks': {
-                    'ETH': 'ETH',
+                    'ETH': 'ERC20',
                     'USDT': 'ERC20',
                     'USDC': 'ERC20',
                     'BTC': 'BTC',
@@ -2113,6 +2112,44 @@ class bingx(Exchange, ImplicitAPI):
         dataDict = self.safe_dict(response, 'data', {})
         return self.parse_ticker(dataDict, market)
 
+    async def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+        """
+        fetches the bid and ask price and volume for multiple markets
+
+        https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Symbol%20Order%20Book%20Ticker
+        https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Symbol%20Order%20Book%20Ticker
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the bids and asks for, all spot markets are returned if not assigned, swap requires exactly one symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        market = self.get_market_from_symbols(symbolsNormalized)
+        type, paramsMarketType = self.handle_market_type_and_params('fetchBidsAsks', market, params)
+        request = {}
+        rows = []
+        symbolsLength = 0 if (symbolsNormalized is None) else len(symbolsNormalized)
+        if type == 'spot':
+            if (market is not None) and (symbolsLength == 1):
+                request['symbol'] = market['id']
+            response = await self.spotV2PublicGetQuoteBookTicker(self.extend(request, paramsMarketType))
+            rows = self.safe_list(response, 'data', [])
+        else:
+            if (market is None) or (market['inverse'] is True) or (symbolsLength != 1):
+                raise ArgumentsRequired(self.id + ' fetchBidsAsks() requires exactly one linear swap symbol for contract markets')
+            request['symbol'] = market['id']
+            response = await self.swapV2PublicGetQuoteBookTicker(self.extend(request, paramsMarketType))
+            data = self.safe_dict(response, 'data', {})
+            rows = [self.safe_dict(data, 'book_ticker', {})]
+        # a multi-symbol spot response holds every listed pair, the first symbol's market must not label unknown rows
+        rowMarket = market if (symbolsLength == 1) else None
+        results = []
+        for i in range(0, len(rows)):
+            results.append(self.parse_ticker(rows[i], rowMarket))
+        return self.filter_by_array_tickers(results, 'symbol', symbolsNormalized)
+
     async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -2345,6 +2382,8 @@ class bingx(Exchange, ImplicitAPI):
         type = 'swap'
         if lastQty is None:
             type = 'spot'
+        if market is not None:
+            type = market['type']
         marketResolved = self.safe_market(marketId, market, None, type)
         symbol = marketResolved['symbol']
         open = self.safe_string(ticker, 'openPrice')
@@ -2357,14 +2396,14 @@ class bingx(Exchange, ImplicitAPI):
         if percentage is not None:
             percentage = percentage.replace('%', '')
         change = self.safe_string(ticker, 'priceChange')
-        ts = self.safe_integer(ticker, 'closeTime')
+        ts = self.safe_integer_2(ticker, 'closeTime', 'time')
         if ts == 0:
             ts = None
         datetime = self.iso8601(ts)
-        bid = self.safe_string(ticker, 'bidPrice')
-        bidVolume = self.safe_string(ticker, 'bidQty')
-        ask = self.safe_string(ticker, 'askPrice')
-        askVolume = self.safe_string(ticker, 'askQty')
+        bid = self.safe_string_2(ticker, 'bidPrice', 'bid_price')
+        bidVolume = self.safe_string_2(ticker, 'bidQty', 'bid_qty')
+        ask = self.safe_string_2(ticker, 'askPrice', 'ask_price')
+        askVolume = self.safe_string_2(ticker, 'askQty', 'ask_qty')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': ts,
@@ -2945,6 +2984,13 @@ class bingx(Exchange, ImplicitAPI):
         marginMode = None
         if isolated is not None:
             marginMode = 'isolated' if isolated else 'cross'
+        initialMarginString = self.safe_string(position, 'initialMargin')
+        unrealizedPnlString = self.safe_string(position, 'unrealizedProfit')
+        collateralString = None
+        if marginMode == 'isolated':
+            collateralString = self.omit_zero(self.safe_string(position, 'margin'))
+            if (collateralString is None) and (initialMarginString is not None):
+                collateralString = Precise.string_add(initialMarginString, unrealizedPnlString) if (unrealizedPnlString is not None) else initialMarginString
         timestamp = self.safe_integer(position, 'openTime')
         return self.safe_position({
             'info': position,
@@ -2954,7 +3000,7 @@ class bingx(Exchange, ImplicitAPI):
             'marginMode': marginMode,
             'liquidationPrice': self.safe_number_omit_zero(position, 'liquidationPrice'),
             'entryPrice': self.safe_number_2(position, 'avgPrice', 'entryPrice'),
-            'unrealizedPnl': self.safe_number(position, 'unrealizedProfit'),
+            'unrealizedPnl': self.parse_number(unrealizedPnlString),
             'realizedPnl': self.safe_number(position, 'realisedProfit'),
             'percentage': None,
             'contracts': self.safe_number(position, 'positionAmt'),
@@ -2968,8 +3014,8 @@ class bingx(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': self.safe_integer(position, 'updateTime'),
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'collateral': None,
-            'initialMargin': self.safe_number(position, 'initialMargin'),
+            'collateral': self.parse_number(collateralString),
+            'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': None,
             'leverage': self.safe_number(position, 'leverage'),
             'marginRatio': None,
@@ -3873,7 +3919,7 @@ class bingx(Exchange, ImplicitAPI):
             'status': self.parse_order_status(statusId),
             'fee': {
                 'currency': feeCurrencyCode,
-                'cost': Precise.string_abs(feeCost),
+                'cost': self.parse_number(Precise.string_abs(feeCost)),
             },
             'trades': None,
             'reduceOnly': self.safe_bool_2(orderData, 'reduceOnly', 'ro'),
@@ -5282,7 +5328,7 @@ class bingx(Exchange, ImplicitAPI):
         # the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         if address is not None:
             isPrefixed = address.startswith('0x') or address.startswith('0X')
-            evmNetworks = ['BEP20', 'BSC', 'ERC20', 'ETH', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'ARB', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB']
+            evmNetworks = ['BEP20', 'ERC20', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB']
             if not isPrefixed and self.in_array(networkCode, evmNetworks):
                 address = '0x' + address
         self.check_address(address)
@@ -6771,7 +6817,7 @@ class bingx(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def sign(self, path: str, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, section: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         type = section[0]
         version = section[1]
         access = section[2]
@@ -6827,8 +6873,8 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 query = self.urlencode(parsedParams, True)
                 url += '?' + query + '&' + 'signature=' + signature
-        bodyResult = requestBody if (requestBody is not None) else body
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
+        bodyResult = requestBody
+        headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def nonce(self) -> float:

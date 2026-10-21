@@ -3576,6 +3576,8 @@ public partial class derive : Exchange
         string? markPrice = this.safeString(position, "mark_price");
         Int64? timestamp = this.safeInteger(position, "creation_timestamp");
         string? unrealisedPnl = this.safeString(position, "unrealized_pnl");
+        string? initialMarginString = Precise.stringAbs(this.safeString(position, "initial_margin"));
+        string? maintenanceMarginString = Precise.stringAbs(this.safeString(position, "maintenance_margin"));
         size = Precise.stringAbs(size);
         string? notional = Precise.stringMul(size, markPrice);
         return this.safePosition(new Dictionary<string, object>() {
@@ -3585,11 +3587,11 @@ public partial class derive : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastUpdateTimestamp", null },
-            { "initialMargin", this.safeNumber(position, "initial_margin") },
-            { "initialMarginPercentage", null },
-            { "maintenanceMargin", this.safeNumber(position, "maintenance_margin") },
-            { "maintenanceMarginPercentage", null },
-            { "entryPrice", null },
+            { "initialMargin", this.parseNumber(initialMarginString) },
+            { "initialMarginPercentage", this.parseNumber(Precise.stringDiv(initialMarginString, notional, 8)) },
+            { "maintenanceMargin", this.parseNumber(maintenanceMarginString) },
+            { "maintenanceMarginPercentage", this.parseNumber(Precise.stringDiv(maintenanceMarginString, notional, 8)) },
+            { "entryPrice", this.safeNumber2(position, "average_price", "average_price_excl_fees") },
             { "notional", this.parseNumber(notional) },
             { "leverage", this.safeNumber(position, "leverage") },
             { "unrealizedPnl", this.parseNumber(unrealisedPnl) },
@@ -4793,12 +4795,13 @@ public partial class derive : Exchange
         return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4809,7 +4812,7 @@ public partial class derive : Exchange
             Dictionary<string, object> postHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
             };
-            if ((api is "private"))
+            if ((apiName is "private"))
             {
                 string? now = this.numberToString(this.nonce());
                 string signature = this.signMessage(now, this.privateKey);
@@ -4833,8 +4836,8 @@ public partial class derive : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 }

@@ -343,6 +343,8 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
+        if self.markets is None:
+            await self.load_markets()
         symbolValue = self.symbol(symbol)
         fr = await self.watch_funding_rates([symbolValue], params)
         return fr[symbolValue]
@@ -428,6 +430,8 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
+        if self.markets is None:
+            await self.load_markets()
         channel, paramsChannel = self.handle_option_string_and_params(params, 'watchTicker', 'channel', 'tickers')
         paramsChannel['channel'] = channel
         market = self.market(symbol)
@@ -479,6 +483,8 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
+        if self.markets is None:
+            await self.load_markets()
         channel, paramsChannel = self.handle_option_string_and_params(params, 'watchMarkPrice', 'channel', 'mark-price')
         paramsChannel['channel'] = channel
         market = self.market(symbol)
@@ -2289,6 +2295,33 @@ class okx(ccxt.async_support.okx):
         }
         return await self.watch(url, messageHash, request, messageHash)
 
+    def handle_cancel_orders(self, client: Client, message: dict):
+        #
+        #    {
+        #        "id": "1512",
+        #        "op": "batch-cancel-orders",
+        #        "data": [
+        #            {
+        #                "clOrdId": "",
+        #                "ordId": "2510789768709120",
+        #                "sCode": "0",
+        #                "sMsg": ""
+        #            }
+        #        ],
+        #        "code": "0",
+        #        "msg": ""
+        #    }
+        #
+        messageHash = self.safe_string(message, 'id')
+        args = self.safe_list(message, 'data', [])
+        args = self.filter_by(args, 'sCode', '0')
+        if self.is_empty(args):
+            method = self.safe_string(message, 'op')
+            stringMsg = self.json(message)
+            self.handle_errors(1, '', client.url, method, {}, stringMsg, message, {}, {})
+        orders = self.parse_orders(args, None, None, None)
+        client.resolve(orders, messageHash)
+
     def handle_cancel_all_orders(self, client: Client, message: dict):
         #
         #    {
@@ -2436,6 +2469,7 @@ class okx(ccxt.async_support.okx):
                 'amend-order': self.handle_place_orders,
                 'batch-amend-orders': self.handle_place_orders,
                 'cancel-order': self.handle_place_orders,
+                'batch-cancel-orders': self.handle_cancel_orders,
                 'mass-cancel': self.handle_cancel_all_orders,
             }
             method = self.safe_value(methods, event)
@@ -2498,6 +2532,9 @@ class okx(ccxt.async_support.okx):
         subMessageHash = 'multi:' + channel + ':' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
         self.clean_unsubscription(client, subMessageHash, messageHash)
+        # watchOHLCV subscribes through subscribe () under channel:marketId
+        if symbol is not None:
+            self.clean_unsubscription(client, channel + ':' + self.market_id(symbol), None)
         if (symbol is not None) and (timeframe is not None) and (timeframe in self.ohlcvs[symbol]):
             del self.ohlcvs[symbol][timeframe]
 
