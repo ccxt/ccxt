@@ -76,7 +76,7 @@ export default class interactivebrokers extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': false,
-                'fetchPosition': true,
+                'fetchPosition': false,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -2801,22 +2801,6 @@ export default class interactivebrokers extends Exchange {
         //     ]
         //
         return this.parsePositions (response, symbols);
-    }
-
-    /**
-     * @method
-     * @name interactivebrokers#fetchPosition
-     * @description fetch data on a single open position
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-positions-in-real-time
-     * @param {string} symbol unified market symbol of the market the position is held in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
-     */
-    override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const positions = await this.fetchPositions ([ market['symbol'] ], params);
-        return this.safeDict (positions, 0) as Position;
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {

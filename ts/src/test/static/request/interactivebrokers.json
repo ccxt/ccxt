@@ -3,6 +3,17 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchOrders": [
+            {
+                "description": "spot crypto",
+                "method": "fetchOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "spot crypto",
