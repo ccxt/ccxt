@@ -645,11 +645,11 @@ export default class lighter extends Exchange {
 
     async handleBuilderFeeApproval (accountIndex: number, apiKeyIndex: number): Promise<boolean> {
         const buildFee = this.safeBool (this.options, 'builderFee', true);
-        if (buildFee !== true) {
+        if (!buildFee) {
             return false;
         }
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true;
         }
         let standardTier = false;
@@ -879,7 +879,7 @@ export default class lighter extends Exchange {
         request['order_expiry'] = orderExpiry;
         request['order_type'] = orderTypeNum;
         request['time_in_force'] = timeInForceNum;
-        request['reduce_only'] = (reduceOnly === true) ? 1 : 0;
+        request['reduce_only'] = (reduceOnly) ? 1 : 0;
         request['client_order_index'] = clientOrderId;
         request['base_amount'] = this.parseToInt (Precise.stringMul (amountStr, amountScale));
         request['avg_execution_price'] = this.parseToInt (Precise.stringMul (priceStr, priceScale));
@@ -3123,7 +3123,7 @@ export default class lighter extends Exchange {
         }
         // public trades use Lighter's taker-side convention
         if ((side === undefined) && (isMakerAsk !== undefined)) {
-            side = (isMakerAsk === true) ? 'buy' : 'sell';
+            side = (isMakerAsk) ? 'buy' : 'sell';
         }
         let takerOrMaker: Str = undefined;
         if (side !== undefined && isMakerAsk !== undefined) {

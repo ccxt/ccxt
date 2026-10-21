@@ -877,7 +877,7 @@ export default class coinbaseinternational extends Exchange {
         for (let i = 0; i < networksArray.length; i++) {
             const info = this.safeDict (networksArray[i], 'info');
             const is_default = this.safeBool (info, 'is_default', false);
-            if (is_default === true) {
+            if (is_default) {
                 return networksArray[i];
             }
         }

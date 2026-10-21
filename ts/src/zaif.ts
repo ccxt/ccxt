@@ -903,7 +903,7 @@ export default class zaif extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
         const success = this.safeBool (response, 'success', true);
-        if (success !== true) {
+        if (!success) {
             throw new ExchangeError (feedback);
         }
         return undefined;

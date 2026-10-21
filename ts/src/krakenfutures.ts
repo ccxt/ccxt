@@ -758,7 +758,7 @@ export default class krakenfutures extends Exchange {
         let baseVolume: Str = undefined;
         let quoteVolume: Str = undefined;
         const isIndex = this.safeBool (marketResolved, 'index', false);
-        if (isIndex !== true) {
+        if (!isIndex) {
             if (marketResolved['linear'] === true) {
                 baseVolume = volume;
             } else if (marketResolved['inverse'] === true) {
@@ -1811,7 +1811,7 @@ export default class krakenfutures extends Exchange {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         let response: Dict;
         const paramsOmitted = this.omit (params, [ 'trigger', 'stop' ]);
-        if (isTrigger === true) {
+        if (isTrigger) {
             response = await this.historyGetTriggers (this.extend (request, paramsOmitted));
         } else {
             response = await this.historyGetOrders (this.extend (request, params));
@@ -1872,7 +1872,7 @@ export default class krakenfutures extends Exchange {
         let response: Dict;
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         const paramsOmitted = this.omit (params, [ 'trigger', 'stop' ]);
-        if (isTrigger === true) {
+        if (isTrigger) {
             response = await this.historyGetTriggers (this.extend (request, paramsOmitted));
         } else {
             response = await this.historyGetOrders (this.extend (request, params));

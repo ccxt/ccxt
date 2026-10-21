@@ -795,7 +795,7 @@ class OrderRouter {
      * @returns {undefined}
      */
     assertBalancesApplied (route: Dict, params: Dict) {
-        if (this.boolAt (params, 'requireBalancesApplied', true) !== true) {
+        if (!this.boolAt (params, 'requireBalancesApplied', true)) {
             //  the caller opted out, with their eyes open
             return;
         }
