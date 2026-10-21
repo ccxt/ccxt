@@ -656,7 +656,6 @@ public class Woo extends WooApi
                 put( "sandboxMode", false );
                 put( "createMarketBuyOrderRequiresPrice", true );
                 put( "networks", new HashMap<String, Object>() {{
-                    put( "TRX", "TRX" );
                     put( "TRC20", "TRX" );
                     put( "ERC20", "ETH" );
                     put( "BEP20", "BSC" );
@@ -3394,7 +3393,7 @@ public class Woo extends WooApi
     public Object parseDepositAddress(Map<String, Object> depositEntry, Map<String, Object> currency)
     {
         String address = this.safeString(depositEntry, "address");
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         String networkId = this.safeString(depositEntry, "network");
         return new HashMap<String, Object>() {{
             put( "info", depositEntry );
@@ -3945,23 +3944,23 @@ public class Woo extends WooApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", amount );
@@ -3994,7 +3993,7 @@ public class Woo extends WooApi
             mapLiteral6.put("amount", amount);
             mapLiteral6.put("addressTo", address);
             mapLiteral6.put("tag", tagWithdrawTag);
-            mapLiteral6.put("network", network);
+            mapLiteral6.put("network", this.safeString(this.networkAliases, network, network));
             mapLiteral6.put("type", "withdrawal");
             mapLiteral6.put("status", "pending");
             Map<String, Object> transactionData = this.extend(data, mapLiteral6);
@@ -4067,12 +4066,12 @@ public class Woo extends WooApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object section, Object method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         Object requestBody = null;
-        String version = this.safeString(java.util.Objects.requireNonNullElse(section, "public"), 0);
-        String access = this.safeString(java.util.Objects.requireNonNullElse(section, "public"), 1);
+        String version = this.safeString(section, 0);
+        String access = this.safeString(section, 1);
         String pathWithParams = (String) this.implodeParams(path, parameters);
         String baseApiUrl = this.safeString(this.urls.get("api"), access);
         if (java.util.Objects.equals(baseApiUrl, null))
@@ -4159,8 +4158,8 @@ public class Woo extends WooApi
             }
             requestHeaders.put("x-api-signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
         }
-        Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
-        Object bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        Map<String, Object> headersResult = requestHeaders;
+        Object bodyResult = requestBody;
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("url", url);
@@ -5026,6 +5025,12 @@ public class Woo extends WooApi
         size = Precise.stringAbs(size);
         String notional = Precise.stringMul(size, markPrice);
         String positionSide = this.safeString(position, "positionSide"); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        String marginMode = this.safeStringLower2(position, "marginMode", "margin_mode");
+        Double positionMargin = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            positionMargin = this.safeNumber2(position, "isolatedMarginAmount", "isolated_margin_amount", (Object) null);
+        }
         HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
         mapLiteral7.put("info", position);
         mapLiteral7.put("id", null);
@@ -5047,8 +5052,9 @@ public class Woo extends WooApi
         mapLiteral7.put("liquidationPrice", this.safeNumber2(position, "estLiqPrice", "est_liq_price", (Object) null));
         mapLiteral7.put("markPrice", this.parseNumber(markPrice));
         mapLiteral7.put("lastPrice", null);
+        mapLiteral7.put("positionMargin", positionMargin);
         mapLiteral7.put("collateral", null);
-        mapLiteral7.put("marginMode", this.safeStringLower2(position, "marginMode", "margin_mode"));
+        mapLiteral7.put("marginMode", marginMode);
         mapLiteral7.put("side", side);
         mapLiteral7.put("percentage", null);
         mapLiteral7.put("hedged", !java.util.Objects.equals(positionSide, "BOTH"));
@@ -5513,7 +5519,7 @@ public class Woo extends WooApi
         for (var i = 0; i < ((List<?>)networkKeys).size(); i++)
         {
             String network = (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i));
-            if (java.util.Objects.equals(network, "ETH"))
+            if (java.util.Objects.equals(network, "ERC20"))
             {
                 return network;
             }

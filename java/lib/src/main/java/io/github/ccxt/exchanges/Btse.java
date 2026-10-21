@@ -4406,11 +4406,12 @@ public class Btse extends BtseApi
         return null;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4432,7 +4433,7 @@ public class Btse extends BtseApi
                 url = (url + ("?" + queryString));
             }
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             Long nonce = this.nonce();
@@ -4466,8 +4467,8 @@ public class Btse extends BtseApi
                 put( "BROKER-ID", "ccxt" );
             }};
         }
-        Object bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResolved = requestBody;
+        Map<String, Object> headersResolved = requestHeaders;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);
@@ -4476,46 +4477,6 @@ public class Btse extends BtseApi
             h2kMap2.put("headers", headersResolved);
             return h2kMap2;
         }
-    }
-    //         "markPrice": 1967.47829431,
-    //         "symbol": "ETH-PERP",
-    //         "side": "BUY",
-    //         "orderValue": 3.93495658,
-    //         "settleWithAsset": "USDT",
-    //         "unrealizedProfitLoss": -0.00260341,
-    //         "totalMaintenanceMargin": 0.0218963,
-    //         "size": 20,
-    //         "liquidationPrice": 0,
-    //         "isolatedLeverage": 25,
-    //         "adlScoreBucket": 1,
-    //         "contractSize": 0.0001,
-    //         "liquidationInProgress": false,
-    //         "timestamp": 1770880518034,
-    //         "takeProfitOrder": {
-    //             "orderId": "18b4056a-59de-424a-843e-c2df5c9f7265",
-    //             "side": "SELL",
-    //             "triggerPrice": 2500,
-    //             "triggerUseLastPrice": false
-    //         },
-    //         "stopLossOrder": {
-    //             "orderId": "e7ef1035-0773-446d-9a80-2de0e1de2c13",
-    //             "side": "SELL",
-    //             "triggerPrice": 1000,
-    //             "triggerUseLastPrice": false
-    //         },
-    //         "positionMode": "ONE_WAY",
-    //         "positionDirection": null,
-    //         "positionId": "ETH-PERP-USDT",
-    //         "walletName": "CROSS@",
-    //         "currentLeverage": 0.2,
-    //         "minimumRequiredMargin": 0
-    //     }
-    //
-    // rows echo the short symbol form, while positionId carries the full market
-    // id, optionally suffixed with the isolated wallet discriminator after a pipe
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body) //         "unrealizedProfitLoss": -0.00260341,
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 
     public String futuresRequestId(Object market)

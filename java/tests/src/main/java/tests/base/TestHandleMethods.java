@@ -5,7 +5,6 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.types.Pair;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -19,7 +18,7 @@ public class TestHandleMethods extends BaseTest
             var exchange = new Exchange(new HashMap<String, Object>() {{
                 put( "id", "sampleexchange" );
                 put( "options", new HashMap<String, Object>() {{
-                    put( "defaultType", "valueFromOptions" );
+                    put( "defaultType", "option" );
                     put( "fetchX", new HashMap<String, Object>() {{
                         put( "defaultType", "valueFromMethodOptions" );
                     }} );
@@ -68,7 +67,7 @@ public class TestHandleMethods extends BaseTest
             Pair<String, Map<String, Object>> marketType5params5Variable = exchange.handleMarketTypeAndParams("fetchY", (Map<String, Object>) null, new HashMap<String, Object>() {{}}, (String) null);
             String marketType5 = marketType5params5Variable.first();
             Map<String, Object> params5 = marketType5params5Variable.second();
-            Assert(java.util.Objects.equals(marketType5, "valueFromOptions"));
+            Assert(java.util.Objects.equals(marketType5, "option"));
             //
             // case #6, should prevail: spot (because hardcoded in base)
             //
@@ -79,28 +78,6 @@ public class TestHandleMethods extends BaseTest
             Assert(java.util.Objects.equals(marketType6, "spot"));
             // fake Assertion to avoid unused vars
             Assert(!java.util.Objects.equals(params1, null) || !java.util.Objects.equals(params2, null) || !java.util.Objects.equals(params3, null) || !java.util.Objects.equals(params4, null) || !java.util.Objects.equals(params5, null) || !java.util.Objects.equals(params6, null));
-        }
-        public void helperTestHandleNetworkRequest()
-        {
-            var exchange = new Exchange(new HashMap<String, Object>() {{
-                put( "id", "sampleexchange" );
-                put( "options", new HashMap<String, Object>() {{
-                    put( "networks", new HashMap<String, Object>() {{
-                        put( "XYZ", "Xyz" );
-                    }} );
-                }} );
-            }});
-            exchange.currencies = exchange.createSafeDictionary(); // todo: initialize in C# base files
-            String currencyCode = "ETH"; // todo: in future with complex cases
-            // no-case
-            var request1params1Variable = exchange.handleRequestNetwork(new HashMap<String, Object>() {{
-            put( "network", "XYZ" );
-        }}, new HashMap<String, Object>() {{}}, "chain_id", currencyCode, false);
-            var request1 = ((List<Object>) request1params1Variable).get(0);
-            var params1 = ((List<Object>) request1params1Variable).get(1);
-            Assert(!(((Map<?, ?>)params1).containsKey("network")));
-            Assert(((Map<?, ?>)request1).containsKey("chain_id"));
-            Assert(java.util.Objects.equals(((Map<String, Object>)request1).get("chain_id"), "Xyz"));
         }
         public void helperTestHandleTypedOptions()
         {
@@ -138,7 +115,6 @@ public class TestHandleMethods extends BaseTest
         public void testHandleMethods()
         {
             helperTestHandleMarketTypeAndParams();
-            helperTestHandleNetworkRequest();
             helperTestHandleTypedOptions();
         }
 }

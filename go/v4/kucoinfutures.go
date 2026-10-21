@@ -29,6 +29,7 @@ func (this *Kucoinfutures) Describe() any {
 			"swap":          true,
 			"future":        true,
 			"option":        nil,
+			"editOrder":     false,
 			"fetchBidsAsks": true,
 			"transfer":      true,
 		},
@@ -72,11 +73,11 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan AsyncResult[any], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes5715 map[string]any = MapTyped(r.Value)
-	if retRes5715 == nil {
+	var retRes5815 map[string]any = MapTyped(r.Value)
+	if retRes5815 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes5715}
+		ch <- AsyncResult[any]{Value: retRes5815}
 	}
 	return nil
 }

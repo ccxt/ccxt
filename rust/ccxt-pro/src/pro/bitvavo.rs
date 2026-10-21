@@ -31,7 +31,9 @@ impl BitvavoCore {
     pub fn init(&mut self) {
         let described = BitvavoCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -158,6 +160,9 @@ impl crate::exchange::DerivedExchange for BitvavoCore {
     }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
+    }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
@@ -433,8 +438,8 @@ impl BitvavoCore {
         let mut args: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_146: bool = true;
-            while { if !__for_first_146 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_146 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_147: bool = true;
+            while { if !__for_first_147 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_147 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             append_to_array(&mut args, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
@@ -532,8 +537,8 @@ impl BitvavoCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_147: bool = true;
-            while { if !__for_first_147 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_147 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
+            let mut __for_first_148: bool = true;
+            while { if !__for_first_148 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_148 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
             let mut data: Value = tickers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(data.clone(), "market", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("-".into())]);
@@ -584,8 +589,8 @@ impl BitvavoCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_148: bool = true;
-            while { if !__for_first_148 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_148 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
+            let mut __for_first_149: bool = true;
+            while { if !__for_first_149 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_149 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
             let mut data: Value = tickers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ws_bid_ask(data, &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -708,8 +713,8 @@ impl BitvavoCore {
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_149: bool = true;
-            while { if !__for_first_149 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_149 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_150: bool = true;
+            while { if !__for_first_150 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_150 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             append_to_array(&mut marketIds, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
@@ -782,8 +787,8 @@ impl BitvavoCore {
         let mut subMessageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_150: bool = true;
-            while { if !__for_first_150 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_150 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_151: bool = true;
+            while { if !__for_first_151 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_151 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             append_to_array(&mut marketIds, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             append_to_array(&mut subMessageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
@@ -916,8 +921,8 @@ impl BitvavoCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_151: bool = true;
-            while { if !__for_first_151 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_151 = false; i.as_f64().unwrap_or(f64::NAN) < ((candles.len() as i64) as f64) } {
+            let mut __for_first_152: bool = true;
+            while { if !__for_first_152 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_152 = false; i.as_f64().unwrap_or(f64::NAN) < ((candles.len() as i64) as f64) } {
             let mut candle: Value = candles.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ohlcv(candle, &[market.clone()]);
             stored.append(parsed);
@@ -957,8 +962,8 @@ impl BitvavoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_152: bool = true;
-            while { if !__for_first_152 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_152 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
+            let mut __for_first_153: bool = true;
+            while { if !__for_first_153 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_153 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
             let mut symbolAndTimeframe: Value = symbolsAndTimeframes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbolAndTimeframe.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
             let mut timeframeString: Value = symbolAndTimeframe.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -976,8 +981,8 @@ impl BitvavoCore {
         let mut intervals: Value = object_keys(&marketIdsByInterval);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_153: bool = true;
-            while { if !__for_first_153 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_153 = false; i.as_f64().unwrap_or(f64::NAN) < ((intervals.len() as i64) as f64) } {
+            let mut __for_first_154: bool = true;
+            while { if !__for_first_154 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_154 = false; i.as_f64().unwrap_or(f64::NAN) < ((intervals.len() as i64) as f64) } {
             let mut interval: Value = intervals.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             append_to_array(&mut channels, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1056,8 +1061,8 @@ impl BitvavoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_154: bool = true;
-            while { if !__for_first_154 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_154 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
+            let mut __for_first_155: bool = true;
+            while { if !__for_first_155 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_155 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
             let mut symbolAndTimeframe: Value = symbolsAndTimeframes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbolAndTimeframe.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
             let mut timeframeString: Value = symbolAndTimeframe.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -1077,8 +1082,8 @@ impl BitvavoCore {
         let mut intervals: Value = object_keys(&marketIdsByInterval);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_155: bool = true;
-            while { if !__for_first_155 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_155 = false; i.as_f64().unwrap_or(f64::NAN) < ((intervals.len() as i64) as f64) } {
+            let mut __for_first_156: bool = true;
+            while { if !__for_first_156 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_156 = false; i.as_f64().unwrap_or(f64::NAN) < ((intervals.len() as i64) as f64) } {
             let mut interval: Value = intervals.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             append_to_array(&mut channels, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1176,8 +1181,8 @@ impl BitvavoCore {
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_156: bool = true;
-            while { if !__for_first_156 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_156 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_157: bool = true;
+            while { if !__for_first_157 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_157 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             append_to_array(&mut marketIds, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
@@ -1254,8 +1259,8 @@ impl BitvavoCore {
         let mut subMessageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_157: bool = true;
-            while { if !__for_first_157 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_157 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_158: bool = true;
+            while { if !__for_first_158 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_158 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             append_to_array(&mut marketIds, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             append_to_array(&mut subMessageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()));
@@ -1286,8 +1291,8 @@ impl BitvavoCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_158: bool = true;
-            while { if !__for_first_158 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_158 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_159: bool = true;
+            while { if !__for_first_159 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_159 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -1440,8 +1445,8 @@ impl BitvavoCore {
         let mut messages: Value = get_value(&orderbook, &Value::Str("cache".into()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_159: bool = true;
-            while { if !__for_first_159 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_159 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_160: bool = true;
+            while { if !__for_first_160 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_160 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
             let mut messageItem: Value = get_value(&messages, &i);
             let mut messageItem: Value = get_value(&messages, &i);
             self.handle_order_book_message(client.clone(), messageItem, orderbook.clone());
@@ -1483,8 +1488,8 @@ impl BitvavoCore {
         let mut name: Value = Value::Str("book".into());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_160: bool = true;
-            while { if !__for_first_160 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_160 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
+            let mut __for_first_161: bool = true;
+            while { if !__for_first_161 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_161 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketId: Value = self.safe_string(marketIds.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".into())]);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), marketId).into());
@@ -1522,8 +1527,8 @@ impl BitvavoCore {
         let mut unsubHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_161: bool = true;
-            while { if !__for_first_161 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_161 = false; i.as_f64().unwrap_or(f64::NAN) < ((subMessageHashes.len() as i64) as f64) } {
+            let mut __for_first_162: bool = true;
+            while { if !__for_first_162 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_162 = false; i.as_f64().unwrap_or(f64::NAN) < ((subMessageHashes.len() as i64) as f64) } {
             append_to_array(&mut unsubHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()));
         }
         }
@@ -1552,8 +1557,8 @@ impl BitvavoCore {
         let mut keys: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".into())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_162: bool = true;
-            while { if !__for_first_162 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_162 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_163: bool = true;
+            while { if !__for_first_163 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_163 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &key)) {
                 continue;
@@ -2045,20 +2050,19 @@ impl BitvavoCore {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw_ws(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
-        let mut tag = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_withdraw_tag_and_params(tag, params);
+        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_param_string(params, Value::Str("tag".into()), &[]);
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        self.check_address(&[address.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -2602,8 +2606,8 @@ impl BitvavoCore {
         let mut names: Value = object_keys(&subscriptions);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_163: bool = true;
-            while { if !__for_first_163 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_163 = false; i.as_f64().unwrap_or(f64::NAN) < ((names.len() as i64) as f64) } {
+            let mut __for_first_164: bool = true;
+            while { if !__for_first_164 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_164 = false; i.as_f64().unwrap_or(f64::NAN) < ((names.len() as i64) as f64) } {
             let mut name: Value = names.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut method: Value = self.safe_value(methods.clone(), name.clone(), &[]);
             if (method != Value::Null) {

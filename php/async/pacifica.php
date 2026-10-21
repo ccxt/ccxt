@@ -2903,8 +2903,12 @@ class pacifica extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market);
         $symbol = $marketResolved['symbol'];
         $margin = $this->safe_string($position, 'margin');
-        $marginMode = ($margin !== null && $margin !== '0') ? 'isolated' : 'cross';
-        $isIsolated = ($marginMode === 'isolated');
+        $rawIsolated = $this->safe_bool($position, 'isolated');
+        $isIsolated = ($margin !== null && $margin !== '0');
+        if ($rawIsolated !== null) {
+            $isIsolated = $rawIsolated;
+        }
+        $marginMode = $isIsolated ? 'isolated' : 'cross';
         $side = $this->safe_string($position, 'side');
         if ($side !== null) {
             $side = ($side === 'bid') ? 'long' : 'short';
@@ -2925,13 +2929,13 @@ class pacifica extends Exchange {
             'markPrice' => null,
             'notional' => null,
             'leverage' => null,
-            'collateral' => $margin,
+            'collateral' => $this->safe_number($position, 'margin'),
             'initialMargin' => null,
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,
             'maintenanceMarginPercentage' => null,
             'unrealizedPnl' => null,
-            'liquidationPrice' => null,
+            'liquidationPrice' => $this->safe_number($position, 'liquidation_price'),
             'marginMode' => $marginMode,
             'percentage' => null,
         ));
@@ -3010,11 +3014,11 @@ class pacifica extends Exchange {
         return $response;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal (only support native USDC)
          *
@@ -3023,8 +3027,8 @@ class pacifica extends Exchange {
          * @param {string} $code unified currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address validated but not sent, funds go to the account wallet
-         * @param {string} $tag not used by withdraw ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
@@ -3531,7 +3535,7 @@ class pacifica extends Exchange {
         $marketId = $this->safe_string($income, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
         $symbol = $marketResolved['symbol'];
-        $amount = $this->safe_string($income, 'amount');
+        $amount = $this->safe_string($income, 'payout');
         $code = $this->safe_currency_code('USDC');
         $rate = $this->safe_number($income, 'rate');
         return array(
@@ -3885,14 +3889,15 @@ class pacifica extends Exchange {
         return null;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $requestBody = null;
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = 'api';
         if ($isTestnet) {
             $urlKey = 'test';
         }
-        $baseApiUrl = $this->safe_string($this->urls[$urlKey], $api);
+        $apiName = $api[0];
+        $baseApiUrl = $this->safe_string($this->urls[$urlKey], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -3916,7 +3921,7 @@ class pacifica extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $headersValue );
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         $cost = $this->safe_string($config, 'cost', '1');
         $costNumber = $this->parse_number($cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET

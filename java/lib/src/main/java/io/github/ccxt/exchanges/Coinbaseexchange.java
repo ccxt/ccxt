@@ -622,7 +622,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             put( "options", new HashMap<String, Object>() {{
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "bitcoin" );
-                    put( "ETH", "ethereum" );
+                    put( "ERC20", "ethereum" );
                     put( "SOL", "solana" );
                     put( "ARBITRUM", "arbitrum" );
                     put( "AVAXC", "avacchain" );
@@ -2113,19 +2113,19 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2617,7 +2617,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Object accounts = this.safeValue(this.options, "coinbaseAccounts");
             if (java.util.Objects.equals(accounts, null))
             {
-                accounts = (this.privateGetCoinbaseAccounts()).join();
+                accounts = (this.privateGetCoinbaseAccounts(new HashMap<String, Object>() {{}})).join();
                 Helpers.addElementToObject(this.options, "coinbaseAccounts", accounts); // cache it
                 Helpers.addElementToObject(this.options, "coinbaseAccountsByCurrencyId", this.indexBy(accounts, "currency"));
             }
@@ -2634,7 +2634,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             String tag = this.safeString(response, "destination_tag");
             return new HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "address", Coinbaseexchange.this.checkAddress(address) );
+                put( "address", Coinbaseexchange.this.checkAddress(address, (String) null, (String) null) );
                 put( "network", null );
                 put( "tag", tag );
                 put( "info", response );
@@ -2643,10 +2643,11 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
         String request = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
@@ -2656,13 +2657,13 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 request = (request + ("?" + this.urlencode(query)));
             }
         }
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (this.implodeHostname(apiUrl) + request);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String nonce = String.valueOf(this.nonce());
@@ -2720,12 +2721,12 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         return null;
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.fetch2(path, java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), parameters, headers, body, config)).join();
+            Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
             if (!(response instanceof String))
             {
                 if (Helpers.inOp(response, "message"))

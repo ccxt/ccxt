@@ -1725,7 +1725,7 @@ public class Bitvavo extends BitvavoApi
             //
             String address = this.safeString(response, "address");
             String tag = this.safeString(response, "paymentId");
-            this.checkAddress(address);
+            this.checkAddress(address, (String) null, (String) null);
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", code );
@@ -2098,7 +2098,7 @@ public class Bitvavo extends BitvavoApi
                 request.put("operatorId", this.parseToInt(operatorId));
             } else
             {
-                throw new ArgumentsRequired((this.id + " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+                throw new ArgumentsRequired((this.id + " cancelAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
             }
             List<Object> response = (this.privateDeleteOrders(this.extend(request, paramsOperatorId))).join();
             //
@@ -2753,25 +2753,25 @@ public class Bitvavo extends BitvavoApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Object request = this.withdrawRequest((String) (code), amount, address, Helpers.toStringArg(tagWithdrawTag), paramsWithdrawTag);
+            Object request = this.withdrawRequest((String) (code), amount, address, tagWithdrawTag, paramsWithdrawTag);
             Map<String, Object> response = (this.privatePostWithdrawal(request)).join();
             //
             //     {
@@ -3114,10 +3114,11 @@ public class Bitvavo extends BitvavoApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
         Object query = this.omit(parameters, this.extractParams(path));
         String url = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Boolean getOrDelete = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"));
@@ -3128,7 +3129,7 @@ public class Bitvavo extends BitvavoApi
                 url = (url + ("?" + this.urlencode(query)));
             }
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String payload = "";
@@ -3152,10 +3153,10 @@ public class Bitvavo extends BitvavoApi
             );
             if (!Boolean.TRUE.equals(getOrDelete))
             {
-                ((Map<String, Object>)requestHeaders).put("Content-Type", "application/json");
+                requestHeaders.put("Content-Type", "application/json");
             }
         }
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;

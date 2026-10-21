@@ -1236,7 +1236,7 @@ public partial class bingx : ccxt.bingx
         }
         string uuid = this.uuid();
         string? baseUrl = null;
-        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = null;
         if ((type == "swap"))
         {
             if (subType == "inverse")

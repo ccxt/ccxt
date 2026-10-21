@@ -2599,18 +2599,19 @@ public class Cryptocom extends CryptocomApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2715,7 +2716,7 @@ public class Cryptocom extends CryptocomApi
                 var addresstagVariable = this.parseAddress(addressString);
                 var address = ((List<Object>) addresstagVariable).get(0);
                 var tag = ((List<Object>) addresstagVariable).get(1);
-                this.checkAddress(Helpers.toStringArg(address));
+                this.checkAddress(Helpers.toStringArg(address), (String) null, (String) null);
                 String networkId = this.safeString(value, "network");
                 String network = this.networkIdToCode(networkId, responseCode);
                 if (!java.util.Objects.equals(network, null))
@@ -2748,13 +2749,17 @@ public class Cryptocom extends CryptocomApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            String network = this.safeStringUpper(parameters, "network");
+            String networkParam = this.safeStringUpper(parameters, "network");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
             Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, paramsOmitted)).join();
             Object depositAddresses = depositAddressesRaw;
-            if (((Map<?, ?>)depositAddresses).containsKey(network))
+            if (!java.util.Objects.equals(networkParam, null))
             {
-                return Helpers.GetValue(depositAddresses, network);
+                String network = this.safeString(this.networkAliases, networkParam, networkParam);
+                if (((Map<?, ?>)depositAddresses).containsKey(network))
+                {
+                    return Helpers.GetValue(depositAddresses, network);
+                }
             }
             List<String> keys = new ArrayList<String>(((Map<String, Object>)depositAddresses).keySet());
             return Helpers.GetValue(depositAddresses, (keys == null || 0 >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(0)));
@@ -4396,12 +4401,12 @@ public class Cryptocom extends CryptocomApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
-        String type = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
+        String type = this.safeString(api, 0);
+        String access = this.safeString(api, 1);
         String apiUrl = this.safeString(this.urls.get("api"), type);
         if (java.util.Objects.equals(apiUrl, null))
         {

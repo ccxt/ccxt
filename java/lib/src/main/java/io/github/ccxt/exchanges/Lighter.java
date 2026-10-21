@@ -138,7 +138,7 @@ public class Lighter extends LighterApi
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
                 put( "fetchTime", true );
-                put( "fetchTrades", false );
+                put( "fetchTrades", true );
                 put( "fetchTradingFee", false );
                 put( "fetchTradingFees", false );
                 put( "fetchTransfer", false );
@@ -1276,6 +1276,19 @@ public class Lighter extends LighterApi
             Map<String, Object> paramsGroupingType = (Map<String, Object>) ((List<Object>) groupingTypeparamsGroupingTypeVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
             List<Object> orderRequests = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsGroupingType);
             Integer totalOrderRequests = ((List<?>)orderRequests).size();
+            if ((totalOrderRequests != null && totalOrderRequests > 1))
+            {
+                // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+                // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+                Object groupOrderExpiry = this.sum(this.milliseconds(), 2419200000L); // 28 days
+                for (var i = 0; (totalOrderRequests != null && i < totalOrderRequests); i++)
+                {
+                    if (java.util.Objects.equals(this.safeInteger((orderRequests == null || i < 0 || i >= orderRequests.size() ? null : orderRequests.get(i)), "order_expiry"), -1L))
+                    {
+                        Helpers.addElementToObject((orderRequests == null || i < 0 || i >= orderRequests.size() ? null : orderRequests.get(i)), "order_expiry", groupOrderExpiry);
+                    }
+                }
+            }
             Object order = null;
             if ((totalOrderRequests != null && totalOrderRequests > 0))
             {
@@ -1802,7 +1815,7 @@ public class Lighter extends LighterApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Math.min(limit, 100));
+                request.put("limit", Math.min(limit, 250));
             }
             Map<String, Object> response = (this.publicGetOrderBookOrders(this.extend(request, parameters))).join();
             //
@@ -2513,6 +2526,15 @@ public class Lighter extends LighterApi
                 leverage = (((double) 100) / ((double) imf));
             }
         }
+        String contractsString = this.safeString(position, "position");
+        String positionValueString = this.safeString(position, "position_value");
+        String markPriceString = Precise.stringDiv(positionValueString, contractsString);
+        // allocated_margin is the isolated collateral balance (0 for cross)
+        Double positionMargin = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            positionMargin = this.safeNumber(position, "allocated_margin", (Object) null);
+        }
         HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
         mapLiteral7.put("info", position);
         mapLiteral7.put("id", null);
@@ -2522,13 +2544,14 @@ public class Lighter extends LighterApi
         mapLiteral7.put("isolated", (java.util.Objects.equals(marginMode, "isolated")));
         mapLiteral7.put("hedged", null);
         mapLiteral7.put("side", side);
-        mapLiteral7.put("contracts", this.safeNumber(position, "position", (Object) null));
+        mapLiteral7.put("contracts", this.parseNumber(contractsString));
         mapLiteral7.put("contractSize", null);
         mapLiteral7.put("entryPrice", this.safeNumber(position, "avg_entry_price", (Object) null));
-        mapLiteral7.put("markPrice", null);
-        mapLiteral7.put("notional", this.safeNumber(position, "position_value", (Object) null));
+        mapLiteral7.put("markPrice", this.parseNumber(markPriceString));
+        mapLiteral7.put("notional", this.parseNumber(positionValueString));
         mapLiteral7.put("leverage", leverage);
-        mapLiteral7.put("collateral", this.safeNumber(position, "allocated_margin", (Object) null));
+        mapLiteral7.put("positionMargin", positionMargin);
+        mapLiteral7.put("collateral", null);
         mapLiteral7.put("initialMargin", null);
         mapLiteral7.put("maintenanceMargin", null);
         mapLiteral7.put("initialMarginPercentage", null);
@@ -3459,14 +3482,14 @@ public class Lighter extends LighterApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3513,6 +3536,63 @@ public class Lighter extends LighterApi
             Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return this.parseTransaction((Map<String, Object>) (response), (Map<String, Object>) null);
         }).thenApply(Transaction::new);
+
+    }
+
+    /**
+     * @method
+     * @name lighter#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.lighter.xyz/reference/recenttrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "market_id", market.get("id") );
+                put( "limit", 100 );
+            }};
+            if (!java.util.Objects.equals(limit, null))
+            {
+                request.put("limit", Math.min(limit, 100));
+            }
+            Map<String, Object> response = (this.publicGetRecentTrades(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "code": 200,
+            //         "trades": [
+            //             {
+            //                 "trade_id": 35564491385,
+            //                 "type": "trade",
+            //                 "market_id": 0,
+            //                 "size": "0.0003",
+            //                 "price": "2385.57",
+            //                 "usd_amount": "0.715671",
+            //                 "ask_id": 281478054267183,
+            //                 "bid_id": 562946767299880,
+            //                 "ask_account_id": 723632,
+            //                 "bid_account_id": 317087,
+            //                 "is_maker_ask": false,
+            //                 "timestamp": 1792497687525
+            //             }
+            //         ]
+            //     }
+            //
+            List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -3673,6 +3753,11 @@ public class Lighter extends LighterApi
                 side = "buy";
                 orderId = this.safeString(trade, "bid_id");
             }
+        }
+        // public trades use Lighter's taker-side convention
+        if ((java.util.Objects.equals(side, null)) && (!java.util.Objects.equals(isMakerAsk, null)))
+        {
+            side = (((java.util.Objects.equals(isMakerAsk, true)))) ? "buy" : "sell";
         }
         String takerOrMaker = null;
         if (!java.util.Objects.equals(side, null) && !java.util.Objects.equals(isMakerAsk, null))
@@ -3974,9 +4059,14 @@ public class Lighter extends LighterApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            if ((Helpers.isLessThan(timeout, 300000)) || (Helpers.isGreaterThan(timeout, 1296000000)))
+            if (java.util.Objects.equals(timeout, null))
             {
-                throw new BadRequest((this.id + " timeout should be between 5 minutes and 15 days.")) ;
+                throw new ArgumentsRequired((this.id + " cancelAllOrdersAfter() requires a timeout argument")) ;
+            }
+            Boolean isScheduled = (!Helpers.isEqual(timeout, 0));
+            if (Boolean.TRUE.equals(isScheduled) && ((Helpers.isLessThan(timeout, 300000)) || (Helpers.isGreaterThan(timeout, 1296000000))))
+            {
+                throw new BadRequest((this.id + " timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.")) ;
             }
             List<Object> apiKeyIndexparamsApiKeyIndexVariable = (List<Object>) this.handleApiKeyIndex(parameters, "cancelOrder", "apiKeyIndex", "api_key_index", (Object) null);
             Long apiKeyIndex = (Long) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(0);
@@ -3988,13 +4078,19 @@ public class Lighter extends LighterApi
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsAccountIndex))).join();
             Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsAccountIndex))).join();
-            Map<String, Object> signRaw = new HashMap<String, Object>() {{
-                put( "time_in_force", 1 );
-                put( "time", Helpers.add(Lighter.this.milliseconds(), timeout) );
-                put( "nonce", nonce );
-                put( "api_key_index", apiKeyIndex );
-                put( "account_index", accountIndex );
-            }};
+            Integer timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+            Object cancelTime = 0;
+            if (Boolean.TRUE.equals(isScheduled))
+            {
+                timeInForce = 1;
+                cancelTime = this.sum(this.milliseconds(), timeout);
+            }
+            Map<String, Object> signRaw = new HashMap<String, Object>();
+            signRaw.put("time_in_force", timeInForce);
+            signRaw.put("time", cancelTime);
+            signRaw.put("nonce", nonce);
+            signRaw.put("api_key_index", apiKeyIndex);
+            signRaw.put("account_index", accountIndex);
             var txTypetxInfoVariable = this.lighterSignCancelAllOrders(signer, this.extend(signRaw, paramsAccountIndex));
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
@@ -4133,10 +4229,11 @@ public class Lighter extends LighterApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object url = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "root"))
+        if (java.util.Objects.equals(apiName, "root"))
         {
             String baseApiUrl = this.safeString(this.urls.get("api"), "public");
             if (java.util.Objects.equals(baseApiUrl, null))
@@ -4146,7 +4243,7 @@ public class Lighter extends LighterApi
             url = this.implodeHostname(baseApiUrl);
         } else
         {
-            String baseApiUrl2 = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+            String baseApiUrl2 = this.safeString(this.urls.get("api"), apiName);
             if (java.util.Objects.equals(baseApiUrl2, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4154,7 +4251,7 @@ public class Lighter extends LighterApi
             url = ((((this.implodeHostname(baseApiUrl2) + "/api/") + this.version) + "/") + path);
         }
         Map<String, Object> authHeaders = null;
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             authHeaders = new HashMap<String, Object>() {{
                 put( "Authorization", Lighter.this.createAuth(Helpers.toMapArg(parameters)) );
@@ -4178,13 +4275,13 @@ public class Lighter extends LighterApi
             }
             url = (url + ("?" + this.rawencode(parameters)));
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             {
                 HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
                 h2kMap4.put("url", url);
                 h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-                h2kMap4.put("body", body);
+                h2kMap4.put("body", null);
                 h2kMap4.put("headers", authHeaders);
                 return h2kMap4;
             }
@@ -4193,14 +4290,10 @@ public class Lighter extends LighterApi
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);
             h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", body);
-            h2kMap5.put("headers", headers);
+            h2kMap5.put("body", null);
+            h2kMap5.put("headers", null);
             return h2kMap5;
         }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

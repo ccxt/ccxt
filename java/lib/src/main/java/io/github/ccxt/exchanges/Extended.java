@@ -2176,21 +2176,24 @@ public class Extended extends ExtendedApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the Starknet address to withdraw to
-     * @param {string} tag unused
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.chainId] only STRK is supported
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            List<Object> tagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tag = (String) ((List<Object>) tagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagparamsWithdrawTagVariable).get(1);
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> currency = this.currency((String) (code));
-            String chainId = this.safeStringUpper2(parameters, "chainId", "network", "STRK");
+            String chainId = this.safeStringUpper2(paramsWithdrawTag, "chainId", "network", "STRK");
             if (!java.util.Objects.equals(chainId, "STRK"))
             {
                 throw new BadRequest((this.id + " withdraw() only supports Starknet withdrawals with chainId STRK")) ;
@@ -2202,14 +2205,14 @@ public class Extended extends ExtendedApi
             Object account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
             Object amountString = this.currencyToPrecision((String) (code), amount, (String) null);
             String accountId = this.safeString(account, "accountId");
-            Object settlement = this.createWithdrawalSettlementData(address, ((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), parameters);
+            Object settlement = this.createWithdrawalSettlementData(address, ((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), paramsWithdrawTag);
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("accountId", accountId);
             request.put("amount", amountString);
             request.put("chainId", chainId);
             request.put("asset", currency.get("id"));
             request.put("settlement", settlement);
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution")));
+            Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, new ArrayList<Object>(Arrays.asList("chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution")));
             Map<String, Object> response = (this.v1PrivatePostUserWithdrawal(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -2501,7 +2504,7 @@ public class Extended extends ExtendedApi
             );
         }
         String transactionType = this.parseTransactionType(this.safeString(transaction, "type"));
-        String network = this.safeString(transaction, "chain");
+        String network = this.networkIdToCode(this.safeString(transaction, "chain"), (String) null);
         {
             HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
             h2kMap4.put("info", transaction);
@@ -4185,12 +4188,12 @@ public class Extended extends ExtendedApi
         return null;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
-        String version = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String accessibility = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
+        String version = this.safeString(api, 0);
+        String accessibility = this.safeString(api, 1);
         String endpoint = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean queryPost = (java.util.Objects.equals(path, "user/deadmanswitch"));
@@ -4212,7 +4215,7 @@ public class Extended extends ExtendedApi
             if (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PATCH"))) && !Boolean.TRUE.equals(queryPost))
             {
                 requestBody = this.json(query);
-                ((Map<String, Object>)requestHeaders).put("Content-Type", "application/json");
+                requestHeaders.put("Content-Type", "application/json");
             }
         }
         String url = (((this.implodeHostname(baseApiUrl) + "/api/") + version) + endpoint);

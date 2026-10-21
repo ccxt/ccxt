@@ -98,7 +98,7 @@ class woo extends \ccxt\async\woo {
 
     private function do_watch_public(string $messageHash, array $message) {
         $urlUid = '';
-        if ($this->uid !== '') {
+        if (($this->uid !== null) && ($this->uid !== '')) {
             $urlUid = '/' . $this->uid;
         }
         $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
@@ -116,7 +116,7 @@ class woo extends \ccxt\async\woo {
 
     private function do_unwatch_public(string $subHash, ?string $symbol, string $topic, $params = array()) {
         $urlUid = '';
-        if ($this->uid !== '') {
+        if (($this->uid !== null) && ($this->uid !== '')) {
             $urlUid = '/' . $this->uid;
         }
         $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
@@ -167,7 +167,7 @@ class woo extends \ccxt\async\woo {
         $market = $this->market($symbol);
         $topic = $market['id'] . '@' . $method;
         $urlUid = '';
-        if ($this->uid !== '') {
+        if (($this->uid !== null) && ($this->uid !== '')) {
             $urlUid = '/' . $this->uid;
         }
         $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;

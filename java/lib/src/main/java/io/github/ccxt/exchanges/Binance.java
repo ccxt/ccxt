@@ -3042,7 +3042,6 @@ public class Binance extends BinanceApi
                     put( "spot", "x-TKT5PX2F" );
                     put( "margin", "x-TKT5PX2F" );
                     put( "future", "x-cvBPrNm9" );
-                    put( "delivery", "x-xcKtGhcu" );
                     put( "swap", "x-cvBPrNm9" );
                     put( "option", "x-xcKtGhcu" );
                     put( "inverse", "x-xcKtGhcu" );
@@ -3053,8 +3052,6 @@ public class Binance extends BinanceApi
                     put( "funding", "FUNDING" );
                     put( "margin", "MARGIN" );
                     put( "cross", "MARGIN" );
-                    put( "future", "UMFUTURE" );
-                    put( "delivery", "CMFUTURE" );
                     put( "linear", "UMFUTURE" );
                     put( "swap", "UMFUTURE" );
                     put( "inverse", "CMFUTURE" );
@@ -3073,11 +3070,8 @@ public class Binance extends BinanceApi
                     put( "BTCSEGWIT", "SEGWITBTC" );
                     put( "BTCLIGHTNING", "LIGHTNING" );
                     put( "ERC20", "ETH" );
-                    put( "ETH", "ETH" );
                     put( "TRC20", "TRX" );
-                    put( "TRX", "TRX" );
                     put( "BEP2", "BNB" );
-                    put( "BSC", "BSC" );
                     put( "BEP20", "BSC" );
                     put( "CHZ2", "CHZ2" );
                     put( "XRP", "XRP" );
@@ -4328,13 +4322,7 @@ public class Binance extends BinanceApi
 
     public Boolean isInverse(Object type, String subType)
     {
-        if (java.util.Objects.equals(subType, null))
-        {
-            return (java.util.Objects.equals(type, "delivery"));
-        } else
-        {
-            return java.util.Objects.equals(subType, "inverse");
-        }
+        return java.util.Objects.equals(subType, "inverse");
     }
 
     public Boolean isLinear(Object type, String subType)
@@ -4430,12 +4418,13 @@ public class Binance extends BinanceApi
         {
             throw new ExchangeError((this.id + " markets not loaded")) ;
         }
-        // defaultType has legacy support on binance
+        // defaultType 'swap' resolves spot-style symbols to the perpetual of defaultSubType
         String defaultType = this.safeString(this.options, "defaultType");
         String defaultSubType = this.safeString(this.options, "defaultSubType");
-        Boolean isLegacyLinear = java.util.Objects.equals(defaultType, "future");
-        Boolean isLegacyInverse = java.util.Objects.equals(defaultType, "delivery");
-        Boolean isLegacy = Boolean.TRUE.equals(isLegacyLinear) || Boolean.TRUE.equals(isLegacyInverse);
+        Boolean isLegacy = java.util.Objects.equals(defaultType, "swap");
+        Boolean isDerivative = Boolean.TRUE.equals(isLegacy) || (java.util.Objects.equals(defaultType, "future"));
+        Boolean isLegacyInverse = Boolean.TRUE.equals(isLegacy) && (java.util.Objects.equals(defaultSubType, "inverse"));
+        Boolean isLegacyLinear = Boolean.TRUE.equals(isLegacy) && !Boolean.TRUE.equals(isLegacyInverse);
         if ((symbol instanceof String))
         {
             if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol)))
@@ -4458,12 +4447,9 @@ public class Binance extends BinanceApi
             {
                 Object markets = Helpers.GetValue(this.markets_by_id, symbol);
                 // begin diff
-                if (Boolean.TRUE.equals(isLegacyLinear))
+                if (Boolean.TRUE.equals(isDerivative))
                 {
-                    defaultType = "linear";
-                } else if (Boolean.TRUE.equals(isLegacyInverse))
-                {
-                    defaultType = "inverse";
+                    defaultType = (((java.util.Objects.equals(defaultSubType, "inverse")))) ? "inverse" : "linear";
                 } else if (java.util.Objects.equals(defaultType, null))
                 {
                     defaultType = defaultSubType;
@@ -4480,7 +4466,7 @@ public class Binance extends BinanceApi
                 return (Map<String, Object>) (Helpers.GetValue(markets, 0));
             } else if ((((String)symbol).indexOf("/") > -1) && (((String)symbol).indexOf(":") < 0))
             {
-                if ((!java.util.Objects.equals(defaultType, null)) && (!java.util.Objects.equals(defaultType, "spot")))
+                if (Boolean.TRUE.equals(isLegacy))
                 {
                     // support legacy symbols
                     var basequoteVariable = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
@@ -5813,7 +5799,7 @@ public class Binance extends BinanceApi
      * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#option-margin-account-information // option
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            // portfolio margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+     * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'option', 'savings', 'funding' or 'papi', use params.subType 'inverse' for COIN-M
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the balance for a portfolio margin account
@@ -7769,7 +7755,7 @@ public class Binance extends BinanceApi
         }
         if (java.util.Objects.equals(clientOrderId, null))
         {
-            request.put("newClientOrderId", this.generateClientOrderId(market, (String) null));
+            request.put("newClientOrderId", this.generateClientOrderId(market, (String) null, (String) null));
         } else
         {
             request.put("newClientOrderId", clientOrderId);
@@ -9160,11 +9146,12 @@ public class Binance extends BinanceApi
      * @ignore
      * @name binance#generateClientOrderId
      * @description builds a fresh client order id
-     * @param {object} [market] the market of the order, takes precedence over the api argument
+     * @param {object} [market] the market of the order, takes precedence over the other arguments
      * @param {string} [api] the implicit api section the order is sent to (private, sapi, fapiPrivate, dapiPrivate, eapiPrivate, ...)
+     * @param {string} [path] the implicit api path the order is sent to, resolves the market type from the um/, cm/, margin/ and equity/ path prefixes whose api section is ambiguous, takes precedence over the api argument
      * @returns {string} the broker prefix followed by 22 random characters
      */
-    public String generateClientOrderId(Map<String, Object> market, String api)
+    public String generateClientOrderId(Map<String, Object> market, String api, String path)
     {
         String idMarketType = null;
         if (!java.util.Objects.equals(market, null))
@@ -9182,7 +9169,24 @@ public class Binance extends BinanceApi
             {
                 idMarketType = "spot";
             }
-        } else if (!java.util.Objects.equals(api, null))
+        }
+        if ((java.util.Objects.equals(idMarketType, null)) && (!java.util.Objects.equals(path, null)))
+        {
+            if ((((String)path).indexOf("um/") == 0))
+            {
+                idMarketType = "swap";
+            } else if ((((String)path).indexOf("cm/") == 0))
+            {
+                idMarketType = "inverse";
+            } else if ((((String)path).indexOf("margin/") == 0))
+            {
+                idMarketType = "margin";
+            } else if ((((String)path).indexOf("equity/") == 0))
+            {
+                idMarketType = "spot";
+            }
+        }
+        if ((java.util.Objects.equals(idMarketType, null)) && (!java.util.Objects.equals(api, null)))
         {
             Boolean isSpotOrMargin = (((String)api).indexOf("sapi") > -1 || java.util.Objects.equals(api, "private"));
             if (Boolean.TRUE.equals(isSpotOrMargin))
@@ -9198,15 +9202,13 @@ public class Binance extends BinanceApi
             {
                 idMarketType = "future";
             }
-        } else
+        }
+        if (java.util.Objects.equals(idMarketType, null))
         {
             String defaultType = this.safeString(this.options, "defaultType", "spot");
             String defaultSubType = this.safeString(this.options, "defaultSubType");
             idMarketType = defaultType;
-            if (java.util.Objects.equals(defaultType, "delivery"))
-            {
-                idMarketType = "inverse";
-            } else if ((java.util.Objects.equals(defaultSubType, "inverse")) && ((java.util.Objects.equals(defaultType, "swap")) || (java.util.Objects.equals(defaultType, "future"))))
+            if ((java.util.Objects.equals(defaultSubType, "inverse")) && ((java.util.Objects.equals(defaultType, "swap")) || (java.util.Objects.equals(defaultType, "future"))))
             {
                 idMarketType = "inverse";
             }
@@ -9222,6 +9224,102 @@ public class Binance extends BinanceApi
         Map<String, Object> broker = (Map<String, Object>) this.safeDict(this.options, "broker", new HashMap<String, Object>() {{}});
         String brokerId = this.safeString(broker, idMarketType, defaultId);
         return (brokerId + this.uuid22());
+    }
+
+    /**
+     * @method
+     * @name binance#handleClientOrderId
+     * @ignore
+     * @param {object} params request params
+     * @param {string} api the implicit api section the request is sent to
+     * @param {string} path the implicit api path the request is sent to
+     * @param {string} method HTTP method
+     * @returns {object} params with the injected client order id
+     */
+    public Map<String, Object> handleClientOrderId(Map<String, Object> parameters, String api, String path, String method)
+    {
+        if (!java.util.Objects.equals(method, "POST"))
+        {
+            return parameters;
+        }
+        if ((java.util.Objects.equals(path, "order")) || (java.util.Objects.equals(path, "sor/order")) || (java.util.Objects.equals(path, "order/cancelReplace")) || (java.util.Objects.equals(path, "um/order")) || (java.util.Objects.equals(path, "cm/order")) || (java.util.Objects.equals(path, "margin/order")))
+        {
+            // the eapi order endpoint takes clientOrderId instead of newClientOrderId
+            String clientOrderIdKey = (((java.util.Objects.equals(api, "eapiPrivate")))) ? "clientOrderId" : "newClientOrderId";
+            String clientOrderId = this.safeString2(parameters, "clientOrderId", "newClientOrderId");
+            if (java.util.Objects.equals(clientOrderId, null))
+            {
+                parameters.put(clientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
+            }
+        } else if ((java.util.Objects.equals(path, "algoOrder")) || (java.util.Objects.equals(path, "um/algo/order")))
+        {
+            // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
+            String clientAlgoId = this.safeString(parameters, "clientAlgoId");
+            if (java.util.Objects.equals(clientAlgoId, null))
+            {
+                parameters.put("clientAlgoId", this.generateClientOrderId((Map<String, Object>) null, api, path));
+            }
+        } else if ((java.util.Objects.equals(path, "cm/conditional/order")) || (java.util.Objects.equals(path, "um/conditional/order")))
+        {
+            // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
+            String newClientStrategyId = this.safeString(parameters, "newClientStrategyId");
+            if (java.util.Objects.equals(newClientStrategyId, null))
+            {
+                parameters.put("newClientStrategyId", this.generateClientOrderId((Map<String, Object>) null, api, path));
+            }
+        } else if (java.util.Objects.equals(path, "equity/order/place"))
+        {
+            // the equity order endpoint takes clientOrderId instead of newClientOrderId
+            String equityClientOrderId = this.safeString(parameters, "clientOrderId");
+            if (java.util.Objects.equals(equityClientOrderId, null))
+            {
+                parameters.put("clientOrderId", this.generateClientOrderId((Map<String, Object>) null, api, path));
+            }
+        } else if ((java.util.Objects.equals(path, "order/oco")) || (java.util.Objects.equals(path, "margin/order/oco")) || (java.util.Objects.equals(path, "orderList/oco")) || (java.util.Objects.equals(path, "orderList/oto")) || (java.util.Objects.equals(path, "orderList/otoco")) || (java.util.Objects.equals(path, "orderList/opo")) || (java.util.Objects.equals(path, "orderList/opoco")))
+        {
+            // the order list endpoints take a listClientOrderId and one client order id per leg
+            List<String> clientOrderIdKeys = new ArrayList<String>(Arrays.asList("listClientOrderId", "limitClientOrderId", "stopClientOrderId"));
+            if (java.util.Objects.equals(path, "orderList/oco"))
+            {
+                clientOrderIdKeys = new ArrayList<String>(Arrays.asList("listClientOrderId", "aboveClientOrderId", "belowClientOrderId"));
+            } else if ((java.util.Objects.equals(path, "orderList/oto")) || (java.util.Objects.equals(path, "orderList/opo")))
+            {
+                clientOrderIdKeys = new ArrayList<String>(Arrays.asList("listClientOrderId", "workingClientOrderId", "pendingClientOrderId"));
+            } else if ((java.util.Objects.equals(path, "orderList/otoco")) || (java.util.Objects.equals(path, "orderList/opoco")))
+            {
+                clientOrderIdKeys = new ArrayList<String>(Arrays.asList("listClientOrderId", "workingClientOrderId", "pendingAboveClientOrderId", "pendingBelowClientOrderId"));
+            }
+            for (var i = 0; i < ((List<?>)clientOrderIdKeys).size(); i++)
+            {
+                Object currentClientOrderIdKey = (clientOrderIdKeys == null || i < 0 || i >= clientOrderIdKeys.size() ? null : clientOrderIdKeys.get(i));
+                String currentClientOrderId = this.safeString(parameters, currentClientOrderIdKey);
+                if (java.util.Objects.equals(currentClientOrderId, null))
+                {
+                    parameters.put((String)currentClientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
+                }
+            }
+        } else if (java.util.Objects.equals(path, "batchOrders"))
+        {
+            // the batch legs take the same client order id fields as the single order endpoints
+            if ((java.util.Objects.equals(api, "fapiPrivate")) || (java.util.Objects.equals(api, "dapiPrivate")) || (java.util.Objects.equals(api, "eapiPrivate")))
+            {
+                String batchClientOrderIdKey = (((java.util.Objects.equals(api, "eapiPrivate")))) ? "clientOrderId" : "newClientOrderId";
+                List<Object> batchOrders = (List<Object>) this.safeList(parameters, "batchOrders", new ArrayList<Object>(Arrays.asList()));
+                List<Object> checkedBatchOrders = new ArrayList<Object>(Arrays.asList());
+                for (var i = 0; i < ((List<?>)batchOrders).size(); i++)
+                {
+                    Object batchOrder = (batchOrders == null || i < 0 || i >= batchOrders.size() ? null : batchOrders.get(i));
+                    String batchClientOrderId = this.safeString(batchOrder, batchClientOrderIdKey);
+                    if (java.util.Objects.equals(batchClientOrderId, null))
+                    {
+                        ((Map<String, Object>)batchOrder).put(batchClientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
+                    }
+                    ((List<Object>)checkedBatchOrders).add(batchOrder);
+                }
+                parameters.put("batchOrders", checkedBatchOrders);
+            }
+        }
+        return parameters;
     }
 
     /**
@@ -9419,10 +9517,14 @@ public class Binance extends BinanceApi
         } else if (java.util.Objects.equals(stock, true))
         {
             clientOrderIdRequest = "clientOrderId";
+        } else if (java.util.Objects.equals(market.get("option"), true))
+        {
+            // the option api takes clientOrderId instead of newClientOrderId
+            clientOrderIdRequest = "clientOrderId";
         }
         if (java.util.Objects.equals(clientOrderId, null))
         {
-            request.put(clientOrderIdRequest, this.generateClientOrderId(market, (String) null));
+            request.put(clientOrderIdRequest, this.generateClientOrderId(market, (String) null, (String) null));
         } else
         {
             request.put(clientOrderIdRequest, clientOrderId);
@@ -12641,8 +12743,8 @@ public class Binance extends BinanceApi
             {
                 String defaultType = this.safeString2(this.options, "fetchTransfers", "defaultType", "spot");
                 String fromAccount = this.safeString(paramsOmitted, "fromAccount", defaultType);
-                String defaultTo = "future";
-                if (java.util.Objects.equals(fromAccount, "future"))
+                String defaultTo = "swap";
+                if ((java.util.Objects.equals(fromAccount, "swap")) || (java.util.Objects.equals(fromAccount, "linear")))
                 {
                     defaultTo = "spot";
                 }
@@ -12768,7 +12870,7 @@ public class Binance extends BinanceApi
         {
             tag = null;
         }
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("info", response);
@@ -12898,7 +13000,7 @@ public class Binance extends BinanceApi
                 {
                     Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networkList, j, (Object) null);
                     String networkId = this.safeString(networkEntry, "network");
-                    String networkCode = this.safeCurrencyCode(networkId, (Map<String, Object>) null);
+                    String networkCode = this.networkIdToCode(networkId, code);
                     Double fee = this.safeNumber(networkEntry, "withdrawFee", (Object) null);
                     if ((!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(networkCode, null)))
                     {
@@ -13065,19 +13167,19 @@ public class Binance extends BinanceApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -13578,7 +13680,7 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, (Long) null)).join();
             }
-            String defaultType = this.safeString2(this.options, "fetchFundingRateHistory", "defaultType", "future");
+            String defaultType = this.safeString2(this.options, "fetchFundingRateHistory", "defaultType", "swap");
             String type = this.safeString(paramsPaginate, "type", defaultType);
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -13668,7 +13770,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            String defaultType = this.safeString2(this.options, "fetchFundingRates", "defaultType", "future");
+            String defaultType = this.safeString2(this.options, "fetchFundingRates", "defaultType", "swap");
             String type = this.safeString(parameters, "type", defaultType);
             Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchFundingRates", (Map<String, Object>) null, parameters, "linear");
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
@@ -14048,6 +14150,11 @@ public class Binance extends BinanceApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
+        String isolatedWalletString = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            isolatedWalletString = this.safeString(position, "isolatedWallet");
+        }
         {
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("info", position);
@@ -14068,6 +14175,7 @@ public class Binance extends BinanceApi
             h2kMap5.put("marginRatio", marginRatio);
             h2kMap5.put("liquidationPrice", liquidationPrice);
             h2kMap5.put("markPrice", null);
+            h2kMap5.put("positionMargin", this.parseNumber(isolatedWalletString));
             h2kMap5.put("collateral", collateral);
             h2kMap5.put("marginMode", marginMode);
             h2kMap5.put("side", side);
@@ -14303,6 +14411,11 @@ public class Binance extends BinanceApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
+        String isolatedWalletString = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            isolatedWalletString = this.safeString(position, "isolatedWallet");
+        }
         HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
         mapLiteral9.put("info", position);
         mapLiteral9.put("id", null);
@@ -14312,6 +14425,7 @@ public class Binance extends BinanceApi
         mapLiteral9.put("unrealizedPnl", unrealizedPnl);
         mapLiteral9.put("leverage", this.parseNumber(leverageString));
         mapLiteral9.put("liquidationPrice", liquidationPrice);
+        mapLiteral9.put("positionMargin", this.parseNumber(isolatedWalletString));
         mapLiteral9.put("collateral", collateral);
         mapLiteral9.put("notional", notional);
         mapLiteral9.put("markPrice", markPrice);
@@ -14346,7 +14460,7 @@ public class Binance extends BinanceApi
             Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", (Object) null);
             if ((java.util.Objects.equals(leverageBrackets, null)) || java.util.Objects.requireNonNullElse(reload, false))
             {
-                String defaultType = this.safeString(this.options, "defaultType", "future");
+                String defaultType = this.safeString(this.options, "defaultType", "swap");
                 String type = this.safeString(parameters, "type", defaultType);
                 Map<String, Object> query = this.omit(parameters, "type");
                 String subType = null;
@@ -14833,7 +14947,7 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.loadLeverageBrackets(false, parameters)).join();
-            String defaultType = this.safeString(this.options, "defaultType", "future");
+            String defaultType = this.safeString(this.options, "defaultType", "swap");
             String type = this.safeString(parameters, "type", defaultType);
             Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchAccountPositions", (Map<String, Object>) null, paramsOmitted, "linear");
@@ -14917,7 +15031,7 @@ public class Binance extends BinanceApi
             }
             (this.loadLeverageBrackets(false, parameters)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            String defaultType = "future";
+            String defaultType = "swap";
             defaultType = this.safeString(this.options, "defaultType", defaultType);
             String type = this.safeString(parameters, "type", defaultType);
             String subType = null;
@@ -15123,7 +15237,7 @@ public class Binance extends BinanceApi
             {
                 ((Map<String, Object>)requestUntil).put("limit", limit);
             }
-            String defaultType = this.safeString2(this.options, "fetchFundingHistory", "defaultType", "future");
+            String defaultType = this.safeString2(this.options, "fetchFundingHistory", "defaultType", "swap");
             String type = this.safeString(paramsUntil, "type", defaultType);
             Map<String, Object> paramsOmitted = this.omit(paramsUntil, "type");
             List<Object> response = null;
@@ -16044,14 +16158,15 @@ public class Binance extends BinanceApi
         return (((scheme + "//") + domain) + "/");
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object urls = this.urls;
-        if (!((java.util.Objects.requireNonNullElse(api, "public") != null && ((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(java.util.Objects.requireNonNullElse(api, "public")))))
+        if (!(((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(apiName)))
         {
-            throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + java.util.Objects.requireNonNullElse(api, "public")) + " endpoints")) ;
+            throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + apiName) + " endpoints")) ;
         }
-        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -16090,68 +16205,36 @@ public class Binance extends BinanceApi
             {
                 throw new AuthenticationError((this.id + " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "eapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapi") && !java.util.Objects.equals(path, "system/status")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiV2")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiV3")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiV4")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "dapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "dapiPrivateV2")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivateV2")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivateV3")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "papiV2") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "papi") && !java.util.Objects.equals(path, "ping")))
+        } else if ((java.util.Objects.equals(apiName, "private")) || (java.util.Objects.equals(apiName, "eapiPrivate")) || (java.util.Objects.equals(apiName, "sapi") && !java.util.Objects.equals(path, "system/status")) || (java.util.Objects.equals(apiName, "sapiV2")) || (java.util.Objects.equals(apiName, "sapiV3")) || (java.util.Objects.equals(apiName, "sapiV4")) || (java.util.Objects.equals(apiName, "dapiPrivate")) || (java.util.Objects.equals(apiName, "dapiPrivateV2")) || (java.util.Objects.equals(apiName, "fapiPrivate")) || (java.util.Objects.equals(apiName, "fapiPrivateV2")) || (java.util.Objects.equals(apiName, "fapiPrivateV3")) || (java.util.Objects.equals(apiName, "papiV2") || java.util.Objects.equals(apiName, "papi") && !java.util.Objects.equals(path, "ping")))
         {
             this.checkRequiredCredentials(true);
             if ((((String)url).indexOf("testnet.binancefuture.com") > -1) && this.isSandboxModeEnabled && (!Boolean.TRUE.equals(this.safeBool(this.options, "disableFuturesSandboxWarning", false))))
             {
                 throw new NotSupported((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") && ((java.util.Objects.equals(path, "order")) || (java.util.Objects.equals(path, "sor/order"))))
-            {
-                // inject in implicit API calls
-                String newClientOrderId = this.safeString(parameters, "newClientOrderId");
-                if (java.util.Objects.equals(newClientOrderId, null))
-                {
-                    ((Map<String, Object>)parameters).put("newClientOrderId", this.generateClientOrderId((Map<String, Object>) null, Helpers.toStringArg(java.util.Objects.requireNonNullElse(api, "public"))));
-                }
-            } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") && (java.util.Objects.equals(path, "algoOrder")))
-            {
-                // the fapi/dapi algo order endpoints take clientAlgoId instead of newClientOrderId
-                String clientAlgoId = this.safeString(parameters, "clientAlgoId");
-                if (java.util.Objects.equals(clientAlgoId, null))
-                {
-                    ((Map<String, Object>)parameters).put("clientAlgoId", this.generateClientOrderId((Map<String, Object>) null, Helpers.toStringArg(java.util.Objects.requireNonNullElse(api, "public"))));
-                }
-            }
+            Map<String, Object> requestParams = this.handleClientOrderId((Map<String, Object>) (parameters), (String) (apiName), (String) (path), (String) (java.util.Objects.requireNonNullElse(method, "GET")));
             String query = null;
             // handle batchOrders
             if ((java.util.Objects.equals(path, "batchOrders")) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))))
             {
-                List<Object> batchOrders = (List<Object>) this.safeList(parameters, "batchOrders", new ArrayList<Object>(Arrays.asList()));
-                Object checkedBatchOrders = batchOrders;
-                if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "dapiPrivate"))))
-                {
-                    // check broker id if batchOrders are called with fapiPrivatePostBatchOrders / dapiPrivatePostBatchOrders
-                    checkedBatchOrders = new ArrayList<Object>(Arrays.asList());
-                    for (var i = 0; i < ((List<?>)batchOrders).size(); i++)
-                    {
-                        Object batchOrder = (batchOrders == null || i < 0 || i >= batchOrders.size() ? null : batchOrders.get(i));
-                        String newClientOrderId = this.safeString(batchOrder, "newClientOrderId");
-                        if (java.util.Objects.equals(newClientOrderId, null))
-                        {
-                            ((Map<String, Object>)batchOrder).put("newClientOrderId", this.generateClientOrderId((Map<String, Object>) null, Helpers.toStringArg(java.util.Objects.requireNonNullElse(api, "public"))));
-                        }
-                        ((List<Object>)checkedBatchOrders).add(batchOrder);
-                    }
-                }
-                String queryBatch = (this.json(checkedBatchOrders));
-                ((Map<String, Object>)parameters).put("batchOrders", queryBatch);
+                List<Object> batchOrders = (List<Object>) this.safeList(requestParams, "batchOrders", new ArrayList<Object>(Arrays.asList()));
+                String queryBatch = (this.json(batchOrders));
+                requestParams.put("batchOrders", queryBatch);
             }
             Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             Map<String, Object> extendedParams = this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", Binance.this.nonce() );
-            }}, parameters);
+            }}, requestParams);
             if (!java.util.Objects.equals(defaultRecvWindow, null))
             {
                 Helpers.addElementToObject(extendedParams, "recvWindow", defaultRecvWindow);
             }
-            Long recvWindow = this.safeInteger(parameters, "recvWindow");
+            Long recvWindow = this.safeInteger(requestParams, "recvWindow");
             if (!java.util.Objects.equals(recvWindow, null))
             {
                 Helpers.addElementToObject(extendedParams, "recvWindow", recvWindow);
             }
-            if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapi")) && (java.util.Objects.equals(path, "asset/dust")))
+            if ((java.util.Objects.equals(apiName, "sapi")) && (java.util.Objects.equals(path, "asset/dust")))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             } else if ((java.util.Objects.equals(path, "batchOrders")) || (((String)path).indexOf("sub-account") >= 0) || (java.util.Objects.equals(path, "capital/withdraw/apply")) || (((String)path).indexOf("staking") >= 0) || (((String)path).indexOf("simple-earn") >= 0))
@@ -16223,8 +16306,8 @@ public class Binance extends BinanceApi
                 url = (url + ("?" + this.urlencode(parameters)));
             }
         }
-        Object headersResolved = (((!java.util.Objects.equals(signedHeaders, null)))) ? signedHeaders : headers;
-        String bodyResolved = (((!java.util.Objects.equals(signedBody, null)))) ? signedBody : body;
+        Map<String, Object> headersResolved = signedHeaders;
+        String bodyResolved = signedBody;
         {
             HashMap<String, Object> h2kMap7 = new HashMap<String, Object>();
             h2kMap7.put("url", url);
@@ -16398,14 +16481,14 @@ public class Binance extends BinanceApi
         return this.safeValue(config, "cost", 1);
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object response = (this.fetch2(path, java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), parameters, headers, body, config)).join();
+            Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+            if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private"))
             {
                 Helpers.addElementToObject(this.options, "hasAlreadyAuthenticatedSuccessfully", true);
             }
@@ -16420,15 +16503,15 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             // used to modify isolated positions
-            String defaultType = this.safeString(this.options, "defaultType", "future");
+            String defaultType = this.safeString(this.options, "defaultType", "swap");
             if (java.util.Objects.equals(defaultType, "spot"))
             {
-                defaultType = "future";
+                defaultType = "swap";
             }
             String type = this.safeString(parameters, "type", defaultType);
             if ((java.util.Objects.equals(type, "margin")) || (java.util.Objects.equals(type, "spot")))
             {
-                throw new NotSupported((this.id + " add / reduce margin only supported with type future or delivery")) ;
+                throw new NotSupported((this.id + " add / reduce margin only supported with linear or inverse swap/future markets")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -17297,15 +17380,17 @@ public class Binance extends BinanceApi
             {
                 request.put("limit", limit);
             }
-            String symbolKey = "pair";
             if (java.util.Objects.equals(market.get("linear"), true))
             {
-                symbolKey = "symbol";
-            }
-            request.put(symbolKey, market.get("id"));
-            if (java.util.Objects.equals(market.get("inverse"), true))
+                request.put("symbol", market.get("id"));
+            } else if (java.util.Objects.equals(market.get("inverse"), true))
             {
-                request.put("contractType", this.safeString(paramsPaginate, "contractType", "CURRENT_QUARTER"));
+                // dapi expects the underlying pair (BTCUSD) and a contract type, not the market id (BTCUSD_PERP)
+                request.put("pair", this.safeString(market.get("info"), "pair"));
+                request.put("contractType", (((java.util.Objects.equals(market.get("swap"), true)))) ? "PERPETUAL" : this.safeString(market.get("info"), "contractType"));
+            } else
+            {
+                throw new NotSupported((this.id + " fetchOpenInterestHistory() supports linear and inverse contracts only")) ;
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -17339,6 +17424,19 @@ public class Binance extends BinanceApi
             //          "sumOpenInterest":"75375.61700000",
             //          "sumOpenInterestValue":"3248828883.71251440",
             //          "timestamp":1642179900000
+            //      },
+            //      ...
+            //  ]
+            //
+            // inverse
+            //
+            //  [
+            //      {
+            //          "contractType":"PERPETUAL",
+            //          "sumOpenInterest":"13069401.00000000",
+            //          "sumOpenInterestValue":"15796.96988405",
+            //          "pair":"BTCUSD",
+            //          "timestamp":1791835200000
             //      },
             //      ...
             //  ]

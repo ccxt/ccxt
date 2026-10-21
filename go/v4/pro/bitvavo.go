@@ -2116,8 +2116,8 @@ func (this *Bitvavo) HandleMyTrades(client any, message map[string]any) {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitvavo) WithdrawWsAsync(code string, amount any, address string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
@@ -2128,14 +2128,12 @@ func (this *Bitvavo) WithdrawWsAsync(code string, amount any, address string, op
 func (this *Bitvavo) withdrawWsBody(ch chan ccxt.AsyncResult[any], code string, amount any, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var tag *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
 	tagWithdrawTag := ccxt.GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = ccxt.MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -3623,8 +3621,8 @@ func (this *Bitvavo) FetchMyTradesWs(options ...ccxt.FetchMyTradesWsOptions) ([]
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitvavo) WithdrawWs(code string, amount float64, address string, options ...ccxt.WithdrawWsOptions) (ccxt.Transaction, error) {
@@ -3634,7 +3632,7 @@ func (this *Bitvavo) WithdrawWs(code string, amount float64, address string, opt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawWsAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawWsAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return ccxt.Transaction{}, r.Err
 	}

@@ -233,11 +233,8 @@ class bitopro extends bitopro$1["default"] {
             'options': {
                 'networks': {
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'BEP20': 'BSC',
-                    'BSC': 'BSC',
                 },
                 'fetchCurrencies': {
                     'fiatCurrencies': ['TWD'], // the only fiat currency for exchange
@@ -1777,16 +1774,16 @@ class bitopro extends bitopro$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -1801,7 +1798,7 @@ class bitopro extends bitopro$1["default"] {
         if (hasNetwork) {
             const networks = this.safeDict(this.options, 'networks', {});
             const requestedNetwork = this.safeStringUpper(paramsWithdrawTag, 'network');
-            const networkId = (requestedNetwork === undefined) ? undefined : this.safeString(networks, requestedNetwork);
+            const networkId = (requestedNetwork === undefined) ? undefined : this.safeString(networks, this.safeString(this.networkAliases, requestedNetwork, requestedNetwork));
             if (networkId === undefined) {
                 throw new errors.ExchangeError(this.id + ' invalid network ' + requestedNetwork);
             }
@@ -1884,18 +1881,19 @@ class bitopro extends bitopro$1["default"] {
         const data = this.safeList(response, 'data', []);
         return this.parseDepositWithdrawFees(data, codes, 'currency');
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let url = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        const requestHeaders = (headers === undefined) ? {} : headers;
-        const isSignedBody = (api === 'private') && ((method === 'POST') || (method === 'PUT'));
+        const requestHeaders = {};
+        const isSignedBody = (apiName === 'private') && ((method === 'POST') || (method === 'PUT'));
         const signedBody = this.json(params);
-        let requestBody = body;
+        let requestBody = undefined;
         if (isSignedBody) {
             requestBody = signedBody;
         }
         requestHeaders['X-BITOPRO-API'] = 'ccxt';
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             if (method === 'POST' || method === 'PUT') {
                 const payload = this.stringToBase64(signedBody);
@@ -1920,7 +1918,7 @@ class bitopro extends bitopro$1["default"] {
                 requestHeaders['X-BITOPRO-SIGNATURE'] = signature;
             }
         }
-        else if (api === 'public' && method === 'GET') {
+        else if (apiName === 'public' && method === 'GET') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }

@@ -144,7 +144,7 @@ func (this *Bitfinex) PublicGetConfPubFees(args ...any) <-chan AsyncResult[any] 
 
 // PublicGetPlatformStatus returns a channel that yields a JSON array.
 func (this *Bitfinex) PublicGetPlatformStatus(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "platform/status", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
+	return Fetch2Result[[]any](this, "platform/status", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(8)})
 }
 
 // PublicGetTickers returns a channel that yields a JSON array.
@@ -169,32 +169,32 @@ func (this *Bitfinex) PublicGetTradesSymbolHist(args ...any) <-chan AsyncResult[
 
 // PublicGetBookSymbolPrecision returns a channel that yields a JSON array.
 func (this *Bitfinex) PublicGetBookSymbolPrecision(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "book/{symbol}/{precision}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "book/{symbol}/{precision}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetBookSymbolP0 returns a channel that yields a JSON array.
 func (this *Bitfinex) PublicGetBookSymbolP0(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "book/{symbol}/P0", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "book/{symbol}/P0", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetBookSymbolP1 returns a channel that yields a JSON array.
 func (this *Bitfinex) PublicGetBookSymbolP1(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "book/{symbol}/P1", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "book/{symbol}/P1", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetBookSymbolP2 returns a channel that yields a JSON array.
 func (this *Bitfinex) PublicGetBookSymbolP2(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "book/{symbol}/P2", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "book/{symbol}/P2", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetBookSymbolP3 returns a channel that yields a JSON array.
 func (this *Bitfinex) PublicGetBookSymbolP3(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "book/{symbol}/P3", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "book/{symbol}/P3", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetBookSymbolR0 returns a channel that yields a JSON array.
 func (this *Bitfinex) PublicGetBookSymbolR0(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "book/{symbol}/R0", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "book/{symbol}/R0", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetStats1KeySizeSymbolSideSection returns a channel that yields a JSON array.
@@ -284,7 +284,7 @@ func (this *Bitfinex) PublicGetStatusDerivSymbolHist(args ...any) <-chan AsyncRe
 
 // PublicGetLiquidationsHist returns a channel that yields a JSON array.
 func (this *Bitfinex) PublicGetLiquidationsHist(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "liquidations/hist", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(80)})
+	return Fetch2Result[[]any](this, "liquidations/hist", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(80)})
 }
 
 // PublicGetRankingsKeyTimeframeSymbolSection returns a channel that yields a JSON array.
@@ -309,12 +309,12 @@ func (this *Bitfinex) PublicGetPulseProfileNickname(args ...any) <-chan AsyncRes
 
 // PublicGetFundingStatsSymbolHist returns a channel that yields a JSON array.
 func (this *Bitfinex) PublicGetFundingStatsSymbolHist(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "funding/stats/{symbol}/hist", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+	return Fetch2Result[[]any](this, "funding/stats/{symbol}/hist", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PublicGetExtVasps returns a channel that yields a JSON array.
 func (this *Bitfinex) PublicGetExtVasps(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "ext/vasps", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return Fetch2Result[[]any](this, "ext/vasps", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicPostCalcTradeAvg returns a channel that yields a JSON array.
@@ -619,17 +619,17 @@ func (this *Bitfinex) PrivatePostAuthWTransfer(args ...any) <-chan AsyncResult[a
 
 // PrivatePostAuthWDepositAddress returns a channel that yields a JSON array.
 func (this *Bitfinex) PrivatePostAuthWDepositAddress(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "auth/w/deposit/address", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(24)})
+	return Fetch2Result[[]any](this, "auth/w/deposit/address", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(24)})
 }
 
 // PrivatePostAuthRDepositAddressAll returns a channel that yields a JSON array.
 func (this *Bitfinex) PrivatePostAuthRDepositAddressAll(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "auth/r/deposit/address/all", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(24)})
+	return Fetch2Result[[]any](this, "auth/r/deposit/address/all", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(24)})
 }
 
 // PrivatePostAuthWDepositInvoice returns a channel that yields a JSON array.
 func (this *Bitfinex) PrivatePostAuthWDepositInvoice(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "auth/w/deposit/invoice", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(24)})
+	return Fetch2Result[[]any](this, "auth/w/deposit/invoice", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(24)})
 }
 
 // PrivatePostAuthRExtInvoicePayments returns a channel that yields a JSON array.
@@ -639,7 +639,7 @@ func (this *Bitfinex) PrivatePostAuthRExtInvoicePayments(args ...any) <-chan Asy
 
 // PrivatePostAuthWWithdraw returns a channel that yields a JSON array.
 func (this *Bitfinex) PrivatePostAuthWWithdraw(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "auth/w/withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(24)})
+	return Fetch2Result[[]any](this, "auth/w/withdraw", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(24)})
 }
 
 // PrivatePostAuthRMovementsCurrencyHist returns a channel that yields a JSON array.
@@ -704,7 +704,7 @@ func (this *Bitfinex) PrivatePostAuthRPulseHist(args ...any) <-chan AsyncResult[
 
 // PrivatePostAuthWPulseAdd returns a channel that yields a JSON array.
 func (this *Bitfinex) PrivatePostAuthWPulseAdd(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "auth/w/pulse/add", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(16)})
+	return Fetch2Result[[]any](this, "auth/w/pulse/add", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(16)})
 }
 
 // PrivatePostAuthWPulseDel returns a channel that yields a JSON array.

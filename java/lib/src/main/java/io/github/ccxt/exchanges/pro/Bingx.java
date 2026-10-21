@@ -1301,7 +1301,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
             String uuid = this.uuid();
             String baseUrl = null;
-            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            Map<String, Object> request = null;
             if (java.util.Objects.equals(type, "swap"))
             {
                 if (java.util.Objects.equals(subType, "inverse"))
@@ -1832,7 +1832,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
                 try
                 {
-                    Map<String, Object> response = (this.userAuthPrivatePostUserDataStream()).join();
+                    Map<String, Object> response = (this.userAuthPrivatePostUserDataStream(new HashMap<String, Object>() {{}})).join();
                     String listenKey = this.safeString(response, "listenKey");
                     if (java.util.Objects.equals(listenKey, null))
                     {

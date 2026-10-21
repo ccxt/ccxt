@@ -2114,11 +2114,11 @@ class cryptocom extends Exchange {
         return array( $address, $tag );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -2127,11 +2127,12 @@ class cryptocom extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2254,12 +2255,15 @@ class cryptocom extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $network = $this->safe_string_upper($params, 'network');
+        $networkParam = $this->safe_string_upper($params, 'network');
         $paramsOmitted = $this->omit($params, array( 'network' ));
         $depositAddressesRaw = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsOmitted));
         $depositAddresses = $depositAddressesRaw;
-        if (is_array($depositAddresses) && array_key_exists($network ?? '', $depositAddresses)) {
-            return $depositAddresses[$network];
+        if ($networkParam !== null) {
+            $network = $this->safe_string($this->networkAliases, $networkParam, $networkParam);
+            if (is_array($depositAddresses) && array_key_exists($network ?? '', $depositAddresses)) {
+                return $depositAddresses[$network];
+            }
         }
         $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
         return $depositAddresses[$keys[0]];
@@ -3765,9 +3769,9 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $type = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
         $apiUrl = $this->safe_string($this->urls['api'], $type);

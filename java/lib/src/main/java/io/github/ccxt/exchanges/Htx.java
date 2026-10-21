@@ -1813,7 +1813,7 @@ public class Htx extends HtxApi
                     put( "LTC", "LTC" );
                     put( "XRP", "XRP" );
                     put( "XLM", "XLM" );
-                    put( "CRONOS", "CRO" );
+                    put( "CRC20", "CRO" );
                     put( "CRO", "CRO" );
                     put( "GLMR", "GLMR" );
                     put( "POLYGON", "MATIC" );
@@ -7949,7 +7949,7 @@ public class Htx extends HtxApi
         String code = this.safeCurrencyCode(currencyId, currencyResolved);
         String note = this.safeString(depositAddress, "note");
         String networkId = this.safeString(depositAddress, "chain");
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "currency", code );
             put( "address", address );
@@ -8026,7 +8026,7 @@ public class Htx extends HtxApi
             String networkCode = (String) ((List<Object>) networkCodeparamsOmitedVariable).get(0);
             Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
             Object indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
-            Object selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(currency.get("code"), networkCode, indexedAddresses);
+            Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, indexedAddresses, true);
             return this.safeValue(indexedAddresses, selectedNetworkCode);
         }).thenApply(DepositAddress::new);
 
@@ -8363,23 +8363,23 @@ public class Htx extends HtxApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagValueparamsTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagValue = ((List<Object>) tagValueparamsTagVariable).get(0);
+            List<Object> tagValueparamsTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagValue = (String) ((List<Object>) tagValueparamsTagVariable).get(0);
             Map<String, Object> paramsTag = (Map<String, Object>) ((List<Object>) tagValueparamsTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagValue);
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", address );
@@ -9263,7 +9263,7 @@ public class Htx extends HtxApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Map<String, Object> signedHeaders = null;
         String signedBody = null;
@@ -9278,18 +9278,20 @@ public class Htx extends HtxApi
         {
             query = this.omit(parameters, this.extractParams(path));
         }
-        if ((java.util.Objects.requireNonNullElse(api, "public") instanceof String))
+        Integer apiLength = ((List<?>)api).size();
+        if (java.util.Objects.equals(apiLength, 1))
         {
             // signing implementation for the old endpoints
-            if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))
+            Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+            if ((java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "private")))
             {
                 url = Helpers.add(url, this.version);
-            } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Private")))
+            } else if ((java.util.Objects.equals(apiName, "v2Public")) || (java.util.Objects.equals(apiName, "v2Private")))
             {
                 url = (url + "v2");
             }
             url = (url + ("/" + this.implodeParams(path, parameters)));
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v2Private"))
+            if (java.util.Objects.equals(apiName, "private") || java.util.Objects.equals(apiName, "v2Private"))
             {
                 this.checkRequiredCredentials(true);
                 String timestamp = this.ymdhms(this.nonce(), "T");
@@ -9340,7 +9342,7 @@ public class Htx extends HtxApi
                     url = (url + ("?" + this.urlencode(query)));
                 }
             }
-            String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+            String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
             if (java.util.Objects.equals(baseApiUrl, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -9352,10 +9354,10 @@ public class Htx extends HtxApi
         {
             // signing implementation for the new endpoints
             // const [ type, access ] = api;
-            String type = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-            String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
-            String levelOneNestedPath = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 2);
-            String levelTwoNestedPath = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 3);
+            String type = this.safeString(api, 0);
+            String access = this.safeString(api, 1);
+            String levelOneNestedPath = this.safeString(api, 2);
+            String levelTwoNestedPath = this.safeString(api, 3);
             Object hostname = null;
             Object hostnames = this.safeValue(this.urls.get("hostnames"), type);
             if (!(hostnames instanceof String))
@@ -9460,8 +9462,8 @@ public class Htx extends HtxApi
     put( "hostname", finalHostname );
 }}), url);
         }
-        Object headersResolved = (((!java.util.Objects.equals(signedHeaders, null)))) ? signedHeaders : headers;
-        String bodyResolved = (((!java.util.Objects.equals(signedBody, null)))) ? signedBody : body;
+        Map<String, Object> headersResolved = signedHeaders;
+        String bodyResolved = signedBody;
         {
             HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
             h2kMap4.put("url", url);
@@ -10008,7 +10010,7 @@ public class Htx extends HtxApi
                     response = (this.contractPrivatePostSwapApiV1SwapAccountPositionInfo(this.extend(request, query))).join();
                 } else
                 {
-                    throw new NotSupported((this.id + " setLeverage() not support this market type")) ;
+                    throw new NotSupported((this.id + " fetchPosition() not support this market type")) ;
                 }
             }
             Object data = this.safeValue(response, "data");

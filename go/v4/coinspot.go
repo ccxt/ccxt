@@ -537,7 +537,7 @@ func (this *Coinspot) Describe() any {
 			"DRK": "DASH",
 		},
 		"options": map[string]any{
-			"fetchBalance": "private_post_my_balances",
+			"fetchBalance": "privatePostMyBalances",
 		},
 		"features": map[string]any{
 			"spot": map[string]any{
@@ -650,7 +650,7 @@ func (this *Coinspot) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ..
 			panic(r.Err)
 		}
 	}
-	var method *string = this.SafeString(this.Options, "fetchBalance", "private_post_my_balances")
+	var method *string = this.SafeString(this.Options, "fetchBalance", "privatePostMyBalances")
 	var response map[string]any = nil
 	if (method != nil && *method == "private_post_ro_my_balances") || (method != nil && *method == "privatePostRoMyBalances") {
 
@@ -1255,19 +1255,16 @@ func (this *Coinspot) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Coinspot) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestHeaders any = headers
-	var requestBody any = body
-	var isVersionedApi bool = IsArray(api)
+	var requestHeaders map[string]any = nil
+	var requestBody any = nil
+	var apiLength int = GetArrayLength(api)
+	var isVersionedApi bool = (apiLength > 1)
 	var version any = func() any {
 		if isVersionedApi {
 			return GetValue(api, 0)
@@ -1278,11 +1275,11 @@ func (this *Coinspot) Sign(path string, optionalArgs ...any) any {
 		if isVersionedApi {
 			return GetValue(api, 1)
 		}
-		return api
+		return GetValue(api, 0)
 	}()
 	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var fullPath any = endpoint
-	if !IsEqual(version, nil) {
+	if version != nil {
 		fullPath = Add(Add("/", version), endpoint)
 	}
 	var apiUrl *string = this.SafeString(this.Urls["api"], accessType)

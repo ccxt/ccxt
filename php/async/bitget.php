@@ -3167,11 +3167,11 @@ class bitget extends Exchange {
         return $deposit;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -3181,14 +3181,15 @@ class bitget extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination $tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} [$params->chain] the blockchain network the withdrawal is taking place on
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
+        list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $this->check_address($address);
-        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() requires a "network" parameter');
         }
@@ -9323,11 +9324,14 @@ class bitget extends Exchange {
         $timestamp = $this->safe_integer_n($position, array( 'cTime', 'ctime', 'createdTime' ));
         $marginMode = $this->safe_string($position, 'marginMode');
         $collateral = null;
+        $marginString = null;
         $initialMargin = null;
         $unrealizedPnl = $this->safe_string_2($position, 'unrealizedPL', 'unrealisedPnl');
-        $rawCollateral = $this->safe_string_2($position, 'marginSize', 'positionBalance');
+        $rawCollateral = $this->omit_zero($this->safe_string_2($position, 'marginSize', 'positionBalance'));
         if ($marginMode === 'isolated') {
-            $collateral = Precise::string_add($rawCollateral, $unrealizedPnl);
+            $collateral = ($unrealizedPnl !== null) ? Precise::string_add($rawCollateral, $unrealizedPnl) : $rawCollateral;
+            $initialMargin = $rawCollateral;
+            $marginString = $rawCollateral;
         } elseif ($marginMode === 'crossed') {
             $marginMode = 'cross';
             $initialMargin = $rawCollateral;
@@ -9345,7 +9349,7 @@ class bitget extends Exchange {
         $contractSize = $this->number_to_string($contractSizeNumber);
         $baseAmount = $this->safe_string_2($position, 'total', 'openTotalPos');
         $entryPrice = $this->safe_string_n($position, array( 'openPriceAvg', 'openAvgPrice', 'avgPrice' ));
-        $maintenanceMarginPercentage = $this->safe_string($position, 'keepMarginRate');
+        $maintenanceMarginPercentage = $this->safe_string_2($position, 'keepMarginRate', 'mmr');
         $openNotional = Precise::string_mul($entryPrice, $baseAmount);
         if ($initialMargin === null) {
             $initialMargin = Precise::string_div($openNotional, $leverage);
@@ -9357,9 +9361,10 @@ class bitget extends Exchange {
         $markPrice = $this->safe_string($position, 'markPrice');
         $notional = Precise::string_mul($baseAmount, $markPrice);
         $initialMarginPercentage = Precise::string_div($initialMargin, $notional);
-        $liquidationPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidationPrice')));
-        $calcTakerFeeRate = '0.0006';
-        $calcTakerFeeMult = '0.9994';
+        $rawLiquidationPrice = $this->omit_zero($this->safe_string($position, 'liquidationPrice'));
+        $liquidationPrice = (($rawLiquidationPrice !== null) && Precise::string_gt($rawLiquidationPrice, '0')) ? $this->parse_number($rawLiquidationPrice) : null;
+        $calcTakerFeeRate = $this->safe_string($marketResolved, 'taker', '0.0006');
+        $calcTakerFeeMult = Precise::string_sub('1', $calcTakerFeeRate);
         if (($liquidationPrice === null) && ($marginMode === 'isolated') && Precise::string_gt($baseAmount, '0')) {
             $signedMargin = Precise::string_div($rawCollateral, $baseAmount);
             $signedMmp = $maintenanceMarginPercentage;
@@ -9374,7 +9379,10 @@ class bitget extends Exchange {
             } else {
                 $numerator = Precise::string_mul($numerator, $calcTakerFeeMult);
             }
-            $liquidationPrice = $this->parse_number(Precise::string_div($numerator, $mmrMinusOne));
+            $derivedLiq = Precise::string_div($numerator, $mmrMinusOne);
+            if (($derivedLiq !== null) && Precise::string_gt($derivedLiq, '0')) {
+                $liquidationPrice = $this->parse_number($derivedLiq);
+            }
         }
         $feeToClose = Precise::string_mul($notional, $calcTakerFeeRate);
         $maintenanceMargin = Precise::string_add(Precise::string_mul($maintenanceMarginPercentage, $notional), $feeToClose);
@@ -9401,11 +9409,12 @@ class bitget extends Exchange {
             'lastUpdateTimestamp' => $this->safe_integer_2($position, 'utime', 'updatedTime'),
             'maintenanceMargin' => $this->parse_number($maintenanceMargin),
             'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentage),
+            'positionMargin' => $this->parse_number($marginString),
             'collateral' => $this->parse_number($collateral),
             'initialMargin' => $this->parse_number($initialMargin),
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
             'leverage' => $this->parse_number($leverage),
-            'marginRatio' => $this->safe_number_2($position, 'marginRatio', 'mmr'),
+            'marginRatio' => $this->safe_number($position, 'marginRatio'),
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
         ));
@@ -12401,7 +12410,7 @@ class bitget extends Exchange {
         return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(string $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $pathPart = '/api';
@@ -12458,7 +12467,7 @@ class bitget extends Exchange {
                 $requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        $headersResult = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $headersResult = $requestHeaders;
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);
         if (($sandboxMode === true) && ($path !== 'v2/public/time') && ($path !== 'v3/market/current-fund-rate')) {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
@@ -12470,7 +12479,7 @@ class bitget extends Exchange {
                 $headersResult['PAPTRADING'] = '1';
             }
         }
-        $bodyResult = ($requestBody === null) ? $body : $requestBody;
+        $bodyResult = $requestBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 }

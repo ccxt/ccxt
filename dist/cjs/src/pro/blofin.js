@@ -69,12 +69,6 @@ class blofin extends blofin$1["default"] {
     ping(client) {
         return 'ping';
     }
-    handlePong(client, message) {
-        //
-        //   'pong'
-        //
-        client.lastPong = this.milliseconds();
-    }
     /**
      * @method
      * @name blofin#watchTrades
@@ -771,7 +765,6 @@ class blofin extends blofin$1["default"] {
         //
         const methods = {
             // public
-            'pong': this.handlePong,
             'trades': this.handleTrades,
             'books': this.handleOrderBook,
             'tickers': this.handleTicker,
@@ -785,7 +778,8 @@ class blofin extends blofin$1["default"] {
         };
         let method = undefined;
         if (message === 'pong') {
-            method = this.safeValue(methods, 'pong');
+            client.lastPong = this.milliseconds();
+            return;
         }
         else {
             const event = this.safeString(message, 'event');

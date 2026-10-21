@@ -3689,7 +3689,7 @@ public class Bitget extends BitgetApi
                 Boolean accountIsUTa = false;
                 try
                 {
-                    (this.privateUtaGetV3AccountSettings()).join();
+                    (this.privateUtaGetV3AccountSettings(new HashMap<String, Object>() {{}})).join();
                     accountIsUTa = true;
                 } catch(Exception e)
                 {
@@ -4868,19 +4868,22 @@ public class Bitget extends BitgetApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            this.checkAddress(address);
-            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+            List<Object> tagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tag = (String) ((List<Object>) tagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagparamsWithdrawTagVariable).get(1);
+            this.checkAddress(address, (String) null, (String) null);
+            List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsWithdrawTag));
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (java.util.Objects.equals(networkCode, null))
@@ -11730,12 +11733,15 @@ public class Bitget extends BitgetApi
         Long timestamp = this.safeIntegerN(position, new ArrayList<Object>(Arrays.asList("cTime", "ctime", "createdTime")));
         String marginMode = this.safeString(position, "marginMode");
         String collateral = null;
+        String marginString = null;
         String initialMargin = null;
         String unrealizedPnl = this.safeString2(position, "unrealizedPL", "unrealisedPnl");
-        String rawCollateral = this.safeString2(position, "marginSize", "positionBalance");
+        String rawCollateral = this.omitZero(this.safeString2(position, "marginSize", "positionBalance"));
         if (java.util.Objects.equals(marginMode, "isolated"))
         {
-            collateral = Precise.stringAdd(rawCollateral, unrealizedPnl);
+            collateral = (((!java.util.Objects.equals(unrealizedPnl, null)))) ? Precise.stringAdd(rawCollateral, unrealizedPnl) : rawCollateral;
+            initialMargin = rawCollateral;
+            marginString = rawCollateral;
         } else if (java.util.Objects.equals(marginMode, "crossed"))
         {
             marginMode = "cross";
@@ -11756,7 +11762,7 @@ public class Bitget extends BitgetApi
         String contractSize = this.numberToString(contractSizeNumber);
         String baseAmount = this.safeString2(position, "total", "openTotalPos");
         String entryPrice = this.safeStringN(position, new ArrayList<Object>(Arrays.asList("openPriceAvg", "openAvgPrice", "avgPrice")));
-        String maintenanceMarginPercentage = this.safeString(position, "keepMarginRate");
+        String maintenanceMarginPercentage = this.safeString2(position, "keepMarginRate", "mmr");
         String openNotional = Precise.stringMul(entryPrice, baseAmount);
         if (java.util.Objects.equals(initialMargin, null))
         {
@@ -11770,9 +11776,10 @@ public class Bitget extends BitgetApi
         String markPrice = this.safeString(position, "markPrice");
         String notional = Precise.stringMul(baseAmount, markPrice);
         String initialMarginPercentage = Precise.stringDiv(initialMargin, notional);
-        Double liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidationPrice")));
-        String calcTakerFeeRate = "0.0006";
-        String calcTakerFeeMult = "0.9994";
+        String rawLiquidationPrice = this.omitZero(this.safeString(position, "liquidationPrice"));
+        Double liquidationPrice = ((((!java.util.Objects.equals(rawLiquidationPrice, null)) && Precise.stringGt(rawLiquidationPrice, "0")))) ? this.parseNumber(rawLiquidationPrice) : null;
+        String calcTakerFeeRate = this.safeString(marketResolved, "taker", "0.0006");
+        String calcTakerFeeMult = Precise.stringSub("1", calcTakerFeeRate);
         if ((java.util.Objects.equals(liquidationPrice, null)) && (java.util.Objects.equals(marginMode, "isolated")) && Precise.stringGt(baseAmount, "0"))
         {
             String signedMargin = Precise.stringDiv(rawCollateral, baseAmount);
@@ -11791,7 +11798,11 @@ public class Bitget extends BitgetApi
             {
                 numerator = Precise.stringMul(numerator, calcTakerFeeMult);
             }
-            liquidationPrice = this.parseNumber(Precise.stringDiv(numerator, mmrMinusOne));
+            String derivedLiq = Precise.stringDiv(numerator, mmrMinusOne);
+            if ((!java.util.Objects.equals(derivedLiq, null)) && Precise.stringGt(derivedLiq, "0"))
+            {
+                liquidationPrice = this.parseNumber(derivedLiq);
+            }
         }
         String feeToClose = Precise.stringMul(notional, calcTakerFeeRate);
         String maintenanceMargin = Precise.stringAdd(Precise.stringMul(maintenanceMarginPercentage, notional), feeToClose);
@@ -11818,11 +11829,12 @@ public class Bitget extends BitgetApi
         mapLiteral14.put("lastUpdateTimestamp", this.safeInteger2(position, "utime", "updatedTime"));
         mapLiteral14.put("maintenanceMargin", this.parseNumber(maintenanceMargin));
         mapLiteral14.put("maintenanceMarginPercentage", this.parseNumber(maintenanceMarginPercentage));
+        mapLiteral14.put("positionMargin", this.parseNumber(marginString));
         mapLiteral14.put("collateral", this.parseNumber(collateral));
         mapLiteral14.put("initialMargin", this.parseNumber(initialMargin));
         mapLiteral14.put("initialMarginPercentage", this.parseNumber(initialMarginPercentage));
         mapLiteral14.put("leverage", this.parseNumber(leverage));
-        mapLiteral14.put("marginRatio", this.safeNumber2(position, "marginRatio", "mmr", (Object) null));
+        mapLiteral14.put("marginRatio", this.safeNumber(position, "marginRatio", (Object) null));
         mapLiteral14.put("stopLossPrice", null);
         mapLiteral14.put("takeProfitPrice", null);
         return this.safePosition(mapLiteral14);
@@ -14804,10 +14816,10 @@ public class Bitget extends BitgetApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 0), "private");
-        Object endpoint = Helpers.GetValue(api, 1);
+        Boolean signed = java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private");
+        Object endpoint = (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         String pathPart = "/api";
         String request = ("/" + this.implodeParams(path, parameters));
         String payload = (pathPart + request);
@@ -14871,7 +14883,7 @@ public class Bitget extends BitgetApi
                 requestHeaders.put("Content-Type", "application/json");
             }
         }
-        Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        Map<String, Object> headersResult = requestHeaders;
         Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if ((java.util.Objects.equals(sandboxMode, true)) && (!java.util.Objects.equals(path, "v2/public/time")) && (!java.util.Objects.equals(path, "v3/market/current-fund-rate")))
         {
@@ -14883,10 +14895,10 @@ public class Bitget extends BitgetApi
             String productType = this.safeString(parameters, "productType");
             if ((!java.util.Objects.equals(productType, "SCOIN-FUTURES")) && (!java.util.Objects.equals(productType, "SUSDT-FUTURES")) && (!java.util.Objects.equals(productType, "SUSDC-FUTURES")))
             {
-                ((Map<String, Object>)headersResult).put("PAPTRADING", "1");
+                headersResult.put("PAPTRADING", "1");
             }
         }
-        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
+        String bodyResult = requestBody;
         {
             HashMap<String, Object> h2kMap8 = new HashMap<String, Object>();
             h2kMap8.put("url", url);

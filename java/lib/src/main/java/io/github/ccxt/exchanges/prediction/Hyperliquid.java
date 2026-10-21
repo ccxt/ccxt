@@ -2700,9 +2700,9 @@ public class Hyperliquid extends HyperliquidApi
         return ((String)normalized).toLowerCase();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, Object body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiGroup = (((java.util.Objects.requireNonNullElse(api, "public") instanceof List))) ? (java.util.Objects.requireNonNullElse(api, "public") == null || 0 >= ((List<?>)java.util.Objects.requireNonNullElse(api, "public")).size() ? null : ((List<?>)java.util.Objects.requireNonNullElse(api, "public")).get(0)) : java.util.Objects.requireNonNullElse(api, "public");
+        Object apiGroup = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         String baseUrl = null;
         if (java.util.Objects.equals(sandboxMode, true))
@@ -2715,8 +2715,8 @@ public class Hyperliquid extends HyperliquidApi
             baseUrl = this.safeString(apiUrls, apiGroup, this.safeString(apiUrls, "public", ""));
         }
         String url = ((baseUrl + "/") + path);
-        Object headersValue = headers;
-        Object bodyValue = body;
+        Map<String, Object> headersValue = null;
+        String bodyValue = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "POST"), "POST"))
         {
             headersValue = new HashMap<String, Object>() {{
@@ -2732,10 +2732,6 @@ public class Hyperliquid extends HyperliquidApi
             h2kMap1.put("headers", headersValue);
             return h2kMap1;
         }
-    }
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
-    {
-        return this.sign(path, api, method, parameters, headers, (Object) (body));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

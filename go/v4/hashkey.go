@@ -486,7 +486,7 @@ func (this *Hashkey) Describe() any {
 				"TRC20":        "TRC20",
 				"Tron":         "TRC20",
 				"TON":          "TON",
-				"BSC(BEP20)":   "BSC",
+				"BSC(BEP20)":   "BEP20",
 				"Klaytn":       "KLAYTN",
 			},
 			"defaultNetwork": "ERC20",
@@ -1383,9 +1383,9 @@ func (this *Hashkey) ParseCurrency(rawCurrency any) map[string]any {
 			return nil
 		}()
 		var networkId *string = this.SafeString(network, "chainType")
-		var networkCode any = this.NetworkCodeToId(networkId, code)
+		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			AddElementToObject(parsedNetworks, networkCode, map[string]any{
+			parsedNetworks[*networkCode] = map[string]any{
 				"id":      networkId,
 				"network": networkCode,
 				"limits": map[string]any{
@@ -1404,7 +1404,7 @@ func (this *Hashkey) ParseCurrency(rawCurrency any) map[string]any {
 				"fee":       this.SafeNumber(network, "withdrawFee"),
 				"precision": nil,
 				"info":      network,
-			})
+			}
 		}
 	}
 	var rawType *string = this.SafeString(rawCurrency, "tokenType")
@@ -2272,7 +2272,7 @@ func (this *Hashkey) ParseSwapBalance(balance map[string]any) any {
  * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
  * @param {string} code unified currency code (default is 'USDT')
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
+ * @param {string} [params.network] network for fetch deposit address (default is 'ERC20')
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Hashkey) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -2301,7 +2301,7 @@ func (this *Hashkey) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	var paramsNetworkCode map[string]any = MapTyped(networkCodeInParamsparamsNetworkCodeVariable[1])
 	var networkCode any = func() any {
 		if IsEqual(networkCodeInParams, nil) {
-			return this.DefaultNetworkCode(code)
+			return this.SafeString(this.SafeDict(this.Options, "defaultNetworks", map[string]any{}), code, this.SafeString(this.Options, "defaultNetwork"))
 		}
 		return networkCodeInParams
 	}()
@@ -2538,8 +2538,8 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.network] network for withdraw
  * @param {string} [params.clientOrderId] client order id
  * @param {string} [params.platform] the platform to withdraw to (hashkey, HashKey HK)
@@ -2553,13 +2553,12 @@ func (this *Hashkey) WithdrawAsync(code string, amount any, address any, optiona
 func (this *Hashkey) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
+	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -2573,7 +2572,7 @@ func (this *Hashkey) withdrawBody(ch chan EndpointResult[map[string]any], code s
 		"address":  address,
 		"quantity": amount,
 	}
-	if tagWithdrawTag != nil {
+	if !IsEqual(tagWithdrawTag, nil) {
 		request["addressExt"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
@@ -2817,11 +2816,11 @@ func (this *Hashkey) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ..
 		}
 	}
 
-	listEp2689 := <-this.PrivateGetApiV1AccountType(params)
-	if listEp2689.Err != nil {
-		panic(listEp2689.Err)
+	listEp2688 := <-this.PrivateGetApiV1AccountType(params)
+	if listEp2688.Err != nil {
+		panic(listEp2688.Err)
 	}
-	var response []any = listEp2689.Value
+	var response []any = listEp2688.Value
 
 	//
 	//     [
@@ -2945,11 +2944,11 @@ func (this *Hashkey) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...a
 		request["accountType"] = this.EncodeAccountType(accountType)
 	}
 
-	listEp2810 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, paramsAccountType))
-	if listEp2810.Err != nil {
-		panic(listEp2810.Err)
+	listEp2809 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, paramsAccountType))
+	if listEp2809.Err != nil {
+		panic(listEp2809.Err)
 	}
-	var response []any = listEp2810.Value
+	var response []any = listEp2809.Value
 
 	//
 	//     [
@@ -3094,11 +3093,11 @@ func (this *Hashkey) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes253019 map[string]any = r1.Value
-		if retRes253019 == nil {
+		var retRes253119 map[string]any = r1.Value
+		if retRes253119 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes253019}
+			ch <- AsyncResult[map[string]any]{Value: retRes253119}
 		}
 		return nil
 	} else if market["swap"] == true {
@@ -3107,11 +3106,11 @@ func (this *Hashkey) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes253219 map[string]any = r2.Value
-		if retRes253219 == nil {
+		var retRes253319 map[string]any = r2.Value
+		if retRes253319 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes253219}
+			ch <- AsyncResult[map[string]any]{Value: retRes253319}
 		}
 		return nil
 	} else {
@@ -3157,11 +3156,11 @@ func (this *Hashkey) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes255815 map[string]any = r1.Value
-	if retRes255815 == nil {
+	var retRes255915 map[string]any = r1.Value
+	if retRes255915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes255815}
+		ch <- AsyncResult[any]{Value: retRes255915}
 	}
 	return nil
 }
@@ -3911,11 +3910,11 @@ func (this *Hashkey) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes330119 []any = r1.Value
-		if retRes330119 == nil {
+		var retRes330219 []any = r1.Value
+		if retRes330219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes330119}
+			ch <- AsyncResult[any]{Value: retRes330219}
 		}
 		return nil
 	} else if marketTypeOption != nil && *marketTypeOption == "swap" {
@@ -3924,11 +3923,11 @@ func (this *Hashkey) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes330319 []any = r2.Value
-		if retRes330319 == nil {
+		var retRes330419 []any = r2.Value
+		if retRes330419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes330319}
+			ch <- AsyncResult[any]{Value: retRes330419}
 		}
 		return nil
 	} else {
@@ -3986,11 +3985,11 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan AsyncResult[[]any], optiona
 	if accountId != nil {
 		request["subAccountId"] = accountId
 
-		listEp3735 := <-this.PrivateGetApiV1SpotSubAccountOpenOrders(this.Extend(request, paramsAccountId))
-		if listEp3735.Err != nil {
-			panic(listEp3735.Err)
+		listEp3734 := <-this.PrivateGetApiV1SpotSubAccountOpenOrders(this.Extend(request, paramsAccountId))
+		if listEp3734.Err != nil {
+			panic(listEp3734.Err)
 		}
-		response = listEp3735.Value
+		response = listEp3734.Value
 	} else {
 		if symbol != nil {
 			market = this.Market(symbol)
@@ -4000,11 +3999,11 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan AsyncResult[[]any], optiona
 			request["limit"] = limit
 		}
 
-		listEp3745 := <-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, paramsAccountId))
-		if listEp3745.Err != nil {
-			panic(listEp3745.Err)
+		listEp3744 := <-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, paramsAccountId))
+		if listEp3744.Err != nil {
+			panic(listEp3744.Err)
 		}
-		response = listEp3745.Value
+		response = listEp3744.Value
 	}
 
 	ch <- AsyncResult[[]any]{Value: this.ParseOrders(response, market, since, limit)}
@@ -4072,18 +4071,18 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan AsyncResult[[]any], optiona
 	if accountId != nil {
 		request["subAccountId"] = accountId
 
-		listEp3813 := <-this.PrivateGetApiV1FuturesSubAccountOpenOrders(this.Extend(request, paramsAccountId))
-		if listEp3813.Err != nil {
-			panic(listEp3813.Err)
+		listEp3812 := <-this.PrivateGetApiV1FuturesSubAccountOpenOrders(this.Extend(request, paramsAccountId))
+		if listEp3812.Err != nil {
+			panic(listEp3812.Err)
 		}
-		response = listEp3813.Value
+		response = listEp3812.Value
 	} else {
 
-		listEp3816 := <-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, paramsAccountId))
-		if listEp3816.Err != nil {
-			panic(listEp3816.Err)
+		listEp3815 := <-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, paramsAccountId))
+		if listEp3815.Err != nil {
+			panic(listEp3815.Err)
 		}
-		response = listEp3816.Value
+		response = listEp3815.Value
 	}
 
 	ch <- AsyncResult[[]any]{Value: this.ParseOrders(response, market, since, limit)}
@@ -4164,11 +4163,11 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any]
 			request["accountId"] = accountId
 		}
 
-		listEp3894 := <-this.PrivateGetApiV1SpotTradeOrders(this.Extend(request, paramsMarketType))
-		if listEp3894.Err != nil {
-			panic(listEp3894.Err)
+		listEp3893 := <-this.PrivateGetApiV1SpotTradeOrders(this.Extend(request, paramsMarketType))
+		if listEp3893.Err != nil {
+			panic(listEp3893.Err)
 		}
-		response = listEp3894.Value
+		response = listEp3893.Value
 	} else if marketType != nil && *marketType == "swap" {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a symbol argument for swap markets"))
@@ -4185,18 +4184,18 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any]
 		if accountId != nil {
 			request["subAccountId"] = accountId
 
-			listEp3911 := <-this.PrivateGetApiV1FuturesSubAccountHistoryOrders(this.Extend(request, paramsTrigger))
-			if listEp3911.Err != nil {
-				panic(listEp3911.Err)
+			listEp3910 := <-this.PrivateGetApiV1FuturesSubAccountHistoryOrders(this.Extend(request, paramsTrigger))
+			if listEp3910.Err != nil {
+				panic(listEp3910.Err)
 			}
-			response = listEp3911.Value
+			response = listEp3910.Value
 		} else {
 
-			listEp3914 := <-this.PrivateGetApiV1FuturesHistoryOrders(this.Extend(request, paramsTrigger))
-			if listEp3914.Err != nil {
-				panic(listEp3914.Err)
+			listEp3913 := <-this.PrivateGetApiV1FuturesHistoryOrders(this.Extend(request, paramsTrigger))
+			if listEp3913.Err != nil {
+				panic(listEp3913.Err)
 			}
-			response = listEp3914.Value
+			response = listEp3913.Value
 		}
 	} else {
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketType + " type of markets"))
@@ -4493,11 +4492,11 @@ func (this *Hashkey) fetchFundingRateBody(ch chan AsyncResult[map[string]any], s
 		"timestamp": this.Milliseconds(),
 	}
 
-	listEp4205 := <-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))
-	if listEp4205.Err != nil {
-		panic(listEp4205.Err)
+	listEp4204 := <-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))
+	if listEp4204.Err != nil {
+		panic(listEp4204.Err)
 	}
-	var response []any = listEp4205.Value
+	var response []any = listEp4204.Value
 	//
 	//     [
 	//         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
@@ -4542,11 +4541,11 @@ func (this *Hashkey) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArg
 		"timestamp": this.Milliseconds(),
 	}
 
-	listEp4247 := <-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))
-	if listEp4247.Err != nil {
-		panic(listEp4247.Err)
+	listEp4246 := <-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))
+	if listEp4246.Err != nil {
+		panic(listEp4246.Err)
 	}
-	var response []any = listEp4247.Value
+	var response []any = listEp4246.Value
 
 	//
 	//     [
@@ -4640,11 +4639,11 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optio
 		request["limit"] = limit
 	}
 
-	listEp4338 := <-this.PublicGetApiV1FuturesHistoryFundingRate(this.Extend(request, params))
-	if listEp4338.Err != nil {
-		panic(listEp4338.Err)
+	listEp4337 := <-this.PublicGetApiV1FuturesHistoryFundingRate(this.Extend(request, params))
+	if listEp4337.Err != nil {
+		panic(listEp4337.Err)
 	}
-	var response []any = listEp4338.Value
+	var response []any = listEp4337.Value
 	//
 	//     [
 	//         {
@@ -4731,11 +4730,11 @@ func (this *Hashkey) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes401215 []any = r1.Value
-	if retRes401215 == nil {
+	var retRes401315 []any = r1.Value
+	if retRes401315 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes401215}
+		ch <- AsyncResult[any]{Value: retRes401315}
 	}
 	return nil
 }
@@ -4780,11 +4779,11 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan AsyncResult[[]any], sym
 		"symbol": market["id"],
 	}
 
-	listEp4464 := <-this.PrivateGetApiV1FuturesPositions(this.Extend(request, paramsMethodName))
-	if listEp4464.Err != nil {
-		panic(listEp4464.Err)
+	listEp4463 := <-this.PrivateGetApiV1FuturesPositions(this.Extend(request, paramsMethodName))
+	if listEp4463.Err != nil {
+		panic(listEp4463.Err)
 	}
-	var response []any = listEp4464.Value
+	var response []any = listEp4463.Value
 
 	//
 	//     [
@@ -4879,11 +4878,11 @@ func (this *Hashkey) fetchLeverageBody(ch chan AsyncResult[map[string]any], symb
 		"symbol": market["id"],
 	}
 
-	listEp4556 := <-this.PrivateGetApiV1FuturesLeverage(this.Extend(request, params))
-	if listEp4556.Err != nil {
-		panic(listEp4556.Err)
+	listEp4555 := <-this.PrivateGetApiV1FuturesLeverage(this.Extend(request, params))
+	if listEp4555.Err != nil {
+		panic(listEp4555.Err)
 	}
-	var response []any = listEp4556.Value
+	var response []any = listEp4555.Value
 	//
 	//     [
 	//         {
@@ -5052,11 +5051,11 @@ func (this *Hashkey) addMarginBody(ch chan AsyncResult[map[string]any], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes422115 map[string]any = MapTyped(r.Value)
-	if retRes422115 == nil {
+	var retRes422215 map[string]any = MapTyped(r.Value)
+	if retRes422215 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes422115}
+		ch <- AsyncResult[map[string]any]{Value: retRes422215}
 	}
 	return nil
 }
@@ -5087,11 +5086,11 @@ func (this *Hashkey) reduceMarginBody(ch chan EndpointResult[map[string]any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes423615 map[string]any = MapTyped(r.Value)
-	if retRes423615 == nil {
+	var retRes423715 map[string]any = MapTyped(r.Value)
+	if retRes423715 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes423615, Raw: retRes423615}
+		ch <- EndpointResult[map[string]any]{Value: retRes423715, Raw: retRes423715}
 	}
 	return nil
 }
@@ -5488,23 +5487,20 @@ func (this *Hashkey) ParseTradingFee(fee any, optionalArgs ...any) map[string]an
 	}
 }
 func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = *apiUrl + "/" + path
 	var query string
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
 		var additionalParams map[string]any = map[string]any{
@@ -5543,7 +5539,7 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 		headersSigned["broker_sign"] = signature
 		var bodyResolved any = func() any {
 			if method == "GET" {
-				return body
+				return nil
 			}
 			return bodySigned
 		}()
@@ -5562,8 +5558,8 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Hashkey) CustomUrlencode(optionalArgs ...any) string {
@@ -5897,7 +5893,7 @@ func (this *Hashkey) FetchBalance(params ...any) (Balances, error) {
  * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
  * @param {string} code unified currency code (default is 'USDT')
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
+ * @param {string} [params.network] network for fetch deposit address (default is 'ERC20')
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Hashkey) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -5978,8 +5974,8 @@ func (this *Hashkey) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.network] network for withdraw
  * @param {string} [params.clientOrderId] client order id
  * @param {string} [params.platform] the platform to withdraw to (hashkey, HashKey HK)
@@ -5992,7 +5988,7 @@ func (this *Hashkey) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

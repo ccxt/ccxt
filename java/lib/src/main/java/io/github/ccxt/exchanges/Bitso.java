@@ -1849,7 +1849,7 @@ public class Bitso extends BitsoApi
                 address = this.safeString(parts, 0);
                 tag = this.safeString(parts, 1);
             }
-            this.checkAddress(address);
+            this.checkAddress(address, (String) null, (String) null);
             {
                 HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
                 h2kMap0.put("info", response);
@@ -2142,19 +2142,19 @@ public class Bitso extends BitsoApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2296,10 +2296,10 @@ public class Bitso extends BitsoApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
         String endpoint = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
@@ -2315,7 +2315,7 @@ public class Bitso extends BitsoApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + endpoint);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private"))
         {
             this.checkRequiredCredentials(true);
             // bitso rejects a nonce that is not higher than the previous one (error 104)

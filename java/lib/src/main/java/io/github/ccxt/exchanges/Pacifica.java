@@ -3349,8 +3349,13 @@ public class Pacifica extends PacificaApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
         String margin = this.safeString(position, "margin");
-        String marginMode = (((!java.util.Objects.equals(margin, null) && !java.util.Objects.equals(margin, "0")))) ? "isolated" : "cross";
-        Boolean isIsolated = (java.util.Objects.equals(marginMode, "isolated"));
+        Boolean rawIsolated = (Boolean) this.safeBool(position, "isolated", (Object) null);
+        Object isIsolated = (!java.util.Objects.equals(margin, null) && !java.util.Objects.equals(margin, "0"));
+        if (!java.util.Objects.equals(rawIsolated, null))
+        {
+            isIsolated = rawIsolated;
+        }
+        String marginMode = ((Helpers.isTrue(isIsolated))) ? "isolated" : "cross";
         String side = this.safeString(position, "side");
         if (!java.util.Objects.equals(side, null))
         {
@@ -3372,13 +3377,13 @@ public class Pacifica extends PacificaApi
         mapLiteral11.put("markPrice", null);
         mapLiteral11.put("notional", null);
         mapLiteral11.put("leverage", null);
-        mapLiteral11.put("collateral", margin);
+        mapLiteral11.put("collateral", this.safeNumber(position, "margin", (Object) null));
         mapLiteral11.put("initialMargin", null);
         mapLiteral11.put("maintenanceMargin", null);
         mapLiteral11.put("initialMarginPercentage", null);
         mapLiteral11.put("maintenanceMarginPercentage", null);
         mapLiteral11.put("unrealizedPnl", null);
-        mapLiteral11.put("liquidationPrice", null);
+        mapLiteral11.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
         mapLiteral11.put("marginMode", marginMode);
         mapLiteral11.put("percentage", null);
         return this.safePosition(mapLiteral11);
@@ -3473,12 +3478,12 @@ public class Pacifica extends PacificaApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address validated but not sent, funds go to the account wallet
-     * @param {string} tag not used by withdraw ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3488,7 +3493,7 @@ public class Pacifica extends PacificaApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            this.checkAddress(address);
+            this.checkAddress(address, (String) null, (String) null);
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{
                 put( "amount", Pacifica.this.numberToString(amount) );
             }};
@@ -4046,7 +4051,7 @@ public class Pacifica extends PacificaApi
         String marketId = this.safeString(income, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
-        String amount = this.safeString(income, "amount");
+        String amount = this.safeString(income, "payout");
         String code = this.safeCurrencyCode("USDC", (Map<String, Object>) null);
         Double rate = this.safeNumber(income, "rate", (Object) null);
         return new HashMap<String, Object>() {{
@@ -4455,16 +4460,17 @@ public class Pacifica extends PacificaApi
         return null;
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String requestBody = body;
+        String requestBody = null;
         Boolean isTestnet = this.isSandboxModeEnabled;
         String urlKey = "api";
         if (Boolean.TRUE.equals(isTestnet))
         {
             urlKey = "test";
         }
-        String baseApiUrl = this.safeString(Helpers.GetValue(this.urls, urlKey), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String baseApiUrl = this.safeString(Helpers.GetValue(this.urls, urlKey), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;

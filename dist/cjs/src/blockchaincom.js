@@ -437,7 +437,7 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        return await this.fetchL3OrderBook(symbol, limit, params);
+        return await this.fetchL2OrderBook(symbol, limit, params);
     }
     /**
      * @method
@@ -461,7 +461,7 @@ class blockchaincom extends blockchaincom$1["default"] {
             request['depth'] = limit;
         }
         const response = await this.publicGetL3Symbol(this.extend(request, params));
-        return this.parseOrderBook(response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty');
+        return this.parseOrderBookL3(response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty', 'num');
     }
     async fetchL2OrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1031,11 +1031,11 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1248,28 +1248,29 @@ class blockchaincom extends blockchaincom$1["default"] {
         //
         return this.parseOrder(response);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const requestPath = '/' + this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + requestPath;
         const query = this.omit(params, this.extractParams(path));
-        const isPrivate = (api === 'private');
+        const isPrivate = (apiName === 'private');
         const privateHeaders = {
             'X-API-Token': this.secret,
         };
-        let requestHeaders = headers;
+        let requestHeaders = undefined;
         if (isPrivate) {
             requestHeaders = privateHeaders;
         }
         const isPrivatePost = isPrivate && (method !== 'GET');
-        let requestBody = body;
+        let requestBody = undefined;
         if (isPrivatePost) {
             requestBody = this.json(query);
         }
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }

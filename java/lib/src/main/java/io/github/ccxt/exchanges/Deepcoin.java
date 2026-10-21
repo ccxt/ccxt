@@ -126,12 +126,12 @@ public class Deepcoin extends DeepcoinApi
                 put( "fetchOrderBook", true );
                 put( "fetchOrders", false );
                 put( "fetchOrderTrades", true );
-                put( "fetchPosition", true );
+                put( "fetchPosition", false );
                 put( "fetchPositionHistory", false );
                 put( "fetchPositionMode", false );
                 put( "fetchPositions", true );
                 put( "fetchPositionsForSymbol", true );
-                put( "fetchPositionsHistory", true );
+                put( "fetchPositionsHistory", false );
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchStatus", false );
                 put( "fetchTicker", false );
@@ -492,7 +492,7 @@ public class Deepcoin extends DeepcoinApi
                     put( "ERC20", "ERC20" );
                     put( "TRC20", "TRC20" );
                     put( "ARBITRUM", "ARBITRUM" );
-                    put( "BSC", "BSC(BEP20)" );
+                    put( "BEP20", "BSC(BEP20)" );
                     put( "SOL", "SOL" );
                     put( "BTC", "Bitcoin" );
                     put( "ADA", "Cardano" );
@@ -1535,6 +1535,10 @@ public class Deepcoin extends DeepcoinApi
             {
                 network = defaultNetwork;
             }
+            if (!java.util.Objects.equals(network, null))
+            {
+                network = this.safeString(this.networkAliases, network, network);
+            }
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
             List<DepositAddress> addressess = (this.fetchDepositAddresses(new ArrayList<Object>(Arrays.asList(code)), paramsOmitted)).join();
             Integer length = ((List<?>)addressess).size();
@@ -1577,7 +1581,7 @@ public class Deepcoin extends DeepcoinApi
         //
         String chain = this.safeString(response, "chain");
         String address = this.safeString(response, "address");
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         String code = this.safeString(currency, "code");
         return new HashMap<String, Object>() {{
             put( "info", response );
@@ -3207,36 +3211,45 @@ public class Deepcoin extends DeepcoinApi
         String marketId = this.safeString(position, "instId");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(position, "cTime");
-        return this.safePosition(new HashMap<String, Object>() {{
-            put( "symbol", marketResolved.get("symbol") );
-            put( "id", Deepcoin.this.safeString(position, "posId") );
-            put( "timestamp", timestamp );
-            put( "datetime", Deepcoin.this.iso8601(timestamp) );
-            put( "contracts", Deepcoin.this.safeNumber(position, "pos", (Object) null) );
-            put( "contractSize", null );
-            put( "side", Deepcoin.this.safeString(position, "posSide") );
-            put( "notional", null );
-            put( "leverage", Deepcoin.this.parseNumber(Deepcoin.this.omitZero(Deepcoin.this.safeString(position, "lever"))) );
-            put( "unrealizedPnl", null );
-            put( "realizedPnl", null );
-            put( "collateral", null );
-            put( "entryPrice", Deepcoin.this.safeNumber(position, "avgPx", (Object) null) );
-            put( "markPrice", null );
-            put( "liquidationPrice", Deepcoin.this.safeNumber(position, "liqPx", (Object) null) );
-            put( "marginMode", Deepcoin.this.safeString(position, "mgnMode") );
-            put( "hedged", true );
-            put( "maintenanceMargin", Deepcoin.this.safeNumber(position, "useMargin", (Object) null) );
-            put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", null );
-            put( "initialMarginPercentage", null );
-            put( "marginRatio", null );
-            put( "lastUpdateTimestamp", Deepcoin.this.safeInteger(position, "uTime") );
-            put( "lastPrice", null );
-            put( "stopLossPrice", null );
-            put( "takeProfitPrice", null );
-            put( "percentage", null );
-            put( "info", position );
-        }});
+        String marginMode = this.safeString(position, "mgnMode");
+        Double useMargin = this.safeNumber(position, "useMargin", (Object) null);
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        Double positionMargin = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            positionMargin = useMargin;
+        }
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("symbol", marketResolved.get("symbol"));
+        mapLiteral6.put("id", this.safeString(position, "posId"));
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("contracts", this.safeNumber(position, "pos", (Object) null));
+        mapLiteral6.put("contractSize", null);
+        mapLiteral6.put("side", this.safeString(position, "posSide"));
+        mapLiteral6.put("notional", null);
+        mapLiteral6.put("leverage", this.parseNumber(this.omitZero(this.safeString(position, "lever"))));
+        mapLiteral6.put("unrealizedPnl", this.safeNumber(position, "unrealizedProfit", (Object) null));
+        mapLiteral6.put("realizedPnl", null);
+        mapLiteral6.put("positionMargin", positionMargin);
+        mapLiteral6.put("collateral", null);
+        mapLiteral6.put("entryPrice", this.safeNumber(position, "avgPx", (Object) null));
+        mapLiteral6.put("markPrice", null);
+        mapLiteral6.put("liquidationPrice", this.safeNumber(position, "liqPx", (Object) null));
+        mapLiteral6.put("marginMode", marginMode);
+        mapLiteral6.put("hedged", true);
+        mapLiteral6.put("maintenanceMargin", null);
+        mapLiteral6.put("maintenanceMarginPercentage", null);
+        mapLiteral6.put("initialMargin", useMargin);
+        mapLiteral6.put("initialMarginPercentage", null);
+        mapLiteral6.put("marginRatio", null);
+        mapLiteral6.put("lastUpdateTimestamp", this.safeInteger(position, "uTime"));
+        mapLiteral6.put("lastPrice", null);
+        mapLiteral6.put("stopLossPrice", null);
+        mapLiteral6.put("takeProfitPrice", null);
+        mapLiteral6.put("percentage", null);
+        mapLiteral6.put("info", position);
+        return this.safePosition(mapLiteral6);
     }
 
     /**
@@ -3720,8 +3733,9 @@ public class Deepcoin extends DeepcoinApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object requestPath = path;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
@@ -3731,13 +3745,13 @@ public class Deepcoin extends DeepcoinApi
                 requestPath = (requestPath + ("?" + query));
             }
         }
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((apiUrl + "/") + requestPath);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             Long timestamp = this.milliseconds();
@@ -3748,7 +3762,7 @@ public class Deepcoin extends DeepcoinApi
             privateHeaders.put("DC-ACCESS-TIMESTAMP", dateTime);
             privateHeaders.put("DC-ACCESS-PASSPHRASE", this.password);
             privateHeaders.put("appid", "200103");
-            String requestBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.json(parameters) : body;
+            String requestBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.json(parameters) : null;
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
                 privateHeaders.put("Content-Type", "application/json");
@@ -3769,8 +3783,8 @@ public class Deepcoin extends DeepcoinApi
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap1.put("body", body);
-            h2kMap1.put("headers", headers);
+            h2kMap1.put("body", null);
+            h2kMap1.put("headers", null);
             return h2kMap1;
         }
     }

@@ -989,9 +989,9 @@ public partial class mexc : Exchange
                     } },
                 } },
                 { "defaultType", "spot" },
-                { "defaultNetwork", "ETH" },
+                { "defaultNetwork", "ERC20" },
                 { "defaultNetworks", new Dictionary<string, object>() {
-                    { "ETH", "ETH" },
+                    { "ETH", "ERC20" },
                     { "USDT", "ERC20" },
                     { "USDC", "ERC20" },
                     { "BTC", "BTC" },
@@ -1023,9 +1023,9 @@ public partial class mexc : Exchange
                     { "RSK", "RBTC" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
-                    { "BNB Smart Chain(BEP20-RACAV1)", "BSC" },
-                    { "BNB Smart Chain(BEP20-RACAV2)", "BSC" },
-                    { "BNB Smart Chain(BEP20)", "BSC" },
+                    { "BNB Smart Chain(BEP20-RACAV1)", "BEP20" },
+                    { "BNB Smart Chain(BEP20-RACAV2)", "BEP20" },
+                    { "BNB Smart Chain(BEP20)", "BEP20" },
                     { "Ethereum(ERC20)", "ERC20" },
                 } },
                 { "recvWindow", (5L * 1000L) },
@@ -2686,7 +2686,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
         {
-            throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
+            throw new NotSupported ((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
         }
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
@@ -3479,7 +3479,7 @@ public partial class mexc : Exchange
         IDictionary<string, object> query = ((IDictionary<string, object>)marketTypequeryVariable[1]);
         if ((marketType == "spot"))
         {
-            throw new BadRequest (((this.id + " fetchOrdersByIds() is not supported for ") + marketType)) ;
+            throw new NotSupported (((this.id + " fetchOrdersByIds() is not supported for ") + marketType)) ;
         } else
         {
             request["order_ids"] = String.Join(",", ids.ToArray());
@@ -3851,7 +3851,7 @@ public partial class mexc : Exchange
         string? marketType = (string)marketTypeVariable[0];
         if ((marketType == "spot"))
         {
-            throw new BadRequest (((this.id + " cancelOrders() is not supported for ") + marketType)) ;
+            throw new NotSupported (((this.id + " cancelOrders() is not supported for ") + marketType)) ;
         } else
         {
             Dictionary<string, object> response = await this.contractPrivatePostOrderCancel(ids); // the request cannot be changed or extended. The only way to send.
@@ -4348,7 +4348,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
         {
-            throw new BadRequest ((this.id + " fetchTradingFee() supports spot markets only")) ;
+            throw new NotSupported ((this.id + " fetchTradingFee() supports spot markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -5970,24 +5970,38 @@ public partial class mexc : Exchange
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? contracts = this.safeString(position, "holdVol");
         double? entryPrice = this.safeNumber(position, "openAvgPrice");
-        string? initialMargin = this.safeString(position, "im");
+        string? initialMargin = ((string)this.omitZero(this.safeString(position, "im")));
+        string? unrealizedPnl = this.safeString(position, "unRealizedPnl");
         string? rawSide = this.safeString(position, "positionType");
         string side = (rawSide == "1") ? "long" : "short";
-        string? openType = this.safeString(position, "margin_mode");
+        string? openType = this.safeString2(position, "openType", "margin_mode");
         string marginType = (openType == "1") ? "isolated" : "cross";
+        string? collateralString = null;
+        string? marginString = null;
+        if ((marginType == "isolated") && ((initialMargin != null)))
+        {
+            // im is the margin mexc holds in the position; funding settles to the available balance
+            collateralString = initialMargin;
+            marginString = collateralString;
+            if ((unrealizedPnl != null))
+            {
+                collateralString = Precise.stringAdd(collateralString, unrealizedPnl);
+            }
+        }
         double? leverage = this.safeNumber(position, "leverage");
-        double? liquidationPrice = this.safeNumber(position, "liquidatePrice");
+        double? liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidatePrice")));
         Int64? timestamp = this.safeInteger(position, "updateTime");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
             { "symbol", symbol },
             { "contracts", this.parseNumber(contracts) },
-            { "contractSize", null },
+            { "contractSize", this.safeNumber(marketResolved, "contractSize") },
             { "entryPrice", entryPrice },
-            { "collateral", null },
+            { "positionMargin", this.parseNumber(marginString) },
+            { "collateral", this.parseNumber(collateralString) },
             { "side", side },
-            { "unrealizedPnl", null },
+            { "unrealizedPnl", this.parseNumber(unrealizedPnl) },
             { "leverage", this.parseNumber(leverage) },
             { "percentage", null },
             { "marginMode", marginType },
@@ -6050,11 +6064,8 @@ public partial class mexc : Exchange
             //
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data));
-        } else if ((marketType == "swap"))
-        {
-            throw new BadRequest (((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
         }
-        throw new BadRequest (((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
+        throw new NotSupported (((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
     }
 
     /**
@@ -6341,13 +6352,13 @@ public partial class mexc : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {object} [params.internal] false by default, set to true for an "internal transfer"
      * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -6355,8 +6366,8 @@ public partial class mexc : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        IList<object> tagResolvedparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagResolved = tagResolvedparamsWithdrawTagVariable[0];
+        IList<object> tagResolvedparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagResolved = (string)tagResolvedparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagResolvedparamsWithdrawTagVariable[1]);
         bool? intern = this.safeBool(paramsWithdrawTag, "internal", false);
         if ((intern == true))
@@ -6384,7 +6395,7 @@ public partial class mexc : Exchange
         string? network = this.safeString2(paramsWithdrawTag, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
         network = this.networkCodeToId(network, this.safeString(currency, "code"));
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagResolved);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "address", address },
@@ -6880,7 +6891,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            throw new BadSymbol ((this.id + " setMarginMode() supports contract markets only")) ;
+            throw new NotSupported ((this.id + " setMarginMode() supports contract markets only")) ;
         }
         string marginModeLower = marginMode.ToLower();
         if (marginModeLower != "isolated" && marginModeLower != "cross")
@@ -6918,13 +6929,13 @@ public partial class mexc : Exchange
         return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
+        Dictionary<string, object> requestHeaders = null;
+        object requestBody = null;
         string? section = this.safeString(api, 0);
         string? access = this.safeString(api, 1);
         string? pathValue = this.implodeParams(path, parameters);
@@ -6984,7 +6995,7 @@ public partial class mexc : Exchange
             if (((method == "POST")) || ((method == "PUT")) || ((method == "DELETE")))
             {
                 requestHeaders = ((requestHeaders == null)) ? new Dictionary<string, object>() {} : requestHeaders;
-                ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/json";
+                requestHeaders["Content-Type"] = "application/json";
             }
         } else if (section == "contract" || section == "spot2")
         {
@@ -7027,7 +7038,7 @@ public partial class mexc : Exchange
                 }
                 auth = ((this.apiKey + timestamp) + (auth));
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-                ((IDictionary<string,object>)requestHeaders)["Signature"] = signature;
+                requestHeaders["Signature"] = signature;
             }
         }
         return new Dictionary<string, object>() {

@@ -1973,7 +1973,8 @@ class blofin extends blofin$1["default"] {
     }
     networkCodeToChainId(networkCode, currency = undefined) {
         const aliases = this.safeDict(this.options, 'networkCodeAliases', {});
-        const unifiedCode = this.safeString(aliases, networkCode, networkCode);
+        const aliasedCode = this.safeString(aliases, networkCode, networkCode);
+        const unifiedCode = this.safeString(this.networkAliases, aliasedCode, aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if (currency !== undefined) {
@@ -2353,8 +2354,8 @@ class blofin extends blofin$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
      * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
-     * @param {string} tag additional identifier (memo / payment id) required by certain networks
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
      * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
      * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -2362,7 +2363,7 @@ class blofin extends blofin$1["default"] {
      * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
         // - addrType is documented optional but the live venue rejects
         //   on-chain withdrawals without it: 152001 "Parameter addrType
@@ -2375,7 +2376,7 @@ class blofin extends blofin$1["default"] {
         //   error table documents the message as "Parameter {} error"
         let tagValue = undefined;
         let query = undefined;
-        [tagValue, query] = this.handleWithdrawTagAndParams(tag, params);
+        [tagValue, query] = this.handleParamString(params, 'tag');
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
@@ -2387,7 +2388,7 @@ class blofin extends blofin$1["default"] {
         request['dest'] = dest;
         query = this.omit(query, 'dest');
         if (dest === 'onchain') {
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagValue);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to
@@ -2943,6 +2944,9 @@ class blofin extends blofin$1["default"] {
         if (marketResolved['inverse'] === true) {
             notionalString = Precise["default"].stringDiv(Precise["default"].stringMul(contractsAbs, contractSizeString), markPriceString);
         }
+        else if (notionalString === undefined) {
+            notionalString = Precise["default"].stringMul(Precise["default"].stringMul(contractsAbs, contractSizeString), markPriceString);
+        }
         const notional = this.parseNumber(notionalString);
         const marginMode = this.safeString(position, 'marginMode');
         let initialMarginString = undefined;
@@ -2951,13 +2955,19 @@ class blofin extends blofin$1["default"] {
         const leverageString = this.safeString(position, 'leverage');
         let initialMarginPercentage = undefined;
         let collateralString = undefined;
+        let marginString = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString(position, 'initialMargin');
-            collateralString = Precise["default"].stringAdd(initialMarginString, unrealizedPnlString);
+            collateralString = (unrealizedPnlString !== undefined) ? Precise["default"].stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         }
         else if (marginMode === 'isolated') {
             initialMarginPercentage = Precise["default"].stringDiv('1', leverageString);
-            collateralString = this.safeString(position, 'margin');
+            const isolatedMarginString = this.omitZero(this.safeString2(position, 'margin', 'initialMargin'));
+            if (isolatedMarginString !== undefined) {
+                initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
+                collateralString = (unrealizedPnlString !== undefined) ? Precise["default"].stringAdd(isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
+            }
         }
         const maintenanceMarginString = this.safeString(position, 'maintenanceMargin');
         const maintenanceMargin = this.parseNumber(maintenanceMarginString);
@@ -2970,8 +2980,20 @@ class blofin extends blofin$1["default"] {
             initialMarginString = Precise["default"].stringMul(initialMarginPercentageString, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
-        const maintenanceMarginPercentage = this.parseNumber(Precise["default"].stringDiv(Precise["default"].stringAdd(maintenanceMarginPercentageString, rounder), '1', 4));
-        const liquidationPrice = this.safeNumber(position, 'liquidationPrice');
+        const maintenanceMarginPercentage = (maintenanceMarginPercentageString !== undefined) ? this.parseNumber(Precise["default"].stringDiv(Precise["default"].stringAdd(maintenanceMarginPercentageString, rounder), '1', 4)) : undefined;
+        let liquidationPriceString = this.omitZero(this.safeString(position, 'liquidationPrice'));
+        if ((liquidationPriceString === undefined) && (marginMode === 'isolated') && (initialMarginString !== undefined) && (entryPriceString !== undefined) && (contractsAbs !== undefined) && Precise["default"].stringGt(contractsAbs, '0') && (contractSizeString !== undefined) && (maintenanceMarginPercentage !== undefined)) {
+            const takerFeeRate = this.safeString(marketResolved, 'taker', '0.0006');
+            const mmpWithFee = Precise["default"].stringAdd(this.numberToString(maintenanceMarginPercentage), takerFeeRate);
+            const totalSize = Precise["default"].stringMul(contractsAbs, contractSizeString);
+            const marginPerUnit = Precise["default"].stringDiv(initialMarginString, totalSize);
+            const num = (side === 'long') ? Precise["default"].stringSub(entryPriceString, marginPerUnit) : Precise["default"].stringAdd(entryPriceString, marginPerUnit);
+            const denom = (side === 'long') ? Precise["default"].stringSub('1', mmpWithFee) : Precise["default"].stringAdd('1', mmpWithFee);
+            if ((denom !== undefined) && Precise["default"].stringGt(denom, '0')) {
+                liquidationPriceString = Precise["default"].stringDiv(num, denom);
+            }
+        }
+        const liquidationPrice = ((liquidationPriceString !== undefined) && Precise["default"].stringGt(liquidationPriceString, '0')) ? this.parseNumber(liquidationPriceString) : undefined;
         const percentageString = this.safeString(position, 'unrealizedPnlRatio');
         const percentage = this.parseNumber(Precise["default"].stringMul(percentageString, '100'));
         const timestamp = this.safeInteger(position, 'updateTime');
@@ -2999,6 +3021,7 @@ class blofin extends blofin$1["default"] {
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'positionMargin': this.parseNumber(marginString),
             'collateral': this.parseNumber(collateralString),
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
@@ -3481,7 +3504,8 @@ class blofin extends blofin$1["default"] {
         }
         return undefined;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let request = '/api/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const apiUrl = this.safeString(this.urls['api'], 'rest');
@@ -3490,12 +3514,12 @@ class blofin extends blofin$1["default"] {
         }
         let url = apiUrl + request;
         // const type = this.getPathAuthenticationType (path);
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (!this.isEmpty(query)) {
                 url += '?' + this.urlencode(query);
             }
         }
-        else if (api === 'private') {
+        else if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             const signedHeaders = {
@@ -3523,10 +3547,10 @@ class blofin extends blofin$1["default"] {
             const auth = request + method + timestamp + timestamp + sign_body;
             const signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256));
             signedHeaders['ACCESS-SIGN'] = signature;
-            const bodyResolved = (signedBody === undefined) ? body : signedBody;
+            const bodyResolved = signedBody;
             return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 }
 

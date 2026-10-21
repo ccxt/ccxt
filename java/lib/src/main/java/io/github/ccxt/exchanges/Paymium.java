@@ -788,7 +788,7 @@ public class Paymium extends PaymiumApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String baseApiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(baseApiUrl, null))
@@ -798,7 +798,7 @@ public class Paymium extends PaymiumApi
         String baseUrl = baseApiUrl;
         String url = ((((baseUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "public"))
         {
             if (Helpers.objectKeys(query).size() > 0)
             {
@@ -814,7 +814,7 @@ public class Paymium extends PaymiumApi
             signedHeaders.put("Api-Key", this.apiKey);
             signedHeaders.put("Api-Nonce", nonce);
             Boolean hasQuery = Helpers.objectKeys(query).size() > 0;
-            String signedBody = body;
+            String signedBody = null;
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") && Boolean.TRUE.equals(hasQuery))
             {
                 signedBody = this.json(query);
@@ -849,8 +849,8 @@ public class Paymium extends PaymiumApi
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap1.put("body", body);
-            h2kMap1.put("headers", headers);
+            h2kMap1.put("body", null);
+            h2kMap1.put("headers", null);
             return h2kMap1;
         }
     }

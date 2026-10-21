@@ -78,12 +78,6 @@ func (this *Blofin) Describe() any {
 func (this *Blofin) Ping(client any) any {
 	return "ping"
 }
-func (this *Blofin) HandlePong(client any, message any) {
-	//
-	//   'pong'
-	//
-	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
-}
 
 /**
  * @method
@@ -1244,7 +1238,6 @@ func (this *Blofin) HandleMessage(client any, message any) {
 	// incoming data updates' examples can be seen under each handler method
 	//
 	var methods map[string]any = map[string]any{
-		"pong":         this.HandlePong,
 		"trades":       this.HandleTrades,
 		"books":        this.HandleOrderBook,
 		"tickers":      this.HandleTicker,
@@ -1257,7 +1250,8 @@ func (this *Blofin) HandleMessage(client any, message any) {
 	}
 	var method any = nil
 	if ccxt.IsEqual(message, "pong") {
-		method = this.SafeValue(methods, "pong")
+		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+		return
 	} else {
 		var event *string = this.SafeString(message, "event")
 		if event != nil && *event == "subscribe" {

@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.blockchaincom import ImplicitAPI
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderBookL3, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -435,9 +435,9 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return self.fetch_l3_order_book(symbol, limit, params)
+        return self.fetch_l2_order_book(symbol, limit, params)
 
-    def fetch_l3_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
+    def fetch_l3_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBookL3:
         """
         fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -457,9 +457,9 @@ class blockchaincom(Exchange, ImplicitAPI):
         if limit is not None:
             request['depth'] = limit
         response = self.publicGetL3Symbol(self.extend(request, params))
-        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty')
+        return self.parse_order_book_l3(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty', 'num')
 
-    def fetch_l2_order_book(self, symbol: str, limit: Int = None, params: dict = {}):
+    def fetch_l2_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -990,7 +990,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -999,8 +999,8 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
@@ -1202,25 +1202,26 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
         requestPath = '/' + self.implode_params(path, params)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + requestPath
         query = self.omit(params, self.extract_params(path))
-        isPrivate = (api == 'private')
+        isPrivate = (apiName == 'private')
         privateHeaders = {
             'X-API-Token': self.secret,
         }
-        requestHeaders = headers
+        requestHeaders = None
         if isPrivate:
             requestHeaders = privateHeaders
         isPrivatePost = isPrivate and (method != 'GET')
-        requestBody = body
+        requestBody = None
         if isPrivatePost:
             requestBody = self.json(query)
-        if api == 'public':
+        if apiName == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif isPrivate:

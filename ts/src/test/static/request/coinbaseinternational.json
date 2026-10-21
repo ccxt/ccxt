@@ -239,7 +239,6 @@
           "USDC",
           5,
           "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB",
-          null,
           {
             "network": "ARBITRUM"
           }

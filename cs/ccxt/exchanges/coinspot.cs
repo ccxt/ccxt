@@ -527,7 +527,7 @@ public partial class coinspot : Exchange
                 { "DRK", "DASH" },
             } },
             { "options", new Dictionary<string, object>() {
-                { "fetchBalance", "private_post_my_balances" },
+                { "fetchBalance", "privatePostMyBalances" },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -639,7 +639,7 @@ public partial class coinspot : Exchange
         {
             await this.loadMarkets();
         }
-        string? method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
+        string? method = this.safeString(this.options, "fetchBalance", "privatePostMyBalances");
         Dictionary<string, object> response = null;
         if ((method == "private_post_ro_my_balances") || (method == "privatePostRoMyBalances"))
         {
@@ -1101,16 +1101,17 @@ public partial class coinspot : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
-        bool isVersionedApi = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
+        int apiLength = getArrayLength(api);
+        bool isVersionedApi = apiLength > 1;
         object version = isVersionedApi ? getValue(api, 0) : null;
-        object accessType = isVersionedApi ? getValue(api, 1) : api;
+        object accessType = isVersionedApi ? getValue(api, 1) : getValue(api, 0);
         string endpoint = ("/" + this.implodeParams(path, parameters));
         string fullPath = endpoint;
         if ((version != null))

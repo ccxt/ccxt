@@ -2081,11 +2081,8 @@ public class Bybit extends BybitApi
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "BTC" );
                     put( "BRC20", "BTC" );
-                    put( "ETH", "ETH" );
                     put( "ERC20", "ETH" );
-                    put( "TRX", "TRX" );
                     put( "TRC20", "TRX" );
-                    put( "BSC", "BSC" );
                     put( "BEP20", "BSC" );
                     put( "SOL", "SOL" );
                     put( "ACA", "ACA" );
@@ -2146,6 +2143,7 @@ public class Bybit extends BybitApi
                     put( "MOVE", "MOVE" );
                 }} );
                 put( "networksById", new HashMap<String, Object>() {{
+                    put( "BTC", "BTC" );
                     put( "ETH", "ERC20" );
                     put( "TRX", "TRC20" );
                     put( "BSC", "BEP20" );
@@ -7510,7 +7508,7 @@ public class Bybit extends BybitApi
         String address = this.safeString(depositAddress, "addressDeposit");
         String tag = this.safeString(depositAddress, "tagDeposit");
         String code = this.safeString(currency, "code");
-        this.checkAddress(address);
+        this.checkAddress(address, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
@@ -7604,7 +7602,7 @@ public class Bybit extends BybitApi
             String networkCode = (String) ((List<Object>) networkCodeparamsOmitedVariable).get(0);
             Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
             Object indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
-            Object selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(currency.get("code"), networkCode, indexedAddresses);
+            Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, indexedAddresses, true);
             return this.safeValue(indexedAddresses, selectedNetworkCode);
         }).thenApply(DepositAddress::new);
 
@@ -8205,18 +8203,18 @@ public class Bybit extends BybitApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             Object accounts = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Object isUta = (accounts == null || 1 >= ((List<?>)accounts).size() ? null : ((List<?>)accounts).get(1));
@@ -8229,7 +8227,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", currency.get("id") );
@@ -8674,7 +8672,17 @@ public class Bybit extends BybitApi
         {
             lastUpdateTimestamp = (Long) this.safeInteger2(position, "updatedTime", "updatedAt");
         }
-        String collateralString = this.safeString(position, "positionBalance");
+        // positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
+        String positionMarginString = this.omitZero(this.safeString(position, "positionBalance"));
+        String collateralString = null;
+        if (!java.util.Objects.equals(positionMarginString, null))
+        {
+            collateralString = positionMarginString;
+            if (!java.util.Objects.equals(unrealisedPnl, null))
+            {
+                collateralString = Precise.stringAdd(positionMarginString, unrealisedPnl);
+            }
+        }
         String entryPrice = this.omitZero(this.safeStringN(position, new ArrayList<Object>(Arrays.asList("entryPrice", "avgPrice", "avgEntryPrice"))));
         String liquidationPrice = this.omitZero(this.safeString(position, "liqPrice"));
         String leverage = this.safeString(position, "leverage");
@@ -8691,21 +8699,30 @@ public class Bybit extends BybitApi
                 }
                 Object difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
+                positionMarginString = null; // derived from collateral by safePosition
             } else
             {
-                String bustPrice = this.safeString(position, "bustPrice");
+                String bustPrice = this.omitZero(this.safeString(position, "bustPrice"));
+                String closingFee = this.omitZero(this.safeString(position, "occClosingFee"));
                 if (java.util.Objects.equals(marketResolved.get("linear"), true))
                 {
-                    // derived from the following formulas
+                    // derived from the following formula:
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     // Maintenance Margin = (Bust price - Liq price) x Contracts
-                    String maintenanceMarginPriceDifference = Precise.stringAbs(Precise.stringSub(liquidationPrice, bustPrice));
-                    maintenanceMarginString = Precise.stringMul(maintenanceMarginPriceDifference, size);
-                    // Initial Margin = Contracts x Entry Price / Leverage
+                    if ((java.util.Objects.equals(maintenanceMarginString, null)) && (!java.util.Objects.equals(bustPrice, null)) && !Precise.stringEq(bustPrice, liquidationPrice))
+                    {
+                        String maintenanceMarginPriceDifference = Precise.stringAbs(Precise.stringSub(liquidationPrice, bustPrice));
+                        maintenanceMarginString = Precise.stringMul(maintenanceMarginPriceDifference, size);
+                    }
+                    // Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
                     if ((!java.util.Objects.equals(entryPrice, null)) && (java.util.Objects.equals(initialMarginString, null)))
                     {
                         initialMarginString = Precise.stringDiv(Precise.stringMul(size, entryPrice), leverage);
+                        if (!java.util.Objects.equals(closingFee, null))
+                        {
+                            initialMarginString = Precise.stringAdd(initialMarginString, closingFee);
+                        }
                     }
                 } else
                 {
@@ -8713,13 +8730,20 @@ public class Bybit extends BybitApi
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    Object difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
-                    String multiply = Precise.stringMul(bustPrice, liquidationPrice);
-                    maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
-                    // Initial Margin = Leverage x Contracts / EntryPrice
+                    if ((java.util.Objects.equals(maintenanceMarginString, null)) && (!java.util.Objects.equals(bustPrice, null)) && !Precise.stringEq(bustPrice, liquidationPrice))
+                    {
+                        Object difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
+                        String multiply = Precise.stringMul(bustPrice, liquidationPrice);
+                        maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
+                    }
+                    // Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
                     if ((!java.util.Objects.equals(entryPrice, null)) && (java.util.Objects.equals(initialMarginString, null)))
                     {
                         initialMarginString = Precise.stringDiv(size, Precise.stringMul(entryPrice, leverage));
+                        if (!java.util.Objects.equals(closingFee, null))
+                        {
+                            initialMarginString = Precise.stringAdd(initialMarginString, closingFee);
+                        }
                     }
                 }
             }
@@ -8749,6 +8773,7 @@ public class Bybit extends BybitApi
         mapLiteral10.put("markPrice", this.parseNumber(markPrice));
         mapLiteral10.put("lastPrice", this.safeNumber(position, "avgExitPrice", (Object) null));
         mapLiteral10.put("collateral", this.parseNumber(collateralString));
+        mapLiteral10.put("positionMargin", this.parseNumber(positionMarginString));
         mapLiteral10.put("marginMode", null);
         mapLiteral10.put("side", side);
         mapLiteral10.put("percentage", null);
@@ -10950,8 +10975,8 @@ public class Bybit extends BybitApi
         for (var i = 0; i < Helpers.getArrayLength(info); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(info, i, (Object) null);
-            String marketId = this.safeString(info, "symbol");
-            Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            String marketId = this.safeString(tier, "symbol");
+            Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "contract");
             Double minNotional = this.parseNumber("0");
             if ((i != 0))
             {
@@ -12125,23 +12150,24 @@ public class Bybit extends BybitApi
         return this.safeString(marginModes, marginMode, marginMode);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String requestBody = null;
         Object requestHeaders = null;
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((this.implodeHostname(apiUrl) + "/") + path);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (((Map<String, Object>)parameters).size() > 0)
             {
                 url = (url + ("?" + this.rawencode(parameters)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        } else if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             Boolean isOpenapi = ((String)url).indexOf("openapi") >= 0;
@@ -12248,12 +12274,12 @@ public class Bybit extends BybitApi
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
         {
             String brokerId = this.safeString(this.options, "brokerId", "CCXT");
-            Object headersBase = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+            Object headersBase = requestHeaders;
             requestHeaders = (((java.util.Objects.equals(headersBase, null)))) ? new HashMap<String, Object>() {{}} : headersBase;
             ((Map<String, Object>)requestHeaders).put("Referer", brokerId);
         }
-        String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        String bodyResolved = requestBody;
+        Object headersResolved = requestHeaders;
         {
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);

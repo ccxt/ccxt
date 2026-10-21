@@ -401,7 +401,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     put( "method", "v1PrivatePostTransfersWithdraw" );
                 }} );
                 put( "networksById", new HashMap<String, Object>() {{
-                    put( "ethereum", "ETH" );
+                    put( "ethereum", "ERC20" );
                     put( "arbitrum", "ARBITRUM" );
                     put( "avacchain", "AVAX" );
                     put( "optimism", "OPTIMISM" );
@@ -2810,21 +2810,22 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag] an optional tag for the withdrawal
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {boolean} [params.add_network_fee_to_total] if true, deducts network fee from the portfolio, otherwise deduct fee from the withdrawal
      * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a)
      * @param {string} [params.nonce] a unique integer representing the withdrawal request
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagAndParams = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>)tagAndParams).get(1);
-            this.checkAddress(address);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2867,7 +2868,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String version = this.safeString(api, 0);
         Boolean signed = java.util.Objects.equals(this.safeString(api, 1), "private");
@@ -2893,7 +2894,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             signedBody = this.json(query);
         }
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(hasSignedBody))
         {
             requestBody = signedBody;
@@ -2913,7 +2914,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 "CB-ACCESS-KEY", this.apiKey
             );
         }
-        Object requestHeaders = headers;
+        Map<String, Object> requestHeaders = null;
         if (Boolean.TRUE.equals(signed))
         {
             requestHeaders = signedHeaders;

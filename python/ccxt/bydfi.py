@@ -2075,6 +2075,10 @@ class bydfi(Exchange, ImplicitAPI):
             # in fetchPositions, the 'volume' is in base currency units, need to convert to contracts
             contracts = Precise.string_div(contracts, contractSize)
         timestamp = self.safe_integer(position, 'createTime')
+        # raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+        positionMargin = self.safe_string(position, 'positionMargin')
+        if (positionMargin is not None) and not Precise.string_gt(positionMargin, '0'):
+            positionMargin = None
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'id'),
@@ -2083,6 +2087,7 @@ class bydfi(Exchange, ImplicitAPI):
             'markPrice': self.parse_number(self.safe_string(position, 'markPrice')),
             'lastPrice': self.parse_number(self.safe_string(position, 'avgClosePositionPrice')),
             'notional': self.parse_number(self.safe_string(position, 'closePositionCost')),
+            'positionMargin': self.parse_number(positionMargin),
             'collateral': None,
             'unrealizedPnl': self.parse_number(self.safe_string(position, 'unPnl')),
             'realizedPnl': self.parse_number(self.safe_string(position, 'positionProfits')),
@@ -2799,8 +2804,9 @@ class bydfi(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl
@@ -2813,7 +2819,7 @@ class bydfi(Exchange, ImplicitAPI):
                 endpoint += '?' + query
         requestBody = None
         requestHeaders = None
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             if method == 'GET':
@@ -2835,8 +2841,8 @@ class bydfi(Exchange, ImplicitAPI):
                     'X-API-SIGNATURE': signature,
                 }
         url += endpoint
-        bodyResolved = body if (requestBody is None) else requestBody
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        bodyResolved = requestBody
+        headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

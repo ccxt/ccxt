@@ -2378,7 +2378,7 @@ func (this *Pacifica) createOrdersBody(ch chan AsyncResult[any], orders any, opt
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var response map[string]any = r2.Value
+	var response map[string]any = MapTyped(r2.Raw)
 	// {
 	//   "success": true,
 	//   "data": {
@@ -2473,7 +2473,7 @@ func (this *Pacifica) cancelOrdersBody(ch chan AsyncResult[any], ids any, option
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var response map[string]any = r2.Value
+	var response map[string]any = MapTyped(r2.Raw)
 	//
 	// {
 	//   "success": true,
@@ -3816,13 +3816,17 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var margin *string = this.SafeString(position, "margin")
+	var rawIsolated *bool = this.SafeBool(position, "isolated")
+	var isIsolated any = ((margin != nil) && (margin == nil || *margin != "0"))
+	if rawIsolated != nil {
+		isIsolated = rawIsolated
+	}
 	var marginMode string = func() string {
-		if (margin != nil) && (margin == nil || *margin != "0") {
+		if EvalTruthy(isIsolated) {
 			return "isolated"
 		}
 		return "cross"
 	}()
-	var isIsolated bool = (marginMode == "isolated")
 	var side *string = this.SafeString(position, "side")
 	if side != nil {
 		side = SafeStringPtr(func() string {
@@ -3848,13 +3852,13 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any {
 		"markPrice":                   nil,
 		"notional":                    nil,
 		"leverage":                    nil,
-		"collateral":                  margin,
+		"collateral":                  this.SafeNumber(position, "margin"),
 		"initialMargin":               nil,
 		"maintenanceMargin":           nil,
 		"initialMarginPercentage":     nil,
 		"maintenanceMarginPercentage": nil,
 		"unrealizedPnl":               nil,
-		"liquidationPrice":            nil,
+		"liquidationPrice":            this.SafeNumber(position, "liquidation_price"),
 		"marginMode":                  marginMode,
 		"percentage":                  nil,
 	})
@@ -3977,8 +3981,8 @@ func (this *Pacifica) setLeverageBody(ch chan AsyncResult[any], leverage int64, 
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address validated but not sent, funds go to the account wallet
- * @param {string} tag not used by withdraw ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
@@ -3990,9 +3994,7 @@ func (this *Pacifica) WithdrawAsync(code string, amount any, address any, option
 func (this *Pacifica) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var operationType string = "withdraw"
 	if this.Markets == nil {
@@ -4348,11 +4350,11 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes311819 []any = ListTyped(r1.Value)
-		if retRes311819 == nil {
+		var retRes312219 []any = ListTyped(r1.Value)
+		if retRes312219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes311819}
+			ch <- AsyncResult[any]{Value: retRes312219}
 		}
 		return nil
 	}
@@ -4653,11 +4655,11 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[any], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes332719 []any = ListTyped(r1.Value)
-		if retRes332719 == nil {
+		var retRes333119 []any = ListTyped(r1.Value)
+		if retRes333119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes332719}
+			ch <- AsyncResult[any]{Value: retRes333119}
 		}
 		return nil
 	}
@@ -4708,7 +4710,7 @@ func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(income, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
-	var amount *string = this.SafeString(income, "amount")
+	var amount *string = this.SafeString(income, "payout")
 	var code *string = this.SafeCurrencyCode("USDC")
 	var rate *float64 = this.SafeNumber(income, "rate")
 	return map[string]any{
@@ -5181,23 +5183,20 @@ func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, he
 	return nil
 }
 func (this *Pacifica) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var headers map[string]any = GetArgMap(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var requestBody any = body
+	var requestBody *string = nil
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
 		urlKey = "test"
 	}
-	var baseApiUrl *string = this.SafeString(this.Urls[urlKey], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var baseApiUrl *string = this.SafeString(this.Urls[urlKey], apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -5213,7 +5212,7 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) any {
 		headersValue["Accept"] = "*/*"
 	}
 	if method == "POST" {
-		requestBody = this.Json(paramsOmitted)
+		requestBody = SafeStringPtr(this.Json(paramsOmitted))
 	}
 	if !IsEqual(this.HandleOption("sign", "apiKey"), nil) {
 		headersValue["PF-API-KEY"] = GetValue(this.Options, "apiKey")
@@ -6100,8 +6099,8 @@ func (this *Pacifica) SetLeverage(leverage int64, options ...SetLeverageOptions)
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address validated but not sent, funds go to the account wallet
- * @param {string} tag not used by withdraw ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
@@ -6112,7 +6111,7 @@ func (this *Pacifica) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

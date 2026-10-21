@@ -1722,7 +1722,7 @@ class gemini(Exchange, ImplicitAPI):
         response = self.privatePostV1Mytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1731,13 +1731,12 @@ class gemini(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagAndParams = self.handle_withdraw_tag_and_params(tag, params)
-        paramsWithdrawTag = tagAndParams[1]
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -1929,11 +1928,12 @@ class gemini(Exchange, ImplicitAPI):
         # single network, so the last address the venue lists for it wins — same as before)
         return self.index_by(results, 'network')
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         headersSigned = None
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             apiKey = self.apiKey
             if apiKey.find('account') < 0:
@@ -1957,12 +1957,12 @@ class gemini(Exchange, ImplicitAPI):
         else:
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         fullUrl = apiUrl + url
-        headersResolved = headersSigned if (api == 'private') else headers
-        bodyResolved = body
+        headersResolved = headersSigned if (apiName == 'private') else None
+        bodyResolved = None
         if (method == 'POST') or (method == 'DELETE'):
             bodyResolved = self.json(query)
         return {'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersResolved}

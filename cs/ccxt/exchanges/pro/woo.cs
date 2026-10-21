@@ -85,7 +85,7 @@ public partial class woo : ccxt.woo
     public async virtual Task<object> watchPublic(object messageHash, IDictionary<string, object> message)
     {
         string urlUid = "";
-        if (!isEqual(this.uid, ""))
+        if (((this.uid != null)) && (!isEqual(this.uid, "")))
         {
             urlUid = ("/" + this.uid);
         }
@@ -102,7 +102,7 @@ public partial class woo : ccxt.woo
     {
         parameters ??= new Dictionary<string, object>();
         string urlUid = "";
-        if (!isEqual(this.uid, ""))
+        if (((this.uid != null)) && (!isEqual(this.uid, "")))
         {
             urlUid = ("/" + this.uid);
         }
@@ -156,7 +156,7 @@ public partial class woo : ccxt.woo
         Dictionary<string, object> market = this.market(symbol);
         string? topic = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method));
         string urlUid = "";
-        if (!isEqual(this.uid, ""))
+        if (((this.uid != null)) && (!isEqual(this.uid, "")))
         {
             urlUid = ("/" + this.uid);
         }

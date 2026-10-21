@@ -455,7 +455,6 @@ class toobit extends Exchange {
                 'networks' => array(
                     'BTC' => 'BTC',
                     'ERC20' => 'ETH',
-                    'ETH' => 'ETH',
                     'BEP20' => 'BSC',
                     'TRC20' => 'TRX',
                     'SOL' => 'SOL',
@@ -1277,6 +1276,8 @@ class toobit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API $endpoint
+         * @param {string} [$params->price] "mark" or "index" for mark price and index price $candles
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -1287,20 +1288,33 @@ class toobit extends Exchange {
             'symbol' => $market['id'],
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        if ($since !== null) {
-            $request['startTime'] = $since;
-        }
         $until = $this->safe_integer($params, 'until');
-        if ($until !== null) {
-            $request['endTime'] = $until;
-        }
         $paramsOmitted = ($until !== null) ? $this->omit($params, 'until') : $params;
+        list($endpoint, $paramsPrice) = $this->handle_option_string_and_params($paramsOmitted, 'fetchOHLCV', 'price');
+        $isPriceKlines = ($endpoint === 'index') || ($endpoint === 'mark');
+        $startKey = 'startTime';
+        $endKey = 'endTime';
+        if ($isPriceKlines) {
+            $startKey = 'from';
+            $endKey = 'to';
+        }
+        if ($since !== null) {
+            $request[$startKey] = $since;
+        }
+        if ($until !== null) {
+            $request[$endKey] = $until;
+        } elseif ($isPriceKlines && ($since !== null)) {
+            // mark and index klines walk backwards from `to` and ignore a lone `from`
+            $duration = $this->parse_timeframe($timeframe);
+            $requestedLimit = ($limit === null) ? 2000 : $limit; // exchange default
+            $request['to'] = $this->sum($since, $duration * $requestedLimit * 1000);
+        }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
         $response = array();
-        list($endpoint, $paramsPrice) = $this->handle_option_string_and_params($paramsOmitted, 'fetchOHLCV', 'price');
         if ($endpoint === 'index') {
+            $request['symbol'] = $this->safe_string($market['info'], 'indexToken'); // index klines take the index id instead of the market id
             $response = Async\await($this->commonGetQuoteV1IndexKlines($this->extend($request, $paramsPrice)));
             //
             //     {
@@ -1371,6 +1385,8 @@ class toobit extends Exchange {
         $candles = array();
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             $candles = $response;
+        } else {
+            $candles = $this->safe_list($response, 'data', array());
         }
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
@@ -1467,9 +1483,9 @@ class toobit extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'h'),
             'low' => $this->safe_string($ticker, 'l'),
-            'bid' => null,
+            'bid' => $this->safe_string($ticker, 'b'),
             'bidVolume' => null,
-            'ask' => null,
+            'ask' => $this->safe_string($ticker, 'a'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'o'),
@@ -1532,7 +1548,7 @@ class toobit extends Exchange {
             'symbol' => $marketResolved['symbol'],
             'timestamp' => null,
             'datetime' => null,
-            'price' => $this->safe_number_omit_zero($entry, 'price'),
+            'price' => $this->safe_number_omit_zero($entry, 'p'),
             'side' => null,
             'info' => $entry,
         );
@@ -3144,11 +3160,11 @@ class toobit extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -3157,13 +3173,14 @@ class toobit extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag a memo for the transaction
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination $tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} [$params->addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
+        list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $this->check_address($address);
-        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() : param["network"] is required');
         }
@@ -3388,7 +3405,7 @@ class toobit extends Exchange {
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnL'),
             'side' => $side,
             'contracts' => $this->parse_number($quantity),
-            'contractSize' => null,
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'timestamp' => null,
             'datetime' => null,
             'hedged' => null,
@@ -3404,8 +3421,9 @@ class toobit extends Exchange {
         ));
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -3415,7 +3433,7 @@ class toobit extends Exchange {
         $isDelete = $method === 'DELETE';
         $extraQuery = array();
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api !== 'private') {
+        if ($apiName !== 'private') {
             // Public endpoints
             if (!$isPost) {
                 if (count($query) > 0) {
@@ -3442,7 +3460,7 @@ class toobit extends Exchange {
             } else {
                 $queryString = $this->urlencode($queryExtended);
             }
-            $payloadBody = $body;
+            $payloadBody = null;
             if ($isPost || $isDelete) {
                 $payloadBody = $privateBody;
             }
@@ -3463,13 +3481,13 @@ class toobit extends Exchange {
                 'X-BB-API-PLATFORM' => $this->safe_string($this->options, 'brokerId', '177321641268789'),
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
-            $requestBody = $body;
+            $requestBody = null;
             if ($isPost || $isDelete) {
                 $requestBody = $privateBody;
             }
             return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

@@ -17,6 +17,7 @@
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchTicker](#fetchticker)
+* [fetchBidsAsks](#fetchbidsasks)
 * [fetchTickers](#fetchtickers)
 * [fetchMarkPrice](#fetchmarkprice)
 * [fetchMarkPrices](#fetchmarkprices)
@@ -376,6 +377,31 @@ bingx.fetchTicker (symbol, params?)
 ```
 
 
+<a name="fetchBidsAsks" id="fetchbidsasks"></a>
+
+### fetchBidsAsks{docsify-ignore}
+fetches the bid and ask price and volume for multiple markets
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**
+
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Symbol%20Order%20Book%20Ticker
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Symbol%20Order%20Book%20Ticker
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the bids and asks for, all spot markets are returned if not assigned, swap requires exactly one symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.fetchBidsAsks (symbols?, params?)
+```
+
+
 <a name="fetchTickers" id="fetchtickers"></a>
 
 ### fetchTickers{docsify-ignore}
@@ -559,7 +585,7 @@ bingx.fetchPosition (symbol, params?)
 <a name="createMarketOrderWithCost" id="createmarketorderwithcost"></a>
 
 ### createMarketOrderWithCost{docsify-ignore}
-create a spot market order by providing the symbol, side and cost
+create a spot or linear swap market order by providing the symbol, side and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
@@ -581,7 +607,7 @@ bingx.createMarketOrderWithCost (symbol, side, cost, params?)
 <a name="createMarketBuyOrderWithCost" id="createmarketbuyorderwithcost"></a>
 
 ### createMarketBuyOrderWithCost{docsify-ignore}
-create a spot market buy order by providing the symbol and cost
+create a spot or linear swap market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
@@ -602,7 +628,7 @@ bingx.createMarketBuyOrderWithCost (symbol, cost, params?)
 <a name="createMarketSellOrderWithCost" id="createmarketsellorderwithcost"></a>
 
 ### createMarketSellOrderWithCost{docsify-ignore}
-create a spot market sell order by providing the symbol and cost
+create a spot or linear swap market sell order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
@@ -651,8 +677,8 @@ create a trade order
 | params.triggerPrice | <code>float</code> | No | triggerPrice at which the attached take profit / stop loss order will be triggered |
 | params.stopLossPrice | <code>float</code> | No | stop loss trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice |
 | params.takeProfitPrice | <code>float</code> | No | take profit trigger price, a spot order is placed as TAKE_STOP and parsed back with triggerPrice |
-| params.cost | <code>float</code> | No | *spot only* the quote quantity that can be used as an alternative for the amount |
-| params.quoteOrderQty | <code>float</code> | No | *spot only* the quote quantity, an alternative to params.cost |
+| params.cost | <code>float</code> | No | *spot and linear swap only* the quote quantity that can be used as an alternative for the amount |
+| params.quoteOrderQty | <code>float</code> | No | *spot and linear swap only* the quote quantity, an alternative to params.cost |
 | params.trailingAmount | <code>float</code> | No | *swap only* the quote amount to trail away from the current market price |
 | params.trailingPercent | <code>float</code> | No | *swap only* the percent to trail away from the current market price |
 | params.trailingTriggerPrice | <code>float</code> | No | *swap only* the price to activate a trailing order at |
@@ -1301,13 +1327,13 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | No |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.walletType | <code>int</code> | No | 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account |
 
 
 ```javascript
-bingx.withdraw (code, amount, address, tag?, params?)
+bingx.withdraw (code, amount, address, params?)
 ```
 
 

@@ -1773,7 +1773,7 @@ func (this *Htx) Describe() any {
 				"LTC":       "LTC",
 				"XRP":       "XRP",
 				"XLM":       "XLM",
-				"CRONOS":    "CRO",
+				"CRC20":     "CRO",
 				"CRO":       "CRO",
 				"GLMR":      "GLMR",
 				"POLYGON":   "MATIC",
@@ -3619,7 +3619,7 @@ func (this *Htx) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol 
 	//         }
 	//     }
 	//
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " fetchOrderBook() returned empty response"))
 	}
 	if InOp(response, "tick") {
@@ -8880,7 +8880,7 @@ func (this *Htx) fetchDepositAddressBody(ch chan AsyncResult[any], code string, 
 		panic(r1.Err)
 	}
 	indexedAddresses := r1.Raw
-	var selectedNetworkCode any = this.SelectNetworkCodeFromUnifiedNetworks(currency["code"], networkCode, indexedAddresses)
+	var selectedNetworkCode any = this.SelectNetworkKeyFromNetworks(currency["code"], networkCode, indexedAddresses, true)
 
 	ch <- AsyncResult[any]{Value: this.SafeValue(indexedAddresses, selectedNetworkCode)}
 	return nil
@@ -9257,8 +9257,8 @@ func (this *Htx) ParseTransactionStatus(status *string) *string {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Htx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -9269,11 +9269,9 @@ func (this *Htx) WithdrawAsync(code string, amount any, address any, optionalArg
 func (this *Htx) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagValueparamsTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
+	var tagValueparamsTagVariable []any = this.HandleParamString(params, "tag")
 	tagValue := GetValue(tagValueparamsTagVariable, 0)
 	var paramsTag map[string]any = MapTyped(tagValueparamsTagVariable[1])
 	if this.Markets == nil {
@@ -9283,7 +9281,7 @@ func (this *Htx) withdrawBody(ch chan EndpointResult[map[string]any], code strin
 			panic(r.Err)
 		}
 	}
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagValue)
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"address":  address,
@@ -10295,16 +10293,12 @@ func (this *Htx) Nonce() any {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Htx) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var signedHeaders any = nil
 	var signedBody any = nil
 	var pathString string = path
@@ -10316,15 +10310,17 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 	} else {
 		query = this.Omit(params, this.ExtractParams(path))
 	}
-	if IsString(api) {
+	var apiLength int = GetArrayLength(api)
+	if apiLength == 1 {
 		// signing implementation for the old endpoints
-		if (api == "public") || (api == "private") {
+		var apiName *string = SafeStringPtr(GetValue(api, 0))
+		if (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "private") {
 			url += this.Version
-		} else if (api == "v2Public") || (api == "v2Private") {
+		} else if (apiName != nil && *apiName == "v2Public") || (apiName != nil && *apiName == "v2Private") {
 			url += "v2"
 		}
 		url += "/" + this.ImplodeParams(path, params)
-		if (api == "private") || (api == "v2Private") {
+		if (apiName != nil && *apiName == "private") || (apiName != nil && *apiName == "v2Private") {
 			this.CheckRequiredCredentials()
 			var timestamp string = this.Ymdhms(this.Nonce(), "T")
 			var request map[string]any = map[string]any{
@@ -10367,7 +10363,7 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 				url += "?" + this.Urlencode(query)
 			}
 		}
-		var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
+		var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
 		if baseApiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
@@ -10467,18 +10463,8 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 			"hostname": finalHostname,
 		}) + url
 	}
-	var headersResolved any = func() any {
-		if signedHeaders != nil {
-			return signedHeaders
-		}
-		return headers
-	}()
-	var bodyResolved any = func() any {
-		if signedBody != nil {
-			return signedBody
-		}
-		return body
-	}()
+	var headersResolved any = signedHeaders
+	var bodyResolved any = signedBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -10719,7 +10705,7 @@ func (this *Htx) setLeverageBody(ch chan AsyncResult[any], leverage int64, optio
 			panic(NotSupported(this.Id + " setLeverage() not support this market type"))
 		}
 	}
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " setLeverage() returned empty response"))
 	}
 
@@ -11084,7 +11070,7 @@ func (this *Htx) fetchPositionBody(ch chan AsyncResult[any], symbol any, optiona
 			}
 			response = r3.Raw
 		} else {
-			panic(NotSupported(this.Id + " setLeverage() not support this market type"))
+			panic(NotSupported(this.Id + " fetchPosition() not support this market type"))
 		}
 	}
 	var data any = this.SafeValue(response, "data")
@@ -11226,11 +11212,11 @@ func (this *Htx) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes854319 []any = ListTyped(r1.Value)
-		if retRes854319 == nil {
+		var retRes854519 []any = ListTyped(r1.Value)
+		if retRes854519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes854319}
+			ch <- AsyncResult[any]{Value: retRes854519}
 		}
 		return nil
 	}
@@ -12791,7 +12777,7 @@ func (this *Htx) closePositionBody(ch chan AsyncResult[any], symbol string, opti
 		ch <- AsyncResult[any]{Value: OrderToMap(this.ParseOrder(data, market))}
 		return nil
 	}
-	if response == nil {
+	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -14135,8 +14121,8 @@ func (this *Htx) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transac
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Htx) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -14146,7 +14132,7 @@ func (this *Htx) Withdraw(code string, amount float64, address string, options .
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

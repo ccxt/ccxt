@@ -60,7 +60,7 @@ function toSnakeCase(s: string): string {
 
 // ── output paths ─────────────────────────────────────────────────────────────
 const RUST_BASE              = './rust/ccxt-base/src';
-const RUST_CORE              = './rust/ccxt-core/src';
+const RUST_CORE              = './rust/ccxt-common/src';
 const BASE_METHODS_FILE      = `${RUST_CORE}/exchange_generated.rs`;
 const PREDICTION_BASE_FILE   = `${RUST_CORE}/prediction_exchange_generated.rs`;
 const ERRORS_FILE            = `${RUST_CORE}/exchange_errors.rs`;
@@ -2592,8 +2592,13 @@ export class RustTranspilerBuilder {
             // handle_* cache handlers (and the dispatch entry points) so their
             // writes persist. Gated to WS so the REST/prediction transpile — and
             // its long-green output — is byte-for-byte unchanged.
+            // handle_errors is the one `&self` virtual where venues persist session state read
+            // from the response headers (grvt stores its auth cookie / account id in
+            // this.options there). Promote it when it writes a self field so those writes are
+            // not cloned away; the DerivedExchange forwarder already casts for mut virtuals.
             const seeded = directMutRe.test(body)
-                || (wsSeeds && (refMutRe.test(body) || dispatchRe.test(body)));
+                || (wsSeeds && (refMutRe.test(body) || dispatchRe.test(body)))
+                || (f.name === 'handle_errors' && refMutRe.test(body));
             if (seeded) mutSet.add(f.name);
         }
         // Fixed-point: any fn that calls a known-mut method joins the set.
@@ -2849,8 +2854,8 @@ export class RustTranspilerBuilder {
         const abstractPath = `./ts/src/abstract/${className}.ts`;
         if (!fs.existsSync(abstractPath)) return content;
         const abstractSrc = fs.readFileSync(abstractPath, 'utf8');
-        // Interface method decls look like:
-        //   traderPrivateGetV2Clock (params?: {}): Promise<implicitReturnType>;
+        // Generated method heads look like:
+        //   traderPrivateGetV2Clock (params = {}): Promise<Dict> {
         // The name class must allow `_`: versioned endpoints carry an
         // underscore in the identifier (coinone's `v2_1PrivatePostOrderLimit`).
         // Without it the capture stops at `v2`, the full snake name never
@@ -2858,7 +2863,7 @@ export class RustTranspilerBuilder {
         // bare arg never gets folded into the `&[Value]` slice the generated
         // `<id>_api.rs` method expects (E0308: expected `&[Value]`, found `Value`).
         const names = new Set<string>();
-        const re = /^\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\([^)]*\):\s*Promise/gm;
+        const re = /^\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\([^)]*\):\s*Promise<[^>]*>\s*\{/gm;
         let m: RegExpExecArray | null;
         while ((m = re.exec(abstractSrc)) !== null) {
             names.add(toSnakeCase(m[1]));
@@ -7075,10 +7080,10 @@ export class RustTranspilerBuilder {
         if (this._discoveredVariadicsCache) return this._discoveredVariadicsCache;
         const out: Record<string, number> = {};
         const baseFiles = [
-            './rust/ccxt-core/src/exchange_generated.rs',
-            './rust/ccxt-core/src/exchange_stubs.rs',
+            './rust/ccxt-common/src/exchange_generated.rs',
+            './rust/ccxt-common/src/exchange_stubs.rs',
             // ExchangeRuntime dispatchers + super_* shims (review #1).
-            './rust/ccxt-core/src/exchange.rs',
+            './rust/ccxt-common/src/exchange.rs',
         ];
         for (const f of baseFiles) {
             const m = this.extractVariadicsFromFile(f);
@@ -7104,7 +7109,7 @@ export class RustTranspilerBuilder {
         const id = exchangeId.toLowerCase();
         if (!this._predictionVariadicsCache) {
             this._predictionVariadicsCache = this.extractVariadicsFromFile(
-                './rust/ccxt-core/src/prediction_exchange_generated.rs',
+                './rust/ccxt-common/src/prediction_exchange_generated.rs',
             );
         }
         return {
@@ -7715,12 +7720,25 @@ export class RustTranspilerBuilder {
             const preamble =
                 `\n        // virtual-dispatch (static: DerivedExchange::${name}(self, ...))\n` +
                 `        { let __v = ${callExpr}; if !matches!(__v, crate::Value::Null) { return __v; } }\n`;
+            if (this.superShimmedVirtualMethods().has(name)) {
+                // overrides that call super.X() reach `X_non_virtual`, so the virtual hop cannot recurse
+                const fwd = paramInfo.map(p => p.name).join(', ');
+                const wrapper = `pub fn ${name}(${argList}) ${retType} {${preamble}        self.${name}_non_virtual(${fwd})\n    }\n\n    `;
+                out += content.slice(last, m.index) + wrapper + m[0].replace(`fn ${name}(`, `fn ${name}_non_virtual(`);
+                last = m.index + m[0].length;
+                continue;
+            }
             const matchEnd = m.index + m[0].length;
             out += content.slice(last, matchEnd) + preamble;
             last = matchEnd;
         }
         out += content.slice(last);
         return out;
+    }
+
+    /** Trait methods whose overrides call `super.X()`; their base body is emitted as `X_non_virtual`. */
+    superShimmedVirtualMethods(): Set<string> {
+        return new Set([ 'market' ]);
     }
 
     /**
@@ -7776,6 +7794,7 @@ export class RustTranspilerBuilder {
             parse_prediction_order:     ['order', 'market'],
             parse_prediction_position:  ['position', 'market'],
             create_expired_option_market: ['symbol'],
+            market:                     ['symbol'],
             sign:                       ['path', 'api', 'method', 'params', 'headers', 'body'],
             handle_errors:              ['code', 'reason', 'url', 'method', 'headers', 'body', 'response', 'request_headers', 'request_body'],
         };
@@ -8489,7 +8508,7 @@ ${arms.join('\n')}
             const predAsync: string[] = isPrediction
                 ? Object.keys({
                     ...this.extractAsyncFnNames(`./rust/ccxt-base/src/prediction/${className}_api.rs`),
-                    ...this.extractAsyncFnNames('./rust/ccxt-core/src/prediction_exchange_generated.rs'),
+                    ...this.extractAsyncFnNames('./rust/ccxt-common/src/prediction_exchange_generated.rs'),
                   })
                 : [];
             let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), ...predAsync, 'call_method', 'call_dynamic', 'call_dynamic_checked', 'fetch', 'load_markets', 'throttle']);
@@ -8537,15 +8556,15 @@ ${arms.join('\n')}
             } catch (_) { /* REST parent not generated yet */ }
         }
         content = this.promoteSelfMutMethods(content, parentMutSeeds, ws);
-        if (ws) {
-            // Re-strip `&mut self.<field>.clone()` casts: WS handlers just
-            // promoted to `&mut self` above had their field mutations cloned-away
-            // by the earlier `stripMutSelfFieldClones` (which ran while they were
-            // still `&self`). Now that they're `&mut self`, drop the clone so the
-            // write lands on the real field (the orderbook cache persists, so
-            // `watch` resolves a populated book). REST/prediction unaffected.
-            content = this.stripMutSelfFieldClones(content);
-        }
+        // Re-strip `&mut self.<field>.clone()` casts: methods just promoted to
+        // `&mut self` above had their field mutations cloned-away by the earlier
+        // `stripMutSelfFieldClones` (which ran while they were still `&self`). Now
+        // that they're `&mut self`, drop the clone so the write lands on the real
+        // field: WS handlers keep their orderbook cache (so `watch` resolves a
+        // populated book) and a REST `handle_errors` keeps the session state it
+        // stores in this.options (grvt's auth cookie / account id). The pass only
+        // touches `&mut self` methods, so unpromoted REST output is unchanged.
+        content = this.stripMutSelfFieldClones(content);
         // Normalize async receivers: in this codebase every `pub async fn`
         // that touches self takes `&mut self` (they call load_markets / watch
         // / fetch, which cache on self). The regex that stamps this (near the
@@ -8841,7 +8860,9 @@ impl ${coreName} {
     pub fn init(&mut self) {
         let described = ${coreName}::describe(self);
         self.exchange.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -9808,6 +9829,8 @@ impl std::ops::DerefMut for ${coreName} {
             // its own Rust module. We emit our own run_all() in
             // writeBaseTestsModFile instead.
             if (testName === 'tests.init') continue;
+            // BaseCore exposes checkAddress only through the variadic &[Value] entry
+            if (testName === 'test.checkAddress') continue;
             const tsFile = `${baseFolder}/${testName}.ts`;
             const tsContent = fs.readFileSync(tsFile).toString();
             // `test.cryptography` is marked NO_AUTO_TRANSPILE (it's

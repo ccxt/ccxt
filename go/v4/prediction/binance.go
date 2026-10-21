@@ -2612,27 +2612,16 @@ func (this *Binance) HandleErrors(code any, reason any, url any, method any, hea
  * @param {string|string[]} [api] the api group and access level
  * @param {string} [method] HTTP method
  * @param {object} [params] request parameters
- * @param {object} [headers] request headers
- * @param {object} [body] request body
  * @returns {object} a dictionary with url, method, body and headers
  */
 func (this *Binance) Sign(path string, optionalArgs ...any) any {
-	api := ccxt.GetArg(optionalArgs, 0, "sapi")
+	api := ccxt.GetArg(optionalArgs, 0, []any{"sapi"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := ccxt.GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := ccxt.GetArg(optionalArgs, 4, nil)
-	_ = body
-	var apiGroup any = func() any {
-		if ccxt.IsString(api) {
-			return api
-		}
-		return ccxt.GetValue(api, 0)
-	}()
+	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "sapi"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
@@ -2653,11 +2642,11 @@ func (this *Binance) Sign(path string, optionalArgs ...any) any {
 	var headersValue map[string]any = map[string]any{
 		"X-MBX-APIKEY": this.ApiKey,
 	}
-	var bodyValue any = body
+	var bodyValue *string = nil
 	if (method == "GET") || (method == "DELETE") {
 		url = url + "?" + querystring
 	} else {
-		bodyValue = querystring
+		bodyValue = ccxt.SafeStringPtr(querystring)
 		headersValue["Content-Type"] = "application/x-www-form-urlencoded"
 	}
 	return map[string]any{

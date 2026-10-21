@@ -8,6 +8,8 @@ from ccxt.async_support.base.ws.cache import ArrayCache
 from ccxt.base.types import IndexType, Int, Market, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class luno(ccxt.async_support.luno):
@@ -215,6 +217,10 @@ class luno(ccxt.async_support.luno):
             self.orderbooks[symbol] = self.indexed_order_book({})
         orderbook = self.orderbooks[symbol]
         asks = self.safe_list(message, 'asks')
+        if asks is None:
+            inSequence = self.is_order_book_delta_in_sequence(client, message, symbol)
+            if not inSequence:
+                return
         if asks is not None:
             snapshot = self.custom_parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id')
             orderbook.reset(snapshot)
@@ -298,9 +304,23 @@ class luno(ccxt.async_support.luno):
         #         "timestamp": 1660598775360
         #     }
         #
-        createUpdate = self.safe_dict(message, 'create_update')
         asksOrderSide = orderbook['asks']
         bidsOrderSide = orderbook['bids']
+        # trade updates are applied first, matching the ordering of the
+        # reference luno streaming client
+        tradeUpdates = self.safe_list(message, 'trade_updates', [])
+        for i in range(0, len(tradeUpdates)):
+            tradeUpdate = tradeUpdates[i]
+            makerOrderId = self.safe_string(tradeUpdate, 'maker_order_id')
+            tradedAmount = self.safe_string(tradeUpdate, 'base')
+            if (makerOrderId is not None) and (tradedAmount is not None):
+                # the message does not carry the side of the maker order and
+                # order ids are unique across the book, so try the bids first
+                # and fall back to the asks only on a miss
+                reduced = self.reduce_order_volume(bidsOrderSide, makerOrderId, tradedAmount)
+                if not reduced:
+                    self.reduce_order_volume(asksOrderSide, makerOrderId, tradedAmount)
+        createUpdate = self.safe_dict(message, 'create_update')
         if createUpdate is not None:
             bidAskArray = self.custom_parse_bid_ask(createUpdate, 'price', 'volume', 'order_id')
             type = self.safe_string(createUpdate, 'type')
@@ -314,10 +334,86 @@ class luno(ccxt.async_support.luno):
             asksOrderSide.storeArray([0, 0, orderId])
             bidsOrderSide.storeArray([0, 0, orderId])
 
+    def reduce_order_volume(self, orderSide: object, orderId: str, tradedAmount: str) -> bool:
+        """
+ @ignore
+        reduces the outstanding volume of the order with the given id inside one side of a level-3 orderbook after a trade, deleting the order when it is fully filled
+        :param dict orderSide: the bids or asks side of an indexed orderbook
+        :param str orderId: the exchange-specific id of the maker order that traded
+        :param str tradedAmount: the traded amount in base currency, as a string
+        :returns boolean: True if the order was hasattr(self, found) side, False otherwise
+        """
+        sideLength = len(orderSide)
+        for i in range(0, sideLength):
+            order = orderSide[i]
+            entryId = self.safe_string(order, 2)
+            if entryId == orderId:
+                price = self.safe_number(order, 0)
+                currentAmount = self.safe_string(order, 1)
+                remainingAmount = Precise.string_sub(currentAmount, tradedAmount)
+                if Precise.string_le(remainingAmount, '0'):
+                    # fully filled, storing a zero amount deletes the order
+                    orderSide.storeArray([price, 0, orderId])
+                else:
+                    orderSide.storeArray([price, self.parse_number(remainingAmount), orderId])
+                return True
+        return False
+
+    def is_order_book_delta_in_sequence(self, client: Client, message: dict, symbol: str) -> bool:
+        """
+ @ignore
+        checks the sequence number of an orderbook delta frame against the stored book, and on a gap tears the connection down so that the next watch call resubscribes and receives a fresh snapshot
+        :param dict client: the websocket client the frame arrived on
+        :param dict message: the delta frame
+        :param str symbol: unified market symbol of the book
+        :returns boolean: True if the delta can be applied to the stored book, False if it must be discarded
+        """
+        orderbook = self.orderbooks[symbol]
+        storedNonce = self.safe_integer(orderbook, 'nonce')
+        if storedNonce is None:
+            # no snapshot was received yet, deltas cannot be applied to an
+            # empty book: luno sends the snapshot as the first frame after
+            # the handshake, so discard the delta
+            return False
+        messageSequence = self.safe_integer(message, 'sequence')
+        if messageSequence is None:
+            return True
+        if messageSequence <= storedNonce:
+            # an old or replayed frame, discard it
+            return False
+        expectedSequence = storedNonce + 1
+        if messageSequence != expectedSequence:
+            # a gap in the sequence means a lost message and the book is
+            # unrecoverable on a live connection, because luno only sends
+            # a snapshot as the first frame after a fresh handshake:
+            # reset the client, which stops its keepalive and rejects
+            # every pending future on the connection, clear the
+            # subscription so that frames still arriving on the orphaned
+            # connection are ignored by handleMessage, and drop the
+            # client, so that the next watch call dials a new connection;
+            # the cached book is kept so references returned by earlier
+            # watchOrderBook calls stay live: clearing its nonce discards
+            # deltas until the fresh snapshot resets the book in place
+            error = InvalidNonce(self.id + ' watchOrderBook() received an out-of-sequence update for ' + symbol + ', expected ' + str(expectedSequence) + ' but got ' + str(messageSequence))
+            orderbook['nonce'] = None
+            market = self.market(symbol)
+            subscriptionHash = '/stream/' + market['id']
+            if subscriptionHash in client.subscriptions:
+                del client.subscriptions[subscriptionHash]
+            client.reset(error)
+            del self.clients[client.url]
+            return False
+        return True
+
     def handle_message(self, client: Client, message: object):
         if message == '':
             return
         subscriptions = list(client.subscriptions.values())
+        subscriptionsLength = len(subscriptions)
+        if subscriptionsLength == 0:
+            # the subscription was dropped after a sequence gap, ignore the
+            # frames still arriving until the client resubscribes
+            return
         handlers = [self.handle_order_book, self.handle_trades]
         for j in range(0, len(handlers)):
             handler = handlers[j]

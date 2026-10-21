@@ -4753,6 +4753,8 @@ class NewTranspiler {
                 // channel-returning async methods carry the suffix so the plain name is
                 // free for the typed sync method emitted into the same core file
                 "asyncMethodSuffix": GO_ASYNC_SUFFIX,
+                // implicit endpoints are emitted unsuffixed by the Go api generator
+                "asyncSuffixExemptPaths": [ "(^|/)ts/src/abstract/" ],
                 // required OrderType/OrderSide params of the unified order methods print `string` on the
                 // base, every override and go/v4/exchange_interface.go (audit: no override nil-compares them)
                 "unifiedStringParams": GO_UNIFIED_STRING_PARAMS,
@@ -4918,7 +4920,7 @@ class NewTranspiler {
     }
 
     isDictionary(type: string): boolean {
-        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || ((type.startsWith('{')) && (type.endsWith('}')));
+        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || (type === 'ExchangeOptions') || ((type.startsWith('{')) && (type.endsWith('}')));
     }
 
     isStringType(type: string) {
@@ -5013,6 +5015,8 @@ class NewTranspiler {
             // expanding it to `Dict | undefined` like TS 4.9 did
             'NullableDict': 'map[string]any',
             'Market': 'MarketInterface',
+            'DefaultType': 'string',
+            'DefaultSubType': 'string',
         };
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
@@ -5172,7 +5176,6 @@ class NewTranspiler {
             'cancelOrdersRequest',
             'cancelAllOrdersRequest',
             'createContractOrder',
-            'createNetworksByIdObject',
             'createSpotOrder',
             'createSwapOrder',
             'createVault',
@@ -5291,7 +5294,7 @@ class NewTranspiler {
         }
 
         // handle the typescript type Dict
-        if (unwrappedType === 'Dict' || unwrappedType === 'map[string]any') {
+        if (unwrappedType === 'Dict' || unwrappedType === 'ExchangeOptions' || unwrappedType === 'map[string]any') {
             return `res.(map[string]any)`;
         }
 
@@ -7205,6 +7208,7 @@ ${caseStatements.join('\n')}
         const rows: [string, string, (expr: string) => boolean, boolean][] = [
             [ 'BaseExchange', 'Account', (expr: string) => expr.indexOf ('map[string]any{') === 0, false ],
             [ 'BaseExchange', 'ParseOrderBook', (expr: string) => expr.indexOf ('map[string]any{') === 0, false ],
+            [ 'BaseExchange', 'ParseOrderBookL3', (expr: string) => expr.indexOf ('map[string]any{') === 0, false ],
             // every return path is a map: the argument is defaulted and the option-market producer is wrapped
             [ 'BaseExchange', 'Market',
               (expr: string) => (expr.indexOf ('GetValue(') === 0) || (expr === 'market') || (expr.indexOf ('this.DerivedExchange.CreateExpiredOptionMarket(') === 0),

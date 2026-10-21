@@ -1551,7 +1551,10 @@ class paradex(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(order, 'created_at')
         orderId = self.safe_string(order, 'id')
-        clientOrderId = self.omit_zero(self.safe_string(order, 'client_id'))
+        # a client id is free text, omitZero would drop every non-numeric one in php
+        clientOrderId = self.safe_string(order, 'client_id')
+        if clientOrderId == '':
+            clientOrderId = None
         marketId = self.safe_string(order, 'market')
         marketResolved = self.safe_market(marketId, market)
         symbol = marketResolved['symbol']
@@ -3264,7 +3267,8 @@ class paradex(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         version = self.version
         pathValue = path
         if path.find('v2/') == 0:
@@ -3276,10 +3280,10 @@ class paradex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(baseApiUrl) + '/' + self.implode_params(pathValue, params)
         query = self.omit(params, self.extract_params(pathValue))
-        if api == 'public':
+        if apiName == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        elif api == 'private':
+        elif apiName == 'private':
             privateHeaders = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': self.safe_string(self.options, 'broker', 'CCXT'),
@@ -3322,9 +3326,9 @@ class paradex(Exchange, ImplicitAPI):
             #         url += '?' + this.urlencode (query);
             #     }
             # }
-            bodyResolved = privateBody if (privateBody is not None) else body
+            bodyResolved = privateBody
             return {'url': url, 'method': method, 'body': bodyResolved, 'headers': privateHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

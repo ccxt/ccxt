@@ -794,7 +794,7 @@ public class Whitebit extends WhitebitApi
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> markets = (this.v4PublicGetMarkets()).join();
+            List<Object> markets = (this.v4PublicGetMarkets(new HashMap<String, Object>() {{}})).join();
             //
             //    [
             //        {
@@ -3608,7 +3608,7 @@ public class Whitebit extends WhitebitApi
             Map<String, Object> account = (Map<String, Object>) this.safeDict(response, "account", new HashMap<String, Object>() {{}});
             String address = this.safeString(account, "address", url);
             String tag = this.safeString(account, "memo");
-            this.checkAddress(address);
+            this.checkAddress(address, (String) null, (String) null);
             {
                 HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
                 h2kMap1.put("info", response);
@@ -3845,15 +3845,18 @@ public class Whitebit extends WhitebitApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            List<Object> tagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tag = (String) ((List<Object>) tagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagparamsWithdrawTagVariable).get(1);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3864,7 +3867,7 @@ public class Whitebit extends WhitebitApi
                 put( "amount", Whitebit.this.currencyToPrecision((String) (code), amount, (String) null) );
                 put( "address", address );
             }};
-            Object uniqueId = this.safeValue(parameters, "uniqueId");
+            Object uniqueId = this.safeValue(paramsWithdrawTag, "uniqueId");
             if (java.util.Objects.equals(uniqueId, null))
             {
                 uniqueId = this.uuid22();
@@ -3876,14 +3879,14 @@ public class Whitebit extends WhitebitApi
             }
             if (Boolean.TRUE.equals(this.isFiat(code)))
             {
-                Object provider = this.safeValue(parameters, "provider");
+                Object provider = this.safeValue(paramsWithdrawTag, "provider");
                 if (java.util.Objects.equals(provider, null))
                 {
                     throw new ArgumentsRequired((this.id + " withdraw() requires a provider when the ticker is fiat")) ;
                 }
                 request.put("provider", provider);
             }
-            Map<String, Object> response = (this.v4PrivatePostMainAccountWithdraw(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v4PrivatePostMainAccountWithdraw(this.extend(request, paramsWithdrawTag))).join();
             //
             // empty array with a success status
             // go to deposit/withdraw history and check you request status by uniqueId
@@ -3942,7 +3945,7 @@ public class Whitebit extends WhitebitApi
             h2kMap2.put("txid", this.safeString(transaction, "transactionId"));
             h2kMap2.put("timestamp", timestamp);
             h2kMap2.put("datetime", this.iso8601(timestamp));
-            h2kMap2.put("network", this.safeString(transaction, "network"));
+            h2kMap2.put("network", this.networkIdToCode(this.safeString(transaction, "network"), this.safeCurrencyCode(currencyId, currencyResolved)));
             h2kMap2.put("addressFrom", (((java.util.Objects.equals(method, "1")))) ? address : null);
             h2kMap2.put("address", address);
             h2kMap2.put("addressTo", (((java.util.Objects.equals(method, "2")))) ? address : null);
@@ -5139,13 +5142,13 @@ public class Whitebit extends WhitebitApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object query = this.omit(parameters, this.extractParams(path));
-        Object version = this.safeValue(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String accessibility = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
-        Object publicHeaders = (((java.util.Objects.equals(headers, null)))) ? new HashMap<String, Object>() {{}} : headers;
-        ((Map<String, Object>)publicHeaders).put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
+        Object version = this.safeValue(api, 0);
+        String accessibility = this.safeString(api, 1);
+        Map<String, Object> publicHeaders = new HashMap<String, Object>() {{}};
+        publicHeaders.put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
         String pathWithParams = ("/" + this.implodeParams(path, parameters));
         String apiUrl = this.safeString(Helpers.GetValue(this.urls.get("api"), version), accessibility);
         if (java.util.Objects.equals(apiUrl, null))
@@ -5187,12 +5190,12 @@ public class Whitebit extends WhitebitApi
             }};
         }
         Boolean isPrivate = (java.util.Objects.equals(accessibility, "private"));
-        String requestBody = body;
+        String requestBody = null;
         if (Boolean.TRUE.equals(isPrivate))
         {
             requestBody = privateBody;
         }
-        Object requestHeaders = publicHeaders;
+        Map<String, Object> requestHeaders = publicHeaders;
         if (Boolean.TRUE.equals(isPrivate))
         {
             requestHeaders = privateHeaders;

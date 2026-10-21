@@ -1,5 +1,5 @@
 import Exchange from './abstract/hitbtc.js';
-import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, NullableDict, List, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, CurrencyInterface, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterest, OpenInterests, DepositWithdrawFees } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dict, List, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency, CurrencyInterface, MarginModes, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, int, FundingRate, FundingRates, DepositAddress, OrderBooks, OpenInterest, OpenInterests, DepositWithdrawFees } from './base/types.js';
 /**
  * @class hitbtc
  * @augments Exchange
@@ -379,11 +379,11 @@ export default class hitbtc extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name hitbtc#fetchFundingRates
@@ -548,5 +548,5 @@ export default class hitbtc extends Exchange {
     closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
     handleMarginModeAndParams(methodName: string, params?: Dict, defaultValue?: Str): [Str, Dict];
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

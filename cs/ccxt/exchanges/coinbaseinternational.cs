@@ -365,7 +365,7 @@ public partial class coinbaseinternational : Exchange
                     { "method", "v1PrivatePostTransfersWithdraw" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
-                    { "ethereum", "ETH" },
+                    { "ethereum", "ERC20" },
                     { "arbitrum", "ARBITRUM" },
                     { "avacchain", "AVAX" },
                     { "optimism", "OPTIMISM" },
@@ -2649,19 +2649,20 @@ public partial class coinbaseinternational : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag] an optional tag for the withdrawal
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {boolean} [params.add_network_fee_to_total] if true, deducts network fee from the portfolio, otherwise deduct fee from the withdrawal
      * @param {string} [params.network_arn_id] Identifies the blockchain network (e.g., networks/ethereum-mainnet/assets/313ef8a9-ae5a-5f2f-8a56-572c0e2a4d5a)
      * @param {string} [params.nonce] a unique integer representing the withdrawal request
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> tagAndParams = this.handleWithdrawTagAndParams(tag, parameters);
-        object paramsWithdrawTag = (tagAndParams != null && 1 < tagAndParams.Count ? tagAndParams[1] : null);
-        this.checkAddress(address);
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
+        this.checkAddress(address, code, tagWithdrawTag);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -2702,7 +2703,7 @@ public partial class coinbaseinternational : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -2731,7 +2732,7 @@ public partial class coinbaseinternational : Exchange
         {
             signedBody = this.json(query);
         }
-        object requestBody = body;
+        string? requestBody = null;
         if (hasSignedBody)
         {
             requestBody = signedBody;
@@ -2751,7 +2752,7 @@ public partial class coinbaseinternational : Exchange
                 { "CB-ACCESS-KEY", this.apiKey },
             };
         }
-        object requestHeaders = headers;
+        Dictionary<string, object> requestHeaders = null;
         if (signed)
         {
             requestHeaders = signedHeaders;

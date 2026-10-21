@@ -2754,8 +2754,12 @@ export default class pacifica extends Exchange {
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = marketResolved['symbol'];
         const margin = this.safeString(position, 'margin');
-        const marginMode = (margin !== undefined && margin !== '0') ? 'isolated' : 'cross';
-        const isIsolated = (marginMode === 'isolated');
+        const rawIsolated = this.safeBool(position, 'isolated');
+        let isIsolated = (margin !== undefined && margin !== '0');
+        if (rawIsolated !== undefined) {
+            isIsolated = rawIsolated;
+        }
+        const marginMode = isIsolated ? 'isolated' : 'cross';
         let side = this.safeString(position, 'side');
         if (side !== undefined) {
             side = (side === 'bid') ? 'long' : 'short';
@@ -2776,13 +2780,13 @@ export default class pacifica extends Exchange {
             'markPrice': undefined,
             'notional': undefined,
             'leverage': undefined,
-            'collateral': margin,
+            'collateral': this.safeNumber(position, 'margin'),
             'initialMargin': undefined,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': undefined,
-            'liquidationPrice': undefined,
+            'liquidationPrice': this.safeNumber(position, 'liquidation_price'),
             'marginMode': marginMode,
             'percentage': undefined,
         });
@@ -2858,12 +2862,12 @@ export default class pacifica extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address validated but not sent, funds go to the account wallet
-     * @param {string} tag not used by withdraw ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         const operationType = 'withdraw';
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -3321,7 +3325,7 @@ export default class pacifica extends Exchange {
         const marketId = this.safeString(income, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = marketResolved['symbol'];
-        const amount = this.safeString(income, 'amount');
+        const amount = this.safeString(income, 'payout');
         const code = this.safeCurrencyCode('USDC');
         const rate = this.safeNumber(income, 'rate');
         return {
@@ -3633,14 +3637,15 @@ export default class pacifica extends Exchange {
         }
         return undefined;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestBody = undefined;
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey = 'api';
         if (isTestnet) {
             urlKey = 'test';
         }
-        const baseApiUrl = this.safeString(this.urls[urlKey], api);
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls[urlKey], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }

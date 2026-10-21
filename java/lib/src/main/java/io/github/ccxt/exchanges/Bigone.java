@@ -352,7 +352,7 @@ public class Bigone extends BigoneApi
                     put( "DOGE", "Dogecoin" );
                     put( "XEC", "ECash" );
                     put( "EOS", "EOS" );
-                    put( "ETH", "Ethereum" );
+                    put( "ERC20", "Ethereum" );
                     put( "ETC", "EthereumClassic" );
                     put( "ETHW", "EthereumPow" );
                     put( "FTM", "Fantom" );
@@ -2247,11 +2247,12 @@ public class Bigone extends BigoneApi
         return Helpers.toLongOrNull(this.sum(Helpers.multiply(this.microseconds(), 1000), exchangeTimeCorrection));
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String bodySigned = null;
         Object query = this.omit(parameters, this.extractParams(path));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2259,7 +2260,7 @@ public class Bigone extends BigoneApi
         String baseUrl = (String) this.implodeHostname(apiUrl);
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Map<String, Object> headersValue = new HashMap<String, Object>() {{}};
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "webExchange") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "contractPublic"))
+        if (java.util.Objects.equals(apiName, "public") || java.util.Objects.equals(apiName, "webExchange") || java.util.Objects.equals(apiName, "contractPublic"))
         {
             if (Helpers.objectKeys(query).size() > 0)
             {
@@ -2289,7 +2290,7 @@ public class Bigone extends BigoneApi
             }
         }
         headersValue.put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
-        String bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
+        String bodyResolved = bodySigned;
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("url", url);
@@ -2350,11 +2351,11 @@ public class Bigone extends BigoneApi
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned empty address response")) ;
             }
             Map<String,Object> chainsIndexedById = this.indexBy(data, "chain");
-            Object selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
+            Object selectedNetworkId = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, false);
             Map<String, Object> addressObject = (Map<String, Object>) this.safeDict(chainsIndexedById, selectedNetworkId, new HashMap<String, Object>() {{}});
             String address = this.safeString(addressObject, "value");
             String tag = this.safeString(addressObject, "memo");
-            this.checkAddress(address);
+            this.checkAddress(address, (String) null, (String) null);
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", code );
@@ -2684,18 +2685,19 @@ public class Bigone extends BigoneApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();

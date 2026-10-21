@@ -433,7 +433,7 @@ class blockchaincom extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        return $this->fetch_l3_order_book($symbol, $limit, $params);
+        return $this->fetch_l2_order_book($symbol, $limit, $params);
     }
 
     public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -458,10 +458,10 @@ class blockchaincom extends Exchange {
             $request['depth'] = $limit;
         }
         $response = $this->publicGetL3Symbol($this->extend($request, $params));
-        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty');
+        return $this->parse_order_book_l3($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty', 'num');
     }
 
-    public function fetch_l2_order_book(string $symbol, ?int $limit = null, $params = array()) {
+    public function fetch_l2_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1038,7 +1038,7 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1047,8 +1047,8 @@ class blockchaincom extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         if ($this->markets === null) {
@@ -1270,28 +1270,29 @@ class blockchaincom extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $requestPath = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));
-        $isPrivate = ($api === 'private');
+        $isPrivate = ($apiName === 'private');
         $privateHeaders = array(
             'X-API-Token' => $this->secret,
         );
-        $requestHeaders = $headers;
+        $requestHeaders = null;
         if ($isPrivate) {
             $requestHeaders = $privateHeaders;
         }
         $isPrivatePost = $isPrivate && ($method !== 'GET');
-        $requestBody = $body;
+        $requestBody = null;
         if ($isPrivatePost) {
             $requestBody = $this->json($query);
         }
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }

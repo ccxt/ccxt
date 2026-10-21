@@ -214,21 +214,22 @@ class revolutx extends Exchange {
         ));
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
         $implodedPath = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $queryKeys = is_array($query) ? array_keys($query) : array();
         $queryLength = count($queryKeys);
-        $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiName = $api[0];
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $baseUrl = $baseApiUrl;
         $url = $baseUrl . '/' . $implodedPath;
         $queryString = '';
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
             if ($method === 'GET') {
@@ -245,7 +246,7 @@ class revolutx extends Exchange {
                 $requestBody = $this->json($query);
             }
             $requestPath = '/api/' . $implodedPath;
-            $bodyValue = ($requestBody !== null) ? $requestBody : $body;
+            $bodyValue = $requestBody;
             $bodyString = ($bodyValue !== null) ? $bodyValue : '';
             $message = $timestamp . strtoupper($method) . $requestPath . $queryString . $bodyString;
             $signature = $this->eddsa($this->encode($message), $this->privateKey, 'ed25519');
@@ -268,8 +269,8 @@ class revolutx extends Exchange {
                 $requestHeaders = array( 'Content-Type' => 'application/json' );
             }
         }
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        $headersResult = $requestHeaders;
+        $bodyResult = $requestBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 

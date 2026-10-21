@@ -2549,14 +2549,14 @@ public class Bullish extends BullishApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.timestamp the timestamp of the withdrawal request (mandatory)
      * @param {string} params.nonce the nonce of the withdrawal request (mandatory)
      * @param {string} params.network network for withdraw (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2881,7 +2881,7 @@ public class Bullish extends BullishApi
                 if (java.util.Objects.equals(network, null))
                 {
                     // use default network if not specified and multiple are available
-                    network = this.defaultNetworkCode(code);
+                    network = this.safeString(this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}}), code, this.safeString(this.options, "defaultNetwork"));
                 }
                 if (!java.util.Objects.equals(network, null))
                 {
@@ -3511,19 +3511,20 @@ public class Bullish extends BullishApi
         }}, market);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Object requestHeaders = null;
+        String requestBody = null;
         Object request = this.omit(parameters, this.extractParams(path));
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + endpoint);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String nonce = String.valueOf(this.microseconds());

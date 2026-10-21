@@ -2217,10 +2217,11 @@ public class Latoken extends LatokenApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
         String request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         String requestString = request;
         Object query = this.omit(parameters, this.extractParams(path));
@@ -2232,7 +2233,7 @@ public class Latoken extends LatokenApi
                 requestString = (requestString + ("?" + urlencodedQuery));
             }
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String auth = ((java.util.Objects.requireNonNullElse(method, "GET") + request) + urlencodedQuery);
@@ -2244,7 +2245,7 @@ public class Latoken extends LatokenApi
             }};
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
-                ((Map<String, Object>)requestHeaders).put("Content-Type", "application/json");
+                requestHeaders.put("Content-Type", "application/json");
                 requestBody = this.json(query);
             }
         }

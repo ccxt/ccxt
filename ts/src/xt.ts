@@ -618,10 +618,8 @@ export default class xt extends Exchange {
                 'networks': {
                     'ERC20': 'Ethereum',
                     'TRC20': 'Tron',
-                    'TRX': 'Tron',
                     'BEP20': 'BNB Smart Chain',
                     'BEP2': 'BNB-BEP2',
-                    'ETH': 'Ethereum',
                     'AVAX': 'AVAX C-Chain',
                     'GAL': 'GAL(FT)',
                     'ALEO': 'ALEO(IOU)',
@@ -2026,9 +2024,27 @@ export default class xt extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market, '_', marketType);
         const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (ticker, 't');
-        let percentage = this.safeString2 (ticker, 'cr', 'r');
+        const open = this.safeString (ticker, 'o');
+        // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
+        let percentage = this.safeString (ticker, 'r');
+        if (open === undefined) {
+            percentage = this.safeString2 (ticker, 'cr', 'r');
+        }
         if (percentage !== undefined) {
             percentage = Precise.stringMul (percentage, '100');
+        }
+        let baseVolume = this.safeString2 (ticker, 'a', 'q');
+        let quoteVolume = this.safeString (ticker, 'v');
+        const contractSize = this.safeString (marketResolved, 'contractSize');
+        if ((marketResolved['contract'] === true) && (contractSize !== undefined)) {
+            // 'a' counts contracts, 'v' is in the settle currency
+            const contractVolume = Precise.stringMul (baseVolume, contractSize);
+            if (marketResolved['inverse'] === true) {
+                baseVolume = quoteVolume;
+                quoteVolume = contractVolume;
+            } else {
+                baseVolume = contractVolume;
+            }
         }
         return this.safeTicker ({
             'symbol': symbol,
@@ -2041,15 +2057,15 @@ export default class xt extends Exchange {
             'ask': this.safeNumber (ticker, 'ap'),
             'askVolume': this.safeNumber (ticker, 'aq'),
             'vwap': undefined,
-            'open': this.safeString (ticker, 'o'),
+            'open': open,
             'close': this.safeString (ticker, 'c'),
             'last': this.safeString (ticker, 'c'),
             'previousClose': undefined,
-            'change': this.safeNumber (ticker, 'cv'),
+            'change': undefined,
             'percentage': this.parseNumber (percentage),
             'average': undefined,
-            'baseVolume': this.safeNumber2 (ticker, 'a', 'q'),
-            'quoteVolume': this.safeNumber (ticker, 'v'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }, marketResolved);
     }
@@ -4324,17 +4340,16 @@ export default class xt extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
         const networkId = this.safeString2 (networkIdsByCodes, networkCode, code, code);
@@ -4843,6 +4858,7 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     override async fetchFundingInterval (symbol: string, params: Dict = {}): Promise<FundingRate> {
@@ -5843,7 +5859,7 @@ export default class xt extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: string, api: string[] = [], method = 'GET', params = {}) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams (path, params);
@@ -5929,7 +5945,7 @@ export default class xt extends Exchange {
                 url += '?' + urlencoded;
             }
         }
-        let bodyValue = body;
+        let bodyValue = undefined;
         if (signed) {
             bodyValue = signedBody;
         }

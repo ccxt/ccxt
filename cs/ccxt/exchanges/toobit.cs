@@ -627,7 +627,6 @@ public partial class toobit : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BTC", "BTC" },
                     { "ERC20", "ETH" },
-                    { "ETH", "ETH" },
                     { "BEP20", "BSC" },
                     { "TRC20", "TRX" },
                     { "SOL", "SOL" },
@@ -1452,6 +1451,8 @@ public partial class toobit : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1468,26 +1469,41 @@ public partial class toobit : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
+        Int64? until = this.safeInteger(parameters, "until");
+        object paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;
+        (string?, object) endpointparamsPriceVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price");
+        string? endpoint = endpointparamsPriceVariable.Item1;
+        object paramsPrice = endpointparamsPriceVariable.Item2;
+        bool isPriceKlines = ((endpoint == "index")) || ((endpoint == "mark"));
+        string startKey = "startTime";
+        string endKey = "endTime";
+        if (isPriceKlines)
+        {
+            startKey = "from";
+            endKey = "to";
+        }
         if ((since != null))
         {
-            request["startTime"] = since;
+            request[(string)startKey] = since;
         }
-        Int64? until = this.safeInteger(parameters, "until");
         if ((until != null))
         {
-            request["endTime"] = until;
+            request[(string)endKey] = until;
+        } else if (isPriceKlines && ((since != null)))
+        {
+            // mark and index klines walk backwards from `to` and ignore a lone `from`
+            int duration = this.parseTimeframe(timeframeVar);
+            Int64? requestedLimit = ((limit == null)) ? 2000 : limit; // exchange default
+            request["to"] = this.sum(since, ((duration * requestedLimit) * 1000));
         }
-        object paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;
         if ((limit != null))
         {
             request["limit"] = limit;
         }
-        List<object> response = new List<object>() {};
-        (string?, object) endpointparamsPriceVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price");
-        string? endpoint = endpointparamsPriceVariable.Item1;
-        object paramsPrice = endpointparamsPriceVariable.Item2;
+        object response = new List<object>() {};
         if ((endpoint == "index"))
         {
+            request["symbol"] = this.safeString((market.ContainsKey("info") ? market["info"] : null), "indexToken"); // index klines take the index id instead of the market id
             response = await this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice));
         } else if ((endpoint == "mark"))
         {
@@ -1496,10 +1512,13 @@ public partial class toobit : Exchange
         {
             response = await this.commonGetQuoteV1Klines(this.extend(request, paramsPrice));
         }
-        List<object> candles = new List<object>() {};
+        object candles = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             candles = response;
+        } else
+        {
+            candles = this.safeList(response, "data", new List<object>() {});
         }
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
     }
@@ -1600,9 +1619,9 @@ public partial class toobit : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "high", this.safeString(ticker, "h") },
             { "low", this.safeString(ticker, "l") },
-            { "bid", null },
+            { "bid", this.safeString(ticker, "b") },
             { "bidVolume", null },
-            { "ask", null },
+            { "ask", this.safeString(ticker, "a") },
             { "askVolume", null },
             { "vwap", null },
             { "open", this.safeString(ticker, "o") },
@@ -1666,7 +1685,7 @@ public partial class toobit : Exchange
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", null },
             { "datetime", null },
-            { "price", this.safeNumberOmitZero(entry, "price") },
+            { "price", this.safeNumberOmitZero(entry, "p") },
             { "side", null },
             { "info", entry },
         };
@@ -3199,16 +3218,19 @@ public partial class toobit : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag a memo for the transaction
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        IList<object> tagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tag = (string)tagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagparamsWithdrawTagVariable[1]);
         this.checkAddress(address);
-        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
         IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode == null))
@@ -3442,7 +3464,7 @@ public partial class toobit : Exchange
             { "unrealizedPnl", this.safeNumber(position, "unrealizedPnL") },
             { "side", side },
             { "contracts", this.parseNumber(quantity) },
-            { "contractSize", null },
+            { "contractSize", this.safeNumber(marketResolved, "contractSize") },
             { "timestamp", null },
             { "datetime", null },
             { "hedged", null },
@@ -3458,12 +3480,13 @@ public partial class toobit : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3474,7 +3497,7 @@ public partial class toobit : Exchange
         bool isDelete = (method == "DELETE");
         Dictionary<string, object> extraQuery = new Dictionary<string, object>() {};
         object query = this.omit(parameters, this.extractParams(path));
-        if (!(api is "private"))
+        if (!(apiName is "private"))
         {
             // Public endpoints
             if (!isPost)
@@ -3509,7 +3532,7 @@ public partial class toobit : Exchange
             {
                 queryString = this.urlencode(queryExtended);
             }
-            object payloadBody = body;
+            object payloadBody = null;
             if (isPost || isDelete)
             {
                 payloadBody = privateBody;
@@ -3534,7 +3557,7 @@ public partial class toobit : Exchange
                 { "X-BB-API-PLATFORM", this.safeString(this.options, "brokerId", "177321641268789") },
                 { "Content-Type", "application/x-www-form-urlencoded" },
             };
-            object requestBody = body;
+            object requestBody = null;
             if (isPost || isDelete)
             {
                 requestBody = privateBody;
@@ -3549,8 +3572,8 @@ public partial class toobit : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 

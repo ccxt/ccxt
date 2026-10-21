@@ -629,16 +629,13 @@ public class Digifinex extends DigifinexApi
                     put( "AVALANCEC", "AVAX-CCHAIN" );
                     put( "AVALANCEX", "AVAX-XCHAIN" );
                     put( "BEP20", "BEP20" );
-                    put( "BSC", "BEP20" );
                     put( "CARDANO", "Cardano" );
                     put( "CELO", "Celo" );
                     put( "CHILIZ", "Chiliz" );
                     put( "COSMOS", "COSMOS" );
                     put( "CRC20", "Crypto.com" );
-                    put( "CRONOS", "Crypto.com" );
                     put( "DOGECOIN", "DogeChain" );
                     put( "ERC20", "ERC20" );
-                    put( "ETH", "ERC20" );
                     put( "ETHW", "ETHW" );
                     put( "IOTA", "MIOTA" );
                     put( "KLAYTN", "KLAY" );
@@ -655,7 +652,6 @@ public class Digifinex extends DigifinexApi
                     put( "TERRA", "Terra" );
                     put( "TON", "Ton" );
                     put( "TRC20", "TRC20" );
-                    put( "TRX", "TRC20" );
                     put( "VECHAIN", "Vechain" );
                 }} );
                 put( "networksById", new HashMap<String, Object>() {{
@@ -666,7 +662,7 @@ public class Digifinex extends DigifinexApi
                     put( "ERC20", "ERC20" );
                     put( "ETH", "ERC20" );
                     put( "Polygon", "POLYGON" );
-                    put( "Crypto.com", "CRONOS" );
+                    put( "Crypto.com", "CRC20" );
                 }} );
             }} );
             put( "commonCurrencies", new HashMap<String, Object>() {{
@@ -3850,7 +3846,7 @@ public class Digifinex extends DigifinexApi
                 "cost", feeCost
             );
         }
-        String network = this.safeString(transaction, "chain");
+        String network = this.networkIdToCode(this.safeString(transaction, "chain"), code);
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("info", transaction);
@@ -4025,19 +4021,19 @@ public class Digifinex extends DigifinexApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -4852,7 +4848,7 @@ public class Digifinex extends DigifinexApi
             marginMode = (((java.util.Objects.equals(marginMode, "crossed")))) ? "cross" : "isolated";
         } else
         {
-            marginMode = "crossed";
+            marginMode = "cross";
         }
         Long timestamp = this.safeInteger(position, "timestamp");
         String side = this.safeString(position, "side");
@@ -4863,6 +4859,25 @@ public class Digifinex extends DigifinexApi
         {
             side = "short";
         }
+        String positionMargin = this.safeString(position, "margin");
+        String unrealizedPnl = this.safeString(position, "unrealized_pnl");
+        String collateralString = null;
+        String marginString = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            String isolatedMargin = this.safeString(position, "posi_balance");
+            if (!java.util.Objects.equals(isolatedMargin, null))
+            {
+                marginString = isolatedMargin;
+                collateralString = (((!java.util.Objects.equals(unrealizedPnl, null)))) ? Precise.stringAdd(isolatedMargin, unrealizedPnl) : isolatedMargin;
+            }
+        }
+        String maintenanceMarginString = this.safeString(position, "maintain_margin");
+        String forceCloseFee = this.omitZero(this.safeString(position, "force_close_fee"));
+        if ((!java.util.Objects.equals(maintenanceMarginString, null)) && (!java.util.Objects.equals(forceCloseFee, null)))
+        {
+            maintenanceMarginString = Precise.stringAdd(maintenanceMarginString, forceCloseFee);
+        }
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("info", position);
         mapLiteral8.put("id", null);
@@ -4871,18 +4886,19 @@ public class Digifinex extends DigifinexApi
         mapLiteral8.put("marginMode", marginMode);
         mapLiteral8.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
         mapLiteral8.put("entryPrice", this.safeNumber2(position, "avg_cost", "entry_price", (Object) null));
-        mapLiteral8.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
-        mapLiteral8.put("contracts", this.safeNumber(position, "avail_position", (Object) null));
+        mapLiteral8.put("unrealizedPnl", this.parseNumber(unrealizedPnl));
+        mapLiteral8.put("contracts", this.safeNumber2(position, "position", "avail_position", (Object) null));
         mapLiteral8.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
-        mapLiteral8.put("markPrice", this.safeNumber(position, "last", (Object) null));
+        mapLiteral8.put("markPrice", this.safeNumber2(position, "mark_price", "last", (Object) null));
         mapLiteral8.put("side", side);
         mapLiteral8.put("hedged", null);
         mapLiteral8.put("timestamp", timestamp);
         mapLiteral8.put("datetime", this.iso8601(timestamp));
-        mapLiteral8.put("maintenanceMargin", this.safeNumber(position, "margin", (Object) null));
+        mapLiteral8.put("maintenanceMargin", this.parseNumber(maintenanceMarginString));
         mapLiteral8.put("maintenanceMarginPercentage", this.safeNumber(position, "maint_margin_ratio", (Object) null));
-        mapLiteral8.put("collateral", null);
-        mapLiteral8.put("initialMargin", null);
+        mapLiteral8.put("positionMargin", this.parseNumber(marginString));
+        mapLiteral8.put("collateral", this.parseNumber(collateralString));
+        mapLiteral8.put("initialMargin", this.parseNumber(positionMargin));
         mapLiteral8.put("initialMarginPercentage", null);
         mapLiteral8.put("leverage", this.safeNumber2(position, "leverage", "leverage_ratio", (Object) null));
         mapLiteral8.put("marginRatio", this.safeNumber(position, "margin_ratio", (Object) null));
@@ -5584,7 +5600,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Boolean signed = java.util.Objects.equals(this.safeString(api, 0), "private");
         String endpoint = this.safeString(api, 1);
@@ -5642,7 +5658,7 @@ public class Digifinex extends DigifinexApi
                 }
             }
             Boolean hasPostBody = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) && (!java.util.Objects.equals(urlencoded, null)) && (!java.util.Objects.equals(urlencoded, ""));
-            Object requestBody = body;
+            Object requestBody = null;
             if (Boolean.TRUE.equals(hasPostBody))
             {
                 requestBody = urlencoded;
@@ -5670,8 +5686,8 @@ public class Digifinex extends DigifinexApi
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);
             h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", body);
-            h2kMap5.put("headers", headers);
+            h2kMap5.put("body", null);
+            h2kMap5.put("headers", null);
             return h2kMap5;
         }
     }

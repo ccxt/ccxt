@@ -11,7 +11,6 @@ import testUnCamelCase from './test.uncamelcase.js';
 import testThrottle from './test.throttle.js';
 import testCalculateFee from './test.calculateFee.js';
 import testSafeBalance from './test.safeBalance.js';
-import testLegacyHas from './test.legacyHas.js';
 import testTypes from './test.type.js';
 import testThrottlerPerformance from './test.throttlerPerformance.js';
 import testOnJsonResponse from './test.onJsonResponse.js';
@@ -28,7 +27,6 @@ async function testLanguageSpecific() {
     await testThrottle();
     testCalculateFee();
     testSafeBalance();
-    testLegacyHas();
     testTypes();
     testOnJsonResponse();
     testOptionTypes();

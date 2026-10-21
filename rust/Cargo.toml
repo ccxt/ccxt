@@ -1,5 +1,5 @@
 [workspace]
-members = ["ccxt-core", "ccxt-base", "ccxt", "ccxt-pro", "ccxt-prediction", "tests"]
+members = ["ccxt-common", "ccxt-base", "ccxt", "ccxt-pro", "ccxt-prediction", "tests"]
 resolver = "2"
 
 # Keep debug symbols in release so `sample`/`perf`/Instruments can attribute

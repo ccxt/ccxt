@@ -30,12 +30,7 @@ public partial class BaseExchange
 
         this.initHttpClient();
 
-        this.afterConstruct();
-
-        if (isTrue(isTrue(this.safeBool(userConfig, "sandbox")) || isTrue(this.safeBool(userConfig, "testnet"))))
-        {
-            this.setSandboxMode(true);
-        }
+        this.afterConstruct(userConfig);
     }
 
     private void initHttpClient()
@@ -128,7 +123,7 @@ public partial class BaseExchange
                     var completePaths = pathParts.Select(x => char.ToUpper(x[0]) + x.Substring(1)).ToList();
                     var path = string.Join("", completePaths);
                     path = char.ToLower(path[0]) + path.Substring(1); // lowercase first letter
-                    var apiObj = paths.Count > 1 ? (object)paths : paths[0];
+                    var apiObj = new List<string>(paths);
                     this.transformedApi[path] = new dict {
                             { "method", key.ToUpper() },
                             { "path",   endpoint },
@@ -493,9 +488,7 @@ public partial class BaseExchange
             var api = endpointInfo["api"];
             var cost = endpointInfo["cost"] != null ? endpointInfo["cost"] : 1;
 
-            // return await this.fetch2(path, api, method, new dict(), new dict(), (dict)parameters, new dict { { "cost", cost } });
-            // var res = await this.fetch2(path, api, method, parameters, new dict(), new dict(), new dict { { "cost", cost } });
-            var res = await this.fetch2(path, api, method, parameters, new dict(), null, new dict { { "cost", cost } }); // body null here, does it make a difference?
+            var res = await this.fetch2(path, api, method, parameters, new dict { { "cost", cost } });
             return res;
 
         }
@@ -779,7 +772,11 @@ public partial class BaseExchange
     private async Task closeClient(string key, WebSocketClient client)
     {
         await client.Close();
-        this.clients.TryRemove(key, out _);
+        // the slot may hold a replacement installed while closing; never detach it unclosed
+        if (this.clients.TryRemove(key, out var removed) && !ReferenceEquals(removed, client))
+        {
+            await removed.Close();
+        }
     }
 
     public async Task Close(bool cleanInstanceCache = false)

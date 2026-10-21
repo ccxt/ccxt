@@ -242,6 +242,7 @@ public class BaseExchange {
     public String uid;
     public String accountId;
     public int minFundingAddressLength = 1;
+    public java.util.Map<String, Object> networkAliases = new java.util.HashMap<>(java.util.Map.of("ETH", "ERC20", "TRX", "TRC20", "BSC", "BEP20", "BSC20", "BEP20", "CRONOS", "CRC20", "ARB", "ARBITRUM", "ARBONE", "ARBITRUM", "ARBNOVA", "ARBITRUM_NOVA"));
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -363,7 +364,7 @@ public class BaseExchange {
         this.initializeProperties(defaultConfig);
         this.initHttpClient();
         this.httpClientProxyFingerprint = currentProxyFingerprint();
-        this.afterConstruct();
+        this.afterConstruct(defaultConfig);
         this.transformApiNew(this.api, new ArrayList<>());
     }
 
@@ -582,14 +583,7 @@ public class BaseExchange {
                     // lowercase first letter
                     path = path.substring(0, 1).toLowerCase() + path.substring(1);
 
-                    Object apiObj;
-                    if (paths.size() > 1) {
-                        apiObj = new ArrayList<>(paths); // keep a copy
-                    } else if (paths.size() == 1) {
-                        apiObj = paths.get(0);
-                    } else {
-                        apiObj = null; // defensive; original C# would blow up here
-                    }
+                    Object apiObj = new ArrayList<>(paths);
 
                     Map<String, Object> entry = new HashMap<>();
                     entry.put("method", key.toUpperCase());
@@ -773,6 +767,11 @@ public class BaseExchange {
 
     public static String binaryToBase16(Object buff2) {
         return Encode.binaryToBase16(buff2);
+    }
+
+    public String binaryToString(Object buff) {
+        // utf-8 decode of a byte array, mirrors TS binaryToString and the C# base
+        return new String((byte[]) buff, java.nio.charset.StandardCharsets.UTF_8);
     }
 
     public static String binaryToBase64(Object buff) {
@@ -2563,13 +2562,11 @@ public class BaseExchange {
             Object costObj = endpointInfo.get("cost");
             Object cost = (costObj != null) ? costObj : 1;
 
-            Map<String, Object> emptyMap = new HashMap<>();
             Map<String, Object> costMap  = new HashMap<>();
             costMap.put("cost", cost);
 
-            // body = null here, same as in your C# comment
             // try {
-            return (CompletableFuture<T>) this.fetch2(path, api, method, parameters, emptyMap, null, costMap);
+            return (CompletableFuture<T>) this.fetch2(path, api, method, parameters, costMap);
                 // return CompletableFuture.completedFuture(res);
             // } catch (Exception e) {
             //     // throw e;
@@ -4058,7 +4055,7 @@ public Object describe()
                 put( "borrowMargin", null );
                 put( "cancelAllOrders", null );
                 put( "cancelAllOrdersWs", null );
-                put( "cancelOrder", true );
+                put( "cancelOrder", null );
                 put( "cancelOrderWithClientOrderId", null );
                 put( "cancelOrderWs", null );
                 put( "cancelOrders", null );
@@ -4069,7 +4066,7 @@ public Object describe()
                 put( "createDepositAddress", null );
                 put( "createLimitBuyOrder", null );
                 put( "createLimitBuyOrderWs", null );
-                put( "createLimitOrder", true );
+                put( "createLimitOrder", null );
                 put( "createLimitOrderWs", null );
                 put( "createLimitSellOrder", null );
                 put( "createLimitSellOrderWs", null );
@@ -4077,15 +4074,15 @@ public Object describe()
                 put( "createMarketBuyOrderWs", null );
                 put( "createMarketBuyOrderWithCost", null );
                 put( "createMarketBuyOrderWithCostWs", null );
-                put( "createMarketOrder", true );
-                put( "createMarketOrderWs", true );
+                put( "createMarketOrder", null );
+                put( "createMarketOrderWs", null );
                 put( "createMarketOrderWithCost", null );
                 put( "createMarketOrderWithCostWs", null );
                 put( "createMarketSellOrder", null );
                 put( "createMarketSellOrderWs", null );
                 put( "createMarketSellOrderWithCost", null );
                 put( "createMarketSellOrderWithCostWs", null );
-                put( "createOrder", true );
+                put( "createOrder", null );
                 put( "createOrderWs", null );
                 put( "createOrders", null );
                 put( "createOrderWithTakeProfitAndStopLoss", null );
@@ -4117,7 +4114,7 @@ public Object describe()
                 put( "editOrderWs", null );
                 put( "fetchAccounts", null );
                 put( "fetchADLRank", null );
-                put( "fetchBalance", true );
+                put( "fetchBalance", null );
                 put( "fetchBalanceWs", null );
                 put( "fetchBidsAsks", null );
                 put( "fetchBorrowInterest", null );
@@ -4160,7 +4157,7 @@ public Object describe()
                 put( "fetchIsolatedBorrowRates", null );
                 put( "fetchMarginAdjustmentHistory", null );
                 put( "fetchIsolatedPositions", null );
-                put( "fetchL2OrderBook", true );
+                put( "fetchL2OrderBook", null );
                 put( "fetchL3OrderBook", null );
                 put( "fetchLastPrices", null );
                 put( "fetchLedger", null );
@@ -4193,7 +4190,7 @@ public Object describe()
                 put( "fetchOptionChain", null );
                 put( "fetchOrder", null );
                 put( "fetchOrderWithClientOrderId", null );
-                put( "fetchOrderBook", true );
+                put( "fetchOrderBook", null );
                 put( "fetchOrderBooks", null );
                 put( "fetchOrderBookWs", null );
                 put( "fetchOrders", null );
@@ -4216,13 +4213,13 @@ public Object describe()
                 put( "fetchPremiumIndexOHLCV", null );
                 put( "fetchSettlementHistory", null );
                 put( "fetchStatus", null );
-                put( "fetchTicker", true );
+                put( "fetchTicker", "emulated" );
                 put( "fetchTickerWs", null );
                 put( "fetchTickers", null );
                 put( "fetchMarkPrices", null );
                 put( "fetchTickersWs", null );
                 put( "fetchTime", null );
-                put( "fetchTrades", true );
+                put( "fetchTrades", null );
                 put( "fetchTradesWs", null );
                 put( "fetchTradingFee", null );
                 put( "fetchTradingFees", null );
@@ -4837,7 +4834,7 @@ public Object describe()
         }
     }
 
-    public Object checkAddress(String address)
+    public Object checkAddress(String address, String code, String tag)
     {
         if (java.util.Objects.equals(address, null))
         {
@@ -4849,6 +4846,17 @@ public Object describe()
         if (java.util.Objects.equals(length, 1) || Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength) || ((String)address).indexOf(" ") > -1)
         {
             throw new InvalidAddress((((((this.id + " address is invalid or has less than ") + String.valueOf(this.minFundingAddressLength)) + " characters: \"") + String.valueOf(address)) + "\"")) ;
+        }
+        if (!java.util.Objects.equals(code, null))
+        {
+            List<Object> tagRequiredCurrencies = (List<Object>) this.safeList(this.options, "withdrawTagRequiredCurrencies", new ArrayList<Object>(Arrays.asList()));
+            if (this.inArray(code, tagRequiredCurrencies))
+            {
+                if (java.util.Objects.equals(tag, null))
+                {
+                    throw new ArgumentsRequired(((this.id + " withdraw() requires params[\"tag\"] for ") + code)) ;
+                }
+            }
         }
         return address;
     }
@@ -5037,7 +5045,7 @@ public Object describe()
         Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         return new HashMap<String, Object>() {{
             put( "url", null );
@@ -5504,7 +5512,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -5748,11 +5756,13 @@ public Object describe()
         return timestamp;
     }
 
-    public void afterConstruct()
+    public void afterConstruct(Map<String, Object> userConfig)
     {
-        // networks
-        this.createNetworksByIdObject();
+        // networksById: inverse of options.networks, explicit options.networksById entries win
+        Object networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new HashMap<String, Object>() {{}}));
+        Helpers.addElementToObject(this.options, "networksById", this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new HashMap<String, Object>() {{}})));
         this.featuresGenerator();
+        this.hasAutocorrect();
         // init predefined markets if any
         if (!java.util.Objects.equals(this.markets, null))
         {
@@ -5765,6 +5775,34 @@ public Object describe()
         if (java.util.Objects.equals(isSandbox, true))
         {
             this.setSandboxMode(isSandbox);
+        }
+        // compatibility for sandbox/testnet options in userConfig
+        if (Helpers.isTrue(Boolean.TRUE.equals((this.safeBool(userConfig, "sandbox", false))) || Boolean.TRUE.equals((this.safeBool(userConfig, "testnet", false)))))
+        {
+            this.setSandboxMode(true);
+        }
+    }
+
+    public void hasAutocorrect()
+    {
+        Map<String, Object> fallbacks = new HashMap<String, Object>() {{
+            put( "fetchL2OrderBook", "fetchOrderBook" );
+            put( "createLimitOrder", "createOrder" );
+            put( "createMarketOrder", "createOrder" );
+            put( "createLimitOrderWs", "createOrderWs" );
+            put( "createMarketOrderWs", "createOrderWs" );
+        }};
+        List<String> targets = new ArrayList<String>(fallbacks.keySet());
+        for (var i = 0; i < ((List<?>)targets).size(); i++)
+        {
+            String target = (targets == null || i < 0 || i >= targets.size() ? null : targets.get(i));
+            Object source = (fallbacks == null || target == null ? null : fallbacks.get(target));
+            Boolean sourceDefined = ((source != null && ((Map<?, ?>)this.has).containsKey(source))) && (!java.util.Objects.equals(Helpers.GetValue(this.has, source), null));
+            Boolean targetDefined = (((Map<?, ?>)this.has).containsKey(target)) && (!java.util.Objects.equals(Helpers.GetValue(this.has, target), null));
+            if (Boolean.TRUE.equals(sourceDefined) && !Boolean.TRUE.equals(targetDefined))
+            {
+                Helpers.addElementToObject(this.has, target, Helpers.GetValue(this.has, source));
+            }
         }
     }
 
@@ -6028,43 +6066,10 @@ public Object describe()
         return ((symbol + " : ") + "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false");
     }
 
-    public void createNetworksByIdObject()
-    {
-        // automatically generate network-id-to-code mappings
-        Object networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new HashMap<String, Object>() {{}})); // invert defined networks dictionary
-        Helpers.addElementToObject(this.options, "networksById", this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new HashMap<String, Object>() {{}}))); // support manually overriden "networksById" dictionary too
-    }
-
     public Object getDefaultOptions()
     {
         return new HashMap<String, Object>() {{
-            put( "defaultNetworkCodeReplacements", new HashMap<String, Object>() {{
-                put( "ETH", new HashMap<String, Object>() {{
-                    put( "primary", "ETH" );
-                    put( "secondary", "ERC20" );
-                    put( "default", "secondary" );
-                }} );
-                put( "CRO", new HashMap<String, Object>() {{
-                    put( "primary", "CRONOS" );
-                    put( "secondary", "CRC20" );
-                    put( "default", "secondary" );
-                }} );
-                put( "TRX", new HashMap<String, Object>() {{
-                    put( "primary", "TRX" );
-                    put( "secondary", "TRC20" );
-                    put( "default", "secondary" );
-                }} );
-                put( "BTC", new HashMap<String, Object>() {{
-                    put( "primary", "BTC" );
-                    put( "secondary", "BRC20" );
-                    put( "default", "primary" );
-                }} );
-            }} );
-            put( "backwardSupportedNetworkCodes", new HashMap<String, Object>() {{
-                put( "ARB", "ARBITRUM" );
-                put( "ARBONE", "ARBITRUM" );
-                put( "ARBNOVA", "ARBITRUM_NOVA" );
-            }} );
+            put( "withdrawTagRequiredCurrencies", new ArrayList<Object>(Arrays.asList("XRP", "XLM", "EOS", "ATOM", "HBAR", "TON", "KAVA", "STX", "XEM", "IOST", "OSMO", "WAXP")) );
         }};
     }
 
@@ -7849,6 +7854,17 @@ public Object describe()
         return result;
     }
 
+    public Object parseOrderBookBidsAsksL3(Object bidasks, Object priceKey, Object amountKey, Object countOrIdKey)
+    {
+        List<Object> bidasksValue = this.toArray(bidasks);
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < (bidasksValue == null ? 0 : bidasksValue.size()); i++)
+        {
+            ((List<Object>)result).add(this.parseOrderBookBidAskL3((bidasksValue == null || i < 0 || i >= bidasksValue.size() ? null : bidasksValue.get(i)), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2)));
+        }
+        return result;
+    }
+
     public Object filterByKey(Object objects, Object key, String value)
     {
         if (java.util.Objects.equals(value, null))
@@ -7916,70 +7932,13 @@ public Object describe()
         );
     }
 
-    public Object prioritizedNetworkAliases(String networkCode, String currencyCode, Boolean allowDefault)
-    {
-        /**
-         * @method
-         * @name Exchange#prioritizedNetworkAliases
-         * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
-         *   ---------------------------------
-         *   | input          | output       |
-         *   --------------------------------|
-         *   | ETH & USDC     | ERC20, ETH   |
-         *   | ERC20 & USDC   | ERC20, ETH   |
-         *   | ETH & ETH      | ETH, ERC20   |
-         *   | ERC20 & ETH    | ETH, ERC20   |
-         *   | ERC20          | ERC20, ETH   |
-         *   | ETH            | ERC20, ETH   |
-         *   ---------------------------------
-         * @param {string} networkCode unified network-code
-         * @param {string} currencyCode unified currency-code
-         * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
-         * @returns {string[]} [preferredChain, alternativeChain]
-         */
-        if (java.util.Objects.equals(networkCode, null))
-        {
-            return null;
-        }
-        Map<String, Object> replacements = (Map<String, Object>) this.safeDict(this.options, "defaultNetworkCodeReplacements", new HashMap<String, Object>() {{}});
-        List<String> keys = new ArrayList<String>(replacements.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
-        {
-            String baseCoin = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object entry = (replacements == null || baseCoin == null ? null : replacements.get(baseCoin));
-            Object primary = Helpers.GetValue(entry, "primary");
-            Object secondary = Helpers.GetValue(entry, "secondary");
-            if (!java.util.Objects.equals(networkCode, primary) && !java.util.Objects.equals(networkCode, secondary))
-            {
-                continue;
-            }
-            // pick which form goes first in the returned pair
-            Boolean preferPrimary = false;
-            if (java.util.Objects.equals(currencyCode, baseCoin))
-            {
-                preferPrimary = true; // mainnet currency uses primary chain
-            } else if (!java.util.Objects.equals(currencyCode, null))
-            {
-                preferPrimary = false; // any other (token) currency uses secondary chain
-            } else if (java.util.Objects.requireNonNullElse(allowDefault, false))
-            {
-                preferPrimary = (java.util.Objects.equals(Helpers.GetValue(entry, "default"), "primary"));
-            } else
-            {
-                preferPrimary = (java.util.Objects.equals(networkCode, primary)); // keep user input first
-            }
-            return ((Boolean.TRUE.equals(preferPrimary))) ? new ArrayList<Object>(Arrays.asList(primary, secondary)) : new ArrayList<Object>(Arrays.asList(secondary, primary));
-        }
-        return new ArrayList<Object>(Arrays.asList(networkCode, networkCode));
-    }
-
     public Object networkCodeToId(String networkCode, String currencyCode)
     {
         /**
          * @ignore
          * @method
          * @name exchange#networkCodeToId
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @description tries to convert the provided networkCode (a unified network code or one of its aliases) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
@@ -7988,15 +7947,23 @@ public Object describe()
         {
             return null;
         }
+        String unifiedCode = this.safeString(this.networkAliases, networkCode, networkCode);
         Map<String, Object> networkIdsByCodes = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
-        Object chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, false);
-        Object preferredChain = (((java.util.Objects.equals(chainPair, null)))) ? networkCode : (chainPair == null || 0 >= ((List<?>)chainPair).size() ? null : ((List<?>)chainPair).get(0));
-        Object alternativeChain = (((java.util.Objects.equals(chainPair, null)))) ? networkCode : (chainPair == null || 1 >= ((List<?>)chainPair).size() ? null : ((List<?>)chainPair).get(1));
-        String networkId = this.safeString2(networkIdsByCodes, preferredChain, alternativeChain);
+        String networkId = this.safeString(networkIdsByCodes, unifiedCode);
         if (!java.util.Objects.equals(networkId, null))
         {
             return networkId;
+        }
+        // options.networks may still be keyed by an alias of the unified code
+        Object aliases = this.networkAliases;
+        List<String> aliasKeys = new ArrayList<String>(((Map<String, Object>)aliases).keySet());
+        for (var i = 0; i < ((List<?>)aliasKeys).size(); i++)
+        {
+            String alias = (aliasKeys == null || i < 0 || i >= aliasKeys.size() ? null : aliasKeys.get(i));
+            if ((java.util.Objects.equals(Helpers.GetValue(aliases, alias), unifiedCode)) && (networkIdsByCodes.containsKey(alias)))
+            {
+                return (networkIdsByCodes == null || alias == null ? null : networkIdsByCodes.get(alias));
+            }
         }
         // fall back to scanning loaded currencies
         Object currenciesToCheck = new ArrayList<Object>(Arrays.asList());
@@ -8010,16 +7977,10 @@ public Object describe()
         for (var i = 0; i < ((List<?>)currenciesToCheck).size(); i++)
         {
             Map<String, Object> networks = (Map<String, Object>) this.safeDict((currenciesToCheck == null || i < 0 || i >= ((List<?>)currenciesToCheck).size() ? null : ((List<?>)currenciesToCheck).get(i)), "networks", new HashMap<String, Object>() {{}});
-            if (networks.containsKey(networkCode))
+            if (networks.containsKey(unifiedCode))
             {
-                return this.safeString((networks == null || networkCode == null ? null : networks.get(networkCode)), "id");
+                return this.safeString((networks == null || unifiedCode == null ? null : networks.get(unifiedCode)), "id");
             }
-        }
-        // before returning the original input, try to match if it's backward-maintained networkCode
-        Map<String, Object> oldCodes = (Map<String, Object>) this.safeDict(this.options, "backwardSupportedNetworkCodes", new HashMap<String, Object>() {{}});
-        if (oldCodes.containsKey(networkCode))
-        {
-            return this.networkCodeToId((String) ((oldCodes == null || networkCode == null ? null : oldCodes.get(networkCode))), currencyCode);
         }
         return networkCode;
     }
@@ -8040,25 +8001,9 @@ public Object describe()
             return null;
         }
         Map<String, Object> networkCodesByIds = (Map<String, Object>) this.safeDict(this.options, "networksById", new HashMap<String, Object>() {{}});
-        String networkCode = this.safeString(networkCodesByIds, networkId, networkId);
-        Object chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, true);
-        if (java.util.Objects.equals(chainPair, null))
-        {
-            return (String) (networkCode);
-        }
-        Object preferredChain = (chainPair == null || 0 >= ((List<?>)chainPair).size() ? null : ((List<?>)chainPair).get(0));
-        Object alternativeChain = (chainPair == null || 1 >= ((List<?>)chainPair).size() ? null : ((List<?>)chainPair).get(1));
-        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
-        // it disambiguates them — trust the direct id→code inversion instead of guessing
-        if (java.util.Objects.equals(currencyCode, null))
-        {
-            Map<String, Object> networkIdsByCodes = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-            if ((networkIdsByCodes.containsKey(preferredChain)) && (networkIdsByCodes.containsKey(alternativeChain)))
-            {
-                return (String) (networkCode);
-            }
-        }
-        return (String) (preferredChain);
+        String mappedCode = this.safeString(networkCodesByIds, networkId);
+        String networkCode = (((java.util.Objects.equals(mappedCode, null)))) ? networkId : mappedCode;
+        return (String) (this.safeString(this.networkAliases, networkCode, networkCode));
     }
 
     public Object handleNetworkCodeAndParams(Map<String, Object> parameters)
@@ -8067,36 +8012,6 @@ public Object describe()
         Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(networkCodeInParams, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("networkCode", "network"))) : parameters;
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
         return new ArrayList<Object>(Arrays.asList(networkCodeInParams, paramsOmitted));
-    }
-
-    public Object defaultNetworkCode(Object currencyCode)
-    {
-        Object defaultNetworkCode = null;
-        Map<String, Object> defaultNetworks = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}});
-        if (defaultNetworks.containsKey(currencyCode))
-        {
-            // if currency had set its network in "defaultNetworks", use it
-            defaultNetworkCode = (defaultNetworks == null || currencyCode == null ? null : defaultNetworks.get(currencyCode));
-        } else
-        {
-            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            String defaultNetwork = this.safeString(this.options, "defaultNetwork");
-            if (!java.util.Objects.equals(defaultNetwork, null))
-            {
-                defaultNetworkCode = defaultNetwork;
-            }
-        }
-        return defaultNetworkCode;
-    }
-
-    public Object selectNetworkCodeFromUnifiedNetworks(Object currencyCode, Object networkCode, Object indexedNetworkEntries)
-    {
-        return this.selectNetworkKeyFromNetworks(currencyCode, (String) (networkCode), indexedNetworkEntries, true);
-    }
-
-    public Object selectNetworkIdFromRawNetworks(Object currencyCode, Object networkCode, Object indexedNetworkEntries)
-    {
-        return this.selectNetworkKeyFromNetworks(currencyCode, (String) (networkCode), indexedNetworkEntries, false);
     }
 
     public Object selectNetworkKeyFromNetworks(Object currencyCode, String networkCode, Object indexedNetworkEntries, Boolean isIndexedByUnifiedNetworkCode)
@@ -8134,8 +8049,8 @@ public Object describe()
             } else
             {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                Object defaultNetworkCode = this.defaultNetworkCode(currencyCode);
-                Object defaultNetworkId = ((java.util.Objects.requireNonNullElse(isIndexedByUnifiedNetworkCode, false))) ? defaultNetworkCode : this.networkCodeToId((String) (defaultNetworkCode), Helpers.toStringArg(currencyCode));
+                String defaultNetworkCode = this.safeString(this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}}), currencyCode, this.safeString(this.options, "defaultNetwork"));
+                Object defaultNetworkId = ((java.util.Objects.requireNonNullElse(isIndexedByUnifiedNetworkCode, false))) ? defaultNetworkCode : this.networkCodeToId(defaultNetworkCode, Helpers.toStringArg(currencyCode));
                 if (java.util.Objects.equals(defaultNetworkId, null))
                 {
                     throw new ExchangeError((this.id + " selectNetworkKeyFromNetworks() missing defaultNetworkId")) ;
@@ -8168,6 +8083,20 @@ public Object describe()
             put( "datetime", BaseExchange.this.iso8601(timestamp) );
             put( "nonce", null );
         }});
+    }
+
+    public Object parseOrderBookL3(Object orderbook, String symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
+    {
+        Object bids = this.parseOrderBookBidsAsksL3(this.safeValue(orderbook, java.util.Objects.requireNonNullElse(bidsKey, "bids"), new ArrayList<Object>(Arrays.asList())), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
+        Object asks = this.parseOrderBookBidsAsksL3(this.safeValue(orderbook, java.util.Objects.requireNonNullElse(asksKey, "asks"), new ArrayList<Object>(Arrays.asList())), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
+        return new HashMap<String, Object>() {{
+            put( "symbol", symbol );
+            put( "bids", BaseExchange.this.sortBy(bids, 0, true) );
+            put( "asks", BaseExchange.this.sortBy(asks, 0) );
+            put( "timestamp", timestamp );
+            put( "datetime", BaseExchange.this.iso8601(timestamp) );
+            put( "nonce", null );
+        }};
     }
 
     public List<Object> parseOHLCVs(Object ohlcvs, Object market, String timeframe, Long since, Long limit, Object tail)
@@ -8261,18 +8190,6 @@ public Object describe()
     public Object safePosition(Map<String, Object> position)
     {
         // simplified version of: /pull/12765/
-        String unrealizedPnlString = this.safeString(position, "unrealizedPnl");
-        String initialMarginString = this.safeString(position, "initialMargin");
-        //
-        // PERCENTAGE
-        //
-        Object percentage = this.safeValue(position, "percentage");
-        if ((java.util.Objects.equals(percentage, null)) && (!java.util.Objects.equals(unrealizedPnlString, null)) && (!java.util.Objects.equals(initialMarginString, null)))
-        {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
-            String percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
-            position.put("percentage", BaseExchange.this.parseNumber(percentageString));
-        }
         // if contractSize is undefined get from market
         Double contractSize = this.safeNumber(position, "contractSize", (Object) null);
         String symbol = this.safeString(position, "symbol");
@@ -8285,6 +8202,370 @@ public Object describe()
         {
             contractSize = this.safeNumber(market, "contractSize", (Object) null);
             Helpers.addElementToObject(position, "contractSize", contractSize);
+        }
+        Boolean isInverse = (!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals(this.safeBool(market, "inverse", false));
+        String side = this.safeString(position, "side");
+        String marginMode = this.safeString(position, "marginMode");
+        String unrealizedPnlString = this.safeString(position, "unrealizedPnl");
+        String initialMarginString = this.safeString(position, "initialMargin");
+        Object maintenanceMarginString = this.safeString(position, "maintenanceMargin");
+        String collateralString = this.safeString(position, "collateral");
+        String entryPriceString = this.safeString(position, "entryPrice");
+        String liquidationPriceString = this.safeString(position, "liquidationPrice");
+        Object contractsString = this.safeString(position, "contracts");
+        Object contractSizeString = this.safeString(position, "contractSize");
+        // margin is the amount held in the position (excludes unrealized pnl), collateral = margin + unrealizedPnl
+        String marginString = this.safeString(position, "positionMargin");
+        if ((java.util.Objects.equals(marginString, null)) && (java.util.Objects.equals(marginMode, "isolated")) && (!java.util.Objects.equals(collateralString, null)))
+        {
+            String derivedMargin = collateralString;
+            if ((!java.util.Objects.equals(unrealizedPnlString, null)) && !Precise.stringEq(collateralString, initialMarginString))
+            {
+                derivedMargin = Precise.stringSub(collateralString, unrealizedPnlString);
+            }
+            if (Precise.stringGt(derivedMargin, "0"))
+            {
+                marginString = derivedMargin;
+                position.put("positionMargin", BaseExchange.this.parseNumber(derivedMargin));
+            }
+        }
+        if (java.util.Objects.equals(marginString, null))
+        {
+            Helpers.addElementToObject(position, "positionMargin", null); // keep the unified key present across all exchanges
+        }
+        if ((java.util.Objects.equals(collateralString, null)) && (!java.util.Objects.equals(marginString, null)) && (!java.util.Objects.equals(unrealizedPnlString, null)))
+        {
+            collateralString = Precise.stringAdd(marginString, unrealizedPnlString);
+            position.put("collateral", BaseExchange.this.parseNumber(collateralString));
+        }
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            String entryMarginString = marginString;
+            if ((java.util.Objects.equals(entryMarginString, null)) && (java.util.Objects.equals(collateralString, null)))
+            {
+                entryMarginString = initialMarginString;
+            }
+            Boolean hasEntryMargin = (!java.util.Objects.equals(entryMarginString, null)) && Precise.stringGt(entryMarginString, "0");
+            Boolean hasEntryPrice = (!java.util.Objects.equals(entryPriceString, null)) && Precise.stringGt(entryPriceString, "0");
+            Boolean hasLiqPrice = (!java.util.Objects.equals(liquidationPriceString, null)) && Precise.stringGt(liquidationPriceString, "0");
+            Boolean hasContracts = (!java.util.Objects.equals(contractsString, null)) && Precise.stringGt(contractsString, "0");
+            Boolean hasContractSize = (!java.util.Objects.equals(contractSizeString, null)) && Precise.stringGt(contractSizeString, "0");
+            Boolean hasMm = (!java.util.Objects.equals(maintenanceMarginString, null)) && Precise.stringGt(maintenanceMarginString, "0");
+            String priceDiff = null;
+            if (Boolean.TRUE.equals(hasEntryPrice) && Boolean.TRUE.equals(hasLiqPrice))
+            {
+                if (Boolean.TRUE.equals(isInverse))
+                {
+                    Object invEntry = Precise.stringDiv("1", entryPriceString);
+                    String invLiq = Precise.stringDiv("1", liquidationPriceString);
+                    if (java.util.Objects.equals(side, "long"))
+                    {
+                        priceDiff = Precise.stringSub(invLiq, invEntry);
+                    } else if (java.util.Objects.equals(side, "short"))
+                    {
+                        priceDiff = Precise.stringSub(invEntry, invLiq);
+                    } else
+                    {
+                        priceDiff = Precise.stringAbs(Precise.stringSub(invEntry, invLiq));
+                    }
+                } else
+                {
+                    if (java.util.Objects.equals(side, "long"))
+                    {
+                        priceDiff = Precise.stringSub(entryPriceString, liquidationPriceString);
+                    } else if (java.util.Objects.equals(side, "short"))
+                    {
+                        priceDiff = Precise.stringSub(liquidationPriceString, entryPriceString);
+                    } else
+                    {
+                        priceDiff = Precise.stringAbs(Precise.stringSub(entryPriceString, liquidationPriceString));
+                    }
+                }
+            }
+            Boolean hasPriceDiff = (!java.util.Objects.equals(priceDiff, null)) && Precise.stringGt(priceDiff, "0");
+            if ((java.util.Objects.equals(maintenanceMarginString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
+            {
+                Object lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
+                Object derivedMm = Precise.stringSub(entryMarginString, lossFromEntry);
+                if (Precise.stringGt(derivedMm, "0"))
+                {
+                    maintenanceMarginString = derivedMm;
+                    position.put("maintenanceMargin", BaseExchange.this.parseNumber(derivedMm));
+                }
+            } else if ((java.util.Objects.equals(collateralString, null)) && (java.util.Objects.equals(initialMarginString, null)) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
+            {
+                Object lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
+                String derivedEntryMargin = Precise.stringAdd(maintenanceMarginString, lossFromEntry);
+                if (Precise.stringGt(derivedEntryMargin, "0"))
+                {
+                    initialMarginString = derivedEntryMargin;
+                    position.put("initialMargin", BaseExchange.this.parseNumber(derivedEntryMargin));
+                    marginString = derivedEntryMargin;
+                    position.put("positionMargin", BaseExchange.this.parseNumber(derivedEntryMargin));
+                    String derivedCollateral = (((!java.util.Objects.equals(unrealizedPnlString, null)))) ? Precise.stringAdd(derivedEntryMargin, unrealizedPnlString) : derivedEntryMargin;
+                    if (Precise.stringGt(derivedCollateral, "0"))
+                    {
+                        collateralString = derivedCollateral;
+                        position.put("collateral", BaseExchange.this.parseNumber(derivedCollateral));
+                    }
+                }
+            } else if ((java.util.Objects.equals(liquidationPriceString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasEntryPrice) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize) && ((java.util.Objects.equals(side, "long")) || (java.util.Objects.equals(side, "short"))))
+            {
+                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(totalSize, "0"))
+                {
+                    Object bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
+                    String derivedLp = null;
+                    if (Boolean.TRUE.equals(isInverse))
+                    {
+                        Object invEntry = Precise.stringDiv("1", entryPriceString);
+                        String invLp = (((java.util.Objects.equals(side, "long")))) ? Precise.stringAdd(invEntry, bufferPerUnit) : Precise.stringSub(invEntry, bufferPerUnit);
+                        if (Precise.stringGt(invLp, "0"))
+                        {
+                            derivedLp = Precise.stringDiv("1", invLp);
+                        }
+                    } else
+                    {
+                        derivedLp = (((java.util.Objects.equals(side, "long")))) ? Precise.stringSub(entryPriceString, bufferPerUnit) : Precise.stringAdd(entryPriceString, bufferPerUnit);
+                    }
+                    if ((!java.util.Objects.equals(derivedLp, null)) && Precise.stringGt(derivedLp, "0"))
+                    {
+                        liquidationPriceString = derivedLp;
+                        position.put("liquidationPrice", BaseExchange.this.parseNumber(derivedLp));
+                    }
+                }
+            } else if ((java.util.Objects.equals(entryPriceString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasLiqPrice) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize) && ((java.util.Objects.equals(side, "long")) || (java.util.Objects.equals(side, "short"))))
+            {
+                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(totalSize, "0"))
+                {
+                    Object bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
+                    String derivedEp = null;
+                    if (Boolean.TRUE.equals(isInverse))
+                    {
+                        Object invLp = Precise.stringDiv("1", liquidationPriceString);
+                        String invEp = (((java.util.Objects.equals(side, "long")))) ? Precise.stringSub(invLp, bufferPerUnit) : Precise.stringAdd(invLp, bufferPerUnit);
+                        if (Precise.stringGt(invEp, "0"))
+                        {
+                            derivedEp = Precise.stringDiv("1", invEp);
+                        }
+                    } else
+                    {
+                        derivedEp = (((java.util.Objects.equals(side, "long")))) ? Precise.stringAdd(liquidationPriceString, bufferPerUnit) : Precise.stringSub(liquidationPriceString, bufferPerUnit);
+                    }
+                    if ((!java.util.Objects.equals(derivedEp, null)) && Precise.stringGt(derivedEp, "0"))
+                    {
+                        entryPriceString = derivedEp;
+                        position.put("entryPrice", BaseExchange.this.parseNumber(derivedEp));
+                    }
+                }
+            } else if ((java.util.Objects.equals(contractsString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContractSize))
+            {
+                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                Object denom = Precise.stringMul(priceDiff, contractSizeString);
+                if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(denom, "0"))
+                {
+                    Object derivedContracts = Precise.stringDiv(marginBuffer, denom);
+                    if (Precise.stringGt(derivedContracts, "0"))
+                    {
+                        contractsString = derivedContracts;
+                        position.put("contracts", BaseExchange.this.parseNumber(derivedContracts));
+                    }
+                }
+            } else if ((java.util.Objects.equals(contractSizeString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContracts))
+            {
+                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                Object denom = Precise.stringMul(priceDiff, contractsString);
+                if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(denom, "0"))
+                {
+                    Object derivedContractSize = Precise.stringDiv(marginBuffer, denom);
+                    if (Precise.stringGt(derivedContractSize, "0"))
+                    {
+                        contractSizeString = derivedContractSize;
+                        position.put("contractSize", BaseExchange.this.parseNumber(derivedContractSize));
+                    }
+                }
+            }
+        }
+        //
+        // POSITION-LOCAL DERIVATIONS (CROSS & ISOLATED)
+        //
+        Boolean isZeroPosition = (!java.util.Objects.equals(contractsString, null)) && Precise.stringEq(contractsString, "0");
+        if (!Boolean.TRUE.equals(isZeroPosition))
+        {
+            String notionalString = this.safeString(position, "notional");
+            String markPriceString = this.safeString(position, "markPrice");
+            String lastPriceString = this.safeString(position, "lastPrice");
+            Boolean hasContracts = (!java.util.Objects.equals(contractsString, null)) && Precise.stringGt(contractsString, "0");
+            Boolean hasContractSize = (!java.util.Objects.equals(contractSizeString, null)) && Precise.stringGt(contractSizeString, "0");
+            Boolean hasMarkPrice = (!java.util.Objects.equals(markPriceString, null)) && Precise.stringGt(markPriceString, "0");
+            Boolean hasNotional = (!java.util.Objects.equals(notionalString, null)) && Precise.stringGt(notionalString, "0");
+            // 1. notional <-> markPrice / contracts / contractSize
+            if ((java.util.Objects.equals(notionalString, null)) && Boolean.TRUE.equals(hasMarkPrice) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
+            {
+                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                String derivedNotional = ((Boolean.TRUE.equals(isInverse))) ? Precise.stringDiv(totalSize, markPriceString) : Precise.stringMul(totalSize, markPriceString);
+                if (Precise.stringGt(derivedNotional, "0"))
+                {
+                    notionalString = derivedNotional;
+                    position.put("notional", BaseExchange.this.parseNumber(derivedNotional));
+                }
+            } else if ((java.util.Objects.equals(markPriceString, null)) && (java.util.Objects.equals(entryPriceString, null)) && (java.util.Objects.equals(lastPriceString, null)) && Boolean.TRUE.equals(hasNotional) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
+            {
+                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                String derivedMark = ((Boolean.TRUE.equals(isInverse))) ? Precise.stringDiv(totalSize, notionalString) : Precise.stringDiv(notionalString, totalSize);
+                if (Precise.stringGt(derivedMark, "0"))
+                {
+                    markPriceString = derivedMark;
+                    position.put("markPrice", BaseExchange.this.parseNumber(derivedMark));
+                }
+            } else if ((java.util.Objects.equals(contractsString, null)) && Boolean.TRUE.equals(hasNotional) && Boolean.TRUE.equals(hasMarkPrice) && Boolean.TRUE.equals(hasContractSize))
+            {
+                String derivedContracts = ((Boolean.TRUE.equals(isInverse))) ? Precise.stringDiv(Precise.stringMul(notionalString, markPriceString), contractSizeString) : Precise.stringDiv(notionalString, Precise.stringMul(markPriceString, contractSizeString));
+                if (Precise.stringGt(derivedContracts, "0"))
+                {
+                    contractsString = derivedContracts;
+                    position.put("contracts", BaseExchange.this.parseNumber(derivedContracts));
+                }
+            } else if ((java.util.Objects.equals(contractSizeString, null)) && Boolean.TRUE.equals(hasNotional) && Boolean.TRUE.equals(hasMarkPrice) && Boolean.TRUE.equals(hasContracts))
+            {
+                String derivedContractSize = ((Boolean.TRUE.equals(isInverse))) ? Precise.stringDiv(Precise.stringMul(notionalString, markPriceString), contractsString) : Precise.stringDiv(notionalString, Precise.stringMul(markPriceString, contractsString));
+                if (Precise.stringGt(derivedContractSize, "0"))
+                {
+                    contractSizeString = derivedContractSize;
+                    position.put("contractSize", BaseExchange.this.parseNumber(derivedContractSize));
+                }
+            }
+            // 2. unrealizedPnl from entryPrice, markPrice, contracts, contractSize, side
+            if ((java.util.Objects.equals(unrealizedPnlString, null)) && (!java.util.Objects.equals(entryPriceString, null)) && (!java.util.Objects.equals(markPriceString, null)) && (!java.util.Objects.equals(contractsString, null)) && (!java.util.Objects.equals(contractSizeString, null)))
+            {
+                if (Precise.stringGt(entryPriceString, "0") && Precise.stringGt(markPriceString, "0") && Precise.stringGt(contractsString, "0") && Precise.stringGt(contractSizeString, "0"))
+                {
+                    Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                    String pnlDiff = null;
+                    if (Boolean.TRUE.equals(isInverse))
+                    {
+                        Object invEntry = Precise.stringDiv("1", entryPriceString);
+                        String invMark = Precise.stringDiv("1", markPriceString);
+                        if (java.util.Objects.equals(side, "long"))
+                        {
+                            pnlDiff = Precise.stringSub(invEntry, invMark);
+                        } else if (java.util.Objects.equals(side, "short"))
+                        {
+                            pnlDiff = Precise.stringSub(invMark, invEntry);
+                        }
+                    } else
+                    {
+                        if (java.util.Objects.equals(side, "long"))
+                        {
+                            pnlDiff = Precise.stringSub(markPriceString, entryPriceString);
+                        } else if (java.util.Objects.equals(side, "short"))
+                        {
+                            pnlDiff = Precise.stringSub(entryPriceString, markPriceString);
+                        }
+                    }
+                    if (!java.util.Objects.equals(pnlDiff, null))
+                    {
+                        String candidateUpnl = Precise.stringMul(pnlDiff, totalSize);
+                        if (Precise.stringEq(candidateUpnl, "0") || Precise.stringGe(Precise.stringAbs(candidateUpnl), "0.000001"))
+                        {
+                            unrealizedPnlString = candidateUpnl;
+                            position.put("unrealizedPnl", BaseExchange.this.parseNumber(unrealizedPnlString));
+                        }
+                    }
+                }
+            }
+            // 3. initialMargin <-> initialMarginPercentage <-> leverage / notional
+            Boolean hasValidNotional = (!java.util.Objects.equals(notionalString, null)) && Precise.stringGt(notionalString, "0");
+            Boolean hasNegativeCollateral = (!java.util.Objects.equals(collateralString, null)) && Precise.stringLt(collateralString, "0");
+            String initialMarginPercentageString = this.safeString(position, "initialMarginPercentage");
+            String leverageString = this.safeString(position, "leverage");
+            Boolean hasLeverage = (!java.util.Objects.equals(leverageString, null)) && Precise.stringGt(leverageString, "0");
+            Boolean hasInitialMargin = (!java.util.Objects.equals(initialMarginString, null)) && Precise.stringGt(initialMarginString, "0");
+            Boolean hadInitialMargin = (!java.util.Objects.equals(initialMarginString, null));
+            if ((java.util.Objects.equals(initialMarginPercentageString, null)) && !Boolean.TRUE.equals(hasNegativeCollateral) && (Boolean.TRUE.equals(hasInitialMargin) || !Boolean.TRUE.equals(hadInitialMargin)))
+            {
+                if (Boolean.TRUE.equals(hasInitialMargin) && Boolean.TRUE.equals(hasValidNotional))
+                {
+                    initialMarginPercentageString = Precise.stringDiv(initialMarginString, notionalString);
+                } else if (Boolean.TRUE.equals(hasLeverage))
+                {
+                    initialMarginPercentageString = Precise.stringDiv("1", leverageString);
+                }
+                if ((!java.util.Objects.equals(initialMarginPercentageString, null)) && Precise.stringGt(initialMarginPercentageString, "0"))
+                {
+                    position.put("initialMarginPercentage", BaseExchange.this.parseNumber(initialMarginPercentageString));
+                }
+            }
+            Boolean hasImp = (!java.util.Objects.equals(initialMarginPercentageString, null)) && Precise.stringGt(initialMarginPercentageString, "0");
+            if ((java.util.Objects.equals(initialMarginString, null)) && !Boolean.TRUE.equals(hasNegativeCollateral) && Boolean.TRUE.equals(hasValidNotional))
+            {
+                if (Boolean.TRUE.equals(hasLeverage))
+                {
+                    initialMarginString = Precise.stringDiv(notionalString, leverageString);
+                } else if (Boolean.TRUE.equals(hasImp))
+                {
+                    initialMarginString = Precise.stringMul(notionalString, initialMarginPercentageString);
+                }
+                if ((!java.util.Objects.equals(initialMarginString, null)) && Precise.stringGt(initialMarginString, "0"))
+                {
+                    position.put("initialMargin", BaseExchange.this.parseNumber(initialMarginString));
+                }
+            }
+            if ((java.util.Objects.equals(leverageString, null)) && !Boolean.TRUE.equals(hadInitialMargin) && Boolean.TRUE.equals(hasImp))
+            {
+                String derivedLeverage = Precise.stringDiv("1", initialMarginPercentageString);
+                if (Precise.stringGt(derivedLeverage, "0") && Precise.stringLe(derivedLeverage, "200"))
+                {
+                    position.put("leverage", BaseExchange.this.parseNumber(derivedLeverage));
+                }
+            }
+            // 4. maintenanceMargin <-> maintenanceMarginPercentage / notional
+            String maintenanceMarginPercentageString = this.safeString(position, "maintenanceMarginPercentage");
+            Boolean hasValidMm = (!java.util.Objects.equals(maintenanceMarginString, null)) && Precise.stringGt(maintenanceMarginString, "0");
+            Boolean hasValidMmp = (!java.util.Objects.equals(maintenanceMarginPercentageString, null)) && Precise.stringGt(maintenanceMarginPercentageString, "0");
+            if ((java.util.Objects.equals(maintenanceMarginString, null)) && Boolean.TRUE.equals(hasValidNotional) && Boolean.TRUE.equals(hasValidMmp))
+            {
+                Object derivedMm = Precise.stringMul(notionalString, maintenanceMarginPercentageString);
+                if (Precise.stringGt(derivedMm, "0"))
+                {
+                    maintenanceMarginString = derivedMm;
+                    position.put("maintenanceMargin", BaseExchange.this.parseNumber(derivedMm));
+                }
+            } else if ((java.util.Objects.equals(maintenanceMarginPercentageString, null)) && Boolean.TRUE.equals(hasValidNotional) && Boolean.TRUE.equals(hasValidMm))
+            {
+                String derivedMmp = Precise.stringDiv(maintenanceMarginString, notionalString);
+                if (Precise.stringGt(derivedMmp, "0"))
+                {
+                    maintenanceMarginPercentageString = derivedMmp;
+                    position.put("maintenanceMarginPercentage", BaseExchange.this.parseNumber(derivedMmp));
+                }
+            }
+            // 5. marginRatio = maintenanceMargin / collateral
+            Object marginRatio = this.safeValue(position, "marginRatio");
+            if ((java.util.Objects.equals(marginRatio, null)) && (!java.util.Objects.equals(maintenanceMarginString, null)) && (!java.util.Objects.equals(collateralString, null)))
+            {
+                if (Precise.stringGt(maintenanceMarginString, "0") && Precise.stringGt(collateralString, "0"))
+                {
+                    String derivedMarginRatio = Precise.stringDiv(maintenanceMarginString, collateralString, 4);
+                    if ((!java.util.Objects.equals(derivedMarginRatio, null)) && Precise.stringGt(derivedMarginRatio, "0"))
+                    {
+                        position.put("marginRatio", BaseExchange.this.parseNumber(derivedMarginRatio));
+                    }
+                }
+            }
+        }
+        //
+        // PERCENTAGE
+        //
+        Object percentage = this.safeValue(position, "percentage");
+        if ((java.util.Objects.equals(percentage, null)) && (!java.util.Objects.equals(unrealizedPnlString, null)) && (!java.util.Objects.equals(initialMarginString, null)))
+        {
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+            String percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
+            position.put("percentage", BaseExchange.this.parseNumber(percentageString));
         }
         return position;
     }
@@ -8531,29 +8812,6 @@ public Object describe()
         return new ArrayList<Object>(Arrays.asList(value, paramsOmitted));
     }
 
-    /**
-     * @param {object} params - extra parameters
-     * @param {object} request - existing dictionary of request
-     * @param {string} exchangeSpecificKey - the key for chain id to be set in request
-     * @param {object} currencyCode - (optional) existing dictionary of request
-     * @param {boolean} isRequired - (optional) whether that param is required to be present
-     * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
-     */
-    public Object handleRequestNetwork(Map<String, Object> parameters, Map<String, Object> request, Object exchangeSpecificKey, String currencyCode, Boolean isRequired)
-    {
-        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
-        String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
-        Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
-        if (!java.util.Objects.equals(networkCode, null))
-        {
-            Helpers.addElementToObject(request, exchangeSpecificKey, this.networkCodeToId(networkCode, currencyCode));
-        } else if (java.util.Objects.requireNonNullElse(isRequired, false))
-        {
-            throw new ArgumentsRequired((this.id + " - \"network\" param is required for this request")) ;
-        }
-        return new ArrayList<Object>(Arrays.asList(request, paramsNetworkCode));
-    }
-
     public Object resolvePath(Object path, Object parameters)
     {
         return new ArrayList<Object>(Arrays.asList(this.implodeParams(path, parameters), this.omit(parameters, this.extractParams(path))));
@@ -8661,14 +8919,14 @@ public Object describe()
         return results;
     }
 
-    public CompletableFuture<Object> fetch2(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
+    public CompletableFuture<Object> fetch2(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             if (this.enableRateLimit)
             {
-                Object cost = this.calculateRateLimiterCost(java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), path, parameters, config);
+                Object cost = this.calculateRateLimiterCost(api, java.util.Objects.requireNonNullElse(method, "GET"), path, parameters, config);
                 (this.throttle(cost)).join();
             }
             Integer retries = 0;
@@ -8698,7 +8956,7 @@ public Object describe()
                 try
                 {
                     this.setLastRestRequestTimestamp();
-                    Object request = this.sign(path, java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), paramsMaxRetriesOnFailureDelay, headers, Helpers.toStringArg(body));
+                    Object request = this.sign(path, api, java.util.Objects.requireNonNullElse(method, "GET"), paramsMaxRetriesOnFailureDelay);
                     if (!java.util.Objects.equals(fetchData, null))
                     {
                         fetchData.put("request", request);
@@ -8746,12 +9004,12 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetch2(path, java.util.Objects.requireNonNullElse(api, "public"), java.util.Objects.requireNonNullElse(method, "GET"), parameters, headers, body, config)).join();
+            return (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
         });
 
     }
@@ -8901,6 +9159,19 @@ public Object describe()
         Double price = this.safeFloat(bidask, java.util.Objects.requireNonNullElse(priceKey, 0));
         Double amount = this.safeFloat(bidask, java.util.Objects.requireNonNullElse(amountKey, 1));
         Long countOrId = this.safeInteger(bidask, java.util.Objects.requireNonNullElse(countOrIdKey, 2));
+        List<Object> bidAsk = new ArrayList<Object>(Arrays.asList(price, amount));
+        if (!java.util.Objects.equals(countOrId, null))
+        {
+            ((List<Object>)bidAsk).add(countOrId);
+        }
+        return bidAsk;
+    }
+
+    public Object parseOrderBookBidAskL3(Object bidask, Object priceKey, Object amountKey, Object countOrIdKey)
+    {
+        Double price = this.safeFloat(bidask, java.util.Objects.requireNonNullElse(priceKey, 0));
+        Double amount = this.safeFloat(bidask, java.util.Objects.requireNonNullElse(amountKey, 1));
+        String countOrId = this.safeString(bidask, java.util.Objects.requireNonNullElse(countOrIdKey, 2));
         List<Object> bidAsk = new ArrayList<Object>(Arrays.asList(price, amount));
         if (!java.util.Objects.equals(countOrId, null))
         {
@@ -10032,25 +10303,6 @@ public Object describe()
             }
         }
         return false;
-    }
-
-    public Object handleWithdrawTagAndParams(Object tag, Map<String, Object> parameters)
-    {
-        Map<String, Object> paramsExtended = parameters;
-        Object tagValue = tag;
-        if (Boolean.TRUE.equals(this.isDictionary(tag)))
-        {
-            paramsExtended = this.extend(tag, parameters);
-            tagValue = null;
-        }
-        Object tagResolved = (((java.util.Objects.equals(tagValue, null)))) ? this.safeString(paramsExtended, "tag") : tagValue;
-        Boolean tagFromParams = (java.util.Objects.equals(tagValue, null)) && (!java.util.Objects.equals(tagResolved, null));
-        Map<String, Object> paramsOmitted = paramsExtended;
-        if (Boolean.TRUE.equals(tagFromParams))
-        {
-            paramsOmitted = this.omit(paramsExtended, "tag");
-        }
-        return new ArrayList<Object>(Arrays.asList(tagResolved, paramsOmitted));
     }
 
     public String costToPrecision(Object symbol, Object cost)
@@ -11273,6 +11525,7 @@ public Object describe()
                 }
                 paginationTimestamp = since;
             }
+            Boolean shouldBreak = false;
             while ((Helpers.isLessThan(calls, maxCallsPaginationCalls)))
             {
                 calls = Helpers.add(calls, 1);
@@ -11299,6 +11552,7 @@ public Object describe()
                         }
                         if ((responseLength != null && responseLength == 0))
                         {
+                            shouldBreak = true;
                             break;
                         }
                         errors = 0;
@@ -11307,10 +11561,12 @@ public Object describe()
                         paginationTimestamp = this.safeInteger2(firstElement, "timestamp", 0);
                         if (java.util.Objects.equals(paginationTimestamp, null))
                         {
+                            shouldBreak = true;
                             break;
                         }
                         if ((!java.util.Objects.equals(since, null)) && (Helpers.isLessThanOrEqual(paginationTimestamp, since)))
                         {
+                            shouldBreak = true;
                             break;
                         }
                     } else
@@ -11329,6 +11585,7 @@ public Object describe()
                         }
                         if ((responseLength != null && responseLength == 0))
                         {
+                            shouldBreak = true;
                             break;
                         }
                         errors = 0;
@@ -11337,12 +11594,14 @@ public Object describe()
                         Long lastTimestamp = this.safeInteger(last, "timestamp", 0);
                         if (java.util.Objects.equals(lastTimestamp, null))
                         {
+                            shouldBreak = true;
                             break;
                         }
                         Object nextPaginationTimestamp = (lastTimestamp + 1L);
                         paginationTimestamp = nextPaginationTimestamp;
                         if ((!java.util.Objects.equals(until, null)) && (Helpers.isGreaterThanOrEqual(nextPaginationTimestamp, until)))
                         {
+                            shouldBreak = true;
                             break;
                         }
                     }
@@ -11353,6 +11612,10 @@ public Object describe()
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
+                }
+                if (Boolean.TRUE.equals(shouldBreak))
+                {
+                    break; // go turns a break inside try into a panic that only ends the iteration
                 }
             }
             Object uniqueResults = result;
@@ -11508,6 +11771,7 @@ public Object describe()
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             String timeframe = this.safeString(paramsMaxEntriesPerRequest, "timeframe");
             Map<String, Object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
+            Boolean shouldBreak = false;
             while (Helpers.isLessThan(i, maxCallsPaginationCalls))
             {
                 try
@@ -11557,6 +11821,7 @@ public Object describe()
                     }
                     if (java.util.Objects.equals(responseLength, 0))
                     {
+                        shouldBreak = true;
                         break;
                     }
                     if (!java.util.Objects.equals(response, null))
@@ -11566,20 +11831,20 @@ public Object describe()
                     Map<String, Object> last = (Map<String, Object>) this.safeDict(response, (((long) responseLength) - 1L), (Object) null);
                     // cursorValue = this.safeValue (last['info'], cursorReceived);
                     cursorValue = null; // search for the cursor
+                    // guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
                     for (var j = 0; (responseLength != null && j < responseLength); j++)
                     {
-                        Long index = ((((long) responseLength) - ((long) j)) - 1L);
-                        Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, index, (Object) null);
-                        Map<String, Object> info = (Map<String, Object>) this.safeDict(entry, "info", (Object) null);
-                        Object cursor = (((java.util.Objects.equals(cursorReceived, null)))) ? null : this.safeValue(info, cursorReceived);
-                        if (!java.util.Objects.equals(cursor, null))
+                        if (java.util.Objects.equals(cursorValue, null))
                         {
-                            cursorValue = cursor;
-                            break;
+                            Long index = ((((long) responseLength) - ((long) j)) - 1L);
+                            Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, index, (Object) null);
+                            Map<String, Object> info = (Map<String, Object>) this.safeDict(entry, "info", (Object) null);
+                            cursorValue = (((java.util.Objects.equals(cursorReceived, null)))) ? null : this.safeValue(info, cursorReceived);
                         }
                     }
                     if (java.util.Objects.equals(cursorValue, null))
                     {
+                        shouldBreak = true;
                         break;
                     }
                     Long lastTimestamp = this.safeInteger(last, "timestamp");
@@ -11589,6 +11854,7 @@ public Object describe()
                     }
                     if (!java.util.Objects.equals(lastTimestamp, null) && ((lastTimestamp == null || lastTimestamp < since)))
                     {
+                        shouldBreak = true;
                         break;
                     }
                 } catch(Exception e)
@@ -11598,6 +11864,10 @@ public Object describe()
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
+                }
+                if (Boolean.TRUE.equals(shouldBreak))
+                {
+                    break; // go turns a break inside try into a panic that only ends the iteration
                 }
                 i = Helpers.add(i, 1);
             }
@@ -11627,6 +11897,7 @@ public Object describe()
             Object i = 0;
             Object errors = 0;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
+            Boolean shouldBreak = false;
             while (Helpers.isLessThan(i, maxCallsPaginationCalls))
             {
                 try
@@ -11643,6 +11914,7 @@ public Object describe()
                     }
                     if ((responseLength != null && responseLength == 0))
                     {
+                        shouldBreak = true;
                         break;
                     }
                     result = (List<Object>) this.arrayConcat(result, response);
@@ -11653,6 +11925,10 @@ public Object describe()
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
+                }
+                if (Boolean.TRUE.equals(shouldBreak))
+                {
+                    break; // go turns a break inside try into a panic that only ends the iteration
                 }
                 i = Helpers.add(i, 1);
             }
@@ -12138,7 +12414,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Transaction> withdrawWs(String code, Object amount, Object address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdrawWs(String code, Object amount, Object address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

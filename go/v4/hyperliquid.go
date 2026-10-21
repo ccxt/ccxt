@@ -2145,6 +2145,36 @@ func (this *Hyperliquid) BuildUsdClassSendSig(message any) any {
 	}
 	return this.SignUserSignedAction(messageTypes, message)
 }
+func (this *Hyperliquid) BuildSendAssetSig(message any) any {
+	var messageTypes map[string]any = map[string]any{
+		"HyperliquidTransaction:SendAsset": []any{map[string]any{
+			"name": "hyperliquidChain",
+			"type": "string",
+		}, map[string]any{
+			"name": "destination",
+			"type": "string",
+		}, map[string]any{
+			"name": "sourceDex",
+			"type": "string",
+		}, map[string]any{
+			"name": "destinationDex",
+			"type": "string",
+		}, map[string]any{
+			"name": "token",
+			"type": "string",
+		}, map[string]any{
+			"name": "amount",
+			"type": "string",
+		}, map[string]any{
+			"name": "fromSubAccount",
+			"type": "string",
+		}, map[string]any{
+			"name": "nonce",
+			"type": "uint64",
+		}},
+	}
+	return this.SignUserSignedAction(messageTypes, message)
+}
 func (this *Hyperliquid) BuildWithdrawSig(message any) any {
 	var messageTypes map[string]any = map[string]any{
 		"HyperliquidTransaction:Withdraw": []any{map[string]any{
@@ -2505,8 +2535,10 @@ func (this *Hyperliquid) isUnifiedEnabledBody(ch chan EndpointResult[[]any], met
 					}
 				}()
 				// try block:
+				// the request keys win: a caller's own 'type' or 'user' params (e.g. transfer's
+				// type 'swap') must not overwrite the info query, which would silently fail here
 
-				r := <-this.PublicPostInfo(this.Extend(request, paramsEnableUnifiedMargin))
+				r := <-this.PublicPostInfo(this.Extend(paramsEnableUnifiedMargin, request))
 				if r.Err != nil {
 					panic(r.Err)
 				}
@@ -3204,11 +3236,11 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[map[string]any], id
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes250119 map[string]any = r.Value
-		if retRes250119 == nil {
+		var retRes251919 map[string]any = r.Value
+		if retRes251919 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes250119}
+			ch <- AsyncResult[map[string]any]{Value: retRes251919}
 		}
 		return nil
 	}
@@ -3217,8 +3249,8 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[map[string]any], id
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv3057, _ := r1.Value.([]any)
-	var orders []any = listRecv3057
+	listRecv3089, _ := r1.Value.([]any)
+	var orders []any = listRecv3089
 	var canceled map[string]any = SafeMapTyped(orders, 0)
 
 	ch <- AsyncResult[map[string]any]{Value: canceled}
@@ -5324,6 +5356,12 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
 		initialMargin = marginUsed
 	}
 	var percentage *string = Precise.StringMul(Precise.StringDiv(absRawUnrealizedPnl, marginUsed), "100")
+	var positionValueString *string = this.SafeString(entry, "positionValue")
+	var markPriceString *string = Precise.StringDiv(positionValueString, size)
+	var marginString *string = nil
+	if isIsolated {
+		marginString = initialMargin
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -5336,9 +5374,10 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
 		"contracts":                   this.ParseNumber(size),
 		"contractSize":                nil,
 		"entryPrice":                  this.SafeNumber(entry, "entryPx"),
-		"markPrice":                   nil,
-		"notional":                    this.SafeNumber(entry, "positionValue"),
+		"markPrice":                   this.ParseNumber(markPriceString),
+		"notional":                    this.ParseNumber(positionValueString),
 		"leverage":                    this.SafeNumber(leverage, "value"),
+		"positionMargin":              this.ParseNumber(marginString),
 		"collateral":                  this.ParseNumber(marginUsed),
 		"initialMargin":               this.ParseNumber(initialMargin),
 		"maintenanceMargin":           nil,
@@ -5347,6 +5386,7 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
 		"unrealizedPnl":               this.ParseNumber(rawUnrealizedPnl),
 		"liquidationPrice":            this.SafeNumber(entry, "liquidationPx"),
 		"marginMode":                  marginMode,
+		"marginRatio":                 nil,
 		"percentage":                  this.ParseNumber(percentage),
 	})
 }
@@ -5542,11 +5582,11 @@ func (this *Hyperliquid) addMarginBody(ch chan AsyncResult[map[string]any], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes419215 map[string]any = MapTyped(r.Value)
-	if retRes419215 == nil {
+	var retRes421815 map[string]any = MapTyped(r.Value)
+	if retRes421815 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes419215}
+		ch <- AsyncResult[map[string]any]{Value: retRes421815}
 	}
 	return nil
 }
@@ -5578,11 +5618,11 @@ func (this *Hyperliquid) reduceMarginBody(ch chan EndpointResult[map[string]any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes420815 map[string]any = MapTyped(r.Value)
-	if retRes420815 == nil {
+	var retRes423415 map[string]any = MapTyped(r.Value)
+	if retRes423415 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes420815, Raw: retRes420815}
+		ch <- EndpointResult[map[string]any]{Value: retRes423415, Raw: retRes423415}
 	}
 	return nil
 }
@@ -5673,13 +5713,21 @@ func (this *Hyperliquid) ParseMarginModification(data any, optionalArgs ...any) 
  * @method
  * @name hyperliquid#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-from-spot-account-to-perp-account-and-vice-versa
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-between-sub-accounts
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#send-asset
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
- * @param {string} fromAccount account to transfer from *spot, swap*
- * @param {string} toAccount account to transfer to *swap, spot or address*
+ * @param {string} fromAccount account to transfer from *spot, swap, main or a sub-account address*
+ * @param {string} toAccount account to transfer to *swap, spot, main or a sub-account address*
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.vaultAddress] the vault address for order
+ * @param {string} [params.vaultAddress] spot <> swap only, moves the balance inside this vault or sub-account instead of the main account
+ * @param {string} [params.type] main <> sub-account only, 'spot' moves the spot ledger instead of the perp ledger
+ * @param {string} [params.method] main <> sub-account only, 'sendAsset' forces the unified-account route, 'subAccountTransfer' forces the legacy sub-account actions; defaults to sendAsset when the account abstraction is unifiedAccount
+ * @param {boolean} [params.enableUnifiedMargin] main <> sub-account only, skips the abstraction lookup and states whether the account is unified
+ * @param {string} [params.sourceDex] sendAsset only, perp dex to move from, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+ * @param {string} [params.destinationDex] sendAsset only, perp dex to move to, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+ * @param {string} [params.user] sendAsset only, the master wallet address, defaults to walletAddress
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Hyperliquid) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
@@ -5770,10 +5818,104 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[map[string]any], code 
 		panic(NotSupported(this.Id + " transfer() only support main <> subaccount transfer"))
 	}
 	this.CheckAddress(subAccountAddress)
-	// hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
+	var transferType *string = this.SafeString(params, "type")
+	// subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
+	// unified account is active", a unified account has to move balances with sendAsset instead
+	var transferMethod any = nil
+	var query any = params
+	var transferMethodqueryVariable []any = this.HandleOptionAndParams(query, "transfer", "method")
+	transferMethod = GetValue(transferMethodqueryVariable, 0)
+	query = transferMethodqueryVariable[1]
+	var masterAddress any = nil
+	masterAddressqueryVariable := this.HandlePublicAddress("transfer", query)
+	masterAddress = GetValue(masterAddressqueryVariable, 0)
+	query = GetValue(masterAddressqueryVariable, 1)
+	var useSendAsset bool = (transferMethod == "sendAsset")
+	if transferMethod == nil {
+		var isUnified any = nil
+		r2 := <-this.IsUnifiedEnabledAsync("transfer", masterAddress, false, query)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		listRecv5506 := r2.Value
+		var isUnifiedqueryVariable []any = listRecv5506
+		isUnified = GetValue(isUnifiedqueryVariable, 0)
+		query = GetValue(isUnifiedqueryVariable, 1)
+		useSendAsset = (isUnified == true)
+	}
+	if useSendAsset {
+		var paramsSendAsset any = query
+		var sendAssetCurrency map[string]any = this.Currency(code)
+		var sendAssetCurrencyInfo map[string]any = SafeMapTyped(sendAssetCurrency, "info")
+		var sendAssetToken *string = SafeStringPtr(Add(Add(this.SafeString(sendAssetCurrencyInfo, "name"), ":"), this.SafeString(sendAssetCurrencyInfo, "tokenId")))
+		// '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
+		// keeps every balance in the spot clearinghouse so spot is the default on both sides
+		var defaultDex string = func() string {
+			if (transferType != nil && *transferType == "swap") || (transferType != nil && *transferType == "perp") {
+				return ""
+			}
+			return "spot"
+		}()
+		var sourceDex *string = this.SafeString(paramsSendAsset, "sourceDex", defaultDex)
+		var destinationDex *string = this.SafeString(paramsSendAsset, "destinationDex", defaultDex)
+		var sendAssetPayload map[string]any = map[string]any{
+			"hyperliquidChain": func() string {
+				if isSandboxMode != nil && *isSandboxMode == true {
+					return "Testnet"
+				}
+				return "Mainnet"
+			}(),
+			"destination": func() any {
+				if isDeposit {
+					return subAccountAddress
+				}
+				return masterAddress
+			}(),
+			"sourceDex":      sourceDex,
+			"destinationDex": destinationDex,
+			"token":          sendAssetToken,
+			"amount":         this.NumberToString(amount),
+			"fromSubAccount": func() any {
+				if isDeposit {
+					return ""
+				}
+				return subAccountAddress
+			}(),
+			"nonce": nonce,
+		}
+		var sendAssetSig any = this.BuildSendAssetSig(sendAssetPayload)
+		var sendAssetRequest map[string]any = map[string]any{
+			"action": map[string]any{
+				"hyperliquidChain": sendAssetPayload["hyperliquidChain"],
+				"signatureChainId": "0x66eee",
+				"type":             "sendAsset",
+				"destination":      sendAssetPayload["destination"],
+				"sourceDex":        sourceDex,
+				"destinationDex":   destinationDex,
+				"token":            sendAssetToken,
+				"amount":           sendAssetPayload["amount"],
+				"fromSubAccount":   sendAssetPayload["fromSubAccount"],
+				"nonce":            nonce,
+			},
+			"nonce":     nonce,
+			"signature": sendAssetSig,
+		}
+
+		r3 := <-this.PrivatePostExchange(sendAssetRequest)
+		if r3.Err != nil {
+			panic(r3.Err)
+		}
+		var sendAssetResponse map[string]any = r3.Value
+
+		//
+		// {'response': {'type': 'default'}, 'status': 'ok'}
+		//
+		ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(sendAssetResponse, sendAssetCurrency)}
+		return nil
+	}
+	// a standard account keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
 	// moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
 	// params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
-	var transferType *string = this.SafeString(params, "type")
 	var isUsdc bool = (strings.ToUpper(code) == "USDC")
 	if isUsdc && (transferType == nil || *transferType != "spot") {
 		// Transfer USDC with subAccountTransfer
@@ -5791,16 +5933,16 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[map[string]any], code 
 			"signature": sig,
 		}
 
-		r2 := <-this.PrivatePostExchange(request)
-		if r2.Err != nil {
-			panic(r2.Err)
+		r4 := <-this.PrivatePostExchange(request)
+		if r4.Err != nil {
+			panic(r4.Err)
 		}
-		response := r2.Raw
+		response := r4.Raw
 
 		//
 		// {'response': {'type': 'default'}, 'status': 'ok'}
 		//
-		ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(response)}
+		ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(response, this.SafeCurrency(code))}
 		return nil
 	} else {
 		// Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
@@ -5827,13 +5969,13 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[map[string]any], code 
 			"signature": sig,
 		}
 
-		r3 := <-this.PrivatePostExchange(request)
-		if r3.Err != nil {
-			panic(r3.Err)
+		r5 := <-this.PrivatePostExchange(request)
+		if r5.Err != nil {
+			panic(r5.Err)
 		}
-		response := r3.Raw
+		response := r5.Raw
 
-		ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(response)}
+		ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(response, currency)}
 		return nil
 	}
 }
@@ -5865,8 +6007,8 @@ func (this *Hyperliquid) ParseTransfer(transfer any, optionalArgs ...any) map[st
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.vaultAddress] vault address withdraw from
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
@@ -5878,9 +6020,7 @@ func (this *Hyperliquid) WithdrawAsync(code string, amount any, address any, opt
 func (this *Hyperliquid) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 	if this.Markets == nil {
@@ -6910,17 +7050,14 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 	return nil
 }
 func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
-	_ = body
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -6929,13 +7066,13 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
 	var postHeaders map[string]any = map[string]any{
 		"Content-Type": "application/json",
 	}
-	var requestHeaders any = headers
+	var requestHeaders map[string]any = nil
 	if isPost {
 		requestHeaders = postHeaders
 	}
-	var requestBody any = body
+	var requestBody *string = nil
 	if isPost {
-		requestBody = this.Json(params)
+		requestBody = SafeStringPtr(this.Json(params))
 	}
 	return map[string]any{
 		"url":     url,
@@ -7950,13 +8087,21 @@ func (this *Hyperliquid) SetLeverage(leverage int64, options ...SetLeverageOptio
  * @method
  * @name hyperliquid#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-from-spot-account-to-perp-account-and-vice-versa
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-between-sub-accounts
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#send-asset
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
- * @param {string} fromAccount account to transfer from *spot, swap*
- * @param {string} toAccount account to transfer to *swap, spot or address*
+ * @param {string} fromAccount account to transfer from *spot, swap, main or a sub-account address*
+ * @param {string} toAccount account to transfer to *swap, spot, main or a sub-account address*
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.vaultAddress] the vault address for order
+ * @param {string} [params.vaultAddress] spot <> swap only, moves the balance inside this vault or sub-account instead of the main account
+ * @param {string} [params.type] main <> sub-account only, 'spot' moves the spot ledger instead of the perp ledger
+ * @param {string} [params.method] main <> sub-account only, 'sendAsset' forces the unified-account route, 'subAccountTransfer' forces the legacy sub-account actions; defaults to sendAsset when the account abstraction is unifiedAccount
+ * @param {boolean} [params.enableUnifiedMargin] main <> sub-account only, skips the abstraction lookup and states whether the account is unified
+ * @param {string} [params.sourceDex] sendAsset only, perp dex to move from, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+ * @param {string} [params.destinationDex] sendAsset only, perp dex to move to, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+ * @param {string} [params.user] sendAsset only, the master wallet address, defaults to walletAddress
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Hyperliquid) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
@@ -7983,8 +8128,8 @@ func (this *Hyperliquid) Transfer(code string, amount float64, fromAccount strin
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @param {string} [params.vaultAddress] vault address withdraw from
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
@@ -7995,7 +8140,7 @@ func (this *Hyperliquid) Withdraw(code string, amount float64, address string, o
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
