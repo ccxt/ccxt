@@ -3,6 +3,114 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchOpenOrders": [
+            {
+                "description": "spot crypto",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "ETH/USD"
+                ],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 625477356,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0/0.01",
+                            "orderDesc": "Buy 0.01 ETH Crypto Limit 2111.00, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0.01,
+                            "filledQuantity": 0,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Submitted",
+                            "order_ccp_status": "Submitted",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261021124221",
+                            "orderType": "Limit",
+                            "bgColor": "#000000",
+                            "fgColor": "#00F000",
+                            "order_ref": "95316893",
+                            "isEventTrading": "0",
+                            "price": "2111.00",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1792586541000,
+                            "side": "BUY"
+                        }
+                    ],
+                    "snapshot": true
+                },
+                "parsedResponse": [
+                    {
+                        "id": "625477356",
+                        "clientOrderId": "95316893",
+                        "timestamp": 1792586541000,
+                        "datetime": "2026-10-21T12:42:21.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "ETH/USD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 2111,
+                        "triggerPrice": null,
+                        "amount": 0.01,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.01,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 625477356,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0/0.01",
+                            "orderDesc": "Buy 0.01 ETH Crypto Limit 2111.00, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0.01,
+                            "filledQuantity": 0,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Submitted",
+                            "order_ccp_status": "Submitted",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261021124221",
+                            "orderType": "Limit",
+                            "bgColor": "#000000",
+                            "fgColor": "#00F000",
+                            "order_ref": "95316893",
+                            "isEventTrading": "0",
+                            "price": "2111.00",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1792586541000,
+                            "side": "BUY"
+                        },
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
         "fetchCanceledOrders": [
             {
                 "description": "spot crypto",
@@ -311,18 +419,6 @@
                         "stopLossPrice": null
                     }
                 ]
-            },
-            {
-                "description": "spot crypto",
-                "method": "fetchClosedOrders",
-                "input": [
-                    "ETH/USD"
-                ],
-                "httpResponse": {
-                    "orders": [],
-                    "snapshot": true
-                },
-                "parsedResponse": []
             }
         ],
         "fetchBalance": [

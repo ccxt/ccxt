@@ -4,7 +4,7 @@ import Exchange from './abstract/interactivebrokers.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, OperationFailed, OrderNotFound, RateLimitExceeded, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Dict, Endpoint, Int, List, Market, Num, NullableDict, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Account, Balances, Dict, Endpoint, Int, List, Market, Num, NullableDict, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int, Dictionary } from './base/types.js';
 import { rsa } from './base/functions/rsa.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { sha1 } from '@noble/hashes/legacy.js';
@@ -485,6 +485,10 @@ export default class interactivebrokers extends Exchange {
                     'compete': true,
                 },
                 'serviceAccountsLoaded': false, // iserver/accounts must be called once per session before trading endpoints
+                'queryAccountsFirst': {
+                    'retries': 3, // re-query iserver/accounts and retry on {"error":"Please query /accounts first"}
+                    'retryDelay': 1000,
+                },
                 'fetchMarkets': {
                     'exchanges': {
                         // STK  = Stocks (ETFs, ADRs, and Mutual Funds)
@@ -495,7 +499,7 @@ export default class interactivebrokers extends Exchange {
                         'STK': [ 'NYSE' ], // "AMEX,NYSE,CBOE,PHLX,CHX,ARCA,ISLAND,ISE,IDEAL,NASDAQQ,REALNYSE,DRCTEDGE,BEX,BATS,NITEECN,EDGEA,CSFBALGO,PSX,BYX,ITG,PDQ,IBKRATS,NYSEFLOOR,CITADEL,NYSEDARK,MIAX,IBDARK,CITADELDP,NASDDARK,IEX,WEDBUSH,SUMMER,WINSLOW,FINRA,LIQITG,UBSDARK,BTIG,VIRTU,JEFF,OPCO,COWEN,DBK,JPMC,EDGX,JANE,NEEDHAM,FRACSHARE,RBCALGO,VIRTUDP,BAYCREST,FOXRIVER,MND,NITEEXST,PEARL,GSDARK,NITERTL,NYSENAT,IEXMID,HRT,FLOWTRADE,HRTDP,JANELP,PEAK6,CTDLZERO,HRTMID,JANEZERO,HRTEXST,IMCLP,LTSE,SOCGENDP,MEMX,INTELCROS,VIRTUBYIN,JUMPTRADE,NITEZERO,TPLUS1,XTXEXST,XTXDP,XTXMID,COWENLP,BARCDP,JUMPLP,OLDMCLP,RBCCMALP,WALLBETH,IBEOS,JONES,GSLP,BLUEOCEAN,USIBSILP,OVERNIGHT,JANEMID,IBATSEOS,HRTZERO,VIRTUALGO,G1XLP,VIRTUMID,GLOBALXLP,CTDLMID,TPLUS0, SMART;AMEX;BATS;BOX;CBOE;CBOE2;EDGX;EMERALD;…2;NASDAQBX;NASDAQOM; OTC,IDEAL,IBFX,UBSFX,JPMCFX,DBKFX,CITIFX,BARCFX,RBSFX,RBCFX,BOAFX,HSBCFX,GSFX,IDEALFX,NOMFX,MSFX,BARC2FX,ETFFX,NATIXISFX,NOM2FX,CSFX,DBK2FX,RBS2FX,UBS2FX,BOA2FX,GS2FX,JPMC2FX,RBC2FX,SCBFX,CITADELFX,KNIGHTFX,HSBC2FX,CBKFX,SCB2FX,CBK2FX,NOM3FX,BNPFX,BNP2FX,VIRTUFX,ANZFX,ANZ2FX,XTXFX,FXSETTLE,TDFX,WFFX,CITI2FX,IBCMSCFX,WF2FX,BNYFX,BNY2FX,PEARL;PHLX;PSE;SAPPHIRE
                         // 'CRYPTO': [ 'PAXOS', 'ZEROHASH', 'ZEROHASHE' ],
                     },
-                    'types': [ 'crypto', 'forex', 'swap', 'future', 'cfd' ], // add 'stock' to also load the stocks of exchanges.STK
+                    'types': [ 'crypto', 'forex', 'swap', 'future' ], // 'cfd', 'stock'
                     'stockAmountIncrement': '1',
                     'forexAmountIncrement': '1',
                     'cryptoAmountIncrement': '0.00000001',
@@ -690,6 +694,7 @@ export default class interactivebrokers extends Exchange {
                 'broad': {
                     'insufficient funds in your': InsufficientFunds, // {"error":"Order rejected due to insufficient funds in your Crypto Account. As a Crypto Plus customer, you must first have funds in your Crypto account before purchasing cryptocurrency products.  Please <a href=\"sso://action=TransferFunds&service=AM.LOGIN&webaccess=true?&type=INTERNAL?method=CRYPTO_CASH_TRANSFERS\">transfer funds to your Crypto account</a> to trade this product."}'
                     ' doesn\'t exist"}': OrderNotFound, // {"error":"OrderID 468370477 doesn't exist"}
+                    'Please query /accounts first': AuthenticationError, // {"error":"Please query /accounts first"}, retried in request ()
                 },
             },
             'commonCurrencies': {},
@@ -740,6 +745,7 @@ export default class interactivebrokers extends Exchange {
         // open the brokerage session
         const initRequest = this.safeDict (this.options, 'signInInitRequest', {});
         await this.privatePostIserverAuthSsodhInit (initRequest);
+        await this.fetchServiceAccounts ();
         return response;
     }
 
@@ -1039,21 +1045,11 @@ export default class interactivebrokers extends Exchange {
         return parts.join ('.'); // 'BRK B' -> 'BRK.B', as in parseMarket
     }
 
-    /**
-     * @method
-     * @name interactivebrokers#loadServiceAccounts
-     * @description calls iserver/accounts once per brokerage session, required by IBKR before trading and market data endpoints
-     * @ignore
-     * @returns {undefined}
-     */
-    async loadServiceAccounts (): Promise<any> {
+    override async loadMarkets (reload: boolean = false, params: object = {}): Promise<Dictionary<Market>> {
         await this.authenticate ();
-        if (!this.safeBool (this.options, 'serviceAccountsLoaded', false)) {
-            await this.fetchServiceAccounts ();
-            this.options['serviceAccountsLoaded'] = true;
-        }
-        return undefined;
+        return await super.loadMarkets (reload, params);
     }
+ 
 
     async test1() {
         await this.loadServiceAccounts ();
@@ -1076,9 +1072,8 @@ export default class interactivebrokers extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        await this.loadServiceAccounts ();
         const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const types = this.safeList (options, 'types', [ 'crypto', 'forex', 'swap', 'future', 'cfd' ]);
+        const types = this.safeList (options, 'types', []);
         const promises = [];
         // the order matters, on symbol collisions the earlier contract keeps the plain symbol
         if (this.inArray ('stock', types)) {
@@ -1687,7 +1682,6 @@ export default class interactivebrokers extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument');
         }
         await this.loadMarkets ();
-        await this.loadServiceAccounts ();
         const symbolsNormalized = this.marketSymbols (symbols);
         const conids: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -1831,7 +1825,6 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
-        await this.loadServiceAccounts ();
         const market = this.market (symbol);
         const maxLimit = this.safeInteger (this.safeDict (this.options, 'fetchOHLCV', {}), 'limit', 1000);
         let requestLimit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
@@ -1968,7 +1961,6 @@ export default class interactivebrokers extends Exchange {
      * @returns {object} the raw response from the exchange
      */
     async fetchServiceAccounts (params: Dict = {}): Promise<Dict> {
-        await this.authenticate ();
         const response = await this.privateGetIserverAccounts (params);
         //
         //    {
@@ -2159,7 +2151,6 @@ export default class interactivebrokers extends Exchange {
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
-        await this.loadServiceAccounts ();
         const market = this.market (symbol);
         const [ accountId, query ] = await this.loadAccountId (params);
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, query);
@@ -2319,7 +2310,6 @@ export default class interactivebrokers extends Exchange {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
         }
         await this.loadMarkets ();
-        await this.loadServiceAccounts ();
         const market = this.market (symbol);
         const [ accountId, query ] = await this.loadAccountId (params);
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, query);
@@ -2349,7 +2339,6 @@ export default class interactivebrokers extends Exchange {
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
-        await this.loadServiceAccounts ();
         const market = this.marketOrNull (symbol);
         const [ accountId, query ] = await this.loadAccountId (params);
         const request: Dict = {
@@ -2375,7 +2364,6 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
-        await this.loadServiceAccounts ();
         const market = this.marketOrNull (symbol);
         const request: Dict = {
             'orderId': id,
@@ -2519,7 +2507,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {object[]} the raw orders
      */
     async fetchLiveOrdersRaw (params: Dict = {}): Promise<Dict[]> {
-        await this.loadServiceAccounts ();
+        await this.loadMarkets ();
         const retryDelay = this.safeInteger (this.safeDict (this.options, 'fetchOrders', {}), 'retryDelay', 500);
         let response = await this.privateGetIserverAccountOrders (params);
         if (!this.safeBool (response, 'snapshot', true)) {
@@ -2702,7 +2690,6 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        await this.loadServiceAccounts ();
         const market = this.marketOrNull (symbol);
         let days = this.safeInteger (this.safeDict (this.options, 'fetchMyTrades', {}), 'days', 7);
         if (since !== undefined) {
@@ -2785,7 +2772,6 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        await this.authenticate ();
         const [ accountId, query ] = await this.loadAccountId (params);
         const request: Dict = {
             'accountId': accountId,
@@ -2958,6 +2944,32 @@ export default class interactivebrokers extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+    }
+
+    override async request (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}, config: Dict = {}) {
+        // right after a new brokerage session is opened, IBKR may still reject trading endpoints with
+        // {"error":"Please query /accounts first"} even though iserver/accounts was already called,
+        // so iserver/accounts is queried again and the request is retried
+        const isAccountsPath = (path === 'iserver/accounts') || (path === 'v1/api/iserver/accounts');
+        const options = this.safeDict (this.options, 'queryAccountsFirst', {});
+        const retries = this.safeInteger (options, 'retries', 3);
+        const retryDelay = this.safeInteger (options, 'retryDelay', 1000);
+        for (let i = 0; i <= retries; i++) {
+            try {
+                return await this.fetch2 (path, api, method, params, config);
+            } catch (e) {
+                const message = this.exceptionMessage (e, false);
+                const mustQueryAccounts = message.indexOf ('query /accounts first') >= 0;
+                if (isAccountsPath || !mustQueryAccounts || (i === retries)) {
+                    throw e;
+                }
+                this.options['serviceAccountsLoaded'] = false;
+                await this.privateGetIserverAccounts ();
+                this.options['serviceAccountsLoaded'] = true;
+                await this.sleep (retryDelay);
+            }
+        }
+        return undefined;
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
