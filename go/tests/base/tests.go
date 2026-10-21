@@ -3102,6 +3102,14 @@ func (this *testMainClass) testExchangeWsStaticallyBody(ch chan ccxt.AsyncResult
 			exchange.ExtendExchangeOptions(globalOptions)
 			var testExchangeOptions any = exchange.SafeValue(result, "options", map[string]any{})
 			exchange.ExtendExchangeOptions(testExchangeOptions)
+			var apiKey any = ccxt.DerefScalar(exchange.SafeString(result, "apiKey"))
+			if !EvalTruthy(exchange.IsEmptyString(apiKey)) {
+				exchange.SetApiKey(ToString(apiKey))
+			}
+			var secret any = ccxt.DerefScalar(exchange.SafeString(result, "secret"))
+			if !EvalTruthy(exchange.IsEmptyString(secret)) {
+				exchange.SetSecret(ToString(secret))
+			}
 			var skipKeys any = this.EffectiveSkipKeys(exchange, exchangeData, result)
 
 			r := <-this.TestWsStaticallyAsync(exchange, method, skipKeys, result)
@@ -6192,7 +6200,8 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan ccxt.AsyncResul
 	// pre-seed the gateway access token so createOrder signs the order directly instead of
 	// making a prior (offline-unreachable) public/auth network call
 	exchange.SetToken("token")
-	AddElementToObject(exchange.GetOptions(), "v2TokenExpires", Add(exchange.Milliseconds(), 100000))
+	var tokenExpires int64 = exchange.Milliseconds() + 100000
+	AddElementToObject(exchange.GetOptions(), "v2TokenExpires", tokenExpires)
 	AddElementToObject(exchange.GetOptions(), "portfolio", "random")
 	var id string = "nfqkvdjp"
 	Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "id not in options")
@@ -6208,10 +6217,15 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan ccxt.AsyncResul
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// buy/sell are GET endpoints, so the label is in the query string, not a JSON body
-						var url string = ToString(exchange.GetLast_request_url())
+						var url any = exchange.GetLast_request_url()
 						var urlParts []string = Split(url, "?")
-						Assert(IsGreaterThan(GetArrayLength(urlParts), 1), Add("last_request_url has no query string: ", url))
-						var query any = this.UrlencodedToDict(GetValue(urlParts, 1))
+						Assert((len(urlParts) > 1), Add("last_request_url has no query string: ", url))
+						var query any = this.UrlencodedToDict(func() any {
+							if 1 >= 0 && 1 < len(urlParts) {
+								return urlParts[1]
+							}
+							return nil
+						}())
 						clientOrderId = GetValue(query, "label")
 						return nil
 					}(this)
@@ -6227,8 +6241,7 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan ccxt.AsyncResul
 		}(this)
 
 	}
-	var clientOrderId any = GetValue(request, "client_order_id")
-	Assert(IsEqual(StartsWith(clientOrderId, id), true), "clientOrderId does not start with id")
+	Assert(!IsEqual(clientOrderId, nil) && IsEqual(StartsWith(clientOrderId, id), true), "clientOrderId does not start with id")
 	if !EvalTruthy(IsSync()) {
 
 		<-Close(exchange)
