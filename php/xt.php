@@ -2018,7 +2018,12 @@ class xt extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market, '_', $marketType);
         $symbol = $marketResolved['symbol'];
         $timestamp = $this->safe_integer($ticker, 't');
-        $percentage = $this->safe_string_2($ticker, 'cr', 'r');
+        $open = $this->safe_string($ticker, 'o');
+        // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
+        $percentage = $this->safe_string($ticker, 'r');
+        if ($open === null) {
+            $percentage = $this->safe_string_2($ticker, 'cr', 'r');
+        }
         if ($percentage !== null) {
             $percentage = Precise::string_mul($percentage, '100');
         }
@@ -2046,11 +2051,11 @@ class xt extends Exchange {
             'ask' => $this->safe_number($ticker, 'ap'),
             'askVolume' => $this->safe_number($ticker, 'aq'),
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'o'),
+            'open' => $open,
             'close' => $this->safe_string($ticker, 'c'),
             'last' => $this->safe_string($ticker, 'c'),
             'previousClose' => null,
-            'change' => $this->safe_number($ticker, 'cv'),
+            'change' => null,
             'percentage' => $this->parse_number($percentage),
             'average' => null,
             'baseVolume' => $baseVolume,

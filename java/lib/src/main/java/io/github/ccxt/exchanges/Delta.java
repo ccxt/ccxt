@@ -2107,10 +2107,10 @@ public class Delta extends DeltaApi
         {
             if (Precise.stringGt(sizeString, "0"))
             {
-                side = "buy";
+                side = "long";
             } else if (Precise.stringLt(sizeString, "0"))
             {
-                side = "sell";
+                side = "short";
             }
         }
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
@@ -2118,7 +2118,7 @@ public class Delta extends DeltaApi
         mapLiteral4.put("id", null);
         mapLiteral4.put("symbol", symbol);
         mapLiteral4.put("notional", null);
-        mapLiteral4.put("marginMode", null);
+        mapLiteral4.put("marginMode", this.safeString(position, "margin_mode"));
         mapLiteral4.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
         mapLiteral4.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
         mapLiteral4.put("unrealizedPnl", null);
@@ -2132,6 +2132,7 @@ public class Delta extends DeltaApi
         mapLiteral4.put("datetime", this.iso8601(timestamp));
         mapLiteral4.put("maintenanceMargin", null);
         mapLiteral4.put("maintenanceMarginPercentage", null);
+        mapLiteral4.put("positionMargin", this.safeNumber(position, "margin", (Object) null));
         mapLiteral4.put("collateral", null);
         mapLiteral4.put("initialMargin", null);
         mapLiteral4.put("initialMarginPercentage", null);

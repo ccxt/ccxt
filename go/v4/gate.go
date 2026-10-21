@@ -2587,6 +2587,21 @@ func (this *Gate) ParseContractMarket(market map[string]any, settleId *string) m
 		contractSize = SafeStringPtr("1") // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
 	}
 	var status *string = this.SafeString(market, "status", "trading") // or "suspend"
+	var amountPrecision *float64
+	if derefNum, isNum := this.ParseNumber("1").(float64); isNum {
+		amountPrecision = &derefNum
+	}
+	var enableDecimal *bool = this.SafeBool(market, "enable_decimal", false)
+	var orderSizeMin *string = this.SafeString(market, "order_size_min")
+	var swap bool = (marketType == "swap")
+	var minAmount *float64
+	if derefNum, isNum := this.ParseNumber(orderSizeMin).(float64); isNum {
+		minAmount = &derefNum
+	}
+	if swap && (enableDecimal != nil && *enableDecimal) && (orderSizeMin != nil) && (minAmount != nil) && Precise.StringGt(orderSizeMin, "0") {
+		amountPrecision = minAmount
+	}
+	var active bool = (status != nil && *status == "trading")
 	return map[string]any{
 		"id":             id,
 		"symbol":         symbol,
@@ -2599,10 +2614,10 @@ func (this *Gate) ParseContractMarket(market map[string]any, settleId *string) m
 		"type":           marketType,
 		"spot":           false,
 		"margin":         false,
-		"swap":           (marketType == "swap"),
+		"swap":           swap,
 		"future":         (marketType == "future"),
 		"option":         false,
-		"active":         (status != nil && *status == "trading"),
+		"active":         active,
 		"contract":       true,
 		"linear":         isLinear,
 		"inverse":        !isLinear,
@@ -2614,7 +2629,7 @@ func (this *Gate) ParseContractMarket(market map[string]any, settleId *string) m
 		"strike":         nil,
 		"optionType":     nil,
 		"precision": map[string]any{
-			"amount": this.ParseNumber("1"),
+			"amount": amountPrecision,
 			"price":  this.SafeNumber(market, "order_price_round"),
 		},
 		"limits": map[string]any{
@@ -2623,7 +2638,7 @@ func (this *Gate) ParseContractMarket(market map[string]any, settleId *string) m
 				"max": this.SafeNumber(market, "leverage_max"),
 			},
 			"amount": map[string]any{
-				"min": this.SafeNumber(market, "order_size_min"),
+				"min": minAmount,
 				"max": this.SafeNumber(market, "order_size_max"),
 			},
 			"price": map[string]any{
@@ -2655,8 +2670,8 @@ func (this *Gate) fetchOptionMarketsBody(ch chan AsyncResult[[]any], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv2614 := r.Value
-	var underlyings []any = listRecv2614
+	listRecv2623 := r.Value
+	var underlyings []any = listRecv2623
 	for i := 0; i < len(underlyings); i++ {
 		var underlying *string = SafeStringPtr(func() any {
 			if i >= 0 && i < len(underlyings) {
@@ -2667,11 +2682,11 @@ func (this *Gate) fetchOptionMarketsBody(ch chan AsyncResult[[]any], optionalArg
 		var query map[string]any = this.Extend(map[string]any{}, params)
 		query["underlying"] = underlying
 
-		listEp2621 := <-this.PublicOptionsGetContracts(query)
-		if listEp2621.Err != nil {
-			panic(listEp2621.Err)
+		listEp2630 := <-this.PublicOptionsGetContracts(query)
+		if listEp2630.Err != nil {
+			panic(listEp2630.Err)
 		}
-		var response []any = listEp2621.Value
+		var response []any = listEp2630.Value
 		//
 		//    [
 		//        {
@@ -2810,11 +2825,11 @@ func (this *Gate) fetchOptionUnderlyingsBody(ch chan EndpointResult[[]any]) any 
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
 
-	listEp2760 := <-this.PublicOptionsGetUnderlyings()
-	if listEp2760.Err != nil {
-		panic(listEp2760.Err)
+	listEp2769 := <-this.PublicOptionsGetUnderlyings()
+	if listEp2769.Err != nil {
+		panic(listEp2769.Err)
 	}
-	var underlyingsResponse []any = listEp2760.Value
+	var underlyingsResponse []any = listEp2769.Value
 	//
 	//    [
 	//        {
@@ -3015,11 +3030,11 @@ func (this *Gate) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...
 		return nil
 	}
 
-	listEp2961 := <-this.PublicSpotGetCurrencies(params)
-	if listEp2961.Err != nil {
-		panic(listEp2961.Err)
+	listEp2970 := <-this.PublicSpotGetCurrencies(params)
+	if listEp2970.Err != nil {
+		panic(listEp2970.Err)
 	}
-	var response []any = listEp2961.Value
+	var response []any = listEp2970.Value
 
 	//
 	//    [
@@ -3245,11 +3260,11 @@ func (this *Gate) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs .
 	var request map[string]any = MapTyped(GetValue(requestqueryVariable, 0))
 	var query map[string]any = MapTyped(GetValue(requestqueryVariable, 1))
 
-	listEp3177 := <-this.PublicFuturesGetSettleContracts(this.Extend(request, query))
-	if listEp3177.Err != nil {
-		panic(listEp3177.Err)
+	listEp3186 := <-this.PublicFuturesGetSettleContracts(this.Extend(request, query))
+	if listEp3186.Err != nil {
+		panic(listEp3186.Err)
 	}
-	var response []any = listEp3177.Value
+	var response []any = listEp3186.Value
 
 	//
 	//    [
@@ -3746,11 +3761,11 @@ func (this *Gate) fetchTransactionFeesBody(ch chan AsyncResult[any], optionalArg
 		}
 	}
 
-	listEp3636 := <-this.PrivateWalletGetWithdrawStatus(params)
-	if listEp3636.Err != nil {
-		panic(listEp3636.Err)
+	listEp3645 := <-this.PrivateWalletGetWithdrawStatus(params)
+	if listEp3645.Err != nil {
+		panic(listEp3645.Err)
 	}
-	var response []any = listEp3636.Value
+	var response []any = listEp3645.Value
 	//
 	//    {
 	//        "currency": "MTN",
@@ -3841,11 +3856,11 @@ func (this *Gate) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], optiona
 		}
 	}
 
-	listEp3720 := <-this.PrivateWalletGetWithdrawStatus(params)
-	if listEp3720.Err != nil {
-		panic(listEp3720.Err)
+	listEp3729 := <-this.PrivateWalletGetWithdrawStatus(params)
+	if listEp3729.Err != nil {
+		panic(listEp3729.Err)
 	}
-	var response []any = listEp3720.Value
+	var response []any = listEp3729.Value
 
 	//
 	//    [
@@ -4277,35 +4292,35 @@ func (this *Gate) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol st
 	var response []any = nil
 	if (market["spot"] == true) || (market["margin"] == true) {
 
-		listEp4118 := <-this.PublicSpotGetTickers(this.Extend(request, query))
-		if listEp4118.Err != nil {
-			panic(listEp4118.Err)
+		listEp4127 := <-this.PublicSpotGetTickers(this.Extend(request, query))
+		if listEp4127.Err != nil {
+			panic(listEp4127.Err)
 		}
-		response = listEp4118.Value
+		response = listEp4127.Value
 	} else if market["swap"] == true {
 
-		listEp4121 := <-this.PublicFuturesGetSettleTickers(this.Extend(request, query))
-		if listEp4121.Err != nil {
-			panic(listEp4121.Err)
+		listEp4130 := <-this.PublicFuturesGetSettleTickers(this.Extend(request, query))
+		if listEp4130.Err != nil {
+			panic(listEp4130.Err)
 		}
-		response = listEp4121.Value
+		response = listEp4130.Value
 	} else if market["future"] == true {
 
-		listEp4124 := <-this.PublicDeliveryGetSettleTickers(this.Extend(request, query))
-		if listEp4124.Err != nil {
-			panic(listEp4124.Err)
+		listEp4133 := <-this.PublicDeliveryGetSettleTickers(this.Extend(request, query))
+		if listEp4133.Err != nil {
+			panic(listEp4133.Err)
 		}
-		response = listEp4124.Value
+		response = listEp4133.Value
 	} else if market["option"] == true {
 		var marketId *string = SafeStringPtr(market["id"])
 		var optionParts []string = Split(marketId, "-")
 		AddElementToObject(request, "underlying", this.SafeString(optionParts, 0))
 
-		listEp4130 := <-this.PublicOptionsGetTickers(this.Extend(request, query))
-		if listEp4130.Err != nil {
-			panic(listEp4130.Err)
+		listEp4139 := <-this.PublicOptionsGetTickers(this.Extend(request, query))
+		if listEp4139.Err != nil {
+			panic(listEp4139.Err)
 		}
-		response = listEp4130.Value
+		response = listEp4139.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchTicker() not support this market type"))
 	}
@@ -4493,36 +4508,36 @@ func (this *Gate) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any
 	AddElementToObject(request, "timezone", "utc0") // default to utc
 	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 
-		listEp4315 := <-this.PublicSpotGetTickers(this.Extend(request, requestParams))
-		if listEp4315.Err != nil {
-			panic(listEp4315.Err)
+		listEp4324 := <-this.PublicSpotGetTickers(this.Extend(request, requestParams))
+		if listEp4324.Err != nil {
+			panic(listEp4324.Err)
 		}
-		response = listEp4315.Value
+		response = listEp4324.Value
 	} else if typeVar != nil && *typeVar == "swap" {
 
-		listEp4318 := <-this.PublicFuturesGetSettleTickers(this.Extend(request, requestParams))
-		if listEp4318.Err != nil {
-			panic(listEp4318.Err)
+		listEp4327 := <-this.PublicFuturesGetSettleTickers(this.Extend(request, requestParams))
+		if listEp4327.Err != nil {
+			panic(listEp4327.Err)
 		}
-		response = listEp4318.Value
+		response = listEp4327.Value
 	} else if typeVar != nil && *typeVar == "future" {
 
-		listEp4321 := <-this.PublicDeliveryGetSettleTickers(this.Extend(request, requestParams))
-		if listEp4321.Err != nil {
-			panic(listEp4321.Err)
+		listEp4330 := <-this.PublicDeliveryGetSettleTickers(this.Extend(request, requestParams))
+		if listEp4330.Err != nil {
+			panic(listEp4330.Err)
 		}
-		response = listEp4321.Value
+		response = listEp4330.Value
 	} else if typeVar != nil && *typeVar == "option" {
 		this.CheckRequiredArgument("fetchTickers", symbolsNormalized, "symbols")
 		var marketId *string = this.SafeString(market, "id")
 		var optionParts []string = Split(marketId, "-")
 		AddElementToObject(request, "underlying", this.SafeString(optionParts, 0))
 
-		listEp4328 := <-this.PublicOptionsGetTickers(this.Extend(request, requestParams))
-		if listEp4328.Err != nil {
-			panic(listEp4328.Err)
+		listEp4337 := <-this.PublicOptionsGetTickers(this.Extend(request, requestParams))
+		if listEp4337.Err != nil {
+			panic(listEp4337.Err)
 		}
-		response = listEp4328.Value
+		response = listEp4337.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchTickers() not support this market type, provide symbols or set params[\"defaultType\"] to one from spot/margin/swap/future/option"))
 	}
@@ -4948,11 +4963,11 @@ func (this *Gate) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes351519 []any = ListTyped(r1.Value)
-		if retRes351519 == nil {
+		var retRes352419 []any = ListTyped(r1.Value)
+		if retRes352419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes351519}
+			ch <- AsyncResult[any]{Value: retRes352419}
 		}
 		return nil
 	}
@@ -4962,11 +4977,11 @@ func (this *Gate) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, option
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes351819 []any = r2.Value
-		if retRes351819 == nil {
+		var retRes352719 []any = r2.Value
+		if retRes352719 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes351819}
+			ch <- AsyncResult[any]{Value: retRes352719}
 		}
 		return nil
 	}
@@ -5078,11 +5093,11 @@ func (this *Gate) fetchOptionOHLCVBody(ch chan AsyncResult[[]any], symbol string
 	var paramsValue map[string]any = MapTyped(GetValue(requestparamsValueVariable, 1))
 	AddElementToObject(request, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
 
-	listEp4831 := <-this.PublicOptionsGetCandlesticks(this.Extend(request, paramsValue))
-	if listEp4831.Err != nil {
-		panic(listEp4831.Err)
+	listEp4840 := <-this.PublicOptionsGetCandlesticks(this.Extend(request, paramsValue))
+	if listEp4840.Err != nil {
+		panic(listEp4840.Err)
 	}
-	var response []any = listEp4831.Value
+	var response []any = listEp4840.Value
 
 	ch <- AsyncResult[[]any]{Value: this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)}
 	return nil
@@ -5134,11 +5149,11 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optional
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes360419 []any = ListTyped(r2.Value)
-		if retRes360419 == nil {
+		var retRes361319 []any = ListTyped(r2.Value)
+		if retRes361319 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes360419}
+			ch <- AsyncResult[any]{Value: retRes361319}
 		}
 		return nil
 	}
@@ -5160,11 +5175,11 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optional
 		AddElementToObject(request, "to", this.ParseToInt(float64(*until)/1000))
 	}
 
-	listEp4902 := <-this.PublicFuturesGetSettleFundingRate(this.Extend(request, this.Omit(paramsRequest, "until")))
-	if listEp4902.Err != nil {
-		panic(listEp4902.Err)
+	listEp4911 := <-this.PublicFuturesGetSettleFundingRate(this.Extend(request, this.Omit(paramsRequest, "until")))
+	if listEp4911.Err != nil {
+		panic(listEp4911.Err)
 	}
-	var response []any = listEp4902.Value
+	var response []any = listEp4911.Value
 	//
 	//     {
 	//         "r": "0.00063521",
@@ -5267,11 +5282,11 @@ func (this *Gate) fetchTradesBody(ch chan AsyncResult[any], symbol any, optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes371319 []any = ListTyped(r1.Value)
-		if retRes371319 == nil {
+		var retRes372219 []any = ListTyped(r1.Value)
+		if retRes372219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes371319}
+			ch <- AsyncResult[any]{Value: retRes372219}
 		}
 		return nil
 	}
@@ -5313,32 +5328,32 @@ func (this *Gate) fetchTradesBody(ch chan AsyncResult[any], symbol any, optional
 	var response []any = nil
 	if (market["type"] == "spot") || (market["type"] == "margin") {
 
-		listEp5044 := <-this.PublicSpotGetTrades(this.Extend(request, query))
-		if listEp5044.Err != nil {
-			panic(listEp5044.Err)
-		}
-		response = listEp5044.Value
-	} else if market["swap"] == true {
-
-		listEp5047 := <-this.PublicFuturesGetSettleTrades(this.Extend(request, query))
-		if listEp5047.Err != nil {
-			panic(listEp5047.Err)
-		}
-		response = listEp5047.Value
-	} else if market["future"] == true {
-
-		listEp5050 := <-this.PublicDeliveryGetSettleTrades(this.Extend(request, query))
-		if listEp5050.Err != nil {
-			panic(listEp5050.Err)
-		}
-		response = listEp5050.Value
-	} else if market["type"] == "option" {
-
-		listEp5053 := <-this.PublicOptionsGetTrades(this.Extend(request, query))
+		listEp5053 := <-this.PublicSpotGetTrades(this.Extend(request, query))
 		if listEp5053.Err != nil {
 			panic(listEp5053.Err)
 		}
 		response = listEp5053.Value
+	} else if market["swap"] == true {
+
+		listEp5056 := <-this.PublicFuturesGetSettleTrades(this.Extend(request, query))
+		if listEp5056.Err != nil {
+			panic(listEp5056.Err)
+		}
+		response = listEp5056.Value
+	} else if market["future"] == true {
+
+		listEp5059 := <-this.PublicDeliveryGetSettleTrades(this.Extend(request, query))
+		if listEp5059.Err != nil {
+			panic(listEp5059.Err)
+		}
+		response = listEp5059.Value
+	} else if market["type"] == "option" {
+
+		listEp5062 := <-this.PublicOptionsGetTrades(this.Extend(request, query))
+		if listEp5062.Err != nil {
+			panic(listEp5062.Err)
+		}
+		response = listEp5062.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchTrades() not support this market type."))
 	}
@@ -5520,11 +5535,11 @@ func (this *Gate) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...an
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes388019 []any = ListTyped(r2.Value)
-		if retRes388019 == nil {
+		var retRes388919 []any = ListTyped(r2.Value)
+		if retRes388919 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes388019}
+			ch <- AsyncResult[any]{Value: retRes388919}
 		}
 		return nil
 	}
@@ -5894,11 +5909,11 @@ func (this *Gate) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...an
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes418119 []any = ListTyped(r1.Value)
-		if retRes418119 == nil {
+		var retRes419019 []any = ListTyped(r1.Value)
+		if retRes419019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes418119}
+			ch <- AsyncResult[any]{Value: retRes419019}
 		}
 		return nil
 	}
@@ -5918,11 +5933,11 @@ func (this *Gate) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...an
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, paramsPaginate, 0.001)
 
-	listEp5598 := <-this.PrivateWalletGetDeposits(this.Extend(requestUntil, paramsUntil))
-	if listEp5598.Err != nil {
-		panic(listEp5598.Err)
+	listEp5607 := <-this.PrivateWalletGetDeposits(this.Extend(requestUntil, paramsUntil))
+	if listEp5607.Err != nil {
+		panic(listEp5607.Err)
 	}
-	var response []any = listEp5598.Value
+	var response []any = listEp5607.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, currency)}
 	return nil
@@ -5971,11 +5986,11 @@ func (this *Gate) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes422119 []any = ListTyped(r1.Value)
-		if retRes422119 == nil {
+		var retRes423019 []any = ListTyped(r1.Value)
+		if retRes423019 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes422119}
+			ch <- AsyncResult[any]{Value: retRes423019}
 		}
 		return nil
 	}
@@ -5995,11 +6010,11 @@ func (this *Gate) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ..
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, paramsPaginate, 0.001)
 
-	listEp5664 := <-this.PrivateWalletGetWithdrawals(this.Extend(requestUntil, paramsUntil))
-	if listEp5664.Err != nil {
-		panic(listEp5664.Err)
+	listEp5673 := <-this.PrivateWalletGetWithdrawals(this.Extend(requestUntil, paramsUntil))
+	if listEp5673.Err != nil {
+		panic(listEp5673.Err)
 	}
-	var response []any = listEp5664.Value
+	var response []any = listEp5673.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, currency)}
 	return nil
@@ -6511,6 +6526,19 @@ func (this *Gate) createOrdersBody(ch chan AsyncResult[any], orders any, optiona
 	ch <- AsyncResult[any]{Value: this.ParseOrders(response)}
 	return nil
 }
+func (this *Gate) IsGateFuturesContractWithDecimalSize(market any) bool {
+	var info map[string]any = SafeMapTyped(market, "info")
+	var isSwap *bool = this.SafeBool(market, "swap", false)
+	var enableDecimal *bool = this.SafeBool(info, "enable_decimal", false)
+	return (isSwap != nil && *isSwap) && (enableDecimal != nil && *enableDecimal)
+}
+func (this *Gate) GetGateFuturesSignedAmount(symbol any, side any, amount any) any {
+	var amountString *string = this.AmountToPrecision(symbol, amount)
+	if IsEqual(side, "sell") {
+		return Precise.StringNeg(amountString)
+	}
+	return amountString
+}
 func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
@@ -6568,15 +6596,16 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 		priceResolved = 0
 	}
 	var contractAmount any = 0
+	var signedAmount any = nil
+	var useGateFuturesDecimalSize bool = false
 	if contract != nil && *contract == true {
 		var isClose *bool = this.SafeBool(query, "close")
 		if isClose == nil || *isClose != true {
-			var amountToPrecision *string = this.AmountToPrecision(symbol, amount)
-			var signedAmount *string = amountToPrecision
-			if IsEqual(side, "sell") {
-				signedAmount = Precise.StringNeg(amountToPrecision)
+			signedAmount = this.GetGateFuturesSignedAmount(symbol, side, amount)
+			useGateFuturesDecimalSize = this.IsGateFuturesContractWithDecimalSize(market)
+			if !useGateFuturesDecimalSize {
+				contractAmount = ParseInt(signedAmount)
 			}
-			contractAmount = ParseInt(signedAmount)
 		}
 	}
 	var amountResolved any = func() any {
@@ -6585,6 +6614,10 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 		}
 		return amount
 	}()
+	var sizeRequest any = amountResolved
+	if useGateFuturesDecimalSize {
+		sizeRequest = signedAmount
+	}
 	var request map[string]any = nil
 	var nonTriggerOrder bool = !isTpsl && (IsEqual(trigger, nil))
 	if nonTriggerOrder {
@@ -6592,7 +6625,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 			// contract order
 			request = map[string]any{
 				"contract": market["id"],
-				"size":     amountResolved,
+				"size":     sizeRequest,
 			}
 			if market["option"] != true {
 				AddElementToObject(request, "settle", market["settleId"]) // filled in prepareRequest above
@@ -6685,9 +6718,13 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 			request = map[string]any{
 				"initial": map[string]any{
 					"contract": market["id"],
-					"size":     amountResolved,
 				},
 				"settle": market["settleId"],
+			}
+			if useGateFuturesDecimalSize {
+				AddElementToObject(GetValue(request, "initial"), "amount", signedAmount) // FuturesInitialOrder.amount takes precedence over size
+			} else {
+				AddElementToObject(GetValue(request, "initial"), "size", amountResolved)
 			}
 			if IsEqual(typeVar, "market") {
 				AddElementToObject(GetValue(request, "initial"), "price", "0")
@@ -6861,16 +6898,16 @@ func (this *Gate) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], sym
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes491215 map[string]any = r2.Value
-	if retRes491215 == nil {
+	var retRes494615 map[string]any = r2.Value
+	if retRes494615 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes491215}
+		ch <- AsyncResult[any]{Value: retRes494615}
 	}
 	return nil
 }
 func (this *Gate) EditOrderRequest(id any, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
-	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
+	amount := GetArg(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
@@ -6898,10 +6935,11 @@ func (this *Gate) EditOrderRequest(id any, symbol any, typeVar any, side any, op
 		if market["spot"] == true {
 			request["amount"] = this.AmountToPrecision(symbol, amount)
 		} else {
-			if IsEqual(side, "sell") {
-				request["size"] = this.ParseToNumeric(Precise.StringNeg(this.AmountToPrecision(symbol, amount)))
+			var signedAmount any = this.GetGateFuturesSignedAmount(symbol, side, amount)
+			if this.IsGateFuturesContractWithDecimalSize(market) {
+				request["size"] = signedAmount
 			} else {
-				request["size"] = this.ParseToNumeric(this.AmountToPrecision(symbol, amount))
+				request["size"] = this.ParseToNumeric(signedAmount)
 			}
 		}
 	}
@@ -7612,11 +7650,11 @@ func (this *Gate) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes548415 []any = r.Value
-	if retRes548415 == nil {
+	var retRes551915 []any = r.Value
+	if retRes551915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes548415}
+		ch <- AsyncResult[any]{Value: retRes551915}
 	}
 	return nil
 }
@@ -7680,12 +7718,12 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes551919 []any = ListTyped(r2.Value)
+		var retRes555419 []any = ListTyped(r2.Value)
 		// see https://github.com/ccxt/ccxt/issues/22825
-		if retRes551919 == nil {
+		if retRes555419 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes551919}
+			ch <- AsyncResult[any]{Value: retRes555419}
 		}
 		return nil
 	}
@@ -7708,11 +7746,11 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		var retRes553019 []any = r3.Value
-		if retRes553019 == nil {
+		var retRes556519 []any = r3.Value
+		if retRes556519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes553019}
+			ch <- AsyncResult[any]{Value: retRes556519}
 		}
 		return nil
 	}
@@ -7729,11 +7767,11 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs .
 		AddElementToObject(request, "limit", limit)
 	}
 
-	listEp7261 := <-this.PrivateFuturesGetSettleOrdersTimerange(this.Extend(request, this.Omit(paramsRequest, "until")))
-	if listEp7261.Err != nil {
-		panic(listEp7261.Err)
+	listEp7293 := <-this.PrivateFuturesGetSettleOrdersTimerange(this.Extend(request, this.Omit(paramsRequest, "until")))
+	if listEp7293.Err != nil {
+		panic(listEp7293.Err)
 	}
-	var response []any = listEp7261.Value
+	var response []any = listEp7293.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
 	return nil
@@ -8345,11 +8383,11 @@ func (this *Gate) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalAr
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes596619 []any = r2.Value
-		if retRes596619 == nil {
+		var retRes600119 []any = r2.Value
+		if retRes600119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes596619}
+			ch <- AsyncResult[any]{Value: retRes600119}
 		}
 		return nil
 	}
@@ -9292,18 +9330,18 @@ func (this *Gate) fetchLeverageTiersBody(ch chan AsyncResult[any], optionalArgs 
 		var response []any = nil
 		if typeVar != nil && *typeVar == "swap" {
 
-			listEp8672 := <-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, paramsOmitted))
-			if listEp8672.Err != nil {
-				panic(listEp8672.Err)
+			listEp8704 := <-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, paramsOmitted))
+			if listEp8704.Err != nil {
+				panic(listEp8704.Err)
 			}
-			response = listEp8672.Value
+			response = listEp8704.Value
 		} else {
 
-			listEp8675 := <-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, paramsOmitted))
-			if listEp8675.Err != nil {
-				panic(listEp8675.Err)
+			listEp8707 := <-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, paramsOmitted))
+			if listEp8707.Err != nil {
+				panic(listEp8707.Err)
 			}
-			response = listEp8675.Value
+			response = listEp8707.Value
 		}
 		// Each page contains all tiers for up to limit contracts, not limit rows.
 		var grouped map[string]any = map[string]any{}
@@ -9380,18 +9418,18 @@ func (this *Gate) fetchMarketLeverageTiersBody(ch chan AsyncResult[any], symbol 
 		//     ]
 		//
 
-		listEp8749 := <-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, requestParams))
-		if listEp8749.Err != nil {
-			panic(listEp8749.Err)
+		listEp8781 := <-this.PublicFuturesGetSettleRiskLimitTiers(this.Extend(request, requestParams))
+		if listEp8781.Err != nil {
+			panic(listEp8781.Err)
 		}
-		response = listEp8749.Value
+		response = listEp8781.Value
 	} else {
 
-		listEp8752 := <-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, requestParams))
-		if listEp8752.Err != nil {
-			panic(listEp8752.Err)
+		listEp8784 := <-this.PublicDeliveryGetSettleRiskLimitTiers(this.Extend(request, requestParams))
+		if listEp8784.Err != nil {
+			panic(listEp8784.Err)
 		}
-		response = listEp8752.Value
+		response = listEp8784.Value
 	}
 
 	ch <- AsyncResult[any]{Value: this.ParseMarketLeverageTiers(response, market)}
@@ -10015,8 +10053,14 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 			"Content-Type": "application/json",
 		}
 	}
-	var bodyResolved any = bodyJson
 	var headersResolved any = signedHeaders
+	if typeVar != nil && *typeVar == "futures" {
+		if headersResolved == nil {
+			headersResolved = map[string]any{}
+		}
+		AddElementToObject(headersResolved, "X-Gate-Size-Decimal", "1")
+	}
+	var bodyResolved any = bodyJson
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -10141,11 +10185,11 @@ func (this *Gate) reduceMarginBody(ch chan EndpointResult[map[string]any], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes729415 map[string]any = MapTyped(r.Value)
-	if retRes729415 == nil {
+	var retRes733515 map[string]any = MapTyped(r.Value)
+	if retRes733515 == nil {
 		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes729415, Raw: retRes729415}
+		ch <- EndpointResult[map[string]any]{Value: retRes733515, Raw: retRes733515}
 	}
 	return nil
 }
@@ -10176,11 +10220,11 @@ func (this *Gate) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes730915 map[string]any = MapTyped(r.Value)
-	if retRes730915 == nil {
+	var retRes735015 map[string]any = MapTyped(r.Value)
+	if retRes735015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes730915}
+		ch <- AsyncResult[map[string]any]{Value: retRes735015}
 	}
 	return nil
 }
@@ -10228,11 +10272,11 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes733119 []any = ListTyped(r1.Value)
-		if retRes733119 == nil {
+		var retRes737219 []any = ListTyped(r1.Value)
+		if retRes737219 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes733119}
+			ch <- AsyncResult[any]{Value: retRes737219}
 		}
 		return nil
 	}
@@ -10252,11 +10296,11 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol 
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
-	listEp9538 := <-this.PublicFuturesGetSettleContractStats(this.Extend(request, paramsPaginate))
-	if listEp9538.Err != nil {
-		panic(listEp9538.Err)
+	listEp9576 := <-this.PublicFuturesGetSettleContractStats(this.Extend(request, paramsPaginate))
+	if listEp9576.Err != nil {
+		panic(listEp9576.Err)
 	}
-	var response []any = listEp9538.Value
+	var response []any = listEp9576.Value
 
 	//
 	//    [
@@ -10368,11 +10412,11 @@ func (this *Gate) fetchSettlementHistoryBody(ch chan AsyncResult[[]any], optiona
 		request["limit"] = limit
 	}
 
-	listEp9647 := <-this.PublicOptionsGetSettlements(this.Extend(request, paramsMarketType))
-	if listEp9647.Err != nil {
-		panic(listEp9647.Err)
+	listEp9685 := <-this.PublicOptionsGetSettlements(this.Extend(request, paramsMarketType))
+	if listEp9685.Err != nil {
+		panic(listEp9685.Err)
 	}
-	var response []any = listEp9647.Value
+	var response []any = listEp9685.Value
 	//
 	//     [
 	//         {
@@ -10655,11 +10699,11 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes765419 []any = ListTyped(r1.Value)
-		if retRes765419 == nil {
+		var retRes769519 []any = ListTyped(r1.Value)
+		if retRes769519 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes765419}
+			ch <- AsyncResult[any]{Value: retRes769519}
 		}
 		return nil
 	}
@@ -10995,11 +11039,11 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan AsyncResult[any], optionalAr
 		panic(NotSupported(this.Id + " fetchUnderlyingAssets() supports option markets only"))
 	}
 
-	listEp10229 := <-this.PublicOptionsGetUnderlyings(paramsMarketType)
-	if listEp10229.Err != nil {
-		panic(listEp10229.Err)
+	listEp10267 := <-this.PublicOptionsGetUnderlyings(paramsMarketType)
+	if listEp10267.Err != nil {
+		panic(listEp10267.Err)
 	}
-	var response []any = listEp10229.Value
+	var response []any = listEp10267.Value
 	//
 	//    [
 	//        {
@@ -11071,11 +11115,11 @@ func (this *Gate) fetchLiquidationsBody(ch chan AsyncResult[any], symbol string,
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, params)
 
-	listEp10298 := <-this.PublicFuturesGetSettleLiqOrders(this.Extend(requestUntil, paramsUntil))
-	if listEp10298.Err != nil {
-		panic(listEp10298.Err)
+	listEp10336 := <-this.PublicFuturesGetSettleLiqOrders(this.Extend(requestUntil, paramsUntil))
+	if listEp10336.Err != nil {
+		panic(listEp10336.Err)
 	}
-	var response []any = listEp10298.Value
+	var response []any = listEp10336.Value
 
 	//
 	//     [
@@ -11325,11 +11369,11 @@ func (this *Gate) fetchGreeksBody(ch chan AsyncResult[map[string]any], symbol st
 		"underlying": GetValue(market["info"], "underlying"),
 	}
 
-	listEp10533 := <-this.PublicOptionsGetTickers(this.Extend(request, params))
-	if listEp10533.Err != nil {
-		panic(listEp10533.Err)
+	listEp10571 := <-this.PublicOptionsGetTickers(this.Extend(request, params))
+	if listEp10571.Err != nil {
+		panic(listEp10571.Err)
 	}
-	var response []any = listEp10533.Value
+	var response []any = listEp10571.Value
 	//
 	//     [
 	//         {
@@ -11455,11 +11499,11 @@ func (this *Gate) closePositionBody(ch chan AsyncResult[any], symbol string, opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes827115 map[string]any = r.Value
-	if retRes827115 == nil {
+	var retRes831215 map[string]any = r.Value
+	if retRes831215 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes827115}
+		ch <- AsyncResult[any]{Value: retRes831215}
 	}
 	return nil
 }
@@ -11570,18 +11614,18 @@ func (this *Gate) fetchLeveragesBody(ch chan AsyncResult[any], optionalArgs ...a
 	if isUnified != nil && *isUnified == true {
 		marketIdRequest = "currency_pair"
 
-		listEp10755 := <-this.PublicMarginGetUniCurrencyPairs(paramsOmitted)
-		if listEp10755.Err != nil {
-			panic(listEp10755.Err)
+		listEp10793 := <-this.PublicMarginGetUniCurrencyPairs(paramsOmitted)
+		if listEp10793.Err != nil {
+			panic(listEp10793.Err)
 		}
-		response = listEp10755.Value
+		response = listEp10793.Value
 	} else {
 
-		listEp10758 := <-this.PublicMarginGetCurrencyPairs(paramsOmitted)
-		if listEp10758.Err != nil {
-			panic(listEp10758.Err)
+		listEp10796 := <-this.PublicMarginGetCurrencyPairs(paramsOmitted)
+		if listEp10796.Err != nil {
+			panic(listEp10796.Err)
 		}
-		response = listEp10758.Value // deprecated
+		response = listEp10796.Value // deprecated
 	}
 
 	ch <- AsyncResult[any]{Value: this.ParseLeverages(this.ToArray(response), symbolsNormalized, marketIdRequest, "spot")}
@@ -11715,11 +11759,11 @@ func (this *Gate) fetchOptionChainBody(ch chan AsyncResult[any], code string, op
 		"underlying": Add(currency["code"], "_USDT"),
 	}
 
-	listEp10882 := <-this.PublicOptionsGetContracts(this.Extend(request, params))
-	if listEp10882.Err != nil {
-		panic(listEp10882.Err)
+	listEp10920 := <-this.PublicOptionsGetContracts(this.Extend(request, params))
+	if listEp10920.Err != nil {
+		panic(listEp10920.Err)
 	}
-	var response []any = listEp10882.Value
+	var response []any = listEp10920.Value
 
 	//
 	//     [

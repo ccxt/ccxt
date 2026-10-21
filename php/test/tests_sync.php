@@ -2154,6 +2154,14 @@ class testMainClass {
                 $exchange->extend_exchange_options($global_options);
                 $test_exchange_options = $exchange->safe_value($result, 'options', array());
                 $exchange->extend_exchange_options($test_exchange_options);
+                $api_key = $exchange->safe_string($result, 'apiKey');
+                if (!$exchange->is_empty_string($api_key)) {
+                    $exchange->apiKey = ((string) $api_key);
+                }
+                $secret = $exchange->safe_string($result, 'secret');
+                if (!$exchange->is_empty_string($secret)) {
+                    $exchange->secret = ((string) $secret);
+                }
                 $skip_keys = $this->effective_skip_keys($exchange, $exchange_data, $result);
                 $this->test_ws_statically($exchange, $method, $skip_keys, $result);
                 if (!is_sync()) {
@@ -2245,6 +2253,9 @@ class testMainClass {
         if ($exchange_name === 'grvt') {
             $options['apiKey'] = '';
             $options['secret'] = '';
+        }
+        if ($exchange_name === 'backpack') {
+            $options['secret'] = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
         }
         $exchange = init_exchange($exchange_name, $options, $is_ws);
         if ($currencies !== null) {
@@ -3607,17 +3618,28 @@ class testMainClass {
     // }
     public function test_coinbaseinternational() {
         $exchange = $this->init_offline_exchange('coinbaseinternational');
+        // ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one
+        $exchange->secret = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        // pre-seed the gateway access token so createOrder signs the order directly instead of
+        // making a prior (offline-unreachable) public/auth network call
+        $exchange->token = 'token';
+        $token_expires = $exchange->milliseconds() + 100000;
+        $exchange->options['v2TokenExpires'] = $token_expires;
         $exchange->options['portfolio'] = 'random';
         $id = 'nfqkvdjp';
         assert($exchange->options['brokerId'] === $id, 'id not in options');
-        $request = array();
+        $client_order_id = null;
         try {
             $exchange->create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
         } catch(\Throwable $e) {
-            $request = json_parse($exchange->last_request_body);
+            // buy/sell are GET endpoints, so the label is in the query string, not a JSON body
+            $url = $exchange->last_request_url;
+            $url_parts = explode('?', $url);
+            assert(count($url_parts) > 1, 'last_request_url has no query string: ' . $url);
+            $query = $this->urlencoded_to_dict($url_parts[1]);
+            $client_order_id = $query['label'];
         }
-        $client_order_id = $request['client_order_id'];
-        assert(str_starts_with($client_order_id, ((string) $id)) === true, 'clientOrderId does not start with id');
+        assert($client_order_id !== null && str_starts_with($client_order_id, ((string) $id)) === true, 'clientOrderId does not start with id');
         if (!is_sync()) {
             close($exchange);
         }

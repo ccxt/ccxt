@@ -1455,6 +1455,7 @@ public class Mudrex extends MudrexApi
             h2kMap3.put("lastPrice", this.safeNumber(position, "closed_price", (Object) null));
             h2kMap3.put("notional", notional);
             h2kMap3.put("leverage", this.safeInteger(position, "leverage"));
+            h2kMap3.put("positionMargin", this.parseNumber(initialMargin));
             h2kMap3.put("collateral", this.parseNumber(initialMargin));
             h2kMap3.put("initialMargin", this.parseNumber(initialMargin));
             h2kMap3.put("initialMarginPercentage", null);

@@ -453,6 +453,37 @@ exchange = ccxt.apex({
 })
 ```
 
+### How to trade stocks at Backpack?
+
+Backpack lists tokenized US stocks next to its crypto markets. In CCXT they are regular spot markets flagged with `market['stock'] = true`. Set the `stock` option once when creating the exchange and every unified method will target the stock markets.
+
+- Instantiate the exchange with the `stock` option and load the stock markets:
+
+```
+exchange = ccxt.backpack({
+    'apiKey': 'xxx',
+    'secret': 'xxx',
+    'options': { 'stock': True },
+})
+stocks = exchange.load_markets()
+```
+
+- Stock symbols look like `SPCX.US/USDC`, so you can fetch tickers, order books and trades as usual:
+
+```
+ticker = exchange.fetch_ticker('SPCX.US/USDC')
+orderbook = exchange.fetch_order_book('SPCX.US/USDC')
+```
+
+- Place and cancel orders with `create_order` and `cancel_order` like any other spot market:
+
+```
+order = exchange.create_order('SPCX.US/USDC', 'limit', 'buy', 1, 100)
+exchange.cancel_order(order['id'], 'SPCX.US/USDC')
+```
+
+Markets ending in `.RFQ` (for example `AAPL.US.RFQ/USDC`) are quote-based: `create_order` with `type = 'market'` requests a quote and executes it, and an optional `price` acts as the worst price you accept. With the option set, `fetch_balance()` returns only your stock holdings. To trade crypto again from the same instance, set `exchange.options['stock'] = False`.
+
 ## How to use the Prediction Exchanges in CCXT?
 
 Prediction-market exchanges (Polymarket, Kalshi, Hyperliquid, Limitless, Myriad) live in their own `prediction` namespace and work like any other CCXT exchange, with one key difference: instead of a market `symbol` you address an **outcome** — a handle of the form `MARKET:LABEL` (for example `TRUMP_WIN_2024:YES`). Wherever an outcome is accepted you can pass either the unified handle or the venue's raw `outcomeId` (a Polymarket token id, a Kalshi ticker, ...) — both resolve to the same outcome. Prices are probabilities between 0 and 1, amounts are shares, and costs are in the collateral currency (usually USDC/USD).

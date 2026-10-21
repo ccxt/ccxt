@@ -1236,6 +1236,8 @@ class toobit extends toobit$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1247,20 +1249,34 @@ class toobit extends toobit$1["default"] {
             'symbol': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
         const until = this.safeInteger(params, 'until');
-        if (until !== undefined) {
-            request['endTime'] = until;
-        }
         const paramsOmitted = (until !== undefined) ? this.omit(params, 'until') : params;
+        const [endpoint, paramsPrice] = this.handleOptionStringAndParams(paramsOmitted, 'fetchOHLCV', 'price');
+        const isPriceKlines = (endpoint === 'index') || (endpoint === 'mark');
+        let startKey = 'startTime';
+        let endKey = 'endTime';
+        if (isPriceKlines) {
+            startKey = 'from';
+            endKey = 'to';
+        }
+        if (since !== undefined) {
+            request[startKey] = since;
+        }
+        if (until !== undefined) {
+            request[endKey] = until;
+        }
+        else if (isPriceKlines && (since !== undefined)) {
+            // mark and index klines walk backwards from `to` and ignore a lone `from`
+            const duration = this.parseTimeframe(timeframe);
+            const requestedLimit = (limit === undefined) ? 2000 : limit; // exchange default
+            request['to'] = this.sum(since, duration * requestedLimit * 1000);
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         let response = [];
-        const [endpoint, paramsPrice] = this.handleOptionStringAndParams(paramsOmitted, 'fetchOHLCV', 'price');
         if (endpoint === 'index') {
+            request['symbol'] = this.safeString(market['info'], 'indexToken'); // index klines take the index id instead of the market id
             response = await this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice));
             //
             //     {
@@ -1333,6 +1349,9 @@ class toobit extends toobit$1["default"] {
         let candles = [];
         if (Array.isArray(response)) {
             candles = response;
+        }
+        else {
+            candles = this.safeList(response, 'data', []);
         }
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
@@ -1423,9 +1442,9 @@ class toobit extends toobit$1["default"] {
             'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'h'),
             'low': this.safeString(ticker, 'l'),
-            'bid': undefined,
+            'bid': this.safeString(ticker, 'b'),
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': this.safeString(ticker, 'a'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': this.safeString(ticker, 'o'),

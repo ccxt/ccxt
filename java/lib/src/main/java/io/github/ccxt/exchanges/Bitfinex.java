@@ -1648,9 +1648,7 @@ public class Bitfinex extends BitfinexApi
             bid = this.safeString(ticker, (2L - ((long) minusIndex)));
             ask = this.safeString(ticker, (5L - ((long) minusIndex)));
             change = this.safeString(ticker, (8L - ((long) minusIndex)));
-            // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
-            // branch reads at index 6 and scales
-            percentage = Precise.stringMul(this.safeString(ticker, (9L - ((long) minusIndex))), "100");
+            // funding DAILY_CHANGE_RELATIVE is not change / (last - change), let safeTicker derive percentage
             volume = this.safeString(ticker, (11L - ((long) minusIndex)));
             high = this.safeString(ticker, (12L - ((long) minusIndex)));
             low = this.safeString(ticker, (13L - ((long) minusIndex)));

@@ -1860,6 +1860,14 @@ class foxbit extends Exchange {
         $bestBid = $this->safe_dict($best, 'bid');
         $lastTrade = $this->safe_dict($ticker, 'last_trade');
         $lastPrice = $this->safe_string($lastTrade, 'price');
+        $change = $this->safe_string($rolling_24h, 'price_change');
+        $percentage = $this->safe_string($rolling_24h, 'price_change_percent');
+        // never-traded markets report all-zero placeholders instead of omitting the values
+        if (Precise::string_eq($lastPrice, '0')) {
+            $lastPrice = null;
+            $change = null;
+            $percentage = null;
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $this->parse_date($this->safe_string($lastTrade, 'date')),
@@ -1875,8 +1883,8 @@ class foxbit extends Exchange {
             'close' => $lastPrice,
             'last' => $lastPrice,
             'previousClose' => null,
-            'change' => $this->safe_string($rolling_24h, 'price_change'),
-            'percentage' => $this->safe_string($rolling_24h, 'price_change_percent'),
+            'change' => $change,
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $this->safe_string($rolling_24h, 'volume'),
             'quoteVolume' => $this->safe_string($rolling_24h, 'quote_volume'),

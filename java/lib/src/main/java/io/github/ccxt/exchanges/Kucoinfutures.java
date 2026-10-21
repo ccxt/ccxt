@@ -43,6 +43,7 @@ public class Kucoinfutures extends KucoinfuturesApi
                 put( "swap", true );
                 put( "future", true );
                 put( "option", null );
+                put( "editOrder", false );
                 put( "fetchBidsAsks", true );
                 put( "transfer", true );
             }} );

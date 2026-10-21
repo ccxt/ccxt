@@ -240,7 +240,7 @@ export default class bitfinex extends bitfinexRest {
         const data = this.safeList (message, 1, []);
         let ohlcvs: any[] = [];
         const first = this.safeList (data, 0);
-        if (Array.isArray (first)) {
+        if (first !== undefined) {
             // snapshot
             ohlcvs = data;
         } else {
@@ -380,7 +380,7 @@ export default class bitfinex extends bitfinexRest {
         //
         const name = 'myTrade';
         const data = this.safeList (message, 2);
-        const trade = this.parseWsTrade (data);
+        const trade = this.parseWsTrade ({ 'result': data });
         const symbol = trade['symbol'];
         const market = this.market (symbol);
         const messageHash = name + ':' + market['id'];
@@ -441,12 +441,12 @@ export default class bitfinex extends bitfinexRest {
         const messageLength = message.length;
         if (messageLength === 2) {
             // initial snapshot
-            const trades: Dict[] = this.safeList (message, 1, []);
+            const trades = this.safeList (message, 1, []);
             // needs to be reversed to make chronological order
             const length = trades.length;
             for (let i = 0; i < length; i++) {
                 const index = length - i - 1;
-                const parsed = this.parseWsTrade (trades[index], market);
+                const parsed = this.parseWsTrade ({ 'result': trades[index] }, market);
                 stored.append (parsed);
             }
         } else {
@@ -458,7 +458,7 @@ export default class bitfinex extends bitfinexRest {
                 return;
             }
             const trade = this.safeList (message, 2, []);
-            const parsed = this.parseWsTrade (trade, market);
+            const parsed = this.parseWsTrade ({ 'result': trade }, market);
             stored.append (parsed);
         }
         if (channel !== undefined) {
@@ -467,7 +467,7 @@ export default class bitfinex extends bitfinexRest {
         }
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined): Trade {
+    override parseWsTrade (tradeResult: Dict, market: Market = undefined): Trade {
         //
         //    [
         //        1128060969, // id
@@ -510,6 +510,7 @@ export default class bitfinex extends bitfinexRest {
         //       1655110144596
         //    ]
         //
+        const trade = this.safeList (tradeResult, 'result', []);
         const numFields = trade.length;
         const isPublic = numFields <= 8;
         let marketId: Str = undefined;

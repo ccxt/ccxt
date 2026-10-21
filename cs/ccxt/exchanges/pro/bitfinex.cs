@@ -259,7 +259,7 @@ public partial class bitfinex : ccxt.bitfinex
         List<object> data = this.safeList(message, 1, new List<object>() {});
         List<object> ohlcvs = new List<object>() {};
         List<object> first = this.safeList(data, 0);
-        if (((first is IList<object>) || (first.GetType().IsGenericType && first.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((first != null))
         {
             // snapshot
             ohlcvs = data;
@@ -419,7 +419,9 @@ public partial class bitfinex : ccxt.bitfinex
         subscription ??= new Dictionary<string, object>();
         string name = "myTrade";
         List<object> data = this.safeList(message, 2);
-        ccxt.Trade trade = this.parseWsTrade(data);
+        ccxt.Trade trade = this.parseWsTrade(new Dictionary<string, object>() {
+            { "result", data },
+        });
         string? symbol = trade.symbol;
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
@@ -490,7 +492,9 @@ public partial class bitfinex : ccxt.bitfinex
             for (Int64 i = 0; i < length; i++)
             {
                 Int64 index = ((length - i) - 1);
-                ccxt.Trade parsed = this.parseWsTrade(getValue(trades, index), market);
+                ccxt.Trade parsed = this.parseWsTrade(new Dictionary<string, object>() {
+                    { "result", getValue(trades, index) },
+                }, market);
                 stored.append(ccxt.BaseExchange.FromTrade(parsed));
             }
         } else
@@ -504,7 +508,9 @@ public partial class bitfinex : ccxt.bitfinex
                 return;
             }
             List<object> trade = this.safeList(message, 2, new List<object>() {});
-            Dictionary<string, object> parsed = ccxt.BaseExchange.FromTrade(this.parseWsTrade(trade, market));
+            Dictionary<string, object> parsed = ccxt.BaseExchange.FromTrade(this.parseWsTrade(new Dictionary<string, object>() {
+                { "result", trade },
+            }, market));
             stored.append(parsed);
         }
         if ((channel != null))
@@ -514,7 +520,7 @@ public partial class bitfinex : ccxt.bitfinex
         }
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object tradeResult, object market = null)
     {
         //
         //    [
@@ -558,7 +564,8 @@ public partial class bitfinex : ccxt.bitfinex
         //       1655110144596
         //    ]
         //
-        int numFields = getArrayLength(trade);
+        List<object> trade = this.safeList(tradeResult, "result", new List<object>() {});
+        int numFields = trade.Count;
         bool isPublic = numFields <= 8;
         object marketId = null;
         if (!isPublic)

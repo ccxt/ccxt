@@ -3604,6 +3604,9 @@ public class Blofin extends BlofinApi
         if (java.util.Objects.equals(marketResolved.get("inverse"), true))
         {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
+        } else if (java.util.Objects.equals(notionalString, null))
+        {
+            notionalString = Precise.stringMul(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
         Double notional = this.parseNumber(notionalString);
         String marginMode = this.safeString(position, "marginMode");
@@ -3613,14 +3616,21 @@ public class Blofin extends BlofinApi
         String leverageString = this.safeString(position, "leverage");
         Object initialMarginPercentage = null;
         String collateralString = null;
+        String marginString = null;
         if (java.util.Objects.equals(marginMode, "cross"))
         {
             initialMarginString = this.safeString(position, "initialMargin");
-            collateralString = Precise.stringAdd(initialMarginString, unrealizedPnlString);
+            collateralString = (((!java.util.Objects.equals(unrealizedPnlString, null)))) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (java.util.Objects.equals(marginMode, "isolated"))
         {
             initialMarginPercentage = Precise.stringDiv("1", leverageString);
-            collateralString = this.safeString(position, "margin");
+            String isolatedMarginString = this.omitZero(this.safeString2(position, "margin", "initialMargin"));
+            if (!java.util.Objects.equals(isolatedMarginString, null))
+            {
+                initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
+                collateralString = (((!java.util.Objects.equals(unrealizedPnlString, null)))) ? Precise.stringAdd(isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
+            }
         }
         String maintenanceMarginString = this.safeString(position, "maintenanceMargin");
         Double maintenanceMargin = this.parseNumber(maintenanceMarginString);
@@ -3634,8 +3644,22 @@ public class Blofin extends BlofinApi
             initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         String rounder = "0.00005"; // round to closest 0.01%
-        Double maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
-        Double liquidationPrice = this.safeNumber(position, "liquidationPrice", (Object) null);
+        Double maintenanceMarginPercentage = (((!java.util.Objects.equals(maintenanceMarginPercentageString, null)))) ? this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4)) : null;
+        Object liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
+        if ((java.util.Objects.equals(liquidationPriceString, null)) && (java.util.Objects.equals(marginMode, "isolated")) && (!java.util.Objects.equals(initialMarginString, null)) && (!java.util.Objects.equals(entryPriceString, null)) && (!java.util.Objects.equals(contractsAbs, null)) && Precise.stringGt(contractsAbs, "0") && (!java.util.Objects.equals(contractSizeString, null)) && (!java.util.Objects.equals(maintenanceMarginPercentage, null)))
+        {
+            String takerFeeRate = this.safeString(marketResolved, "taker", "0.0006");
+            String mmpWithFee = Precise.stringAdd(this.numberToString(maintenanceMarginPercentage), takerFeeRate);
+            String totalSize = Precise.stringMul(contractsAbs, contractSizeString);
+            String marginPerUnit = Precise.stringDiv(initialMarginString, totalSize);
+            String num = (((java.util.Objects.equals(side, "long")))) ? Precise.stringSub(entryPriceString, marginPerUnit) : Precise.stringAdd(entryPriceString, marginPerUnit);
+            String denom = (((java.util.Objects.equals(side, "long")))) ? Precise.stringSub("1", mmpWithFee) : Precise.stringAdd("1", mmpWithFee);
+            if ((!java.util.Objects.equals(denom, null)) && Precise.stringGt(denom, "0"))
+            {
+                liquidationPriceString = Precise.stringDiv(num, denom);
+            }
+        }
+        Double liquidationPrice = ((((!java.util.Objects.equals(liquidationPriceString, null)) && Precise.stringGt(liquidationPriceString, "0")))) ? this.parseNumber(liquidationPriceString) : null;
         String percentageString = this.safeString(position, "unrealizedPnlRatio");
         Double percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Long timestamp = this.safeInteger(position, "updateTime");
@@ -3663,6 +3687,7 @@ public class Blofin extends BlofinApi
         mapLiteral7.put("lastUpdateTimestamp", null);
         mapLiteral7.put("maintenanceMargin", maintenanceMargin);
         mapLiteral7.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
+        mapLiteral7.put("positionMargin", this.parseNumber(marginString));
         mapLiteral7.put("collateral", this.parseNumber(collateralString));
         mapLiteral7.put("initialMargin", this.parseNumber(initialMarginString));
         mapLiteral7.put("initialMarginPercentage", this.parseNumber(initialMarginPercentage));

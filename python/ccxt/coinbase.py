@@ -288,10 +288,6 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/cfm/sweeps': {'cost': 1},
                             'brokerage/cfm/intraday/current_margin_window': {'cost': 1},
                             'brokerage/cfm/intraday/margin_setting': {'cost': 1},
-                            'brokerage/intx/balances/{portfolio_uuid}': {'cost': 1},
-                            'brokerage/intx/portfolio/{portfolio_uuid}': {'cost': 1},
-                            'brokerage/intx/positions/{portfolio_uuid}': {'cost': 1},
-                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}': {'cost': 1},
                             'brokerage/payment_methods': {'cost': 1},
                             'brokerage/payment_methods/{payment_method_id}': {'cost': 1},
                             'brokerage/key_permissions': {'cost': 1},
@@ -308,8 +304,6 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/convert/trade/{trade_id}': {'cost': 1},
                             'brokerage/cfm/sweeps/schedule': {'cost': 1},
                             'brokerage/cfm/intraday/margin_setting': {'cost': 1},
-                            'brokerage/intx/allocate': {'cost': 1},
-                            'brokerage/intx/multi_asset_collateral': {'cost': 1},
                             # futures
                             'brokerage/orders/close_position': {'cost': 1},
                         },
@@ -1287,6 +1281,9 @@ class coinbase(Exchange, ImplicitAPI):
             priceString = v3Price
         if (priceString is not None) and (amountString is not None):
             cost = Precise.string_mul(priceString, amountString)
+            contractSize = self.safe_string(marketResolved, 'contractSize')
+            if contractSize is not None:
+                cost = Precise.string_mul(cost, contractSize)
         else:
             cost = costString
         feeCurrencyId = self.safe_string(feeObject, 'currency')
@@ -1492,7 +1489,8 @@ class coinbase(Exchange, ImplicitAPI):
         try:
             unresolvedContractPromises = [
                 self.v3PublicGetBrokerageMarketProducts(self.extend(paramsUsePrivate, {'product_type': 'FUTURE'})),
-                self.v3PublicGetBrokerageMarketProducts(self.extend(paramsUsePrivate, {'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL'})),
+                # deprecated INTX call, coinbase may return to using this approach for swap markets
+                # this.v3PublicGetBrokerageMarketProducts (this.extend (paramsUsePrivate, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
             ]
         except Exception as e:
             unresolvedContractPromises = []  # the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
@@ -1774,6 +1772,9 @@ class coinbase(Exchange, ImplicitAPI):
         #           }
         #        }
         #
+        # if (this.safeString (market, 'product_venue') === 'INTX') {
+        #     return undefined; // INTX perpetuals were retired from Advanced Trade on 2026-10-01, they trade via coinbaseinternational now
+        # }
         id = self.safe_string(market, 'product_id')
         futureProductDetails = self.safe_dict(market, 'future_product_details', {})
         contractExpiryType = self.safe_string(futureProductDetails, 'contract_expiry_type')
@@ -1781,14 +1782,19 @@ class coinbase(Exchange, ImplicitAPI):
         contractExpire = self.safe_string(futureProductDetails, 'contract_expiry')
         expireTimestamp = self.parse8601(contractExpire)
         expireDateTime = self.iso8601(expireTimestamp)
-        isSwap = (contractExpiryType == 'PERPETUAL')
+        # US perpetual-style futures are listed as EXPIRING with a placeholder expiry, a funding interval, and a PERP display name
+        fundingInterval = self.safe_string(futureProductDetails, 'funding_interval')
+        displayName = self.safe_string(market, 'display_name')
+        isPerpetualDisplayName = (displayName is not None) and displayName.endswith('PERP')
+        isSwap = (contractExpiryType == 'PERPETUAL') or (fundingInterval is not None) or isPerpetualDisplayName
         baseId = self.safe_string(futureProductDetails, 'contract_root_unit')
         quoteId = self.safe_string(market, 'quote_currency_id')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
             return None
-        tradingDisabled = self.safe_bool(market, 'is_disabled')
+        isDisabled = self.safe_bool(market, 'is_disabled')
+        tradingDisabled = (isDisabled is True) or (self.safe_bool(market, 'trading_disabled') is True)
         symbol = base + '/' + quote
         type = None
         if isSwap:
@@ -1823,8 +1829,8 @@ class coinbase(Exchange, ImplicitAPI):
             'taker': taker,
             'maker': maker,
             'contractSize': contractSize,
-            'expiry': expireTimestamp,
-            'expiryDatetime': expireDateTime,
+            'expiry': None if (isSwap) else expireTimestamp,
+            'expiryDatetime': None if (isSwap) else expireDateTime,
             'strike': None,
             'optionType': None,
             'precision': {
@@ -2343,6 +2349,22 @@ class coinbase(Exchange, ImplicitAPI):
         }, marketResolved)
 
     def parse_custom_balance(self, response: dict, params: dict = {}) -> Balances:
+        summary = self.safe_dict(response, 'balance_summary', {})
+        totalUsdBalanceData = self.safe_dict(summary, 'total_usd_balance', {})
+        futuresBuyingPowerData = self.safe_dict(summary, 'futures_buying_power', {})
+        totalUsdBalance = self.safe_string(totalUsdBalanceData, 'value')
+        futuresBuyingPower = self.safe_string(futuresBuyingPowerData, 'value')
+        if (totalUsdBalance is not None) or (futuresBuyingPower is not None):
+            total = totalUsdBalance if (totalUsdBalance is not None) else futuresBuyingPower
+            free = futuresBuyingPower if (futuresBuyingPower is not None) else total
+            used = Precise.string_sub(total, free)
+            balanceResult = {'info': response}
+            balanceResult['USD'] = {
+                'free': free,
+                'used': used,
+                'total': total,
+            }
+            return self.safe_balance(balanceResult)
         balances = self.safe_list_2(response, 'data', 'accounts', [])
         accounts = self.safe_list(params, 'type', self.options['accounts'])
         v3Accounts = self.safe_list(params, 'type', self.options['v3Accounts'])
@@ -2396,7 +2418,7 @@ class coinbase(Exchange, ImplicitAPI):
 
         https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
         https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
-        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-balance-summary
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.v3]: default False, set True to use v3 api endpoint
@@ -2412,7 +2434,7 @@ class coinbase(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, ['v3'])
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchBalance', None, paramsOmitted)
         method = self.safe_string(self.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts')
-        if marketType == 'future':
+        if (marketType == 'future') or (marketType == 'swap'):
             response = self.v3PrivateGetBrokerageCfmBalanceSummary(self.extend(request, paramsMarketType))
         elif (isV3 is True) or (method == 'v3PrivateGetBrokerageAccounts'):
             request['limit'] = 250
@@ -4652,32 +4674,33 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch all open positions
 
-        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions
-        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-positions
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/list-futures-positions
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.portfolio]: the portfolio UUID to fetch positions for
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
+        self.check_intx_portfolio_param('fetchPositions', params)
         if self.markets is None:
             self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
-        market = None
-        if symbolsNormalized is not None:
-            market = self.market(symbolsNormalized[0])
-        marketType, paramsMarketType = self.handle_market_type_and_params('fetchPositions', market, params)
-        response = None
-        if marketType == 'future':
-            response = self.v3PrivateGetBrokerageCfmPositions(paramsMarketType)
-        else:
-            portfolio, paramsPortfolio = self.handle_option_string_and_params(paramsMarketType, 'fetchPositions', 'portfolio')
-            if portfolio is None:
-                raise ArgumentsRequired(self.id + ' fetchPositions() requires a "portfolio" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
-            request = {
-                'portfolio_uuid': portfolio,
-            }
-            response = self.v3PrivateGetBrokerageIntxPositionsPortfolioUuid(self.extend(request, paramsPortfolio))
+        response = self.v3PrivateGetBrokerageCfmPositions(params)
+        #
+        #     {
+        #         "positions": [
+        #             {
+        #                 "product_id": "BIT-26APR24-CDE",
+        #                 "expiration_time": "2024-04-26T15:00:00Z",
+        #                 "side": "LONG",
+        #                 "number_of_contracts": "2",
+        #                 "current_price": "71145",
+        #                 "avg_entry_price": "70980",
+        #                 "unrealized_pnl": "33",
+        #                 "daily_realized_pnl": "0"
+        #             }
+        #         ]
+        #     }
+        #
         positions = self.safe_list(response, 'positions', [])
         return self.parse_positions(positions, symbolsNormalized)
 
@@ -4685,159 +4708,69 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch data on a single open contract trade position
 
-        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-position
-        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-position
+        https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-position
 
-        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.product_id]: *futures only* the product id of the position to fetch, required for futures markets only
-        :param str [params.portfolio]: *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
+        self.check_intx_portfolio_param('fetchPosition', params)
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        response = None
-        if market['future'] is True:
-            productId = self.safe_string(market, 'product_id')
-            if productId is None:
-                raise ArgumentsRequired(self.id + ' fetchPosition() requires a "product_id" in params')
-            futureRequest = {
-                'product_id': productId,
-            }
-            response = self.v3PrivateGetBrokerageCfmPositionsProductId(self.extend(futureRequest, params))
-        else:
-            portfolio, paramsPortfolio = self.handle_option_string_and_params(params, 'fetchPositions', 'portfolio')
-            if portfolio is None:
-                raise ArgumentsRequired(self.id + ' fetchPosition() requires a "portfolio" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()')
-            request = {
-                'symbol': market['id'],
-                'portfolio_uuid': portfolio,
-            }
-            response = self.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(self.extend(request, paramsPortfolio))
+        request = {
+            'product_id': market['id'],
+        }
+        response = self.v3PrivateGetBrokerageCfmPositionsProductId(self.extend(request, params))
         position = self.safe_dict(response, 'position', {})
         return self.parse_position(position, market)
 
+    def check_intx_portfolio_param(self, methodName: str, params: dict):
+        """
+ @ignore
+        throws a NotSupported error pointing to coinbaseinternational when an INTX perpetuals portfolio is requested
+        :param str methodName: the name of the calling method
+        :param dict params: the parameters passed to the calling method
+        """
+        portfolio = self.safe_string(params, 'portfolio')
+        if portfolio is not None:
+            raise NotSupported(self.id + ' ' + methodName + '() INTX perpetuals were removed from Coinbase Advanced Trade on 2026-10-01, use the coinbaseinternational exchange class for international perpetuals')
+
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #
-        # {
-        #     "product_id": "1r4njf84-0-0",
-        #     "product_uuid": "cd34c18b-3665-4ed8-9305-3db277c49fc5",
-        #     "symbol": "ADA-PERP-INTX",
-        #     "vwap": {
-        #        "value": "0.6171",
-        #        "currency": "USDC"
-        #     },
-        #     "position_side": "POSITION_SIDE_LONG",
-        #     "net_size": "20",
-        #     "buy_order_size": "0",
-        #     "sell_order_size": "0",
-        #     "im_contribution": "0.1",
-        #     "unrealized_pnl": {
-        #        "value": "0.074",
-        #        "currency": "USDC"
-        #     },
-        #     "mark_price": {
-        #        "value": "0.6208",
-        #        "currency": "USDC"
-        #     },
-        #     "liquidation_price": {
-        #        "value": "0",
-        #        "currency": "USDC"
-        #     },
-        #     "leverage": "1",
-        #     "im_notional": {
-        #        "value": "12.342",
-        #        "currency": "USDC"
-        #     },
-        #     "mm_notional": {
-        #        "value": "0.814572",
-        #        "currency": "USDC"
-        #     },
-        #     "position_notional": {
-        #        "value": "12.342",
-        #        "currency": "USDC"
-        #     },
-        #     "margin_type": "MARGIN_TYPE_CROSS",
-        #     "liquidation_buffer": "19.677828",
-        #     "liquidation_percentage": "4689.3506",
-        #     "portfolio_summary": {
-        #        "portfolio_uuid": "018ebd63-1f6d-7c8e-ada9-0761c5a2235f",
-        #        "collateral": "20.4184",
-        #        "position_notional": "12.342",
-        #        "open_position_notional": "12.342",
-        #        "pending_fees": "0",
-        #        "borrow": "0",
-        #        "accrued_interest": "0",
-        #        "rolling_debt": "0",
-        #        "portfolio_initial_margin": "0.1",
-        #        "portfolio_im_notional": {
-        #           "value": "12.342",
-        #           "currency": "USDC"
-        #        },
-        #        "portfolio_maintenance_margin": "0.066",
-        #        "portfolio_mm_notional": {
-        #           "value": "0.814572",
-        #           "currency": "USDC"
-        #        },
-        #        "liquidation_percentage": "4689.3506",
-        #        "liquidation_buffer": "19.677828",
-        #        "margin_type": "MARGIN_TYPE_CROSS",
-        #        "margin_flags": "PORTFOLIO_MARGIN_FLAGS_UNSPECIFIED",
-        #        "liquidation_status": "PORTFOLIO_LIQUIDATION_STATUS_NOT_LIQUIDATING",
-        #        "unrealized_pnl": {
-        #           "value": "0.074",
-        #           "currency": "USDC"
-        #        },
-        #        "buying_power": {
-        #           "value": "8.1504",
-        #           "currency": "USDC"
-        #        },
-        #        "total_balance": {
-        #           "value": "20.4924",
-        #           "currency": "USDC"
-        #        },
-        #        "max_withdrawal": {
-        #           "value": "8.0764",
-        #           "currency": "USDC"
-        #        }
-        #     },
-        #     "entry_vwap": {
-        #        "value": "0.6091",
-        #        "currency": "USDC"
+        #     {
+        #         "product_id": "BIT-26APR24-CDE",
+        #         "expiration_time": "2024-04-26T15:00:00Z",
+        #         "side": "LONG",
+        #         "number_of_contracts": "2",
+        #         "current_price": "71145",
+        #         "avg_entry_price": "70980",
+        #         "unrealized_pnl": "33",
+        #         "daily_realized_pnl": "0"
         #     }
-        # }
         #
-        marketId = self.safe_string(position, 'symbol', '')
+        marketId = self.safe_string(position, 'product_id')
         marketResolved = self.safe_market(marketId, market)
-        rawMargin = self.safe_string(position, 'margin_type')
-        marginMode = None
-        if rawMargin is not None:
-            marginMode = 'cross' if (rawMargin == 'MARGIN_TYPE_CROSS') else 'isolated'
-        notionalObject = self.safe_dict(position, 'position_notional', {})
-        positionSide = self.safe_string(position, 'position_side')
-        side = 'short'
-        if positionSide == 'POSITION_SIDE_LONG':
+        rawSide = self.safe_string(position, 'side')
+        side = None
+        if rawSide == 'LONG':
             side = 'long'
-        unrealizedPNLObject = self.safe_dict(position, 'unrealized_pnl', {})
-        liquidationPriceObject = self.safe_dict(position, 'liquidation_price', {})
-        liquidationPrice = self.safe_number(liquidationPriceObject, 'value')
-        vwapObject = self.safe_dict(position, 'vwap', {})
-        summaryObject = self.safe_dict(position, 'portfolio_summary', {})
+        elif rawSide == 'SHORT':
+            side = 'short'
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'product_id'),
             'symbol': self.safe_symbol(marketId, marketResolved),
-            'notional': self.safe_number(notionalObject, 'value'),
-            'marginMode': marginMode,
-            'liquidationPrice': liquidationPrice,
-            'entryPrice': self.safe_number(vwapObject, 'value'),
-            'unrealizedPnl': self.safe_number(unrealizedPNLObject, 'value'),
-            'realizedPnl': None,
+            'notional': None,
+            'marginMode': None,
+            'liquidationPrice': None,
+            'entryPrice': self.safe_number(position, 'avg_entry_price'),
+            'unrealizedPnl': self.safe_number(position, 'unrealized_pnl'),
+            'realizedPnl': self.safe_number(position, 'daily_realized_pnl'),
             'percentage': None,
-            'contracts': self.safe_number(position, 'net_size'),
+            'contracts': self.safe_number(position, 'number_of_contracts'),
             'contractSize': marketResolved['contractSize'],
-            'markPrice': None,
+            'markPrice': self.safe_number(position, 'current_price'),
             'lastPrice': None,
             'side': side,
             'hedged': None,
@@ -4846,10 +4779,10 @@ class coinbase(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'collateral': self.safe_number(summaryObject, 'collateral'),
+            'collateral': None,
             'initialMargin': None,
             'initialMarginPercentage': None,
-            'leverage': self.safe_number(position, 'leverage'),
+            'leverage': None,
             'marginRatio': None,
             'stopLossPrice': None,
             'takeProfitPrice': None,

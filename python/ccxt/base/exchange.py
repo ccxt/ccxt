@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.88'
+__version__ = '4.5.89'
 
 # -----------------------------------------------------------------------------
 
@@ -4248,18 +4248,19 @@ class BaseExchange(object):
 
     def set_markets(self, markets: object, currencies: object = None):
         values = []
-        self.markets_by_id = self.create_safe_dictionary()
+        # build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        marketsById = {}
         # handle marketId conflicts
         # we insert spot markets first
         marketValues = self.sort_by(self.to_array(markets), 'spot', True, True)
         for i in range(0, len(marketValues)):
             value = marketValues[i]
-            if value['id'] in self.markets_by_id:
-                marketsByIdArray = (self.markets_by_id[value['id']])
+            if value['id'] in marketsById:
+                marketsByIdArray = (marketsById[value['id']])
                 marketsByIdArray.append(value)
-                self.markets_by_id[value['id']] = marketsByIdArray
+                marketsById[value['id']] = marketsByIdArray
             else:
-                self.markets_by_id[value['id']] = [value]
+                marketsById[value['id']] = [value]
             # strip undefined-valued keys from the parsed market before deepExtend,
             # otherwise an explicit `taker: undefined` (from safeMarketStructure)
             # would clobber the fee defaults from this.fees['trading'] in the merge
@@ -4281,6 +4282,7 @@ class BaseExchange(object):
                 market['subType'] = None
             values.append(market)
         self.markets = self.map_to_safe_map(self.index_by(values, 'symbol'))
+        self.markets_by_id = self.map_to_safe_map(marketsById)
         marketsSortedBySymbol = self.keysort(self.markets)
         marketsSortedById = self.keysort(self.markets_by_id)
         self.symbols = list(marketsSortedBySymbol.keys())
@@ -7478,6 +7480,7 @@ class BaseExchange(object):
             if since is None:
                 raise ArgumentsRequired(self.id + ' pagination requires a since argument when paginationDirection set to forward')
             paginationTimestamp = since
+        shouldBreak = False
         while((calls < maxCallsPaginationCalls)):
             calls += 1
             try:
@@ -7494,14 +7497,17 @@ class BaseExchange(object):
                             backwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(backwardMessage)
                     if responseLength == 0:
+                        shouldBreak = True
                         break
                     errors = 0
                     result = self.array_concat(result, response)
                     firstElement = self.safe_value(response, 0)
                     paginationTimestamp = self.safe_integer_2(firstElement, 'timestamp', 0)
                     if paginationTimestamp is None:
+                        shouldBreak = True
                         break
                     if (since is not None) and (paginationTimestamp <= since):
+                        shouldBreak = True
                         break
                 else:
                     # do it forwards, starting from the since
@@ -7513,21 +7519,26 @@ class BaseExchange(object):
                             forwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(forwardMessage)
                     if responseLength == 0:
+                        shouldBreak = True
                         break
                     errors = 0
                     result = self.array_concat(result, response)
                     last = self.safe_value(response, responseLength - 1)
                     lastTimestamp = self.safe_integer(last, 'timestamp', 0)
                     if lastTimestamp is None:
+                        shouldBreak = True
                         break
                     nextPaginationTimestamp = lastTimestamp + 1
                     paginationTimestamp = nextPaginationTimestamp
                     if (until is not None) and (nextPaginationTimestamp >= until):
+                        shouldBreak = True
                         break
             except Exception as e:
                 errors += 1
                 if errors > maxRetriesOption:
                     raise e
+            if shouldBreak:
+                break  # go turns a break inside try into a panic that only ends the iteration
         uniqueResults = result
         if removeRepeatedOption:
             uniqueResults = self.remove_repeated_elements_from_array(result)
@@ -7612,6 +7623,7 @@ class BaseExchange(object):
         result = []
         timeframe = self.safe_string(paramsMaxEntriesPerRequest, 'timeframe')
         paramsOmitted = self.omit(paramsMaxEntriesPerRequest, 'timeframe')  # reading the timeframe from the method arguments to avoid changing the signature
+        shouldBreak = False
         while(i < maxCallsPaginationCalls):
             try:
                 if cursorValue is not None:
@@ -7642,31 +7654,35 @@ class BaseExchange(object):
                     cursorMessage = 'Cursor pagination call ' + str(iteration) + ' method ' + method + ' response length ' + str(responseLength) + ' cursor ' + cursorString
                     self.log(cursorMessage)
                 if responseLength == 0:
+                    shouldBreak = True
                     break
                 if response is not None:
                     result = self.array_concat(result, response)
                 last = self.safe_dict(response, responseLength - 1)
                 # cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = None  # search for the cursor
+                # guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
                 for j in range(0, responseLength):
-                    index = responseLength - j - 1
-                    entry = self.safe_dict(response, index)
-                    info = self.safe_dict(entry, 'info')
-                    cursor = None if (cursorReceived is None) else self.safe_value(info, cursorReceived)
-                    if cursor is not None:
-                        cursorValue = cursor
-                        break
+                    if cursorValue is None:
+                        index = responseLength - j - 1
+                        entry = self.safe_dict(response, index)
+                        info = self.safe_dict(entry, 'info')
+                        cursorValue = None if (cursorReceived is None) else self.safe_value(info, cursorReceived)
                 if cursorValue is None:
+                    shouldBreak = True
                     break
                 lastTimestamp = self.safe_integer(last, 'timestamp')
                 if since is None:
                     raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a since argument')
                 if lastTimestamp is not None and lastTimestamp < since:
+                    shouldBreak = True
                     break
             except Exception as e:
                 errors += 1
                 if errors > maxRetriesOption:
                     raise e
+            if shouldBreak:
+                break  # go turns a break inside try into a panic that only ends the iteration
             i += 1
         sorted = self.sort_cursor_paginated_result(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
@@ -7681,6 +7697,7 @@ class BaseExchange(object):
         i = 0
         errors = 0
         result = []
+        shouldBreak = False
         while(i < maxCallsPaginationCalls):
             try:
                 paramsMaxEntriesPerRequest[pageKey] = i + 1
@@ -7692,12 +7709,15 @@ class BaseExchange(object):
                     incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + str(responseLength)
                     self.log(incrementalMessage)
                 if responseLength == 0:
+                    shouldBreak = True
                     break
                 result = self.array_concat(result, response)
             except Exception as e:
                 errors += 1
                 if errors > maxRetriesOption:
                     raise e
+            if shouldBreak:
+                break  # go turns a break inside try into a panic that only ends the iteration
             i += 1
         sorted = self.sort_cursor_paginated_result(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'

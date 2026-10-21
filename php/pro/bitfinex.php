@@ -260,7 +260,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $data = $this->safe_list($message, 1, array());
         $ohlcvs = array();
         $first = $this->safe_list($data, 0);
-        if ((gettype($first) === 'array' && array_keys($first) === array_keys(array_keys($first)))) {
+        if ($first !== null) {
             // snapshot
             $ohlcvs = $data;
         } else {
@@ -398,7 +398,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //
         $name = 'myTrade';
         $data = $this->safe_list($message, 2);
-        $trade = $this->parse_ws_trade($data);
+        $trade = $this->parse_ws_trade(array( 'result' => $data ));
         $symbol = $trade['symbol'];
         $market = $this->market($symbol);
         $messageHash = $name . ':' . $market['id'];
@@ -464,7 +464,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             $length = count($trades);
             for ($i = 0; $i < $length; $i++) {
                 $index = $length - $i - 1;
-                $parsed = $this->parse_ws_trade($trades[$index], $market);
+                $parsed = $this->parse_ws_trade(array( 'result' => $trades[$index] ), $market);
                 $stored->append($parsed);
             }
         } else {
@@ -476,7 +476,7 @@ class bitfinex extends \ccxt\async\bitfinex {
                 return;
             }
             $trade = $this->safe_list($message, 2, array());
-            $parsed = $this->parse_ws_trade($trade, $market);
+            $parsed = $this->parse_ws_trade(array( 'result' => $trade ), $market);
             $stored->append($parsed);
         }
         if ($channel !== null) {
@@ -485,7 +485,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         }
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
+    public function parse_ws_trade(array $tradeResult, ?array $market = null): array {
         //
         //    [
         //        1128060969, // id
@@ -528,6 +528,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //       1655110144596
         //    ]
         //
+        $trade = $this->safe_list($tradeResult, 'result', array());
         $numFields = count($trade);
         $isPublic = $numFields <= 8;
         $marketId = null;

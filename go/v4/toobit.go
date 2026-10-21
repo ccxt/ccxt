@@ -1579,6 +1579,8 @@ func (this *Toobit) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Toobit) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -1609,25 +1611,43 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 		"symbol":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if since != nil {
-		request["startTime"] = since
-	}
 	var until *int64 = this.SafeInteger(params, "until")
-	if until != nil {
-		request["endTime"] = until
-	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
 			return this.OmitDict(params, "until")
 		}
 		return params
 	}()
+	endpoint, paramsPrice := this.HandleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price")
+	var isPriceKlines bool = (endpoint != nil && *endpoint == "index") || (endpoint != nil && *endpoint == "mark")
+	var startKey string = "startTime"
+	var endKey string = "endTime"
+	if isPriceKlines {
+		startKey = "from"
+		endKey = "to"
+	}
+	if since != nil {
+		request[startKey] = since
+	}
+	if until != nil {
+		request[endKey] = until
+	} else if isPriceKlines && (since != nil) {
+		// mark and index klines walk backwards from `to` and ignore a lone `from`
+		var duration int64 = this.ParseTimeframe(timeframe)
+		var requestedLimit any = func() any {
+			if limit == nil {
+				return 2000
+			}
+			return limit
+		}() // exchange default
+		request["to"] = this.Sum(since, Multiply(Multiply(duration, requestedLimit), 1000))
+	}
 	if limit != nil {
 		request["limit"] = limit
 	}
 	var response any = []any{}
-	endpoint, paramsPrice := this.HandleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price")
 	if endpoint != nil && *endpoint == "index" {
+		request["symbol"] = this.SafeString(market["info"], "indexToken") // index klines take the index id instead of the market id
 
 		r1 := <-this.CommonGetQuoteV1IndexKlines(this.Extend(request, paramsPrice))
 		if r1.Err != nil {
@@ -1652,6 +1672,8 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 	var candles []any = []any{}
 	if IsArray(response) {
 		candles = ArrayTyped(response)
+	} else {
+		candles = ArrayTyped(this.SafeList(response, "data", []any{}))
 	}
 
 	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(candles, market, timeframe, since, limit)}
@@ -1709,18 +1731,18 @@ func (this *Toobit) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 	var response []any = nil
 	if typeVar != nil && *typeVar == "spot" {
 
-		listEp1668 := <-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, paramsMarketType))
-		if listEp1668.Err != nil {
-			panic(listEp1668.Err)
+		listEp1690 := <-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, paramsMarketType))
+		if listEp1690.Err != nil {
+			panic(listEp1690.Err)
 		}
-		response = listEp1668.Value
+		response = listEp1690.Value
 	} else {
 
-		listEp1671 := <-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, paramsMarketType))
-		if listEp1671.Err != nil {
-			panic(listEp1671.Err)
+		listEp1693 := <-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, paramsMarketType))
+		if listEp1693.Err != nil {
+			panic(listEp1693.Err)
 		}
-		response = listEp1671.Value
+		response = listEp1693.Value
 	}
 	//
 	//    [
@@ -1768,9 +1790,9 @@ func (this *Toobit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"datetime":      this.Iso8601(timestamp),
 		"high":          this.SafeString(ticker, "h"),
 		"low":           this.SafeString(ticker, "l"),
-		"bid":           nil,
+		"bid":           this.SafeString(ticker, "b"),
 		"bidVolume":     nil,
-		"ask":           nil,
+		"ask":           this.SafeString(ticker, "a"),
 		"askVolume":     nil,
 		"vwap":          nil,
 		"open":          this.SafeString(ticker, "o"),
@@ -1830,11 +1852,11 @@ func (this *Toobit) fetchLastPricesBody(ch chan AsyncResult[any], optionalArgs .
 		}
 	}
 
-	listEp1778 := <-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params))
-	if listEp1778.Err != nil {
-		panic(listEp1778.Err)
+	listEp1800 := <-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params))
+	if listEp1800.Err != nil {
+		panic(listEp1800.Err)
 	}
-	var response []any = listEp1778.Value
+	var response []any = listEp1800.Value
 
 	//
 	//    [
@@ -1906,11 +1928,11 @@ func (this *Toobit) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs ...
 		}
 	}
 
-	listEp1847 := <-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params))
-	if listEp1847.Err != nil {
-		panic(listEp1847.Err)
+	listEp1869 := <-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params))
+	if listEp1869.Err != nil {
+		panic(listEp1869.Err)
 	}
-	var response []any = listEp1847.Value
+	var response []any = listEp1869.Value
 
 	//
 	//    [
@@ -2001,11 +2023,11 @@ func (this *Toobit) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs
 		}
 	}
 
-	listEp1935 := <-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params))
-	if listEp1935.Err != nil {
-		panic(listEp1935.Err)
+	listEp1957 := <-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params))
+	if listEp1957.Err != nil {
+		panic(listEp1957.Err)
 	}
-	var response []any = listEp1935.Value
+	var response []any = listEp1957.Value
 
 	//
 	//    [
@@ -2090,11 +2112,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes164419 []any = ListTyped(r1.Value)
-		if retRes164419 == nil {
+		var retRes166119 []any = ListTyped(r1.Value)
+		if retRes166119 == nil {
 			ch <- AsyncResult[any]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes164419}
+			ch <- AsyncResult[any]{Value: retRes166119}
 		}
 		return nil
 	}
@@ -2109,11 +2131,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
 		request["limit"] = limit
 	}
 
-	listEp2032 := <-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate))
-	if listEp2032.Err != nil {
-		panic(listEp2032.Err)
+	listEp2054 := <-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate))
+	if listEp2054.Err != nil {
+		panic(listEp2054.Err)
 	}
-	var response []any = listEp2032.Value
+	var response []any = listEp2054.Value
 
 	//
 	//    [
@@ -3260,18 +3282,18 @@ func (this *Toobit) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...an
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		listEp3088 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType))
-		if listEp3088.Err != nil {
-			panic(listEp3088.Err)
+		listEp3110 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType))
+		if listEp3110.Err != nil {
+			panic(listEp3110.Err)
 		}
-		response = listEp3088.Value
+		response = listEp3110.Value
 	} else {
 
-		listEp3091 := <-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType))
-		if listEp3091.Err != nil {
-			panic(listEp3091.Err)
+		listEp3113 := <-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType))
+		if listEp3113.Err != nil {
+			panic(listEp3113.Err)
 		}
-		response = listEp3091.Value
+		response = listEp3113.Value
 	}
 
 	//
@@ -3449,11 +3471,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes275715 []any = r.Value
-	if retRes275715 == nil {
+	var retRes277415 []any = r.Value
+	if retRes277415 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes275715}
+		ch <- AsyncResult[any]{Value: retRes277415}
 	}
 	return nil
 }
@@ -3490,11 +3512,11 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes277215 []any = r.Value
-	if retRes277215 == nil {
+	var retRes278915 []any = r.Value
+	if retRes278915 == nil {
 		ch <- AsyncResult[any]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes277215}
+		ch <- AsyncResult[any]{Value: retRes278915}
 	}
 	return nil
 }
@@ -3975,11 +3997,11 @@ func (this *Toobit) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbo
 		"symbol": market["id"],
 	}
 
-	listEp3739 := <-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params))
-	if listEp3739.Err != nil {
-		panic(listEp3739.Err)
+	listEp3761 := <-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params))
+	if listEp3761.Err != nil {
+		panic(listEp3761.Err)
 	}
-	var response []any = listEp3739.Value
+	var response []any = listEp3761.Value
 	//
 	// [
 	//     {
@@ -4373,6 +4395,8 @@ func (this *Toobit) FetchTrades(symbol string, options ...FetchTradesOptions) ([
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Toobit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {

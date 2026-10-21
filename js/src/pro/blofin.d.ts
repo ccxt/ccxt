@@ -4,7 +4,6 @@ import Client from '../base/ws/Client.js';
 export default class blofin extends blofinRest {
     describe(): any;
     ping(client: Client): string;
-    handlePong(client: Client, message: any): void;
     /**
      * @method
      * @name blofin#watchTrades

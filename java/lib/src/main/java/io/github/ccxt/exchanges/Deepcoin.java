@@ -3211,36 +3211,45 @@ public class Deepcoin extends DeepcoinApi
         String marketId = this.safeString(position, "instId");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(position, "cTime");
-        return this.safePosition(new HashMap<String, Object>() {{
-            put( "symbol", marketResolved.get("symbol") );
-            put( "id", Deepcoin.this.safeString(position, "posId") );
-            put( "timestamp", timestamp );
-            put( "datetime", Deepcoin.this.iso8601(timestamp) );
-            put( "contracts", Deepcoin.this.safeNumber(position, "pos", (Object) null) );
-            put( "contractSize", null );
-            put( "side", Deepcoin.this.safeString(position, "posSide") );
-            put( "notional", null );
-            put( "leverage", Deepcoin.this.parseNumber(Deepcoin.this.omitZero(Deepcoin.this.safeString(position, "lever"))) );
-            put( "unrealizedPnl", null );
-            put( "realizedPnl", null );
-            put( "collateral", null );
-            put( "entryPrice", Deepcoin.this.safeNumber(position, "avgPx", (Object) null) );
-            put( "markPrice", null );
-            put( "liquidationPrice", Deepcoin.this.safeNumber(position, "liqPx", (Object) null) );
-            put( "marginMode", Deepcoin.this.safeString(position, "mgnMode") );
-            put( "hedged", true );
-            put( "maintenanceMargin", Deepcoin.this.safeNumber(position, "useMargin", (Object) null) );
-            put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", null );
-            put( "initialMarginPercentage", null );
-            put( "marginRatio", null );
-            put( "lastUpdateTimestamp", Deepcoin.this.safeInteger(position, "uTime") );
-            put( "lastPrice", null );
-            put( "stopLossPrice", null );
-            put( "takeProfitPrice", null );
-            put( "percentage", null );
-            put( "info", position );
-        }});
+        String marginMode = this.safeString(position, "mgnMode");
+        Double useMargin = this.safeNumber(position, "useMargin", (Object) null);
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        Double positionMargin = null;
+        if (java.util.Objects.equals(marginMode, "isolated"))
+        {
+            positionMargin = useMargin;
+        }
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("symbol", marketResolved.get("symbol"));
+        mapLiteral6.put("id", this.safeString(position, "posId"));
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("contracts", this.safeNumber(position, "pos", (Object) null));
+        mapLiteral6.put("contractSize", null);
+        mapLiteral6.put("side", this.safeString(position, "posSide"));
+        mapLiteral6.put("notional", null);
+        mapLiteral6.put("leverage", this.parseNumber(this.omitZero(this.safeString(position, "lever"))));
+        mapLiteral6.put("unrealizedPnl", this.safeNumber(position, "unrealizedProfit", (Object) null));
+        mapLiteral6.put("realizedPnl", null);
+        mapLiteral6.put("positionMargin", positionMargin);
+        mapLiteral6.put("collateral", null);
+        mapLiteral6.put("entryPrice", this.safeNumber(position, "avgPx", (Object) null));
+        mapLiteral6.put("markPrice", null);
+        mapLiteral6.put("liquidationPrice", this.safeNumber(position, "liqPx", (Object) null));
+        mapLiteral6.put("marginMode", marginMode);
+        mapLiteral6.put("hedged", true);
+        mapLiteral6.put("maintenanceMargin", null);
+        mapLiteral6.put("maintenanceMarginPercentage", null);
+        mapLiteral6.put("initialMargin", useMargin);
+        mapLiteral6.put("initialMarginPercentage", null);
+        mapLiteral6.put("marginRatio", null);
+        mapLiteral6.put("lastUpdateTimestamp", this.safeInteger(position, "uTime"));
+        mapLiteral6.put("lastPrice", null);
+        mapLiteral6.put("stopLossPrice", null);
+        mapLiteral6.put("takeProfitPrice", null);
+        mapLiteral6.put("percentage", null);
+        mapLiteral6.put("info", position);
+        return this.safePosition(mapLiteral6);
     }
 
     /**

@@ -14,10 +14,6 @@ use ccxt::Value;
 // edit this list too. The glob keeps `for_each_core!` and the names it expands
 // to from drifting apart.
 use crate::generated_cores::*;
-// Aliases for the prediction Cores whose ids collide with a regular exchange —
-// used by `exchange_snapshot`'s prediction-mode override.
-use ccxt::prediction::binance::BinanceCore as PredBinanceCore;
-use ccxt::prediction::hyperliquid::HyperliquidCore as PredHyperliquidCore;
 
 /// One macro definition, three matches. Each consumer defines its own
 /// per-id callback macro (`arm!`, `snapshot_arm!`, `has_arm!`) then
@@ -33,6 +29,11 @@ pub(crate) use crate::generated_cores::for_each_core;
 /// methods and whose `call_dynamic` routes the WS handlers.
 pub(crate) use crate::generated_cores::for_each_ws_core;
 
+/// Prediction Cores under their `Pred<Id>Core` aliases, walked first in
+/// `--prediction` mode so ids shared with a regular exchange resolve to the
+/// prediction venue (see `live_dispatch::build_core`).
+pub(crate) use crate::generated_cores::for_each_prediction_core;
+
 /// Builds the real exchange Core from `cfg` and snapshots it to a
 /// `Value` (via `Exchange::to_value()`). Unlike a bare config map, the
 /// snapshot carries the exchange's `describe()` output — `options`
@@ -47,14 +48,13 @@ pub fn exchange_snapshot(id: &str, cfg: Value, ws: bool) -> Value {
             return ex.to_value();
         }
     }; }
-    // In prediction mode, `binance` / `hyperliquid` snapshot from their
-    // prediction Cores (mirrors build_core). Without this the snapshot's
-    // `options` key carries the regular exchange's describe (e.g. binance's
-    // `recvWindow: 10000`), which then merges into the prediction Core and
-    // leaks into signed requests — failing the static prediction request tests.
+    // In prediction mode every prediction venue snapshots from its prediction
+    // Core (mirrors build_core). Without this the snapshot's `options` key
+    // carries the regular exchange's describe (e.g. binance's `recvWindow:
+    // 10000`), which then merges into the prediction Core and leaks into
+    // signed requests — failing the static prediction request tests.
     if crate::live_dispatch::is_prediction_mode() {
-        arm!(binance, PredBinanceCore);
-        arm!(hyperliquid, PredHyperliquidCore);
+        for_each_prediction_core!(arm);
     }
     // Match build_core's WS selection: loadMarkets writes snapshot.options back
     // to the live Core, so a REST snapshot would discard the WS defaults.

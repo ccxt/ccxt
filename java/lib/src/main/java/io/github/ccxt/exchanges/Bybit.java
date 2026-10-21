@@ -8672,7 +8672,17 @@ public class Bybit extends BybitApi
         {
             lastUpdateTimestamp = (Long) this.safeInteger2(position, "updatedTime", "updatedAt");
         }
-        String collateralString = this.safeString(position, "positionBalance");
+        // positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
+        String positionMarginString = this.omitZero(this.safeString(position, "positionBalance"));
+        String collateralString = null;
+        if (!java.util.Objects.equals(positionMarginString, null))
+        {
+            collateralString = positionMarginString;
+            if (!java.util.Objects.equals(unrealisedPnl, null))
+            {
+                collateralString = Precise.stringAdd(positionMarginString, unrealisedPnl);
+            }
+        }
         String entryPrice = this.omitZero(this.safeStringN(position, new ArrayList<Object>(Arrays.asList("entryPrice", "avgPrice", "avgEntryPrice"))));
         String liquidationPrice = this.omitZero(this.safeString(position, "liqPrice"));
         String leverage = this.safeString(position, "leverage");
@@ -8689,21 +8699,30 @@ public class Bybit extends BybitApi
                 }
                 Object difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
+                positionMarginString = null; // derived from collateral by safePosition
             } else
             {
-                String bustPrice = this.safeString(position, "bustPrice");
+                String bustPrice = this.omitZero(this.safeString(position, "bustPrice"));
+                String closingFee = this.omitZero(this.safeString(position, "occClosingFee"));
                 if (java.util.Objects.equals(marketResolved.get("linear"), true))
                 {
-                    // derived from the following formulas
+                    // derived from the following formula:
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     // Maintenance Margin = (Bust price - Liq price) x Contracts
-                    String maintenanceMarginPriceDifference = Precise.stringAbs(Precise.stringSub(liquidationPrice, bustPrice));
-                    maintenanceMarginString = Precise.stringMul(maintenanceMarginPriceDifference, size);
-                    // Initial Margin = Contracts x Entry Price / Leverage
+                    if ((java.util.Objects.equals(maintenanceMarginString, null)) && (!java.util.Objects.equals(bustPrice, null)) && !Precise.stringEq(bustPrice, liquidationPrice))
+                    {
+                        String maintenanceMarginPriceDifference = Precise.stringAbs(Precise.stringSub(liquidationPrice, bustPrice));
+                        maintenanceMarginString = Precise.stringMul(maintenanceMarginPriceDifference, size);
+                    }
+                    // Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
                     if ((!java.util.Objects.equals(entryPrice, null)) && (java.util.Objects.equals(initialMarginString, null)))
                     {
                         initialMarginString = Precise.stringDiv(Precise.stringMul(size, entryPrice), leverage);
+                        if (!java.util.Objects.equals(closingFee, null))
+                        {
+                            initialMarginString = Precise.stringAdd(initialMarginString, closingFee);
+                        }
                     }
                 } else
                 {
@@ -8711,13 +8730,20 @@ public class Bybit extends BybitApi
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    Object difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
-                    String multiply = Precise.stringMul(bustPrice, liquidationPrice);
-                    maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
-                    // Initial Margin = Leverage x Contracts / EntryPrice
+                    if ((java.util.Objects.equals(maintenanceMarginString, null)) && (!java.util.Objects.equals(bustPrice, null)) && !Precise.stringEq(bustPrice, liquidationPrice))
+                    {
+                        Object difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
+                        String multiply = Precise.stringMul(bustPrice, liquidationPrice);
+                        maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
+                    }
+                    // Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
                     if ((!java.util.Objects.equals(entryPrice, null)) && (java.util.Objects.equals(initialMarginString, null)))
                     {
                         initialMarginString = Precise.stringDiv(size, Precise.stringMul(entryPrice, leverage));
+                        if (!java.util.Objects.equals(closingFee, null))
+                        {
+                            initialMarginString = Precise.stringAdd(initialMarginString, closingFee);
+                        }
                     }
                 }
             }
@@ -8747,6 +8773,7 @@ public class Bybit extends BybitApi
         mapLiteral10.put("markPrice", this.parseNumber(markPrice));
         mapLiteral10.put("lastPrice", this.safeNumber(position, "avgExitPrice", (Object) null));
         mapLiteral10.put("collateral", this.parseNumber(collateralString));
+        mapLiteral10.put("positionMargin", this.parseNumber(positionMarginString));
         mapLiteral10.put("marginMode", null);
         mapLiteral10.put("side", side);
         mapLiteral10.put("percentage", null);

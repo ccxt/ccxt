@@ -1927,6 +1927,38 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
+    public virtual object buildSendAssetSig(IDictionary<string, object> message)
+    {
+        Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
+            { "HyperliquidTransaction:SendAsset", new List<object>() {new Dictionary<string, object>() {
+    { "name", "hyperliquidChain" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "destination" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "sourceDex" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "destinationDex" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "token" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "amount" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "fromSubAccount" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "nonce" },
+    { "type", "uint64" },
+}} },
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
+
     public virtual object buildWithdrawSig(IDictionary<string, object> message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
@@ -2150,7 +2182,9 @@ public partial class hyperliquid : Exchange
             object response = null;
             try
             {
-                object rawResponse = await this.publicPostInfo(this.extend(request, paramsEnableUnifiedMargin));
+                // the request keys win: a caller's own 'type' or 'user' params (e.g. transfer's
+                // type 'swap') must not overwrite the info query, which would silently fail here
+                object rawResponse = await this.publicPostInfo(this.extend(paramsEnableUnifiedMargin, request));
                 if ((rawResponse is string))
                 {
                     response = rawResponse;
@@ -4734,13 +4768,21 @@ public partial class hyperliquid : Exchange
      * @method
      * @name hyperliquid#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-from-spot-account-to-perp-account-and-vice-versa
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-between-sub-accounts
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#send-asset
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from *spot, swap*
-     * @param {string} toAccount account to transfer to *swap, spot or address*
+     * @param {string} fromAccount account to transfer from *spot, swap, main or a sub-account address*
+     * @param {string} toAccount account to transfer to *swap, spot, main or a sub-account address*
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.vaultAddress] the vault address for order
+     * @param {string} [params.vaultAddress] spot <> swap only, moves the balance inside this vault or sub-account instead of the main account
+     * @param {string} [params.type] main <> sub-account only, 'spot' moves the spot ledger instead of the perp ledger
+     * @param {string} [params.method] main <> sub-account only, 'sendAsset' forces the unified-account route, 'subAccountTransfer' forces the legacy sub-account actions; defaults to sendAsset when the account abstraction is unifiedAccount
+     * @param {boolean} [params.enableUnifiedMargin] main <> sub-account only, skips the abstraction lookup and states whether the account is unified
+     * @param {string} [params.sourceDex] sendAsset only, perp dex to move from, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+     * @param {string} [params.destinationDex] sendAsset only, perp dex to move to, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+     * @param {string} [params.user] sendAsset only, the master wallet address, defaults to walletAddress
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
@@ -4812,10 +4854,74 @@ public partial class hyperliquid : Exchange
             throw new NotSupported ((this.id + " transfer() only support main <> subaccount transfer")) ;
         }
         this.checkAddress(subAccountAddress);
-        // hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
+        string? transferType = this.safeString(parameters, "type");
+        // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
+        // unified account is active", a unified account has to move balances with sendAsset instead
+        object transferMethod = null;
+        object query = parameters;
+        IList<object> transferMethodqueryVariable = (IList<object>)this.handleOptionAndParams(query, "transfer", "method");
+        transferMethod = transferMethodqueryVariable[0];
+        query = transferMethodqueryVariable[1];
+        string? masterAddress = null;
+        IList<object> masterAddressqueryVariable = (IList<object>)this.handlePublicAddress("transfer", query);
+        masterAddress = (string)masterAddressqueryVariable[0];
+        query = masterAddressqueryVariable[1];
+        bool useSendAsset = ((transferMethod is "sendAsset"));
+        if ((transferMethod == null))
+        {
+            object isUnified = null;
+            var isUnifiedqueryVariable = await this.isUnifiedEnabled("transfer", masterAddress, false, query);
+            isUnified = isUnifiedqueryVariable[0];
+            query = isUnifiedqueryVariable[1];
+            useSendAsset = ((isUnified is true));
+        }
+        if (useSendAsset)
+        {
+            object paramsSendAsset = query;
+            Dictionary<string, object> sendAssetCurrency = this.currency(code);
+            IDictionary<string, object> sendAssetCurrencyInfo = this.safeDict(sendAssetCurrency, "info", new Dictionary<string, object>() {});
+            string sendAssetToken = ((this.safeString(sendAssetCurrencyInfo, "name") + ":") + this.safeString(sendAssetCurrencyInfo, "tokenId"));
+            // '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
+            // keeps every balance in the spot clearinghouse so spot is the default on both sides
+            string defaultDex = ((transferType == "swap") || (transferType == "perp")) ? "" : "spot";
+            string? sourceDex = this.safeString(paramsSendAsset, "sourceDex", defaultDex);
+            string? destinationDex = this.safeString(paramsSendAsset, "destinationDex", defaultDex);
+            Dictionary<string, object> sendAssetPayload = new Dictionary<string, object>() {
+                { "hyperliquidChain", ((isSandboxMode == true)) ? "Testnet" : "Mainnet" },
+                { "destination", isDeposit ? subAccountAddress : masterAddress },
+                { "sourceDex", sourceDex },
+                { "destinationDex", destinationDex },
+                { "token", sendAssetToken },
+                { "amount", this.numberToString(amount) },
+                { "fromSubAccount", isDeposit ? "" : subAccountAddress },
+                { "nonce", nonce },
+            };
+            object sendAssetSig = this.buildSendAssetSig(sendAssetPayload);
+            Dictionary<string, object> sendAssetRequest = new Dictionary<string, object>() {
+                { "action", new Dictionary<string, object>() {
+                    { "hyperliquidChain", sendAssetPayload["hyperliquidChain"] },
+                    { "signatureChainId", "0x66eee" },
+                    { "type", "sendAsset" },
+                    { "destination", sendAssetPayload["destination"] },
+                    { "sourceDex", sourceDex },
+                    { "destinationDex", destinationDex },
+                    { "token", sendAssetToken },
+                    { "amount", sendAssetPayload["amount"] },
+                    { "fromSubAccount", sendAssetPayload["fromSubAccount"] },
+                    { "nonce", nonce },
+                } },
+                { "nonce", nonce },
+                { "signature", sendAssetSig },
+            };
+            Dictionary<string, object> sendAssetResponse = await this.privatePostExchange(sendAssetRequest);
+            //
+            // {'response': {'type': 'default'}, 'status': 'ok'}
+            //
+            return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(sendAssetResponse, sendAssetCurrency));
+        }
+        // a standard account keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
         // moves perp USD, while subAccountSpotTransfer moves spot tokens (USDC included) - pass
         // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
-        string? transferType = this.safeString(parameters, "type");
         bool isUsdc = ((code.ToUpper() == "USDC"));
         if (isUsdc && (transferType != "spot"))
         {
@@ -4837,7 +4943,7 @@ public partial class hyperliquid : Exchange
             //
             // {'response': {'type': 'default'}, 'status': 'ok'}
             //
-            return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response));
+            return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, this.safeCurrency(code)));
         } else
         {
             // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
@@ -4865,7 +4971,7 @@ public partial class hyperliquid : Exchange
                 { "signature", sig },
             };
             Dictionary<string, object> response = await this.privatePostExchange(request);
-            return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response));
+            return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
         }
     }
 

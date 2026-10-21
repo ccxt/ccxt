@@ -1276,6 +1276,8 @@ class toobit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API $endpoint
+         * @param {string} [$params->price] "mark" or "index" for mark price and index price $candles
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -1286,20 +1288,33 @@ class toobit extends Exchange {
             'symbol' => $market['id'],
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        if ($since !== null) {
-            $request['startTime'] = $since;
-        }
         $until = $this->safe_integer($params, 'until');
-        if ($until !== null) {
-            $request['endTime'] = $until;
-        }
         $paramsOmitted = ($until !== null) ? $this->omit($params, 'until') : $params;
+        list($endpoint, $paramsPrice) = $this->handle_option_string_and_params($paramsOmitted, 'fetchOHLCV', 'price');
+        $isPriceKlines = ($endpoint === 'index') || ($endpoint === 'mark');
+        $startKey = 'startTime';
+        $endKey = 'endTime';
+        if ($isPriceKlines) {
+            $startKey = 'from';
+            $endKey = 'to';
+        }
+        if ($since !== null) {
+            $request[$startKey] = $since;
+        }
+        if ($until !== null) {
+            $request[$endKey] = $until;
+        } elseif ($isPriceKlines && ($since !== null)) {
+            // mark and index klines walk backwards from `to` and ignore a lone `from`
+            $duration = $this->parse_timeframe($timeframe);
+            $requestedLimit = ($limit === null) ? 2000 : $limit; // exchange default
+            $request['to'] = $this->sum($since, $duration * $requestedLimit * 1000);
+        }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
         $response = array();
-        list($endpoint, $paramsPrice) = $this->handle_option_string_and_params($paramsOmitted, 'fetchOHLCV', 'price');
         if ($endpoint === 'index') {
+            $request['symbol'] = $this->safe_string($market['info'], 'indexToken'); // index klines take the index id instead of the market id
             $response = Async\await($this->commonGetQuoteV1IndexKlines($this->extend($request, $paramsPrice)));
             //
             //     {
@@ -1370,6 +1385,8 @@ class toobit extends Exchange {
         $candles = array();
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             $candles = $response;
+        } else {
+            $candles = $this->safe_list($response, 'data', array());
         }
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
@@ -1466,9 +1483,9 @@ class toobit extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'h'),
             'low' => $this->safe_string($ticker, 'l'),
-            'bid' => null,
+            'bid' => $this->safe_string($ticker, 'b'),
             'bidVolume' => null,
-            'ask' => null,
+            'ask' => $this->safe_string($ticker, 'a'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'o'),

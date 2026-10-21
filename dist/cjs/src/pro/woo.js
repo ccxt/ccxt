@@ -84,7 +84,7 @@ class woo extends woo$1["default"] {
     }
     async watchPublic(messageHash, message) {
         let urlUid = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString(this.urls['api']['ws'], 'public') + urlUid;
@@ -97,7 +97,7 @@ class woo extends woo$1["default"] {
     }
     async unwatchPublic(subHash, symbol, topic, params = {}) {
         let urlUid = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString(this.urls['api']['ws'], 'public') + urlUid;
@@ -143,7 +143,7 @@ class woo extends woo$1["default"] {
         const market = this.market(symbol);
         const topic = market['id'] + '@' + method;
         let urlUid = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString(this.urls['api']['ws'], 'public') + urlUid;

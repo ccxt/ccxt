@@ -547,7 +547,7 @@
                         "posSide": "long"
                     }
                 ],
-                "output": { "instId": "BTC-USDT-SWAP", "side": "sell", "ordType": "move_order_stop", "sz": "1", "tdMode": "cross", "callbackSpread": "100", "clOrdId": "6b9ad766b55dBCDE7633f9e8e410983c", "tag": "6b9ad766b55dBCDE", "trailingPrice": "100", "reduceOnly": true, "posSide": "long" }
+                "output": { "instId": "BTC-USDT-SWAP", "side": "sell", "ordType": "move_order_stop", "sz": "1", "tdMode": "cross", "callbackSpread": "100", "clOrdId": "6b9ad766b55dBCDE7633f9e8e410983c", "tag": "6b9ad766b55dBCDE", "reduceOnly": true, "posSide": "long" }
             },
             {
                 "description": "spot limit sell with selfTradePrevention",

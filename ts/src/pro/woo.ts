@@ -87,7 +87,7 @@ export default class woo extends wooRest {
 
     async watchPublic (messageHash: string, message: Dict) {
         let urlUid: Str = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;
@@ -101,7 +101,7 @@ export default class woo extends wooRest {
 
     async unwatchPublic (subHash: string, symbol: Str, topic: string, params = {}): Promise<any> {
         let urlUid: Str = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;
@@ -148,7 +148,7 @@ export default class woo extends wooRest {
         const market = this.market (symbol);
         const topic = market['id'] + '@' + method;
         let urlUid: Str = '';
-        if (this.uid !== '') {
+        if ((this.uid !== undefined) && (this.uid !== '')) {
             urlUid = '/' + this.uid;
         }
         const url = this.safeString (this.urls['api']['ws'], 'public') + urlUid;

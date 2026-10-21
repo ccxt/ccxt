@@ -1442,6 +1442,7 @@ public partial class kucoin : Exchange
                     { "300003", typeof(InsufficientFunds) },
                     { "300012", typeof(InvalidOrder) },
                     { "404000", typeof(NotSupported) },
+                    { "300011", typeof(InvalidOrder) },
                     { "300009", typeof(InvalidOrder) },
                     { "330008", typeof(InsufficientFunds) },
                 } },
@@ -3134,7 +3135,10 @@ public partial class kucoin : Exchange
         if ((networkCode != null))
         {
             ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
-                { "withdraw", minWithdrawFee },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "fee", minWithdrawFee },
+                    { "percentage", false },
+                } },
                 { "deposit", new Dictionary<string, object>() {
                     { "fee", null },
                     { "percentage", null },
@@ -4694,13 +4698,8 @@ public partial class kucoin : Exchange
         {
             if (isMarginOrder)
             {
-                if ((hf == true))
-                {
-                    response = await this.privatePostHfMarginOrderTest(orderRequest);
-                } else
-                {
-                    response = await this.privatePostMarginOrderTest(orderRequest);
-                }
+                // the classic margin order endpoints are deprecated
+                response = await this.privatePostHfMarginOrderTest(orderRequest);
             } else if ((hf == true))
             {
                 response = await this.privatePostHfOrdersTest(orderRequest);
@@ -4719,13 +4718,7 @@ public partial class kucoin : Exchange
             }
         } else if (isMarginOrder)
         {
-            if ((hf == true))
-            {
-                response = await this.privatePostHfMarginOrder(orderRequest);
-            } else
-            {
-                response = await this.privatePostMarginOrder(orderRequest);
-            }
+            response = await this.privatePostHfMarginOrder(orderRequest);
         } else if ((useSync == true))
         {
             response = await this.privatePostHfOrdersSync(orderRequest);
@@ -4831,7 +4824,7 @@ public partial class kucoin : Exchange
         {
             if (marginMode == "isolated")
             {
-                request["marginModel"] = "isolated";
+                request["isIsolated"] = true;
             }
         }
         bool? postOnly = null;
@@ -5668,6 +5661,10 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
+        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
+        {
+            throw new NotSupported ((this.id + " editOrder() supports spot markets only")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
@@ -6426,7 +6423,13 @@ public partial class kucoin : Exchange
             }
             if ((limit != null))
             {
-                request["pageSize"] = limit;
+                if ((limit < 10))
+                {
+                    request["pageSize"] = 10; // minimum page size, the result is trimmed to the limit
+                } else
+                {
+                    request["pageSize"] = limit;
+                }
             }
             if (((until != null)) && ((until != 0)))
             {
@@ -6852,9 +6855,10 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        if ((id == null))
+        string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
+        if (((id == null)) && ((clientOrderId == null)))
         {
-            throw new ArgumentsRequired ((this.id + " fetchOrder() requires an id argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires an id argument or a clientOrderId parameter")) ;
         }
         bool? uta = await this.isUTAEnabled();
         object paramsRequest = null;
@@ -7002,10 +7006,10 @@ public partial class kucoin : Exchange
                 response = await this.privateGetOrdersOrderId(this.extend(request, paramsOmitted));
             }
         }
-        object responseData = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object responseData = this.safeValue(response, "data", new Dictionary<string, object>() {});
         if (((responseData is IList<object>) || (responseData.GetType().IsGenericType && responseData.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            responseData = this.safeValue(responseData, 0);
+            responseData = this.safeDict(responseData, 0, new Dictionary<string, object>() {});
         }
         return this.parseOrder(responseData, market);
     }
@@ -8784,7 +8788,15 @@ public partial class kucoin : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(data, currency));
+        Dictionary<string, object> transaction = this.parseTransaction(data, currency);
+        // the response only has the withdrawalId
+        Dictionary<string, object> withdrawal = this.extend(transaction, new Dictionary<string, object>() {
+            { "type", "withdrawal" },
+            { "amount", this.parseNumber(amountString) },
+            { "address", address },
+            { "addressTo", address },
+        });
+        return ccxt.BaseExchange.ToTransaction(withdrawal);
     }
 
     public virtual string? parseTransactionStatus(string? status)
@@ -8981,7 +8993,13 @@ public partial class kucoin : Exchange
         }
         if ((limit != null))
         {
-            request["pageSize"] = limit;
+            if ((limit < 10))
+            {
+                request["pageSize"] = 10; // minimum page size, the result is trimmed to the limit
+            } else
+            {
+                request["pageSize"] = limit;
+            }
         }
         IList<object> requestparamsRequestVariable = (IList<object>)this.handleUntilOption("endAt", request, paramsRequest);
         request = (Dictionary<string, object>)requestparamsRequestVariable[0];
@@ -9159,7 +9177,13 @@ public partial class kucoin : Exchange
         }
         if ((limit != null))
         {
-            request["pageSize"] = limit;
+            if ((limit < 10))
+            {
+                request["pageSize"] = 10; // minimum page size, the result is trimmed to the limit
+            } else
+            {
+                request["pageSize"] = limit;
+            }
         }
         IList<object> requestparamsRequestVariable = (IList<object>)this.handleUntilOption("endAt", request, paramsRequest);
         request = (Dictionary<string, object>)requestparamsRequestVariable[0];
@@ -10332,7 +10356,6 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        await this.loadAccounts();
         bool? uta = await this.isUTAEnabled();
         object paramsRequest = null;
         (bool?, object) utaparamsRequestVariable = this.handleOptionBoolAndParams(parameters, "fetchLedger", "uta", uta);
@@ -10416,7 +10439,13 @@ public partial class kucoin : Exchange
                 request["limit"] = limit;
             } else
             {
-                request["pageSize"] = limit;
+                if ((limit < 10))
+                {
+                    request["pageSize"] = 10; // minimum page size, the result is trimmed to the limit
+                } else
+                {
+                    request["pageSize"] = limit;
+                }
             }
         }
         Dictionary<string, object> response = null;
@@ -10565,9 +10594,15 @@ public partial class kucoin : Exchange
             timestamp = this.parseToInt(((timestampId == null) ? null : timestampId.Substring(0, Math.Min(13, timestampId.Length))));
         }
         string? currencyId = this.safeString(info, "currency");
+        string? rate = this.safeStringN(info, new List<object>() {"dailyIntRate", "dayRatio", "currentRateDaily"});
+        string? hourlyRate = this.safeString(info, "hourlyBorrowRate");
+        if (((rate == null)) && ((hourlyRate != null)))
+        {
+            rate = Precise.stringMul(hourlyRate, "24");
+        }
         return new Dictionary<string, object>() {
             { "currency", this.safeCurrencyCode(currencyId, currency) },
-            { "rate", this.safeNumberN(info, new List<object>() {"dailyIntRate", "dayRatio", "currentRateDaily"}) },
+            { "rate", this.parseNumber(rate) },
             { "period", 86400000 },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -10972,7 +11007,29 @@ public partial class kucoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
-        Dictionary<string, object> response = await this.utaPrivateGetAccountInterestLimits(this.extend(request, parameters));
+        bool? uta = await this.isUTAEnabled();
+        object paramsRequest = null;
+        (bool?, object) utaparamsRequestVariable = this.handleOptionBoolAndParams(parameters, "fetchCrossBorrowRate", "uta", uta);
+        uta = utaparamsRequestVariable.Item1;
+        paramsRequest = utaparamsRequestVariable.Item2;
+        if (uta != true)
+        {
+            Dictionary<string, object> responseClassic = await this.privateGetMarginBorrowRate(this.extend(request, paramsRequest));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "vipLevel": 0,
+            //             "items": [ { "currency": "USDT", "hourlyBorrowRate": "0.00000597", "annualizedBorrowRate": "0.0523" } ]
+            //         }
+            //     }
+            //
+            IDictionary<string, object> dataClassic = this.safeDict(responseClassic, "data", new Dictionary<string, object>() {});
+            List<object> items = this.safeList(dataClassic, "items", new List<object>() {});
+            IDictionary<string, object> item = this.safeDict(items, 0, new Dictionary<string, object>() {});
+            return ccxt.BaseExchange.ToCrossBorrowRate(this.parseBorrowRate(item, currency));
+        }
+        Dictionary<string, object> response = await this.utaPrivateGetAccountInterestLimits(this.extend(request, paramsRequest));
         //
         //     {
         //         "code": "200000",
@@ -11229,7 +11286,7 @@ public partial class kucoin : Exchange
     public async override Task<ccxt.Leverage> FetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams(symbol, parameters);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         if (!(marginMode == "cross"))
@@ -11261,6 +11318,19 @@ public partial class kucoin : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> parsed = this.parseLeverage(data, market);
         return ccxt.BaseExchange.ToLeverage(this.extend(parsed, new Dictionary<string, object>() {             { "marginMode", marginMode },         }));
+    }
+
+    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    {
+        string? marketId = this.safeString(leverage, "symbol");
+        Int64? leverageValue = this.safeInteger(leverage, "leverage");
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
+            { "marginMode", null },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
+        };
     }
 
     /**
@@ -11372,7 +11442,7 @@ public partial class kucoin : Exchange
         {
             throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams(symbol, parameters);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         if (((marginMode != null)) && (!(marginMode == "cross")))
@@ -11408,7 +11478,8 @@ public partial class kucoin : Exchange
             response = await this.futuresPrivatePostChangeCrossUserLeverage(this.extend(request, paramsUta));
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        double? leverageNum = this.safeNumber(data, "leverage");
+        // the classic endpoint returns data: true, fall back to the requested leverage
+        double? leverageNum = this.safeNumber(data, "leverage", leverage);
         return new Dictionary<string, object>() {
             { "info", response },
             { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
@@ -12410,7 +12481,10 @@ public partial class kucoin : Exchange
             isContractMarket = (market.ContainsKey("contract") ? market["contract"] : null);
             if (!(isContractMarket is true))
             {
-                uta = true; // spot market orders can only be cancelled via the uta endpoint
+                if (uta != true)
+                {
+                    throw new NotSupported ((this.id + " cancelOrders() supports spot markets only for unified trading accounts")) ;
+                }
             }
         } else if ((uta == true))
         {
@@ -12523,7 +12597,7 @@ public partial class kucoin : Exchange
         string uuid = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "margin", this.amountToPrecision(symbol, amount) },
+            { "margin", this.numberToString(amount) },
             { "bizNo", uuid },
         };
         Dictionary<string, object> response = await this.futuresPrivatePostPositionMarginDepositMargin(this.extend(request, parameters));
@@ -12578,7 +12652,7 @@ public partial class kucoin : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
-            { "amount", this.amountToPrecision(symbol, amount) },
+            { "amount", amount },
             { "direction", "in" },
         });
     }
@@ -12602,7 +12676,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? amountString = this.amountToPrecision(symbol, amount);
+        string? amountString = this.numberToString(amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "withdrawAmount", amountString },
@@ -12865,7 +12939,8 @@ public partial class kucoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         bool? testOrder = this.safeBool(parameters, "test", false);
-        object paramsOmitted = this.omit(parameters, new List<object>() {"test", "clientOrderId"});
+        string? marginMode = this.safeStringUpper(parameters, "marginMode");
+        object paramsOmitted = this.omit(parameters, new List<object>() {"test", "clientOrderId", "marginMode"});
         if ((clientOrderId == null))
         {
             clientOrderId = this.numberToString(this.nonce());
@@ -12876,6 +12951,10 @@ public partial class kucoin : Exchange
             { "clientOid", clientOrderId },
             { "type", "market" },
         };
+        if ((marginMode != null))
+        {
+            request["marginMode"] = marginMode;
+        }
         Dictionary<string, object> response = null;
         if ((testOrder == true))
         {

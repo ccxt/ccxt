@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.modetrade import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction, FundingRateHistory
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -102,8 +102,8 @@ class modetrade(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
-                'fetchTicker': False,
-                'fetchTickers': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -1073,6 +1073,130 @@ class modetrade(Exchange, ImplicitAPI):
             })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbolResolved, since, limit)
+
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "display_symbol_name": "BTC",
+        #         "broker_id": null,
+        #         "status": "ACTIVE",
+        #         "index_price": 81559.8,
+        #         "mark_price": 81542.2,
+        #         "sum_unitary_funding": 27744.3,
+        #         "est_funding_rate": 0.00008318,
+        #         "last_funding_rate": 0.0000394,
+        #         "next_funding_time": 1792281600000,
+        #         "open_interest": 42.65602,
+        #         "is_pretge": false,
+        #         "24h_open": 81606.8,
+        #         "24h_close": 81518.1,
+        #         "24h_high": 81706.7,
+        #         "24h_low": 81069.9,
+        #         "24h_volume": 65.48965,
+        #         "24h_amount": 5333323.390584
+        #     }
+        #
+        marketId = self.safe_string(ticker, 'symbol')
+        marketResolved = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        return self.safe_ticker({
+            'symbol': marketResolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, '24h_high'),
+            'low': self.safe_string(ticker, '24h_low'),
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': self.safe_string(ticker, '24h_open'),
+            'close': self.safe_string(ticker, '24h_close'),
+            'last': self.safe_string(ticker, '24h_close'),
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, '24h_volume'),
+            'quoteVolume': self.safe_string(ticker, '24h_amount'),
+            'indexPrice': self.safe_string(ticker, 'index_price'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'info': ticker,
+        }, marketResolved)
+
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.v1PublicGetPublicFuturesSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "success": true,
+        #         "data": {
+        #             "symbol": "PERP_BTC_USDC",
+        #             "24h_close": 81518.1
+        #         },
+        #         "timestamp": 1792270455082
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        timestamp = self.safe_integer(response, 'timestamp')
+        ticker = self.extend({'timestamp': timestamp}, data)
+        return self.parse_ticker(ticker, market)
+
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        response = self.v1PublicGetPublicFutures(params)
+        #
+        #     {
+        #         "success": true,
+        #         "data": {
+        #             "rows": [
+        #                 {
+        #                     "symbol": "PERP_BTC_USDC",
+        #                     "24h_close": 81518.1
+        #                 }
+        #             ]
+        #         },
+        #         "timestamp": 1792270455518
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        timestamp = self.safe_integer(response, 'timestamp')
+        result = []
+        for i in range(0, len(rows)):
+            row = rows[i]
+            marketId = self.safe_string(row, 'symbol', '')
+            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
+                continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            ticker = self.extend({'timestamp': timestamp}, row)
+            result.append(self.parse_ticker(ticker))
+        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     def parse_income(self, income: dict, market: Market = None) -> dict:
         #

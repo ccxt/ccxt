@@ -6235,43 +6235,57 @@ public class Mexc extends MexcApi
         String symbol = (String) marketResolved.get("symbol");
         String contracts = this.safeString(position, "holdVol");
         Double entryPrice = this.safeNumber(position, "openAvgPrice", (Object) null);
-        String initialMargin = this.safeString(position, "im");
+        String initialMargin = this.omitZero(this.safeString(position, "im"));
+        String unrealizedPnl = this.safeString(position, "unRealizedPnl");
         String rawSide = this.safeString(position, "positionType");
         String side = (((java.util.Objects.equals(rawSide, "1")))) ? "long" : "short";
-        String openType = this.safeString(position, "margin_mode");
+        String openType = this.safeString2(position, "openType", "margin_mode");
         String marginType = (((java.util.Objects.equals(openType, "1")))) ? "isolated" : "cross";
+        String collateralString = null;
+        String marginString = null;
+        if ((java.util.Objects.equals(marginType, "isolated")) && (!java.util.Objects.equals(initialMargin, null)))
+        {
+            // im is the margin mexc holds in the position; funding settles to the available balance
+            collateralString = initialMargin;
+            marginString = collateralString;
+            if (!java.util.Objects.equals(unrealizedPnl, null))
+            {
+                collateralString = Precise.stringAdd(collateralString, unrealizedPnl);
+            }
+        }
         Double leverage = this.safeNumber(position, "leverage", (Object) null);
-        Double liquidationPrice = this.safeNumber(position, "liquidatePrice", (Object) null);
+        Double liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidatePrice")));
         Long timestamp = this.safeInteger(position, "updateTime");
-        return this.safePosition(new HashMap<String, Object>() {{
-            put( "info", position );
-            put( "id", null );
-            put( "symbol", symbol );
-            put( "contracts", Mexc.this.parseNumber(contracts) );
-            put( "contractSize", null );
-            put( "entryPrice", entryPrice );
-            put( "collateral", null );
-            put( "side", side );
-            put( "unrealizedPnl", null );
-            put( "leverage", Mexc.this.parseNumber(leverage) );
-            put( "percentage", null );
-            put( "marginMode", marginType );
-            put( "notional", null );
-            put( "markPrice", null );
-            put( "lastPrice", null );
-            put( "liquidationPrice", liquidationPrice );
-            put( "initialMargin", Mexc.this.parseNumber(initialMargin) );
-            put( "initialMarginPercentage", null );
-            put( "maintenanceMargin", null );
-            put( "maintenanceMarginPercentage", null );
-            put( "marginRatio", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Mexc.this.iso8601(timestamp) );
-            put( "hedged", null );
-            put( "stopLossPrice", null );
-            put( "takeProfitPrice", null );
-            put( "lastUpdateTimestamp", null );
-        }});
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("info", position);
+        mapLiteral8.put("id", null);
+        mapLiteral8.put("symbol", symbol);
+        mapLiteral8.put("contracts", this.parseNumber(contracts));
+        mapLiteral8.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral8.put("entryPrice", entryPrice);
+        mapLiteral8.put("positionMargin", this.parseNumber(marginString));
+        mapLiteral8.put("collateral", this.parseNumber(collateralString));
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("unrealizedPnl", this.parseNumber(unrealizedPnl));
+        mapLiteral8.put("leverage", this.parseNumber(leverage));
+        mapLiteral8.put("percentage", null);
+        mapLiteral8.put("marginMode", marginType);
+        mapLiteral8.put("notional", null);
+        mapLiteral8.put("markPrice", null);
+        mapLiteral8.put("lastPrice", null);
+        mapLiteral8.put("liquidationPrice", liquidationPrice);
+        mapLiteral8.put("initialMargin", this.parseNumber(initialMargin));
+        mapLiteral8.put("initialMarginPercentage", null);
+        mapLiteral8.put("maintenanceMargin", null);
+        mapLiteral8.put("maintenanceMarginPercentage", null);
+        mapLiteral8.put("marginRatio", null);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("hedged", null);
+        mapLiteral8.put("stopLossPrice", null);
+        mapLiteral8.put("takeProfitPrice", null);
+        mapLiteral8.put("lastUpdateTimestamp", null);
+        return this.safePosition(mapLiteral8);
     }
 
     /**

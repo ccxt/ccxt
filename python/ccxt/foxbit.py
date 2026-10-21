@@ -1639,6 +1639,13 @@ class foxbit(Exchange, ImplicitAPI):
         bestBid = self.safe_dict(best, 'bid')
         lastTrade = self.safe_dict(ticker, 'last_trade')
         lastPrice = self.safe_string(lastTrade, 'price')
+        change = self.safe_string(rolling_24h, 'price_change')
+        percentage = self.safe_string(rolling_24h, 'price_change_percent')
+        # never-traded markets report all-zero placeholders instead of omitting the values
+        if Precise.string_eq(lastPrice, '0'):
+            lastPrice = None
+            change = None
+            percentage = None
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': self.parse_date(self.safe_string(lastTrade, 'date')),
@@ -1654,8 +1661,8 @@ class foxbit(Exchange, ImplicitAPI):
             'close': lastPrice,
             'last': lastPrice,
             'previousClose': None,
-            'change': self.safe_string(rolling_24h, 'price_change'),
-            'percentage': self.safe_string(rolling_24h, 'price_change_percent'),
+            'change': change,
+            'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_string(rolling_24h, 'volume'),
             'quoteVolume': self.safe_string(rolling_24h, 'quote_volume'),

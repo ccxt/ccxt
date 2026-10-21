@@ -2449,7 +2449,13 @@ public partial class xt : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_", marketType);
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         Int64? timestamp = this.safeInteger(ticker, "t");
-        string? percentage = this.safeString2(ticker, "cr", "r");
+        string? open = this.safeString(ticker, "o");
+        // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
+        string? percentage = this.safeString(ticker, "r");
+        if ((open == null))
+        {
+            percentage = this.safeString2(ticker, "cr", "r");
+        }
         if ((percentage != null))
         {
             percentage = Precise.stringMul(percentage, "100");
@@ -2481,11 +2487,11 @@ public partial class xt : Exchange
             { "ask", this.safeNumber(ticker, "ap") },
             { "askVolume", this.safeNumber(ticker, "aq") },
             { "vwap", null },
-            { "open", this.safeString(ticker, "o") },
+            { "open", open },
             { "close", this.safeString(ticker, "c") },
             { "last", this.safeString(ticker, "c") },
             { "previousClose", null },
-            { "change", this.safeNumber(ticker, "cv") },
+            { "change", null },
             { "percentage", this.parseNumber(percentage) },
             { "average", null },
             { "baseVolume", baseVolume },

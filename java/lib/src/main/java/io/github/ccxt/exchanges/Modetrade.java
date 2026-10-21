@@ -21,6 +21,8 @@ import io.github.ccxt.types.OrderBook;
 import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Status;
+import io.github.ccxt.types.Ticker;
+import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
 import io.github.ccxt.types.TradingFees;
 import io.github.ccxt.types.Transaction;
@@ -124,8 +126,8 @@ public class Modetrade extends ModetradeApi
                 put( "fetchPositions", true );
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchStatus", true );
-                put( "fetchTicker", false );
-                put( "fetchTickers", false );
+                put( "fetchTicker", true );
+                put( "fetchTickers", true );
                 put( "fetchTime", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", false );
@@ -1494,6 +1496,158 @@ public class Modetrade extends ModetradeApi
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+
+    }
+
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "display_symbol_name": "BTC",
+        //         "broker_id": null,
+        //         "status": "ACTIVE",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "sum_unitary_funding": 27744.3,
+        //         "est_funding_rate": 0.00008318,
+        //         "last_funding_rate": 0.0000394,
+        //         "next_funding_time": 1792281600000,
+        //         "open_interest": 42.65602,
+        //         "is_pretge": false,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        String marketId = this.safeString(ticker, "symbol");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Long timestamp = this.safeInteger(ticker, "timestamp");
+        return this.safeTicker(new HashMap<String, Object>() {{
+            put( "symbol", marketResolved.get("symbol") );
+            put( "timestamp", timestamp );
+            put( "datetime", Modetrade.this.iso8601(timestamp) );
+            put( "high", Modetrade.this.safeString(ticker, "24h_high") );
+            put( "low", Modetrade.this.safeString(ticker, "24h_low") );
+            put( "bid", null );
+            put( "bidVolume", null );
+            put( "ask", null );
+            put( "askVolume", null );
+            put( "vwap", null );
+            put( "open", Modetrade.this.safeString(ticker, "24h_open") );
+            put( "close", Modetrade.this.safeString(ticker, "24h_close") );
+            put( "last", Modetrade.this.safeString(ticker, "24h_close") );
+            put( "previousClose", null );
+            put( "change", null );
+            put( "percentage", null );
+            put( "average", null );
+            put( "baseVolume", Modetrade.this.safeString(ticker, "24h_volume") );
+            put( "quoteVolume", Modetrade.this.safeString(ticker, "24h_amount") );
+            put( "indexPrice", Modetrade.this.safeString(ticker, "index_price") );
+            put( "markPrice", Modetrade.this.safeString(ticker, "mark_price") );
+            put( "info", ticker );
+        }}, marketResolved);
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "symbol", market.get("id") );
+            }};
+            Map<String, Object> response = (this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "success": true,
+            //         "data": {
+            //             "symbol": "PERP_BTC_USDC",
+            //             "24h_close": 81518.1
+            //         },
+            //         "timestamp": 1792270455082
+            //     }
+            //
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Long timestamp = this.safeInteger(response, "timestamp");
+            Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{
+                put( "timestamp", timestamp );
+            }}, data);
+            return this.parseTicker(ticker, market);
+        }).thenApply(Ticker::new);
+
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            Map<String, Object> response = (this.v1PublicGetPublicFutures(parameters)).join();
+            //
+            //     {
+            //         "success": true,
+            //         "data": {
+            //             "rows": [
+            //                 {
+            //                     "symbol": "PERP_BTC_USDC",
+            //                     "24h_close": 81518.1
+            //                 }
+            //             ]
+            //         },
+            //         "timestamp": 1792270455518
+            //     }
+            //
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            Long timestamp = this.safeInteger(response, "timestamp");
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            {
+                Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+                String marketId = this.safeString(row, "symbol", "");
+                if ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
+                {
+                    continue;
+                }
+                Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{
+                    put( "timestamp", timestamp );
+                }}, row);
+                ((List<Object>)result).add(this.parseTicker(ticker, (Map<String, Object>) null));
+            }
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
+        }).thenApply(Tickers::new);
 
     }
 

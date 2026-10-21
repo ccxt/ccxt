@@ -637,6 +637,8 @@ class bingx extends Exchange {
                     '100419' => '\\ccxt\\PermissionDenied', // {"code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347}
                     '100437' => '\\ccxt\\BadRequest', // {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                     '101204' => '\\ccxt\\InsufficientFunds', // {"code":101204,"msg":"","data":{}}
+                    '101205' => '\\ccxt\\InvalidOrder', // {"code":101205,"msg":"No position to close","data":{}}
+                    '101400' => '\\ccxt\\InvalidOrder', // {"code":101400,"msg":"The minimum order amount is 0.0001 BTC.","data":{}}
                     '110425' => '\\ccxt\\InvalidOrder', // {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
                     '100490' => '\\ccxt\\BadSymbol', // spot trading pair is offline
                     '101481' => '\\ccxt\\DuplicateOrderId',
@@ -4236,7 +4238,7 @@ class bingx extends Exchange {
             'status' => $this->parse_order_status($statusId),
             'fee' => array(
                 'currency' => $feeCurrencyCode,
-                'cost' => Precise::string_abs($feeCost),
+                'cost' => $this->parse_number(Precise::string_abs($feeCost)),
             ),
             'trades' => null,
             'reduceOnly' => $this->safe_bool_2($orderData, 'reduceOnly', 'ro'),

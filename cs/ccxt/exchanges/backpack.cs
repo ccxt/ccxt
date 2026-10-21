@@ -29,7 +29,7 @@ public partial class backpack : Exchange
                 { "cancelOrders", false },
                 { "cancelWithdraw", false },
                 { "closePosition", false },
-                { "createConvertTrade", false },
+                { "createConvertTrade", true },
                 { "createDepositAddress", false },
                 { "createLimitBuyOrder", true },
                 { "createLimitOrder", true },
@@ -58,7 +58,7 @@ public partial class backpack : Exchange
                 { "fetchClosedOrder", false },
                 { "fetchClosedOrders", false },
                 { "fetchConvertCurrencies", false },
-                { "fetchConvertQuote", false },
+                { "fetchConvertQuote", true },
                 { "fetchConvertTrade", false },
                 { "fetchConvertTradeHistory", false },
                 { "fetchCurrencies", true },
@@ -87,7 +87,7 @@ public partial class backpack : Exchange
                 { "fetchOpenOrders", true },
                 { "fetchOption", false },
                 { "fetchOptionChain", false },
-                { "fetchOrder", false },
+                { "fetchOrder", "emulated" },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchOrderTrades", false },
@@ -188,6 +188,15 @@ public partial class backpack : Exchange
                             { "cost", 1 },
                         } },
                         { "api/v1/market-holidays", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/stockSessions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/stockHolidays", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/stockIndicativeQuote", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "api/v1/securities", new Dictionary<string, object>() {
@@ -341,9 +350,6 @@ public partial class backpack : Exchange
                             { "cost", 1 },
                         } },
                         { "api/v1/rfq/accept", new Dictionary<string, object>() {
-                            { "cost", 1 },
-                        } },
-                        { "api/v1/rfq/refresh", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "api/v1/rfq/cancel", new Dictionary<string, object>() {
@@ -528,6 +534,24 @@ public partial class backpack : Exchange
                     { "wapi/v1/history/rfq", new Dictionary<string, object>() {
                         { "GET", "rfqHistoryQueryAll" },
                     } },
+                    { "api/v1/rfq", new Dictionary<string, object>() {
+                        { "POST", "rfqSubmit" },
+                    } },
+                    { "api/v1/rfqs", new Dictionary<string, object>() {
+                        { "GET", "rfqQuery" },
+                    } },
+                    { "api/v1/rfq/accept", new Dictionary<string, object>() {
+                        { "POST", "quoteAccept" },
+                    } },
+                    { "api/v1/rfq/cancel", new Dictionary<string, object>() {
+                        { "POST", "rfqCancel" },
+                    } },
+                    { "wapi/v1/history/rfq/fill", new Dictionary<string, object>() {
+                        { "GET", "rfqFillHistoryQueryAll" },
+                    } },
+                    { "wapi/v1/history/quote/fill", new Dictionary<string, object>() {
+                        { "GET", "quoteFillHistoryQueryAll" },
+                    } },
                     { "wapi/v1/history/quote", new Dictionary<string, object>() {
                         { "GET", "quoteHistoryQueryAll" },
                     } },
@@ -650,15 +674,19 @@ public partial class backpack : Exchange
     /**
      * @method
      * @name backpack#fetchCurrencies
-     * @description fetches all available currencies on an exchange
+     * @description fetches available crypto and tokenized stock currencies from the assets endpoint
      * @see https://docs.backpack.exchange/#tag/Assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock assets only
      * @returns {object} an associative dictionary of currencies
      */
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> response = await this.publicGetApiV1Assets(parameters);
+        IList<object> stockqueryVariable = (IList<object>)this.handleStockParams("fetchCurrencies", parameters);
+        var stock = stockqueryVariable[0];
+        var query = stockqueryVariable[1];
+        List<object> response = await this.publicGetApiV1Assets(query);
         //
         //     [
         //         {
@@ -682,12 +710,23 @@ public partial class backpack : Exchange
         //         ...
         //     ]
         //
-        return this.parseCurrencies(response);
+        Dictionary<string, object> currencies = new Dictionary<string, object>() {};
+        for (int i = 0; i < (response?.Count ?? 0); i++)
+        {
+            Dictionary<string, object> currency = this.parseCurrency(response[i]);
+            if ((!(stock is true)) || ((((currency.ContainsKey("type") ? currency["type"] : null) as string) == "stock")))
+            {
+                currencies[(string)(currency.ContainsKey("code") ? currency["code"] : null)] = currency;
+            }
+        }
+        return ((IDictionary<string, object>)((object)(currencies)));
     }
 
     public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "symbol");
+        string? symbol = this.safeString(rawCurrency, "symbol", "");
+        bool stock = symbol.EndsWith(".US") || symbol.EndsWith(".HK");
         string? code = this.safeCurrencyCode(currencyId);
         List<object> networks = this.safeList(rawCurrency, "tokens", new List<object>() {});
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
@@ -726,7 +765,7 @@ public partial class backpack : Exchange
         bool? withdraw = null;
         if (this.isEmpty(parsedNetworks))
         {
-            active = false;
+            active = stock ? null : false;
             deposit = false;
             withdraw = false;
         }
@@ -734,7 +773,7 @@ public partial class backpack : Exchange
             { "id", currencyId },
             { "code", code },
             { "precision", null },
-            { "type", "crypto" },
+            { "type", stock ? "stock" : "crypto" },
             { "name", this.safeString(rawCurrency, "displayName") },
             { "active", active },
             { "deposit", deposit },
@@ -758,9 +797,12 @@ public partial class backpack : Exchange
     /**
      * @method
      * @name backpack#fetchMarkets
-     * @description retrieves data on all markets for bitbank
+     * @description retrieves venue markets and tokenized stock RFQ markets discovered from securities
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_markets
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_securities
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock markets only
+     * @param {string|string[]} [params.marketType] market types to discover: spot, swap or stock
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
@@ -770,8 +812,104 @@ public partial class backpack : Exchange
         {
             await this.loadTimeDifference();
         }
-        List<object> response = await this.publicGetApiV1Markets(parameters);
-        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
+        IList<object> stockqueryVariable = (IList<object>)this.handleStockParams("fetchMarkets", parameters);
+        var stock = stockqueryVariable[0];
+        var query = stockqueryVariable[1];
+        string? marketType = this.safeString(query, "marketType");
+        List<object> defaultTypes = ((marketType == null)) ? new List<object>() {"SPOT", "PERP", "RFQ"} : new List<object>() {marketType};
+        List<object> requestedTypes = this.safeList(query, "marketType", defaultTypes);
+        Dictionary<string, object> aliases = new Dictionary<string, object>() {
+            { "spot", "SPOT" },
+            { "swap", "PERP" },
+            { "stock", "RFQ" },
+        };
+        List<object> supportedTypes = new List<object>() {"SPOT", "PERP", "RFQ"};
+        List<object> marketTypes = new List<object>() {};
+        for (int i = 0; i < requestedTypes.Count; i++)
+        {
+            object requestedType = requestedTypes[i];
+            string? normalizedType = this.safeString(aliases, requestedType, requestedType);
+            if (!this.inArray(normalizedType, supportedTypes))
+            {
+                throw new BadRequest ((string)((this.id + " fetchMarkets() unsupported marketType ") + (requestedType))) ;
+            }
+            if (!this.inArray(normalizedType, marketTypes))
+            {
+                marketTypes.Add(normalizedType);
+            }
+        }
+        bool includeRfq = this.inArray("RFQ", marketTypes);
+        object marketQuery = this.omit(query, "marketType");
+        if (inOp(query, "marketType"))
+        {
+            ((IDictionary<string,object>)marketQuery)["marketType"] = marketTypes;
+        }
+        List<object> response = await this.publicGetApiV1Markets(marketQuery);
+        object securities = new List<object>() {};
+        if (includeRfq)
+        {
+            securities = await this.fetchSecurities();
+        }
+        Dictionary<string, object> securityById = this.indexBy(securities, "asset");
+        List<object> markets = new List<object>() {};
+        Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
+        for (int i = 0; i < (response?.Count ?? 0); i++)
+        {
+            object rawMarket = response[i];
+            string? rawType = this.safeString(rawMarket, "marketType", "");
+            if (!this.inArray(rawType, marketTypes))
+            {
+                continue;
+            }
+            string? baseId = this.safeString(rawMarket, "baseSymbol");
+            IDictionary<string, object> security = this.safeDict(securityById, baseId);
+            Dictionary<string, object> market = this.parseMarket(((security == null)) ? rawMarket : this.extend(rawMarket, new Dictionary<string, object>() {
+    { "security", security },
+}));
+            if ((market != null))
+            {
+                string? marketId = this.safeString(market, "id");
+                if (((marketId == null)) || (((marketId != null) && marketIds.ContainsKey(marketId))))
+                {
+                    continue;
+                }
+                marketIds[(string)marketId] = true;
+                if ((!(stock is true)) || ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true)))
+                {
+                    markets.Add(market);
+                }
+            }
+        }
+        if (includeRfq)
+        {
+            for (int i = 0; i < getArrayLength(securities); i++)
+            {
+                object security = getValue(securities, i);
+                string? assetId = this.safeString(security, "asset");
+                if ((assetId == null))
+                {
+                    continue;
+                }
+                string marketId = (assetId + "_USDC_RFQ");
+                if (!(marketIds.ContainsKey(marketId)))
+                {
+                    Dictionary<string, object> market = this.parseMarket(new Dictionary<string, object>() {
+                        { "symbol", marketId },
+                        { "baseSymbol", assetId },
+                        { "quoteSymbol", "USDC" },
+                        { "marketType", "RFQ" },
+                        { "rwaMarketType", "STOCK" },
+                        { "security", security },
+                    });
+                    if ((market != null))
+                    {
+                        marketIds[(string)marketId] = true;
+                        markets.Add(market);
+                    }
+                }
+            }
+        }
+        return ccxt.BaseExchange.ToMarketInterfaceList(markets);
     }
 
     public override Dictionary<string, object> parseMarket(object market)
@@ -864,6 +1002,38 @@ public partial class backpack : Exchange
         //         }
         //     ]
         //
+        // fetchMarkets stock
+        //
+        //     [
+        //         {
+        //             {
+        //                 "asset": "QNDX.US",
+        //                 "cusip": null,
+        //                 "name": "State Street SPDR Portfolio Nasdaq 100 ETF",
+        //                 "sessions": [
+        //                     {
+        //                         "maxQuantity": "1000",
+        //                         "minQuantity": "1",
+        //                         "name": "US_EQUITIES_PRE_MARKET",
+        //                         "stepSize": "1"
+        //                     },
+        //                     {
+        //                         "maxQuantity": "10000",
+        //                         "minQuantity": "0.01",
+        //                         "name": "US_EQUITIES_REGULAR",
+        //                         "stepSize": "0.01"
+        //                     },
+        //                     {
+        //                         "maxQuantity": "1000",
+        //                         "minQuantity": "1",
+        //                         "name": "US_EQUITIES_POST_MARKET",
+        //                         "stepSize": "1"
+        //                     }
+        //                 ]
+        //             },
+        //         }
+        //     ]
+        //
         string? id = this.safeString(market, "symbol");
         string? baseId = this.safeString(market, "baseSymbol");
         string? quoteId = this.safeString(market, "quoteSymbol");
@@ -884,15 +1054,57 @@ public partial class backpack : Exchange
         double? minQuantity = this.safeNumber(quantityFilter, "minQuantity");
         double? amountPrecision = this.safeNumber(quantityFilter, "stepSize");
         string? type = null;
-        string? typeOfMarket = this.parseMarketType(this.safeString(market, "marketType"));
+        string? rawType = this.safeString(market, "marketType");
+        bool rfq = rawType == "RFQ";
+        IDictionary<string, object> security = this.safeDict(market, "security");
+        string? baseSymbol = this.safeString(market, "baseSymbol", "");
+        bool stock = ((this.safeString(market, "rwaMarketType") == "STOCK")) || ((security != null)) || baseSymbol.EndsWith(".US") || baseSymbol.EndsWith(".HK");
+        string? typeOfMarket = this.parseMarketType(rawType);
         bool? linear = null;
         bool? inverse = null;
         string? settle = null;
         string? settleId = null;
         int? contractSize = null;
-        if (typeOfMarket == "spot")
+        if ((typeOfMarket == "spot") || rfq)
         {
             type = "spot";
+            if (rfq)
+            {
+                symbol = ((bs + ".RFQ/") + quote);
+                List<object> sessions = this.safeList(security, "sessions", new List<object>() {});
+                string? stepSize = null;
+                string? minimum = null;
+                string? maximum = null;
+                bool unbounded = false;
+                for (int i = 0; i < sessions.Count; i++)
+                {
+                    string? sessionStep = this.safeString(sessions[i], "stepSize");
+                    if (((sessionStep != null)) && (((stepSize == null)) || Precise.stringLt(sessionStep, stepSize)))
+                    {
+                        stepSize = sessionStep;
+                    }
+                    string? sessionMin = this.safeString(sessions[i], "minQuantity");
+                    string? sessionMax = this.safeString(sessions[i], "maxQuantity");
+                    if (((sessionMin != null)) && (((minimum == null)) || Precise.stringLt(sessionMin, minimum)))
+                    {
+                        minimum = sessionMin;
+                    }
+                    if ((sessionMax == null))
+                    {
+                        unbounded = true;
+                    } else if (((maximum == null)) || Precise.stringGt(sessionMax, maximum))
+                    {
+                        maximum = sessionMax;
+                    }
+                }
+                int sessionsLength = sessions.Count;
+                if (sessionsLength > 0)
+                {
+                    amountPrecision = this.parseNumber(stepSize);
+                    minQuantity = this.parseNumber(minimum);
+                    maxQuantity = unbounded ? null : this.parseNumber(maximum);
+                }
+            }
         } else if (typeOfMarket == "swap")
         {
             type = "swap";
@@ -902,8 +1114,13 @@ public partial class backpack : Exchange
             settle = this.safeCurrencyCode(settleId);
             symbol = symbol + (":" + settle);
             contractSize = 1;
+        } else
+        {
+            return ccxt.BaseExchange.ToDict(null);
         }
         string? orderBookState = this.safeString(market, "orderBookState");
+        // RFQ active means listed, not currently in session; an explicit order book state takes precedence.
+        bool active = (rfq && ((orderBookState == null))) ? (((id != null)) || ((this.safeString(security, "asset") != null))) : (orderBookState == "Open");
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -915,11 +1132,13 @@ public partial class backpack : Exchange
             { "settleId", settleId },
             { "type", type },
             { "spot", type == "spot" },
-            { "margin", type == "spot" },
+            { "margin", (type == "spot") && !stock && !rfq },
+            { "stock", stock },
+            { "executionModel", rfq ? "rfq" : null },
             { "swap", type == "swap" },
             { "future", false },
             { "option", false },
-            { "active", orderBookState == "Open" },
+            { "active", active },
             { "contract", type != "spot" },
             { "linear", linear },
             { "inverse", inverse },
@@ -957,6 +1176,466 @@ public partial class backpack : Exchange
         });
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name backpack#handleStockParams
+     * @description resolves the stock market filter
+     * @param {string} methodName calling method
+     * @param {object} params exchange-specific parameters
+     * @param {object} [market] resolved market
+     * @returns {Array} stock flag and remaining parameters
+     */
+    public virtual object handleStockParams(object methodName, object parameters, object market = null)
+    {
+        bool? defaultStock = this.safeBool(market, "stock", false);
+        (bool?, object) stockqueryVariable = this.handleOptionBoolAndParams(parameters, methodName, "stock", defaultStock);
+        bool? stock = stockqueryVariable.Item1;
+        IDictionary<string, object> query = ((IDictionary<string, object>)stockqueryVariable.Item2);
+        if (((market != null)) && (stock == true) && !(this.safeBool(market, "stock", false) == true))
+        {
+            throw new BadSymbol ((((this.id + " ") + (methodName)) + "() requires a stock market")) ;
+        }
+        return new List<object>() {stock, query};
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#fetchSecurities
+     * @description fetches stock security metadata and session-specific share quantity constraints
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_securities
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object[]} security metadata, not account holdings or proof of equity ownership
+     */
+    public async virtual Task<object> fetchSecurities(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        List<object> response = await this.publicGetApiV1Securities(parameters);
+        this.options["securities"] = response;
+        return response;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#fetchStockIndicativeQuote
+     * @description fetches a size-specific indicative stock quote without submitting or accepting an RFQ
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_stock_indicative_quote
+     * @param {string} symbol unified stock market symbol
+     * @param {string} side buy or sell
+     * @param {float} amount number of base shares
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @returns {object} indicative quote with availability, session constraints and non-guaranteed prices
+     */
+    public async virtual Task<object> fetchStockIndicativeQuote(object symbol, object side, object amount, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> market = this.market(symbol);
+        object selection = this.handleStockParams("fetchStockIndicativeQuote", parameters, market);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        if ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) != true))
+        {
+            throw new BadSymbol ((this.id + " fetchStockIndicativeQuote() requires a stock market")) ;
+        }
+        if ((!(side is "buy")) && (!(side is "sell")))
+        {
+            throw new BadRequest ((this.id + " fetchStockIndicativeQuote() requires buy or sell")) ;
+        }
+        if (((amount == null)) || !Precise.stringGt(this.numberToString(amount), "0"))
+        {
+            throw new InvalidOrder ((this.id + " fetchStockIndicativeQuote() requires a positive base share quantity")) ;
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("baseId") ? market["baseId"] : null) },
+            { "side", this.encodeOrderSide(side) },
+            { "quantity", this.numberToString(amount) },
+        };
+        string requestMethod = "publicGetApiV1StockIndicativeQuote";
+        return await ((Task<object>)callDynamically(this, requestMethod, new object[] { this.extend(query, request) }));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#rfqConversionMarket
+     * @description resolves a stock RFQ market for a currency conversion pair
+     * @param {string} fromCode source currency code
+     * @param {string} toCode destination currency code
+     * @returns {object} resolved stock RFQ market
+     */
+    public virtual object rfqConversionMarket(object fromCode, object toCode)
+    {
+        bool fromIsStock = ((string)fromCode).EndsWith(".US") || ((string)fromCode).EndsWith(".HK");
+        bool toIsStock = ((string)toCode).EndsWith(".US") || ((string)toCode).EndsWith(".HK");
+        if ((fromIsStock == toIsStock))
+        {
+            throw new NotSupported ((this.id + " conversion requires exactly one stock currency")) ;
+        }
+        object stockCode = fromIsStock ? fromCode : toCode;
+        object quoteCode = fromIsStock ? toCode : fromCode;
+        object symbol = add(add(stockCode, ".RFQ/"), quoteCode);
+        IDictionary<string, object> market = this.safeDict(this.markets, symbol);
+        if (((market == null)) || (!isEqual((market.ContainsKey("executionModel") ? market["executionModel"] : null), "rfq")) || (!isEqual((market.ContainsKey("stock") ? market["stock"] : null), true)))
+        {
+            throw new BadSymbol ((string)((this.id + " conversion requires a listed stock RFQ market: ") + (symbol))) ;
+        }
+        return market;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#parseConversion
+     * @description converts a submitted or accepted RFQ order into a conversion structure
+     * @param {object} order parsed RFQ order
+     * @param {object} [fromCurrency] source currency
+     * @param {object} [toCurrency] destination currency
+     * @returns {object} unified conversion structure
+     */
+    public override object parseConversion(object order, object fromCurrency = null, object toCurrency = null)
+    {
+        string? fromCode = this.safeString(fromCurrency, "code");
+        string? toCode = this.safeString(toCurrency, "code");
+        if (((fromCode == null)) || ((toCode == null)))
+        {
+            throw new ArgumentsRequired ((this.id + " parseConversion() requires source and destination currencies")) ;
+        }
+        object market = this.rfqConversionMarket(fromCode, toCode);
+        bool fromIsBase = isEqual(fromCode, getValue(market, "base"));
+        double? filled = this.safeNumber(order, "filled");
+        double? cost = this.safeNumber(order, "cost");
+        IDictionary<string, object> fee = this.safeDict(order, "fee");
+        Int64? timestamp = this.safeInteger(order, "timestamp");
+        return new Dictionary<string, object>() {
+            { "info", getValue(order, "info") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", this.safeString(order, "id") },
+            { "fromCurrency", this.safeCurrencyCode(fromCode) },
+            { "fromAmount", fromIsBase ? filled : cost },
+            { "toCurrency", this.safeCurrencyCode(toCode) },
+            { "toAmount", fromIsBase ? cost : filled },
+            { "price", this.safeNumber2(order, "average", "price") },
+            { "fee", this.safeNumber(fee, "cost") },
+        };
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchConvertQuote
+     * @description fetches an indicative quote for converting between a tokenized stock and its quote currency
+     * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_stock_indicative_quote
+     * @param {string} fromCode the currency to convert from
+     * @param {string} toCode the currency to convert to
+     * @param {float} amount amount in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.price] optional limit price when converting quote currency to stock
+     * @returns {object} indicative conversion estimate; the price is a bound and is not guaranteed
+     */
+    public async override Task<ccxt.Conversion> FetchConvertQuote(object fromCode, object toCode, double? amount = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? amountString = this.numberToString(amount);
+        if (((amountString == null)) || !Precise.stringGt(amountString, "0"))
+        {
+            throw new ArgumentsRequired ((this.id + " fetchConvertQuote() requires a positive amount")) ;
+        }
+        await this.loadMarkets();
+        object market = this.rfqConversionMarket(fromCode, toCode);
+        bool fromIsBase = isEqual(fromCode, getValue(market, "base"));
+        string side = fromIsBase ? "sell" : "buy";
+        if (!fromIsBase)
+        {
+            object initialQuote = await this.fetchStockIndicativeQuote(getValue(market, "symbol"), side, 1, new Dictionary<string, object>() {
+                { "stock", true },
+            });
+            string? initialPrice = this.safeString(initialQuote, "price");
+            if (!(this.safeBool(initialQuote, "available", false) == true) || ((initialPrice == null)))
+            {
+                throw new InvalidOrder (((this.id + " fetchConvertQuote() stock indicative quote unavailable: ") + this.safeString(initialQuote, "reason", "priceUnavailable"))) ;
+            }
+            string? priceParam = this.safeString(parameters, "price");
+            if ((priceParam == null))
+            {
+                priceParam = initialPrice;
+            }
+            if (!Precise.stringGt(priceParam, "0"))
+            {
+                throw new InvalidOrder ((this.id + " fetchConvertQuote() price must be positive")) ;
+            }
+            string? rawQuantity = Precise.stringDiv(amountString, priceParam, 18);
+            string? preciseQuantity = this.amountToPrecision(getValue(market, "symbol"), this.parseNumber(rawQuantity));
+            if ((preciseQuantity == null))
+            {
+                throw new InvalidOrder ((this.id + " fetchConvertQuote() could not determine a stock quantity")) ;
+            }
+            amountString = preciseQuantity;
+            if (!Precise.stringGt(amountString, "0"))
+            {
+                throw new InvalidOrder ((this.id + " fetchConvertQuote() amount is too small for one stock increment")) ;
+            }
+        }
+        object quote = await this.fetchStockIndicativeQuote(getValue(market, "symbol"), side, this.parseNumber(amountString), new Dictionary<string, object>() {
+            { "stock", true },
+        });
+        if (!(this.safeBool(quote, "available", false) == true) || ((this.safeString(quote, "price") == null)))
+        {
+            throw new InvalidOrder (((this.id + " fetchConvertQuote() stock indicative quote unavailable: ") + this.safeString(quote, "reason", "priceUnavailable"))) ;
+        }
+        if (!fromIsBase)
+        {
+            string? quoteQuantity = this.safeString(quote, "quoteQuantity");
+            IDictionary<string, object> quantityFilter = this.safeDict(quote, "quantityFilter", new Dictionary<string, object>() {});
+            string? stepSize = this.safeString(quantityFilter, "stepSize");
+            if (((quoteQuantity != null)) && ((stepSize != null)) && Precise.stringGt(quoteQuantity, this.numberToString(amount)))
+            {
+                string? reducedQuantity = Precise.stringSub(amountString, stepSize);
+                if (((reducedQuantity == null)) || !Precise.stringGt(reducedQuantity, "0"))
+                {
+                    throw new InvalidOrder ((this.id + " fetchConvertQuote() amount is too small for one stock increment")) ;
+                }
+                amountString = reducedQuantity;
+                quote = await this.fetchStockIndicativeQuote(getValue(market, "symbol"), side, this.parseNumber(amountString), new Dictionary<string, object>() {
+                    { "stock", true },
+                });
+                if (!(this.safeBool(quote, "available", false) == true) || ((this.safeString(quote, "price") == null)))
+                {
+                    throw new InvalidOrder (((this.id + " fetchConvertQuote() stock indicative quote unavailable: ") + this.safeString(quote, "reason", "priceUnavailable"))) ;
+                }
+            }
+            string? finalQuoteQuantity = this.safeString(quote, "quoteQuantity");
+            if (((finalQuoteQuantity != null)) && Precise.stringGt(finalQuoteQuantity, this.numberToString(amount)))
+            {
+                throw new InvalidOrder ((this.id + " fetchConvertQuote() rounded stock quantity exceeds the requested quote-currency amount")) ;
+            }
+        }
+        double? quoteAmount = this.safeNumber(quote, "quoteQuantity");
+        double? baseAmount = this.parseNumber(amountString);
+        string? fromCurrency = this.safeCurrencyCode(fromCode);
+        string? toCurrency = this.safeCurrencyCode(toCode);
+        return ccxt.BaseExchange.ToConversion(new Dictionary<string, object>() {             { "info", quote },             { "timestamp", this.safeInteger(quote, "publishedAt") },             { "datetime", this.iso8601(this.safeInteger(quote, "publishedAt")) },             { "id", null },             { "fromCurrency", fromCurrency },             { "fromAmount", fromIsBase ? baseAmount : quoteAmount },             { "toCurrency", toCurrency },             { "toAmount", fromIsBase ? quoteAmount : baseAmount },             { "price", this.safeNumber(quote, "price") },             { "fee", null },         });
+    }
+
+    /**
+     * @method
+     * @name backpack#createConvertTrade
+     * @description converts between a tokenized stock and its quote currency through a bounded RFQ
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/accept_quote
+     * @param {string} id RFQ identifier when accepting a quote, or a numeric client identifier for a new RFQ
+     * @param {string} fromCode the currency to convert from
+     * @param {string} toCode the currency to convert to
+     * @param {float} [amount] amount in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.quoteId] accept this quote for RFQ id supplied as id
+     * @param {float} [params.price] price bound from fetchConvertQuote; required when buying stock
+     * @param {float} [params.baseAmount] stock quantity when converting quote currency to stock
+     * @param {int} [params.clientOrderId] requester client identifier for a newly submitted RFQ
+     * @returns {object} conversion result; RFQ submission may remain open and is not necessarily a fill
+     */
+    public async override Task<ccxt.Conversion> CreateConvertTrade(string id, object fromCode, object toCode, double? amount = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.rfqConversionMarket(fromCode, toCode);
+        object selection = this.handleStockParams("createConvertTrade", parameters, market);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        string? quoteId = this.safeString(query, "quoteId");
+        if ((quoteId != null))
+        {
+            Dictionary<string, object> acceptParams = this.omit(query, new List<object>() {"quoteId", "price", "baseAmount", "clientOrderId"});
+            object accepted = await this.acceptRfqQuote(id, quoteId, getValue(market, "symbol"), acceptParams);
+            return ccxt.BaseExchange.ToConversion(this.parseConversion(accepted, this.currency(((string)fromCode)), this.currency(((string)toCode))));
+        }
+        if (((amount == null)) || !Precise.stringGt(this.numberToString(amount), "0"))
+        {
+            throw new ArgumentsRequired ((this.id + " createConvertTrade() requires a positive amount")) ;
+        }
+        bool fromIsBase = isEqual(fromCode, getValue(market, "base"));
+        string side = fromIsBase ? "sell" : "buy";
+        string? quantity = this.numberToString(amount);
+        double? price = this.safeNumber(query, "price");
+        if (!fromIsBase)
+        {
+            double? baseAmount = this.safeNumber(query, "baseAmount");
+            if ((baseAmount != null))
+            {
+                quantity = this.numberToString(baseAmount);
+            } else
+            {
+                if (((price == null)) || !Precise.stringGt(this.numberToString(price), "0"))
+                {
+                    object indicative = await this.fetchStockIndicativeQuote(getValue(market, "symbol"), side, 1, new Dictionary<string, object>() {
+                        { "stock", true },
+                    });
+                    if (!(this.safeBool(indicative, "available", false) == true))
+                    {
+                        throw new InvalidOrder (((this.id + " createConvertTrade() stock indicative quote unavailable: ") + this.safeString(indicative, "reason", "priceUnavailable"))) ;
+                    }
+                    price = this.safeNumber(indicative, "price");
+                }
+                if (((price == null)) || !Precise.stringGt(this.numberToString(price), "0"))
+                {
+                    throw new InvalidOrder ((this.id + " createConvertTrade() buying stock requires a positive price bound")) ;
+                }
+                string? rawQuantity = Precise.stringDiv(this.numberToString(amount), this.numberToString(price), 18);
+                string? preciseQuantity = this.amountToPrecision(getValue(market, "symbol"), this.parseNumber(rawQuantity));
+                if ((preciseQuantity == null))
+                {
+                    throw new InvalidOrder ((this.id + " createConvertTrade() could not determine a stock quantity")) ;
+                }
+                quantity = preciseQuantity;
+            }
+            if (((price == null)) || !Precise.stringGt(this.numberToString(price), "0"))
+            {
+                object indicative = await this.fetchStockIndicativeQuote(getValue(market, "symbol"), side, this.parseNumber(quantity), new Dictionary<string, object>() {
+                    { "stock", true },
+                });
+                if (!(this.safeBool(indicative, "available", false) == true))
+                {
+                    throw new InvalidOrder (((this.id + " createConvertTrade() stock indicative quote unavailable: ") + this.safeString(indicative, "reason", "priceUnavailable"))) ;
+                }
+                price = this.safeNumber(indicative, "price");
+            }
+            if (((price == null)) || !Precise.stringGt(this.numberToString(price), "0"))
+            {
+                throw new InvalidOrder ((this.id + " createConvertTrade() buying stock requires a positive price bound")) ;
+            }
+            string? quoteCost = Precise.stringMul(quantity, this.numberToString(price));
+            if (Precise.stringGt(quoteCost, this.numberToString(amount)))
+            {
+                IDictionary<string, object> precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
+                string? stepSize = this.numberToString(this.safeNumber(precision, "amount"));
+                if (!Precise.stringGt(stepSize, "0"))
+                {
+                    throw new InvalidOrder ((this.id + " createConvertTrade() cannot safely round stock quantity to the quote-currency budget")) ;
+                }
+                string? reducedQuantity = Precise.stringSub(quantity, stepSize);
+                if (((reducedQuantity == null)) || !Precise.stringGt(reducedQuantity, "0"))
+                {
+                    throw new InvalidOrder ((this.id + " createConvertTrade() stock quantity is too small for one increment")) ;
+                }
+                quantity = reducedQuantity;
+                quoteCost = Precise.stringMul(quantity, this.numberToString(price));
+                if (!Precise.stringGt(quantity, "0") || Precise.stringGt(quoteCost, this.numberToString(amount)))
+                {
+                    throw new InvalidOrder ((this.id + " createConvertTrade() stock quantity exceeds the quote-currency amount")) ;
+                }
+            }
+        }
+        Int64? clientOrderId = this.safeInteger(query, "clientOrderId");
+        if ((clientOrderId == null))
+        {
+            clientOrderId = this.safeInteger(new Dictionary<string, object>() {
+                { "id", id },
+            }, "id");
+        }
+        Dictionary<string, object> orderParams = this.omit(query, new List<object>() {"price", "baseAmount", "quoteId", "clientOrderId"});
+        if ((clientOrderId != null))
+        {
+            orderParams["clientOrderId"] = clientOrderId;
+        }
+        object order = await this.createRfqOrder(getValue(market, "symbol"), "market", side, this.parseNumber(quantity), price, this.extend(orderParams, new Dictionary<string, object>() {
+            { "stock", true },
+        }));
+        return ccxt.BaseExchange.ToConversion(this.parseConversion(order, this.currency(((string)fromCode)), this.currency(((string)toCode))));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#stockDataRequest
+     * @description resolves venue or external stock statistics without treating RFQs as an order book
+     * @param {string} methodName calling method
+     * @param {object} params exchange-specific parameters
+     * @param {object} [market] resolved market
+     * @returns {object} market data parameters
+     */
+    public virtual object stockDataRequest(object methodName, object parameters, object market = null)
+    {
+        object selection = this.handleStockParams(methodName, parameters, market);
+        bool? stock = this.safeBool(selection, 0, false);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {}, query);
+        string? source = this.safeString(query, "source");
+        bool isRfq = ((market != null)) && ((this.safeString(getValue(market, "info"), "marketType") == "RFQ"));
+        if ((source == null))
+        {
+            source = isRfq ? "External" : "Venue";
+        }
+        if ((source != "Venue") && (source != "External"))
+        {
+            throw new BadRequest ((((this.id + " ") + (methodName)) + "() source must be Venue or External")) ;
+        }
+        if (source == "External")
+        {
+            if (stock != true)
+            {
+                throw new BadRequest ((((this.id + " ") + (methodName)) + "() External provider data requires a stock market symbol or params.stock=true when no symbol is provided")) ;
+            }
+            if (((market != null)) && (!isEqual(getValue(market, "stock"), true)))
+            {
+                throw new BadSymbol ((((this.id + " ") + (methodName)) + "() External data requires a stock market")) ;
+            }
+            request["source"] = source;
+            if ((methodName is "fetchOHLCV"))
+            {
+                string? priceType = this.safeString(query, "priceType", "Last");
+                string? price = this.safeString(query, "price");
+                if ((priceType != "Last") || (((price != null)) && (price != "last")))
+                {
+                    throw new BadRequest ((this.id + " fetchOHLCV() External data requires Last prices")) ;
+                }
+                request["priceType"] = "Last";
+            } else
+            {
+                string? interval = this.safeString(query, "interval", "1d");
+                if (interval != "1d")
+                {
+                    throw new BadRequest ((((this.id + " ") + (methodName)) + "() External tickers require interval=1d")) ;
+                }
+                request["interval"] = interval;
+            }
+        }
+        if ((market != null))
+        {
+            object marketId = getValue(market, "id");
+            if ((this.safeString(getValue(market, "info"), "marketType") == "RFQ"))
+            {
+                marketId = add(add(getValue(market, "baseId"), "_"), getValue(market, "quoteId"));
+            }
+            request["symbol"] = marketId;
+        }
+        return request;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#filterStockStructures
+     * @description filters parsed account structures by securities metadata, never by RFQ execution alone
+     * @param {Array} entries parsed trades or orders
+     * @returns {Array} tokenized stock structures
+     */
+    public virtual object filterStockStructures(object entries)
+    {
+        List<object> result = new List<object>() {};
+        for (int i = 0; i < getArrayLength(entries); i++)
+        {
+            object entry = getValue(entries, i);
+            string? symbol = this.safeString(entry, "symbol");
+            IDictionary<string, object> market = this.safeDict(this.markets, symbol);
+            if ((this.safeBool(market, "stock", false) == true))
+            {
+                result.Add(entry);
+            }
+        }
+        return result;
+    }
+
     public virtual string? parseMarketType(string? type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
@@ -969,10 +1648,13 @@ public partial class backpack : Exchange
     /**
      * @method
      * @name backpack#fetchTickers
+     * @description fetches venue or external provider statistics, not executable RFQ prices
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_tickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock tickers only; inferred from requested symbols when omitted
+     * @param {string} [params.source] Venue or External; RFQ symbols default to External, other symbols default to Venue
+     * @param {string} [params.interval] ticker interval, External requires 1d
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
@@ -982,19 +1664,97 @@ public partial class backpack : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> request = new Dictionary<string, object>() {};
-        List<object> response = await this.publicGetApiV1Tickers(this.extend(request, parameters));
+        object selection = this.handleStockParams("fetchTickers", parameters);
+        bool? stockOnly = this.safeBool(selection, 0, false);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        string? source = this.safeString(query, "source", "Venue");
+        int symbolsLength = 0;
+        if ((symbols != null))
+        {
+            symbolsLength = symbols?.Count ?? 0;
+        }
+        IList<object> symbolsNormalized = ((symbolsLength == 0)) ? null : this.marketSymbols(symbols, null, false);
+        IList<object> symbolsResolved = ((symbolsNormalized == null)) ? new List<object>(((IDictionary<string,object>)this.markets).Keys) : symbolsNormalized;
+        bool hasRfqSymbol = false;
+        bool hasStockSymbol = false;
+        if ((symbols != null))
+        {
+            for (int i = 0; i < (symbolsResolved?.Count ?? 0); i++)
+            {
+                Dictionary<string, object> market = this.market(symbolsResolved[i]);
+                if ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true))
+                {
+                    hasStockSymbol = true;
+                }
+                if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ"))
+                {
+                    hasRfqSymbol = true;
+                }
+            }
+        }
+        bool stockExplicitlyDisabled = isEqual(this.safeValue2(parameters, "stock", "defaultStock"), false);
+        bool needsExternalRfqTickers = (source == "Venue") && ((this.safeString(query, "source") == null)) && hasRfqSymbol && !stockExplicitlyDisabled;
+        IDictionary<string, object> requestParams = query;
+        if ((source == "External") && ((stockOnly == true) || hasStockSymbol) && !stockExplicitlyDisabled)
+        {
+            requestParams = this.extend(query, new Dictionary<string, object>() {
+                { "stock", true },
+            });
+        }
+        object request = this.stockDataRequest("fetchTickers", requestParams);
+        List<object> response = await this.publicGetApiV1Tickers(request);
         Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickerMap(this.parseTickers(response));
-        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
+        Dictionary<string, object> responseById = this.indexBy(response, "symbol");
+        List<object> externalResponse = new List<object>() {};
+        Dictionary<string, object> externalResponseById = new Dictionary<string, object>() {};
+        if (needsExternalRfqTickers || (source == "External"))
+        {
+            Dictionary<string, object> externalParams = this.extend(query, new Dictionary<string, object>() {
+                { "stock", true },
+                { "source", "External" },
+            });
+            externalResponse = await this.publicGetApiV1Tickers(this.stockDataRequest("fetchTickers", externalParams));
+            externalResponseById = this.indexBy(externalResponse, "symbol");
+        }
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
+        for (int i = 0; i < (symbolsResolved?.Count ?? 0); i++)
+        {
+            object marketSymbol = symbolsResolved[i];
+            Dictionary<string, object> market = this.market(marketSymbol);
+            if ((stockOnly == true) && ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) != true)))
+            {
+                continue;
+            }
+            bool marketIsRfq = (this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ");
+            IDictionary<string, object> ticker = this.safeDict(tickers, marketSymbol);
+            if (((ticker != null)) && ((source != "External") || ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true))))
+            {
+                result[(string)marketSymbol] = ticker;
+            } else if (marketIsRfq)
+            {
+                string? underlyingId = ((string)add(add((market.ContainsKey("baseId") ? market["baseId"] : null), "_"), (market.ContainsKey("quoteId") ? market["quoteId"] : null)));
+                bool useExternal = (source == "External") || needsExternalRfqTickers;
+                Dictionary<string, object> tickerSource = useExternal ? externalResponseById : responseById;
+                IDictionary<string, object> underlyingTicker = this.safeDict(tickerSource, underlyingId);
+                if ((underlyingTicker != null))
+                {
+                    result[(string)marketSymbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(underlyingTicker, market));
+                }
+            }
+        }
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
     }
 
     /**
      * @method
      * @name backpack#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @description fetches underlying venue or external stock statistics, not an executable RFQ quote
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @param {string} [params.source] Venue or External; RFQ symbols default to External
+     * @param {string} [params.interval] ticker interval, External requires 1d
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
@@ -1005,10 +1765,8 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-        };
-        Dictionary<string, object> response = await this.publicGetApiV1Ticker(this.extend(request, parameters));
+        object request = this.stockDataRequest("fetchTicker", parameters, market);
+        Dictionary<string, object> response = await this.publicGetApiV1Ticker(request);
         return this.parseTicker(response, market);
     }
 
@@ -1031,8 +1789,8 @@ public partial class backpack : Exchange
         //     }, ...
         //
         string? marketId = this.safeString(ticker, "symbol");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = this.safeSymbol(marketId, marketResolved);
+        object marketResolved = ((market == null)) ? this.safeMarket(marketId) : market;
+        string? symbol = ((string)getValue(marketResolved, "symbol"));
         string? open = this.safeString(ticker, "firstPrice");
         string? last = this.safeString(ticker, "lastPrice");
         string? high = this.safeString(ticker, "high");
@@ -1077,11 +1835,13 @@ public partial class backpack : Exchange
     /**
      * @method
      * @name backpack#fetchOrderBook
-     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @description fetches venue order-book depth, RFQ and external provider depth are not supported
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
+     * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects a tokenized stock spot order book; inferred from symbol when omitted
+     * @param {string} [params.source] Venue, External provider depth is not supported
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
@@ -1092,46 +1852,64 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
+        object selection = this.handleStockParams("fetchOrderBook", parameters, market);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        string? source = this.safeString(query, "source", "Venue");
+        if ((source != "Venue") || ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ")))
+        {
+            throw new NotSupported ((this.id + " fetchOrderBook() requires a venue order-book market; use fetchStockIndicativeQuote() for size-specific RFQ prices")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        Dictionary<string, object> response = await this.publicGetApiV1Depth(this.extend(request, parameters));
-        //
-        //     {
-        //         "asks": [
-        //             ["118318.3","0.00633"],
-        //             ["118567.2","0.08450"]
-        //         ],
-        //         "bids": [
-        //             ["1.0","0.38647"],
-        //             ["12.9","1.00000"]
-        //         ],
-        //         "lastUpdateId":"1504999670",
-        //         "timestamp":1753102447307501
-        //     }
-        //
+        object requestLimit = null;
+        if ((limit != null))
+        {
+            List<object> supportedLimits = new List<object>() {5, 10, 20, 50, 100, 500};
+            requestLimit = 500;
+            for (int i = 0; i < (supportedLimits?.Count ?? 0); i++)
+            {
+                if (isLessThanOrEqual(limit, supportedLimits[i]))
+                {
+                    requestLimit = supportedLimits[i];
+                    break;
+                }
+            }
+            request["limit"] = requestLimit;
+        }
+        Dictionary<string, object> response = await this.publicGetApiV1Depth(this.extend(request, this.omit(query, "source")));
         Int64? microseconds = this.safeInteger(response, "timestamp");
         if ((microseconds == null))
         {
             throw new ExchangeError ((this.id + " fetchOrderBook() missing microseconds")) ;
         }
         Int64? timestamp = this.parseToInt(((double?)microseconds / 1000));
-        ccxt.OrderBook orderbook = this.parseOrderBook(response, symbol, timestamp);
-        orderbook.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(response, "lastUpdateId"));
-        return orderbook;
+        Dictionary<string, object> orderbook = ccxt.BaseExchange.FromOrderBook(this.parseOrderBook(response, symbol, timestamp));
+        orderbook["nonce"] = this.safeInteger(response, "lastUpdateId");
+        if ((limit != null))
+        {
+            orderbook["bids"] = this.arraySlice((orderbook != null && orderbook.ContainsKey("bids") ? orderbook["bids"] : null), 0, limit);
+            orderbook["asks"] = this.arraySlice((orderbook != null && orderbook.ContainsKey("asks") ? orderbook["asks"] : null), 0, limit);
+        }
+        return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
     /**
      * @method
      * @name backpack#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @description fetches venue or external stock candlestick data for the underlying market
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_klines
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in seconds of the earliest candle to fetch
+     * @param {int} [since] timestamp in milliseconds of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
+     * @param {string} [params.source] Venue or External; RFQ symbols default to External
+     * @param {string} [params.price] last, mark or index, External requires last
+     * @param {string} [params.priceType] Last, Mark or Index, External requires Last
+     * @param {int} [params.until] latest candle timestamp in milliseconds
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
@@ -1145,13 +1923,14 @@ public partial class backpack : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         int duration = this.parseTimeframe(timeframeVar);
+        object dataRequest = this.stockDataRequest("fetchOHLCV", parameters, market);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+            { "symbol", getValue(dataRequest, "symbol") },
             { "interval", interval },
         };
-        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "until");
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(this.omit(dataRequest, "symbol"), "fetchOHLCV", "until");
         Int64? until = untilparamsUntilVariable.Item1;
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
+        object paramsUntil = untilparamsUntilVariable.Item2;
         if (!(until == null))
         {
             request["endTime"] = this.parseToInt(((double?)until / 1000)); // convert milliseconds to seconds
@@ -1392,7 +2171,7 @@ public partial class backpack : Exchange
     /**
      * @method
      * @name backpack#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
+     * @description gets recent venue order-book trades, not public RFQ or external provider fills
      * @see https://docs.backpack.exchange/#tag/Trades/operation/get_recent_trades
      * @see https://docs.backpack.exchange/#tag/Trades/operation/get_historical_trades
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -1400,6 +2179,7 @@ public partial class backpack : Exchange
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.offset] the number of trades to skip, default is 0
+     * @param {boolean} [params.stock] selects tokenized stock spot trades; inferred from symbol when omitted
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1410,6 +2190,12 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
+        object selection = this.handleStockParams("fetchTrades", parameters, market);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        if (((this.safeString(query, "source", "Venue") != "Venue")) || ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ")))
+        {
+            throw new NotSupported ((this.id + " fetchTrades() only supports venue order-book trades; use fetchMyTrades() for RFQ fills")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
@@ -1418,13 +2204,13 @@ public partial class backpack : Exchange
             request["limit"] = Math.Min(limit.Value, 1000); // api maximum 1000
         }
         List<object> response = null;
-        Int64? offset = this.safeInteger(parameters, "offset");
+        Int64? offset = this.safeInteger(query, "offset");
         if ((offset != null))
         {
-            response = await this.publicGetApiV1TradesHistory(this.extend(request, parameters));
+            response = await this.publicGetApiV1TradesHistory(this.extend(request, query));
         } else
         {
-            response = await this.publicGetApiV1Trades(this.extend(request, parameters));
+            response = await this.publicGetApiV1Trades(this.extend(request, query));
         }
         IList<object> responseList = this.toArray(response);
         return this.parseTrades(responseList, market, since, limit);
@@ -1433,14 +2219,20 @@ public partial class backpack : Exchange
     /**
      * @method
      * @name backpack#fetchMyTrades
-     * @description fetch all trades made by the user
+     * @description fetches venue fills or requester RFQ fills, combining stock records when no symbol is supplied
      * @see https://docs.backpack.exchange/#tag/History/operation/get_fills
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_fill_history
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [since] the earliest time in ms to fetch trades for, locally filtered for RFQ history pages
      * @param {int} [limit] the maximum number of trades structures to retrieve (default 100, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {string} [params.fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
+     * @param {int} [params.until] the latest time in ms to fetch trades for, locally filtered for RFQ history pages
+     * @param {boolean} [params.stock] selects tokenized stock fills; inferred from symbol when omitted
+     * @param {boolean} [params.rfq] selects requester RFQ fills only, inferred from RFQ symbols
+     * @param {int} [params.offset] exchange history pagination offset
+     * @param {string} [params.sortDirection] Asc or Desc
+     * @param {boolean} [params.deferredSettlement] selects deferred or immediate RFQ settlement records
+     * @param {string} [params.fillType] User or CollateralConversion for RFQs, additional exchange-specific types for venue fills
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1457,6 +2249,57 @@ public partial class backpack : Exchange
             market = this.market(symbol);
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
+        object selection = this.handleStockParams("fetchMyTrades", parameters, market);
+        bool? stock = this.safeBool(selection, 0, false);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        bool rfq = (this.safeBool(query, "rfq", false) == true) || ((this.safeString(this.safeDict(market, "info"), "marketType") == "RFQ"));
+        bool aggregate = (stock == true) && ((market == null)) && !rfq;
+        if (rfq && ((market != null)) && ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") != "RFQ")))
+        {
+            throw new BadSymbol ((this.id + " fetchMyTrades() rfq requires an RFQ market symbol")) ;
+        }
+        Dictionary<string, object> accountParams = this.omit(query, new List<object>() {"rfq", "until"});
+        Int64? until = this.safeInteger(query, "until");
+        if (rfq || aggregate)
+        {
+            Dictionary<string, object> rfqRequest = new Dictionary<string, object>() {};
+            if ((market != null))
+            {
+                rfqRequest["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            }
+            if ((limit != null))
+            {
+                rfqRequest["limit"] = Math.Min(limit.Value, 1000);
+            }
+            Dictionary<string, object> rfqParams = this.omit(accountParams, new List<object>() {"assetClass", "marketType", "from", "to"});
+            List<object> rfqResponse = await this.privateGetWapiV1HistoryRfqFill(this.extend(rfqRequest, rfqParams));
+            object rfqTrades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rfqResponse, market, since));
+            if (aggregate)
+            {
+                Dictionary<string, object> venueParams = this.extend(this.omit(accountParams, new List<object>() {"rfqId", "quoteId", "deferredSettlement"}), new Dictionary<string, object>() {
+                    { "assetClass", "STOCK" },
+                    { "stock", false },
+                });
+                List<object> venueTrades = ccxt.BaseExchange.FromTradeList(await this.FetchMyTrades(((string)null),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), venueParams));
+                rfqTrades = this.arrayConcat(rfqTrades, venueTrades);
+            }
+            if ((stock == true))
+            {
+                rfqTrades = this.filterStockStructures(rfqTrades);
+            }
+            List<object> filtered = new List<object>() {};
+            for (int i = 0; i < getArrayLength(rfqTrades); i++)
+            {
+                IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(rfqTrades, i));
+                Int64? timestamp = this.safeInteger(trade, "timestamp");
+                if (((until == null)) || (((timestamp != null)) && ((timestamp == null || timestamp <= until))))
+                {
+                    filtered.Add(trade);
+                }
+            }
+            List<object> sorted = this.sortBy(filtered, "timestamp");
+            return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(sorted, since, limit));
+        }
         if ((since != null))
         {
             request["from"] = since;
@@ -1465,8 +2308,11 @@ public partial class backpack : Exchange
         {
             request["limit"] = limit;
         }
-        Int64? until = this.safeInteger(parameters, "until");
-        object paramsOmitted = ((until != null)) ? this.omit(parameters, new List<object>() {"until"}) : parameters;
+        Dictionary<string, object> paramsOmitted = accountParams;
+        if ((stock == true))
+        {
+            request["assetClass"] = "STOCK";
+        }
         if ((until != null))
         {
             request["to"] = until;
@@ -1476,7 +2322,7 @@ public partial class backpack : Exchange
         {
             request["fillType"] = "User"; // default
         }
-        List<object> response = await this.privateGetWapiV1HistoryFills(this.extend(request, paramsOmitted));
+        List<object> response = await this.privateGetWapiV1HistoryFills(this.extend(paramsOmitted, request));
         IList<object> responseList = this.toArray(response);
         return this.parseTrades(responseList, market, since, limit);
     }
@@ -1513,8 +2359,8 @@ public partial class backpack : Exchange
         string? id = this.safeString2(trade, "id", "tradeId");
         string? marketId = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? price = this.safeString(trade, "price");
-        string? amount = this.safeString(trade, "quantity");
+        string? price = this.safeString2(trade, "fillPrice", "price");
+        string? amount = this.safeString2(trade, "fillQuantity", "quantity");
         bool? isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         string? side = this.parseOrderSide(this.safeString(trade, "side"));
         bool? isMaker = this.safeBool(trade, "isMaker");
@@ -1527,7 +2373,7 @@ public partial class backpack : Exchange
             takerOrMaker = "taker";
             side = isBuyerMaker == true ? "sell" : "buy";
         }
-        string? orderId = this.safeString(trade, "orderId");
+        string? orderId = this.safeString2(trade, "orderId", "rfqId");
         Dictionary<string, object> fee = null;
         string? feeAmount = this.safeString(trade, "fee");
         Int64? timestamp = this.safeInteger(trade, "timestamp");
@@ -1536,6 +2382,11 @@ public partial class backpack : Exchange
             // if fetchMyTrades
             string? datetime = this.safeString(trade, "timestamp");
             timestamp = this.parse8601(datetime);
+        }
+        string? filledAt = this.safeString(trade, "filledAt");
+        if ((filledAt != null))
+        {
+            timestamp = this.parse8601(filledAt);
         }
         string? feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeSymbol"));
         if ((feeAmount != null))
@@ -1558,7 +2409,7 @@ public partial class backpack : Exchange
             { "takerOrMaker", takerOrMaker },
             { "price", price },
             { "amount", amount },
-            { "cost", null },
+            { "cost", this.safeString2(trade, "fillQuoteQuantity", "quoteQuantity") },
             { "fee", fee },
         }, marketResolved);
     }
@@ -1610,9 +2461,10 @@ public partial class backpack : Exchange
     /**
      * @method
      * @name backpack#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @description queries the capital account, optionally filtering tokenized stock assets locally
      * @see https://docs.backpack.exchange/#tag/Capital/operation/get_balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] return tokenized stock holdings only, without quote-currency cash
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
@@ -1622,7 +2474,30 @@ public partial class backpack : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> response = await this.privateGetApiV1Capital(parameters);
+        object selection = this.handleStockParams("fetchBalance", parameters);
+        bool? stock = this.safeBool(selection, 0, false);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        Dictionary<string, object> response = await this.privateGetApiV1Capital(query);
+        if ((stock == true))
+        {
+            object securities = this.safeList(this.options, "securities");
+            if ((securities == null))
+            {
+                securities = await this.fetchSecurities();
+            }
+            Dictionary<string, object> securityIds = this.indexBy(securities, "asset");
+            Dictionary<string, object> balances = new Dictionary<string, object>() {};
+            List<object> assetIds = new List<object>(response.Keys);
+            for (int i = 0; i < assetIds.Count; i++)
+            {
+                string? assetId = ((string)assetIds[i]);
+                if (((assetId != null) && (securityIds?.ContainsKey(assetId) == true)))
+                {
+                    balances[(string)assetId] = (response != null && assetId != null && response.ContainsKey(assetId) ? response[assetId] : null);
+                }
+            }
+            return ccxt.BaseExchange.ToBalances(this.parseBalance(balances));
+        }
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
@@ -1981,31 +2856,35 @@ public partial class backpack : Exchange
     /**
      * @method
      * @name backpack#createOrder
-     * @description create a trade order
+     * @description creates a venue order or bounded requester RFQ for a tokenized stock
      * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+     * @param {float} amount quantity in base currency, RFQs require base quantity
+     * @param {float} [price] limit price, ignored for venue market orders but an optional execution bound for market RFQs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency (could be used instead of amount)
+     * @param {float} [params.cost] venue market orders only, quote-currency cost instead of amount
+     * @param {boolean} [params.stock] selects tokenized stock spot or RFQ execution; inferred from symbol when omitted
+     * @param {string} [params.executionMode] RFQ only, Immediate (default) or AwaitAccept for manually accepted limit RFQs
+     * @param {int} [params.orderExpiryTime] RFQ only, resting Immediate RFQ expiry in milliseconds
      * @param {int} [params.clientOrderId] a unique id for the order
-     * @param {boolean} [params.postOnly] true to place a post only order
-     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
-     * @param {bool} [params.reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
-     * @param {string} [params.selfTradePrevention] one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
-     * @param {bool} [params.autoLend] *spot margin only* if true then the order can lend
-     * @param {bool} [params.autoLendRedeem] *spot margin only* if true then the order can redeem a lend if required
-     * @param {bool} [params.autoBorrow] *spot margin only* if true then the order can borrow
-     * @param {bool} [params.autoBorrowRepay] *spot margin only* if true then the order can repay a borrow
-     * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
-     * @param {object} [params.takeProfit] *swap markets only - takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+     * @param {boolean} [params.postOnly] venue orders only, true to place a post only order
+     * @param {string} [params.timeInForce] venue orders only, GTC, IOC, FOK or PO
+     * @param {bool} [params.reduceOnly] contracts only, reduces a position
+     * @param {string} [params.selfTradePrevention] venue orders only, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
+     * @param {bool} [params.autoLend] lend if required
+     * @param {bool} [params.autoLendRedeem] redeem a lend if required
+     * @param {bool} [params.autoBorrow] borrow if required
+     * @param {bool} [params.autoBorrowRepay] repay a borrow if required
+     * @param {float} [params.triggerPrice] venue orders only, trigger price
+     * @param {object} [params.takeProfit] swap markets only, attached take profit order
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-     * @param {float} [params.takeProfit.price] take profit order price (if not provided the order will be a market order)
-     * @param {object} [params.stopLoss] *swap markets only - stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+     * @param {float} [params.takeProfit.price] take profit limit price, omitted for a market order
+     * @param {object} [params.stopLoss] swap markets only, attached stop loss order
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
+     * @param {float} [params.stopLoss.price] stop loss limit price, omitted for a market order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
@@ -2016,28 +2895,206 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        object selection = this.handleStockParams("createOrder", parameters, market);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        Dictionary<string, object> orderParams = this.extend(query, new Dictionary<string, object>() {
+            { "stock", this.safeBool(selection, 0, false) },
+        });
+        if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ"))
+        {
+            object rfqResponse = await this.createRfqOrder(symbol, type, side, amount, price, orderParams);
+            IDictionary<string, object> rfqOrder = this.safeDict(new Dictionary<string, object>() {
+                { "order", rfqResponse },
+            }, "order");
+            return ccxt.BaseExchange.ToOrder(rfqOrder);
+        }
+        Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
         Dictionary<string, object> response = await this.privatePostApiV1Order(orderRequest);
         return this.parseOrder(response, market);
     }
 
     /**
+     * @ignore
+     * @method
+     * @name backpack#createRfqOrder
+     * @description submits a base-quantity RFQ, with explicit market orders using an indicative execution bound
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
+     * @param {string} symbol unified RFQ market symbol
+     * @param {string} type market or limit
+     * @param {string} side buy or sell
+     * @param {float} amount base quantity
+     * @param {float} [price] required limit price, or optional market execution bound
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {string} [params.executionMode] Immediate (default and required) to enforce the execution price bound
+     * @param {int} [params.orderExpiryTime] exchange-specific resting RFQ expiry in milliseconds
+     * @param {int} [params.clientOrderId] requester client identifier
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async virtual Task<object> createRfqOrder(object symbol, object type, object side, object amount, object price = null, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> market = this.market(symbol);
+        object selection = this.handleStockParams("createRfqOrder", parameters, market);
+        IDictionary<string, object> paramsResolved = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") != "RFQ"))
+        {
+            throw new BadSymbol ((this.id + " createRfqOrder() requires an RFQ market")) ;
+        }
+        if ((!(type is "market")) && (!(type is "limit")))
+        {
+            throw new InvalidOrder ((this.id + " createOrder() RFQs support market or limit orders only")) ;
+        }
+        if ((!(side is "buy")) && (!(side is "sell")))
+        {
+            throw new InvalidOrder ((this.id + " createOrder() requires buy or sell")) ;
+        }
+        if (((amount == null)) || !Precise.stringGt(this.numberToString(amount), "0"))
+        {
+            throw new InvalidOrder ((this.id + " createOrder() RFQs require a positive base quantity")) ;
+        }
+        List<object> unsupported = new List<object>() {"cost", "quoteQuantity", "postOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "reduceOnly", "timeInForce", "selfTradePrevention"};
+        for (int i = 0; i < (unsupported?.Count ?? 0); i++)
+        {
+            string? key = ((string)unsupported[i]);
+            if (((key != null) && (paramsResolved?.ContainsKey(key) == true)))
+            {
+                throw new NotSupported (((this.id + " createOrder() RFQs do not support ") + key)) ;
+            }
+        }
+        string? executionMode = this.safeString(paramsResolved, "executionMode", "Immediate");
+        if (executionMode != "Immediate")
+        {
+            throw new NotSupported ((this.id + " createOrder() requires Immediate RFQs to enforce the price bound; AwaitAccept has no engine-enforced limit price")) ;
+        }
+        string? quantity = this.numberToString(amount);
+        IDictionary<string, object> precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
+        if (!isEqual(this.safeNumber(precision, "amount"), null))
+        {
+            string? preciseQuantity = this.amountToPrecision(symbol, amount);
+            if (!Precise.stringEq(quantity, preciseQuantity))
+            {
+                throw new InvalidOrder ((this.id + " createOrder() RFQ quantity must match the share increment without rounding")) ;
+            }
+        }
+        string? limitPrice = this.numberToString(price);
+        if ((type is "limit"))
+        {
+            if (((limitPrice == null)) || !Precise.stringGt(limitPrice, "0"))
+            {
+                throw new InvalidOrder ((this.id + " createOrder() limit RFQs require a positive price")) ;
+            }
+        }
+        if ((((market.ContainsKey("stock") ? market["stock"] : null) as bool?) == true))
+        {
+            object indicative = await this.fetchStockIndicativeQuote(symbol, side, amount, new Dictionary<string, object>() {
+                { "stock", false },
+            });
+            string? indicativePrice = this.safeString(indicative, "price");
+            if (!(this.safeBool(indicative, "available", false) == true) || ((indicativePrice == null)))
+            {
+                throw new InvalidOrder (((this.id + " createOrder() stock indicative quote unavailable: ") + this.safeString(indicative, "reason", "priceUnavailable"))) ;
+            }
+            if (((type is "market")) && ((limitPrice == null)))
+            {
+                limitPrice = indicativePrice;
+            }
+            IDictionary<string, object> quantityFilter = this.safeDict(indicative, "quantityFilter", new Dictionary<string, object>() {});
+            string? stepSize = this.safeString(quantityFilter, "stepSize");
+            string? minimum = this.safeString(quantityFilter, "minQuantity");
+            string? maximum = this.safeString(quantityFilter, "maxQuantity");
+            if (((minimum == null)) || ((stepSize == null)) || !Precise.stringGt(stepSize, "0"))
+            {
+                throw new InvalidOrder ((this.id + " createOrder() stock indicative quote is missing valid session quantity constraints")) ;
+            }
+            if ((((minimum != null)) && Precise.stringLt(quantity, minimum)) || (((maximum != null)) && Precise.stringGt(quantity, maximum)) || (((stepSize != null)) && !Precise.stringEq(Precise.stringMod(quantity, stepSize), "0")))
+            {
+                throw new InvalidOrder ((this.id + " createOrder() quantity does not match the current stock session constraints")) ;
+            }
+        } else if ((limitPrice == null))
+        {
+            throw new ArgumentsRequired ((this.id + " createOrder() crypto market RFQs require an explicit price bound")) ;
+        }
+        if (((limitPrice != null)) && !Precise.stringGt(limitPrice, "0"))
+        {
+            throw new InvalidOrder ((this.id + " createOrder() RFQ price must be positive")) ;
+        }
+        if ((!isEqual(this.safeInteger(parameters, "orderExpiryTime"), null)) && (executionMode != "Immediate"))
+        {
+            throw new InvalidOrder ((this.id + " createOrder() resting RFQs require Immediate execution")) ;
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+            { "side", this.encodeOrderSide(side) },
+            { "quantity", quantity },
+            { "price", limitPrice },
+            { "executionMode", executionMode },
+        };
+        Int64? clientOrderId = this.safeInteger(parameters, "clientOrderId");
+        if ((clientOrderId != null))
+        {
+            request["clientId"] = clientOrderId;
+        }
+        Dictionary<string, object> query = this.omit(paramsResolved, "clientOrderId");
+        Dictionary<string, object> response = await this.privatePostApiV1Rfq(this.extend(query, request));
+        ccxt.Order order = this.parseOrder(response, market);
+        order.type = ccxt.BaseExchange.StructString(type);
+        return ccxt.BaseExchange.FromOrder(order);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name backpack#acceptRfqQuote
+     * @description explicitly accepts a selected current best quote, which may bind funds before settlement
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/accept_quote
+     * @param {string} id requester RFQ identifier
+     * @param {string} quoteId selected quote identifier
+     * @param {string} symbol unified RFQ market symbol
+     * @param {object} [params] extra exchange-specific parameters
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async virtual Task<object> acceptRfqQuote(object id, object quoteId, object symbol, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> market = this.market(symbol);
+        object selection = this.handleStockParams("acceptRfqQuote", parameters, market);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") != "RFQ"))
+        {
+            throw new BadSymbol ((this.id + " acceptRfqQuote() requires an RFQ market")) ;
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "rfqId", id },
+            { "quoteId", quoteId },
+        };
+        Dictionary<string, object> response = await this.privatePostApiV1RfqAccept(this.extend(query, request));
+        return ccxt.BaseExchange.FromOrder(this.parseOrder(response, market));
+    }
+
+    /**
      * @method
      * @name backpack#createOrders
-     * @description create a list of trade orders
+     * @description creates venue order-book orders, RFQ batches are not supported
      * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     * @param {boolean} [params.stock] selects tokenized stock spot execution for all orders, otherwise inferred per symbol
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object selection = this.handleStockParams("createOrders", parameters);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
+        object stockOption = this.safeValue2(parameters, "stock", "defaultStock");
+        bool? stock = this.safeBool(selection, 0, false);
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
@@ -2047,7 +3104,13 @@ public partial class backpack : Exchange
             double? amount = this.safeNumber(rawOrder, "amount");
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            Dictionary<string, object> baseParams = new Dictionary<string, object>() {};
+            if ((stock == true) || ((stockOption is false)))
+            {
+                baseParams["stock"] = stock;
+            }
+            Dictionary<string, object> baseQuery = this.extend(baseParams, query);
+            Dictionary<string, object> extendedParams = this.extend(baseQuery, orderParams);
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ordersRequests.Add(orderRequest);
         }
@@ -2055,7 +3118,20 @@ public partial class backpack : Exchange
         return this.parseOrders(response);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, object side, object amount, object price = null, object parameters = null)
+    /**
+     * @ignore
+     * @method
+     * @name backpack#createOrderRequest
+     * @description builds a venue order-book request and rejects RFQ batch execution
+     * @param {string} symbol unified market symbol
+     * @param {string} type order type
+     * @param {string} side order side
+     * @param {float} amount base quantity
+     * @param {float} [price] limit price
+     * @param {object} [params] exchange-specific order parameters
+     * @returns {object} venue order payload
+     */
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, object side, object amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -2067,12 +3143,18 @@ public partial class backpack : Exchange
             throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
+        object selection = this.handleStockParams("createOrder", parameters, market);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ"))
+        {
+            throw new NotSupported ((this.id + " createOrders() does not support RFQ batches; use createOrder()")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", this.encodeOrderSide(side) },
             { "orderType", this.capitalize(type) },
         };
-        string? triggerPrice = this.safeString(parameters, "triggerPrice");
+        string? triggerPrice = this.safeString(query, "triggerPrice");
         bool isTriggerOrder = (triggerPrice != null);
         string quantityKey = "quantity";
         if (isTriggerOrder)
@@ -2080,14 +3162,13 @@ public partial class backpack : Exchange
             quantityKey = "triggerQuantity";
         }
         List<object> omitKeys = new List<object>() {};
-        // handle basic limit/market order types
         if ((type == "limit"))
         {
             request["price"] = this.priceToPrecision(symbol, price);
             request[(string)quantityKey] = this.amountToPrecision(symbol, amount);
         } else if ((type == "market"))
         {
-            string? cost = this.safeString2(parameters, "cost", "quoteQuantity");
+            string? cost = this.safeString2(query, "cost", "quoteQuantity");
             if ((cost != null))
             {
                 request["quoteQuantity"] = this.costToPrecision(symbol, cost);
@@ -2098,19 +3179,18 @@ public partial class backpack : Exchange
                 request[(string)quantityKey] = this.amountToPrecision(symbol, amount);
             }
         }
-        // trigger orders
         if (isTriggerOrder)
         {
             request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
             omitKeys.Add("triggerPrice");
         }
-        Int64? clientOrderId = this.safeInteger(parameters, "clientOrderId"); // the exchange requires uint
+        Int64? clientOrderId = this.safeInteger(query, "clientOrderId");
         if ((clientOrderId != null))
         {
             request["clientId"] = clientOrderId;
             omitKeys.Add("clientOrderId");
         }
-        IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), false, this.omit(parameters, omitKeys));
+        IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), false, this.omit(query, omitKeys));
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
         if (postOnly)
@@ -2179,12 +3259,16 @@ public partial class backpack : Exchange
     /**
      * @method
      * @name backpack#fetchOpenOrders
-     * @description fetch all unfilled currently open orders
+     * @description fetches open venue orders or RFQs with their candidate quotes
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_open_orders
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when provided, otherwise selects both venue/RFQ records
+     * @param {boolean} [params.rfq] selects requester RFQs only, inferred from RFQ symbols
+     * @param {boolean} [params.deferredSettlement] selects deferred or immediate RFQ records
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -2201,18 +3285,44 @@ public partial class backpack : Exchange
             market = this.market(symbol);
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        List<object> response = await this.privateGetApiV1Orders(this.extend(request, parameters));
-        return this.parseOrders(response, market, since, limit);
+        object selection = this.handleStockParams("fetchOpenOrders", parameters, market);
+        bool? stock = this.safeBool(selection, 0, false);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        bool rfq = (this.safeBool(query, "rfq", false) == true) || ((this.safeString(this.safeDict(market, "info"), "marketType") == "RFQ"));
+        if (rfq && ((market != null)) && ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") != "RFQ")))
+        {
+            throw new BadSymbol ((this.id + " fetchOpenOrders() rfq requires an RFQ market symbol")) ;
+        }
+        Dictionary<string, object> accountParams = this.omit(query, "rfq");
+        List<object> response = new List<object>() {};
+        if (!rfq)
+        {
+            Dictionary<string, object> venueParams = this.omit(accountParams, new List<object>() {"rfqId", "deferredSettlement"});
+            response = await this.privateGetApiV1Orders(this.extend(request, venueParams));
+        }
+        if (rfq || ((stock == true) && ((market == null))))
+        {
+            List<object> rfqResponse = await this.privateGetApiV1Rfqs(this.extend(request, this.omit(accountParams, "marketType")));
+            response = this.arrayConcat(response, rfqResponse);
+        }
+        object orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since));
+        if ((stock == true))
+        {
+            orders = this.filterStockStructures(orders);
+        }
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.sortBy(orders, "timestamp"), since, limit));
     }
 
     /**
      * @method
      * @name backpack#fetchOpenOrder
-     * @description fetch an open order by it's id
+     * @description fetches an open venue order or requester RFQ by identifier
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
-     * @param {string} id order id
-     * @param {string} symbol not used by fetchOpenOrder ()
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
+     * @param {string} id order or requester RFQ identifier
+     * @param {string} symbol unified market symbol, required
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, IDictionary<string, object>? parameters = null)
@@ -2227,23 +3337,101 @@ public partial class backpack : Exchange
             throw new ArgumentsRequired ((this.id + " fetchOpenOrder() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
+        object selection = this.handleStockParams("fetchOpenOrder", parameters, market);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ"))
+        {
+            List<object> rfqResponse = await this.privateGetApiV1Rfqs(this.extend(query, new Dictionary<string, object>() {
+                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+                { "rfqId", id },
+            }));
+            for (int i = 0; i < (rfqResponse?.Count ?? 0); i++)
+            {
+                ccxt.Order order = this.parseOrder(rfqResponse[i], market);
+                if (isEqual((((object)order.id)), id))
+                {
+                    return order;
+                }
+            }
+            throw new OrderNotFound ((((this.id + " fetchOpenOrder() RFQ ") + id) + " not found")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "orderId", id },
         };
-        Dictionary<string, object> response = await this.privateGetApiV1Order(this.extend(request, parameters));
-        return this.parseOrder(response);
+        Dictionary<string, object> response = await this.privateGetApiV1Order(this.extend(request, query));
+        return this.parseOrder(response, market);
+    }
+
+    /**
+     * @method
+     * @name backpack#fetchOrder
+     * @description fetches an order from filtered history with an open-order fallback
+     * @see https://docs.backpack.exchange/#tag/History
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_history
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
+     * @param {string} id order or requester RFQ identifier
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra exchange-specific parameters
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((symbol == null))
+        {
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
+        }
+        await this.loadMarkets();
+        Dictionary<string, object> market = this.market(symbol);
+        object selection = this.handleStockParams("fetchOrder", parameters, market);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        bool rfq = (this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ");
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+        };
+        if (rfq)
+        {
+            request["rfqId"] = id;
+        } else
+        {
+            request["orderId"] = id;
+        }
+        List<object> response = new List<object>() {};
+        if (rfq)
+        {
+            response = await this.privateGetWapiV1HistoryRfq(this.extend(query, request));
+        } else
+        {
+            response = await this.privateGetWapiV1HistoryOrders(this.extend(query, request));
+        }
+        for (int i = 0; i < (response?.Count ?? 0); i++)
+        {
+            ccxt.Order order = this.parseOrder(response[i], market);
+            if (isEqual((((object)order.id)), id))
+            {
+                return order;
+            }
+        }
+        Dictionary<string, object> openOrderParams = this.extend(query, new Dictionary<string, object>() {
+            { "stock", this.safeBool(selection, 0, false) },
+        });
+        return await this.FetchOpenOrder(id, symbol, openOrderParams);
     }
 
     /**
      * @method
      * @name backpack#cancelOrder
-     * @description cancels an open order
+     * @description cancels a venue order or requests RFQ cancellation without assuming immediate cancellation
      * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_order
-     * @param {string} id order id
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/cancel_rfq
+     * @param {string} id order or requester RFQ identifier
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
+     * @param {int} [params.clientOrderId] RFQ client identifier instead of id
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
@@ -2257,21 +3445,39 @@ public partial class backpack : Exchange
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
+        object selection = this.handleStockParams("cancelOrder", parameters, market);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ"))
+        {
+            Int64? clientOrderId = this.safeInteger(query, "clientOrderId");
+            Dictionary<string, object> rfqRequest = new Dictionary<string, object>() {};
+            if ((clientOrderId == null))
+            {
+                rfqRequest["rfqId"] = id;
+            } else
+            {
+                rfqRequest["clientId"] = clientOrderId;
+            }
+            Dictionary<string, object> rfqResponse = await this.privatePostApiV1RfqCancel(this.extend(this.omit(query, "clientOrderId"), rfqRequest));
+            return this.parseOrder(rfqResponse, market);
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        Dictionary<string, object> response = await this.privateDeleteApiV1Order(this.extend(request, parameters));
-        return this.parseOrder(response);
+        Dictionary<string, object> response = await this.privateDeleteApiV1Order(this.extend(request, query));
+        return this.parseOrder(response, market);
     }
 
     /**
      * @method
      * @name backpack#cancelAllOrders
-     * @description cancel all open orders
+     * @description cancels venue orders, bulk RFQ cancellation is not supported
      * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @see https://docs.backpack.exchange/#tag/RFQ
+     * @param {string} symbol unified market symbol, required
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when omitted
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
@@ -2283,25 +3489,37 @@ public partial class backpack : Exchange
         }
         if ((symbol == null))
         {
-            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
+        object selection = this.handleStockParams("cancelAllOrders", parameters, market);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        if ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ"))
+        {
+            throw new NotSupported ((this.id + " cancelAllOrders() does not support RFQs; cancel each RFQ explicitly with cancelOrder()")) ;
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        List<object> response = await this.privateDeleteApiV1Orders(this.extend(request, parameters));
+        List<object> response = await this.privateDeleteApiV1Orders(this.extend(request, query));
         return this.parseOrders(response, market);
     }
 
     /**
      * @method
      * @name backpack#fetchOrders
-     * @description fetches information on multiple orders made by the user
+     * @description fetches venue or requester RFQ order history
      * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
+     * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_history
      * @param {string} [symbol] unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [since] the earliest time in ms to fetch orders for, locally filtered on retrieved pages
      * @param {int} [limit] the maximum number of order structures to retrieve (default 100, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stock] selects tokenized stock orders; inferred from symbol when provided, otherwise selects both venue/RFQ records
+     * @param {boolean} [params.rfq] selects requester RFQ history only, inferred from RFQ symbols
+     * @param {int} [params.offset] exchange history pagination offset
+     * @param {string} [params.sortDirection] Asc or Desc
+     * @param {boolean} [params.deferredSettlement] selects deferred or immediate RFQ history
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -2322,12 +3540,43 @@ public partial class backpack : Exchange
         {
             request["limit"] = limit;
         }
-        List<object> response = await this.privateGetWapiV1HistoryOrders(this.extend(request, parameters));
-        return this.parseOrders(response, market, since, limit);
+        object selection = this.handleStockParams("fetchOrders", parameters, market);
+        bool? stock = this.safeBool(selection, 0, false);
+        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        bool rfq = (this.safeBool(query, "rfq", false) == true) || ((this.safeString(this.safeDict(market, "info"), "marketType") == "RFQ"));
+        if (rfq && ((market != null)) && ((this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") != "RFQ")))
+        {
+            throw new BadSymbol ((this.id + " fetchOrders() rfq requires an RFQ market symbol")) ;
+        }
+        Dictionary<string, object> accountParams = this.omit(query, "rfq");
+        List<object> response = new List<object>() {};
+        if (!rfq)
+        {
+            Dictionary<string, object> venueParams = this.omit(accountParams, new List<object>() {"rfqId", "status", "side", "deferredSettlement"});
+            response = await this.privateGetWapiV1HistoryOrders(this.extend(request, venueParams));
+        }
+        if (rfq || ((stock == true) && ((market == null))))
+        {
+            List<object> rfqResponse = await this.privateGetWapiV1HistoryRfq(this.extend(request, this.omit(accountParams, "marketType")));
+            response = this.arrayConcat(response, rfqResponse);
+        }
+        object orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since));
+        if ((stock == true))
+        {
+            orders = this.filterStockStructures(orders);
+        }
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.sortBy(orders, "timestamp"), since, limit));
     }
 
     public override ccxt.Order parseOrder(object order, IDictionary<string, object> market = null)
     {
+        IDictionary<string, object> rfq = this.safeDict(order, "rfq");
+        if ((rfq != null))
+        {
+            Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseOrder(rfq, market));
+            parsed["info"] = order;
+            return new ccxt.Order(parsed);
+        }
         //
         //     {
         //         "clientId": null,
@@ -2379,6 +3628,7 @@ public partial class backpack : Exchange
         //         "stopLossTriggerPrice": null,
         //         "strategyId": null,
         //         "symbol": "ETH_USDC",
+        //         "systemOrderType": null,
         //         "takeProfitLimitPrice": null,
         //         "takeProfitTriggerBy": null,
         //         "takeProfitTriggerPrice": null,
@@ -2426,10 +3676,16 @@ public partial class backpack : Exchange
         {
             timestamp = timestamp2;
         }
-        string? id = this.safeString(order, "id");
+        string? id = this.safeString2(order, "id", "rfqId");
         string? clientOrderId = this.safeString(order, "clientId");
-        string? symbol = this.safeSymbol(this.safeString(order, "symbol"), market);
+        string? marketId = this.safeString(order, "symbol");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        string? symbol = this.safeSymbol(marketId, marketResolved);
         string? type = this.safeStringLower(order, "orderType");
+        if (((type == null)) && ((this.safeString(order, "rfqId") != null)) && ((this.safeString(order, "price") != null)))
+        {
+            type = "limit";
+        }
         string? timeInForce = this.safeString(order, "timeInForce");
         string? side = this.parseOrderSide(this.safeString(order, "side"));
         string? amount = this.safeString2(order, "quantity", "triggerQuantity");
@@ -2467,7 +3723,7 @@ public partial class backpack : Exchange
             { "status", status },
             { "fee", null },
             { "trades", null },
-        }, market);
+        }, marketResolved);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -2496,7 +3752,7 @@ public partial class backpack : Exchange
     /**
      * @method
      * @name backpack#fetchPositions
-     * @description fetch all open positions
+     * @description fetches derivative positions
      * @see https://docs.backpack.exchange/#tag/Futures/operation/get_positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2553,7 +3809,6 @@ public partial class backpack : Exchange
         //         "symbol": "ETH_USDC_PERP",
         //         "userId":1813870
         //     }
-        //
         //
         string? id = this.safeString(position, "positionId");
         string? marketId = this.safeString(position, "symbol");
@@ -2695,7 +3950,8 @@ public partial class backpack : Exchange
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = apiUrl;
-        object sortedParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? parameters : this.keysort(parameters);
+        object requestParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? parameters : this.omit(parameters, new List<object>() {"stock", "defaultStock", "rfq", "callerMethodName"});
+        object sortedParams = ((requestParams is IList<object>) || (requestParams.GetType().IsGenericType && requestParams.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? requestParams : this.keysort(requestParams);
         Dictionary<string, object> headersSigned = null;
         string? bodySigned = null;
         if ((apiName is "private"))
@@ -2737,7 +3993,7 @@ public partial class backpack : Exchange
         }
         if ((method == "GET"))
         {
-            string query = this.urlencode(sortedParams);
+            string query = this.urlencodeWithArrayRepeat(sortedParams);
             if ((query.Length != 0))
             {
                 endpoint = endpoint + ("?" + query);

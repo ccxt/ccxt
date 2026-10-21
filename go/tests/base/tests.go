@@ -3102,6 +3102,14 @@ func (this *testMainClass) testExchangeWsStaticallyBody(ch chan ccxt.AsyncResult
 			exchange.ExtendExchangeOptions(globalOptions)
 			var testExchangeOptions any = exchange.SafeValue(result, "options", map[string]any{})
 			exchange.ExtendExchangeOptions(testExchangeOptions)
+			var apiKey any = ccxt.DerefScalar(exchange.SafeString(result, "apiKey"))
+			if !EvalTruthy(exchange.IsEmptyString(apiKey)) {
+				exchange.SetApiKey(ToString(apiKey))
+			}
+			var secret any = ccxt.DerefScalar(exchange.SafeString(result, "secret"))
+			if !EvalTruthy(exchange.IsEmptyString(secret)) {
+				exchange.SetSecret(ToString(secret))
+			}
 			var skipKeys any = this.EffectiveSkipKeys(exchange, exchangeData, result)
 
 			r := <-this.TestWsStaticallyAsync(exchange, method, skipKeys, result)
@@ -3202,6 +3210,10 @@ func (this *testMainClass) InitOfflineExchange(exchangeName any, optionalArgs ..
 	if exchangeName == "grvt" {
 		options["apiKey"] = ""
 		options["secret"] = ""
+	}
+	if exchangeName == "backpack" {
+		// Ed25519 requires a base64-encoded 32-byte seed, not the generic dummy secret.
+		options["secret"] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 	}
 	var exchange ccxt.ICoreExchange = InitExchange(exchangeName, options, isWs)
 	if !IsEqual(currencies, nil) {
@@ -6183,10 +6195,17 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan ccxt.AsyncResul
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("coinbaseinternational")
+	// ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one
+	exchange.SetSecret("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+	// pre-seed the gateway access token so createOrder signs the order directly instead of
+	// making a prior (offline-unreachable) public/auth network call
+	exchange.SetToken("token")
+	var tokenExpires int64 = exchange.Milliseconds() + 100000
+	AddElementToObject(exchange.GetOptions(), "v2TokenExpires", tokenExpires)
 	AddElementToObject(exchange.GetOptions(), "portfolio", "random")
 	var id string = "nfqkvdjp"
 	Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "id not in options")
-	var request any = map[string]any{}
+	var clientOrderId any = nil
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -6197,7 +6216,17 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan ccxt.AsyncResul
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						request = JsonParse(exchange.GetLast_request_body())
+						// buy/sell are GET endpoints, so the label is in the query string, not a JSON body
+						var url any = exchange.GetLast_request_url()
+						var urlParts []string = Split(url, "?")
+						Assert((len(urlParts) > 1), Add("last_request_url has no query string: ", url))
+						var query any = this.UrlencodedToDict(func() any {
+							if 1 >= 0 && 1 < len(urlParts) {
+								return urlParts[1]
+							}
+							return nil
+						}())
+						clientOrderId = GetValue(query, "label")
 						return nil
 					}(this)
 				}
@@ -6212,8 +6241,7 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan ccxt.AsyncResul
 		}(this)
 
 	}
-	var clientOrderId any = GetValue(request, "client_order_id")
-	Assert(IsEqual(StartsWith(clientOrderId, id), true), "clientOrderId does not start with id")
+	Assert(!IsEqual(clientOrderId, nil) && IsEqual(StartsWith(clientOrderId, id), true), "clientOrderId does not start with id")
 	if !EvalTruthy(IsSync()) {
 
 		<-Close(exchange)

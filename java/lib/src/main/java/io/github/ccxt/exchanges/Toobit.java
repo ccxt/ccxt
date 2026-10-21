@@ -1521,6 +1521,8 @@ public class Toobit extends ToobitApi
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
@@ -1537,26 +1539,41 @@ public class Toobit extends ToobitApi
                 put( "symbol", market.get("id") );
                 put( "interval", Toobit.this.safeString(Toobit.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
+            Long until = this.safeInteger(parameters, "until");
+            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
+            Pair<String, Map<String, Object>> endpointparamsPriceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "fetchOHLCV", "price", (String) null);
+            String endpoint = endpointparamsPriceVariable.first();
+            Map<String, Object> paramsPrice = endpointparamsPriceVariable.second();
+            Boolean isPriceKlines = (java.util.Objects.equals(endpoint, "index")) || (java.util.Objects.equals(endpoint, "mark"));
+            String startKey = "startTime";
+            String endKey = "endTime";
+            if (Boolean.TRUE.equals(isPriceKlines))
+            {
+                startKey = "from";
+                endKey = "to";
+            }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("startTime", since);
+                request.put(startKey, since);
             }
-            Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                request.put("endTime", until);
+                request.put(endKey, until);
+            } else if (Boolean.TRUE.equals(isPriceKlines) && (!java.util.Objects.equals(since, null)))
+            {
+                // mark and index klines walk backwards from `to` and ignore a lone `from`
+                int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+                Long requestedLimit = (((java.util.Objects.equals(limit, null)))) ? 2000L : limit; // exchange default
+                request.put("to", this.sum(since, ((duration * requestedLimit) * 1000L)));
             }
-            Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
             }
-            List<Object> response = new ArrayList<Object>(Arrays.asList());
-            Pair<String, Map<String, Object>> endpointparamsPriceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "fetchOHLCV", "price", (String) null);
-            String endpoint = endpointparamsPriceVariable.first();
-            Map<String, Object> paramsPrice = endpointparamsPriceVariable.second();
+            Object response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(endpoint, "index"))
             {
+                request.put("symbol", this.safeString(market.get("info"), "indexToken")); // index klines take the index id instead of the market id
                 response = (this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice))).join();
             } else if (java.util.Objects.equals(endpoint, "mark"))
             {
@@ -1565,10 +1582,13 @@ public class Toobit extends ToobitApi
             {
                 response = (this.commonGetQuoteV1Klines(this.extend(request, paramsPrice))).join();
             }
-            List<Object> candles = new ArrayList<Object>(Arrays.asList());
+            Object candles = new ArrayList<Object>(Arrays.asList());
             if ((response instanceof List))
             {
                 candles = response;
+            } else
+            {
+                candles = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -1675,9 +1695,9 @@ public class Toobit extends ToobitApi
         mapLiteral4.put("datetime", this.iso8601(timestamp));
         mapLiteral4.put("high", this.safeString(ticker, "h"));
         mapLiteral4.put("low", this.safeString(ticker, "l"));
-        mapLiteral4.put("bid", null);
+        mapLiteral4.put("bid", this.safeString(ticker, "b"));
         mapLiteral4.put("bidVolume", null);
-        mapLiteral4.put("ask", null);
+        mapLiteral4.put("ask", this.safeString(ticker, "a"));
         mapLiteral4.put("askVolume", null);
         mapLiteral4.put("vwap", null);
         mapLiteral4.put("open", this.safeString(ticker, "o"));
@@ -3622,7 +3642,7 @@ public class Toobit extends ToobitApi
             put( "unrealizedPnl", Toobit.this.safeNumber(position, "unrealizedPnL", (Object) null) );
             put( "side", side );
             put( "contracts", Toobit.this.parseNumber(quantity) );
-            put( "contractSize", null );
+            put( "contractSize", Toobit.this.safeNumber(marketResolved, "contractSize", (Object) null) );
             put( "timestamp", null );
             put( "datetime", null );
             put( "hedged", null );

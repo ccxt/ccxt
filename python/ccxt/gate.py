@@ -1694,6 +1694,14 @@ class gate(Exchange, ImplicitAPI):
         if contractSize == '0':
             contractSize = '1'  # 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         status = self.safe_string(market, 'status', 'trading')  # or "suspend"
+        amountPrecision = self.parse_number('1')
+        enableDecimal = self.safe_bool(market, 'enable_decimal', False)
+        orderSizeMin = self.safe_string(market, 'order_size_min')
+        swap = marketType == 'swap'
+        minAmount = self.parse_number(orderSizeMin)
+        if swap and enableDecimal and (orderSizeMin is not None) and (minAmount is not None) and Precise.string_gt(orderSizeMin, '0'):
+            amountPrecision = minAmount
+        active = (status == 'trading')
         return {
             'id': id,
             'symbol': symbol,
@@ -1706,10 +1714,10 @@ class gate(Exchange, ImplicitAPI):
             'type': marketType,
             'spot': False,
             'margin': False,
-            'swap': marketType == 'swap',
-            'future': marketType == 'future',
+            'swap': swap,
+            'future': (marketType == 'future'),
             'option': False,
-            'active': status == 'trading',
+            'active': active,
             'contract': True,
             'linear': isLinear,
             'inverse': not isLinear,
@@ -1721,7 +1729,7 @@ class gate(Exchange, ImplicitAPI):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.parse_number('1'),  # all contracts have this step size
+                'amount': amountPrecision,
                 'price': self.safe_number(market, 'order_price_round'),
             },
             'limits': {
@@ -1730,7 +1738,7 @@ class gate(Exchange, ImplicitAPI):
                     'max': self.safe_number(market, 'leverage_max'),
                 },
                 'amount': {
-                    'min': self.safe_number(market, 'order_size_min'),
+                    'min': minAmount,
                     'max': self.safe_number(market, 'order_size_max'),
                 },
                 'price': {
@@ -4396,6 +4404,18 @@ class gate(Exchange, ImplicitAPI):
             response = self.privateFuturesPostSettleBatchOrders(ordersRequests)
         return self.parse_orders(response)
 
+    def is_gate_futures_contract_with_decimal_size(self, market: Market) -> bool:
+        info = self.safe_dict(market, 'info', {})
+        isSwap = self.safe_bool(market, 'swap', False)
+        enableDecimal = self.safe_bool(info, 'enable_decimal', False)
+        return isSwap and enableDecimal
+
+    def get_gate_futures_signed_amount(self, symbol: Str, side: Str, amount: Num) -> Str:
+        amountString = self.amount_to_precision(symbol, amount)
+        if side == 'sell':
+            return Precise.string_neg(amountString)
+        return amountString
+
     def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
@@ -4438,15 +4458,19 @@ class gate(Exchange, ImplicitAPI):
         if isMarketOrder and (contract is True):
             priceResolved = 0
         contractAmount = 0
+        signedAmount = None
+        useGateFuturesDecimalSize = False
         if contract is True:
             isClose = self.safe_bool(query, 'close')
             if isClose is not True:
-                amountToPrecision = self.amount_to_precision(symbol, amount)
-                signedAmount = amountToPrecision
-                if side == 'sell':
-                    signedAmount = Precise.string_neg(amountToPrecision)
-                contractAmount = int(signedAmount)
+                signedAmount = self.get_gate_futures_signed_amount(symbol, side, amount)
+                useGateFuturesDecimalSize = self.is_gate_futures_contract_with_decimal_size(market)
+                if not useGateFuturesDecimalSize:
+                    contractAmount = int(signedAmount)
         amountResolved = contractAmount if (contract is True) else amount
+        sizeRequest = amountResolved
+        if useGateFuturesDecimalSize:
+            sizeRequest = signedAmount
         request = None
         nonTriggerOrder = not isTpsl and (trigger is None)
         if nonTriggerOrder:
@@ -4454,7 +4478,7 @@ class gate(Exchange, ImplicitAPI):
                 # contract order
                 request = {
                     'contract': market['id'],  # filled in prepareRequest above
-                    'size': amountResolved,  # int64, positive = bid, negative = ask
+                    'size': sizeRequest,  # int64 (decimal string on enable_decimal markets), positive = bid, negative = ask
                     # 'iceberg': 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                     # 'close': false, // true to close the position, with size set to 0
                     # 'reduce_only': false, // St as true to be reduce-only order
@@ -4536,7 +4560,7 @@ class gate(Exchange, ImplicitAPI):
                 request = {
                     'initial': {
                         'contract': market['id'],
-                        'size': amountResolved,  # positive = buy, negative = sell, set to 0 to close the position
+                        # positive = buy, negative = sell, set to 0 to close the position
                         # 'price': (price === 0) ? '0' : this.priceToPrecision (symbol, price), // set to 0 to use market price
                         # 'close': false, // set to true if trying to close the position
                         # 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
@@ -4545,6 +4569,10 @@ class gate(Exchange, ImplicitAPI):
                     },
                     'settle': market['settleId'],
                 }
+                if useGateFuturesDecimalSize:
+                    request['initial']['amount'] = signedAmount  # FuturesInitialOrder.amount takes precedence over size
+                else:
+                    request['initial']['size'] = amountResolved
                 if type == 'market':
                     request['initial']['price'] = '0'
                 else:
@@ -4659,10 +4687,11 @@ class gate(Exchange, ImplicitAPI):
             if market['spot'] is True:
                 request['amount'] = self.amount_to_precision(symbol, amount)
             else:
-                if side == 'sell':
-                    request['size'] = self.parse_to_numeric(Precise.string_neg(self.amount_to_precision(symbol, amount)))
+                signedAmount = self.get_gate_futures_signed_amount(symbol, side, amount)
+                if self.is_gate_futures_contract_with_decimal_size(market):
+                    request['size'] = signedAmount
                 else:
-                    request['size'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
+                    request['size'] = self.parse_to_numeric(signedAmount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         if market['spot'] is not True:
@@ -6751,8 +6780,12 @@ class gate(Exchange, ImplicitAPI):
                 'SIGN': signature,
                 'Content-Type': 'application/json',
             }
-        bodyResolved = bodyJson
         headersResolved = signedHeaders
+        if type == 'futures':
+            if headersResolved is None:
+                headersResolved = {}
+            headersResolved['X-Gate-Size-Decimal'] = '1'
+        bodyResolved = bodyJson
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def modify_margin_helper(self, symbol: str, amount: Num, params: dict = {}) -> MarginModification:

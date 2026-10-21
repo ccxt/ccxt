@@ -2216,6 +2216,97 @@ public class TestMain extends BaseTest
         return true;
     }
 
+    public Object AssertStaticIsolatedPosition(BaseExchange exchange, Object entry)
+    {
+        if (!Helpers.isTrue(exchange.isDictionary(entry)))
+        {
+            return true;
+        }
+        String marginMode = exchange.safeString(entry, "marginMode");
+        if (!java.util.Objects.equals(marginMode, "isolated"))
+        {
+            return true;
+        }
+        String side = exchange.safeString(entry, "side");
+        Object entryPrice = exchange.safeNumber(entry, "entryPrice", (Object) null);
+        Object liquidationPrice = exchange.safeNumber(entry, "liquidationPrice", (Object) null);
+        Object contracts = exchange.safeNumber(entry, "contracts", (Object) null);
+        Object contractSize = exchange.safeNumber(entry, "contractSize", (Object) null);
+        Object maintenanceMargin = exchange.safeNumber(entry, "maintenanceMargin", (Object) null);
+        Object collateral = exchange.safeNumber(entry, "collateral", (Object) null);
+        Object initialMargin = exchange.safeNumber(entry, "initialMargin", (Object) null);
+        Object unrealizedPnl = exchange.safeNumber(entry, "unrealizedPnl", (Object) null);
+        if ((!java.util.Objects.equals(entryPrice, null)) && (!java.util.Objects.equals(liquidationPrice, null)) && (Helpers.isGreaterThan(entryPrice, 0)) && (Helpers.isGreaterThan(liquidationPrice, 0)))
+        {
+            if (java.util.Objects.equals(side, "long"))
+            {
+                this.AssertStaticError(Helpers.isLessThan(liquidationPrice, entryPrice), "isolated long liquidationPrice should be less than entryPrice", entryPrice, liquidationPrice, (Object) null);
+            } else if (java.util.Objects.equals(side, "short"))
+            {
+                this.AssertStaticError(Helpers.isGreaterThan(liquidationPrice, entryPrice), "isolated short liquidationPrice should be greater than entryPrice", entryPrice, liquidationPrice, (Object) null);
+            }
+        }
+        Object entryMargin = null;
+        if (!java.util.Objects.equals(collateral, null))
+        {
+            if ((!java.util.Objects.equals(unrealizedPnl, null)) && (!Helpers.isEqual(collateral, initialMargin)))
+            {
+                entryMargin = Helpers.subtract(collateral, unrealizedPnl);
+            } else
+            {
+                entryMargin = collateral;
+            }
+        } else if (!java.util.Objects.equals(initialMargin, null))
+        {
+            entryMargin = initialMargin;
+        }
+        if ((!java.util.Objects.equals(entryMargin, null)) && (!java.util.Objects.equals(entryPrice, null)) && (!java.util.Objects.equals(liquidationPrice, null)) && (!java.util.Objects.equals(contracts, null)) && (!java.util.Objects.equals(contractSize, null)) && (!java.util.Objects.equals(maintenanceMargin, null)))
+        {
+            if ((Helpers.isGreaterThan(entryMargin, 0)) && (Helpers.isGreaterThan(entryPrice, 0)) && (Helpers.isGreaterThan(liquidationPrice, 0)) && (Helpers.isGreaterThan(contracts, 0)) && (Helpers.isGreaterThan(contractSize, 0)) && (Helpers.isGreaterThan(maintenanceMargin, 0)))
+            {
+                String symbol = exchange.safeString(entry, "symbol");
+                Object market = (((!java.util.Objects.equals(symbol, null)))) ? exchange.safeDict(exchange.markets, symbol, (Object) null) : null;
+                Boolean isInverse = (!java.util.Objects.equals(market, null)) && Helpers.isTrue(exchange.safeBool(market, "inverse", false));
+                Object priceDiff = 0;
+                if (Boolean.TRUE.equals(isInverse))
+                {
+                    Object invEntry = Helpers.divide(1, entryPrice);
+                    Object invLiq = Helpers.divide(1, liquidationPrice);
+                    priceDiff = (((Helpers.isGreaterThan(invEntry, invLiq)))) ? (Helpers.subtract(invEntry, invLiq)) : (Helpers.subtract(invLiq, invEntry));
+                } else
+                {
+                    priceDiff = (((Helpers.isGreaterThan(entryPrice, liquidationPrice)))) ? (Helpers.subtract(entryPrice, liquidationPrice)) : (Helpers.subtract(liquidationPrice, entryPrice));
+                }
+                Object lossFromEntry = Helpers.multiply(Helpers.multiply(priceDiff, contracts), contractSize);
+                Object calculatedMm = Helpers.subtract(entryMargin, lossFromEntry);
+                this.AssertStaticError(Helpers.isGreaterThan(calculatedMm, 0), "isolated position remaining collateral at liquidationPrice should be greater than 0", maintenanceMargin, calculatedMm, (Object) null);
+                Object mmDiff = (((Helpers.isGreaterThan(calculatedMm, maintenanceMargin)))) ? (Helpers.subtract(calculatedMm, maintenanceMargin)) : (Helpers.subtract(maintenanceMargin, calculatedMm));
+                Object maxTolerance = Helpers.multiply(entryMargin, 0.05);
+                this.AssertStaticError(Helpers.isLessThanOrEqual(mmDiff, maxTolerance), "isolated position maintenanceMargin does not match remaining collateral at liquidationPrice", maintenanceMargin, calculatedMm, (Object) null);
+            }
+        }
+        return true;
+    }
+
+    public Object AssertStaticIsolatedPositions(BaseExchange exchange, Object method, Object output)
+    {
+        if ((java.util.Objects.equals(method, "fetchPosition")) || (java.util.Objects.equals(method, "fetchPositions")) || (java.util.Objects.equals(method, "fetchPositionsForSymbol")) || (java.util.Objects.equals(method, "fetchPositionsRisk")))
+        {
+            if ((output instanceof List))
+            {
+                Integer outputLength = ((List<?>)output).size();
+                for (var i = 0; (outputLength != null && i < outputLength); i++)
+                {
+                    this.AssertStaticIsolatedPosition(exchange, (output == null || i < 0 || i >= ((List<?>)output).size() ? null : ((List<?>)output).get(i)));
+                }
+            } else if (Helpers.isTrue(exchange.isDictionary(output)))
+            {
+                this.AssertStaticIsolatedPosition(exchange, output);
+            }
+        }
+        return true;
+    }
+
     public void AssertStaticResponseOutput(BaseExchange exchange, Object skipKeys, Object computedResult, Object storedResult)
     {
         this.AssertNewAndStoredOutput(exchange, skipKeys, computedResult, storedResult, false, (Object) null);
@@ -2332,10 +2423,12 @@ public class TestMain extends BaseTest
                 {
                     Object unifiedResult = (callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(((Map<String, Object>)data).get("input")))).join();
                     this.AssertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult);
+                    this.AssertStaticIsolatedPositions(mockedExchange, method, expectedResult);
                 } else
                 {
                     Object unifiedResultSync = callExchangeMethodDynamicallySync(exchange, method, this.sanitizeDataInput(((Map<String, Object>)data).get("input")));
                     this.AssertStaticResponseOutput(mockedExchange, skipKeys, unifiedResultSync, expectedResult);
+                    this.AssertStaticIsolatedPositions(mockedExchange, method, expectedResult);
                 }
             } catch(Exception e)
             {
@@ -2604,6 +2697,16 @@ public class TestMain extends BaseTest
                     exchange.extendExchangeOptions((Map<String, Object>) (globalOptions));
                     Object testExchangeOptions = exchange.safeValue(result, "options", new HashMap<String, Object>() {{}});
                     exchange.extendExchangeOptions((Map<String, Object>) (testExchangeOptions));
+                    String apiKey = exchange.safeString(result, "apiKey");
+                    if (!Helpers.isTrue(exchange.isEmptyString(apiKey)))
+                    {
+                        exchange.apiKey = String.valueOf(apiKey);
+                    }
+                    String secret = exchange.safeString(result, "secret");
+                    if (!Helpers.isTrue(exchange.isEmptyString(secret)))
+                    {
+                        exchange.secret = String.valueOf(secret);
+                    }
                     Object skipKeys = this.effectiveSkipKeys(exchange, exchangeData, result);
                     (this.testWsStatically(exchange, method, skipKeys, result)).join();
                     if (!Helpers.isTrue(isSync()))
@@ -2713,6 +2816,11 @@ public class TestMain extends BaseTest
         {
             options.put("apiKey", "");
             options.put("secret", "");
+        }
+        if (java.util.Objects.equals(exchangeName, "backpack"))
+        {
+            // Ed25519 requires a base64-encoded 32-byte seed, not the generic dummy secret.
+            options.put("secret", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=");
         }
         BaseExchange exchange = initExchange(exchangeName, options, java.util.Objects.requireNonNullElse(isWs, false));
         if (!java.util.Objects.equals(currencies, null))
@@ -4427,19 +4535,30 @@ public class TestMain extends BaseTest
         return BaseExchange.supplyAsync(() -> {
 
             BaseExchange exchange = this.initOfflineExchange("coinbaseinternational", false);
+            // ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one
+            exchange.secret = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+            // pre-seed the gateway access token so createOrder signs the order directly instead of
+            // making a prior (offline-unreachable) public/auth network call
+            exchange.token = "token";
+            Object tokenExpires = Helpers.add(exchange.milliseconds(), 100000);
+            ((Map<String, Object>)exchange.options).put("v2TokenExpires", tokenExpires);
             ((Map<String, Object>)exchange.options).put("portfolio", "random");
             String id = "nfqkvdjp";
             Assert(java.util.Objects.equals(((Map<String, Object>)exchange.options).get("brokerId"), id), "id not in options");
-            Object request = new HashMap<String, Object>() {{}};
+            Object clientOrderId = null;
             try
             {
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "createOrder", new Object[]{"BTC/USDC:USDC", "limit", "buy", 1, 20000, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                request = jsonParse(exchange.last_request_body);
+                // buy/sell are GET endpoints, so the label is in the query string, not a JSON body
+                Object url = ((String)exchange.last_request_url);
+                List<Object> urlParts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("?"))));
+                Assert(((List<?>)urlParts).size() > 1, ("last_request_url has no query string: " + url));
+                Object query = this.urlencodedToDict(Helpers.GetValue(urlParts, 1));
+                clientOrderId = ((Map<String, Object>)query).get("label");
             }
-            Object clientOrderId = ((Map<String, Object>)request).get("client_order_id");
-            Assert(java.util.Objects.equals(((String)clientOrderId).startsWith(((String)String.valueOf(id))), true), "clientOrderId does not start with id");
+            Assert(!java.util.Objects.equals(clientOrderId, null) && java.util.Objects.equals(((String)clientOrderId).startsWith(((String)String.valueOf(id))), true), "clientOrderId does not start with id");
             if (!Helpers.isTrue(isSync()))
             {
                 (close(exchange)).join();

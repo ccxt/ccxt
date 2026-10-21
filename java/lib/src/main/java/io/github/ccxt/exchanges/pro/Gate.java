@@ -130,6 +130,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 }} );
             }} );
             put( "options", new HashMap<String, Object>() {{
+                put( "ws", new HashMap<String, Object>() {{
+                    put( "options", new HashMap<String, Object>() {{
+                        put( "headers", new HashMap<String, Object>() {{
+                            put( "X-Gate-Size-Decimal", "1" );
+                        }} );
+                    }} );
+                }} );
                 put( "tradesLimit", 1000 );
                 put( "OHLCVLimit", 1000 );
                 put( "watchTradesSubscriptions", new HashMap<String, Object>() {{}} );
@@ -2103,8 +2110,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 String status = this.safeString(parsed, "status");
                 if (java.util.Objects.equals(status, null))
                 {
-                    Long left = this.safeInteger(info, "left");
-                    Helpers.addElementToObject(parsed, "status", ((((left != null && left == 0)))) ? "closed" : "canceled");
+                    String left = this.safeString(info, "left");
+                    Helpers.addElementToObject(parsed, "status", ((Precise.stringEquals(left, "0"))) ? "closed" : "canceled");
                 }
             }
             stored.append(parsed);
@@ -2726,8 +2733,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     {
         Map<String, Object> findBy = new HashMap<String, Object>() {{
             put( "op-", "option" );
+            put( "/ws/options/", "option" );
             put( "delivery", "future" );
             put( "fx", "swap" );
+            put( "/ws/futures/", "swap" );
         }};
         List<String> keys = new ArrayList<String>(findBy.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)

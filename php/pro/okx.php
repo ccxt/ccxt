@@ -2634,6 +2634,35 @@ class okx extends \ccxt\async\okx {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
+    public function handle_cancel_orders(Client $client, array $message) {
+        //
+        //    {
+        //        "id": "1512",
+        //        "op": "batch-cancel-orders",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "2510789768709120",
+        //                "sCode": "0",
+        //                "sMsg": ""
+        //            }
+        //        ],
+        //        "code": "0",
+        //        "msg": ""
+        //    }
+        //
+        $messageHash = $this->safe_string($message, 'id');
+        $args = $this->safe_list($message, 'data', array());
+        $args = $this->filter_by($args, 'sCode', '0');
+        if ($this->is_empty($args)) {
+            $method = $this->safe_string($message, 'op');
+            $stringMsg = $this->json($message);
+            $this->handle_errors(1, '', $client->url, $method, array(), $stringMsg, $message, array(), array());
+        }
+        $orders = $this->parse_orders($args, null, null, null);
+        $client->resolve($orders, $messageHash);
+    }
+
     public function handle_cancel_all_orders(Client $client, array $message) {
         //
         //    {
@@ -2800,6 +2829,7 @@ class okx extends \ccxt\async\okx {
                 'amend-order' => array($this, 'handle_place_orders'),
                 'batch-amend-orders' => array($this, 'handle_place_orders'),
                 'cancel-order' => array($this, 'handle_place_orders'),
+                'batch-cancel-orders' => array($this, 'handle_cancel_orders'),
                 'mass-cancel' => array($this, 'handle_cancel_all_orders'),
             );
             $method = $this->safe_value($methods, $event);
@@ -2873,6 +2903,10 @@ class okx extends \ccxt\async\okx {
         $subMessageHash = 'multi:' . $channel . ':' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+        // watchOHLCV subscribes through subscribe () under channel:marketId
+        if ($symbol !== null) {
+            $this->clean_unsubscription($client, $channel . ':' . $this->market_id($symbol), null);
+        }
         if (($symbol !== null) && ($timeframe !== null) && (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             unset($this->ohlcvs[$symbol][$timeframe]);
         }
