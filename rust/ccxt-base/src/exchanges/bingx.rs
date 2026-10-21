@@ -1903,6 +1903,8 @@ impl BingxCore {
         m.insert("100419".to_string(), Value::Str("PermissionDenied".into()).clone());
         m.insert("100437".to_string(), Value::Str("BadRequest".into()).clone());
         m.insert("101204".to_string(), Value::Str("InsufficientFunds".into()).clone());
+        m.insert("101205".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("101400".to_string(), Value::Str("InvalidOrder".into()).clone());
         m.insert("110425".to_string(), Value::Str("InvalidOrder".into()).clone());
         m.insert("100490".to_string(), Value::Str("BadSymbol".into()).clone());
         m.insert("101481".to_string(), Value::Str("DuplicateOrderId".into()).clone());

@@ -3213,12 +3213,12 @@ impl SxbetCore {
                 let mut failedHash: Value = self.safe_string_k(pendingEntry.clone(), "messageHash", &[]);
                 let mut subscription: Value = self.safe_string_k(pendingEntry.clone(), "subscription", &[]);
                 if (subscription.as_str() == Some("connect")) {
-                    if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
+                    if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
                 }
                 if (subscription != Value::Null) && (in_op(&get_value(&client, &Value::Str("subscriptions".into())), &subscription)) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subscription);
                 }
-                { let __be_tmp = self.omit(pendingRequests.clone(), requestIdString.clone(), &[]); if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
+                { let __be_tmp = self.omit(pendingRequests.clone(), requestIdString.clone(), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
                 client.reject(&[Value::from(error.clone()), failedHash]);
             }  else {
                 // an error that cannot be correlated to one command fails the whole connection
@@ -3228,12 +3228,12 @@ impl SxbetCore {
         }
         if (pendingEntry != Value::Null) {
             // a successful command ack - the tracked request has served its purpose
-            { let __be_tmp = self.omit(pendingRequests, requestIdString, &[]); if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
+            { let __be_tmp = self.omit(pendingRequests, requestIdString, &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
         }
         let mut connectReply: Value = self.safe_dict_k(msg.clone(), "connect", &[]);
         if (connectReply != Value::Null) {
             // connect acknowledged - unblock connectSxbetCentrifugo so channel subscribes can be sent
-            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(true)); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(true)); }
             client.resolve(&[Value::Bool(true), Value::Str("centrifugoConnected".into())]);
             return;
         }
@@ -3669,7 +3669,7 @@ impl SxbetCore {
             }
             if (self.safe_value(self.trades.clone(), sym.clone(), &[]) == Value::Null) {
                 let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-                if let Value::Dict(__d) = &mut self.trades.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), ArrayCache::new(tradesLimit)); }
+                if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), ArrayCache::new(tradesLimit)); }
             }
             let mut stored: Value = get_value(&self.trades, &sym);
             stored.append(trade);
