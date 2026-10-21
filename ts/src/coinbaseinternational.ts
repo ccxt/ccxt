@@ -3279,7 +3279,7 @@ export default class coinbaseinternational extends Exchange {
         return this.token;
     }
 
-    override sign (path: string, api: string[] | string = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] | string = 'public', method = 'GET', params: Dict = {}): Dict {
         const access = Array.isArray (api) ? api[0] : api;
         const rpcMethod = access + '/' + path;
         let requestParams: Dict = this.handleRouteAndParams ('sign', params);
@@ -3289,7 +3289,7 @@ export default class coinbaseinternational extends Exchange {
             baseApiUrl = 'https://www.deribit.com/api/v2';
         }
         const url = baseApiUrl + '/' + rpcMethod;
-        let requestHeaders: NullableDict = headers;
+        let requestHeaders: NullableDict = undefined;
         if (isNativeDeribit && ((path === 'get_leverage') || (path === 'set_leverage'))) {
             throw new NotSupported (this.id + ' ' + rpcMethod + ' is only documented on the Coinbase gateway');
         }
@@ -3337,7 +3337,7 @@ export default class coinbaseinternational extends Exchange {
             if (Object.keys (requestParams).length > 0) {
                 requestUrl += '?' + this.urlencode (requestParams);
             }
-            return { 'url': requestUrl, 'method': method, 'body': body, 'headers': requestHeaders };
+            return { 'url': requestUrl, 'method': method, 'body': undefined, 'headers': requestHeaders };
         }
         const request = {
             'jsonrpc': '2.0',

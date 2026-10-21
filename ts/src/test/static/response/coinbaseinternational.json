@@ -1149,6 +1149,12 @@
             {
                 "description": "linear swap fetch position coinbase route",
                 "method": "fetchPosition",
+                "options": {
+                    "route": "coinbase",
+                    "routeBackend": false,
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
                 "input": [
                     "BTC/USDC:USDC",
                     {
@@ -1334,6 +1340,12 @@
             {
                 "description": "linear swap fetch positions coinbase route",
                 "method": "fetchPositions",
+                "options": {
+                    "route": "coinbase",
+                    "routeBackend": false,
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
                 "input": [
                     [
                         "BTC/USDC:USDC"
@@ -2620,6 +2632,12 @@
             {
                 "description": "linear swap create order coinbase route",
                 "method": "createOrder",
+                "options": {
+                    "route": "coinbase",
+                    "routeBackend": false,
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
                 "input": [
                     "BTC/USDC:USDC",
                     "limit",
@@ -2731,6 +2749,12 @@
             {
                 "description": "linear swap market buy create order coinbase route",
                 "method": "createOrder",
+                "options": {
+                    "route": "coinbase",
+                    "routeBackend": false,
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
                 "input": [
                     "BTC/USDC:USDC",
                     "market",
@@ -3086,6 +3110,12 @@
             {
                 "description": "linear swap edit order coinbase route",
                 "method": "editOrder",
+                "options": {
+                    "route": "coinbase",
+                    "routeBackend": false,
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
                 "input": [
                     "USDC-209300189875",
                     "BTC/USDC:USDC",
@@ -3309,6 +3339,12 @@
             {
                 "description": "linear swap fetch order coinbase route",
                 "method": "fetchOrder",
+                "options": {
+                    "route": "coinbase",
+                    "routeBackend": false,
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
                 "input": [
                     "USDC-209300189875",
                     "BTC/USDC:USDC",
@@ -3529,6 +3565,12 @@
             {
                 "description": "linear swap fetch open orders coinbase route",
                 "method": "fetchOpenOrders",
+                "options": {
+                    "route": "coinbase",
+                    "routeBackend": false,
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
                 "input": [
                     "BTC/USDC:USDC",
                     null,
@@ -3751,6 +3793,12 @@
             {
                 "description": "linear swap cancel order coinbase route",
                 "method": "cancelOrder",
+                "options": {
+                    "route": "coinbase",
+                    "routeBackend": false,
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
                 "input": [
                     "USDC-209300189875",
                     "BTC/USDC:USDC",
@@ -3916,6 +3964,12 @@
             {
                 "description": "linear swap cancel all orders coinbase route",
                 "method": "cancelAllOrders",
+                "options": {
+                    "route": "coinbase",
+                    "routeBackend": false,
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
                 "input": [
                     "BTC/USDC:USDC",
                     {
@@ -4262,6 +4316,12 @@
             {
                 "description": "linear swap fetch my trades coinbase route",
                 "method": "fetchMyTrades",
+                "options": {
+                    "route": "coinbase",
+                    "routeBackend": false,
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
                 "input": [
                     "BTC/USDC:USDC",
                     null,
