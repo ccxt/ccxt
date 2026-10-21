@@ -107,6 +107,8 @@ jobs:
           # paradex: watch chain never registers a pending future — the
           # injector can't settle it and the test hangs (port gap, tracked)
           [ "$id" = "paradex" ] && continue
+          # prediction-tier venues have no pro counterpart in the port
+          [ "$id" = "polymarket" ] && continue
           timeout 240 cpp/build/ccxt-tests "$id" --wsTests || exit 1
         done
 
