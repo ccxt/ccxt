@@ -4248,18 +4248,19 @@ class BaseExchange(object):
 
     def set_markets(self, markets: object, currencies: object = None):
         values = []
-        self.markets_by_id = self.create_safe_dictionary()
+        # build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        marketsById = {}
         # handle marketId conflicts
         # we insert spot markets first
         marketValues = self.sort_by(self.to_array(markets), 'spot', True, True)
         for i in range(0, len(marketValues)):
             value = marketValues[i]
-            if value['id'] in self.markets_by_id:
-                marketsByIdArray = (self.markets_by_id[value['id']])
+            if value['id'] in marketsById:
+                marketsByIdArray = (marketsById[value['id']])
                 marketsByIdArray.append(value)
-                self.markets_by_id[value['id']] = marketsByIdArray
+                marketsById[value['id']] = marketsByIdArray
             else:
-                self.markets_by_id[value['id']] = [value]
+                marketsById[value['id']] = [value]
             # strip undefined-valued keys from the parsed market before deepExtend,
             # otherwise an explicit `taker: undefined` (from safeMarketStructure)
             # would clobber the fee defaults from this.fees['trading'] in the merge
@@ -4281,6 +4282,7 @@ class BaseExchange(object):
                 market['subType'] = None
             values.append(market)
         self.markets = self.map_to_safe_map(self.index_by(values, 'symbol'))
+        self.markets_by_id = self.map_to_safe_map(marketsById)
         marketsSortedBySymbol = self.keysort(self.markets)
         marketsSortedById = self.keysort(self.markets_by_id)
         self.symbols = list(marketsSortedBySymbol.keys())
