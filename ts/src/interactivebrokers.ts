@@ -46,9 +46,9 @@ export default class interactivebrokers extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchCanceledOrders': false,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrder': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchDeposit': false,
                 'fetchDepositAddress': false,
@@ -70,7 +70,7 @@ export default class interactivebrokers extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': false,
                 'fetchOrderBooks': false,
@@ -641,7 +641,13 @@ export default class interactivebrokers extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOpenOrders': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': undefined,
@@ -651,7 +657,16 @@ export default class interactivebrokers extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': 1, // current brokerage session only
+                        'daysBackCanceled': 1,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
@@ -2418,6 +2433,80 @@ export default class interactivebrokers extends Exchange {
         const market = this.marketOrNull (symbol);
         const orders = await this.fetchLiveOrdersRaw (params);
         return this.parseOrders (orders, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchOpenOrders
+     * @description fetch all unfilled currently open orders of the current brokerage session
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.filters] comma-separated status filters, default 'pending_submit,pre_submitted,submitted,pending_cancel,warn_state'
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        return await this.fetchOrdersByStatusFilter ('open', 'pending_submit,pre_submitted,submitted,pending_cancel,warn_state', symbol, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchClosedOrders
+     * @description fetches information on multiple filled orders of the current brokerage session
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.filters] comma-separated status filters, default 'filled'
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        return await this.fetchOrdersByStatusFilter ('closed', 'filled', symbol, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders of the current brokerage session
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.filters] comma-separated status filters, default 'cancelled'
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        return await this.fetchOrdersByStatusFilter ('canceled', 'cancelled', symbol, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#fetchOrdersByStatusFilter
+     * @description fetches the live orders filtered by the exchange-side status filters, then keeps only the orders with the given unified status
+     * @ignore
+     * @param {string} status unified order status to keep, 'open', 'closed' or 'canceled'
+     * @param {string} defaultFilters comma-separated exchange status filters used when params.filters is not set
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOrdersByStatusFilter (status: string, defaultFilters: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const market = this.marketOrNull (symbol);
+        const filters = this.safeString (params, 'filters', defaultFilters);
+        const request: Dict = {
+            'filters': filters,
+        };
+        const orders = await this.fetchLiveOrdersRaw (this.extend (request, params));
+        const parsed = this.parseOrders (orders, market, undefined, undefined);
+        const filtered = this.filterBy (parsed, 'status', status);
+        return this.filterBySymbolSinceLimit (filtered, symbol, since, limit) as Order[];
     }
 
     /**

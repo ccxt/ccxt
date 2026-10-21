@@ -7,7 +7,56 @@
             {
                 "description": "spot crypto",
                 "method": "fetchClosedOrders",
-                "url": "https://api.ibkr.com/v1/api/iserver/account/orders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=filled",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            },
+            {
+                "description": "spot crypto",
+                "method": "fetchClosedOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=filled",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            },
+            {
+                "description": "spot crypto",
+                "method": "fetchClosedOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=filled",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "spot crypto",
+                "method": "fetchOpenOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=pending_submit%2Cpre_submitted%2Csubmitted%2Cpending_cancel%2Cwarn_state",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "spot crypto",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=cancelled",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            },
+            {
+                "description": "spot crypto",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=cancelled",
                 "input": [
                     "ETH/USD"
                 ],
@@ -33,8 +82,7 @@
                 ],
                 "output": null
             }
-        ],
-        
+        ]
     },
     "outputType": "both"
 }
