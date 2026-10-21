@@ -1272,7 +1272,8 @@
                             "liquidationPrice": null,
                             "marginRatio": null,
                             "marginMode": null,
-                            "percentage": null
+                            "percentage": null,
+                            "positionMargin": null
                         }
                     ],
                     [
@@ -1319,7 +1320,8 @@
                             "liquidationPrice": null,
                             "marginRatio": null,
                             "marginMode": null,
-                            "percentage": null
+                            "percentage": null,
+                            "positionMargin": null
                         },
                         {
                             "info": {
@@ -1357,14 +1359,15 @@
                             "datetime": null,
                             "hedged": null,
                             "maintenanceMargin": 0.114685624,
-                            "maintenanceMarginPercentage": null,
+                            "maintenanceMarginPercentage": 0.013333333023307076,
                             "initialMargin": 0.17202844,
-                            "initialMarginPercentage": null,
+                            "initialMarginPercentage": 0.02,
                             "leverage": 50,
                             "liquidationPrice": null,
                             "marginRatio": null,
                             "marginMode": null,
-                            "percentage": 0.09
+                            "percentage": 0.09,
+                            "positionMargin": null
                         }
                     ]
                 ]
@@ -1373,6 +1376,8 @@
         "watchOrders": [
             {
                 "description": "linear swap watch orders coinbase route",
+                "apiKey": "organizations/test/apiKeys/test",
+                "secret": "-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEILR+RdqPtbB1DqoOdkpeQgAhguYvFhLU3ANdYNNrg7mKoAoGCCqGSM49\nAwEHoUQDQgAEba6DCnNswpCKBj1GgV42vA375qG54De9Wr3YLFUoG7nOK63uKDWJ\nSxSbJOU/zYyR66L1d1jSmF5cbeVYuOYnbw==\n-----END EC PRIVATE KEY-----",
                 "input": [
                     "BTC/USDC:USDC",
                     null,
@@ -1408,28 +1413,6 @@
                     },
                     {
                         "jsonrpc": "2.0",
-                        "id": 3,
-                        "result": {
-                            "version": "1.2.26"
-                        },
-                        "usIn": "1792484879944784",
-                        "usOut": "1792484879944827",
-                        "usDiff": 43,
-                        "testnet": false
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "id": 4,
-                        "result": {
-                            "version": "1.2.26"
-                        },
-                        "usIn": "1792484894901847",
-                        "usOut": "1792484894901906",
-                        "usDiff": 59,
-                        "testnet": false
-                    },
-                    {
-                        "jsonrpc": "2.0",
                         "method": "subscription",
                         "params": {
                             "channel": "user.orders.BTC_USDC-PERPETUAL.raw",
@@ -1461,17 +1444,6 @@
                                 "risk_reducing": false
                             }
                         }
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "id": 6,
-                        "result": {
-                            "version": "1.2.26"
-                        },
-                        "usIn": "1792484909903394",
-                        "usOut": "1792484909903458",
-                        "usDiff": 64,
-                        "testnet": false
                     }
                 ],
                 "sentMessages": [
@@ -1480,9 +1452,8 @@
                         "id": 1,
                         "method": "public/auth",
                         "params": {
-                            "grant_type": "client_credentials",
-                            "client_id": "key",
-                            "client_secret": "secretsecret"
+                            "grant_type": "coinbase_cdp",
+                            "token": "volatile"
                         }
                     },
                     {
@@ -1494,25 +1465,10 @@
                             ]
                         },
                         "id": 2
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "id": 3,
-                        "method": "public/test",
-                        "params": {}
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "id": 4,
-                        "method": "public/test",
-                        "params": {}
-                    },
-                    {
-                        "jsonrpc": "2.0",
-                        "id": 6,
-                        "method": "public/test",
-                        "params": {}
                     }
+                ],
+                "sentSkipKeys": [
+                    "token"
                 ],
                 "parsedResponses": [
                     [

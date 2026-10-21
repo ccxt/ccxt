@@ -2305,6 +2305,14 @@ class testMainClass {
                 exchange.extendExchangeOptions (globalOptions);
                 const testExchangeOptions = exchange.safeValue (result, 'options', {});
                 exchange.extendExchangeOptions (testExchangeOptions);
+                const apiKey = exchange.safeString (result, 'apiKey');
+                if (!exchange.isEmptyString (apiKey)) {
+                    exchange.apiKey = (apiKey as string).toString ();
+                }
+                const secret = exchange.safeString (result, 'secret');
+                if (!exchange.isEmptyString (secret)) {
+                    exchange.secret = (secret as string).toString ();
+                }
                 const skipKeys = this.effectiveSkipKeys (exchange, exchangeData, result);
                 await this.testWsStatically (exchange, method, skipKeys, result);
                 if (!isSync ()) {
