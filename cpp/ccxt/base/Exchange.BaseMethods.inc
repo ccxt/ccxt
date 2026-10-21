@@ -3426,6 +3426,7 @@ fetchPaginatedCallDynamic(ccxt::any method, ccxt::any symbol = ccxt::any{},
                 }
                 paginationTimestamp = since;
               }
+              ccxt::any shouldBreak = false;
               while ((isLessThan(calls, maxCallsPaginationCalls))) {
                 calls = add(calls, 1);
                 try {
@@ -3462,6 +3463,7 @@ fetchPaginatedCallDynamic(ccxt::any method, ccxt::any symbol = ccxt::any{},
                       this->log(backwardMessage);
                     }
                     if (isTrue(isEqual(responseLength, 0))) {
+                      shouldBreak = true;
                       break;
                     }
                     errors = 0;
@@ -3470,11 +3472,13 @@ fetchPaginatedCallDynamic(ccxt::any method, ccxt::any symbol = ccxt::any{},
                     paginationTimestamp = this->safeInteger2(
                         firstElement, std::string("timestamp"), 0);
                     if (isTrue(isEqual(paginationTimestamp, ccxt::any{}))) {
+                      shouldBreak = true;
                       break;
                     }
                     if (isTrue(isTrue((!isEqual(since, ccxt::any{}))) &&
                                isTrue((isLessThanOrEqual(paginationTimestamp,
                                                          since))))) {
+                      shouldBreak = true;
                       break;
                     }
                   } else {
@@ -3503,6 +3507,7 @@ fetchPaginatedCallDynamic(ccxt::any method, ccxt::any symbol = ccxt::any{},
                       this->log(forwardMessage);
                     }
                     if (isTrue(isEqual(responseLength, 0))) {
+                      shouldBreak = true;
                       break;
                     }
                     errors = 0;
@@ -3512,6 +3517,7 @@ fetchPaginatedCallDynamic(ccxt::any method, ccxt::any symbol = ccxt::any{},
                     ccxt::any lastTimestamp =
                         this->safeInteger(last, std::string("timestamp"), 0);
                     if (isTrue(isEqual(lastTimestamp, ccxt::any{}))) {
+                      shouldBreak = true;
                       break;
                     }
                     ccxt::any nextPaginationTimestamp = add(lastTimestamp, 1);
@@ -3519,6 +3525,7 @@ fetchPaginatedCallDynamic(ccxt::any method, ccxt::any symbol = ccxt::any{},
                     if (isTrue(isTrue((!isEqual(until, ccxt::any{}))) &&
                                isTrue((isGreaterThanOrEqual(
                                    nextPaginationTimestamp, until))))) {
+                      shouldBreak = true;
                       break;
                     }
                   }
@@ -3528,6 +3535,10 @@ fetchPaginatedCallDynamic(ccxt::any method, ccxt::any symbol = ccxt::any{},
                   if (isTrue(isGreaterThan(errors, maxRetriesOption))) {
                     throw;
                   }
+                }
+                if (isTrue(shouldBreak)) {
+                  break; // go turns a break inside try into a panic that only
+                         // ends the iteration
                 }
               }
               ccxt::any uniqueResults = result;
@@ -3766,6 +3777,7 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallCursor(
                   std::string("timeframe")); // reading the timeframe from the
                                              // method arguments to avoid
                                              // changing the signature
+              ccxt::any shouldBreak = false;
               while (isLessThan(i, maxCallsPaginationCalls)) {
                 try {
                   if (isTrue(!isEqual(cursorValue, ccxt::any{}))) {
@@ -3839,6 +3851,7 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallCursor(
                     this->log(cursorMessage);
                   }
                   if (isTrue(isEqual(responseLength, 0))) {
+                    shouldBreak = true;
                     break;
                   }
                   if (isTrue(!isEqual(response, ccxt::any{}))) {
@@ -3849,22 +3862,25 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallCursor(
                   // cursorValue = this.safeValue (last['info'],
                   // cursorReceived);
                   cursorValue = ccxt::any{}; // search for the cursor
+                  // guard instead of break: inside a try block go turns break
+                  // into a panic that ends the whole iteration
                   for (ccxt::any j = 0; isLessThan(j, responseLength);
                        postFixIncrement(j)) {
-                    ccxt::any index = subtract(subtract(responseLength, j), 1);
-                    ccxt::any entry = this->safeDict(response, index);
-                    ccxt::any info = this->safeDict(entry, std::string("info"));
-                    ccxt::any cursor =
-                        (isTrue((isEqual(cursorReceived, ccxt::any{})))
-                             ? ccxt::any(ccxt::any{})
-                             : ccxt::any(
-                                   this->safeValue(info, cursorReceived)));
-                    if (isTrue(!isEqual(cursor, ccxt::any{}))) {
-                      cursorValue = cursor;
-                      break;
+                    if (isTrue(isEqual(cursorValue, ccxt::any{}))) {
+                      ccxt::any index =
+                          subtract(subtract(responseLength, j), 1);
+                      ccxt::any entry = this->safeDict(response, index);
+                      ccxt::any info =
+                          this->safeDict(entry, std::string("info"));
+                      cursorValue =
+                          (isTrue((isEqual(cursorReceived, ccxt::any{})))
+                               ? ccxt::any(ccxt::any{})
+                               : ccxt::any(
+                                     this->safeValue(info, cursorReceived)));
                     }
                   }
                   if (isTrue(isEqual(cursorValue, ccxt::any{}))) {
+                    shouldBreak = true;
                     break;
                   }
                   ccxt::any lastTimestamp =
@@ -3876,6 +3892,7 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallCursor(
                   }
                   if (isTrue(isTrue(!isEqual(lastTimestamp, ccxt::any{})) &&
                              isTrue(isLessThan(lastTimestamp, since)))) {
+                    shouldBreak = true;
                     break;
                   }
                 } catch (...) {
@@ -3884,6 +3901,10 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallCursor(
                   if (isTrue(isGreaterThan(errors, maxRetriesOption))) {
                     throw;
                   }
+                }
+                if (isTrue(shouldBreak)) {
+                  break; // go turns a break inside try into a panic that only
+                         // ends the iteration
                 }
                 i = add(i, 1);
               }
@@ -3935,6 +3956,7 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallIncremental(
               ccxt::any i = 0;
               ccxt::any errors = 0;
               ccxt::any result = ccxt::list{};
+              ccxt::any shouldBreak = false;
               while (isLessThan(i, maxCallsPaginationCalls)) {
                 try {
                   ::setValue(paramsMaxEntriesPerRequest, pageKey, add(i, 1));
@@ -3957,6 +3979,7 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallIncremental(
                     this->log(incrementalMessage);
                   }
                   if (isTrue(isEqual(responseLength, 0))) {
+                    shouldBreak = true;
                     break;
                   }
                   result = this->arrayConcat(result, response);
@@ -3966,6 +3989,10 @@ virtual std::shared_future<ccxt::any> fetchPaginatedCallIncremental(
                   if (isTrue(isGreaterThan(errors, maxRetriesOption))) {
                     throw;
                   }
+                }
+                if (isTrue(shouldBreak)) {
+                  break; // go turns a break inside try into a panic that only
+                         // ends the iteration
                 }
                 i = add(i, 1);
               }
