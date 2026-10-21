@@ -1432,8 +1432,8 @@ export default class phemex extends Exchange {
         if (usesSpecialFromToEndpoint) {
             maxLimit = 2000;
         }
-        const limitResolved = (limit === undefined) ? maxLimit : limit;
-        request['limit'] = Math.min (limitResolved, maxLimit);
+        const limitResolved = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        request['limit'] = limitResolved;
         let sinceSeconds: Int = undefined;
         let response: Dict;
         if ((market['linear'] === true) || isStableSettled) {

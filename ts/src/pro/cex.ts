@@ -427,10 +427,7 @@ export default class cex extends cexRest {
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
         }
-        let timestamp = this.safeInteger (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,

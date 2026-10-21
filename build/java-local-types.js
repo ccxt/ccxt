@@ -19159,3 +19159,345 @@ export function nativeJavaJ27Arithmetic (content) {
     }
     return out;
 }
+
+// hx4 J31
+// ===== hx4 J31: multiply/subtract over Long/Integer locals the J04/J23 null proofs miss =====
+// Adds non-null writes the string-blind splitters reject: ternaries whose condition holds a string literal
+// (`Objects.equals(market.get("spot"), true) ? 500L : 1000L`) and safeInteger*(.., "k", <non-null default>).
+function j31Masked (text) {
+    const strs = [];
+    const masked = text.replace (/"(?:[^"\\]|\\.)*"/g, (s) => { strs.push (s); return 'j31s' + (strs.length - 1); });
+    return { masked, unmask: (t) => t.replace (/j31s(\d+)/g, (_, i) => strs[Number (i)]) };
+}
+
+function j31NonNullValue (ctx, value, nn) {
+    if (j23NonNullValue (ctx, value, nn)) return true;
+    const { masked, unmask } = j31Masked (longLimitStrip (value));
+    const t = longLimitSplitTernary (masked);
+    if (t !== undefined) {
+        const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
+        const arm = (a, isTrue) => {
+            const x = longLimitStrip (unmask (a));
+            if (g !== null && x === g[2] && (g[1] === '!') === isTrue && [ 'Long', 'Integer' ].includes (ctx.declType (x))) return true;
+            return /^-?\d+L$/.test (x) || j31NonNullValue (ctx, x, nn);
+        };
+        return arm (t.whenTrue, true) && arm (t.whenFalse, false);
+    }
+    // SafeIntegerN answers toLong(default) on every miss: a non-null numeric default is never null
+    const safe = /^(?:\w+\.)?this\.(safeInteger|safeInteger2|safeIntegerN)\(/.exec (masked);
+    if (safe !== null) {
+        const args = longLimitCallArgs (masked, safe[0].slice (0, -1));
+        const min = safe[1] === 'safeInteger2' ? 4 : 3;
+        if (args !== undefined && args.length === min) {
+            const d = longLimitStrip (unmask (args[min - 1]));
+            if (/^-?\d+L?$/.test (d)) return true;
+            const k = j23Kind (ctx, d, nn);
+            if (k !== undefined && k !== 'double') return true;
+        }
+    }
+    return false;
+}
+
+function j31MemberCtx (lines, from, to) {
+    const base = j23MemberCtx (lines, from, to);
+    // a local re-declared in sibling blocks with one type keeps that type (writes are scanned member-wide)
+    const ctx = { declType: (name) => {
+        const t = base.ctx.declType (name);
+        if (t !== undefined) return t;
+        const d = longLimitDeclarations (lines, from, to, name);
+        return d.length > 1 && d[0].index > from && d.every ((x) => x.type === d[0].type) ? d[0].type.replace (/^final\s+/, '') : undefined;
+    } };
+    const writes = (name) => {
+        const decl = new RegExp (`^\\s*(?:final\\s+)?(?:Long|Integer|Object) ${name} = (.*?);(\\s*//.*)?$`);
+        const plain = new RegExp (`^\\s*${name} = (.*?);(\\s*//.*)?$`);
+        const other = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+        const any = new RegExp (`(?<![\\w$.=!<>])${name}\\s*=(?!=)`);
+        const out = [];
+        for (let w = from + 1; w < to; w++) {
+            const code = longLimitCodeOnly (lines[w]);
+            if (!new RegExp (`(?<![\\w$.])${name}\\b`).test (code)) continue;
+            if (other.test (code) || (/->/.test (code) && any.test (code))) return undefined;
+            const m = decl.exec (lines[w]) ?? plain.exec (lines[w]);
+            if (m !== null) out.push ({ line: w, value: m[1].trim () });
+            else if (any.test (code)) return undefined;
+        }
+        return out;
+    };
+    const memo = new Map ();
+    const writesNonNull = (name, seen) => {
+        if (memo.has (name)) return memo.get (name);
+        if (seen.has (name)) return false;
+        if (![ 'Long', 'Integer' ].includes (ctx.declType (name))) return false;
+        seen.add (name);
+        const ws = writes (name);
+        const ok = ws !== undefined && ws.length > 0
+            && new RegExp (`^\\s*(?:final\\s+)?(?:Long|Integer) ${name} = `).test (lines[ws[0].line])
+            && ws.every ((w) => j31NonNullValue (ctx, w.value, (n) => base.nonNullAt (n, w.line) || writesNonNull (n, seen)));
+        seen.delete (name);
+        memo.set (name, ok);
+        return ok;
+    };
+    const nonNullAt = (name, j) => base.nonNullAt (name, j) || writesNonNull (name, new Set ());
+    // an Object local whose every write is a never-null integral value (Integer or Long box)
+    const intMemo = new Map ();
+    const objectIntegral = (name) => {
+        if (intMemo.has (name)) return intMemo.get (name);
+        intMemo.set (name, false);
+        let ok = ctx.declType (name) === 'Object';
+        const ws = ok ? writes (name) : undefined;
+        ok = ok && ws !== undefined && ws.length > 0 && new RegExp (`^\\s*Object ${name} = `).test (lines[ws[0].line])
+            && ws.every ((w) => j31Integral (ctx, w.value, (n) => n !== name && nonNullAt (n, w.line), objectIntegral));
+        intMemo.set (name, ok);
+        return ok;
+    };
+    return { ctx, nonNullAt, objectIntegral };
+}
+
+// Generic.sum maps null to 0 and answers (long) for a whole sum: integral (or null) args give a Long box
+function j31IntegralSum (ctx, e, nn, objInt) {
+    const m = /^((?:\w+\.)?this\.sum)\(/.exec (e);
+    const args = m === null ? undefined : longLimitCallArgs (e, m[1]);
+    return args !== undefined && args.every ((a) => {
+        const x = longLimitStrip (a);
+        if (/^[A-Za-z_]\w*$/.test (x) && [ 'Long', 'Integer', 'long', 'int' ].includes (ctx.declType (x))) return true;
+        return j31Integral (ctx, x, nn, objInt);
+    });
+}
+
+// `((Number) <x>).longValue()` (a J31 emission) reads as a primitive long for the kind proofs
+function j31LongValues (text) {
+    let out = text;
+    for (let k = out.indexOf ('((Number) '); k !== -1; k = out.indexOf ('((Number) ', k + 1)) {
+        let depth = 0;
+        let close = -1;
+        for (let x = k; x < out.length; x++) {
+            if (out[x] === '(') depth++;
+            else if (out[x] === ')' && --depth === 0) { close = x; break; }
+        }
+        if (close !== -1 && out.startsWith ('.longValue()', close + 1)) out = out.slice (0, k) + '9L' + out.slice (close + 13);
+    }
+    return out;
+}
+
+// a never-null int/long value (string literals in a ternary condition allowed); objInt proves Object locals
+function j31Integral (ctx, value, nn, objInt = () => false) {
+    value = j31LongValues (value);
+    const k = j24Kind (ctx, value, nn);
+    if (k !== undefined) return k !== 'double';
+    const e = longLimitStrip (value);
+    if (/^[A-Za-z_]\w*$/.test (e)) return ctx.declType (e) === 'Object' && objInt (e);
+    if (/^-?\d+L$/.test (e)) return true;
+    if (j31IntegralSum (ctx, e, nn, objInt)) return true;
+    // mathMin/mathMax hand back one operand; multiply/subtract of integral boxes stay Long
+    const h = /^(Helpers\.(?:mathMin|mathMax|multiply|subtract))\(/.exec (e);
+    const hargs = h === null ? undefined : longLimitCallArgs (e, h[1]);
+    if (hargs !== undefined && hargs.length === 2) return hargs.every ((a) => j31Integral (ctx, a, nn, objInt));
+    const { masked, unmask } = j31Masked (e);
+    const t = longLimitSplitTernary (masked);
+    if (t === undefined) return false;
+    const guards = new Set (j04GuardNames (t.cond, false));
+    const negs = new Set (j04GuardNames (t.cond, true));
+    const arm = (a, isTrue) => {
+        const x = longLimitStrip (unmask (a));
+        const guarded = (isTrue ? guards : negs).has (x) && [ 'Long', 'Integer' ].includes (ctx.declType (x));
+        return guarded || j31Integral (ctx, x, nn, objInt);
+    };
+    return arm (t.whenTrue, true) && arm (t.whenFalse, false);
+}
+
+// j23Member restricted to multiply/subtract with the J31 null proofs
+function j31Member (lines, from, to) {
+    let state;
+    let changed = false;
+    const helpers = [ [ 'Helpers.subtract(', '-' ], [ 'Helpers.multiply(', '*' ] ];
+    const atom = (e) => (/^[\w.]+(\(\))?$/.test (e) ? e : `(${e})`);
+    for (let j = from + 1; j < to; j++) {
+        if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
+        state = state ?? j31MemberCtx (lines, from, to);
+        let line = lines[j];
+        const mask0 = longMultiplyMask (line);
+        const starts = [];
+        for (const [ h, op ] of helpers) {
+            for (let k = mask0.indexOf (h); k !== -1; k = mask0.indexOf (h, k + 1)) {
+                if (k === 0 || !/[\w.]/.test (mask0[k - 1])) starts.push ([ k, h, op ]);
+            }
+        }
+        starts.sort ((a, b) => b[0] - a[0]);
+        for (const [ start, h, op ] of starts) {
+            const mask = longMultiplyMask (line);
+            const call = longMultiplyArgSpans (mask, start + h.length - 1);
+            if (call === undefined || call.spans.length !== 2) continue;
+            const args = call.spans.map (([ x, y ]) => longLimitStrip (line.slice (x, y)));
+            const plain = j04PlainValuePosition (mask, start, call.close);
+            const armOk = !plain && j23TernaryArmOk (line, mask, start, call.close, state.ctx);
+            if (!plain && !armOk) continue;
+            const ternary = j04TernaryGuarded (mask, line, start);
+            const nn = (n) => ternary.has (n) || state.nonNullAt (n, j);
+            const kinds = args.map ((a) => j23Kind (state.ctx, j31LongValues (a), nn));
+            // an integral Object local reads through Number.longValue(): the helper widened Integer to Long too
+            args.forEach ((a, x) => {
+                if (kinds[x] === undefined && ((/^[A-Za-z_]\w*$/.test (a) && state.objectIntegral (a))
+                    || j31IntegralSum (state.ctx, a, nn, state.objectIntegral))) {
+                    kinds[x] = 'long';
+                    args[x] = `((Number) ${atom (a)}).longValue()`;
+                }
+            });
+            // a double operand: subtract keeps toDouble(a) - toDouble(b); multiply would re-box (left to J23)
+            if (kinds.includes (undefined) || (kinds.includes ('double') && (op === '*' || armOk))) continue;
+            const show = (a, k) => (k === 'intlit' ? a + 'L' : atom (a));
+            let text;
+            if (kinds.includes ('double')) {
+                text = `(${show (args[0], kinds[0])} ${op} ${show (args[1], kinds[1])})`;
+            } else {
+                const allInt = kinds.every ((k) => k === 'int' || k === 'intlit') && !kinds.every ((k) => k === 'intlit');
+                const lit = kinds.every ((k) => k === 'intlit');
+                text = lit ? `(${args[0]}L ${op} ${args[1]}L)` : `(${allInt ? `((long) ${atom (args[0])})` : show (args[0], kinds[0])} ${op} ${allInt && kinds[1] === 'intlit' ? args[1] : show (args[1], kinds[1])})`;
+            }
+            line = line.slice (0, start) + text + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    return changed;
+}
+
+export function nativeJavaJ31Arithmetic (content) {
+    if (!/Helpers\.(?:subtract|multiply)\(/.test (content)) return content;
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    let changed = false;
+    for (let s = 0; s < starts.length; s++) {
+        if (j31Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+// hx4 J32
+// ===== hx4 J32: Helpers.divide / Helpers.mod / Helpers.opNeg on proven Number operands print native =====
+// divide/mod return null for a null operand, else toDouble(a) op toDouble(b) (a Double box); opNeg negates the exact
+// box. Operands: numeric literals, declared Long/Integer/Double(/primitive) names, Object locals whose every write is a
+// Number producer, a non-overridden `this.sum(..)` (never null). Each boxed name is null-guarded once.
+const J32_NUMERIC_DECL = [ 'Long', 'Integer', 'Double', 'long', 'int', 'double' ];
+
+function j32Writes (lines, from, to, name) {
+    const decl = new RegExp (`^\\s*(?:final\\s+)?[A-Za-z_][\\w.<>, ]*? ${name} = (.*?);(\\s*//.*)?$`);
+    const plain = new RegExp (`^\\s*${name} = (.*?);(\\s*//.*)?$`);
+    const other = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b|(?<![\\w$.])${name}\\s*->`);
+    const any = new RegExp (`(?<![\\w$.])${name}\\s*=(?!=)`);
+    const out = [];
+    for (let w = from + 1; w < to; w++) {
+        const code = longLimitCodeOnly (lines[w]);
+        if (!new RegExp (`(?<![\\w$.])${name}\\b`).test (code)) continue;
+        if (other.test (code)) return undefined;
+        const m = decl.exec (lines[w]) ?? plain.exec (lines[w]);
+        if (m !== null) out.push (m[1].trim ());
+        else if (any.test (code)) return undefined;
+    }
+    return out;
+}
+
+function j32Member (lines, from, to, overrides) {
+    const ctx = j04MemberCtx (lines, from, to).ctx;
+    const memo = new Map ();
+    const sumCall = (e) => !overrides.has ('sum') && longLimitCallArgs (e, 'this.sum') !== undefined;
+    // a printed value that is null or a java.lang.Number at runtime
+    const numberValue = (v, seen) => {
+        const e = longLimitStrip (v);
+        if (e === 'null' || /^-?\d+(?:\.\d+)?L?$/.test (e) || sumCall (e)) return true;
+        if (/^this\.(?:milliseconds|seconds)\(\)$/.test (e) && !overrides.has ('milliseconds') && !overrides.has ('seconds')) return true;
+        if (!overrides.has ('parseToInt') && longLimitCallArgs (e, 'this.parseToInt') !== undefined) return true;
+        for (const h of [ 'Helpers.parseInt', 'Helpers.multiply', 'Helpers.subtract', 'Helpers.divide', 'Helpers.mod', 'Math.min', 'Math.max' ]) {
+            if (longLimitCallArgs (e, h) !== undefined) return true;
+        }
+        if (/^[A-Za-z_]\w*$/.test (e)) return objectNumber (e, seen) || J32_NUMERIC_DECL.includes (ctx.declType (e));
+        if (j04Kind (ctx, e, () => true) !== undefined) return true;
+        const t = longLimitSplitTernary (e);
+        return t !== undefined && numberValue (t.whenTrue, seen) && numberValue (t.whenFalse, seen);
+    };
+    const objectNumber = (name, seen) => {
+        if (memo.has (name)) return memo.get (name);
+        if (seen.has (name) || ctx.declType (name) !== 'Object') return false;
+        seen.add (name);
+        const ws = j32Writes (lines, from, to, name);
+        const ok = ws !== undefined && ws.length > 0 && ws.every ((v) => numberValue (v, seen));
+        seen.delete (name);
+        memo.set (name, ok);
+        return ok;
+    };
+    // { text: double-valued text, guard?: boxed name } for a divide/mod operand
+    const operand = (a) => {
+        const e = longLimitStrip (a);
+        if (/^-?\d+(?:\.\d+)?L?$/.test (e)) return { text: `((double) ${e})` };
+        if (e === 'this.rateLimit' && !overrides.has ('rateLimit')) return { text: 'this.rateLimit' };
+        if (sumCall (e)) return { text: `((Number) ${e}).doubleValue()` };
+        if (/^[A-Za-z_]\w*$/.test (e)) {
+            const t = ctx.declType (e);
+            if ([ 'long', 'int', 'double' ].includes (t)) return { text: `((double) ${e})` };
+            if ([ 'Long', 'Integer', 'Double' ].includes (t)) return { text: `((double) ${e})`, guard: e };
+            if (objectNumber (e, new Set ())) return { text: `((Number) ${e}).doubleValue()`, guard: e };
+            return undefined;
+        }
+        const k = j04Kind (ctx, e, () => false);
+        return k !== undefined ? { text: `((double) (${e}))` } : undefined;
+    };
+    const helpers = [ [ 'Helpers.divide(', '/' ], [ 'Helpers.mod(', '%' ], [ 'Helpers.opNeg(', 'neg' ] ];
+    let changed = false;
+    for (let j = from + 1; j < to; j++) {
+        if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
+        let line = lines[j];
+        const mask0 = longMultiplyMask (line);
+        const starts = [];
+        for (const [ h, op ] of helpers) {
+            for (let k = mask0.indexOf (h); k !== -1; k = mask0.indexOf (h, k + 1)) {
+                if (k === 0 || !/[\w.]/.test (mask0[k - 1])) starts.push ([ k, h, op ]);
+            }
+        }
+        starts.sort ((a, b) => b[0] - a[0]);
+        for (const [ start, h, op ] of starts) {
+            const mask = longMultiplyMask (line);
+            const call = longMultiplyArgSpans (mask, start + h.length - 1);
+            if (call === undefined || call.spans.length !== (op === 'neg' ? 1 : 2)) continue;
+            const before = mask.slice (0, start).trimEnd ();
+            if (before === '' || /[;{}]$/.test (before)) continue;
+            // an operator operand would unbox the null arm
+            if (/(?:[-+*/%<>!]|&&|\|\|)[\s(]*$/.test (before) || /^[\s)]*(?:[-+*/%<>]|&&|\|\|)/.test (mask.slice (call.close + 1))) continue;
+            const args = call.spans.map (([ x, y ]) => longLimitStrip (line.slice (x, y)));
+            let text;
+            if (op === 'neg') {
+                // the exact box negated: Long -> Long, Integer -> Integer, Double -> Double
+                if (!/^[A-Za-z_]\w*$/.test (args[0]) || ![ 'Long', 'Integer', 'Double' ].includes (ctx.declType (args[0]))) continue;
+                text = `(${args[0]} == null ? null : -${args[0]})`;
+            } else {
+                const ops = args.map (operand);
+                if (ops.includes (undefined)) continue;
+                const guards = [ ...new Set (ops.filter ((o) => o.guard !== undefined).map ((o) => `${o.guard} == null`)) ];
+                const value = `${ops[0].text} ${op} ${ops[1].text}`;
+                text = guards.length === 0 ? `(${value})` : `(${guards.join (' || ')} ? null : ${value})`;
+            }
+            // outside a plain value slot keep the helper's static type (Object)
+            if (!j04PlainValuePosition (mask, start, call.close)) text = `((Object) ${text})`;
+            line = line.slice (0, start) + text + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    return changed;
+}
+
+export function nativeJavaJ32DivModNeg (content, base = false) {
+    if (!/Helpers\.(?:divide|mod|opNeg)\(/.test (content)) return content;
+    const lines = content.split ('\n');
+    // members the class itself declares shadow the base producers
+    const overrides = new Set ();
+    for (const l of lines) {
+        const m = /^    (?:public|private|protected)[^(=]*?\s([A-Za-z_]\w*)\s*(?:\(|;|=)/.exec (l);
+        if (m !== null) overrides.add (m[1]);
+    }
+    if (base) for (const n of [ 'sum', 'parseToInt', 'milliseconds', 'seconds', 'rateLimit' ]) overrides.delete (n);
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    let changed = false;
+    for (let s = 0; s < starts.length; s++) {
+        if (j32Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length, overrides)) changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}

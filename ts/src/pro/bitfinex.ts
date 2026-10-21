@@ -737,14 +737,14 @@ export default class bitfinex extends bitfinexRest {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = this.safeList (deltas, i);
-                    const amount = this.safeNumber (delta, 2);
-                    if (amount === undefined) {
+                    const deltaAmount = this.safeNumber (delta, 2);
+                    if (deltaAmount === undefined) {
                         continue;
                     }
                     const counter = this.safeNumber (delta, 1);
                     const price = this.safeNumber (delta, 0);
-                    const size = (amount < 0) ? -amount : amount;
-                    const side = (amount < 0) ? 'asks' : 'bids';
+                    const size = (deltaAmount < 0) ? -deltaAmount : deltaAmount;
+                    const side = (deltaAmount < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
                     bookside.storeArray ([ price, size, counter ]);
                 }

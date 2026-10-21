@@ -1284,7 +1284,7 @@ export default class mudrex extends Exchange {
         let paging = true;
         while (paging === true) {
             const request: Dict = {};
-            if (pageSize > 0) {
+            if ((limit !== undefined) && (limit > 0)) {
                 request['limit'] = pageSize;
                 request['offset'] = offset;
             }

@@ -424,20 +424,20 @@ export default class kalshi extends Exchange {
         }
         const chunkSize = this.safeInteger (this.options, 'fetchOutcomesBatchSize', 100);
         const tickersLength = tickers.length;
-        let startIndex = 0;
-        while (startIndex < tickersLength) {
-            let endIndex = this.sum (startIndex, chunkSize);
-            if (endIndex > tickersLength) {
-                endIndex = tickersLength;
-            }
-            const chunk: any[] = [];
-            for (let i = startIndex; i < endIndex; i++) {
-                chunk.push (tickers[i]);
+        const lastTickerIndex = tickersLength - 1;
+        let chunk: string[] = [];
+        // flush a request every chunkSize tickers and once more for the trailing partial chunk
+        for (let ti = 0; ti < tickersLength; ti++) {
+            chunk.push (tickers[ti]);
+            const chunkLength = chunk.length;
+            if ((chunkLength < chunkSize) && (ti < lastTickerIndex)) {
+                continue;
             }
             const request: Dict = {
                 'tickers': chunk.join (','),
                 'limit': chunkSize,
             };
+            chunk = [];
             const response = await this.kalshiPublicGetMarkets (request);
             const rawMarkets = this.safeList (response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
@@ -448,7 +448,6 @@ export default class kalshi extends Exchange {
                 this.markets[(parsed as Dict)['market']] = parsed;
                 this.indexMarketOutcomes (parsed);
             }
-            startIndex = this.sum (startIndex, chunkSize);
         }
         for (let i = 0; i < outcomeSymbols.length; i++) {
             if (!this.hasOutcome (outcomeSymbols[i])) {
@@ -1016,20 +1015,20 @@ export default class kalshi extends Exchange {
         const chunkSize = this.safeInteger (this.options, 'fetchTickersBatchSize', 100);
         const result: PredictionTickers = {};
         const tickersLength = tickers.length;
-        let startIndex = 0;
-        while (startIndex < tickersLength) {
-            let endIndex = this.sum (startIndex, chunkSize);
-            if (endIndex > tickersLength) {
-                endIndex = tickersLength;
-            }
-            const chunk: any[] = [];
-            for (let i = startIndex; i < endIndex; i++) {
-                chunk.push (tickers[i]);
+        const lastTickerIndex = tickersLength - 1;
+        let chunk: string[] = [];
+        // flush a request every chunkSize tickers and once more for the trailing partial chunk
+        for (let ti = 0; ti < tickersLength; ti++) {
+            chunk.push (tickers[ti]);
+            const chunkLength = chunk.length;
+            if ((chunkLength < chunkSize) && (ti < lastTickerIndex)) {
+                continue;
             }
             const request: Dict = {
                 'tickers': chunk.join (','),
                 'limit': chunkSize,
             };
+            chunk = [];
             const response = await this.kalshiPublicGetMarkets (this.extend (request, params));
             const rawMarkets: Dict[] = this.safeList (response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
@@ -1047,7 +1046,6 @@ export default class kalshi extends Exchange {
                     }
                 }
             }
-            startIndex = this.sum (startIndex, chunkSize);
         }
         return result;
     }
@@ -1671,7 +1669,7 @@ export default class kalshi extends Exchange {
         // the leg the user actually held (kalshi reports separate yes/no counts + costs)
         const yesCount = this.safeNumber2 (settlement, 'yes_count_fp', 'yes_count', 0);
         const noCount = this.safeNumber2 (settlement, 'no_count_fp', 'no_count', 0);
-        const heldYes = (yesCount >= noCount);
+        const heldYes = !(noCount > yesCount);
         let heldLabel: Str = 'NO';
         if (heldYes) {
             heldLabel = 'YES';

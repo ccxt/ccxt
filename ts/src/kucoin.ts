@@ -3397,16 +3397,15 @@ export default class kucoin extends Exchange {
         const denominator = 1000;
         // For each query, the system would return at most 1500 pieces of data.
         // To obtain more data, please page the data by time.
-        const windowLimit = (limit === undefined) ? this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit) : limit;
+        const windowLimit: Int = (limit === undefined) ? this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit) : limit;
         const limitResolved = (since !== undefined) ? windowLimit : limit;
         let sinceResolved = since;
         if ((since === undefined) && (limit !== undefined)) {
             sinceResolved = now - limit * duration;
         }
-        let endAt = now;
+        const endAt: Int = (since !== undefined) ? this.parseToInt (this.sum (since, windowLimit * duration)) : now;
         if (since !== undefined) {
             request['startAt'] = this.parseToInt (Math.floor (since / denominator));
-            endAt = this.sum (since, windowLimit * duration);
         } else if (limit !== undefined) {
             const startAt = now - limit * duration;
             request['startAt'] = this.parseToInt (Math.floor (startAt / denominator));
@@ -3484,16 +3483,15 @@ export default class kucoin extends Exchange {
         const denominator = 1000;
         // For each query, the system would return at most 1500 pieces of data.
         // To obtain more data, please page the data by time.
-        const windowLimit = (limit === undefined) ? this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit) : limit;
+        const windowLimit: Int = (limit === undefined) ? this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit) : limit;
         const limitResolved = (since !== undefined) ? windowLimit : limit;
         let sinceResolved = since;
         if ((since === undefined) && (limit !== undefined)) {
             sinceResolved = now - limit * duration;
         }
-        let endAt = now;
+        const endAt: Int = (since !== undefined) ? this.parseToInt (this.sum (since, windowLimit * duration)) : now;
         if (since !== undefined) {
             request['startAt'] = this.parseToInt (Math.floor (since / denominator));
-            endAt = this.sum (since, windowLimit * duration);
         } else if (limit !== undefined) {
             const startAt = now - limit * duration;
             request['startAt'] = this.parseToInt (Math.floor (startAt / denominator));
@@ -3552,7 +3550,7 @@ export default class kucoin extends Exchange {
         const now = this.milliseconds (); // required param
         // For each query, the system would return at most 200 pieces of data.
         // To obtain more data, please page the data by time.
-        const windowLimit = (limit === undefined) ? this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit) : limit;
+        const windowLimit: Int = (limit === undefined) ? this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit) : limit;
         const limitResolved = (since !== undefined) ? windowLimit : limit;
         let sinceResolved = since;
         if ((since === undefined) && (limit !== undefined)) {

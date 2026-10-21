@@ -1143,7 +1143,7 @@ export default class p2b extends Exchange {
         const untilParam = this.safeInteger (params, 'until');
         const paramsOmitted: Dict = this.omit (params, 'until');
         let until: Int = undefined;
-        let sinceResolved: Int = undefined;
+        let sinceResolved: Int = 0;
         if (untilParam !== undefined) {
             until = untilParam;
             if (since !== undefined) {
@@ -1231,7 +1231,7 @@ export default class p2b extends Exchange {
             market = this.market (symbol);
         }
         let until: Int = undefined;
-        let sinceResolved: Int = undefined;
+        let sinceResolved: Int = 0;
         if (untilParam !== undefined) {
             until = untilParam;
             if (since !== undefined) {

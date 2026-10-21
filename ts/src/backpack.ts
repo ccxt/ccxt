@@ -1638,11 +1638,9 @@ export default class backpack extends Exchange {
         const windowLimit = (limit === undefined) ? defaultLimit : limit;
         let startTime: Int = undefined;
         if (since === undefined) {
-            let endTime: Int = undefined;
+            let endTime = this.seconds ();
             if (until !== undefined && until !== null && until !== 0) {
                 endTime = this.parseToInt (until / 1000);
-            } else {
-                endTime = this.seconds ();
             }
             startTime = endTime - (windowLimit * duration);
         } else {

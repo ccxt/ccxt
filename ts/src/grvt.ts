@@ -2210,7 +2210,7 @@ export default class grvt extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    convertToBigIntCustom (x: any) {
+    convertToBigIntCustom (x: any): int {
         return parseInt (x);
     }
 
@@ -3206,7 +3206,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    feeAmountMultiplier () {
+    feeAmountMultiplier (): int {
         return this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
@@ -3298,7 +3298,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    handleUntilOptionString (key: string, request: Dict, params: Dict = {}, multiplier: number = 1): [Dict, Dict] {
+    handleUntilOptionString (key: string, request: Dict, params: Dict = {}, multiplier: int = 1): [Dict, Dict] {
         const until = this.safeInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request[key] = this.numberToString (this.parseToInt (until * multiplier));

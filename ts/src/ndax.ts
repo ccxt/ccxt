@@ -687,8 +687,8 @@ export default class ndax extends Exchange {
     }
 
     override parseOrderBook (orderbook: any, symbol: any, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2) {
-        let nonce: Int = undefined;
-        let latestTimestamp: Int = timestamp;
+        let nonce = this.safeInteger (this.safeList (orderbook, 0), 0);
+        let latestTimestamp = this.safeInteger ([ timestamp ], 0);
         const result: Dict = {
             'symbol': symbol,
             'bids': [],
@@ -699,21 +699,13 @@ export default class ndax extends Exchange {
         };
         for (let i = 0; i < orderbook.length; i++) {
             const level = orderbook[i];
-            if (latestTimestamp === undefined) {
-                latestTimestamp = this.safeInteger (level, 2);
-            } else {
-                const newTimestamp = this.safeInteger (level, 2);
-                if (newTimestamp !== undefined) {
-                    latestTimestamp = Math.max (latestTimestamp, newTimestamp);
-                }
+            const newTimestamp = this.safeInteger (level, 2);
+            if ((newTimestamp !== undefined) && ((latestTimestamp === undefined) || (newTimestamp > latestTimestamp))) {
+                latestTimestamp = newTimestamp;
             }
-            if (nonce === undefined) {
-                nonce = this.safeInteger (level, 0);
-            } else {
-                const newNonce = this.safeInteger (level, 0);
-                if (newNonce !== undefined) {
-                    nonce = Math.max (nonce, newNonce);
-                }
+            const newNonce = this.safeInteger (level, 0);
+            if ((newNonce !== undefined) && ((nonce === undefined) || (newNonce > nonce))) {
+                nonce = newNonce;
             }
             const bidask = this.parseOrderBookBidAsk (level, priceKey, amountKey);
             const levelSide = this.safeInteger (level, 9);

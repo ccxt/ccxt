@@ -570,18 +570,18 @@ export default class htx extends htxRest {
             const snapshotOrderBook = this.orderBook (snapshot, snapshotLimit);
             client.resolve (snapshotOrderBook, id);
             if ((sequence === undefined) || (nonce < sequence)) {
-                const maxAttempts: number = this.handleOption ('watchOrderBook', 'maxRetries', 3);
-                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
+                const maxAttempts = this.parseToInt (this.handleOption ('watchOrderBook', 'maxRetries', 3));
+                const numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
                 // retry to synchronize if we have not reached maxAttempts yet
                 if (numAttempts < maxAttempts) {
                     // safety guard
                     if (messageHash in client.subscriptions) {
-                        numAttempts = this.sum (numAttempts, 1);
+                        const nextAttempts: number = this.sum (numAttempts, 1);
                         let delayTime = 1000;
                         if ((lastTimestamp !== undefined) && (snapshotTimestamp !== undefined)) {
                             delayTime = this.sum (1000, lastTimestamp - snapshotTimestamp);
                         }
-                        subscription['numAttempts'] = numAttempts;
+                        subscription['numAttempts'] = nextAttempts;
                         client.subscriptions[messageHash] = subscription;
                         this.delay (delayTime, this.watchOrderBookSnapshot, client, message, subscription);
                     }

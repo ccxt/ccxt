@@ -179,7 +179,8 @@ export default class opinion extends Exchange {
         // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
         const seenEvents: Dict = {};
         const eventsList: any[] = [];
-        let fetchedRawCount = 0;
+        // every raw (unflattened) row fetched so far, so its length is the raw fetched count
+        const fetchedRawRows: Dict[] = [];
         for (let page = 1; page <= maxPages; page++) {
             const request: Dict = {
                 'marketType': 2, // all - both standalone binaries and categorical parents
@@ -190,13 +191,13 @@ export default class opinion extends Exchange {
             const result = this.safeDict (response, 'result', {});
             const rawMarkets: Dict[] = this.safeList (result, 'list', []);
             const rawMarketsLength = rawMarkets.length;
-            fetchedRawCount = this.sum (fetchedRawCount, rawMarketsLength);
             // categorical parents expand into several flatMarkets entries each, so the raw,
             // unflattened row count in 'total' must be compared against fetchedRawCount, not
             // flatMarkets.length - otherwise expansion makes the comparison meaningless
             const total = this.safeInteger (result, 'total');
             for (let i = 0; i < rawMarketsLength; i++) {
                 const raw = rawMarkets[i];
+                fetchedRawRows.push (raw);
                 const marketType = this.safeInteger (raw, 'marketType');
                 if (marketType === 1) {
                     const event: any = this.parseEvent (raw);
@@ -215,6 +216,7 @@ export default class opinion extends Exchange {
                 }
             }
             const collectedLength = flatMarkets.length;
+            const fetchedRawCount = fetchedRawRows.length;
             if ((rawMarketsLength < pageLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || ((userLimit !== undefined) && (collectedLength >= userLimit))) {
                 break;
             }

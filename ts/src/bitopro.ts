@@ -919,7 +919,7 @@ export default class bitopro extends Exchange {
             request['from'] = toSeconds - (limitResolved * timeframeInSeconds);
         } else {
             const timeframeInMilliseconds = timeframeInSeconds * 1000;
-            alignedSince = Math.floor (since / timeframeInMilliseconds) * timeframeInMilliseconds;
+            alignedSince = this.parseToInt (Math.floor (since / timeframeInMilliseconds)) * timeframeInMilliseconds;
             const fromSeconds = Math.floor (since / 1000);
             request['from'] = fromSeconds;
             request['to'] = this.sum (fromSeconds, limitResolved * timeframeInSeconds);
@@ -941,10 +941,10 @@ export default class bitopro extends Exchange {
         //     }
         //
         const sparse = this.parseOHLCVs (data, market, timeframe, since, limitResolved);
-        return this.insertMissingCandles (sparse, timeframeInSeconds, alignedSince, limitResolved) as OHLCV[];
+        return this.insertMissingCandles (sparse, timeframeInSeconds * 1000, alignedSince, limitResolved) as OHLCV[];
     }
 
-    insertMissingCandles (candles: any[], distance: number, since: Int, limit: number) {
+    insertMissingCandles (candles: any[], distanceInMs: number, since: Int, limit: number) {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         const length = candles.length;
@@ -977,7 +977,7 @@ export default class bitopro extends Exchange {
                 copy[5] = this.parseNumber ('0');
                 result.push (copy);
             }
-            timestamp = this.sum (timestamp, distance * 1000);
+            timestamp = this.sum (timestamp, distanceInMs);
             resultLength = result.length;
             copyFrom = result[resultLength - 1];
         }

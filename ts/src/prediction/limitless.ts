@@ -260,8 +260,10 @@ export default class limitless extends Exchange {
             const cappedPages = Math.ceil (maxMarkets / pageSize);
             const knownTotal = this.safeInteger (firstPageResponse, 'totalMarketsCount', 0);
             const allPages = Math.ceil (knownTotal / pageSize);
-            const totalPages = Math.min (allPages, cappedPages);
-            for (let i = 2; i <= totalPages; i++) {
+            for (let i = 2; i <= allPages; i++) {
+                if (i > cappedPages) {
+                    break;
+                }
                 page = i;
                 request['page'] = page;
                 promises.push (this.limitlessPublicGetMarketsActive (this.extend (request, rest)));

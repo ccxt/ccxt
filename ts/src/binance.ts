@@ -9168,7 +9168,7 @@ export default class binance extends Exchange {
             // The parameter fromId cannot be sent with startTime or endTime.
             const currentTimestamp = this.milliseconds ();
             const oneWeek = 7 * 24 * 60 * 60 * 1000;
-            if ((currentTimestamp - startTime) >= oneWeek) {
+            if ((currentTimestamp - since) >= oneWeek) {
                 if ((endTime === undefined) && (this.safeBool (market, 'linear', false))) {
                     endTime = this.sum (startTime, oneWeek);
                     const endTimeValue = (endTime === undefined) ? 0 : endTime;

@@ -4697,7 +4697,7 @@ export class BaseExchange {
                         continue;
                     }
                     if (this.precisionMode === TICK_SIZE) {
-                        if (currentPrecision < highestPrecision) {
+                        if (highestPrecision > currentPrecision) {
                             highestPrecisionCurrency = currentCurrency;
                         }
                     } else if (currentPrecision > highestPrecision) {
@@ -7818,7 +7818,7 @@ export class BaseExchange {
             return parsedPrecision + '1';
         } else {
             let parsedPrecision = '1';
-            for (let i = 0; i < precisionNumber * -1 - 1; i++) {
+            for (let i = 0; i < -1 - precisionNumber; i++) {
                 parsedPrecision = parsedPrecision + '0';
             }
             return parsedPrecision + '0';

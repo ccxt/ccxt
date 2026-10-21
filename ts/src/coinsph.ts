@@ -1105,16 +1105,14 @@ export default class coinsph extends Exchange {
             if (until !== undefined) {
                 request['endTime'] = until;
             } else {
-                const duration = this.parseTimeframe (timeframe) * 1000;
-                const endTimeByLimit = this.sum (since, duration * (limitResolved - 1));
+                const endTimeByLimit = this.sum (since, this.parseTimeframe (timeframe) * 1000 * (limitResolved - 1));
                 const now = this.milliseconds ();
                 request['endTime'] = Math.min (endTimeByLimit, now);
             }
         } else if (until !== undefined) {
             request['endTime'] = until;
             // since work properly only when it is "younger" than last "limit" candle
-            const duration = this.parseTimeframe (timeframe) * 1000;
-            request['startTime'] = until - (duration * (limitResolved - 1));
+            request['startTime'] = until - (this.parseTimeframe (timeframe) * 1000 * (limitResolved - 1));
         }
         request['limit'] = limitResolved;
         const paramsOmitted: Dict = this.omit (params, 'until');

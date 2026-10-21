@@ -8981,6 +8981,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.hx4R03DropBoolBoxedIsTrue(rustContent);
                 rustContent = this.hx4R19NativeBoolEquals(rustContent);
                 rustContent = this.hx4R19NativeBoolIsTrue(rustContent);
+                rustContent = this.hx4R25InlineLiteralIsEqual(rustContent);
                 // Last: drop `.clone()` on the value arg of
                 // extend/omit/market/parse_number when the local is dead
                 // afterwards (those callees take the Value by value).
@@ -9717,6 +9718,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.hx4R03DropBoolBoxedIsTrue(finalFile);
         finalFile = this.hx4R19NativeBoolEquals(finalFile);
         finalFile = this.hx4R19NativeBoolIsTrue(finalFile);
+        finalFile = this.hx4R25InlineLiteralIsEqual(finalFile);
         finalFile = this.nativeRequestDictInserts(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
         finalFile = this.typeSafeListLocals(finalFile);
@@ -12189,10 +12191,11 @@ impl std::ops::DerefMut for ${coreName} {
         }
         if (slots.size !== 1) ok = false;
         const slot = [...slots][0];
+        if (ok && !this.hx4R27StaticInputsBool(method, slot)) ok = false;
         for (let f = 0; ok && f < files.length; f++) {
             const text = files[f];
             // Dynamic dispatch (`this[name]`, option-named methods) and unbound references.
-            if (new RegExp(`['"\`]${method}['"\`]`).test(text) || new RegExp(`\\.${method}\\b(?!\\s*\\()`).test(text)) { ok = false; break; }
+            if (!this.hx4R27MentionsSafe(method, f) || new RegExp(`\\.${method}\\b(?!\\s*\\()`).test(text)) { ok = false; break; }
             for (const c of text.matchAll(new RegExp(`\\.${method}\\s*\\(`, 'g'))) {
                 const args = this.hx4R24Args(text, (c.index as number) + c[0].length);
                 if (args === undefined || args.some(a => a.startsWith('...'))) { ok = false; break; }
@@ -12210,6 +12213,80 @@ impl std::ops::DerefMut for ${coreName} {
         stack.delete(key);
         this.hx4R24Memo.set(key, ok);
         return ok;
+    }
+
+    // hx4 R27 — a quoted method name only vetoes the R24 proof when it can reach dynamic dispatch:
+    // object keys, non-call indexes and args of non-dispatching `this.f(` calls are inert.
+    // Static request/response/ws fixtures call methods by name, so their inputs must be bool/null.
+    private hx4R27Dispatchers: Set<string> | undefined;
+
+    hx4R27MentionsSafe(method: string, file: number): boolean {
+        const { files, heads } = this.hx4R24TsIndex();
+        if (this.hx4R27Dispatchers === undefined) {
+            const disp = new Set<string>();
+            const fwd: Array<{ name: string, callees: string[] }> = [];
+            for (const h of heads) {
+                const body = files[h.file].slice(h.at, h.end).replace(/\/\/[^\n]*/g, '');
+                if (/(?:this|exchange)\s*\[\s*\w+\s*\]\s*\(/.test(body)) disp.add(h.name);
+                const callees: string[] = [];
+                for (const c of body.matchAll(/this\.(\w+)\s*\(/g)) {
+                    const args = this.hx4R24Args(body, (c.index as number) + c[0].length) ?? [];
+                    if (args.some(a => h.params.some(p => p[0] === a))) callees.push(c[1]);
+                }
+                if (callees.length > 0) fwd.push({ name: h.name, callees });
+            }
+            // a method forwarding one of its own parameters into a dispatcher dispatches too
+            for (let grew = true; grew;) {
+                grew = false;
+                for (const f of fwd) {
+                    if (!disp.has(f.name) && f.callees.some(c => disp.has(c))) { disp.add(f.name); grew = true; }
+                }
+            }
+            this.hx4R27Dispatchers = disp;
+        }
+        const text = files[file];
+        for (const m of text.matchAll(new RegExp(`['"\`]${method}['"\`]`, 'g'))) {
+            const at = m.index as number;
+            const after = text.slice(at + m[0].length, at + m[0].length + 8);
+            const before = text.slice(Math.max(0, at - 160), at);
+            const lineStart = before.lastIndexOf('\n');
+            if (/^\s*\/\//.test(before.slice(lineStart + 1))) continue;
+            if (/^\s*:/.test(after) && !/\?\s*$/.test(before)) continue;
+            if (/\[\s*$/.test(before) && /^\s*\](?!\s*\()/.test(after)) continue;
+            const call = /this\.(\w+)\s*\(([^()]|\([^()]*\))*$/.exec(before);
+            if (call !== null && !this.hx4R27Dispatchers.has(call[1]) && /^\s*[,)]/.test(after)) continue;
+            return false;
+        }
+        return true;
+    }
+
+    private hx4R27Static: any[] | undefined;
+
+    hx4R27StaticInputsBool(method: string, slot: number): boolean {
+        if (this.hx4R27Static === undefined) {
+            this.hx4R27Static = [];
+            for (const kind of ['request', 'response', 'ws']) {
+                const dir = `./ts/src/test/static/${kind}`;
+                let names: string[] = [];
+                try { names = fs.readdirSync(dir).filter(n => n.endsWith('.json')); } catch { continue; }
+                for (const n of names) {
+                    try { this.hx4R27Static.push(JSON.parse(fs.readFileSync(`${dir}/${n}`, 'utf8'))); } catch { this.hx4R27Static.push(undefined); }
+                }
+            }
+        }
+        for (const d of this.hx4R27Static) {
+            if (d === undefined) return false; // unreadable fixture: assume the worst
+            const cases = d?.methods?.[method];
+            if (cases === undefined) continue;
+            for (const c of cases) {
+                const input = c?.input;
+                if (input === undefined || input === null) continue;
+                if (!Array.isArray(input)) return false;
+                const v = input[slot];
+                if (v !== undefined && v !== null && typeof v !== 'boolean') return false;
+            }
+        }
+        return true;
     }
 
     /** Snake-case fns the hand-written runtime calls (their callers are outside ts/src). */
@@ -12275,6 +12352,44 @@ impl std::ops::DerefMut for ${coreName} {
                 const cmp = `${sm[1]}.as_bool() == Some(true)`;
                 rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
             }
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx4 R25 — `is_equal(&X, &Value::Bool|Int(lit))` / `&Value::Str("<number>")` prints the helper's
+    // dispatch inline: same-variant payload compare, else the f64 coercion (Int/Float, Str parse, Bool 1/0).
+    hx4R25InlineLiteralIsEqual(content: string): string {
+        if (!content.includes('is_equal(&')) return content;
+        const masked = this.maskStringsAndComments(content);
+        const loose = '(match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })';
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (const sm of masked.matchAll(/(?<![A-Za-z0-9_:])is_equal\(&/g)) {
+            const start = sm.index as number;
+            const open = start + 'is_equal'.length;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const args = this.splitTopLevelCommas(content.slice(open + 1, close));
+            if (args.length !== 2 || !args[0].trim().startsWith('&')) continue;
+            const x = args[0].trim().slice(1).trim();
+            if (x.includes('is_equal(') || x.includes('\n')) continue;
+            const lit = args[1].trim();
+            let same: string | undefined;
+            let f64: string | undefined;
+            const b = /^&(?:crate::)?Value::Bool\((true|false)\)$/.exec(lit);
+            const n = /^&(?:crate::)?Value::Int\((-?[0-9]{1,15})\)$/.exec(lit);
+            const t = /^&(?:crate::)?Value::Str\("(-?[0-9]{1,15})"\.into\(\)\)$/.exec(lit);
+            if (b !== null) { same = `Value::Bool(__x) => *__x == ${b[1]}`; f64 = b[1] === 'true' ? '1.0' : '0.0'; }
+            else if (n !== null) { same = `Value::Int(__x) => *__x == ${n[1]}`; f64 = `${n[1]}.0`; }
+            else if (t !== null) { same = `Value::Str(__x) => __x == "${t[1]}"`; f64 = `${t[1]}.0`; }
+            if (same === undefined) continue;
+            rewrites.push({ start, end: close + 1, text: `(match &(${x}) { ${same}, __v => matches!(${loose}, Some(__y) if __y == ${f64}) })` });
         }
         if (rewrites.length === 0) return content;
         let out = ''; let at = 0;

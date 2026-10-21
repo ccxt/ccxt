@@ -1298,11 +1298,13 @@ export default class coinbaseexchange extends Exchange {
         if (since !== undefined) {
             request['start'] = this.iso8601 (since);
             if (until === undefined) {
-                const parsedTimeframeMilliseconds = (parsedTimeframe as number) * 1000;
-                if (this.isRoundNumber (since % parsedTimeframeMilliseconds)) {
-                    request['end'] = this.iso8601 (this.sum ((cappedLimit - 1) * parsedTimeframeMilliseconds, since));
-                } else {
-                    request['end'] = this.iso8601 (this.sum (cappedLimit * parsedTimeframeMilliseconds, since));
+                if (parsedTimeframe !== undefined) {
+                    const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
+                    if (this.isRoundNumber (since % parsedTimeframeMilliseconds)) {
+                        request['end'] = this.iso8601 (this.sum ((cappedLimit - 1) * parsedTimeframeMilliseconds, since));
+                    } else {
+                        request['end'] = this.iso8601 (this.sum (cappedLimit * parsedTimeframeMilliseconds, since));
+                    }
                 }
             } else {
                 request['end'] = this.iso8601 (until);

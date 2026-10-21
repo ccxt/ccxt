@@ -22,7 +22,7 @@ import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { goGofmtBinarySpacing } from "./goGofmtLayout.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
-import { goNativeArithmetic, g10kArithSelfTest, hx4G17SelfTest, hx4G18NativeCompare, hx4G18SelfTest, hx4G23Comparisons, hx4G23SelfTest, hx4G26SelfTest, hx4G27Comparisons, hx4G27SelfTest } from './go-native-arith.js';
+import { goNativeArithmetic, g10kArithSelfTest, hx4G17SelfTest, hx4G18NativeCompare, hx4G18SelfTest, hx4G23Comparisons, hx4G23SelfTest, hx4G26SelfTest, hx4G27Comparisons, hx4G27SelfTest, hx4G30Arith, hx4G30SelfTest, hx4G31Divide, hx4G31Check, hx4G32Comparisons, hx4G32SelfTest } from './go-native-arith.js';
 import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES } from './go-local-types.js';
 
 type dict = { [key: string]: string };
@@ -1920,6 +1920,7 @@ const GO_MAPWRITE_NON_NIL_INIT = /^(?:(?:ccxt\.)?map\[string\]any\{|(?:ccxt\.)?G
 const GO_MAPWRITE_PLAIN_CALLS = [
     'this.Milliseconds', 'this.Seconds', 'this.Microseconds', 'this.Uuid', 'this.Uuid2', 'this.Uuid16', 'this.Uuid22',
     'this.Extend', 'this.DeepExtend', 'this.Json', 'this.Capitalize', 'this.ParseTimeframe', 'this.Account',
+    'this.ParseToInt',  // hx4 G34: base-only, returns int64
     'GetValue', 'ToString', 'ToLower', 'ToUpper', 'MathFloor', 'MathCeil', 'MathRound', 'MathAbs', 'ParseInt', 'Json', 'JsonStringify',
 ];
 
@@ -1957,6 +1958,9 @@ function goMapWriteLocalNeverNil (maskedFunc: string, decl: any, name: string, d
             : /^\s*var\s+\w+\s+\[\]any\s*=\s*this\.HandleUntilOption\((?:\w+|\s*), (\w+), /.exec (tuple.line);
         admitted = (call !== null) && !new RegExp ('(?:^|[^\\w.&*])' + goAccessEscape (until[1]) + '\\s*=(?!=)|&\\s*' + goAccessEscape (until[1]) + '\\b', 'm').test (maskedFunc)
             && goMapWriteLocalNeverNil (maskedFunc, declOf (call[1]), call[1], declOf, depth + 1);
+    }
+    if (!admitted && (declOf !== undefined) && (depth < 4)) {
+        admitted = hx4G34TupleSlotNeverNil (maskedFunc, init, declOf, depth);  // hx4 G34
     }
     if (!admitted) {
         return false;
@@ -2683,9 +2687,11 @@ function formatGoSource (filePath: string, content: string): string {
     content = nativeTupleHolderReads (content);
     content = nativeAsyncTupleHolderReads (content);
     content = hx4G12TupleSlotReads (content, filePath);
+    hx4G34TupleSlotNeverNil.file = goTextMaskLiteralsAndComments (content).split ('\n');  // hx4 G34
     content = nativeTypedContainerAccess (g10kAddElemRetypeMapLocals (content));
     content = hx4G25Pass (content);  // hx4 G25
     content = hx4G29Pass (content);  // hx4 G29
+    hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
     content = g10kInopClientMaps (content);
     content = hx4G07FieldInOp (content);
     content = h2kG13NativeKeysAndRemove (content);
@@ -2696,9 +2702,11 @@ function formatGoSource (filePath: string, content: string): string {
     content = nativeOrderBookSideReads (content);
     content = nativeEndpointListReceives (content);
     content = nativeAsyncListReceives (content);
-    content = hx4G18NativeCompare (goNativeArithmetic (hx4G21UnboxDefaultedSafeInteger (content)));  // hx4 G18
+    content = hx4G18NativeCompare (hx4G30Arith (hx4G21UnboxDefaultedSafeInteger (content)));  // hx4 G18, G30
     content = hx4G23Comparisons (content);  // hx4 G23
     content = hx4G27Comparisons (content);  // hx4 G27
+    content = hx4G31Divide (content);  // hx4 G31
+    content = hx4G32Comparisons (content);  // hx4 G32
     content = goNativeStringAdds (content);
     content = goChanCarrierPass (content);
     content = g10kLenNative (content);
@@ -4022,6 +4030,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = g10kNativeDerefs (path, content);
     content = g10kStrNativeStringHelpers (path, content);  // G10K-str
     content = path.endsWith ('.go') ? goNativeStringAdds (content) : content;  // hx4 G24: row reads exist only from here
+    content = path.endsWith ('.go') ? hx4G33IsEqual (content) : content;  // hx4 G33
     // struct returns after every retype pass (base ParseTicker is `any` until formatGoSource)
     if (path.endsWith ('.go')) {
         content = hx4G05DropRedundantTyped (goStructReturnsPass (content));
@@ -8792,7 +8801,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -13013,12 +13022,14 @@ function hx4G19SelfTest (): string[] {
 // exchange_generated.go / exchange_prediction.go bypass formatGoSource: run its typed-receiver native passes on them
 function hx4G20BaseNativePasses (content: string): string {
     content = nativeLoopBoundedSliceReads (retagLoopBoundedElementReads (content));
+    hx4G34TupleSlotNeverNil.file = goTextMaskLiteralsAndComments (content).split ('\n');  // hx4 G34
     content = nativeTypedContainerAccess (g10kAddElemRetypeMapLocals (content));
     content = hx4G25Pass (content);  // hx4 G25
     content = hx4G29Pass (content);  // hx4 G29
+    hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
     content = h2kG13NativeKeysAndRemove (hx4G07FieldInOp (g10kInopClientMaps (content)));
-    content = hx4G28IsEqualSafe (content);  // hx4 G28
-    return g10kLenNative (goNativeStringAdds (hx4G27Comparisons (hx4G23Comparisons (hx4G18NativeCompare (goNativeArithmetic (content))))));  // hx4 G27: + G18/G23/G27
+    content = hx4G33IsEqual (hx4G28IsEqualSafe (content));  // hx4 G28, G33
+    return g10kLenNative (goNativeStringAdds (hx4G32Comparisons (hx4G31Divide (hx4G27Comparisons (hx4G23Comparisons (hx4G18NativeCompare (hx4G30Arith (content))))))));  // hx4 G27..G32
     return g10kLenNative (goNativeStringAdds (goNativeArithmetic (content)));
 }
 
@@ -13633,6 +13644,200 @@ function hx4G29Check (): string[] {
         ok (w.includes ('result[*code] = t'), 'wired into formatGoSource: ' + w);
     } catch (e) {
         problems.push ('hx4 G29 threw: ' + e.message);
+    }
+    return problems;
+}
+
+// hx4 G34
+// `var r map[string]any = MapTyped(h[i])` where `h := this.M(..)` is the only write of h and M is the single
+// same-receiver method of this file whose every return is `[]any{..}` with a never-nil map in slot i
+// (a never-nil local of M, or a map parameter of M that the caller hands a never-nil local).
+function hx4G34TupleSlotNeverNil (maskedFunc: string, init: string, declOf: (name: string) => any, depth: number): boolean {
+    const file: string[] | undefined = (hx4G34TupleSlotNeverNil as any).file;
+    const slot = /^(?:ccxt\.)?MapTyped\((\w+)\[([01])\]\)$/.exec (init);
+    const callerLines = maskedFunc.split ('\n');
+    const recv = /^func \(this \*(\w+)\) /.exec (callerLines[0]);
+    if ((file === undefined) || (slot === null) || (recv === null) || (file.indexOf (callerLines[0]) < 0)) {
+        return false;
+    }
+    const h = slot[1];
+    if (goG14MapLocalRebound (maskedFunc, h) && !new RegExp ('^\\s*' + h + ' := ', 'm').test (maskedFunc)) {
+        return false;
+    }
+    const writes = callerLines.filter ((l) => goTextWritesName (l, h));
+    const holder = (writes.length === 1) ? /^\s*\w+ := this\.(\w+)\((.*)\)\s*$/.exec (writes[0]) : null;
+    if ((holder === null) || !writes[0].trim ().startsWith (h + ' := ') || new RegExp ('&\\s*' + h + '\\b|\\b' + h + '\\s*\\[[^\\]]*\\]\\s*=(?!=)').test (maskedFunc)) {
+        return false;
+    }
+    const defs = file.map ((l, i) => (l.startsWith ('func (this *' + recv[1] + ') ' + holder[1] + '(') ? i : -1)).filter ((i) => i >= 0);
+    if ((defs.length !== 1) || (file.filter ((l) => new RegExp ('^func \\(this \\*\\w+\\) ' + holder[1] + '\\(').test (l)).length !== 1)) {
+        return false;
+    }
+    let close = defs[0] + 1;
+    while ((close < file.length) && (file[close] !== '}')) {
+        close++;
+    }
+    const callee = file.slice (defs[0], close + 1);
+    const calleeFunc = callee.join ('\n');
+    const calleeDeclOf = (name: string) => goAccessSingleDeclaration (calleeFunc, callee[0], name);
+    const sigParams = hx4G34TopLevel (callee[0].substring (callee[0].indexOf (holder[1] + '(') + holder[1].length + 1, callee[0].lastIndexOf (') ')));
+    const callArgs = hx4G34TopLevel (holder[2]);
+    let returns = 0;
+    let lit = 0;
+    for (const line of callee.slice (1, -1)) {
+        if ((lit > 0) || /\bfunc\s*\(/.test (line)) {
+            for (const c of line) {
+                lit += (c === '{') ? 1 : ((c === '}') ? -1 : 0);
+            }
+            continue;
+        }
+        const ret = /^\s*return\b\s*(.*)$/.exec (line);
+        if (ret === null) {
+            continue;
+        }
+        returns++;
+        const tuple = /^\[\]any\{(.*)\}$/.exec (ret[1].trim ());
+        const parts = (tuple === null) ? [] : hx4G34TopLevel (tuple[1]);
+        const value = (parts.length === 2) ? parts[Number (slot[2])].trim () : '';
+        if (/^map\[string\]any\{\}$/.test (value)) {
+            continue;
+        }
+        if (!/^\w+$/.test (value)) {
+            return false;
+        }
+        const param = sigParams.findIndex ((p) => p.trim () === value + ' map[string]any');
+        if (param >= 0) {
+            const arg = (param < callArgs.length) ? callArgs[param].trim () : '';
+            if (!/^\w+$/.test (arg) || goG14MapLocalRebound (calleeFunc, value) || new RegExp ('(?:^|[^\\w.&*])' + value + '\\s*=(?!=)', 'm').test (calleeFunc)
+                || !goMapWriteLocalNeverNil (maskedFunc, declOf (arg), arg, declOf, depth + 1)) {
+                return false;
+            }
+        } else if (!goMapWriteLocalNeverNil (calleeFunc, calleeDeclOf (value), value, calleeDeclOf, depth + 1)) {
+            return false;
+        }
+    }
+    return returns > 0;
+}
+hx4G34TupleSlotNeverNil.file = undefined as string[] | undefined;
+
+function hx4G34TopLevel (text: string): string[] {
+    const parts: string[] = [];
+    let depth = 0;
+    let from = 0;
+    for (let i = 0; i < text.length; i++) {
+        depth += ('([{'.indexOf (text[i]) >= 0) ? 1 : ((')]}'.indexOf (text[i]) >= 0) ? -1 : 0);
+        if ((depth === 0) && (text[i] === ',')) {
+            parts.push (text.substring (from, i));
+            from = i + 1;
+        }
+    }
+    parts.push (text.substring (from));
+    return parts;
+}
+
+function hx4G34Check (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, label: string) => { if (!c) { problems.push ('hx4 G34: ' + label); } };
+    const prep = (ret: string) => 'func (this *X) Prep(optionalArgs ...any) []any {\n\tvar params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})\n'
+        + '\tvar request map[string]any = map[string]any{}\n\tif params != nil {\n\t\treturn []any{request, this.Omit(params, "a")}\n\t}\n\treturn ' + ret + '\n}\n';
+    const until = 'func (this *X) Until(key string, request map[string]any, optionalArgs ...any) []any {\n\treturn []any{request, nil}\n}\n';
+    const caller = (body: string) => 'func (this *X) f(p any) any {\n' + body + '\tAddElementToObject(request, "k", "v")\n\treturn request\n}\n';
+    const viaPrep = '\th := this.Prep(p)\n\tvar request map[string]any = MapTyped(h[0])\n';
+    try {
+        ok (formatGoSource ('selftest.go', prep ('[]any{request, params}') + caller (viaPrep)).includes ('request["k"] = "v"'), 'same-file tuple slot 0 local');
+        ok (formatGoSource ('selftest.go', until + caller ('\tvar r0 map[string]any = map[string]any{}\n\th := this.Until("t", r0, p)\n\tvar request map[string]any = MapTyped(h[0])\n')).includes ('request["k"] = "v"'), 'map param fed a never-nil local');
+        for (const keep of [
+            prep ('[]any{nil, params}') + caller (viaPrep),                                              // a nil slot
+            prep ('[]any{request, params}') + caller (viaPrep.replace ('h[0]', 'h[1]')),                 // Omit slot can be nil
+            until + caller ('\tvar r0 map[string]any = SafeMapTyped(p, "r")\n\th := this.Until("t", r0, p)\n\tvar request map[string]any = MapTyped(h[0])\n'),  // nilable arg
+            prep ('[]any{request, params}') + caller (viaPrep + '\th = this.Prep(p)\n'),                  // rebound holder
+            caller (viaPrep),                                                                             // callee not in this file
+        ]) {
+            const r = formatGoSource ('selftest.go', keep);
+            ok (r.includes ('AddElementToObject(request'), 'keeps helper: ' + JSON.stringify (keep) + ' -> ' + r);
+        }
+    } catch (e) {
+        problems.push ('hx4 G34 threw: ' + e.message);
+    }
+    return problems;
+}
+
+// hx4 G33
+// IsEqual on proven locals: `x, p := this.Handle*AndParams(..)` slot 0 (*string / int64 by the base
+// signature) and `x := GetArg(optionalArgs, N, nil)` (GetArg already folds typed nils to nil).
+function hx4G33IsEqual (content: string): string {
+    if (!/IsEqual\(\w+, /.test (content)) { return content; }
+    const ptrHandlers = 'HandleOptionStringAndParams2?|HandleMarginModeAndParams|HandleMarketTypeAndParams|HandleSubTypeAndParams';
+    const intHandlers = 'HandleOptionIntegerAndParams2?';
+    // a same-file override with another slot-0 type keeps the helper
+    const sigs = [ ...content.matchAll (/^func \(\w+ \*\w+\) (Handle\w+)\(.*?\) \((\S+), map\[string\]any\) \{$/gm) ];
+    const odd = new Set (sigs.filter ((s) => s[2] !== (new RegExp ('^(' + intHandlers + ')$').test (s[1]) ? 'int64' : '*string')).map ((s) => s[1]));
+    if ([ ...content.matchAll (/^func \(\w+ \*\w+\) (Handle(?:Option\w+|MarginMode\w+|MarketType\w+|SubType\w+))\(/gm) ].some ((s) => !sigs.some ((g) => g[1] === s[1]))) { return content; }
+    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => {
+        const masked = goTextMaskLiteralsAndComments (fn);
+        const kinds = new Map<string, string> ();
+        for (const d of masked.matchAll (new RegExp ('^\\t+(\\w+), \\w+ := this\\.(?:Exchange\\.)?(' + ptrHandlers + '|' + intHandlers + ')\\(', 'gm'))) {
+            if (!odd.has (d[2])) { kinds.set (d[1], new RegExp ('^(' + intHandlers + ')$').test (d[2]) ? 'int64' : '*string'); }
+        }
+        for (const d of fn.matchAll (/^\t+(\w+) := (?:ccxt\.)?GetArg\(optionalArgs, \d+, nil\)$/gm)) { kinds.set (d[1], 'getarg'); }
+        for (const [ name, kind ] of [ ...kinds ]) {
+            const n = '(?<![\\w.])' + name;
+            const decls = (masked.match (new RegExp (n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bvar ' + name + '\\b|&' + name + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' |\\brange\\b[^\\n]*\\b' + name + '\\b', 'g')) || []).length;
+            const header = masked.split ('\n')[1] || '';
+            const param = new RegExp ('[(,]\\s*' + name + ' ').test (header);
+            // a GetArg any local may be reassigned a pointer box later
+            const written = (kind === 'getarg') && new RegExp (n + '\\s*=(?!=)').test (masked);
+            if (decls !== 1 || param || written) { kinds.delete (name); }
+        }
+        if (kinds.size === 0) { return fn; }
+        return fn.replace (/(!?)(?<![\w.])(?:ccxt\.)?IsEqual\((\w+), (nil|"(?:[^"\\\n]|\\.)*"|-?\d{1,9})\)/g, ((m: string, not: string, x: string, lit: string, off: number) => {
+            const kind = kinds.get (x);
+            if (kind === undefined) { return m; }
+            let form: string | undefined;
+            // an int64 slot is never nil: the helper's answer stays
+            if (lit === 'nil' && kind !== 'int64') {
+                form = x + (not ? ' != ' : ' == ') + 'nil';
+            } else if (kind === '*string' && lit.startsWith ('"')) {
+                form = not ? (x + ' == nil || *' + x + ' != ' + lit) : (x + ' != nil && *' + x + ' == ' + lit);
+            } else if (kind === 'int64' && /^-?\d/.test (lit)) {
+                form = x + (not ? ' != ' : ' == ') + lit;
+            }
+            if (form === undefined) { return m; }
+            const before = fn.slice (0, off);
+            const after = fn.slice (off + m.length);
+            const bare = (/\n\t*(?:\} else )?if $/.test (before) && /^ \{\n/.test (after)) || (before.endsWith ('(') && after.startsWith (')'));
+            return bare ? form : ('(' + form + ')');
+        }) as any);
+    }) as any);
+}
+
+function hx4G33Check (): string[] {
+    const problems: string[] = [];
+    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('hx4 G33: ' + msg); } };
+    try {
+        const f = (body: string, sig = 'p any', extra = '') => hx4G33IsEqual ('package ccxt\n' + extra + '\nfunc (this *X) f(' + sig + ') any {\n' + body + '\treturn nil\n}\n');
+        let r = f ('\tmarginMode, q := this.HandleMarginModeAndParams("x", p)\n\tif !IsEqual(marginMode, nil) {\n\t}\n\t_ = q\n');
+        ok (r.includes ("if marginMode != nil {"), "margin mode nil: " + r);
+        r = f ('\tt, q := this.HandleOptionStringAndParams(p, "m", "t")\n\tvar a bool = IsEqual(t, "gtc") || ccxt.IsEqual(t, nil)\n\t_ = q\n');
+        ok (r.includes ('var a bool = (t != nil && *t == "gtc") || (t == nil)'), 'string tuple: ' + r);
+        r = f ('\tg, q := this.HandleOptionIntegerAndParams(p, "m", "g", 2)\n\tif IsEqual(g, 2) {\n\t}\n\tif !IsEqual(g, 1) {\n\t}\n\t_ = q\n');
+        ok (r.includes ('if g == 2 {') && r.includes ('if g != 1 {'), 'int tuple: ' + r);
+        r = f ('\tlimit := GetArg(optionalArgs, 0, nil)\n\tif IsEqual(limit, nil) {\n\t}\n\tif IsEqual(limit, 5) {\n\t}\n', 'optionalArgs ...any');
+        ok (r.includes ('if limit == nil {') && r.includes ('IsEqual(limit, 5)'), 'GetArg nil only: ' + r);
+        const keep = [
+            f ('\tlimit := GetArg(optionalArgs, 0, nil)\n\tlimit = this.SafeInteger(p, "l")\n\tif IsEqual(limit, nil) {\n\t}\n', 'optionalArgs ...any'),
+            f ('\tlimit := GetArg(optionalArgs, 0, 10)\n\tif IsEqual(limit, nil) {\n\t}\n', 'optionalArgs ...any'),
+            f ('\tt, q := this.HandleOptionStringAndParams(p, "m", "t")\n\tif true {\n\t\tt := p\n\t\t_ = t\n\t}\n\tif IsEqual(t, nil) {\n\t}\n\t_ = q\n'),
+            f ('\tt, q := this.HandleOptionStringAndParams(p, "m", "t")\n\tif IsEqual(t, 1) {\n\t}\n\t_ = q\n'),
+            f ('\tg, q := this.HandleOptionIntegerAndParams(p, "m", "g", 2)\n\tif !IsEqual(g, nil) {\n\t}\n\t_ = q\n'),
+            f ('\tg, q := this.HandleOptionIntegerAndParams(p, "m", "g", 2)\n\tif IsEqual(g, "2") {\n\t}\n\t_ = q\n'),
+            f ('\tt, q := this.HandleMarginModeAndParams("x", p)\n\tif IsEqual(t, nil) {\n\t}\n\t_ = q\n', 'p any', '\nfunc (this *X) HandleMarginModeAndParams(m any, o ...any) (any, map[string]any) {\n\treturn nil, nil\n}\n'),
+        ];
+        keep.forEach ((k: string, i: number) => ok (k.includes ('IsEqual('), 'negative ' + i + ': ' + k));
+        r = f ('\tt, q := this.HandleMarginModeAndParams("x", p)\n\tif IsEqual(t, nil) {\n\t}\n\t_ = q\n', 'p any', '\nfunc (this *X) HandleMarginModeAndParams(m any, o ...any) (*string, map[string]any) {\n\treturn nil, nil\n}\n');
+        ok (r.includes ('if t == nil {'), 'same-type override: ' + r);
+    } catch (e) {
+        problems.push ('hx4 G33 threw: ' + e.message);
     }
     return problems;
 }

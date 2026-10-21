@@ -430,11 +430,11 @@ export default class polymarket extends Exchange {
             const firstEventsLength = firstEvents.length;
             const pagination = this.safeDict (first, 'pagination', {});
             const totalResults = this.safeInteger (pagination, 'totalResults', firstEventsLength);
-            let totalPages = Math.ceil (totalResults / pageSize);
+            let totalPages = this.parseToInt (Math.ceil (totalResults / pageSize));
             // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
             // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
             if (resultLimit !== undefined) {
-                const limitPages = Math.ceil (resultLimit / pageSize);
+                const limitPages = this.parseToInt (Math.ceil (resultLimit / pageSize));
                 if (limitPages < totalPages) {
                     totalPages = limitPages;
                 }

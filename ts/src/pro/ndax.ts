@@ -294,8 +294,9 @@ export default class ndax extends ndaxRest {
                 if (timestamp === undefined) {
                     continue;
                 }
+                const candleTimestamp = this.parseToInt ((timestamp / duration) * duration);
                 const parsed = [
-                    this.parseToInt ((timestamp / duration) * duration),
+                    candleTimestamp,
                     this.safeFloat (ohlcv, 3),
                     this.safeFloat (ohlcv, 1),
                     this.safeFloat (ohlcv, 2),
@@ -330,7 +331,7 @@ export default class ndax extends ndaxRest {
                         updates[marketId][timeframe] = true;
                     }
                 } else {
-                    if ((length > 0) && (this.parseToInt (parsed[0]) < this.parseToInt (stored[length - 1][0]))) {
+                    if ((length > 0) && (candleTimestamp < this.parseToInt (stored[length - 1][0]))) {
                         continue;
                     } else {
                         stored.push (parsed);

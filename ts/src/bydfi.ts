@@ -2829,7 +2829,7 @@ export default class bydfi extends Exchange {
         return await this.fetchTransactionsHelper ('withdrawal', code, since, limit, params);
     }
 
-    async fetchTransactionsHelper (type: string, code: Str, since: Int, limit: Int, params: any): Promise<Transaction[]> {
+    async fetchTransactionsHelper (type: string, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         let methodName: Str = 'fetchWithdrawals';
         if (type === 'deposit') {
             methodName = 'fetchDeposits';

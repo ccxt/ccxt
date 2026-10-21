@@ -1046,11 +1046,13 @@ export default class paradex extends paradexRest {
         const rawStart = first * 2;
         const rawEnd = rawStart + 64;
         const raw = frameHex.slice (rawStart, rawEnd);
-        let start = 0;
-        let next = 1;
-        while ((start < 63) && (raw.slice (start, next) === '0')) {
-            start = next;
-            next = start + 1;
+        let start = 63;
+        for (let i = 0; i < 63; i++) {
+            const next = i + 1;
+            if (raw.slice (i, next) !== '0') {
+                start = i;
+                break;
+            }
         }
         return '0x' + raw.slice (start, 64);
     }

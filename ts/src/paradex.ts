@@ -854,7 +854,6 @@ export default class paradex extends Exchange {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             'symbol': market['id'],
         };
-        const maxLimit = 1000; // exchange has undocumented limit slightly above, but this is reliable limit
         const duration = this.parseTimeframe (timeframe);
         const price = this.safeString (params, 'price');
         if (price !== undefined) {
@@ -863,7 +862,8 @@ export default class paradex extends Exchange {
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, params);
         const hasEnd = ('end_at' in request);
         const paramsOmitted: Dict = this.omit (paramsUntil, [ 'price' ]);
-        const limitResolved = ((limit === undefined) || (limit > maxLimit)) ? maxLimit : limit;
+        // exchange has undocumented limit slightly above, but 1000 is reliable limit
+        const limitResolved = ((limit === undefined) || (limit > 1000)) ? 1000 : limit;
         const windowLength = duration * (limitResolved + 1) * 1000;
         if (since !== undefined) {
             requestUntil['start_at'] = since;
