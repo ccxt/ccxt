@@ -156,6 +156,7 @@ from ccxt.async_support.paradex import paradex                                  
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
+from ccxt.async_support.polymarket import polymarket                            # noqa: F401
 from ccxt.async_support.revolutx import revolutx                                # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
 from ccxt.async_support.toobit import toobit                                    # noqa: F401
@@ -261,6 +262,7 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
+    'polymarket',
     'revolutx',
     'tokocrypto',
     'toobit',
