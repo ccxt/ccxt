@@ -2145,21 +2145,22 @@ public partial class BaseExchange
     public virtual object setMarkets(object markets, object currencies = null)
     {
         List<object> values = new List<object>() {};
-        this.markets_by_id = this.createSafeDictionary();
+        // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        Dictionary<string, object> marketsById = new Dictionary<string, object>() {};
         // handle marketId conflicts
         // we insert spot markets first
         List<object> marketValues = this.sortBy(this.toArray(markets), "spot", true, true);
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
             object value = marketValues[i];
-            if (inOp(this.markets_by_id, getValue(value, "id")))
+            if (inOp(marketsById, getValue(value, "id")))
             {
-                object marketsByIdArray = ((object)getValue(this.markets_by_id, getValue(value, "id")));
+                object marketsByIdArray = ((object)getValue(marketsById, getValue(value, "id")));
                 ((IList<object>)marketsByIdArray).Add(value);
-                this.markets_by_id[(string)getValue(value, "id")] = marketsByIdArray;
+                marketsById[(string)getValue(value, "id")] = marketsByIdArray;
             } else
             {
-                this.markets_by_id[(string)getValue(value, "id")] = new List<object>() {value};
+                marketsById[(string)getValue(value, "id")] = new List<object>() {value};
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -2191,6 +2192,7 @@ public partial class BaseExchange
             values.Add(market);
         }
         this.markets = this.mapToSafeMap(this.indexBy(values, "symbol"));
+        this.markets_by_id = this.mapToSafeMap(marketsById);
         Dictionary<string, object> marketsSortedBySymbol = this.keysort(this.markets);
         Dictionary<string, object> marketsSortedById = this.keysort(this.markets_by_id);
         this.symbols = new List<object>(marketsSortedBySymbol.Keys);
