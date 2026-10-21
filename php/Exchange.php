@@ -4884,18 +4884,19 @@ class BaseExchange {
 
     public function set_markets(mixed $markets, mixed $currencies = null) {
         $values = array();
-        $this->markets_by_id = $this->create_safe_dictionary();
+        // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
+        $marketsById = array();
         // handle marketId conflicts
         // we insert spot markets first
         $marketValues = $this->sort_by($this->to_array($markets), 'spot', true, true);
         for ($i = 0; $i < count($marketValues); $i++) {
             $value = $marketValues[$i];
-            if (is_array($this->markets_by_id) && array_key_exists($value['id'] ?? '', $this->markets_by_id)) {
-                $marketsByIdArray = ($this->markets_by_id[$value['id']]);
+            if (is_array($marketsById) && array_key_exists($value['id'] ?? '', $marketsById)) {
+                $marketsByIdArray = ($marketsById[$value['id']]);
                 $marketsByIdArray[] = $value;
-                $this->markets_by_id[$value['id']] = $marketsByIdArray;
+                $marketsById[$value['id']] = $marketsByIdArray;
             } else {
-                $this->markets_by_id[$value['id']] = array( $value );
+                $marketsById[$value['id']] = array( $value );
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
@@ -4922,6 +4923,7 @@ class BaseExchange {
             $values[] = $market;
         }
         $this->markets = $this->map_to_safe_map($this->index_by($values, 'symbol'));
+        $this->markets_by_id = $this->map_to_safe_map($marketsById);
         $marketsSortedBySymbol = $this->keysort($this->markets);
         $marketsSortedById = $this->keysort($this->markets_by_id);
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
