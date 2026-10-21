@@ -3404,7 +3404,7 @@ export default class kraken extends Exchange {
                 // Match the most specific known substring because Kraken embeds the chain in a display label.
                 for (let k = 0; k < networkIds.length; k++) {
                     const networkId = networkIds[k];
-                    if (method.indexOf (networkId) !== -1) {
+                    if (method.indexOf (networkId) >= 0) {
                         unifiedNetworkCode = this.safeString (depositMethodNetworks, networkId, unifiedNetworkCode);
                         break;
                     }
