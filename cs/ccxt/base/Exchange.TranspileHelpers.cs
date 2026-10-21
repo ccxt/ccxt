@@ -928,9 +928,9 @@ public partial class BaseExchange
             return (str[Convert.ToInt32(key)]).ToString();
         }
 
-        // check if array
+        // object[] (and covariant reference arrays) already index as IList<object>; copy only other arrays
         object value = value2;
-        if (value2.GetType().IsArray == true)
+        if (value2.GetType().IsArray == true && !(value2 is IList<object>))
         {
             value = new List<object>((object[])value2);
         }

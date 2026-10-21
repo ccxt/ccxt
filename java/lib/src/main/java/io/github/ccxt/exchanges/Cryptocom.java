@@ -17,6 +17,7 @@ import io.github.ccxt.types.LedgerEntry;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -841,7 +842,7 @@ public class Cryptocom extends CryptocomApi
             {
                 return new HashMap<String, Object>() {{}};
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> skipFetchCurrenciesparamsSkipFetchCurrenciesVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCurrencies", "skipFetchCurrencies", false);
+            Pair<Boolean, Map<String, Object>> skipFetchCurrenciesparamsSkipFetchCurrenciesVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCurrencies", "skipFetchCurrencies", false);
             Boolean skipFetchCurrencies = skipFetchCurrenciesparamsSkipFetchCurrenciesVariable.first();
             Map<String, Object> paramsSkipFetchCurrencies = skipFetchCurrenciesparamsSkipFetchCurrenciesVariable.second();
             if (Boolean.TRUE.equals(skipFetchCurrencies))
@@ -1294,7 +1295,7 @@ public class Cryptocom extends CryptocomApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1391,7 +1392,7 @@ public class Cryptocom extends CryptocomApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1467,7 +1468,7 @@ public class Cryptocom extends CryptocomApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1769,7 +1770,7 @@ public class Cryptocom extends CryptocomApi
         }
         String broker = this.safeString(this.options, "broker", "CCXT");
         request.put("broker_id", broker);
-        io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("createOrder", market, parameters, (String) null);
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("createOrder", market, parameters, (String) null);
         String marketType = marketTypeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
         List<Object> marginModeparamsValueVariable = (List<Object>) this.customHandleMarginModeAndParams("createOrder", paramsMarketType);
@@ -2154,7 +2155,7 @@ public class Cryptocom extends CryptocomApi
         {
             // use createmarketBuy logic here
             String quoteAmount = null;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "createMarketBuyOrderRequiresPrice", true);
             Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable.first();
             Map<String, Object> paramsCreateMarketBuy = createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable.second();
             Double cost = this.safeNumber2(paramsCreateMarketBuy, "cost", "notional", (Object) null);
@@ -2506,7 +2507,7 @@ public class Cryptocom extends CryptocomApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -2598,18 +2599,19 @@ public class Cryptocom extends CryptocomApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2714,7 +2716,7 @@ public class Cryptocom extends CryptocomApi
                 var addresstagVariable = this.parseAddress(addressString);
                 var address = ((List<Object>) addresstagVariable).get(0);
                 var tag = ((List<Object>) addresstagVariable).get(1);
-                this.checkAddress(Helpers.toStringArg(address));
+                this.checkAddress(Helpers.toStringArg(address), (String) null, (String) null);
                 String networkId = this.safeString(value, "network");
                 String network = this.networkIdToCode(networkId, responseCode);
                 if (!java.util.Objects.equals(network, null))
@@ -2747,13 +2749,17 @@ public class Cryptocom extends CryptocomApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            String network = this.safeStringUpper(parameters, "network");
+            String networkParam = this.safeStringUpper(parameters, "network");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
             Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, paramsOmitted)).join();
             Object depositAddresses = depositAddressesRaw;
-            if (((Map<?, ?>)depositAddresses).containsKey(network))
+            if (!java.util.Objects.equals(networkParam, null))
             {
-                return Helpers.GetValue(depositAddresses, network);
+                String network = this.safeString(this.networkAliases, networkParam, networkParam);
+                if (((Map<?, ?>)depositAddresses).containsKey(network))
+                {
+                    return Helpers.GetValue(depositAddresses, network);
+                }
             }
             List<String> keys = new ArrayList<String>(((Map<String, Object>)depositAddresses).keySet());
             return Helpers.GetValue(depositAddresses, (keys == null || 0 >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(0)));
@@ -3311,7 +3317,7 @@ public class Cryptocom extends CryptocomApi
         Map<String, Object> paramsOmitted = this.omit(parameters, "margin");
         String marginMode = null;
         Map<String, Object> paramsMarginMode = null;
-        io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams(methodName, paramsOmitted, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams(methodName, paramsOmitted, (String) null);
         marginMode = marginModeparamsMarginModeVariable.first();
         paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if (!java.util.Objects.equals(marginMode, null))
@@ -3704,7 +3710,7 @@ public class Cryptocom extends CryptocomApi
             }
             String type = null;
             Map<String, Object> paramsMarketType = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters, (String) null);
             type = typeparamsMarketTypeVariable.first();
             paramsMarketType = typeparamsMarketTypeVariable.second();
             this.checkRequiredArgument("fetchSettlementHistory", type, "type", new ArrayList<Object>(Arrays.asList("future", "option", "WARRANT", "FUTURE")));
@@ -3899,7 +3905,7 @@ public class Cryptocom extends CryptocomApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -4395,12 +4401,12 @@ public class Cryptocom extends CryptocomApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestHeaders = headers;
-        String requestBody = body;
-        String type = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
+        Map<String, Object> requestHeaders = null;
+        String requestBody = null;
+        String type = this.safeString(api, 0);
+        String access = this.safeString(api, 1);
         String apiUrl = this.safeString(this.urls.get("api"), type);
         if (java.util.Objects.equals(apiUrl, null))
         {

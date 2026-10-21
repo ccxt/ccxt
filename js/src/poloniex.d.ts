@@ -1,5 +1,5 @@
 import Exchange from './abstract/poloniex.js';
-import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, DepositWithdrawFees, PositionModeInfo } from './base/types.js';
+import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, DepositWithdrawFees, PositionModeInfo } from './base/types.js';
 /**
  * @class poloniex
  * @augments Exchange
@@ -160,6 +160,19 @@ export default class poloniex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
+    /**
+     * @method
+     * @name poloniex#createOrders
+     * @description create a list of trade orders, all orders must be of the same market type, either spot or swap
+     * @see https://api-docs.poloniex.com/spot/api/private/order#create-multiple-orders
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/place-multiple-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, applied to every order
+     * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', defaults to 'cross'
+     * @param {string} [params.posSide] *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     orderRequest(symbol: string, type: OrderType, side: OrderSide, amount: Num, request: Dict, price?: Num, params?: Dict): [Dict, Dict];
     /**
      * @method
@@ -180,6 +193,19 @@ export default class poloniex extends Exchange {
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
+    /**
+     * @method
+     * @name poloniex#cancelOrders
+     * @description cancel multiple orders
+     * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-multiple-orders-by-ids
+     * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-multiple-orders
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol, required for swap markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] alternative to ids, cancel by client order ids
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name poloniex#cancelAllOrders
@@ -287,6 +313,31 @@ export default class poloniex extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
+    /**
+     * @method
+     * @name poloniex#fetchTransfer
+     * @description fetch a transfer
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-record
+     * @param {string} id transfer id
+     * @param {string} [code] not used by poloniex fetchTransfer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    fetchTransfer(id: string, code?: Str, params?: Dict): Promise<TransferEntry>;
+    /**
+     * @method
+     * @name poloniex#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-records
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve, default 100, max 1000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
+    parseTransferStatus(status: Str): Str;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     /**
      * @method
@@ -296,11 +347,11 @@ export default class poloniex extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     fetchTransactionsHelper(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict>;
     /**
      * @method
@@ -431,6 +482,6 @@ export default class poloniex extends Exchange {
      */
     addMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

@@ -1052,14 +1052,20 @@ public partial class coinbase : ccxt.coinbase
             string? type = this.safeString(eventVar, "type");
             if (type == "snapshot")
             {
-                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
-            }
-            // unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))) && isEqual(this.getOrderBook(this.orderbooks, symbol), null))
+                if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+                {
+                    ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+                }
+            } else if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 continue;
             }
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+            if (type == "snapshot")
+            {
+                // reset in place so consumers holding a reference keep receiving updates after a resync
+                (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
+            }
             this.handleOrderBookHelper(orderbook, updates);
             orderbook["timestamp"] = this.parse8601(datetime);
             orderbook["datetime"] = datetime;

@@ -1845,11 +1845,11 @@ class alpaca extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -1858,12 +1858,12 @@ class alpaca extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag a memo for the transaction
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2117,7 +2117,6 @@ class alpaca extends Exchange {
             $txid = $this->safe_string($transaction, 'tx_hash');
             $datetime = $this->safe_string($transaction, 'created_at');
             $timestamp = $this->parse8601($datetime);
-            $network = $this->safe_string($transaction, 'chain');
             $address = $this->safe_string($transaction, 'to_address');
             $addressTo = $this->safe_string($transaction, 'to_address');
             $addressFrom = $this->safe_string($transaction, 'from_address');
@@ -2125,6 +2124,7 @@ class alpaca extends Exchange {
             $amount = $this->safe_number($transaction, 'amount');
             $currencyId = $this->safe_string($transaction, 'asset');
             $code = $this->safe_currency_code($currencyId, $currency);
+            $network = $this->network_id_to_code($this->safe_string($transaction, 'chain'), $code);
             $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
             $fees = $this->safe_string($transaction, 'fees');
             $networkFee = $this->safe_string($transaction, 'network_fee');
@@ -2325,16 +2325,13 @@ class alpaca extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $endpoint = '/' . $this->implode_params($path, $params);
         $baseApiUrl = $this->safe_string($this->urls['api'], $api[0]);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $headersValue = array();
-        if ($headers !== null) {
-            $headersValue = $headers;
-        }
         if ($api[1] === 'private') {
             $this->check_required_credentials();
             $headersValue['APCA-API-KEY-ID'] = $this->apiKey;
@@ -2351,7 +2348,7 @@ class alpaca extends Exchange {
             }
         }
         $url = $this->implode_hostname($baseApiUrl) . $endpoint;
-        $bodyResolved = ($bodyJson === null) ? $body : $bodyJson;
+        $bodyResolved = $bodyJson;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersValue );
     }
 

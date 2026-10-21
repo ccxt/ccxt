@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import kucoin from './kucoin.js';
+import kucoin from './abstract/kucoinfutures.js';
 import { BadRequest } from './base/errors.js';
 import type { Dict, Str, Strings, TransferEntry, Tickers } from './base/types.js';
 
@@ -28,6 +28,7 @@ export default class kucoinfutures extends kucoin {
                 'swap': true,
                 'future': true,
                 'option': undefined,
+                'editOrder': false,
                 'fetchBidsAsks': true,
                 'transfer': true,
             },

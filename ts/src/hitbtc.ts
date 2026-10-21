@@ -481,14 +481,14 @@ export default class hitbtc extends Exchange {
             'options': {
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
-                    'ETH': 'ETH',
+                    'ETH': 'ERC20',
                     'USDT': 'TRC20',
                 },
                 'networks': {
                     // mainnet network ids are in lowercase for BTC & ETH
                     'BTC': 'btc',
                     'OMNI': 'BTC',
-                    'ETH': 'eth',
+                    // native ETH mainnet id is 'eth', ERC20 tokens use 'ETH'
                     'ERC20': 'ETH',
                     'ETC': 'ETC',
                     'BEP20': 'BSC',
@@ -987,7 +987,8 @@ export default class hitbtc extends Exchange {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString2 (rawNetwork, 'protocol', 'network');
             let networkCode = this.networkIdToCode (networkId, code);
-            networkCode = (networkCode !== undefined) ? networkCode.toUpperCase () : code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
+            networkCode = (networkCodeUpper !== undefined) ? this.safeString (this.networkAliases, networkCodeUpper, networkCodeUpper) : code; // as hitbtc is white label, ensure we safeguard from possible bugs
             if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -1045,7 +1046,8 @@ export default class hitbtc extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
         };
-        const network = this.safeStringUpper (params, 'network');
+        const networkInput = this.safeStringUpper (params, 'network');
+        const network = (networkInput !== undefined) ? this.safeString (this.networkAliases, networkInput, networkInput) : undefined;
         if ((network !== undefined) && (code === 'USDT')) {
             const networks = this.safeDict (this.options, 'networks');
             const parsedNetwork = this.safeString (networks, network);
@@ -1088,7 +1090,8 @@ export default class hitbtc extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
         };
-        const network = this.safeStringUpper (params, 'network');
+        const networkInput = this.safeStringUpper (params, 'network');
+        const network = (networkInput !== undefined) ? this.safeString (this.networkAliases, networkInput, networkInput) : undefined;
         if ((network !== undefined) && (code === 'USDT')) {
             const networks = this.safeDict (this.options, 'networks');
             const parsedNetwork = this.safeString (networks, network);
@@ -2793,10 +2796,12 @@ export default class hitbtc extends Exchange {
             throw new ExchangeError (this.id + ' convertCurrencyNetwork() only supports USDT currently');
         }
         const networks = this.safeDict (this.options, 'networks', {});
-        const fromNetworkValue: any = fromNetwork.toUpperCase ();
-        const toNetworkValue: any = toNetwork.toUpperCase ();
-        const fromNetworkValue2: any = this.safeString (networks, fromNetworkValue); // handle ETH>ERC20 alias
-        const toNetworkValue2: any = this.safeString (networks, toNetworkValue); // handle ETH>ERC20 alias
+        const fromNetworkUpper = fromNetwork.toUpperCase ();
+        const toNetworkUpper = toNetwork.toUpperCase ();
+        const fromNetworkValue: any = this.safeString (this.networkAliases, fromNetworkUpper, fromNetworkUpper);
+        const toNetworkValue: any = this.safeString (this.networkAliases, toNetworkUpper, toNetworkUpper);
+        const fromNetworkValue2: any = this.safeString (networks, fromNetworkValue); // unified code to exchange id
+        const toNetworkValue2: any = this.safeString (networks, toNetworkValue); // unified code to exchange id
         if (fromNetworkValue2 === toNetworkValue2) {
             throw new BadRequest (this.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork');
         }
@@ -2824,16 +2829,16 @@ export default class hitbtc extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        this.checkAddress (address);
+        this.checkAddress (address, code, tagWithdrawTag);
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
@@ -2844,7 +2849,8 @@ export default class hitbtc extends Exchange {
             request['payment_id'] = tagWithdrawTag;
         }
         const networks = this.safeDict (this.options, 'networks', {});
-        const network = this.safeStringUpper (paramsWithdrawTag, 'network');
+        const networkInput = this.safeStringUpper (paramsWithdrawTag, 'network');
+        const network = (networkInput !== undefined) ? this.safeString (this.networkAliases, networkInput, networkInput) : undefined;
         if ((network !== undefined) && (code === 'USDT')) {
             const parsedNetwork = this.safeString (networks, network);
             if (parsedNetwork !== undefined) {
@@ -3761,7 +3767,8 @@ export default class hitbtc extends Exchange {
             const networkId = this.safeString (networkEntry, 'network');
             const code = this.safeString (currency, 'code');
             let networkCode = this.networkIdToCode (networkId, code);
-            networkCode = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
+            const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
+            networkCode = (networkCodeUpper !== undefined) ? this.safeString (this.networkAliases, networkCodeUpper, networkCodeUpper) : undefined;
             const withdrawFee = this.safeNumber (networkEntry, 'payout_fee');
             const isDefault = this.safeBool (networkEntry, 'default');
             const withdrawResult: Dict = {
@@ -3871,10 +3878,11 @@ export default class hitbtc extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3891,8 +3899,8 @@ export default class hitbtc extends Exchange {
                 url = url + getRequest;
             }
         }
-        const bodyResolved = (method === 'GET') ? body : this.json (params);
-        if (api === 'private') {
+        const bodyResolved = (method === 'GET') ? undefined : this.json (params);
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             const payload = [ method, '/api/3/' + implodedPath ];

@@ -2925,15 +2925,15 @@ public partial class ndax : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
         // this method required login, password and twofa key
         string? sessionToken = this.safeString(this.options, "sessionToken");
@@ -2945,7 +2945,7 @@ public partial class ndax : Exchange
         {
             throw new AuthenticationError ((this.id + " withdraw() requires exchange.twofa credentials")) ;
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if ((this.markets == null))
         {
@@ -3032,21 +3032,22 @@ public partial class ndax : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object apiName = getValue(api, 0);
         string? bodySigned = null;
         Dictionary<string, object> headersSigned = null;
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if ((api is "public"))
+        if ((apiName is "public"))
         {
             if ((path == "Authenticate"))
             {
@@ -3070,7 +3071,7 @@ public partial class ndax : Exchange
             {
                 url = url + ("?" + this.urlencode(query));
             }
-        } else if ((api is "private"))
+        } else if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             string? sessionToken = this.safeString(this.options, "sessionToken");
@@ -3103,8 +3104,8 @@ public partial class ndax : Exchange
                 }
             }
         }
-        object headersResolved = ((headersSigned == null)) ? headers : headersSigned;
-        object bodyResolved = ((bodySigned == null)) ? body : bodySigned;
+        Dictionary<string, object> headersResolved = headersSigned;
+        string? bodyResolved = bodySigned;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

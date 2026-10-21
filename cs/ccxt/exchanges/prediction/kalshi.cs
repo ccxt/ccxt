@@ -3130,17 +3130,15 @@ public partial class kalshi : PredictionExchange
      * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "kalshi";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiGroup = (api is string) ? api : getValue(api, 0);
-        object access = (api is string) ? "public" : getValue(api, 1);
+        object apiGroup = getValue(api, 0);
+        string? access = this.safeString(api, 1, "public");
         object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "kalshi"));
         string? implodedPath = this.implodeParams(path, parameters);
@@ -3151,13 +3149,13 @@ public partial class kalshi : PredictionExchange
         {
             url = add(url, ("?" + querystring));
         }
-        object existingHeaders = ((headers != null)) ? headers : new Dictionary<string, object>() {};
+        Dictionary<string, object> existingHeaders = new Dictionary<string, object>() {};
         Dictionary<string, object> headersValue = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },
         }, existingHeaders);
-        object bodyValue = body;
-        if ((access is "private"))
+        string? bodyValue = null;
+        if (access == "private")
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();

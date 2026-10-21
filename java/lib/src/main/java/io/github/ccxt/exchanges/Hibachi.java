@@ -158,6 +158,7 @@ public class Hibachi extends HibachiApi
                     put( "private", "https://api.hibachi.xyz" );
                 }} );
                 put( "www", "https://www.hibachi.xyz/" );
+                put( "doc", "https://api-doc.hibachi.xyz/" );
                 put( "referral", new HashMap<String, Object>() {{
                     put( "url", "https://hibachi.xyz/r/ZBL2YFWIHU" );
                 }} );
@@ -1492,11 +1493,11 @@ public class Hibachi extends HibachiApi
      * @param {string} code unified currency code, only support USDT
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2105,10 +2106,11 @@ public class Hibachi extends HibachiApi
         }});
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2131,12 +2133,12 @@ public class Hibachi extends HibachiApi
         {
             headersValue.put("Content-Type", "application/json");
         }
-        String bodyResult = body;
+        String bodyResult = null;
         if (Boolean.TRUE.equals(hasJsonBody))
         {
             bodyResult = this.json(parameters);
         }
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             headersValue.put("Authorization", this.apiKey);

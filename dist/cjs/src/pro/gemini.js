@@ -418,18 +418,29 @@ class gemini extends gemini$1["default"] {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
         }
-        else if (isInitial) {
-            // handle https://github.com/ccxt/ccxt/issues/29210
-            if (symbol in this.orderbooks) {
-                delete this.orderbooks[symbol];
-            }
-            this.orderbooks[symbol] = this.orderBook();
-        }
         const orderbook = this.orderbooks[symbol];
+        if (isInitial) {
+            // the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
+            const bidsSnapshot = [];
+            const asksSnapshot = [];
+            for (let i = 0; i < changes.length; i++) {
+                const delta = changes[i];
+                const bidAsk = [this.safeNumber(delta, 1), this.safeNumber(delta, 2)];
+                if (this.safeString(delta, 0) === 'buy') {
+                    bidsSnapshot.push(bidAsk);
+                }
+                else {
+                    asksSnapshot.push(bidAsk);
+                }
+            }
+            const snapshot = this.parseOrderBook({ 'bids': bidsSnapshot, 'asks': asksSnapshot }, symbol);
+            orderbook.reset(snapshot);
+            client.resolve(orderbook, messageHash);
+            return;
+        }
         for (let i = 0; i < changes.length; i++) {
             const delta = changes[i];
             const price = this.safeNumber(delta, 1);

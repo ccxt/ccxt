@@ -3601,20 +3601,19 @@ public partial class limitless : PredictionExchange
      * @name limitless#sign
      * @description builds the request URL and attaches the lmts authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the api group and access level
+     * @param {string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "limitless";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiGroup = (api is string) ? api : getValue(api, 0);
-        object access = (api is string) ? "public" : getValue(api, 1);
+        object apiGroup = getValue(api, 0);
+        int apiLength = getArrayLength(api);
+        object access = (apiLength > 1) ? getValue(api, 1) : "public";
         object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "limitless"));
         object url = ("/" + this.implodeParams(path, parameters));
@@ -3624,8 +3623,8 @@ public partial class limitless : PredictionExchange
         {
             url = add(url, ("?" + querystring));
         }
-        object headersValue = headers;
-        object bodyValue = body;
+        Dictionary<string, object> headersValue = null;
+        string? bodyValue = null;
         if ((access is "private"))
         {
             string bodyString = "";
@@ -3637,7 +3636,7 @@ public partial class limitless : PredictionExchange
             {
                 bodyString = this.json(query);
                 bodyValue = bodyString;
-                object headerDefaults = ((headersValue != null)) ? headersValue : new Dictionary<string, object>() {};
+                Dictionary<string, object> headerDefaults = ((headersValue != null)) ? headersValue : new Dictionary<string, object>() {};
                 headersValue = this.extend(new Dictionary<string, object>() {
                     { "Accept", "application/json" },
                     { "Content-Type", "application/json" },

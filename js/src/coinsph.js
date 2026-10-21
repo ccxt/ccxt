@@ -1920,17 +1920,18 @@ export default class coinsph extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address not used by withdraw ()
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         const options = this.safeDict(this.options, 'withdraw');
         const warning = this.safeBool(options, 'warning', true);
         if (warning === true) {
             throw new InvalidAddress(this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
-        const networkCode = this.safeString(params, 'network');
+        const networkCode = this.safeString(paramsWithdrawTag, 'network');
         const networkId = (networkCode === undefined) ? undefined : this.networkCodeToId(networkCode, code);
         if (networkId === undefined) {
             throw new BadRequest(this.id + ' withdraw() require network parameter');
@@ -1948,7 +1949,7 @@ export default class coinsph extends Exchange {
         if (tag !== undefined) {
             request['withdrawOrderId'] = tag;
         }
-        const paramsOmitted = this.omit(params, 'network');
+        const paramsOmitted = this.omit(paramsWithdrawTag, 'network');
         const response = await this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, paramsOmitted));
         return this.parseTransaction(response, currency);
     }
@@ -2143,15 +2144,15 @@ export default class coinsph extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const network = this.safeString(transaction, 'network');
-        const internal = network === 'Internal';
+        const networkId = this.safeString(transaction, 'network');
+        const internal = networkId === 'Internal';
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': network,
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -2264,15 +2265,16 @@ export default class coinsph extends Exchange {
         const urlEncodedParam = key + '=' + stringifiedArray;
         return urlEncodedParam;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const query = this.omit(params, this.extractParams(path));
         const endpoint = this.implodeParams(path, params);
         let url = apiUrl + '/' + endpoint;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             query['timestamp'] = this.milliseconds();
             const recvWindow = this.safeInteger(query, 'recvWindow');
@@ -2288,13 +2290,13 @@ export default class coinsph extends Exchange {
             const signedHeaders = {
                 'X-COINS-APIKEY': this.apiKey,
             };
-            return { 'url': url, 'method': method, 'body': body, 'headers': signedHeaders };
+            return { 'url': url, 'method': method, 'body': undefined, 'headers': signedHeaders };
         }
         const encodedQuery = this.urlEncodeQuery(query);
         if (encodedQuery.length !== 0) {
             url += '?' + encodedQuery;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

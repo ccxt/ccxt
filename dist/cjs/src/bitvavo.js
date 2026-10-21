@@ -1762,7 +1762,7 @@ class bitvavo extends bitvavo$1["default"] {
             request['operatorId'] = this.parseToInt(operatorId);
         }
         else {
-            throw new errors.ArgumentsRequired(this.id + ' canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+            throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
         const response = await this.privateDeleteOrders(this.extend(request, paramsOperatorId));
         //
@@ -2333,13 +2333,13 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2642,9 +2642,10 @@ class bitvavo extends bitvavo$1["default"] {
         //
         return this.parseDepositWithdrawFees(response, codes, 'symbol');
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const query = this.omit(params, this.extractParams(path));
         let url = '/' + this.version + '/' + this.implodeParams(path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
@@ -2653,7 +2654,7 @@ class bitvavo extends bitvavo$1["default"] {
                 url += '?' + this.urlencode(query);
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             let payload = '';
             if (!getOrDelete) {
@@ -2676,7 +2677,7 @@ class bitvavo extends bitvavo$1["default"] {
                 requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }

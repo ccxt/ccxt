@@ -397,7 +397,7 @@ func (c *ArrayCache) Remove(symbol string) {
 	filteredData := make([]any, 0, len(c.Data))
 	for _, item := range c.Data {
 		if m, ok := item.(map[string]any); ok {
-			if s, ok := m["symbol"].(string); ok && s == symbol {
+			if cacheKeyOf(m, "symbol") == symbol {
 				continue // Skip this item
 			}
 		}
@@ -553,7 +553,7 @@ func (c *ArrayCacheByTimestamp) Remove(symbol string) {
 	filteredData := make([]any, 0, len(c.Data))
 	for _, item := range c.Data {
 		if m, ok := item.(map[string]any); ok {
-			if s, ok := m["symbol"].(string); ok && s == symbol {
+			if cacheKeyOf(m, "symbol") == symbol {
 				continue
 			}
 		}
@@ -618,12 +618,10 @@ func NewArrayCacheBySymbolBySide() *ArrayCacheBySymbolBySide {
 func (c *ArrayCacheBySymbolBySide) Append(item any) {
 	var symbol, side string
 	if m, ok := item.(map[string]any); ok {
-		if s, ok := m["symbol"].(string); ok {
-			symbol = s
-		}
-		if sd, ok := m["side"].(string); ok {
-			side = sd
-		}
+		// stringify instead of type-asserting: parsed positions carry *string symbol and
+		// side, and a failed `.(string)` keyed every position under "" so they all merged
+		symbol = cacheKeyOf(m, "symbol")
+		side = cacheKeyOf(m, "side")
 	}
 
 	c.Mu.Lock()
@@ -670,7 +668,8 @@ func (c *ArrayCacheBySymbolBySide) Append(item any) {
 	} else {
 		// move to the end of the array to reflect recent update
 		for i, v := range c.Data {
-			if GetValue(v, "side") == side && GetValue(v, "symbol") == symbol {
+			vm, ok := v.(map[string]any)
+			if ok && cacheKeyOf(vm, "side") == side && cacheKeyOf(vm, "symbol") == symbol {
 				// remove from current position
 				c.Data = append(c.Data[:i], c.Data[i+1:]...)
 				// append to the end

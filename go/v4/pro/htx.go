@@ -1096,7 +1096,12 @@ func (this *Htx) HandleOrderBookSubscription(client any, message map[string]any,
 	var market map[string]any = this.Market(symbol)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if symbol != nil {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
+		}
+		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		ccxt.AddElementToObject(orderbook, "nonce", nil)
+		orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 	}
 	if market["spot"] == true {
 		this.Spawn(this.WatchOrderBookSnapshotAsync, client, message, subscription)
@@ -2276,13 +2281,13 @@ func (this *Htx) HandlePositions(client any, message any) {
 		}
 		newPositions = append(newPositions, position)
 		ccxt.AddElementToObject(positionsByMarginMode, marginMode, this.SafeList(positionsByMarginMode, marginMode, []any{}))
-		retRes179412 := func() any {
+		retRes179912 := func() any {
 			if marginMode == nil {
 				return nil
 			}
 			return positionsByMarginMode[*marginMode]
 		}()
-		ccxt.AppendToArray(&retRes179412, position)
+		ccxt.AppendToArray(&retRes179912, position)
 		cache.(ccxt.Appender).Append(position)
 	}
 	var marginModes []string = nil

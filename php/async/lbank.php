@@ -259,13 +259,10 @@ class lbank extends Exchange {
                 ),
                 'networks' => array(
                     'ERC20' => 'erc20',
-                    'ETH' => 'erc20',
                     'TRC20' => 'trc20',
-                    'TRX' => 'trc20',
                     'OMNI' => 'omni',
                     'ASA' => 'asa',
                     'BEP20' => 'bep20(bsc)',
-                    'BSC' => 'bep20(bsc)',
                     'HT' => 'heco',
                     'BNB' => 'bep2',
                     'BTC' => 'btc',
@@ -2390,9 +2387,9 @@ class lbank extends Exchange {
         $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks');
         $defaultNetwork = $this->safe_string_upper($defaultNetworks, $currencyCode);
         $networks = $this->safe_dict($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-        return $network;
+        $networkParam = $this->safe_string_upper($params, 'network', $defaultNetwork); // accepts unified codes and aliases
+        $networkCode = ($networkParam !== null) ? $this->safe_string($this->networkAliases, $networkParam, $networkParam) : null;
+        return $this->safe_string($networks, $networkCode, $networkCode);
     }
 
     public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
@@ -2483,6 +2480,9 @@ class lbank extends Exchange {
         );
         $networks = $this->safe_dict($this->options, 'networks');
         $network = $this->safe_string_upper($params, 'network');
+        if ($network !== null) {
+            $network = $this->safe_string($this->networkAliases, $network, $network);
+        }
         $network = $this->safe_string($networks, $network, $network);
         $paramsOmitted = ($network !== null) ? $this->omit($params, 'network') : $params;
         if ($network !== null) {
@@ -2513,11 +2513,11 @@ class lbank extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -2526,12 +2526,12 @@ class lbank extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2556,6 +2556,9 @@ class lbank extends Exchange {
             $request['memo'] = $tagWithdrawTag;
         }
         $network = $this->safe_string_upper_2($paramsOmitted, 'network', 'networkName');
+        if ($network !== null) {
+            $network = $this->safe_string($this->networkAliases, $network, $network);
+        }
         $paramsOmitted2 = $this->omit($paramsOmitted, array( 'network', 'networkName' ));
         $networks = $this->safe_dict($this->options, 'networks');
         $networkId = $this->safe_string($networks, $network, $network);
@@ -3215,7 +3218,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $query = $this->omit($params, $this->extract_params($path));
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($apiUrl === null) {
@@ -3285,7 +3288,7 @@ class lbank extends Exchange {
             );
             return array( 'url' => $url, 'method' => $method, 'body' => $bodySigned, 'headers' => $headersSigned );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function convert_secret_to_pem(mixed $secret) {

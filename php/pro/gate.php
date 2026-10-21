@@ -112,6 +112,13 @@ class gate extends \ccxt\async\gate {
                 ),
             ),
             'options' => array(
+                'ws' => array(
+                    'options' => array(
+                        'headers' => array(
+                            'X-Gate-Size-Decimal' => '1', // contract sizes are pushed as decimal strings instead of rounded-down integers
+                        ),
+                    ),
+                ),
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
                 'watchTradesSubscriptions' => array(),
@@ -588,7 +595,12 @@ class gate extends \ccxt\async\gate {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         if ($symbol !== null) {
-            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            }
+            $orderbook = $this->orderbooks[$symbol];
+            $orderbook['nonce'] = null;
+            $orderbook->cache = array();
         }
     }
 
@@ -745,7 +757,8 @@ class gate extends \ccxt\async\gate {
             $this->handle_book_delta($storedOrderBook, $delta);
         } else {
             unset($client->subscriptions[$messageHash]);
-            unset($this->orderbooks[$symbol]);
+            $storedOrderBook['nonce'] = null;
+            $storedOrderBook->cache = array();
             $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
             if ($checksum === true) {
                 $error = new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
@@ -1795,8 +1808,8 @@ class gate extends \ccxt\async\gate {
             } elseif ($event === 'finish') {
                 $status = $this->safe_string($parsed, 'status');
                 if ($status === null) {
-                    $left = $this->safe_integer($info, 'left');
-                    $parsed['status'] = ($left === 0) ? 'closed' : 'canceled';
+                    $left = $this->safe_string($info, 'left');
+                    $parsed['status'] = Precise::string_equals($left, '0') ? 'closed' : 'canceled';
                 }
             }
             $stored->append($parsed);
@@ -2351,8 +2364,10 @@ class gate extends \ccxt\async\gate {
     public function get_market_type_by_url(string $url): string {
         $findBy = array(
             'op-' => 'option',
+            '/ws/options/' => 'option',
             'delivery' => 'future',
             'fx' => 'swap',
+            '/ws/futures/' => 'swap',
         );
         $keys = is_array($findBy) ? array_keys($findBy) : array();
         for ($i = 0; $i < count($keys); $i++) {

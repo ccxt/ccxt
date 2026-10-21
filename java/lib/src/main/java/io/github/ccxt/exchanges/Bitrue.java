@@ -14,6 +14,7 @@ import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Status;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -1288,10 +1289,10 @@ public class Bitrue extends BitrueApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> response = null;
@@ -1823,7 +1824,7 @@ public class Bitrue extends BitrueApi
                 }
             } else
             {
-                io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", (Map<String, Object>) null, parameters, (String) null);
+                Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", (Map<String, Object>) null, parameters, (String) null);
                 String marketType = marketTypeparamsMarketTypeVariable.first();
                 Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
                 if (!java.util.Objects.equals(marketType, "spot"))
@@ -2283,7 +2284,7 @@ public class Bitrue extends BitrueApi
                     request.put("type", "IOC");
                 }
                 request.put("contractName", market.get("id"));
-                io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
                 Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                 Boolean isMarketBuyWithPrice = Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "buy")) && Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice);
@@ -3182,7 +3183,7 @@ public class Bitrue extends BitrueApi
             String networkId = this.safeString(parts, 1);
             if (!java.util.Objects.equals(networkId, null))
             {
-                network = networkId.toUpperCase();
+                network = this.networkIdToCode(networkId.toUpperCase(), (String) null);
             }
         }
         String code = this.safeCurrencyCode(currencyId, currency);
@@ -3229,19 +3230,19 @@ public class Bitrue extends BitrueApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
-            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
+            String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3642,13 +3643,13 @@ public class Bitrue extends BitrueApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object requestBody = null;
         Map<String, Object> requestHeaders = null;
-        String type = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        String version = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
-        String access = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 2);
+        String type = this.safeString(api, 0);
+        String version = this.safeString(api, 1);
+        String access = this.safeString(api, 2);
         String apiUrl = this.safeString(this.urls.get("api"), type);
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -3735,8 +3736,8 @@ public class Bitrue extends BitrueApi
                 url = (url + ("?" + this.urlencode(paramsOmitted)));
             }
         }
-        Object bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        Object bodyResult = requestBody;
+        Map<String, Object> headersResult = requestHeaders;
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("url", url);

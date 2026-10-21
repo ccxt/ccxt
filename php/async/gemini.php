@@ -1903,11 +1903,11 @@ class gemini extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -1916,13 +1916,12 @@ class gemini extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        $tagAndParams = $this->handle_withdraw_tag_and_params($tag, $params);
-        $paramsWithdrawTag = $tagAndParams[1];
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2144,11 +2143,12 @@ class gemini extends Exchange {
         return $this->index_by($results, 'network');
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $headersSigned = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $apiKey = $this->apiKey;
             if (mb_strpos($apiKey, 'account') === false) {
@@ -2175,13 +2175,13 @@ class gemini extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $fullUrl = $apiUrl . $url;
-        $headersResolved = ($api === 'private') ? $headersSigned : $headers;
-        $bodyResolved = $body;
+        $headersResolved = ($apiName === 'private') ? $headersSigned : null;
+        $bodyResolved = null;
         if (($method === 'POST') || ($method === 'DELETE')) {
             $bodyResolved = $this->json($query);
         }

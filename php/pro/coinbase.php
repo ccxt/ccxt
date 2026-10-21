@@ -1026,13 +1026,18 @@ class coinbase extends \ccxt\async\coinbase {
             $limit = $this->safe_integer($subscription, 'limit');
             $type = $this->safe_string($event, 'type');
             if ($type === 'snapshot') {
-                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
-            }
-            // unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) && $this->orderbooks[$symbol] === null) {
+                if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                    $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+                }
+            } elseif (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                // an update can arrive after unWatchOrderBook deleted the orderbook (or before any snapshot)
                 continue;
             }
             $orderbook = $this->orderbooks[$symbol];
+            if ($type === 'snapshot') {
+                // reset in place so consumers holding a reference keep receiving updates after a resync
+                $orderbook->reset(array());
+            }
             $this->handle_order_book_helper($orderbook, $updates);
             $orderbook['timestamp'] = $this->parse8601($datetime);
             $orderbook['datetime'] = $datetime;

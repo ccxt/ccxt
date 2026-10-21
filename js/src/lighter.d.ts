@@ -315,14 +315,26 @@ export default class lighter extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
+    /**
+     * @method
+     * @name lighter#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.lighter.xyz/reference/recenttrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name lighter#fetchMyTrades
@@ -433,10 +445,15 @@ export default class lighter extends Exchange {
      */
     setMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
-    sign(path: string, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: {}): {
         url: string;
         method: string;
-        body: any;
+        body: {};
+        headers: Dict;
+    } | {
+        url: string;
+        method: string;
+        body: undefined;
         headers: NullableDict;
     };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;

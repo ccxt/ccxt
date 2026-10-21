@@ -19,6 +19,8 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'createOrdersWs': true,
                 'editOrderWs': true,
                 'watchBalance': true,
+                'watchMyLiquidations': true,
+                'watchMyLiquidationsForSymbols': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
@@ -503,6 +505,69 @@ class hyperliquid extends hyperliquid$1["default"] {
     }
     /**
      * @method
+     * @name hyperliquid#watchMyLiquidations
+     * @description watch the private liquidations of a trading pair
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+     */
+    watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
+    }
+    /**
+     * @method
+     * @name hyperliquid#watchMyLiquidationsForSymbols
+     * @description watch the private liquidations of a list of trading pairs
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string[]} symbols list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+     */
+    async watchMyLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        const [userAddress, paramsValue] = this.handlePublicAddress('watchMyLiquidationsForSymbols', params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, true, true);
+        const messageHashes = [];
+        if (this.isEmpty(symbolsNormalized)) {
+            messageHashes.push('myLiquidations');
+        }
+        else {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                messageHashes.push('myLiquidations::' + symbolsNormalized[i]);
+            }
+        }
+        const url = this.urls['api']['ws']['public'];
+        const request = {
+            'method': 'subscribe',
+            'subscription': {
+                'type': 'userFills',
+                'user': userAddress,
+            },
+        };
+        const message = this.extend(request, paramsValue);
+        if (userAddress === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' watchMyLiquidationsForSymbols() requires a user address');
+        }
+        // shares the userFills subscription with watchMyTrades
+        const subscribeHash = 'subscribe:userFills::' + userAddress.toLowerCase();
+        await this.waitForPendingUnsubscribe(url, 'myTrades');
+        const newLiquidations = await this.watchMultiple(url, messageHashes, message, [subscribeHash]);
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.myLiquidations, symbolsNormalized, since, limit, true);
+    }
+    /**
+     * @method
      * @name hyperliquid#unWatchMyTrades
      * @description unWatches information on multiple trades made by the user
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
@@ -640,6 +705,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         //         }
         //     }
         //
+        // an empty snapshot still seeds the liquidations cache
+        this.handleMyLiquidations(client, message);
         const entry = this.safeDict(message, 'data', {});
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -667,6 +734,53 @@ class hyperliquid extends hyperliquid$1["default"] {
         // non-symbol specific
         const messageHash = 'myTrades';
         client.resolve(trades, messageHash);
+    }
+    handleMyLiquidations(client, message) {
+        //
+        // userFills message, see handleMyTrades, liquidation fills carry
+        //
+        //     "liquidation": {
+        //         "liquidatedUser": "0x5c902b2eb0e1d9eb9a232014824ae6247df0a480",
+        //         "markPx": "4.69112",
+        //         "method": "market"
+        //     }
+        //
+        const entry = this.safeDict(message, 'data', {});
+        // every subscription starts with a snapshot, a resubscribe replays it
+        const isSnapshot = this.safeBool(entry, 'isSnapshot', false);
+        if (isSnapshot || (this.myLiquidations === undefined)) {
+            const limit = this.safeInteger(this.options, 'myLiquidationsLimit', 1000);
+            this.myLiquidations = new Cache.ArrayCache(limit);
+        }
+        const user = this.safeStringLower(entry, 'user');
+        const fills = this.safeList(entry, 'fills', []);
+        const newLiquidations = [];
+        for (let i = 0; i < fills.length; i++) {
+            const fill = fills[i];
+            const liquidation = this.safeDict(fill, 'liquidation', {});
+            // liquidator fills carry the liquidated counterparty here
+            if (this.safeStringLower(liquidation, 'liquidatedUser') === user) {
+                newLiquidations.push(this.parseLiquidation(fill));
+            }
+        }
+        const newLiquidationsLength = newLiquidations.length;
+        if (newLiquidationsLength === 0) {
+            return;
+        }
+        const cache = this.myLiquidations;
+        const symbols = {};
+        for (let i = 0; i < newLiquidationsLength; i++) {
+            const liquidation = newLiquidations[i];
+            cache.append(liquidation);
+            symbols[liquidation['symbol']] = true;
+        }
+        const keys = Object.keys(symbols);
+        for (let i = 0; i < keys.length; i++) {
+            const symbol = keys[i];
+            const symbolLiquidations = this.filterBySymbol(newLiquidations, symbol);
+            client.resolve(symbolLiquidations, 'myLiquidations::' + symbol);
+        }
+        client.resolve(newLiquidations, 'myLiquidations');
     }
     /**
      * @method
@@ -1659,6 +1773,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const subHash = 'myTrades';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription(client, subHash, unSubHash, true);
+        // userFills also feeds watchMyLiquidations
+        this.cleanUnsubscription(client, 'myLiquidations', unSubHash, true);
+        this.myLiquidations = undefined;
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
         const user = this.safeStringLower(subscription, 'user');

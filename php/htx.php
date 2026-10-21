@@ -16,7 +16,7 @@ class htx extends Exchange {
             'countries' => array( 'CN' ),
             'rateLimit' => 100,
             'userAgent' => $this->userAgents['chrome100'],
-            'certified' => true,
+            'certified' => false,
             'version' => 'v1',
             'hostname' => 'api.huobi.pro', // api.testnet.huobi.pro
             'pro' => true,
@@ -876,7 +876,7 @@ class htx extends Exchange {
                     'LTC' => 'LTC',
                     'XRP' => 'XRP',
                     'XLM' => 'XLM',
-                    'CRONOS' => 'CRO',
+                    'CRC20' => 'CRO',
                     'CRO' => 'CRO',
                     'GLMR' => 'GLMR',
                     'POLYGON' => 'MATIC',
@@ -2009,6 +2009,15 @@ class htx extends Exchange {
         $close = $this->safe_string($ticker, 'close');
         $baseVolume = $this->safe_string($ticker, 'amount');
         $quoteVolume = $this->safe_string($ticker, 'vol');
+        $marketResolved = $this->safe_dict($this->markets, $symbol, $market);
+        if ($this->safe_bool($marketResolved, 'contract') === true) {
+            // contract tickers count 'vol' in contracts
+            if ($this->safe_bool($marketResolved, 'linear') === true) {
+                $quoteVolume = $this->safe_string($ticker, 'trade_turnover');
+            } else {
+                $quoteVolume = Precise::string_mul($quoteVolume, $this->safe_string($marketResolved, 'contractSize'));
+            }
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -6435,7 +6444,7 @@ class htx extends Exchange {
         $currency = $this->currency($code);
         list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
         $indexedAddresses = $this->fetch_deposit_addresses_by_network($code, $paramsOmited);
-        $selectedNetworkCode = $this->select_network_code_from_unified_networks($currency['code'], $networkCode, $indexedAddresses);
+        $selectedNetworkCode = $this->select_network_key_from_networks($currency['code'], $networkCode, $indexedAddresses, true);
         return $this->safe_value($indexedAddresses, $selectedNetworkCode);
     }
 
@@ -6727,7 +6736,7 @@ class htx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          *
          * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
@@ -6736,15 +6745,15 @@ class htx extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for $currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagValue, $paramsTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagValue, $paramsTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $this->check_address($address);
+        $this->check_address($address, $code, $tagValue);
         $currency = $this->currency($code);
         $request = array(
             'address' => $address, // only supports existing addresses in your withdraw address list
@@ -7567,7 +7576,7 @@ class htx extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $signedHeaders = null;
         $signedBody = null;
         $pathString = $path;
@@ -7579,15 +7588,17 @@ class htx extends Exchange {
         } else {
             $query = $this->omit($params, $this->extract_params($path));
         }
-        if (gettype($api) === 'string') {
+        $apiLength = count($api);
+        if ($apiLength === 1) {
             // signing implementation for the old endpoints
-            if (($api === 'public') || ($api === 'private')) {
+            $apiName = $api[0];
+            if (($apiName === 'public') || ($apiName === 'private')) {
                 $url .= $this->version;
-            } elseif (($api === 'v2Public') || ($api === 'v2Private')) {
+            } elseif (($apiName === 'v2Public') || ($apiName === 'v2Private')) {
                 $url .= 'v2';
             }
             $url .= '/' . $this->implode_params($path, $params);
-            if ($api === 'private' || $api === 'v2Private') {
+            if ($apiName === 'private' || $apiName === 'v2Private') {
                 $this->check_required_credentials();
                 $timestamp = $this->ymdhms($this->nonce(), 'T');
                 $request = array(
@@ -7628,7 +7639,7 @@ class htx extends Exchange {
                     $url .= '?' . $this->urlencode($query);
                 }
             }
-            $baseApiUrl = $this->safe_string($this->urls['api'], $api);
+            $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
             if ($baseApiUrl === null) {
                 throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
             }
@@ -7726,8 +7737,8 @@ class htx extends Exchange {
                 'hostname' => $finalHostname,
             )) . $url;
         }
-        $headersResolved = ($signedHeaders !== null) ? $signedHeaders : $headers;
-        $bodyResolved = ($signedBody !== null) ? $signedBody : $body;
+        $headersResolved = $signedHeaders;
+        $bodyResolved = $signedBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
@@ -8337,7 +8348,7 @@ class htx extends Exchange {
             } elseif ($marketType === 'swap') {
                 $response = $this->contractPrivatePostSwapApiV1SwapAccountPositionInfo($this->extend($request, $query));
             } else {
-                throw new NotSupported($this->id . ' setLeverage() not support this market type');
+                throw new NotSupported($this->id . ' fetchPosition() not support this market type');
             }
             //
             // future, swap

@@ -236,7 +236,7 @@ class tokocrypto extends Exchange {
                 // 'fetchTradesMethod': 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
                 'createMarketBuyOrderRequiresPrice' => true,
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                // 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
+                // 'defaultType': 'spot', // 'spot', 'margin', 'swap', 'future'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
                 // 'fetchPositions': 'positionRisk', // or 'account'
@@ -260,7 +260,7 @@ class tokocrypto extends Exchange {
                 'reverseNetworks' => array(
                     'tronscan.org' => 'TRC20',
                     'etherscan.io' => 'ERC20',
-                    'bscscan.com' => 'BSC',
+                    'bscscan.com' => 'BEP20',
                     'explorer.binance.org' => 'BEP2',
                     'bithomp.com' => 'XRP',
                     'bloks.io' => 'EOS',
@@ -1547,7 +1547,7 @@ class tokocrypto extends Exchange {
          *
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+         * @param {string} [$params->type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding'
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
          * @param {string[]|null} [$params->symbols] unified market symbols, only used in isolated margin mode
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -1743,7 +1743,8 @@ class tokocrypto extends Exchange {
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         $cost = $this->safe_string_n($order, array( 'cummulativeQuoteQty', 'cumQuote', 'executedQuoteQty', 'cumBase' ));
         $id = $this->safe_string($order, 'orderId');
-        $type = $this->parse_order_type($this->safe_string_lower($order, 'type'));
+        $rawOrderType = $this->safe_string_lower($order, 'type');
+        $type = $this->parse_order_type($rawOrderType);
         $side = $this->safe_string_lower($order, 'side');
         if ($side === '0') {
             $side = 'buy';
@@ -1752,12 +1753,12 @@ class tokocrypto extends Exchange {
         }
         $fills = $this->safe_list($order, 'fills', array());
         $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'clientId');
-        $timeInForce = $this->safe_string($order, 'timeInForce');
-        if ($timeInForce === 'GTX') {
-            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-            $timeInForce = 'PO';
-        }
-        $postOnly = ($type === 'limit_maker') || ($timeInForce === 'PO');
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
+        // the order type carries the post only flag on its own, 7 on the open/v1
+        // payloads and LIMIT_MAKER on the binance shaped ones, so the time force
+        // echoed back by the venue is only the third witness
+        $isLimitMaker = ($rawOrderType === '7') || ($rawOrderType === 'limit_maker');
+        $postOnly = $isLimitMaker || ($timeInForce === 'PO');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1784,6 +1785,17 @@ class tokocrypto extends Exchange {
         ), $market);
     }
 
+    public function parse_time_in_force(?string $timeInForce): ?string {
+        $timeInForces = array(
+            '1' => 'GTC',
+            '2' => 'IOC',
+            '3' => 'FOK',
+            '4' => 'PO', // GTX, good till crossing, the venue spelling of post only
+            'GTX' => 'PO',
+        );
+        return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
+    }
+
     public function parse_order_type(?string $status): ?string {
         $statuses = array(
             '2' => 'market',
@@ -1808,6 +1820,8 @@ class tokocrypto extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] the $price at which a trigger order would be triggered
          * @param {float} [$params->cost] for spot $market buy orders, the quote quantity that can be used as an alternative for the $amount
+         * @param {string} [$params->timeInForce] 'GTC', 'IOC' or 'FOK', defaults to the $defaultTimeInForce option on the order types that rest on the book, $market orders accept 'IOC' as a no-op and reject the rest
+         * @param {bool} [$params->postOnly] true for a post only order, the 'PO' and 'GTX' $timeInForce spellings do the same
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -1815,15 +1829,25 @@ class tokocrypto extends Exchange {
         }
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId');
-        $postOnly = $this->safe_bool($params, 'postOnly', false);
+        $requestedType = strtoupper($type);
+        $requestedTimeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $isMarketOrder = ($requestedType === 'MARKET');
+        // GTX is the venue spelling of post only, on top of the two unified spellings
+        $isPostOnlyTimeInForce = ($requestedTimeInForce === 'GTX');
+        list($postOnly, $paramsPostOnly) = $this->handle_post_only($isMarketOrder, $isPostOnlyTimeInForce, $params);
         // only supported for spot/margin api
         $typeResolved = ($postOnly === true) ? 'LIMIT_MAKER' : $type;
+        // post only is expressed by the order type here, not by a time force
+        $timeInForceResolved = ($postOnly === true) ? null : $requestedTimeInForce;
         $initialUppercaseType = strtoupper($typeResolved);
         $uppercaseType = $initialUppercaseType;
         $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         $triggerKeys = ($triggerPrice !== null) ? array( 'triggerPrice', 'stopPrice' ) : array();
-        $paramsRequest = $this->omit($params, $this->array_concat(array( 'clientId', 'clientOrderId' ), $triggerKeys));
+        $paramsRequest = $this->omit($paramsPostOnly, $this->array_concat(array( 'clientId', 'clientOrderId', 'timeInForce' ), $triggerKeys));
         if ($triggerPrice !== null) {
+            if ($postOnly === true) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type');
+            }
             if ($uppercaseType === 'MARKET') {
                 $uppercaseType = 'STOP_LOSS';
             } elseif ($uppercaseType === 'LIMIT') {
@@ -1871,6 +1895,7 @@ class tokocrypto extends Exchange {
         $priceIsRequired = false;
         $triggerPriceIsRequired = false;
         $quantityIsRequired = false;
+        $timeInForceIsRequired = false;
         //
         // spot/margin
         //
@@ -1910,6 +1935,7 @@ class tokocrypto extends Exchange {
         } elseif ($uppercaseType === 'LIMIT') {
             $priceIsRequired = true;
             $quantityIsRequired = true;
+            $timeInForceIsRequired = true;
         } elseif (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
             $triggerPriceIsRequired = true;
             $quantityIsRequired = true;
@@ -1920,6 +1946,7 @@ class tokocrypto extends Exchange {
             $quantityIsRequired = true;
             $triggerPriceIsRequired = true;
             $priceIsRequired = true;
+            $timeInForceIsRequired = true;
         } elseif ($uppercaseType === 'LIMIT_MAKER') {
             $priceIsRequired = true;
             $quantityIsRequired = true;
@@ -1938,6 +1965,30 @@ class tokocrypto extends Exchange {
                 throw new InvalidOrder($this->id . ' createOrder() requires a triggerPrice extra param for a ' . $typeResolved . ' order');
             } else {
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            }
+        }
+        if ($timeInForceIsRequired) {
+            $defaultTimeInForce = $this->safe_string($this->options, 'defaultTimeInForce', 'GTC');
+            $timeInForce = ($timeInForceResolved === null) ? $defaultTimeInForce : $timeInForceResolved;
+            // the endpoint takes the time force as a numeric code, post only is
+            // placed as a LIMIT_MAKER order rather than as the GTX code
+            $timeInForceCodes = array(
+                'GTC' => '1',
+                'IOC' => '2',
+                'FOK' => '3',
+            );
+            $timeInForceCode = $this->safe_string($timeInForceCodes, $timeInForce);
+            if ($timeInForceCode === null) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support the ' . $timeInForce . ' timeInForce, use GTC, IOC, FOK or the postOnly parameter');
+            }
+            $request['timeInForce'] = $timeInForceCode;
+        } elseif ($timeInForceResolved !== null) {
+            // a market order fills immediately or not at all, so an IOC asks for
+            // what the order type already does and gets accepted as a no-op, while
+            // any other time force would be a promise the venue cannot keep here
+            $isRedundantImmediateOrCancel = $isMarketOrder && ($timeInForceResolved === 'IOC');
+            if (!$isRedundantImmediateOrCancel) {
+                throw new NotSupported($this->id . ' createOrder() does not support the ' . $timeInForceResolved . ' timeInForce for ' . $type . ' orders');
             }
         }
         $response = $this->privatePostOpenV1Orders($this->extend($request, $paramsRequest));
@@ -2293,7 +2344,7 @@ class tokocrypto extends Exchange {
         return array(
             'info' => $response,
             'currency' => $code,
-            'network' => $this->safe_string($data, 'network'),
+            'network' => $this->network_id_to_code($this->safe_string($data, 'network'), $code),
             'address' => $address,
             'tag' => $tag,
         );
@@ -2541,7 +2592,7 @@ class tokocrypto extends Exchange {
             'txid' => $txid,
             'type' => $type,
             'currency' => $code,
-            'network' => $this->safe_string($transaction, 'network'),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $code),
             'amount' => $this->safe_number($transaction, 'amount'),
             'status' => $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type),
             'timestamp' => $timestamp,
@@ -2559,7 +2610,7 @@ class tokocrypto extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          *
          * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
@@ -2568,15 +2619,15 @@ class tokocrypto extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $this->check_address($address);
+        $this->check_address($address, $code, $tagWithdrawTag);
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
@@ -2608,17 +2659,18 @@ class tokocrypto extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(string $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        if (!(is_array($this->urls['api']['rest']) && array_key_exists($api ?? '', $this->urls['api']['rest']))) {
-            throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
+    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        if (!(is_array($this->urls['api']['rest']) && array_key_exists($apiName ?? '', $this->urls['api']['rest']))) {
+            throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $apiName . ' endpoints');
         }
-        $baseApiUrl = $this->safe_string($this->urls['api']['rest'], $api);
+        $baseApiUrl = $this->safe_string($this->urls['api']['rest'], $apiName);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $baseApiUrl;
         $url .= '/' . $path;
-        if ($api === 'wapi') {
+        if ($apiName === 'wapi') {
             $url .= '.html';
         }
         $userDataStream = ($path === 'userDataStream') || ($path === 'listenKey');
@@ -2629,12 +2681,12 @@ class tokocrypto extends Exchange {
                     'X-MBX-APIKEY' => $this->apiKey,
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 );
-                $bodyStream = ($method !== 'GET') ? $this->urlencode($params) : $body;
+                $bodyStream = ($method !== 'GET') ? $this->urlencode($params) : null;
                 return array( 'url' => $url, 'method' => $method, 'body' => $bodyStream, 'headers' => $headersStream );
             } else {
                 throw new AuthenticationError($this->id . ' userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV3') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
+        } elseif (($apiName === 'private') || ($apiName === 'sapi' && $path !== 'system/status') || ($apiName === 'sapiV3') || ($apiName === 'wapi' && $path !== 'systemStatus') || ($apiName === 'dapiPrivate') || ($apiName === 'dapiPrivateV2') || ($apiName === 'fapiPrivate') || ($apiName === 'fapiPrivateV2')) {
             $this->check_required_credentials();
             $query = null;
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
@@ -2648,7 +2700,7 @@ class tokocrypto extends Exchange {
             if ($recvWindow !== null) {
                 $extendedParams['recvWindow'] = $recvWindow;
             }
-            if (($api === 'sapi') && ($path === 'asset/dust')) {
+            if (($apiName === 'sapi') && ($path === 'asset/dust')) {
                 $query = $this->urlencode_with_array_repeat($extendedParams);
             } elseif (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false) || ($path === 'capital/withdraw/apply') || (mb_strpos($path, 'staking') !== false)) {
                 $query = $this->rawencode($extendedParams);
@@ -2660,10 +2712,10 @@ class tokocrypto extends Exchange {
             $headersSigned = array(
                 'X-MBX-APIKEY' => $this->apiKey,
             );
-            $queryInUrl = ($method === 'GET') || ($method === 'DELETE') || ($api === 'wapi');
+            $queryInUrl = ($method === 'GET') || ($method === 'DELETE') || ($apiName === 'wapi');
             $bodySigned = $query;
             if ($queryInUrl) {
-                $bodySigned = $body;
+                $bodySigned = null;
             }
             if ($queryInUrl) {
                 $url .= '?' . $query;
@@ -2676,7 +2728,7 @@ class tokocrypto extends Exchange {
                 $url .= '?' . $this->urlencode($params);
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -2753,7 +2805,7 @@ class tokocrypto extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('noCoin' ?? '', $config)) && !(is_array($params) && array_key_exists('coin' ?? '', $params))) {
             return $config['noCoin'];
         } elseif ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {

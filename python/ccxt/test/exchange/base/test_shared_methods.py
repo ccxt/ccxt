@@ -265,6 +265,15 @@ def assert_equal(exchange, skipped_properties, method, entry, key, compare_to, a
         assert Precise.string_eq(value, compare_to), string_value(key) + ' key (with a value of ' + string_value(value) + ') was expected to be equal to ' + string_value(compare_to) + log_text
 
 
+def assert_unified_network_code(exchange, skipped_properties, method, entry, network_code):
+    # returned network codes must be the unified code, never one of its aliases (e.g. ERC20, not ETH)
+    if ('network' in skipped_properties) or (network_code is None):
+        return
+    log_text = log_template(exchange, method, entry)
+    unified_code = exchange.safe_string(exchange.networkAliases, network_code, network_code)
+    assert unified_code == network_code, 'network code ' + network_code + ' is an alias, expected the unified code ' + unified_code + log_text
+
+
 def assert_non_equal(exchange, skipped_properties, method, entry, key, compare_to, allow_null=True):
     if key in skipped_properties:
         return

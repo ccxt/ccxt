@@ -243,7 +243,7 @@ export default class tokocrypto extends Exchange {
                 // 'fetchTradesMethod': 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
                 'createMarketBuyOrderRequiresPrice': true,
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                // 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
+                // 'defaultType': 'spot', // 'spot', 'margin', 'swap', 'future'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 // 'fetchPositions': 'positionRisk', // or 'account'
@@ -267,7 +267,7 @@ export default class tokocrypto extends Exchange {
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
-                    'bscscan.com': 'BSC',
+                    'bscscan.com': 'BEP20',
                     'explorer.binance.org': 'BEP2',
                     'bithomp.com': 'XRP',
                     'bloks.io': 'EOS',
@@ -1552,7 +1552,7 @@ export default class tokocrypto extends Exchange {
      * @see https://www.tokocrypto.com/apidocs/#account-information-signed
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+     * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding'
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1746,7 +1746,8 @@ export default class tokocrypto extends Exchange {
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         const cost = this.safeStringN(order, ['cummulativeQuoteQty', 'cumQuote', 'executedQuoteQty', 'cumBase']);
         const id = this.safeString(order, 'orderId');
-        const type = this.parseOrderType(this.safeStringLower(order, 'type'));
+        const rawOrderType = this.safeStringLower(order, 'type');
+        const type = this.parseOrderType(rawOrderType);
         let side = this.safeStringLower(order, 'side');
         if (side === '0') {
             side = 'buy';
@@ -1756,12 +1757,12 @@ export default class tokocrypto extends Exchange {
         }
         const fills = this.safeList(order, 'fills', []);
         const clientOrderId = this.safeString2(order, 'clientOrderId', 'clientId');
-        let timeInForce = this.safeString(order, 'timeInForce');
-        if (timeInForce === 'GTX') {
-            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-            timeInForce = 'PO';
-        }
-        const postOnly = (type === 'limit_maker') || (timeInForce === 'PO');
+        const timeInForce = this.parseTimeInForce(this.safeString(order, 'timeInForce'));
+        // the order type carries the post only flag on its own, 7 on the open/v1
+        // payloads and LIMIT_MAKER on the binance shaped ones, so the time force
+        // echoed back by the venue is only the third witness
+        const isLimitMaker = (rawOrderType === '7') || (rawOrderType === 'limit_maker');
+        const postOnly = isLimitMaker || (timeInForce === 'PO');
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -1787,6 +1788,16 @@ export default class tokocrypto extends Exchange {
             'trades': fills,
         }, market);
     }
+    parseTimeInForce(timeInForce) {
+        const timeInForces = {
+            '1': 'GTC',
+            '2': 'IOC',
+            '3': 'FOK',
+            '4': 'PO', // GTX, good till crossing, the venue spelling of post only
+            'GTX': 'PO',
+        };
+        return this.safeString(timeInForces, timeInForce, timeInForce);
+    }
     parseOrderType(status) {
         const statuses = {
             '2': 'market',
@@ -1809,6 +1820,8 @@ export default class tokocrypto extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
      * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.timeInForce] 'GTC', 'IOC' or 'FOK', defaults to the defaultTimeInForce option on the order types that rest on the book, market orders accept 'IOC' as a no-op and reject the rest
+     * @param {bool} [params.postOnly] true for a post only order, the 'PO' and 'GTX' timeInForce spellings do the same
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1817,15 +1830,25 @@ export default class tokocrypto extends Exchange {
         }
         const market = this.market(symbol);
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientId');
-        const postOnly = this.safeBool(params, 'postOnly', false);
+        const requestedType = type.toUpperCase();
+        const requestedTimeInForce = this.safeStringUpper(params, 'timeInForce');
+        const isMarketOrder = (requestedType === 'MARKET');
+        // GTX is the venue spelling of post only, on top of the two unified spellings
+        const isPostOnlyTimeInForce = (requestedTimeInForce === 'GTX');
+        const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarketOrder, isPostOnlyTimeInForce, params);
         // only supported for spot/margin api
         const typeResolved = (postOnly === true) ? 'LIMIT_MAKER' : type;
+        // post only is expressed by the order type here, not by a time force
+        const timeInForceResolved = (postOnly === true) ? undefined : requestedTimeInForce;
         const initialUppercaseType = typeResolved.toUpperCase();
         let uppercaseType = initialUppercaseType;
         const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
         const triggerKeys = (triggerPrice !== undefined) ? ['triggerPrice', 'stopPrice'] : [];
-        let paramsRequest = this.omit(params, this.arrayConcat(['clientId', 'clientOrderId'], triggerKeys));
+        let paramsRequest = this.omit(paramsPostOnly, this.arrayConcat(['clientId', 'clientOrderId', 'timeInForce'], triggerKeys));
         if (triggerPrice !== undefined) {
+            if (postOnly === true) {
+                throw new InvalidOrder(this.id + ' createOrder() does not support post only trigger orders, the venue has no post only trigger order type');
+            }
             if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_LOSS';
             }
@@ -1877,6 +1900,7 @@ export default class tokocrypto extends Exchange {
         let priceIsRequired = false;
         let triggerPriceIsRequired = false;
         let quantityIsRequired = false;
+        let timeInForceIsRequired = false;
         //
         // spot/margin
         //
@@ -1921,6 +1945,7 @@ export default class tokocrypto extends Exchange {
         else if (uppercaseType === 'LIMIT') {
             priceIsRequired = true;
             quantityIsRequired = true;
+            timeInForceIsRequired = true;
         }
         else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
             triggerPriceIsRequired = true;
@@ -1933,6 +1958,7 @@ export default class tokocrypto extends Exchange {
             quantityIsRequired = true;
             triggerPriceIsRequired = true;
             priceIsRequired = true;
+            timeInForceIsRequired = true;
         }
         else if (uppercaseType === 'LIMIT_MAKER') {
             priceIsRequired = true;
@@ -1953,6 +1979,31 @@ export default class tokocrypto extends Exchange {
             }
             else {
                 request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
+            }
+        }
+        if (timeInForceIsRequired) {
+            const defaultTimeInForce = this.safeString(this.options, 'defaultTimeInForce', 'GTC');
+            const timeInForce = (timeInForceResolved === undefined) ? defaultTimeInForce : timeInForceResolved;
+            // the endpoint takes the time force as a numeric code, post only is
+            // placed as a LIMIT_MAKER order rather than as the GTX code
+            const timeInForceCodes = {
+                'GTC': '1',
+                'IOC': '2',
+                'FOK': '3',
+            };
+            const timeInForceCode = this.safeString(timeInForceCodes, timeInForce);
+            if (timeInForceCode === undefined) {
+                throw new InvalidOrder(this.id + ' createOrder() does not support the ' + timeInForce + ' timeInForce, use GTC, IOC, FOK or the postOnly parameter');
+            }
+            request['timeInForce'] = timeInForceCode;
+        }
+        else if (timeInForceResolved !== undefined) {
+            // a market order fills immediately or not at all, so an IOC asks for
+            // what the order type already does and gets accepted as a no-op, while
+            // any other time force would be a promise the venue cannot keep here
+            const isRedundantImmediateOrCancel = isMarketOrder && (timeInForceResolved === 'IOC');
+            if (!isRedundantImmediateOrCancel) {
+                throw new NotSupported(this.id + ' createOrder() does not support the ' + timeInForceResolved + ' timeInForce for ' + type + ' orders');
             }
         }
         const response = await this.privatePostOpenV1Orders(this.extend(request, paramsRequest));
@@ -2301,7 +2352,7 @@ export default class tokocrypto extends Exchange {
         return {
             'info': response,
             'currency': code,
-            'network': this.safeString(data, 'network'),
+            'network': this.networkIdToCode(this.safeString(data, 'network'), code),
             'address': address,
             'tag': tag,
         };
@@ -2546,7 +2597,7 @@ export default class tokocrypto extends Exchange {
             'txid': txid,
             'type': type,
             'currency': code,
-            'network': this.safeString(transaction, 'network'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': this.parseTransactionStatusByType(this.safeString(transaction, 'status'), type),
             'timestamp': timestamp,
@@ -2571,16 +2622,16 @@ export default class tokocrypto extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
@@ -2611,17 +2662,18 @@ export default class tokocrypto extends Exchange {
         //
         return this.parseTransaction(response, currency);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!(api in this.urls['api']['rest'])) {
-            throw new NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        if (!(apiName in this.urls['api']['rest'])) {
+            throw new NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
-        const baseApiUrl = this.safeString(this.urls['api']['rest'], api);
+        const baseApiUrl = this.safeString(this.urls['api']['rest'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = baseApiUrl;
         url += '/' + path;
-        if (api === 'wapi') {
+        if (apiName === 'wapi') {
             url += '.html';
         }
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
@@ -2632,14 +2684,14 @@ export default class tokocrypto extends Exchange {
                     'X-MBX-APIKEY': this.apiKey,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
-                const bodyStream = (method !== 'GET') ? this.urlencode(params) : body;
+                const bodyStream = (method !== 'GET') ? this.urlencode(params) : undefined;
                 return { 'url': url, 'method': method, 'body': bodyStream, 'headers': headersStream };
             }
             else {
                 throw new AuthenticationError(this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
         }
-        else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        else if ((apiName === 'private') || (apiName === 'sapi' && path !== 'system/status') || (apiName === 'sapiV3') || (apiName === 'wapi' && path !== 'systemStatus') || (apiName === 'dapiPrivate') || (apiName === 'dapiPrivateV2') || (apiName === 'fapiPrivate') || (apiName === 'fapiPrivateV2')) {
             this.checkRequiredCredentials();
             let query = undefined;
             const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
@@ -2653,7 +2705,7 @@ export default class tokocrypto extends Exchange {
             if (recvWindow !== undefined) {
                 extendedParams['recvWindow'] = recvWindow;
             }
-            if ((api === 'sapi') && (path === 'asset/dust')) {
+            if ((apiName === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             }
             else if ((path === 'batchOrders') || (path.indexOf('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf('staking') >= 0)) {
@@ -2667,10 +2719,10 @@ export default class tokocrypto extends Exchange {
             const headersSigned = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            const queryInUrl = (method === 'GET') || (method === 'DELETE') || (api === 'wapi');
+            const queryInUrl = (method === 'GET') || (method === 'DELETE') || (apiName === 'wapi');
             let bodySigned = query;
             if (queryInUrl) {
-                bodySigned = body;
+                bodySigned = undefined;
             }
             if (queryInUrl) {
                 url += '?' + query;
@@ -2685,7 +2737,7 @@ export default class tokocrypto extends Exchange {
                 url += '?' + this.urlencode(params);
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {

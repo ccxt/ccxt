@@ -31,7 +31,9 @@ impl BitstampCore {
     pub fn init(&mut self) {
         let described = BitstampCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -158,6 +160,9 @@ impl crate::exchange::DerivedExchange for BitstampCore {
     }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
+    }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
@@ -496,8 +501,8 @@ impl BitstampCore {
     pub fn handle_bid_asks(&self, mut bookSide: Value, mut bidAsks: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_139: bool = true;
-            while { if !__for_first_139 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_139 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidAsks.len() as i64) as f64) } {
+            let mut __for_first_140: bool = true;
+            while { if !__for_first_140 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_140 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidAsks.len() as i64) as f64) } {
             let mut bidAsk: Value = self.parse_order_book_bid_ask(bidAsks.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             bookSide.store_array(bidAsk);
         }
@@ -517,8 +522,8 @@ impl BitstampCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_140: bool = true;
-            while { if !__for_first_140 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_140 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_141: bool = true;
+            while { if !__for_first_141 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_141 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
             let mut delta: Value = self.safe_dict(deltas.clone(), i.clone(), &[]);
             let mut deltaNonce: Value = self.safe_integer_k(delta, "microtimestamp", &[]);
             if (deltaNonce.as_f64() == nonce.as_f64()) {
@@ -1184,7 +1189,12 @@ impl BitstampCore {
         let mut parts: Value = split(&channel, &Value::Str("_".into()));
         let mut marketId: Value = self.safe_string(parts, Value::Int(3), &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
-        { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+        if !(in_op(&self.orderbooks, &symbol)) {
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+        }
+        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
+        crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) {
@@ -1264,8 +1274,8 @@ impl BitstampCore {
         let mut entries: Value = self.to_array(cache);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_141: bool = true;
-            while { if !__for_first_141 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_141 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
+            let mut __for_first_142: bool = true;
+            while { if !__for_first_142 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_142 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
             let mut entry: Value = entries.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut entrySymbol: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             if !(self.in_array(entrySymbol, symbols.clone()).as_bool() == Some(true)) {
@@ -1334,8 +1344,8 @@ impl BitstampCore {
         let mut keys: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_142: bool = true;
-            while { if !__for_first_142 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_142 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_143: bool = true;
+            while { if !__for_first_143 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_143 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if get_index_of(&channel, &key).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 let mut method: Value = methods.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);

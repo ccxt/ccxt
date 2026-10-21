@@ -2046,26 +2046,26 @@ public partial class alpaca : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag a memo for the transaction
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
         object addressValue = address;
-        if (((tagWithdrawTag != null)) && (!(tagWithdrawTag is "")))
+        if (((tagWithdrawTag != null)) && (!(tagWithdrawTag == "")))
         {
-            addressValue = ((address + ":") + (tagWithdrawTag));
+            addressValue = ((address + ":") + tagWithdrawTag);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
@@ -2321,7 +2321,6 @@ public partial class alpaca : Exchange
             txid = this.safeString(transaction, "tx_hash");
             datetime = this.safeString(transaction, "created_at");
             timestamp = this.parse8601(datetime);
-            network = this.safeString(transaction, "chain");
             address = this.safeString(transaction, "to_address");
             addressTo = this.safeString(transaction, "to_address");
             addressFrom = this.safeString(transaction, "from_address");
@@ -2329,6 +2328,7 @@ public partial class alpaca : Exchange
             amount = this.safeNumber(transaction, "amount");
             string? currencyId = this.safeString(transaction, "asset");
             code = this.safeCurrencyCode(currencyId, currency);
+            network = this.networkIdToCode(this.safeString(transaction, "chain"), code);
             status = this.parseTransactionStatus(this.safeString(transaction, "status"));
             string? fees = this.safeString(transaction, "fees");
             string? networkFee = this.safeString(transaction, "network_fee");
@@ -2539,9 +2539,9 @@ public partial class alpaca : Exchange
         return this.safeBalance(result);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string endpoint = ("/" + this.implodeParams(path, parameters));
@@ -2550,16 +2550,12 @@ public partial class alpaca : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object headersValue = new Dictionary<string, object>() {};
-        if ((headers != null))
-        {
-            headersValue = headers;
-        }
+        Dictionary<string, object> headersValue = new Dictionary<string, object>() {};
         if (isEqual(getValue(api, 1), "private"))
         {
             this.checkRequiredCredentials();
-            ((IDictionary<string,object>)headersValue)["APCA-API-KEY-ID"] = this.apiKey;
-            ((IDictionary<string,object>)headersValue)["APCA-API-SECRET-KEY"] = this.secret;
+            headersValue["APCA-API-KEY-ID"] = this.apiKey;
+            headersValue["APCA-API-SECRET-KEY"] = this.secret;
         }
         object query = this.omit(parameters, this.extractParams(path));
         string? bodyJson = null;
@@ -2571,11 +2567,11 @@ public partial class alpaca : Exchange
             } else
             {
                 bodyJson = this.json(query);
-                ((IDictionary<string,object>)headersValue)["Content-Type"] = "application/json";
+                headersValue["Content-Type"] = "application/json";
             }
         }
         string url = (this.implodeHostname(baseApiUrl) + endpoint);
-        object bodyResolved = ((bodyJson == null)) ? body : bodyJson;
+        string? bodyResolved = bodyJson;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

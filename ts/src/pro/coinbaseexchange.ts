@@ -947,13 +947,12 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const subscription = this.safeDict (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         if (type === 'snapshot') {
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            }
             const orderbook = this.orderbooks[symbol];
-            this.handleDeltas (orderbook['asks'], this.safeList (message, 'asks', []));
-            this.handleDeltas (orderbook['bids'], this.safeList (message, 'bids', []));
-            orderbook['timestamp'] = undefined;
-            orderbook['datetime'] = undefined;
-            orderbook['symbol'] = symbol;
+            const snapshot = this.parseOrderBook (message, symbol);
+            orderbook.reset (snapshot);
             client.resolve (orderbook, messageHash);
         } else if (type === 'l2update') {
             const orderbook = this.orderbooks[symbol];

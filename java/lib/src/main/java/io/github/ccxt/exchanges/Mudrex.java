@@ -13,6 +13,7 @@ import io.github.ccxt.types.MarginModification;
 import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -256,28 +257,25 @@ public class Mudrex extends MudrexApi
         }});
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
-        String base = this.safeString(apiUrls, java.util.Objects.requireNonNullElse(api, "public"));
+        String base = this.safeString(apiUrls, apiName);
         if (java.util.Objects.equals(base, null))
         {
-            throw new ExchangeError(((this.id + " unknown API namespace: ") + java.util.Objects.requireNonNullElse(api, "public"))) ;
+            throw new ExchangeError(((this.id + " unknown API namespace: ") + apiName)) ;
         }
         String url = ((base + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
-        if (!java.util.Objects.equals(headers, null))
-        {
-            requestHeaders = this.extend(new HashMap<String, Object>() {{}}, headers);
-        }
         String brokerId = this.safeString(this.options, "broker");
         if (!java.util.Objects.equals(brokerId, null))
         {
             requestHeaders.put("Partner-Id", brokerId);
         }
         String methodUpper = ((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase();
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             requestHeaders.put("X-Authentication", this.secret);
@@ -753,7 +751,7 @@ public class Mudrex extends MudrexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, "swap");
+            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, "swap");
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             String requested = this.safeStringN(paramsMarketType, new ArrayList<Object>(Arrays.asList("trade_currency", "tradeCurrency", "currency")));
@@ -1457,6 +1455,7 @@ public class Mudrex extends MudrexApi
             h2kMap3.put("lastPrice", this.safeNumber(position, "closed_price", (Object) null));
             h2kMap3.put("notional", notional);
             h2kMap3.put("leverage", this.safeInteger(position, "leverage"));
+            h2kMap3.put("positionMargin", this.parseNumber(initialMargin));
             h2kMap3.put("collateral", this.parseNumber(initialMargin));
             h2kMap3.put("initialMargin", this.parseNumber(initialMargin));
             h2kMap3.put("initialMarginPercentage", null);

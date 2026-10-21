@@ -628,8 +628,8 @@ class phemex(Exchange, ImplicitAPI):
                     'BEP20': 'BNB',
                 },
                 'defaultNetworks': {
-                    'USDT': 'ETH',
-                    'MKR': 'ETH',
+                    'USDT': 'ERC20',
+                    'MKR': 'ERC20',
                 },
                 'defaultSubType': 'linear',
                 'accountsByType': {
@@ -3404,7 +3404,8 @@ class phemex(Exchange, ImplicitAPI):
         networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_upper_2(params, 'network', 'chainName', defaultNetwork)
         paramsOmitted = self.omit(params, 'network')
-        network = self.safe_string(networks, network, network)
+        if network is not None:
+            network = self.safe_string(networks, self.safe_string(self.networkAliases, network, network), network)
         if network is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter')
         else:
@@ -4464,7 +4465,8 @@ class phemex(Exchange, ImplicitAPI):
             minNotional = maxNotional
         return tiers
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+        apiName = api[0]
         query = self.omit(params, self.extract_params(path))
         requestPath = '/' + self.implode_params(path, params)
         url = requestPath
@@ -4475,7 +4477,7 @@ class phemex(Exchange, ImplicitAPI):
                 url += '?' + queryString
         requestBody = None
         privateHeaders = None
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             timestamp = self.seconds()
             xPhemexRequestExpiry = self.safe_integer(self.options, 'x-phemex-request-expiry', 60)
@@ -4497,15 +4499,15 @@ class phemex(Exchange, ImplicitAPI):
                 privateHeaders['Content-Type'] = 'application/json'
             auth = requestPath + queryString + expiryString + payload
             privateHeaders['x-phemex-request-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(baseApiUrl) + url
-        isPrivatePost = (api == 'private') and (method == 'POST')
-        bodyResolved = body
+        isPrivatePost = (apiName == 'private') and (method == 'POST')
+        bodyResolved = None
         if isPrivatePost:
             bodyResolved = requestBody
-        requestHeaders = privateHeaders if (api == 'private') else headers
+        requestHeaders = privateHeaders if (apiName == 'private') else None
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': requestHeaders}
 
     def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
@@ -4820,7 +4822,7 @@ class phemex(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -4829,15 +4831,15 @@ class phemex(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :param str [params.network]: unified network code
         :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             self.load_markets()
-        self.check_address(address)
+        self.check_address(address, code, tagWithdrawTag)
         currency = self.currency(code)
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         networkId = None

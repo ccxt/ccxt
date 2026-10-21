@@ -68,8 +68,6 @@ pub mod coinbaseexchange;
 pub mod coinbaseinternational;
 #[cfg(feature = "coincheck")]
 pub mod coincheck;
-#[cfg(feature = "coinex")]
-pub mod coinex;
 #[cfg(feature = "coinone")]
 pub mod coinone;
 #[cfg(feature = "cryptocom")]

@@ -2708,17 +2708,14 @@ export default class polymarket extends Exchange {
      * @name polymarket#sign
      * @description builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: string, api: any = 'gamma', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
-        // api is either a string ('gamma') or array (['gamma', 'public'])
-        const apiGroup: string = typeof api === 'string' ? api : api[0];
-        const access: string = typeof api === 'string' ? 'public' : api[1];
+    override sign (path: string, api: string[] = [ 'gamma' ], method = 'GET', params: Dict = {}) {
+        const apiGroup = api[0];
+        const access = this.safeString (api, 1, 'public');
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['gamma']);
         let url = baseUrl + '/' + this.implodeParams (path, params);
@@ -2734,7 +2731,7 @@ export default class polymarket extends Exchange {
         if (!isArrayBody) {
             query = this.omit (params, this.extractParams (path));
         }
-        let bodyValue: any = body;
+        let bodyValue: any = undefined;
         if (method === 'GET') {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -2764,7 +2761,7 @@ export default class polymarket extends Exchange {
                 bodyValue = this.json (query);
             }
         }
-        const headerDefaults = (headers !== undefined) ? headers : {};
+        const headerDefaults = {};
         let headersValue: any = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',

@@ -2055,7 +2055,8 @@ class blofin extends Exchange {
 
     public function network_code_to_chain_id(string $networkCode, ?array $currency = null): ?string {
         $aliases = $this->safe_dict($this->options, 'networkCodeAliases', array());
-        $unifiedCode = $this->safe_string($aliases, $networkCode, $networkCode);
+        $aliasedCode = $this->safe_string($aliases, $networkCode, $networkCode);
+        $unifiedCode = $this->safe_string($this->networkAliases, $aliasedCode, $aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if ($currency !== null) {
@@ -2455,11 +2456,11 @@ class blofin extends Exchange {
         throw new ExchangeError($this->id . ' fetchWithdrawal() could not find withdrawal ' . $reference);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -2468,8 +2469,8 @@ class blofin extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw, the withdrawal fee is not included and must be reserved on top
          * @param {string} $address the $address to withdraw to, or a UID / email / phone number for an internal transfer
-         * @param {string} $tag additional identifier (memo / payment id) required by certain networks
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} [$params->network] the unified network $code for on-$chain withdrawals, mapped to the exchange's $chain name
          * @param {string} [$params->dest] 'onchain' (default) or 'internal' for an internal transfer
          * @param {string} [$params->addrType] $address type, 1 => wallet $address, 2 => UID, 3 => email, 4 => mobile phone
@@ -2489,7 +2490,7 @@ class blofin extends Exchange {
         //   error table documents the message as "Parameter {} error"
         $tagValue = null;
         $query = null;
-        list($tagValue, $query) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagValue, $query) = $this->handle_param_string($params, 'tag');
         Async\await($this->load_markets());
         $currency = $this->currency($code);
         $request = array(
@@ -2501,7 +2502,7 @@ class blofin extends Exchange {
         $request['dest'] = $dest;
         $query = $this->omit($query, 'dest');
         if ($dest === 'onchain') {
-            $this->check_address($address);
+            $this->check_address($address, $code, $tagValue);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to
@@ -3084,6 +3085,8 @@ class blofin extends Exchange {
         $notionalString = $this->safe_string($position, 'notionalUsd');
         if ($marketResolved['inverse'] === true) {
             $notionalString = Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
+        } elseif ($notionalString === null) {
+            $notionalString = Precise::string_mul(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
         }
         $notional = $this->parse_number($notionalString);
         $marginMode = $this->safe_string($position, 'marginMode');
@@ -3093,12 +3096,18 @@ class blofin extends Exchange {
         $leverageString = $this->safe_string($position, 'leverage');
         $initialMarginPercentage = null;
         $collateralString = null;
+        $marginString = null;
         if ($marginMode === 'cross') {
             $initialMarginString = $this->safe_string($position, 'initialMargin');
-            $collateralString = Precise::string_add($initialMarginString, $unrealizedPnlString);
+            $collateralString = ($unrealizedPnlString !== null) ? Precise::string_add($initialMarginString, $unrealizedPnlString) : $initialMarginString;
         } elseif ($marginMode === 'isolated') {
             $initialMarginPercentage = Precise::string_div('1', $leverageString);
-            $collateralString = $this->safe_string($position, 'margin');
+            $isolatedMarginString = $this->omit_zero($this->safe_string_2($position, 'margin', 'initialMargin'));
+            if ($isolatedMarginString !== null) {
+                $initialMarginString = $isolatedMarginString;
+                $marginString = $isolatedMarginString;
+                $collateralString = ($unrealizedPnlString !== null) ? Precise::string_add($isolatedMarginString, $unrealizedPnlString) : $isolatedMarginString;
+            }
         }
         $maintenanceMarginString = $this->safe_string($position, 'maintenanceMargin');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
@@ -3110,8 +3119,20 @@ class blofin extends Exchange {
             $initialMarginString = Precise::string_mul($initialMarginPercentageString, $notionalString);
         }
         $rounder = '0.00005'; // round to closest 0.01%
-        $maintenanceMarginPercentage = $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentageString, $rounder), '1', 4));
-        $liquidationPrice = $this->safe_number($position, 'liquidationPrice');
+        $maintenanceMarginPercentage = ($maintenanceMarginPercentageString !== null) ? $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentageString, $rounder), '1', 4)) : null;
+        $liquidationPriceString = $this->omit_zero($this->safe_string($position, 'liquidationPrice'));
+        if (($liquidationPriceString === null) && ($marginMode === 'isolated') && ($initialMarginString !== null) && ($entryPriceString !== null) && ($contractsAbs !== null) && Precise::string_gt($contractsAbs, '0') && ($contractSizeString !== null) && ($maintenanceMarginPercentage !== null)) {
+            $takerFeeRate = $this->safe_string($marketResolved, 'taker', '0.0006');
+            $mmpWithFee = Precise::string_add($this->number_to_string($maintenanceMarginPercentage), $takerFeeRate);
+            $totalSize = Precise::string_mul($contractsAbs, $contractSizeString);
+            $marginPerUnit = Precise::string_div($initialMarginString, $totalSize);
+            $num = ($side === 'long') ? Precise::string_sub($entryPriceString, $marginPerUnit) : Precise::string_add($entryPriceString, $marginPerUnit);
+            $denom = ($side === 'long') ? Precise::string_sub('1', $mmpWithFee) : Precise::string_add('1', $mmpWithFee);
+            if (($denom !== null) && Precise::string_gt($denom, '0')) {
+                $liquidationPriceString = Precise::string_div($num, $denom);
+            }
+        }
+        $liquidationPrice = (($liquidationPriceString !== null) && Precise::string_gt($liquidationPriceString, '0')) ? $this->parse_number($liquidationPriceString) : null;
         $percentageString = $this->safe_string($position, 'unrealizedPnlRatio');
         $percentage = $this->parse_number(Precise::string_mul($percentageString, '100'));
         $timestamp = $this->safe_integer($position, 'updateTime');
@@ -3139,6 +3160,7 @@ class blofin extends Exchange {
             'lastUpdateTimestamp' => null,
             'maintenanceMargin' => $maintenanceMargin,
             'maintenanceMarginPercentage' => $maintenanceMarginPercentage,
+            'positionMargin' => $this->parse_number($marginString),
             'collateral' => $this->parse_number($collateralString),
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
@@ -3674,7 +3696,8 @@ class blofin extends Exchange {
         return null;
     }
 
-    public function sign(string $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
@@ -3683,11 +3706,11 @@ class blofin extends Exchange {
         }
         $url = $apiUrl . $request;
         // const type = this.getPathAuthenticationType (path);
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (!$this->is_empty($query)) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } elseif ($api === 'private') {
+        } elseif ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
             $signedHeaders = array(
@@ -3714,9 +3737,9 @@ class blofin extends Exchange {
             $auth = $request . $method . $timestamp . $timestamp . $sign_body;
             $signature = base64_encode($this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'));
             $signedHeaders['ACCESS-SIGN'] = $signature;
-            $bodyResolved = ($signedBody === null) ? $body : $signedBody;
+            $bodyResolved = $signedBody;
             return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $signedHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 }

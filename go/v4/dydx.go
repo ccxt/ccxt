@@ -2813,8 +2813,8 @@ func (this *Dydx) ParseTransaction(transaction any, optionalArgs ...any) map[str
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Dydx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
@@ -2825,10 +2825,11 @@ func (this *Dydx) WithdrawAsync(code string, amount any, address any, optionalAr
 func (this *Dydx) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicErrorT(ch)
-	tag := GetArg(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	var tagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tag := GetValue(tagparamsWithdrawTagVariable, 0)
+	var paramsWithdrawTag map[string]any = MapTyped(tagparamsWithdrawTagVariable[1])
 	if code != "USDC" {
 		panic(NotSupported(this.Id + " withdraw() only support USDC"))
 	}
@@ -2840,7 +2841,7 @@ func (this *Dydx) withdrawBody(ch chan EndpointResult[map[string]any], code stri
 		}
 	}
 	this.CheckAddress(address)
-	var subaccountId *int64 = this.SafeInteger(params, "subaccountId")
+	var subaccountId *int64 = this.SafeInteger(paramsWithdrawTag, "subaccountId")
 	if subaccountId == nil {
 		panic(ArgumentsRequired(this.Id + " withdraw requires subaccountId."))
 	}
@@ -3360,20 +3361,16 @@ func (this *Dydx) GetWalletAddress() any {
 	panic(ArgumentsRequired(this.Id + " getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options."))
 }
 func (this *Dydx) Sign(path string, optionalArgs ...any) any {
-	section := GetArg(optionalArgs, 0, "public")
+	section := GetArg(optionalArgs, 0, []any{"public"})
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
 	var requestHeaders any = nil
-	var requestBody any = nil
+	var requestBody *string = nil
 	var pathWithParams string = this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(this.Urls["api"], section)
+	var apiUrl *string = this.SafeString(this.Urls["api"], GetValue(section, 0))
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -3386,23 +3383,13 @@ func (this *Dydx) Sign(path string, optionalArgs ...any) any {
 			url = Add(url, "?"+this.Urlencode(paramsSorted))
 		}
 	} else {
-		requestBody = this.Json(paramsSorted)
+		requestBody = SafeStringPtr(this.Json(paramsSorted))
 		requestHeaders = map[string]any{
 			"Content-type": "application/json",
 		}
 	}
-	var headersResult any = func() any {
-		if requestHeaders != nil {
-			return requestHeaders
-		}
-		return headers
-	}()
-	var bodyResult any = func() any {
-		if requestBody != nil {
-			return requestBody
-		}
-		return body
-	}()
+	var headersResult any = requestHeaders
+	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -3961,8 +3948,8 @@ func (this *Dydx) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEn
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Dydx) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -3972,7 +3959,7 @@ func (this *Dydx) Withdraw(code string, amount float64, address string, options 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}

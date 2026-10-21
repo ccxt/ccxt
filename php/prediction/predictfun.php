@@ -3942,17 +3942,15 @@ class predictfun extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, mixed $api = 'predictfun', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('predictfun'), $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request URL and attaches the API key header required by every endpoint
          * @param {string} $path the endpoint $path
-         * @param {string|string[]} [$api] the API group and access level
+         * @param {string[]} [$api] the API group and access level
          * @param {string} [$method] HTTP $method
          * @param {array} [$params] request parameters
-         * @param {array} [$headers] request $headers
-         * @param {array} [$body] request $body
-         * @return {array} a dictionary with $url, $method, $body and $headers
+         * @return {array} a dictionary with $url, $method, body and headers
          */
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
@@ -3962,7 +3960,7 @@ class predictfun extends Exchange {
         if (($apiKey === null) && !$sandboxMode) {
             throw new AuthenticationError($this->id . ' sign() requires the "apiKey" credential for all endpoints');
         }
-        $apiGroup = gettype($api) === 'string' ? $api : $api[0];
+        $apiGroup = $api[0];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['predictfun']);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
@@ -3972,7 +3970,7 @@ class predictfun extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $existingHeaders = ($headers !== null) ? $headers : array();
+        $existingHeaders = array();
         $headersValue = $existingHeaders;
         $authHeaders = array();
         if (($apiKey !== null) && (!$sandboxMode)) {
@@ -4008,7 +4006,7 @@ class predictfun extends Exchange {
         if (($jwtToken !== null) && $this->in_array($path, $walletPaths)) {
             $authHeaders['Authorization'] = 'Bearer ' . $jwtToken;
         }
-        $bodyValue = $body;
+        $bodyValue = null;
         if ($method !== 'GET') {
             if (!$sandboxMode) {
                 $this->check_required_credentials();

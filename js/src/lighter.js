@@ -115,7 +115,7 @@ export default class lighter extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransfer': false,
@@ -964,6 +964,16 @@ export default class lighter extends Exchange {
         const [groupingType, paramsGroupingType] = this.handleOptionIntegerAndParams(params, method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         const orderRequests = this.createOrderRequest(symbol, type, side, amount, price, paramsGroupingType);
         const totalOrderRequests = orderRequests.length;
+        if (totalOrderRequests > 1) {
+            // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
+            // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
+            const groupOrderExpiry = this.sum(this.milliseconds(), 2419200000); // 28 days
+            for (let i = 0; i < totalOrderRequests; i++) {
+                if (this.safeInteger(orderRequests[i], 'order_expiry') === -1) {
+                    orderRequests[i]['order_expiry'] = groupOrderExpiry;
+                }
+            }
+        }
         let order = undefined;
         if (totalOrderRequests > 0) {
             order = orderRequests[0];
@@ -1409,7 +1419,7 @@ export default class lighter extends Exchange {
             'limit': 100,
         };
         if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 100);
+            request['limit'] = Math.min(limit, 250);
         }
         const response = await this.publicGetOrderBookOrders(this.extend(request, params));
         //
@@ -2040,6 +2050,14 @@ export default class lighter extends Exchange {
                 leverage = 100 / imf;
             }
         }
+        const contractsString = this.safeString(position, 'position');
+        const positionValueString = this.safeString(position, 'position_value');
+        const markPriceString = Precise.stringDiv(positionValueString, contractsString);
+        // allocated_margin is the isolated collateral balance (0 for cross)
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.safeNumber(position, 'allocated_margin');
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -2049,13 +2067,14 @@ export default class lighter extends Exchange {
             'isolated': (marginMode === 'isolated'),
             'hedged': undefined,
             'side': side,
-            'contracts': this.safeNumber(position, 'position'),
+            'contracts': this.parseNumber(contractsString),
             'contractSize': undefined,
             'entryPrice': this.safeNumber(position, 'avg_entry_price'),
-            'markPrice': undefined,
-            'notional': this.safeNumber(position, 'position_value'),
+            'markPrice': this.parseNumber(markPriceString),
+            'notional': this.parseNumber(positionValueString),
             'leverage': leverage,
-            'collateral': this.safeNumber(position, 'allocated_margin'),
+            'positionMargin': positionMargin,
+            'collateral': undefined,
             'initialMargin': undefined,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
@@ -2842,14 +2861,14 @@ export default class lighter extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2883,6 +2902,54 @@ export default class lighter extends Exchange {
         };
         const response = await this.publicPostSendTx(request);
         return this.parseTransaction(response);
+    }
+    /**
+     * @method
+     * @name lighter#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.lighter.xyz/reference/recenttrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'market_id': market['id'],
+            'limit': 100,
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min(limit, 100);
+        }
+        const response = await this.publicGetRecentTrades(this.extend(request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "trades": [
+        //             {
+        //                 "trade_id": 35564491385,
+        //                 "type": "trade",
+        //                 "market_id": 0,
+        //                 "size": "0.0003",
+        //                 "price": "2385.57",
+        //                 "usd_amount": "0.715671",
+        //                 "ask_id": 281478054267183,
+        //                 "bid_id": 562946767299880,
+        //                 "ask_account_id": 723632,
+        //                 "bid_account_id": 317087,
+        //                 "is_maker_ask": false,
+        //                 "timestamp": 1792497687525
+        //             }
+        //         ]
+        //     }
+        //
+        const trades = this.safeList(response, 'trades', []);
+        return this.parseTrades(trades, market, since, limit);
     }
     /**
      * @method
@@ -3016,6 +3083,10 @@ export default class lighter extends Exchange {
                 side = 'buy';
                 orderId = this.safeString(trade, 'bid_id');
             }
+        }
+        // public trades use Lighter's taker-side convention
+        if ((side === undefined) && (isMakerAsk !== undefined)) {
+            side = (isMakerAsk === true) ? 'buy' : 'sell';
         }
         let takerOrMaker = undefined;
         if (side !== undefined && isMakerAsk !== undefined) {
@@ -3224,8 +3295,12 @@ export default class lighter extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        if ((timeout < 300000) || (timeout > 1296000000)) {
-            throw new BadRequest(this.id + ' timeout should be between 5 minutes and 15 days.');
+        if (timeout === undefined) {
+            throw new ArgumentsRequired(this.id + ' cancelAllOrdersAfter() requires a timeout argument');
+        }
+        const isScheduled = (timeout !== 0);
+        if (isScheduled && ((timeout < 300000) || (timeout > 1296000000))) {
+            throw new BadRequest(this.id + ' timeout should be between 5 minutes and 15 days, or 0 to cancel the timer.');
         }
         const [apiKeyIndex, paramsApiKeyIndex] = this.handleApiKeyIndex(params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
         const [accountIndex, paramsAccountIndex] = await this.handleAccountIndex(paramsApiKeyIndex, 'cancelAllOrdersAfter', 'accountIndex', 'account_index');
@@ -3233,9 +3308,15 @@ export default class lighter extends Exchange {
         const strApiKeyIndex = this.numberToString(apiKeyIndex);
         const signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
+        let timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
+        let cancelTime = 0;
+        if (isScheduled) {
+            timeInForce = 1;
+            cancelTime = this.sum(this.milliseconds(), timeout);
+        }
         const signRaw = {
-            'time_in_force': 1, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
-            'time': this.milliseconds() + timeout, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'time_in_force': timeInForce,
+            'time': cancelTime,
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
@@ -3341,9 +3422,10 @@ export default class lighter extends Exchange {
             'datetime': this.iso8601(timestamp),
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let url = undefined;
-        if (api === 'root') {
+        if (apiName === 'root') {
             const baseApiUrl = this.safeString(this.urls['api'], 'public');
             if (baseApiUrl === undefined) {
                 throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
@@ -3351,14 +3433,14 @@ export default class lighter extends Exchange {
             url = this.implodeHostname(baseApiUrl);
         }
         else {
-            const baseApiUrl2 = this.safeString(this.urls['api'], api);
+            const baseApiUrl2 = this.safeString(this.urls['api'], apiName);
             if (baseApiUrl2 === undefined) {
                 throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
             }
             url = this.implodeHostname(baseApiUrl2) + '/api/' + this.version + '/' + path;
         }
         let authHeaders = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             authHeaders = {
                 'Authorization': this.createAuth(params),
             };
@@ -3372,10 +3454,10 @@ export default class lighter extends Exchange {
             }
             url += '?' + this.rawencode(params);
         }
-        if (api === 'private') {
-            return { 'url': url, 'method': method, 'body': body, 'headers': authHeaders };
+        if (apiName === 'private') {
+            return { 'url': url, 'method': method, 'body': undefined, 'headers': authHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {

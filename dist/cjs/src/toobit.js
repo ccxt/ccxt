@@ -450,7 +450,6 @@ class toobit extends toobit$1["default"] {
                 'networks': {
                     'BTC': 'BTC',
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'BEP20': 'BSC',
                     'TRC20': 'TRX',
                     'SOL': 'SOL',
@@ -1237,6 +1236,8 @@ class toobit extends toobit$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1248,20 +1249,34 @@ class toobit extends toobit$1["default"] {
             'symbol': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
         const until = this.safeInteger(params, 'until');
-        if (until !== undefined) {
-            request['endTime'] = until;
-        }
         const paramsOmitted = (until !== undefined) ? this.omit(params, 'until') : params;
+        const [endpoint, paramsPrice] = this.handleOptionStringAndParams(paramsOmitted, 'fetchOHLCV', 'price');
+        const isPriceKlines = (endpoint === 'index') || (endpoint === 'mark');
+        let startKey = 'startTime';
+        let endKey = 'endTime';
+        if (isPriceKlines) {
+            startKey = 'from';
+            endKey = 'to';
+        }
+        if (since !== undefined) {
+            request[startKey] = since;
+        }
+        if (until !== undefined) {
+            request[endKey] = until;
+        }
+        else if (isPriceKlines && (since !== undefined)) {
+            // mark and index klines walk backwards from `to` and ignore a lone `from`
+            const duration = this.parseTimeframe(timeframe);
+            const requestedLimit = (limit === undefined) ? 2000 : limit; // exchange default
+            request['to'] = this.sum(since, duration * requestedLimit * 1000);
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         let response = [];
-        const [endpoint, paramsPrice] = this.handleOptionStringAndParams(paramsOmitted, 'fetchOHLCV', 'price');
         if (endpoint === 'index') {
+            request['symbol'] = this.safeString(market['info'], 'indexToken'); // index klines take the index id instead of the market id
             response = await this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice));
             //
             //     {
@@ -1335,6 +1350,9 @@ class toobit extends toobit$1["default"] {
         if (Array.isArray(response)) {
             candles = response;
         }
+        else {
+            candles = this.safeList(response, 'data', []);
+        }
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1398,7 +1416,15 @@ class toobit extends toobit$1["default"] {
         //        },
         //        ...
         //
-        return this.parseTickers(response, symbolsNormalized, paramsMarketType);
+        const rows = [];
+        for (let i = 0; i < response.length; i++) {
+            const ticker = response[i];
+            const marketId = this.safeString(ticker, 's');
+            if ((marketId !== undefined) && (this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
+                rows.push(ticker);
+            }
+        }
+        return this.parseTickers(rows, symbolsNormalized, paramsMarketType);
     }
     parseTicker(ticker, market = undefined) {
         const marketId = this.safeString(ticker, 's');
@@ -1416,9 +1442,9 @@ class toobit extends toobit$1["default"] {
             'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'h'),
             'low': this.safeString(ticker, 'l'),
-            'bid': undefined,
+            'bid': this.safeString(ticker, 'b'),
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': this.safeString(ticker, 'a'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': this.safeString(ticker, 'o'),
@@ -1475,7 +1501,7 @@ class toobit extends toobit$1["default"] {
             'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
-            'price': this.safeNumberOmitZero(entry, 'price'),
+            'price': this.safeNumberOmitZero(entry, 'p'),
             'side': undefined,
             'info': entry,
         };
@@ -2815,7 +2841,22 @@ class toobit extends toobit$1["default"] {
             // ]
             //
         }
-        return this.parseTransactions(response, currency, since, limit, paramsUntil);
+        const transactType = (type === 'deposits') ? 'deposit' : 'withdrawal';
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
+            results.push(this.extend(this.parseTransactionWithType(response[i], currency, transactType), paramsUntil));
+        }
+        const sorted = this.sortBy(results, 'timestamp');
+        const currencyCode = (currency !== undefined) ? currency['code'] : undefined;
+        return this.filterByCurrencySinceLimit(sorted, currencyCode, since, limit);
+    }
+    parseTransactionWithType(transaction, currency = undefined, transactType = undefined) {
+        const result = this.parseTransaction(transaction, currency);
+        if (transactType !== undefined) {
+            result['type'] = transactType;
+            result['status'] = this.parseTransactionStatus(this.safeString(transaction, 'status'), transactType);
+        }
+        return result;
     }
     parseTransaction(transaction, currency = undefined) {
         //
@@ -2874,7 +2915,7 @@ class toobit extends toobit$1["default"] {
         const tagFrom = this.safeString(transaction, 'fromAddressTag');
         const addressTo = this.safeString(transaction, 'address');
         const addressFrom = this.safeString(transaction, 'fromAddress');
-        const isWithdraw = ('arriveQuantity' in transaction);
+        const isWithdraw = ('arriveQuantity' in transaction) || ('success' in transaction);
         const type = isWithdraw ? 'withdrawal' : 'deposit';
         return {
             'info': transaction,
@@ -2892,23 +2933,36 @@ class toobit extends toobit$1["default"] {
             'type': type,
             'amount': this.safeNumber(transaction, 'quantity'),
             'currency': code,
-            'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
+            'status': this.parseTransactionStatus(this.safeString(transaction, 'status'), type),
             'updated': undefined,
             'fee': fee,
             'comment': undefined,
             'internal': undefined,
         };
     }
-    parseTransactionStatus(status) {
-        const statuses = {
-            '2': 'pending',
-            '12': 'pending',
-            '11': 'failed',
-            '3': 'ok',
+    parseTransactionStatus(status, type = undefined) {
+        const statusesByType = {
+            'deposit': {
+                '2': 'ok', // DEPOSIT_CAN_WITHDRAW
+                '11': 'failed', // REJECT
+                '12': 'pending', // AUDIT
+            },
+            'withdrawal': {
+                '0': 'pending', // WITHDRAWAL_STATUS_UNKNOWN
+                '1': 'pending', // BROKER_AUDITING_STATUS
+                '2': 'failed', // BROKER_REJECT_STATUS
+                '3': 'pending', // AUDITING_STATUS
+                '6': 'ok', // WITHDRAWAL_SUCCESS_STATUS
+                '7': 'failed', // WITHDRAWAL_FAILURE_STATUS
+                '9': 'canceled', // WITHDRAWAL_CANCELLED_STATUS
+                '10': 'pending', // WAIT_MERCHANT_PASS
+                '11': 'pending', // APPLY_CANCEL, cancellation requested but not final yet
+            },
         };
         if (status === undefined) {
             return undefined;
         }
+        const statuses = this.safeDict(statusesByType, type, {});
         return this.safeString(statuses, status, status);
     }
     /**
@@ -2966,14 +3020,15 @@ class toobit extends toobit$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag a memo for the transaction
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         this.checkAddress(address);
-        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
+        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' withdraw() : param["network"] is required');
         }
@@ -3176,7 +3231,7 @@ class toobit extends toobit$1["default"] {
             'unrealizedPnl': this.safeNumber(position, 'unrealizedPnL'),
             'side': side,
             'contracts': this.parseNumber(quantity),
-            'contractSize': undefined,
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'timestamp': undefined,
             'datetime': undefined,
             'hedged': undefined,
@@ -3191,8 +3246,9 @@ class toobit extends toobit$1["default"] {
             'percentage': undefined,
         });
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3202,7 +3258,7 @@ class toobit extends toobit$1["default"] {
         const isDelete = method === 'DELETE';
         const extraQuery = {};
         const query = this.omit(params, this.extractParams(path));
-        if (api !== 'private') {
+        if (apiName !== 'private') {
             // Public endpoints
             if (!isPost) {
                 if (Object.keys(query).length > 0) {
@@ -3232,7 +3288,7 @@ class toobit extends toobit$1["default"] {
             else {
                 queryString = this.urlencode(queryExtended);
             }
-            let payloadBody = body;
+            let payloadBody = undefined;
             if (isPost || isDelete) {
                 payloadBody = privateBody;
             }
@@ -3254,13 +3310,13 @@ class toobit extends toobit$1["default"] {
                 'X-BB-API-PLATFORM': this.safeString(this.options, 'brokerId', '177321641268789'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
-            let requestBody = body;
+            let requestBody = undefined;
             if (isPost || isDelete) {
                 requestBody = privateBody;
             }
             return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

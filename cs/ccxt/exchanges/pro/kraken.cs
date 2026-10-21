@@ -1097,9 +1097,27 @@ public partial class kraken : ccxt.kraken
         } else
         {
             // snapshot
-            int depth = a.Count;
-            ((IDictionary<string,object>)this.orderbooks)[symbol] = this.orderBook(new Dictionary<string, object>() {}, depth);
+            IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
+            // size the book from the subscribed depth (10 by default), not from
+            // the level count of this snapshot: a thin market's snapshot can
+            // carry fewer levels than the subscription and must not cap the book
+            Int64? limit = this.safeInteger(subscription, "limit", 10);
+            int asksLength = a.Count;
+            Int64? depth = (((limit == null || asksLength > limit))) ? asksLength : limit;
+            IDictionary<string, object> depths = this.safeDict(this.options, "wsOrderBookDepths", new Dictionary<string, object>() {});
+            Int64? storedDepth = this.safeInteger(depths, symbol);
+            if (!((this.orderbooks != null && this.orderbooks.ContainsKey(symbol))) || ((storedDepth != depth)))
+            {
+                // rebuild only on the first snapshot or when the depth changes,
+                // e.g. a re-subscription with a different limit
+                ((IDictionary<string,object>)this.orderbooks)[symbol] = this.orderBook(new Dictionary<string, object>() {}, depth);
+                depths[(string)symbol] = depth;
+                this.options["wsOrderBookDepths"] = depths;
+            }
+            // reset in place so that references held by users keep receiving
+            // updates after a reconnect snapshot (a new object would orphan them)
             orderbook = this.getOrderBook(this.orderbooks, symbol);
+            (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
             List<object> keys = new List<object>() {"asks", "bids"};
             for (int i = 0; i < (keys?.Count ?? 0); i++)
             {

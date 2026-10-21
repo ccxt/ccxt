@@ -2964,7 +2964,7 @@ class bitrue extends Exchange {
             $currencyId = $this->safe_string($parts, 0);
             $networkId = $this->safe_string($parts, 1);
             if ($networkId !== null) {
-                $network = strtoupper($networkId);
+                $network = $this->network_id_to_code(strtoupper($networkId));
             }
         }
         $code = $this->safe_currency_code($currencyId, $currency);
@@ -2997,11 +2997,11 @@ class bitrue extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -3010,12 +3010,12 @@ class bitrue extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -3372,7 +3372,7 @@ class bitrue extends Exchange {
         return $this->parse_margin_modification($response, $market);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
         $requestBody = null;
         $requestHeaders = null;
         $type = $this->safe_string($api, 0);
@@ -3450,8 +3450,8 @@ class bitrue extends Exchange {
                 $url .= '?' . $this->urlencode($paramsOmitted);
             }
         }
-        $bodyResult = ($requestBody === null) ? $body : $requestBody;
-        $headersResult = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResult = $requestBody;
+        $headersResult = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
@@ -3521,7 +3521,7 @@ class bitrue extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
         } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
