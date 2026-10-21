@@ -1,9 +1,9 @@
-# ccxt-core: the hand-written engine runtime — value model, exchange core,
-# helpers, JSON views, precisions, crypto/ws primitives. The transpiled venues
-# (exchanges/pro/prediction) in ../ccxt depend on this package, mirroring the
-# rust/ccxt-core split: runtime edits rebuild only these few TUs instead of
-# the ~150 venue TUs.
-add_library (ccxt_core STATIC
+# ccxt-base: the hand-written engine runtime — value model, exchange core,
+# helpers, JSON views, precisions, crypto/ws primitives. The transpiled venue
+# packages (ccxt, ccxt_pro, ccxt_prediction) depend on this package, mirroring
+# the rust ccxt-base/ccxt/ccxt-pro/ccxt-prediction crate split: runtime edits
+# rebuild only these few TUs instead of the ~146 venue TUs.
+add_library (ccxt_base STATIC
     ccxt/base/helpers.cpp
     ccxt/base/JsonView.cpp
     ccxt/base/ExchangeBase.cpp
@@ -14,11 +14,11 @@ add_library (ccxt_core STATIC
 )
 
 # the package root is the include root: consumers say `#include "ccxt/base/…"`
-target_include_directories (ccxt_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries (ccxt_core PUBLIC Threads::Threads CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
+target_include_directories (ccxt_base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries (ccxt_base PUBLIC Threads::Threads CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
 if (simdjson_FOUND)
-    target_link_libraries (ccxt_core PUBLIC simdjson::simdjson)
-    target_compile_definitions (ccxt_core PUBLIC CCXT_HAS_SIMDJSON=1)
+    target_link_libraries (ccxt_base PUBLIC simdjson::simdjson)
+    target_compile_definitions (ccxt_base PUBLIC CCXT_HAS_SIMDJSON=1)
 endif ()
 
 # parseJson/serialise/json hot paths are header-heavy and pay ~12x at -O0
