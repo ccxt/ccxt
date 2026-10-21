@@ -9,7 +9,7 @@
 # compiles the engine + the exchange TUs (~10-40 min cold, much faster warm
 # with ccache). Library-only + scoped consumers should use cpp/package.sh or
 # -DCCXT_EXCHANGES=... directly instead.
-cmake_minimum_required (VERSION 3.20)
+cmake_minimum_required (VERSION 3.24)
 project (ccxt-examples CXX)
 
 # examples don't need the test binaries or the live-test CLI
@@ -17,6 +17,10 @@ set (CCXT_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set (CCXT_BUILD_CLI OFF CACHE BOOL "" FORCE)
 
 add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/../../cpp ccxt-cpp)
+
+# one link at a time: each example whole-archives all three tier libs
+# (~5GB of objects per link), and parallel links get OOM-killed
+set_property (GLOBAL PROPERTY JOB_POOLS ccxt_examples_link=1)
 
 set (EXAMPLES
     binance_basics
@@ -33,5 +37,9 @@ foreach (ex IN LISTS EXAMPLES)
     add_executable (${ex} ${ex}.cpp)
     # examples are throwaway binaries: fast compile, no debug info
     target_compile_options (${ex} PRIVATE -g0 -O0)
-    target_link_libraries (${ex} PRIVATE ccxt ccxt_pro ccxt_prediction)
+    target_link_libraries (${ex} PRIVATE
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>"
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt_pro>"
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt_prediction>")
+    set_property (TARGET ${ex} PROPERTY JOB_POOL_LINK ccxt_examples_link)
 endforeach ()

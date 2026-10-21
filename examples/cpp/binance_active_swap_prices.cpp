@@ -8,12 +8,16 @@
 
 #include <algorithm>
 #include <iomanip>
+#include <sstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
 static std::string f (const std::optional<double>& v) {
-    return v.has_value () ? std::to_string (*v) : std::string ("—");
+    if (!v.has_value ()) { return std::string ("—"); }
+    std::ostringstream ss;
+    ss << std::fixed << std::setprecision (6) << *v;
+    return ss.str ();
 }
 
 static const char* contractKind (const ccxt::Market& m) {

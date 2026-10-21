@@ -134,3 +134,5 @@ cpp/tests/Generated/
 !cpp/ccxt/api/binance.h
 !cpp/ccxt/base/Exchange.BaseMethods.inc
 !cpp/tests/Generated/testMainClass.inc
+
+examples/cpp/build/

@@ -30,7 +30,7 @@ int main () {
         size_t shown = 0;
         for (const auto& m : markets) {
             if (shown++ >= 5) { break; }
-            std::cout << "     " << m.symbol.value_or ("?") << std::endl;
+            std::cout << "     " << m.symbol.value_or (m.id.value_or ("?")) << std::endl;
         }
         if (markets.size () > 5) {
             std::cout << "     … and " << (markets.size () - 5) << " more" << std::endl;
