@@ -133,6 +133,7 @@ cpp/tests/Generated/
 !cpp/ccxt/prediction/tu_binance.cpp
 !cpp/ccxt/api/binance.h
 !cpp/ccxt/base/Exchange.BaseMethods.inc
+!cpp/ccxt/base/Types.h
 !cpp/tests/Generated/testMainClass.inc
 
 examples/cpp/build/
