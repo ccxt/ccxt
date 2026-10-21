@@ -1804,6 +1804,315 @@
                   }
                 ]
             }
+        ],
+        "fetchDepositAddresses": [
+            {
+                "description": "USDT without a network returns an address for every deposit method",
+                "method": "fetchDepositAddresses",
+                "input": [
+                    [
+                        "USDT"
+                    ]
+                ],
+                "httpResponseByUrl": {
+                    "DepositMethods": {
+                        "error": [],
+                        "result": [
+                            {
+                                "method": "Tether USD (ERC20)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            },
+                            {
+                                "method": "Tether USD (TRC20)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            },
+                            {
+                                "method": "Tether USD (Arbitrum One)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            }
+                        ]
+                    },
+                    "DepositAddresses": {
+                        "error": [],
+                        "result": [
+                            {
+                                "address": "0x4444444444444444444444444444444444444444",
+                                "expiretm": "0"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "expiretm": "0"
+                        },
+                        "currency": "USDT",
+                        "network": "ERC20",
+                        "address": "0x4444444444444444444444444444444444444444",
+                        "tag": null
+                    },
+                    {
+                        "info": {
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "expiretm": "0"
+                        },
+                        "currency": "USDT",
+                        "network": "TRC20",
+                        "address": "0x4444444444444444444444444444444444444444",
+                        "tag": null
+                    },
+                    {
+                        "info": {
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "expiretm": "0"
+                        },
+                        "currency": "USDT",
+                        "network": "ARBITRUM",
+                        "address": "0x4444444444444444444444444444444444444444",
+                        "tag": null
+                    }
+                ]
+            },
+            {
+                "description": "network TRC20 keeps only the matching deposit method",
+                "method": "fetchDepositAddresses",
+                "input": [
+                    [
+                        "USDT"
+                    ],
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "DepositMethods": {
+                        "error": [],
+                        "result": [
+                            {
+                                "method": "Tether USD (ERC20)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            },
+                            {
+                                "method": "Tether USD (TRC20)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            },
+                            {
+                                "method": "Tether USD (Arbitrum One)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            }
+                        ]
+                    },
+                    "DepositAddresses": {
+                        "error": [],
+                        "result": [
+                            {
+                                "address": "0x4444444444444444444444444444444444444444",
+                                "expiretm": "0"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "expiretm": "0"
+                        },
+                        "currency": "USDT",
+                        "network": "TRC20",
+                        "address": "0x4444444444444444444444444444444444444444",
+                        "tag": null
+                    }
+                ]
+            },
+            {
+                "description": "network alias ETH resolves to the unified ERC20 code",
+                "method": "fetchDepositAddresses",
+                "input": [
+                    [
+                        "USDT"
+                    ],
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "DepositMethods": {
+                        "error": [],
+                        "result": [
+                            {
+                                "method": "Tether USD (ERC20)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            },
+                            {
+                                "method": "Tether USD (TRC20)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            },
+                            {
+                                "method": "Tether USD (Arbitrum One)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            }
+                        ]
+                    },
+                    "DepositAddresses": {
+                        "error": [],
+                        "result": [
+                            {
+                                "address": "0x4444444444444444444444444444444444444444",
+                                "expiretm": "0"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "expiretm": "0"
+                        },
+                        "currency": "USDT",
+                        "network": "ERC20",
+                        "address": "0x4444444444444444444444444444444444444444",
+                        "tag": null
+                    }
+                ]
+            },
+            {
+                "description": "Arbitrum One deposit method is returned with the unified ARBITRUM code",
+                "method": "fetchDepositAddresses",
+                "input": [
+                    [
+                        "USDT"
+                    ],
+                    {
+                        "network": "ARBITRUM"
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "DepositMethods": {
+                        "error": [],
+                        "result": [
+                            {
+                                "method": "Tether USD (ERC20)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            },
+                            {
+                                "method": "Tether USD (TRC20)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            },
+                            {
+                                "method": "Tether USD (Arbitrum One)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            }
+                        ]
+                    },
+                    "DepositAddresses": {
+                        "error": [],
+                        "result": [
+                            {
+                                "address": "0x4444444444444444444444444444444444444444",
+                                "expiretm": "0"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "expiretm": "0"
+                        },
+                        "currency": "USDT",
+                        "network": "ARBITRUM",
+                        "address": "0x4444444444444444444444444444444444444444",
+                        "tag": null
+                    }
+                ]
+            },
+            {
+                "description": "network alias ARBONE resolves to the unified ARBITRUM code",
+                "method": "fetchDepositAddresses",
+                "input": [
+                    [
+                        "USDT"
+                    ],
+                    {
+                        "network": "ARBONE"
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "DepositMethods": {
+                        "error": [],
+                        "result": [
+                            {
+                                "method": "Tether USD (ERC20)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            },
+                            {
+                                "method": "Tether USD (TRC20)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            },
+                            {
+                                "method": "Tether USD (Arbitrum One)",
+                                "limit": false,
+                                "address-setup-fee": "0.00000000",
+                                "gen-address": true
+                            }
+                        ]
+                    },
+                    "DepositAddresses": {
+                        "error": [],
+                        "result": [
+                            {
+                                "address": "0x4444444444444444444444444444444444444444",
+                                "expiretm": "0"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "expiretm": "0"
+                        },
+                        "currency": "USDT",
+                        "network": "ARBITRUM",
+                        "address": "0x4444444444444444444444444444444444444444",
+                        "tag": null
+                    }
+                ]
+            }
         ]
     }
 }
