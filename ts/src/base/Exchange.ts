@@ -9518,7 +9518,8 @@ export class BaseExchange {
     }
 
     timeframeFromMilliseconds (ms: number): string {
-        if (ms <= 0) {
+        const msInt = this.parseToInt (ms);
+        if (msInt <= 0) {
             return '';
         }
         const second = 1000;
@@ -9526,20 +9527,20 @@ export class BaseExchange {
         const hour = 60 * minute;
         const day = 24 * hour;
         const week = 7 * day;
-        if (ms % week === 0) {
-            return (ms / week) + 'w';
+        if (msInt % week === 0) {
+            return this.parseToInt (msInt / week).toString () + 'w';
         }
-        if (ms % day === 0) {
-            return (ms / day) + 'd';
+        if (msInt % day === 0) {
+            return this.parseToInt (msInt / day).toString () + 'd';
         }
-        if (ms % hour === 0) {
-            return (ms / hour) + 'h';
+        if (msInt % hour === 0) {
+            return this.parseToInt (msInt / hour).toString () + 'h';
         }
-        if (ms % minute === 0) {
-            return (ms / minute) + 'm';
+        if (msInt % minute === 0) {
+            return this.parseToInt (msInt / minute).toString () + 'm';
         }
-        if (ms % second === 0) {
-            return (ms / second) + 's';
+        if (msInt % 1000 === 0) {
+            return this.parseToInt (msInt / 1000).toString () + 's';
         }
         return '';
     }

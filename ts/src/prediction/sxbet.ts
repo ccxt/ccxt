@@ -243,8 +243,9 @@ export default class sxbet extends Exchange {
         const pageSize = this.safeInteger (this.options, 'marketsPageSize', 100);
         const maxPages = this.safeInteger (this.options, 'maxMarketsPages', 50);
         const rawMarkets: any[] = [];
+        const collectCap = this.safeInteger ({ 'limit': userLimit }, 'limit');
         let paginationKey: Str = undefined;
-        let page: int = 0;
+        let page = this.parseToInt (0);
         while (true) {
             const request: Dict = { 'pageSize': pageSize };
             if (paginationKey !== undefined) {
@@ -258,9 +259,9 @@ export default class sxbet extends Exchange {
                 rawMarkets.push (pageMarkets[i]);
             }
             paginationKey = this.safeString (result, 'nextKey');
-            page = page + 1;
-            const collectedLength = rawMarkets.length;
-            if ((pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey === undefined) || ((userLimit !== undefined) && (collectedLength >= userLimit))) {
+            page = this.parseToInt (page + 1);
+            const collectedLength = this.parseToInt (rawMarkets.length);
+            if ((pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey === undefined) || ((collectCap !== undefined) && (collectedLength >= collectCap))) {
                 break;
             }
         }
@@ -582,7 +583,7 @@ export default class sxbet extends Exchange {
     parseEvent (fixtureId: string, rawMarkets: any[]): Dict {
         const marketsList: Market[] = [];
         let anyActive = false;
-        let earliestGameTime: Str = undefined;
+        let earliestGameTime = this.safeInteger ({}, 'gameTime');
         let teamOneName: Str = undefined;
         let teamTwoName: Str = undefined;
         let leagueLabel: Str = undefined;
@@ -602,9 +603,9 @@ export default class sxbet extends Exchange {
                 teamTwoName = this.safeString (raw, 'teamTwoName');
                 leagueLabel = this.safeString (raw, 'leagueLabel');
             }
-            const gameTime = this.safeString (raw, 'gameTime');
+            const gameTime = this.safeInteger (raw, 'gameTime');
             // skip the zero sentinel for "no scheduled game time" so it can't become the epoch
-            if ((gameTime !== undefined) && (gameTime !== '0') && ((earliestGameTime === undefined) || (gameTime < earliestGameTime))) {
+            if ((gameTime !== undefined) && (gameTime !== 0) && ((earliestGameTime === undefined) || (gameTime < earliestGameTime))) {
                 earliestGameTime = gameTime;
             }
         }
@@ -724,7 +725,7 @@ export default class sxbet extends Exchange {
         const hex = this.remove0xPrefix (result);
         // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
         const lengthHex = hex.slice (64, 128);
-        const length = this.hexToInt (lengthHex);
+        const length = this.parseToInt (this.hexToInt (lengthHex));
         const dataEnd = this.sum (128, length * 2);
         const dataHex = hex.slice (128, dataEnd);
         return this.decode (this.base16ToBinary (dataHex));
@@ -738,15 +739,16 @@ export default class sxbet extends Exchange {
      * @param {string} hex the hex string, no '0x' prefix
      * @returns {int} the parsed integer
      */
-    hexToInt (hex: string): number {
+    hexToInt (hex: string): int {
         const digits = '0123456789abcdef';
         const lowerHex = hex.toLowerCase ();
         const hexLength = lowerHex.length;
-        let result: int = 0;
+        let result = this.parseToInt (0);
         for (let i = 0; i < hexLength; i++) {
             const ch = lowerHex[i];
-            const digitValue = digits.indexOf (ch);
-            result = (result * 16) + digitValue;
+            const digitValue = this.parseToInt (digits.indexOf (ch));
+            const shifted = result * 16;
+            result = this.parseToInt (this.sum (shifted, digitValue));
         }
         return result;
     }
@@ -1144,14 +1146,20 @@ export default class sxbet extends Exchange {
         const chunkCount = this.parseToInt (this.sum (idsLength, chunkSize - 1) / chunkSize);
         let result: PredictionOrder[] = [];
         for (let c = 0; c < chunkCount; c++) {
-            const start: int = c * chunkSize;
-            let end: int = start + chunkSize;
-            if (end > idsLength) {
-                end = idsLength;
+            const chunkIndex = this.parseToInt (c);
+            const chunkWidth = this.parseToInt (chunkSize);
+            const start = chunkIndex * chunkWidth;
+            const nextChunkIndex = chunkIndex + 1;
+            const chunkEnd = nextChunkIndex * chunkWidth;
+            let end = chunkEnd;
+            if (chunkEnd > idsLength) {
+                end = this.parseToInt (idsLength);
             }
             const orderItems: Dict[] = [];
-            for (let i = start; i < end; i++) {
-                orderItems.push ({ 'orderId': ids[i] });
+            const chunkIds = this.arraySlice (ids, start, end);
+            const chunkIdsLength = chunkIds.length;
+            for (let i = 0; i < chunkIdsLength; i++) {
+                orderItems.push ({ 'orderId': chunkIds[i] });
             }
             const request: Dict = { 'orders': orderItems };
             const response = await this.sxbetPrivateDeleteOrdersV3 (this.extend (request, params));
@@ -1305,7 +1313,11 @@ export default class sxbet extends Exchange {
      * @returns {int} the limit clamped to at most 100
      */
     clampSxbetPerPage (limit: Int): Int {
-        if ((limit !== undefined) && (limit > 100)) {
+        if (limit === undefined) {
+            return limit;
+        }
+        const requested = this.parseToInt (limit);
+        if (requested >= 100) {
             return 100;
         }
         return limit;
@@ -1909,10 +1921,14 @@ export default class sxbet extends Exchange {
         const chunkSize = this.safeInteger (this.options, 'bestOddsBatchSize', 100);
         const chunkCount = this.parseToInt (this.sum (hashesLength, chunkSize - 1) / chunkSize);
         for (let c = 0; c < chunkCount; c++) {
-            const start: int = c * chunkSize;
-            let end: int = start + chunkSize;
-            if (end > hashesLength) {
-                end = hashesLength;
+            const chunkIndex = this.parseToInt (c);
+            const chunkWidth = this.parseToInt (chunkSize);
+            const start = chunkIndex * chunkWidth;
+            const nextChunkIndex = chunkIndex + 1;
+            const chunkEnd = nextChunkIndex * chunkWidth;
+            let end = chunkEnd;
+            if (chunkEnd > hashesLength) {
+                end = this.parseToInt (hashesLength);
             }
             const chunk = this.arraySlice (hashesOrder, start, end);
             const rows = await this.fetchSxbetBestOdds (chunk, params);

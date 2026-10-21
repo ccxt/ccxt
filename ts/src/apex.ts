@@ -1442,7 +1442,7 @@ export default class apex extends Exchange {
             'size': orderSize,
             'price': finalOrderPrice,
             'limitFee': limitFee,
-            'expiration': Math.floor (timeNow / 1000 + 30 * 24 * 60 * 60),
+            'expiration': this.parseToInt (timeNow / 1000) + 30 * 24 * 60 * 60,
             'timeInForce': timeInForce,
             'clientId': finalClientOrderId,
             'brokerId': this.safeString (this.options, 'brokerId', '6956'),
@@ -1512,7 +1512,9 @@ export default class apex extends Exchange {
         const decimalsNum = this.safeNumber (currency, 'decimals', 0);
         const decimalsNumber = (decimalsNum === undefined) ? 0 : decimalsNum;
         const mathPowResult = (Math.pow (10, decimalsNumber));
-        const amountNumber = this.parseToInt (amount * mathPowResult);
+        const amountNum = this.parseNumber (amount);
+        const amountValue = (amountNum === undefined) ? 0 : amountNum;
+        const amountNumber = this.parseToInt (amountValue * mathPowResult);
         const timestampSeconds = this.parseToInt (this.milliseconds () / 1000);
         let clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId === undefined) {

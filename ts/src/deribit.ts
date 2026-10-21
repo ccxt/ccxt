@@ -3355,8 +3355,8 @@ export default class deribit extends Exchange {
             if (limit === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a limit argument');
             }
-            const maxUntil = this.sum (sinceResolved, limit * duration);
-            request['end_timestamp'] = Math.min (endTimestamp, maxUntil);
+            const maxUntil: int = this.parseToInt (this.sum (sinceResolved, limit * duration));
+            request['end_timestamp'] = (endTimestamp < maxUntil) ? endTimestamp : maxUntil;
         }
         const response = await this.publicGetGetFundingRateHistory (this.extend (request, paramsOmitted));
         //

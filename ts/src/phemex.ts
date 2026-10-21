@@ -1319,7 +1319,7 @@ export default class phemex extends Exchange {
         }
         const stringN = this.numberToString (n);
         const precise = new Precise (stringN as string);
-        precise.decimals = precise.decimals - scale;
+        precise.decimals = this.sum (precise.decimals, scale * -1);
         precise.reduce ();
         const preciseString = precise.toString ();
         return this.parseToNumeric (preciseString);
@@ -1448,7 +1448,7 @@ export default class phemex extends Exchange {
                     } else {
                         // when since is defined 'to' is mandatory
                         const now = this.seconds ();
-                        const to = fromSeconds + (maxLimit * candleDuration);
+                        const to = this.parseToInt (fromSeconds + (maxLimit * candleDuration));
                         request['to'] = (to > now) ? now : to;
                     }
                 } else if (until !== undefined) {
@@ -2079,7 +2079,11 @@ export default class phemex extends Exchange {
             const lockedWithdraw = this.fromEn (lockedWithdrawEv, scale);
             const used = Precise.stringAdd (lockedTradingBalance, lockedWithdraw);
             const lastUpdateTimeNs = this.safeIntegerProduct (balance, 'lastUpdateTimeNs', 0.000001);
-            timestamp = (timestamp === undefined) ? lastUpdateTimeNs : Math.max (timestamp, lastUpdateTimeNs as number);
+            if ((timestamp === undefined) || (lastUpdateTimeNs === undefined)) {
+                timestamp = lastUpdateTimeNs;
+            } else {
+                timestamp = Math.max (timestamp, lastUpdateTimeNs);
+            }
             account['total'] = total;
             account['used'] = used;
             result[code as string] = account;
@@ -3450,10 +3454,10 @@ export default class phemex extends Exchange {
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const request: Dict = {};
-        const limitResolved: Int = (limit === undefined) ? undefined : Math.min (200, limit);
-        if (limitResolved !== undefined) {
-            request['limit'] = limitResolved;
+        if (limit !== undefined) {
+            request['limit'] = Math.min (200, limit);
         }
+        const limitResolved = this.safeInteger (request, 'limit');
         const isUSDTSettled = (type !== 'spot') && ((symbol === undefined) || (this.safeString (market, 'settle') === 'USDT'));
         if (isUSDTSettled) {
             request['currency'] = 'USDT';
@@ -5284,7 +5288,11 @@ export default class phemex extends Exchange {
         //        volumeRq: '3388.5600312'
         //    }
         //
-        const timestamp = (this.safeInteger (interest, 'timestamp') as number) / 1000000;
+        const timestampNs = this.safeInteger (interest, 'timestamp');
+        let timestamp: Int = undefined;
+        if (timestampNs !== undefined) {
+            timestamp = this.parseToInt (timestampNs / 1000000);
+        }
         const id = this.safeString (interest, 'symbol');
         return this.safeOpenInterest ({
             'info': interest,

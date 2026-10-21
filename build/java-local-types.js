@@ -19501,3 +19501,69 @@ export function nativeJavaJ32DivModNeg (content, base = false) {
     }
     return changed ? lines.join ('\n') : content;
 }
+
+// hx4 J37
+// ===== hx4 J37: every remaining Helpers.divide / Helpers.mod / Helpers.opNeg prints inline native Java =====
+// Tier 2 after J32's typed proofs: the call becomes a typed lambda applied in place, which evaluates each
+// operand once, left to right, and keeps the helper's static type (Object). Its body is a verbatim copy of
+// Helpers.divide / Helpers.mod / Helpers.opNeg + Helpers.toDouble + normalizeIntIfNeeded: null -> null,
+// Long/Integer/Double/Float/BigDecimal -> doubleValue, other values -> parseDouble(String.valueOf(x)) or 0.0,
+// a Double box for divide/mod (zero divisor = Infinity/NaN as in the helper), mod null for a non
+// String/Long/Integer/Double dividend, and opNeg negating the exact Byte/Short/Integer/Long/Float/Double box.
+function j37ToDouble () {
+    return 'java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { '
+        + 'if (j37o instanceof Double j37v) return j37v; '
+        + 'if (j37o instanceof Float j37v) return j37v.doubleValue(); '
+        + 'if (j37o instanceof Long j37v) return j37v.doubleValue(); '
+        + 'if (j37o instanceof Integer j37v) return j37v.doubleValue(); '
+        + 'if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); '
+        + 'try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; ';
+}
+
+function j37Inline (op, args) {
+    if (op === 'neg') {
+        return '((java.util.function.UnaryOperator<Object>) (j37a) -> { '
+            + 'if (j37a instanceof Byte j37v) return (byte) -j37v; '
+            + 'if (j37a instanceof Short j37v) return (short) -j37v; '
+            + 'if (j37a instanceof Integer j37v) return -j37v; '
+            + 'if (j37a instanceof Long j37v) return -j37v; '
+            + 'if (j37a instanceof Float j37v) return -j37v; '
+            + 'if (j37a instanceof Double j37v) return -j37v; '
+            + `return null; }).apply(${args[0]})`;
+    }
+    const guard = op === '%'
+        ? 'if (!(j37a instanceof String || j37a instanceof Long || j37a instanceof Integer || j37a instanceof Double)) return null; '
+        : '';
+    return '((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { '
+        + 'if (j37a == null || j37b == null) return null; ' + guard + j37ToDouble ()
+        + `return j37d.applyAsDouble(j37a) ${op} j37d.applyAsDouble(j37b); }).apply(${args[0]}, ${args[1]})`;
+}
+
+export function nativeJavaJ37DivModNeg (content) {
+    if (!/Helpers\.(?:divide|mod|opNeg)\(/.test (content)) return content;
+    const helpers = [ [ 'Helpers.divide(', '/' ], [ 'Helpers.mod(', '%' ], [ 'Helpers.opNeg(', 'neg' ] ];
+    const lines = content.split ('\n');
+    let changed = false;
+    for (let j = 0; j < lines.length; j++) {
+        if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
+        let line = lines[j];
+        // innermost (rightmost) first, so an outer call wraps the inner inline text
+        for (;;) {
+            const mask = longMultiplyMask (line);
+            let best;
+            for (const [ h, op ] of helpers) {
+                for (let k = mask.indexOf (h); k !== -1; k = mask.indexOf (h, k + 1)) {
+                    if ((k === 0 || !/[\w.$]/.test (mask[k - 1])) && (best === undefined || k > best[0])) best = [ k, h, op ];
+                }
+            }
+            if (best === undefined) break;
+            const [ start, h, op ] = best;
+            const call = longMultiplyArgSpans (mask, start + h.length - 1);
+            if (call === undefined || call.spans.length !== (op === 'neg' ? 1 : 2)) break;
+            const args = call.spans.map (([ x, y ]) => line.slice (x, y).trim ());
+            line = line.slice (0, start) + j37Inline (op, args) + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    return changed ? lines.join ('\n') : content;
+}

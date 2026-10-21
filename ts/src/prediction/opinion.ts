@@ -419,7 +419,7 @@ export default class opinion extends Exchange {
             return this.applyEventFetchParams ([ single ], params, queries);
         }
         const rest = this.omit (params, [ 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ]);
-        const pageLimit = this.safeInteger (this.options, 'defaultFetchEventsLimit', 20);
+        const pageLimit = this.parseToInt (this.safeInteger (this.options, 'defaultFetchEventsLimit', 20));
         // bound how many events are actually FETCHED: the user limit when given, otherwise
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
         // label can still hold more than one page
@@ -427,7 +427,8 @@ export default class opinion extends Exchange {
         const maxPages = this.safeInteger (this.options, 'maxEventsPages', 50);
         const rawEvents: any[] = [];
         for (let page = 1; page <= maxPages; page++) {
-            const remaining = fetchCap - rawEvents.length;
+            const fetchedSoFar = rawEvents.length;
+            const remaining = this.parseToInt (fetchCap - fetchedSoFar);
             const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
@@ -955,7 +956,8 @@ export default class opinion extends Exchange {
     opinionOrderRawAmounts (isMarket: boolean, side: string, amount: Num, price: Num, decimals: Int): Dict {
         let decimalsStr = '1';
         if (decimals !== undefined) {
-            for (let i = 0; i < decimals; i++) {
+            const decimalsCount = this.parseToInt (decimals);
+            for (let i = 0; i < decimalsCount; i++) {
                 decimalsStr = decimalsStr + '0';
             }
         }

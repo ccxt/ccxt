@@ -7894,7 +7894,7 @@ export default class binance extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
             }
         }
-        let until = this.safeIntegerN (paramsPaginate, [ 'until', 'till', 'endTime' ]);
+        const until = this.safeIntegerN (paramsPaginate, [ 'until', 'till', 'endTime' ]);
         paramsPaginate = this.omit (paramsPaginate, [ 'stop', 'trigger', 'conditional', 'until', 'till', 'endTime' ]);
         if (since !== undefined) {
             request['startTime'] = since;
@@ -7915,13 +7915,14 @@ export default class binance extends Exchange {
             request['endTime'] = until;
         }
         if (stock === true) {
+            const nowMs = this.milliseconds ();
+            const untilResolved = (until !== undefined) ? until : nowMs;
             if (until === undefined) {
-                until = this.milliseconds ();
-                request['endTime'] = until;
+                request['endTime'] = untilResolved;
             }
             if (since === undefined) {
                 const oneWeek = 7 * 24 * 60 * 60 * 1000;
-                request['startTime'] = until - oneWeek;
+                request['startTime'] = untilResolved - oneWeek;
             }
         }
         let response: NullableDict = undefined;
@@ -9205,13 +9206,14 @@ export default class binance extends Exchange {
             let isPortfolioMargin: Bool = undefined;
             [ isPortfolioMargin, paramsPaginate ] = this.handleOptionBoolAndParams2 (paramsPaginate, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
             if (stock === true) {
+                // request['endTime'] holds endTime whenever endTime is defined
+                const endTimeResolved = this.safeInteger (request, 'endTime', this.milliseconds ());
                 if (endTime === undefined) {
-                    endTime = this.milliseconds ();
-                    request['endTime'] = endTime;
+                    request['endTime'] = endTimeResolved;
                 }
                 if (since === undefined) {
                     const oneWeek = 7 * 24 * 60 * 60 * 1000;
-                    request['startTime'] = endTime - oneWeek;
+                    request['startTime'] = endTimeResolved - oneWeek;
                 }
                 response = await this.sapiGetEquityTradeHistory (this.extend (request, paramsPaginate));
             } else if (type === 'spot' || type === 'margin') {

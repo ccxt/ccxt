@@ -3943,7 +3943,10 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         const maxLimit = 300;
-        const limitValue: Int = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        let limitValue = this.parseToInt (maxLimit);
+        if ((limit !== undefined) && (limit < maxLimit)) {
+            limitValue = this.parseToInt (limit);
+        }
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, 299) as OHLCV[];
@@ -5269,7 +5272,10 @@ export default class coinbase extends Exchange {
             const availableBalance = this.parseNumber (availableBalanceStr);
             const totalBalanceFiatStr = this.safeString (position, 'total_balance_fiat', '0');
             const totalBalanceFiat = this.parseNumber (totalBalanceFiatStr);
-            const holdAmount = totalBalanceFiat - availableBalance;
+            let holdAmount: Num = 0;
+            if ((totalBalanceFiat !== undefined) && (availableBalance !== undefined) && (totalBalanceFiat > availableBalance)) {
+                holdAmount = totalBalanceFiat - availableBalance;
+            }
             const costBasisDict = this.safeDict (position, 'cost_basis', {});
             const costBasisStr = this.safeString (costBasisDict, 'value', '0');
             const averageEntryPriceDict = this.safeDict (position, 'average_entry_price', {});
@@ -5277,7 +5283,7 @@ export default class coinbase extends Exchange {
             const positionData: Dict = {
                 'currency': currencyCode,
                 'available_balance': availableBalance,
-                'hold_amount': holdAmount > 0 ? holdAmount : 0,
+                'hold_amount': holdAmount,
                 'wallet_name': portfolioName,
                 'account_id': portfolioUuid,
                 'account_uuid': this.safeString (position, 'account_uuid', ''),
@@ -5438,7 +5444,7 @@ export default class coinbase extends Exchange {
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 } else {
-                    const nonce = this.nonce ();
+                    const nonce = this.parseToInt (this.nonce ());
                     const timestamp = this.parseToInt (nonce / 1000);
                     const timestampString = timestamp.toString ();
                     const auth = timestampString + method + savedPath + payload;

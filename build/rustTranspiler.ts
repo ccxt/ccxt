@@ -9004,6 +9004,8 @@ impl std::ops::DerefMut for ${coreName} {
                 // And `while (true)` → `loop {` (rustc's `while_true` lint is
                 // an error under the CI clippy lane's `-D warnings`).
                 rustContent = this.whileTrueToLoop(rustContent);
+                rustContent = this.r28Truth(rustContent); // hx4 R28
+                rustContent = this.hx4R29InlineCollectionHelpers(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9728,6 +9730,8 @@ impl std::ops::DerefMut for ${coreName} {
         // And `while (true)` → `loop {` (rustc's `while_true` lint is an error
         // under the CI clippy lane's `-D warnings`).
         finalFile = this.whileTrueToLoop(finalFile);
+        finalFile = this.r28Truth(finalFile); // hx4 R28
+        finalFile = this.hx4R29InlineCollectionHelpers(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -12399,6 +12403,200 @@ impl std::ops::DerefMut for ${coreName} {
             at = r.end;
         }
         return out + content.slice(at);
+    }
+
+    // hx4 R28 — last pass: `is_equal(&A, &B)` prints `runtime::is_equal`'s own match inline; `is_true(&E)`
+    // becomes `E.is_truthy()` when E is proven `Value` (typed local/param, base field, `-> Value` callee),
+    // `(E)` when E is a top-level bool expression, a `: bool` local or a `-> bool` callee; else the helper stays.
+    private _r28Rets: Map<string, Set<string>> | null = null;
+    private r28Rets(content: string): Map<string, Set<string>> {
+        const scan = (src: string, into: Map<string, Set<string>>) => {
+            for (const m of src.matchAll(/\bfn ([a-z_][a-z0-9_]*)\s*(?:<[^>]*>)?\(([^)]*)\)\s*(?:->\s*([A-Za-z_][A-Za-z0-9_:<>]*))?/g)) {
+                const set = into.get(m[1]) ?? new Set<string>();
+                set.add(m[3] ?? '()');
+                into.set(m[1], set);
+            }
+        };
+        if (this._r28Rets === null) {
+            const base = new Map<string, Set<string>>();
+            const dirs = [`${RUST_BASE}/exchanges`, `${RUST_BASE}/prediction`, './rust/ccxt-common/src', './rust/ccxt-pro/src/pro', './rust/ccxt-pro/src'];
+            for (const d of dirs) {
+                if (!fs.existsSync(d)) continue;
+                for (const f of fs.readdirSync(d)) if (f.endsWith('.rs')) scan(fs.readFileSync(`${d}/${f}`, 'utf8'), base);
+            }
+            this._r28Rets = base;
+        }
+        const out = new Map<string, Set<string>>();
+        for (const [k, v] of this._r28Rets) out.set(k, new Set(v));
+        scan(content, out);
+        return out;
+    }
+
+    private _r28Fields: Set<string> | null = null;
+    private r28Fields(): Set<string> {
+        if (this._r28Fields === null) {
+            const f = './rust/ccxt-common/src/exchange.rs';
+            const src = fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
+            const at = src.indexOf('pub struct Exchange {');
+            const body = at < 0 ? '' : src.slice(at, src.indexOf('\n}', at));
+            this._r28Fields = new Set([...body.matchAll(/^\s*pub ([A-Za-z_][A-Za-z0-9_]*):\s*Value,/gm)].map(m => m[1]));
+        }
+        return this._r28Fields;
+    }
+
+    private r28BoolExpr(e: string): boolean {
+        let depth = 0;
+        for (let i = 0; i < e.length; i++) {
+            const c = e[i];
+            if (c === '"') { i = this.endOfRustStringLiteral(e, i) - 1; continue; }
+            if (c === '(' || c === '[' || c === '{') depth++;
+            else if (c === ')' || c === ']' || c === '}') depth--;
+            else if (depth === 0) {
+                const two = e.slice(i, i + 2);
+                if (two === '&&' || two === '||' || two === '==' || two === '!=' || two === '>=' || two === '<=') return true;
+                if ((c === '<' || c === '>') && e[i - 1] === ' ' && e[i + 1] === ' ') return true;
+            }
+        }
+        return false;
+    }
+
+    r28Truth(content: string): string {
+        if (!content.includes('is_true(&') && !content.includes('is_equal(&')) return content;
+        const masked = this.maskStringsAndComments(content);
+        const headers: number[] = [0];
+        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
+        headers.push(content.length);
+        const regionOf = (pos: number): [number, number] => {
+            let lo = 0;
+            for (let h = 0; h + 1 < headers.length; h++) if (headers[h] <= pos) lo = h;
+            return [headers[lo], headers[lo + 1]];
+        };
+        const identType = (name: string, pos: number): 'Value' | 'bool' | undefined => {
+            const [from, to] = regionOf(pos);
+            const region = masked.slice(from, to);
+            const types = new Set<string>();
+            const header = region.slice(0, Math.max(0, region.indexOf('{')));
+            const pm = new RegExp(`\\b(?:mut )?${name}:\\s*([A-Za-z_][A-Za-z0-9_<>]*)`).exec(header);
+            if (pm !== null) types.add(pm[1]);
+            for (const m of region.matchAll(new RegExp(`\\blet (?:mut )?${name}\\b\\s*(:\\s*([A-Za-z_][A-Za-z0-9_<>]*))?\\s*=\\s*(get_arg\\()?`, 'g'))) {
+                if (m[2] !== undefined) types.add(m[2]);
+                else if (m[3] !== undefined) types.add('Value');
+                else types.add('?');
+            }
+            const rebind = new RegExp(`(?<!\\|)\\|(?!\\|)[^|\\n]*\\b${name}\\b[^|\\n]*(?<!\\|)\\|(?!\\|)|\\bfor [^\\n]*\\b${name}\\b[^\\n]* in |Some\\((?:mut )?${name}\\)|Err\\((?:mut )?${name}\\)|\\blet \\([^)]*\\b${name}\\b`);
+            if (rebind.test(region) || types.size !== 1) return undefined;
+            const t = [...types][0];
+            return t === 'Value' ? 'Value' : t === 'bool' ? 'bool' : undefined;
+        };
+        let fnReturns: Map<string, Set<string>> | null = null;
+        const fields = this.r28Fields();
+        const loose = (v: string) => `(match ${v} { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })`;
+        const helperRe = /(?<![A-Za-z0-9_:.])is_(?:equal|true)\(/;
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (const sm of masked.matchAll(/(?<![A-Za-z0-9_:.])(is_true|is_equal)\(&/g)) {
+            const start = sm.index as number;
+            const open = start + sm[1].length;
+            const close = this.closeParenAt(content, open);
+            if (close < 0) continue;
+            const inner = content.slice(open + 1, close);
+            if (sm[1] === 'is_equal') {
+                const args = this.splitTopLevelCommas(inner);
+                if (args.length !== 2) continue;
+                const a = args[0].trim(); const b = args[1].trim();
+                if (!a.startsWith('&') || !b.startsWith('&') || helperRe.test(a + b)) continue;
+                rewrites.push({ start, end: close + 1, text:
+                    `(match (${a}, ${b}) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, ` +
+                    `(Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, ` +
+                    `(Value::Float(__x), Value::Float(__y)) => __x == __y, (__a, __b) => matches!((${loose('__a')}, ${loose('__b')}), (Some(__x), Some(__y)) if __x == __y) })` });
+                continue;
+            }
+            const e0 = inner.slice(1).trim();
+            if (helperRe.test(e0)) continue;
+            const e = this.stripOuterParens(e0).trim();
+            let text: string | undefined;
+            if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(e)) {
+                const t = identType(e, start);
+                if (t === 'Value') text = `${e}.is_truthy()`;
+                else if (t === 'bool') text = e;
+            } else if (/^self\.[A-Za-z_][A-Za-z0-9_]*$/.test(e)) {
+                if (fields.has(e.slice(5)) && !new RegExp(`\\bpub ${e.slice(5)}:`).test(masked)) text = `${e}.is_truthy()`;
+            } else if (this.r28BoolExpr(e)) {
+                text = `(${e})`;
+            } else {
+                const cm = /^(?:self\.(?:parent\.)?)?([a-z_][a-z0-9_]*)\(/.exec(e);
+                if (cm !== null && this.closeParenAt(e, cm[0].length - 1) === e.length - 1) {
+                    fnReturns ??= this.r28Rets(content);
+                    const rets = fnReturns.get(cm[1]);
+                    if (rets !== undefined && rets.size === 1 && rets.has('Value')) text = `${e}.is_truthy()`;
+                    else if (rets !== undefined && rets.size === 1 && rets.has('bool')) text = `(${e})`;
+                }
+            }
+            if (text !== undefined) rewrites.push({ start, end: close + 1, text });
+        }
+        if (rewrites.length === 0) return content;
+        let out = ''; let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue;
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    // hx4 R29 — `in_op` / `object_keys` / `get_array_length` / `remove` print the runtime fn's own
+    // dispatch inline (public `Value::len`, `value::side_entries_as_value`, `ws_client::value_subs_remove`).
+    // Not for rust/tests (no `crate::value`); innermost-first so nested calls rewrite too.
+    hx4R29InlineCollectionHelpers(content: string): string {
+        const names = [ 'in_op', 'object_keys', 'get_array_length', 'remove' ];
+        if (!names.some(n => content.includes(n + '('))) return content;
+        const loose = (v: string) => `(match ${v} { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })`;
+        const eq = `(match (__r29e, __r29v) { (Value::Null, Value::Null) => true, (Value::Bool(__p), Value::Bool(__q)) => __p == __q, (Value::Str(__p), Value::Str(__q)) => __p == __q, (Value::Int(__p), Value::Int(__q)) => __p == __q, (Value::Float(__p), Value::Float(__q)) => __p == __q, (__p, __q) => matches!((${loose('__p')}, ${loose('__q')}), (Some(__x), Some(__y)) if __x == __y) })`;
+        const build = (name: string, args: string[]): string | undefined => {
+            const a = args.map(s => s.trim());
+            if (name === 'in_op' && a.length === 2) {
+                return `({ let __r29o: &Value = ${a[0]}; let __r29k: &Value = ${a[1]}; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => __m.contains_key(&**__k), (Value::Arr(__a), __r29v) => __a.iter().any(|__r29e| ${eq}), _ => false } })`;
+            }
+            if (name === 'object_keys' && a.length === 1) {
+                return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } })`;
+            }
+            if (name === 'get_array_length' && a.length === 1) {
+                return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__d) if __d.contains_key("__sideKind") && !__d.contains_key("__cacheKind") && !matches!(__d.get("__book_cache_id"), Some(Value::Int(_))) => Value::Int(crate::value::side_entries_as_value(__r29o).map(|__s| __s.len()).unwrap_or(0) as i64), _ => Value::Int(__r29o.len() as i64) } })`;
+            }
+            if (name === 'remove' && a.length === 2 && a[0].startsWith('&mut ')) {
+                return `{ let __r29o: &mut Value = ${a[0]}; let __r29k: &Value = ${a[1]}; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => { if let Some(Value::Str(__u)) = __m.get("__ws_subs_url") { crate::pro::ws_client::value_subs_remove(__u, __k); } std::sync::Arc::make_mut(__m).shift_remove(&**__k); } (Value::Arr(__a), Value::Int(__i)) => { let __i = *__i as usize; let __a = std::sync::Arc::make_mut(__a); if __i < __a.len() { __a.remove(__i); } } _ => {} } }`;
+            }
+            return undefined;
+        };
+        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|get_array_length|remove)\(/g;
+        // Repeat until no rewrite applies: each round replaces calls whose args hold no further helper call.
+        for (let round = 0; round < 8; round++) {
+            const masked = this.maskStringsAndComments(content);
+            const rewrites: Array<{ start: number, end: number, text: string }> = [];
+            for (const m of masked.matchAll(re)) {
+                const start = m.index as number;
+                const name = m[1];
+                // `fn remove(` declarations / `.remove(` methods never match (lookbehind + `fn ` check).
+                if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
+                const open = start + name.length;
+                const close = this.closeParenAt(content, open);
+                if (close < 0) continue;
+                const inner = content.slice(open + 1, close);
+                if (/(?<![A-Za-z0-9_:.])(in_op|object_keys|get_array_length|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
+                const text = build(name, this.splitTopLevelCommas(inner));
+                if (text === undefined) continue;
+                if (name === 'remove' && !/^\s*;/.test(content.slice(close + 1, close + 8))) continue;
+                rewrites.push({ start, end: close + 1, text });
+            }
+            if (rewrites.length === 0) break;
+            let out = ''; let at = 0;
+            for (const r of rewrites) {
+                if (r.start < at) continue;
+                out += content.slice(at, r.start) + r.text;
+                at = r.end;
+            }
+            content = out + content.slice(at);
+        }
+        return content;
     }
 }
 

@@ -595,7 +595,7 @@ export default class hyperliquid extends Exchange {
         for (let i = 1; i < dexesCount; i++) {
             // builder-deployed perp dexs start at 110000
             const dex = this.safeDict (fetchDexes, i, {});
-            const secondPart = (i - 1) * 10000;
+            const secondPart = i * 10000 - 10000;
             const offset = this.sum (110000, secondPart);
             perpDexesOffset[dex['name']] = offset;
         }
@@ -787,7 +787,9 @@ export default class hyperliquid extends Exchange {
             return 0;
         }
         const priceSplitted = priceStr.split ('.');
-        const decimalsLeft = maxDecimals - amountPrecision;
+        const maxDecimalsInt = this.parseToInt (maxDecimals);
+        const amountPrecisionInt = this.parseToInt (amountPrecision);
+        const decimalsLeft = maxDecimalsInt - amountPrecisionInt;
         if (Precise.stringEq (priceStr, '0')) {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
@@ -810,9 +812,12 @@ export default class hyperliquid extends Exchange {
             // Count the numbers before the decimal separator
             const integerPart = this.safeString (priceSplitted, 0, '');
             // Get significant digits, take the max() of 5 and the integer digits count
-            const significantDigits: int = (integerPart.length > 5) ? integerPart.length : 5;
-            // Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
-            pricePrecision = Math.min (decimalsLeft, significantDigits - integerPart.length);
+            // significantDigits - integerPart.length, with significantDigits = max (5, integerPart.length)
+            let digitsLeft: int = 0;
+            if (integerPart.length <= 5) {
+                digitsLeft = 5 - (integerPart.length);
+            }
+            pricePrecision = Math.min (decimalsLeft, digitsLeft);
         }
         return this.parseToInt (pricePrecision);
     }

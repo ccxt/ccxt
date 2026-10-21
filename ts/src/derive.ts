@@ -1598,15 +1598,31 @@ export default class derive extends Exchange {
         const until = this.safeInteger (paramsPrice, 'until');
         const paramsOmitted: Dict = this.omit (paramsPrice, [ 'until' ]);
         const duration = this.parseTimeframe (timeframe);
-        const untilSeconds = (until === undefined) ? this.seconds () : this.parseToInt (until / 1000);
-        const defaultLimit = (since === undefined) ? 1000 : 5000;
-        const limitRequested = (limit === undefined) ? defaultLimit : limit;
-        const limitResolved = (limitRequested > 5000) ? 5000 : limitRequested; // the venue keeps only the latest 5000 buckets of the requested window
-        const span = limitResolved * duration;
-        const windowStart = untilSeconds - span;
-        const start = (since === undefined) ? windowStart : this.parseToInt (since / 1000);
-        // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
-        const end = (start < windowStart) ? this.sum (start, span) : untilSeconds;
+        let untilSeconds: Int = this.seconds ();
+        if (until !== undefined) {
+            untilSeconds = this.parseToInt (until / 1000);
+        }
+        // the venue keeps only the latest 5000 buckets of the requested window
+        const defaultLimit: Int = (since === undefined) ? 1000 : 5000;
+        let limitResolved: Int = this.parseToInt (defaultLimit);
+        if (limit !== undefined) {
+            limitResolved = this.parseToInt (limit);
+        }
+        if (limitResolved > 5000) {
+            limitResolved = this.parseToInt (5000);
+        }
+        const span: Int = this.parseToInt (limitResolved * duration);
+        const windowStart: Int = this.parseToInt (untilSeconds - span);
+        let start: Int = windowStart;
+        let end: Int = untilSeconds;
+        if (since !== undefined) {
+            const sinceSeconds: Int = this.parseToInt (since / 1000);
+            start = sinceSeconds;
+            // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
+            if (sinceSeconds < windowStart) {
+                end = this.sum (sinceSeconds, span);
+            }
+        }
         const request: Dict = {
             'period': period,
             'start_timestamp': start,

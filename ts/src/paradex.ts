@@ -864,14 +864,16 @@ export default class paradex extends Exchange {
         const paramsOmitted: Dict = this.omit (paramsUntil, [ 'price' ]);
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
         const limitResolved = ((limit === undefined) || (limit > 1000)) ? 1000 : limit;
-        const windowLength = duration * (limitResolved + 1) * 1000;
+        const windowLength = this.parseToInt (duration * (this.parseToInt (limitResolved) + 1) * 1000);
         if (since !== undefined) {
             requestUntil['start_at'] = since;
             if (!hasEnd) {
-                requestUntil['end_at'] = since + windowLength - 1;
+                const sinceInt = this.parseToInt (since);
+                requestUntil['end_at'] = sinceInt + windowLength - 1;
             }
         } else {
-            const endAt = hasEnd ? this.safeInteger (requestUntil, 'end_at', 0) : this.milliseconds ();
+            const endAtRaw = hasEnd ? this.safeInteger (requestUntil, 'end_at', 0) : this.milliseconds ();
+            const endAt = this.parseToInt (endAtRaw);
             requestUntil['end_at'] = endAt;
             requestUntil['start_at'] = endAt - windowLength + 1;
         }

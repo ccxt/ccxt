@@ -746,13 +746,15 @@ export default class revolutx extends Exchange {
         const id = this.safeString (trade, 'id');
         const tradeSymbol = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (tradeSymbol, market, '/');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'quantity');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         const side = this.safeStringLower (trade, 'side');
         const timestamp = this.safeInteger (trade, 'timestamp');
         let cost: Num = undefined;
-        if (price !== undefined && amount !== undefined) {
-            cost = price * amount;
+        if (priceString !== undefined && amountString !== undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         return {
             'info': trade,
@@ -1291,15 +1293,17 @@ export default class revolutx extends Exchange {
     parseMyTrade (trade: Dict, market: Market = undefined): Trade {
         const id = this.safeString (trade, 'tid');
         const orderId = this.safeString (trade, 'oid');
-        const price = this.safeNumber (trade, 'p');
-        const amount = this.safeNumber (trade, 'q');
+        const priceString = this.safeString (trade, 'p');
+        const amountString = this.safeString (trade, 'q');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
         const side = this.safeStringLower (trade, 's');
         const timestamp = this.safeInteger2 (trade, 'tdt', 'pdt');
         const isMaker = this.safeBool (trade, 'im', false);
         const takerOrMaker = (isMaker) ? 'maker' : 'taker';
         let cost: Num = undefined;
-        if (price !== undefined && amount !== undefined) {
-            cost = price * amount;
+        if (priceString !== undefined && amountString !== undefined) {
+            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         }
         const symbol = this.safeSymbol (undefined, market);
         return {

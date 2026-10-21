@@ -7488,7 +7488,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             // negation / identity, same return). `!` prints a bool test and stays valid
             // for every type; any other prefix operator prints through prefixUnaryNeg as
             // well, so the numeric families bind there exactly as they do for `object`.
-            if (parent.operator !== ts.SyntaxKind.ExclamationToken && !isInt && !isDouble) {
+            if (parent.operator !== ts.SyntaxKind.ExclamationToken && !isInt && !isDouble
+                && !hx4L44GuardedNullableDoubleNegation (csharp, parent, csharpType)) {
                 return false; // prefixUnaryNeg/Plus(ref x) without a twin for this type
             }
             // The twin returns int / Int64, so if that result is an operand of `-` the
@@ -13965,6 +13966,9 @@ export function installCsharpLocalTypes (transpiler) {
         return 'IList<object>';
     };
     installTypedDictElementAccess (csharp);
+    // hx4 L44: the printer's guarded `-x` hook asks for the declaration's FINAL type (this module retypes
+    // `object x = this.safeNumber(..)` to `double? x` after printing), so `(x = -x)` matches the retype
+    csharp.csharpHx4DeclaredLocalType = (declaration) => referenceDeclaredType (csharp, declaration);
     // U02: the C# type `typeCoreArgs` narrows the parameter at (method, position) to, or
     // undefined; stringListParameterElementType reads it to prove a list receiver's elements.
     // hasOwnProperty because the table is an object literal (`CORE_LIST_ARGS['toString']` would
@@ -18569,3 +18573,14 @@ function hx4C13ParamsWritten (csharp, owner, parameter) {
     return written;
 }
 
+// hx4 L44 — `-x` on a `double?` local (safeNumber read) inside a dominating non-null guard on x: the
+// printer emits the helper's in-place body `(x = -x)` (lifted negation of a non-null double), so the
+// local may keep `double?`. Unguarded negations keep `object` + prefixUnaryNeg (null would NRE).
+function hx4L44GuardedNullableDoubleNegation (csharp, node, csharpType) {
+    return (csharpType === 'double?')
+        && (node?.kind === ts.SyntaxKind.PrefixUnaryExpression)
+        && (node.operator === ts.SyntaxKind.MinusToken)
+        && (node.operand?.kind === ts.SyntaxKind.Identifier)
+        && (typeof csharp?.csharpNullGuardAdmitsRead === 'function')
+        && csharp.csharpNullGuardAdmitsRead (node, node.operand);
+}

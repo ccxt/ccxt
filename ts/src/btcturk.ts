@@ -754,7 +754,8 @@ export default class btcturk extends Exchange {
                 throw new BadRequest (this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             const seconds = this.parseTimeframe (timeframe);
-            const limitSeconds: int = seconds * (limitResolved - 1);
+            const limitCount: Int = (limit === undefined) ? 100 : Math.min (limit, 11000);
+            const limitSeconds: int = seconds * (limitCount - 1);
             if (since !== undefined) {
                 const to: int = this.parseToInt (since / 1000) + limitSeconds;
                 if (to < untilSeconds) {

@@ -983,9 +983,9 @@ export default class paradex extends paradexRest {
             const next = position + 2;
             const high = digits.indexOf (frameHex.slice (position, middle));
             const low = digits.indexOf (frameHex.slice (middle, next));
-            result = this.sum (result, high * 16 * factor, low * factor);
-            factor = factor * 256;
-            position = next;
+            result = this.parseToInt (this.sum (result, high * 16 * factor, low * factor));
+            factor = this.parseToInt (factor * 256);
+            position = this.parseToInt (next);
         }
         // an exact integer below 2^32, parseToInt keeps it and types the return as an integer
         return this.parseToInt (result);
@@ -1128,15 +1128,16 @@ export default class paradex extends paradexRest {
         }
         const inserts: Dict[] = [];
         const sides = [ 'BUY', 'SELL' ];
-        let position = this.sum (blockLength, 8);
+        const frameEnd = this.parseToInt (frameLength);
+        let position = this.parseToInt (this.sum (blockLength, 8));
         for (let i = 0; i < sides.length; i++) {
-            if (position + 4 > frameLength) {
+            if (position + 4 > frameEnd) {
                 return undefined;
             }
             const entryLength = this.parseToInt (this.sbeReadUint (frameHex, position, 2));
             const numInGroup = this.parseToInt (this.sbeReadUint (frameHex, position + 2, 2));
-            position = position + 4;
-            if ((entryLength < 16) || (this.sum (position, numInGroup * entryLength) > frameLength)) {
+            position = this.parseToInt (position + 4);
+            if ((entryLength < 16) || (this.parseToInt (this.sum (position, numInGroup * entryLength)) > frameEnd)) {
                 return undefined;
             }
             for (let j = 0; j < numInGroup; j++) {
@@ -1145,7 +1146,7 @@ export default class paradex extends paradexRest {
                     'price': this.sbeReadDecimal (frameHex, position),
                     'size': this.sbeReadDecimal (frameHex, position + 8),
                 });
-                position = this.sum (position, entryLength);
+                position = this.parseToInt (this.sum (position, entryLength));
             }
         }
         const strings = this.sbeReadVarStrings (frameHex, position, 1, frameLength);
@@ -1294,7 +1295,7 @@ export default class paradex extends paradexRest {
             if ((bit === 1) && (names[i] !== '')) {
                 flags.push (names[i]);
             }
-            bits = this.parseToInt ((bits - bit) / 2);
+            bits = this.parseToInt (bits / 2);
         }
         return flags;
     }

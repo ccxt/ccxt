@@ -2750,9 +2750,8 @@ export default class okx extends Exchange {
             // switch to history candles if since is past the cutoff for current candles
             const historyBorder = now - (1439 * durationInMilliseconds);
             if (since < historyBorder) {
+                // limitResolved is already at most 100 for mark or index candles and 300 otherwise
                 defaultType = 'HistoryCandles';
-                const maxLimit = isMarkOrIndex ? 100 : 300;
-                limitResolved = Math.min (limitResolved, maxLimit);
             }
             const startTime = (since > 1) ? (since - 1) : 0;
             request['before'] = startTime;

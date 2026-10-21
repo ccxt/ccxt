@@ -1880,19 +1880,23 @@ export default class mexc extends Exchange {
         if (omitUntil) {
             paramsUntil = this.omit (paramsPaginate, [ 'until' ]);
         }
-        let start: Int = since;
-        if (omitUntil) {
-            const usedLimit = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxLimit;
-            start = until - (usedLimit * duration);
-        }
         if (market['spot'] === true) {
-            if (start !== undefined) {
-                request['startTime'] = start;
-                if (until === undefined) {
-                    // we have to calculate it assuming we can get at most 2000 entries per request
-                    const end = this.sum (since, 500 * duration); // maxLimit is 500 for spot
-                    const now = this.milliseconds ();
-                    request['endTime'] = Math.min (end, now);
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+            if ((since !== undefined) && (until === undefined)) {
+                // we have to calculate it assuming we can get at most 2000 entries per request
+                const spotWindow = 500 * duration; // maxLimit is 500 for spot
+                const now = this.milliseconds ();
+                const latestStart = now - spotWindow;
+                request['endTime'] = (since < latestStart) ? this.sum (since, spotWindow) : now;
+            }
+            if (omitUntil && (until !== undefined)) {
+                if (limit !== undefined && limit !== null && limit !== 0) {
+                    request['startTime'] = until - (limit * duration);
+                } else {
+                    const spotWindow = 500 * duration; // maxLimit is 500 for spot
+                    request['startTime'] = until - spotWindow;
                 }
             }
             if (limit !== undefined) {
@@ -1924,7 +1928,12 @@ export default class mexc extends Exchange {
             if (until !== undefined) {
                 request['end'] = this.parseToInt (until / 1000);
                 if (since === undefined) {
-                    request['start'] = this.parseToInt ((start as number) / 1000);
+                    if (limit !== undefined && limit !== null && limit !== 0) {
+                        request['start'] = this.parseToInt ((until - (limit * duration)) / 1000);
+                    } else {
+                        const swapWindow = 2000 * duration; // maxLimit is 2000 for swap
+                        request['start'] = this.parseToInt ((until - swapWindow) / 1000);
+                    }
                 }
             }
             const priceType = this.safeString (paramsUntil, 'price', 'default');

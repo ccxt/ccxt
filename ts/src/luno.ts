@@ -1448,7 +1448,7 @@ export default class luno extends Exchange {
         const maxRowBase = this.safeInteger (params, 'max_row', 0); // Default to most recent transactions
         const minRowBase = this.safeInteger (params, 'min_row', -1000); // Maximum number of records supported
         const limitApplies = (limit !== undefined) && (maxRowBase - minRowBase > limit);
-        const min_row = (limitApplies && maxRowBase <= 0) ? maxRowBase - limit : minRowBase;
+        const min_row = (limitApplies && (limit !== undefined) && maxRowBase <= 0) ? maxRowBase - limit : minRowBase;
         const max_row = (limitApplies && maxRowBase > 0 && minRowBase > 0) ? minRowBase + limit : maxRowBase;
         const limitAdjusts = limitApplies && (maxRowBase <= 0 || minRowBase > 0); // max_row - min_row becomes limit
         if ((limitAdjusts && limit > 1000) || (!limitAdjusts && maxRowBase - minRowBase > 1000)) {

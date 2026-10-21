@@ -2889,7 +2889,8 @@ export default class gate extends Exchange {
         const [ request, query ] = this.prepareRequest (market, this.safeString (market, 'type'), params);
         if (limit !== undefined) {
             // gateeu returns an empty book for a spot limit above 100
-            const maxLimit = (market['spot'] === true) ? this.handleOption ('fetchOrderBook', 'maxSpotLimit', 1000) : 300;
+            const maxSpotLimit = this.parseToInt (this.handleOption ('fetchOrderBook', 'maxSpotLimit', 1000));
+            const maxLimit = (market['spot'] === true) ? maxSpotLimit : 300;
             request['limit'] = Math.min (limit, maxLimit);
         }
         request['with_id'] = true;

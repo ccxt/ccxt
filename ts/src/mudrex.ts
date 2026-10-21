@@ -295,7 +295,9 @@ export default class mudrex extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const requestLimit = (limit === undefined) ? 500 : limit;
         const now = this.seconds ();
-        const startTime = this.parseToInt ((since !== undefined) ? (since / 1000) : (now - duration * requestLimit));
+        const windowLength = duration * requestLimit;
+        const defaultStart = now - windowLength;
+        const startTime = this.parseToInt ((since !== undefined) ? (since / 1000) : defaultStart);
         const windowEnd = this.parseToInt (startTime + duration * requestLimit);
         const until = this.safeInteger (params, 'until');
         const paramsOmitted: Dict = this.omit (params, [ 'price', 'until' ]);
@@ -1278,8 +1280,8 @@ export default class mudrex extends Exchange {
         // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
         const pageSize = (limit === undefined) ? 0 : limit * 2;
         const allRows: Dict[] = [];
-        let transactionsCount = 0;
-        let calls = 0;
+        let transactionsCount: Int = 0;
+        let calls: Int = 0;
         let offset = 0;
         let paging = true;
         while (paging === true) {
@@ -1291,23 +1293,25 @@ export default class mudrex extends Exchange {
             const response = await this.privateGetFuturesFeeHistory (this.extend (request, paramsPaginationCalls));
             const data: Dict[] = this.safeList (response, 'data', []);
             const dataLength = data.length;
-            for (let i = 0; i < dataLength; i++) {
+            for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
                 allRows.push (entry);
                 if (this.safeString (entry, 'fee_type') === 'TRANSACTION') {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                     if ((market === undefined) || (this.safeString (entry, 'symbol') === market['id'])) {
-                        transactionsCount = this.sum (transactionsCount, 1);
+                        transactionsCount = transactionsCount + 1;
                     }
                 }
             }
-            calls = this.sum (calls, 1);
+            calls = calls + 1;
             paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-            if ((limit !== undefined) && (dataLength === pageSize) && (transactionsCount < limit) && (calls < maxCalls)) {
-                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-                offset = this.sum (offset, pageSize);
-                paging = true;
+            if ((limit !== undefined) && (dataLength === pageSize)) {
+                if ((transactionsCount < limit) && (calls < maxCalls)) {
+                    // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                    offset = this.sum (offset, pageSize);
+                    paging = true;
+                }
             }
         }
         // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece

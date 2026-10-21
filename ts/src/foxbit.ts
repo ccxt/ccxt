@@ -2024,7 +2024,7 @@ export default class foxbit extends Exchange {
             before = balance - amount;
             if (0 > amount) {
                 direction = 'out';
-                realAmount = amount * -1;
+                realAmount = -amount;
             }
         }
         return {

@@ -1338,7 +1338,10 @@ export default class extended extends Exchange {
         const until = this.safeInteger (paramsPaginate, 'until', this.milliseconds ());
         const endTime = this.safeInteger (paramsPaginate, 'endTime', until);
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'endTime', 'until' ]);
-        const sinceResolved: Int = ((endTime !== undefined) && (since === undefined)) ? endTime - (limitResolved * 60 * 60 * 1000) : since;
+        let sinceResolved: Int = since;
+        if ((endTime !== undefined) && (since === undefined)) {
+            sinceResolved = endTime - (limitResolved * 60 * 60 * 1000);
+        }
         const request: Dict = {
             'market': market['id'],
             'startTime': sinceResolved,
@@ -1422,7 +1425,10 @@ export default class extended extends Exchange {
         const until = this.safeInteger (params, 'until', this.milliseconds ());
         const endTime = this.safeInteger (params, 'endTime', until);
         const paramsOmitted: Dict = this.omit (params, [ 'endTime', 'until' ]);
-        const sinceResolved: Int = ((endTime !== undefined) && (since === undefined)) ? endTime - (limitResolved * this.parseTimeframe (timeframe) * 1000) : since;
+        let sinceResolved: Int = since;
+        if ((endTime !== undefined) && (since === undefined)) {
+            sinceResolved = endTime - (limitResolved * this.parseTimeframe (timeframe) * 1000);
+        }
         const request: Dict = {
             'market': market['id'],
             'interval': interval,

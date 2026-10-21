@@ -869,12 +869,12 @@ export default class bydfi extends Exchange {
         };
         let numberOfCandles: Int = maxLimit;
         if (limit !== undefined && limit !== null && limit !== 0) {
-            numberOfCandles = limit;
+            numberOfCandles = this.parseToInt (limit);
         }
         const [ untilParam, paramsUntil ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchOHLCV', 'until');
         const now = this.milliseconds ();
         const duration = this.parseTimeframe (timeframe) * 1000;
-        const timeDelta: Int = duration * numberOfCandles;
+        const timeDelta = duration * numberOfCandles;
         let startTime: Int = since;
         let until: Int = untilParam;
         if (since === undefined && untilParam === undefined) {
@@ -882,13 +882,15 @@ export default class bydfi extends Exchange {
             until = now;
         } else if (untilParam !== undefined) {
             if (since === undefined) {
-                startTime = untilParam - timeDelta;
+                const untilInt = this.parseToInt (untilParam);
+                startTime = untilInt - timeDelta;
             }
         } else {
             if (since === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since or until argument');
             }
-            const sinceEnd: Int = since + timeDelta;
+            const sinceInt = this.parseToInt (since);
+            const sinceEnd = sinceInt + timeDelta;
             until = (sinceEnd > now) ? now : sinceEnd;
         }
         request['startTime'] = startTime;
@@ -1798,9 +1800,10 @@ export default class bydfi extends Exchange {
             }
         } else if (untilParam === undefined) {
             // until is undefined but since is defined
-            const delta = now - since;
+            const sinceInt = this.parseToInt (since);
+            const delta = now - sinceInt;
             if (delta > sevenDays) {
-                until = since + sevenDays;
+                until = sinceInt + sevenDays;
             } else {
                 until = now;
             }
@@ -2867,9 +2870,10 @@ export default class bydfi extends Exchange {
             }
         } else if (untilParam === undefined) {
             // until is undefined but since is defined
-            const delta = now - since;
+            const sinceInt = this.parseToInt (since);
+            const delta = now - sinceInt;
             if (delta > sevenDays) {
-                until = since + sevenDays;
+                until = sinceInt + sevenDays;
             } else {
                 until = now;
             }

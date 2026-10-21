@@ -466,7 +466,7 @@ export default class gate extends gateRest {
         let limitResolved: Int = (limit === undefined) ? defaultLimit : limit;
         if (market['spot'] === true) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
-            const maxSpotLimit = this.handleOption ('fetchOrderBook', 'maxSpotLimit', 1000);
+            const maxSpotLimit = this.parseToInt (this.handleOption ('fetchOrderBook', 'maxSpotLimit', 1000));
             limitResolved = Math.min (limitResolved, maxSpotLimit);
         }
         let payload: List = [];

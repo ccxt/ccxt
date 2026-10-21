@@ -228,8 +228,8 @@ export default class limitless extends Exchange {
             // the search endpoint rejects limit > 50 - cap the per-query request and let
             // maxMarkets bound the overall collection
             let limit: int = 50;
-            if (requestedLimit !== undefined) {
-                limit = Math.min (requestedLimit, 50);
+            if ((requestedLimit !== undefined) && (requestedLimit < 50)) {
+                limit = requestedLimit;
             }
             const searchRest = this.omit (rest, [ 'limit' ]);
             const seen: Dict = {};
@@ -259,7 +259,7 @@ export default class limitless extends Exchange {
             const promises: Promise<Dict>[] = [];
             const cappedPages = Math.ceil (maxMarkets / pageSize);
             const knownTotal = this.safeInteger (firstPageResponse, 'totalMarketsCount', 0);
-            const allPages = Math.ceil (knownTotal / pageSize);
+            const allPages = this.parseToInt (Math.ceil (knownTotal / pageSize));
             for (let i = 2; i <= allPages; i++) {
                 if (i > cappedPages) {
                     break;
@@ -1481,21 +1481,25 @@ export default class limitless extends Exchange {
             if (pTs === undefined) {
                 throw new ExchangeError (this.id + ' method() missing pTs');
             }
-            const bucket = this.parseToInt (pTs / ms) * ms;
+            if (pPrice === undefined) {
+                throw new ExchangeError (this.id + ' fetchOHLCV() missing pPrice');
+            }
+            const bucketIndex = this.parseToInt (pTs / ms);
+            const bucket = bucketIndex * ms;
             const key = bucket.toString ();
             if (!(key in candles)) {
                 candles[key] = [ bucket, pPrice, pPrice, pPrice, pPrice, 0 ];
                 bucketOrder.push (key);
             } else {
                 const candle = candles[key];
-                const pPriceOrZero = (pPrice === undefined) ? 0 : pPrice;
-                // pPrice is always defined here (pseudoTrades only holds priced points)
                 const prevHigh = this.safeNumber (candle, 2);
-                const candleHigh = (prevHigh === undefined) ? pPriceOrZero : prevHigh;
-                candle[2] = Math.max (candleHigh, pPriceOrZero);
+                if ((prevHigh === undefined) || (pPrice > prevHigh)) {
+                    candle[2] = pPrice;
+                }
                 const prevLow = this.safeNumber (candle, 3);
-                const candleLow = (prevLow === undefined) ? pPriceOrZero : prevLow;
-                candle[3] = Math.min (candleLow, pPriceOrZero);
+                if ((prevLow === undefined) || (prevLow > pPrice)) {
+                    candle[3] = pPrice;
+                }
                 candle[4] = pPrice;
                 candles[key] = candle; // php arrays are value types - write the mutation back
             }
@@ -2959,8 +2963,8 @@ export default class limitless extends Exchange {
             const requestedLimit = this.safeInteger (params, 'limit', 50);
             // the search endpoint rejects limit > 50 - cap the per-query request
             let limit: int = 50;
-            if (requestedLimit !== undefined) {
-                limit = Math.min (requestedLimit, 50);
+            if ((requestedLimit !== undefined) && (requestedLimit < 50)) {
+                limit = requestedLimit;
             }
             const seen: Dict = {};
             for (let i = 0; i < queries.length; i++) {
@@ -3232,7 +3236,8 @@ export default class limitless extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        if ((statusCode >= 200) && (statusCode < 300)) {
+        const statusCodeInt = this.parseToInt (statusCode);
+        if ((statusCodeInt >= 200) && (statusCodeInt < 300)) {
             return undefined;
         }
         const feedback = this.id + ' ' + responseBody;

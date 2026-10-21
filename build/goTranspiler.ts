@@ -22,7 +22,7 @@ import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { goGofmtBinarySpacing } from "./goGofmtLayout.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
-import { goNativeArithmetic, g10kArithSelfTest, hx4G17SelfTest, hx4G18NativeCompare, hx4G18SelfTest, hx4G23Comparisons, hx4G23SelfTest, hx4G26SelfTest, hx4G27Comparisons, hx4G27SelfTest, hx4G30Arith, hx4G30SelfTest, hx4G31Divide, hx4G31Check, hx4G32Comparisons, hx4G32SelfTest } from './go-native-arith.js';
+import { goNativeArithmetic, g10kArithSelfTest, hx4G17SelfTest, hx4G18NativeCompare, hx4G18SelfTest, hx4G23Comparisons, hx4G23SelfTest, hx4G26SelfTest, hx4G27Comparisons, hx4G27SelfTest, hx4G30Arith, hx4G30SelfTest, hx4G31Divide, hx4G31Check, hx4G32Comparisons, hx4G32SelfTest, hx4G35InlineMulSub, hx4G35Check, hx4G36Inline, hx4G36Check, hx4G37InlineComparisons, hx4G37Check } from './go-native-arith.js';
 import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES } from './go-local-types.js';
 
 type dict = { [key: string]: string };
@@ -2069,12 +2069,20 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     } else if (!nilKeyGuard && goMapWriteMapResultCall (lines, valueMasked) && (goMapWriteGroupEnd (valueMasked, valueMasked.indexOf ('(')) === valueMasked.length)) {
         valueOut = value;
     }
+    if ((valueOut === undefined) && !nilKeyGuard && (lastLine === k)) {
+        valueOut = hx4G39PointerValue (lines, value, valueMasked, typeAt (value, k))?.replace (/\n/g, '\n' + head[1]);  // hx4 G39
+    }
     if ((keyOut === undefined) || (valueOut === undefined)) {
         return;
     }
     const suffix = lines[lastLine].substring (lines[lastLine].length - (tail.substring (close).split ('\n')[0].length));
     if (nilKeyGuard) {
         lines[k] = head[1] + 'if ' + key + ' != nil {\n' + head[1] + '\t' + name + '[' + keyOut + '] = ' + valueOut + suffix + '\n' + head[1] + '}';
+        masked[k] = masked[k].replace (/\S[\s\S]*/, (s: string) => ' '.repeat (s.length));
+        return;
+    }
+    if (valueOut.startsWith ('func() any {\n') && (lastLine === k)) {  // hx4 G39: one entry, the line count stays
+        lines[k] = head[1] + name + '[' + keyOut + '] = ' + valueOut + suffix;
         masked[k] = masked[k].replace (/\S[\s\S]*/, (s: string) => ' '.repeat (s.length));
         return;
     }
@@ -2707,12 +2715,14 @@ function formatGoSource (filePath: string, content: string): string {
     content = hx4G27Comparisons (content);  // hx4 G27
     content = hx4G31Divide (content);  // hx4 G31
     content = hx4G32Comparisons (content);  // hx4 G32
+    content = hx4G38Pass (content);  // hx4 G38
     content = goNativeStringAdds (content);
     content = goChanCarrierPass (content);
     content = g10kLenNative (content);
     content = goErrValuePass (goEndpointCheckedReceives (content));  // G10K-err-a
     content = goChan3Pass (content);  // GO-CHAN3: AsyncResult[any] -> AsyncResult[T], after go-err
     content = goTickerCachePass (content);  // typed ws ticker caches, after goChan3's resolved switches
+    content = hx4G39TupleSlotDerefs (content);  // hx4 G39
     return goGofmtSplicedText (content);
 }
 
@@ -4031,13 +4041,17 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = g10kStrNativeStringHelpers (path, content);  // G10K-str
     content = path.endsWith ('.go') ? goNativeStringAdds (content) : content;  // hx4 G24: row reads exist only from here
     content = path.endsWith ('.go') ? hx4G33IsEqual (content) : content;  // hx4 G33
+    content = path.endsWith ('.go') ? hx4G38Pass (content) : content;  // hx4 G38
     // struct returns after every retype pass (base ParseTicker is `any` until formatGoSource)
     if (path.endsWith ('.go')) {
         content = hx4G05DropRedundantTyped (goStructReturnsPass (content));
+        content = hx4G37InlineComparisons (content);  // hx4 G37: last, after every typed comparison pass
     }
+    content = path.endsWith ('.go') ? hx4G35InlineMulSub (content) : content;  // hx4 G35
     // layout last: the passes above splice operands (derefs, natives) after spacing and the
     // comment columns were computed; recompute both from the final text
     if (path.endsWith ('.go')) {
+        content = hx4G36Inline (content, hx4G36Aligner ());  // hx4 G36
         content = alignGoTrailingComments (goGofmtBinarySpacing (content));
     }
     overwriteFile (path, content);
@@ -6280,7 +6294,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx4G16PredictionBaseLen (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file))))))))))));
+            fs.writeFileSync (goPredictionBase, hx4G37InlineComparisons (alignGoTrailingComments (hx4G36Inline (hx4G35InlineMulSub (goGofmtSplicedText (goGofmtNestedParens (hx4G20BaseNativePasses (hx4G07FieldInOp (goChan3Pass (goErrValuePass (goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (retypeGoProvenParseMethods (normalizeGoFileHeader (file)))))))))))), hx4G36Aligner ()))));  // hx4 G35..G37
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -8801,7 +8815,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12406,10 +12420,10 @@ function hx4G14MapWriteSelfTest (): string[] {
         + '\tvar since *int64 = this.SafeInteger(p, "s")\n' + body + '\treturn request\n}');
     ok (run ('\tif since != nil {\n\t\tif this.SafeString(request, "a") != nil {\n\t\t\tAddElementToObject(request, "s", since)\n\t\t} else {\n'
         + '\t\t\tAddElementToObject(request, "t", since)\n\t\t}\n\t}\n').match (/request\["[st]"\] = \*since/g)?.length === 2, 'outer nil guard + nil comparison on the map');
-    ok (run ('\tif since == nil {\n\t\tAddElementToObject(request, "s", since)\n\t}\n').includes ('AddElementToObject(request, "s", since)'), '== nil guard keeps the helper');
-    ok (run ('\tif since != nil {\n\t\tf := func() {\n\t\t\tAddElementToObject(request, "s", since)\n\t\t}\n\t\tf()\n\t}\n').includes ('AddElementToObject(request, "s", since)'), 'a func literal stops the guard walk');
-    ok (run ('\tif since != nil {\n\t}\n\tAddElementToObject(request, "s", since)\n').includes ('AddElementToObject(request, "s", since)'), 'a closed guard block does not dominate');
-    ok (run ('\tif (since != nil) || true {\n\t\tAddElementToObject(request, "s", since)\n\t}\n').includes ('AddElementToObject(request, "s", since)'), 'a || guard keeps the helper');
+    ok (run ('\tif since == nil {\n\t\tAddElementToObject(request, "s", since)\n\t}\n').includes ('request["s"] = *since') === false, '== nil guard prints no bare deref');
+    ok (run ('\tif since != nil {\n\t\tf := func() {\n\t\t\tAddElementToObject(request, "s", since)\n\t\t}\n\t\tf()\n\t}\n').includes ('request["s"] = *since') === false, 'a func literal stops the guard walk');
+    ok (run ('\tif since != nil {\n\t}\n\tAddElementToObject(request, "s", since)\n').includes ('request["s"] = *since') === false, 'a closed guard block does not dominate');
+    ok (run ('\tif (since != nil) || true {\n\t\tAddElementToObject(request, "s", since)\n\t}\n').includes ('request["s"] = *since') === false, 'a || guard prints no bare deref');
     const src = 'type List = any[];\nclass Test {\n'
         + '    safeList (d: any, k: any, v: any = undefined): any { return v; }\n'
         + '    f (r: any) { const data = this.safeList (r, \'data\', []); const n = (data as List).length; for (let i = 0; i < n; i++) { const e = data[i]; } return n; }\n'
@@ -13028,7 +13042,7 @@ function hx4G20BaseNativePasses (content: string): string {
     content = hx4G29Pass (content);  // hx4 G29
     hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
     content = h2kG13NativeKeysAndRemove (hx4G07FieldInOp (g10kInopClientMaps (content)));
-    content = hx4G33IsEqual (hx4G28IsEqualSafe (content));  // hx4 G28, G33
+    content = hx4G38Pass (hx4G33IsEqual (hx4G28IsEqualSafe (content)));  // hx4 G28, G33, G38
     return g10kLenNative (goNativeStringAdds (hx4G32Comparisons (hx4G31Divide (hx4G27Comparisons (hx4G23Comparisons (hx4G18NativeCompare (hx4G30Arith (content))))))));  // hx4 G27..G32
     return g10kLenNative (goNativeStringAdds (goNativeArithmetic (content)));
 }
@@ -13840,4 +13854,208 @@ function hx4G33Check (): string[] {
         problems.push ('hx4 G33 threw: ' + e.message);
     }
     return problems;
+}
+
+// hx4 G36
+function hx4G36Aligner (): any {
+    const self = hx4G36Aligner as any;
+    self.cache = self.cache ?? new Transpiler ({ 'verbose': false, 'go': {} }).goTranspiler;
+    return self.cache;
+}
+
+function hx4G36Wired (): string[] {
+    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'hx4-G36-'));
+    const file = path.join (dir, 'x.go');
+    try {
+        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any) any {\n\treturn Divide(a, 3)\n}\n');
+        const out = fs.readFileSync (file, 'utf8');
+        return (out.includes ('Divide(') || !out.includes ('import "reflect"')) ? [ 'hx4 G36: not wired into overwriteFileAndFolder: ' + out ] : [];
+    } finally {
+        fs.rmSync (dir, { 'recursive': true, 'force': true });
+    }
+}
+
+// hx4 G38
+// IsEqual -> native ==/!= where the operand box is provably plain (no scalar pointer, no nil *sync.Map):
+// credential fields (hand-written `interface{}`, written only by Set*/initializeProperties as string or nil),
+// `this.Has["k"]` (literal bool/'emulated'/dict rows), and single-binding `x := GetValue(..)` locals (GetValue derefs).
+function hx4G38Pass (content: string): string {
+    if (!/IsEqual\(/.test (content)) { return content; }
+    const fileMasked = goTextMaskLiteralsAndComments (content);
+    const creds = [ 'ApiKey', 'Secret', 'Uid', 'Password', 'Login', 'Twofa', 'PrivateKey', 'WalletAddress', 'AccountId' ]
+        .filter ((f) => !new RegExp ('\\bthis\\.' + f + '\\s*=(?!=)').test (fileMasked));
+    const lit = '(nil|true|false|\"(?:[^\"\\\\\\n]|\\\\.)*\")';
+    const ranges = goFuncBlockRanges (content);
+    for (let r = ranges.length - 1; r >= 0; r--) {
+        const fn = content.slice (ranges[r].start, ranges[r].end);
+        const masked = fileMasked.slice (ranges[r].start, ranges[r].end);
+        const header = masked.replace (/^\n/, '').split ('\n')[0];
+        const plainLocal = new Map<string, boolean> ();
+        const isPlainLocal = (x: string): boolean => {
+            if (plainLocal.has (x)) { return plainLocal.get (x); }
+            const n = '(?<![\\w.])' + x;
+            const binds = masked.match (new RegExp (n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + x + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bvar ' + x + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + x + ' |\\brange\\b[^\\n]*\\b' + x + '\\b', 'g')) || [];
+            const decl = new RegExp ('^\\t+(?:' + x + ' :=|var ' + x + ' any =) (?:ccxt\\.)?GetValue\\((?!this,)[^\\n]*\\)$', 'm').test (fn);
+            const ok = decl && (binds.length === 1) && !new RegExp ('[(,]\\s*' + x + ' ').test (header) && !new RegExp ('&' + x + '\\b|' + n + '\\s*(?:=(?!=)|[-+*/%|&^]=|\\+\\+|--)').test (masked);
+            plainLocal.set (x, ok);
+            return ok;
+        };
+        const re = new RegExp ('(!?)(?<![\\w.])(?:ccxt\\.)?IsEqual\\((this\\.\\w+|this\\.Has\\[\"\\w+\"\\]|\\w+), ' + lit + '\\)', 'g');
+        const rewritten = fn.replace (re, ((m: string, not: string, x: string, y: string, off: number) => {
+            if (masked.slice (off, off + m.length).indexOf ('IsEqual(') < 0) { return m; }
+            let ok = false;
+            if (x.startsWith ('this.Has[')) {
+                ok = (y === 'nil') || (y === 'true') || (y === 'false');
+            } else if (x.startsWith ('this.')) {
+                ok = (y === 'nil') && (creds.indexOf (x.slice (5)) >= 0);
+            } else {
+                ok = isPlainLocal (x);
+            }
+            if (!ok) { return m; }
+            const form = x + (not ? ' != ' : ' == ') + y;
+            const before = fn.slice (0, off);
+            const after = fn.slice (off + m.length);
+            const bare = (/\n\t*(?:\} else )?if $/.test (before) && /^ \{\n/.test (after)) || (before.endsWith ('(') && after.startsWith (')'));
+            return bare ? form : ('(' + form + ')');
+        }) as any);
+        if (rewritten !== fn) {
+            content = content.slice (0, ranges[r].start) + rewritten + content.slice (ranges[r].end);
+        }
+    }
+    return content;
+}
+
+function hx4G38Check (): string[] {
+    const problems: string[] = [];
+    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('hx4 G38: ' + msg); } };
+    try {
+        const f = (body: string, extra = '') => hx4G38Pass ('package ccxt\n' + extra + '\nfunc (this *X) f(p any, q any) any {\n' + body + '\treturn nil\n}\n');
+        let r = f ('\tif IsEqual(this.ApiKey, nil) || !ccxt.IsEqual(this.PrivateKey, nil) {\n\t}\n');
+        ok (r.includes ('if (this.ApiKey == nil) || (this.PrivateKey != nil) {'), 'credential fields: ' + r);
+        r = f ('\tif !IsEqual(this.Has["fetchTrades"], false) && IsEqual(this.Has["x"], nil) {\n\t}\n');
+        ok (r.includes ('if (this.Has["fetchTrades"] != false) && (this.Has["x"] == nil) {'), 'has rows: ' + r);
+        r = f ('\tv := GetValue(p, 0)\n\tif IsEqual(v, nil) {\n\t}\n\tvar a bool = !IsEqual(v, \"x\") || IsEqual(v, true)\n');
+        ok (r.includes ('if v == nil {') && r.includes ('var a bool = (v != \"x\") || (v == true)'), 'GetValue local: ' + r);
+        ok (formatGoSource ('selftest.go', 'package ccxt\n\nfunc (this *X) f() any {\n\tif IsEqual(this.Secret, nil) {\n\t}\n\treturn nil\n}\n').includes ('if this.Secret == nil {'), 'wired into formatGoSource');
+        for (const keep of [
+            f ('\tif IsEqual(this.Token, nil) {\n\t}\n'),
+            f ('\tif IsEqual(this.ApiKey, \"\") {\n\t}\n'),
+            f ('\tif IsEqual(this.ApiKey, nil) {\n\t}\n\tthis.ApiKey = this.SafeString(p, \"k\")\n'),
+            f ('\tif IsEqual(this.Has[\"x\"], \"emulated\") {\n\t}\n'),
+            f ('\tv := GetValue(p, 0)\n\tif IsEqual(v, 1) {\n\t}\n'),
+            f ('\tv := GetValue(p, 0)\n\tv = this.SafeString(q, \"k\")\n\tif IsEqual(v, nil) {\n\t}\n'),
+            f ('\tv := GetValue(p, 0)\n\tif true {\n\t\tv := q\n\t\t_ = v\n\t}\n\tif IsEqual(v, nil) {\n\t}\n'),
+            f ('\tv := GetValue(this, \"options\")\n\tif IsEqual(v, nil) {\n\t}\n'),
+            f ('\tvar v any = this.SafeValue(p, \"k\")\n\tif IsEqual(v, nil) {\n\t}\n'),
+            f ('\tif IsEqual(q, nil) {\n\t}\n'),
+        ]) {
+            ok (keep.includes ('IsEqual('), 'keeps IsEqual: ' + keep);
+        }
+    } catch (e) {
+        problems.push ('hx4 G38 threw: ' + e.message);
+    }
+    return problems;
+}
+
+// hx4 G39
+// `x := GetValue(h, 0)` / `x = GetValue(h, 0)` (x an `any` local) where `var h []any = this.P(..)` is unwritten and P is a
+// base tuple producer whose slot 0 is always a typed pointer: GetValue(h, 0) is derefScalar(h[0]), printed inline.
+
+function hx4G39TupleSlotDerefs (content: string): string {
+    const slot0: { [producer: string]: string } = {
+        'HandleParamString': '*string', 'HandleParamString2': '*string', 'HandleNetworkCodeAndParams': '*string',
+        'HandleParamInteger': '*int64', 'HandleParamInteger2': '*int64',
+        'HandleOptionIntegerAndParamsNullable': '*int64', 'HandleOptionIntegerAndParams2Nullable': '*int64',
+        'HandleParamBool': '*bool', 'HandleParamBool2': '*bool',
+        'HandleOptionBoolAndParamsNullable': '*bool', 'HandleOptionBoolAndParams2Nullable': '*bool',
+    };
+    if (!/GetValue\(\w+, 0\)/.test (content)) { return content; }
+    const lines = content.split ('\n');
+    const maskedLines = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== maskedLines.length) { return content; }
+    const masked = maskedLines.join ('\n');
+    const producers = Object.keys (slot0).filter ((p) => !new RegExp ('(?:^|\\n)func \\(this \\*\\w+\\) ' + p + '\\(').test (masked));
+    const { 'blocks': blocks } = goTextBlocks (maskedLines);
+    const rx = /^(\s*)([A-Za-z_]\w*) (:?=) ((?:ccxt\.)?)GetValue\(([A-Za-z_]\w*), 0\)\s*$/;
+    const out: string[] = [];
+    for (let i = 0; i < lines.length; i++) {
+        const m = rx.exec (maskedLines[i]);
+        const fn = (m === null) ? undefined : blocks.find ((b: any) => (b.depth === 1) && (b.open < i) && (i <= b.close));
+        let ptr: string | undefined = undefined;
+        if ((m !== null) && (lines[i] === maskedLines[i]) && (fn !== undefined) && maskedLines[fn.open].startsWith ('func ')) {
+            const [ , , target, op, , holder ] = m;
+            const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
+            const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], holder);
+            const init = (decl?.line === undefined) ? null : new RegExp ('^\\s*var ' + holder + ' \\[\\]any = this\\.(\\w+)\\(').exec (decl.line);
+            let declLine = -1;
+            let written = false;
+            for (let k = fn.open + 1; k < fn.close; k++) {
+                if (new RegExp ('^\\s*var ' + holder + ' \\[\\]any = ').test (maskedLines[k])) { declLine = k; continue; }
+                written = written || goTextWritesName (maskedLines[k], holder);
+            }
+            const declBlock = (declLine < 0) ? undefined : goTextEnclosingBlock (blocks, declLine);
+            const targetDecl = (op === '=') ? goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], target) : undefined;
+            if ((init !== null) && producers.includes (init[1]) && !written && (declLine >= 0) && (declLine < i)
+                && (declBlock !== undefined) && (declBlock.open < i) && (i <= declBlock.close)
+                && ((op === ':=') || (targetDecl?.type === 'any'))) {
+                ptr = slot0[init[1]];
+            }
+        }
+        if (ptr === undefined) { out.push (lines[i]); continue; }
+        const [ , ind, target, op, , holder ] = m;
+        out.push (ind + target + ' ' + op + ' func() any {', ind + '\tif p, _ := ' + holder + '[0].(' + ptr + '); p != nil {',
+            ind + '\t\treturn *p', ind + '\t}', ind + '\treturn nil', ind + '}()');
+    }
+    return out.join ('\n');
+}
+
+function hx4G39Check (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, label: string) => { if (!c) { problems.push ('hx4 G39: ' + label); } };
+    const f = (body: string, pre: string = '') => formatGoSource ('selftest.go', pre + 'func (this *X) f(p any) any {\n\tvar t any = nil\n' + body + '\treturn t\n}\n');
+    const d = '\tvar h []any = this.HandleParamString(p, "tag")\n';
+    try {
+        const pos = f (d + '\ttag := GetValue(h, 0)\n\tt = tag\n');
+        ok (pos.includes ('tag := func() any {\n\t\tif p, _ := h[0].(*string); p != nil {\n\t\t\treturn *p\n\t\t}\n\t\treturn nil\n\t}()'), 'HandleParamString slot 0 inline deref: ' + pos);
+        ok (f ('\tvar h []any = this.HandleOptionBoolAndParamsNullable(p, "m", "k")\n\tt = ccxt.GetValue(h, 0)\n').includes ('t = func() any {\n\t\tif p, _ := h[0].(*bool); p != nil {'), 'assignment to an any local, ccxt-qualified');
+        for (const keep of [
+            '\tvar h []any = this.HandleOptionAndParams(p, "m", "k")\n\tx := GetValue(h, 0)\n\tt = x\n',  // slot 0 is any
+            d + '\th = this.HandleParamString(p, "x")\n\tx := GetValue(h, 0)\n\tt = x\n',                // rebound holder
+            d + '\tvar s string = ""\n\ts = GetValue(h, 0)\n',                                          // typed target
+            '\tif p != nil {\n' + d + '\t}\n\tx := GetValue(h, 0)\n\tt = x\n',                          // declaration block closed
+        ]) {
+            ok (f (keep).includes ('GetValue(h,'), 'keeps helper: ' + JSON.stringify (keep) + ' -> ' + f (keep));
+        }
+        ok (!f (d + '\ttag := GetValue(h, 1)\n').includes ('func() any'), 'slot 1 is not a pointer slot');
+        const w = (body: string) => formatGoSource ('selftest.go', 'func (this *X) f(p any, price any) any {\n\tvar request map[string]any = map[string]any{}\n' + body + '\treturn request\n}\n');
+        ok (w ('\tif price != nil {\n\t\tAddElementToObject(request, "p", this.PriceToPrecision("s", price))\n\t}\n').includes ('\t\trequest["p"] = func() any {\n\t\t\tif v := this.PriceToPrecision("s", price); v != nil {\n\t\t\t\treturn *v\n\t\t\t}\n\t\t\treturn nil\n\t\t}()'), 'base *string call value: ' + w ('\tAddElementToObject(request, "p", this.PriceToPrecision("s", price))\n'));
+        ok (w ('\tvar c *string = this.SafeString(p, "c")\n\tAddElementToObject(request, "c", c)\n').includes ('if v := c; v != nil {'), 'pointer local value');
+        ok (w ('\tAddElementToObject(request, "c", this.CostToPrecision("s", p))\n').includes ('AddElementToObject('), 'any-returning call keeps helper');
+        ok (formatGoSource ('selftest.go', 'func (this *X) PriceToPrecision(a any, b any) any {\n\treturn nil\n}\n' + 'func (this *X) f(p any) any {\n\tvar request map[string]any = map[string]any{}\n\tAddElementToObject(request, "p", this.PriceToPrecision("s", p))\n\treturn request\n}\n').includes ('AddElementToObject('), 'same-file any override keeps helper');
+        ok (f (d + '\tx := GetValue(h, 0)\n\tt = x\n', 'func (this *X) HandleParamString(a any, b any) []any {\n\treturn nil\n}\n').includes ('GetValue(h, 0)'), 'producer overridden in the file keeps helper');
+    } catch (e) {
+        problems.push ('hx4 G39 threw: ' + e.message);
+    }
+    return problems;
+}
+
+// hx4 G39: the helper stores derefScalar(v); for a typed pointer v (a pointer local, or one call of a method whose
+// Go signature in this file or the base returns *T) that is `*v` or nil, printed as an inline closure.
+function hx4G39PointerValue (lines: string[], value: string, valueMasked: string, valueType: string | undefined): string | undefined {
+    const basePtrCalls = [ 'NumberToString', 'PriceToPrecision', 'AmountToPrecision', 'SafeString', 'SafeString2', 'SafeStringN',
+        'SafeStringLower', 'SafeStringUpper', 'SafeCurrencyCode', 'SafeSymbol', 'SafeInteger', 'SafeInteger2', 'SafeNumber', 'SafeBool' ];
+    const wrap = (x: string) => 'func() any {\n\tif v := ' + x + '; v != nil {\n\t\treturn *v\n\t}\n\treturn nil\n}()';
+    if (/^\w+$/.test (value)) {
+        return (GO_ACCESS_DEREF_POINTER_TYPES.indexOf (valueType ?? '') >= 0) ? wrap (value) : undefined;
+    }
+    const call = /^this\.(\w+)\(/.exec (valueMasked);
+    if ((call === null) || (value.indexOf ('\n') >= 0) || (goMapWriteGroupEnd (valueMasked, call[0].length - 1) !== valueMasked.length)) {
+        return undefined;
+    }
+    const sigs = lines.filter ((l) => l.startsWith ('func (this *') && l.includes (') ' + call[1] + '('));
+    const declared = sigs.map ((l) => / (\*(?:string|int64|float64|bool)) \{$/.exec (l)?.[1] ?? '');
+    if (declared.some ((t) => t === '') || ((sigs.length === 0) && (basePtrCalls.indexOf (call[1]) < 0))) {
+        return undefined;
+    }
+    return wrap (value);
 }

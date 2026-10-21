@@ -1212,16 +1212,16 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let limitResolved: int = 100;
-        if (limit !== undefined) {
-            limitResolved = Math.min (limit, 2000);
-        }
+        const limitResolved = this.parseToInt ((limit === undefined) ? 100 : Math.min (limit, 2000));
         const duration = this.parseTimeframe (timeframe);
-        let sinceResolved: int = this.milliseconds () - (duration * 1000 * limitResolved);
+        const now = this.milliseconds ();
+        const defaultSince = now - (duration * 1000 * limitResolved);
+        let sinceResolved: Int = defaultSince;
+        let parsedSince = this.parseToInt (defaultSince / 1000);
         if (since !== undefined) {
             sinceResolved = since;
+            parsedSince = this.parseToInt (since / 1000);
         }
-        const parsedSince = this.parseToInt (sinceResolved / 1000);
         const parsedLimit: int = Math.min (limitResolved + 1, 2000); // max 2000;
         const request: Dict = {
             'symbol': market['id'],
@@ -3159,13 +3159,12 @@ export default class lbank extends Exchange {
     }
 
     convertSecretToPem (secret: any): string {
-        const lineLength = 64;
         const secretLength = secret.length - 0;
         const fullLines = this.parseToInt (secretLength / 64);
         let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (let i = 0; i <= fullLines; i++) {
-            const start = i * lineLength;
-            const end = this.sum (start, lineLength);
+            const start = i * 64;
+            const end = this.sum (start, 64);
             pem += this.secret.slice (start, end) + "\n"; // eslint-disable-line
         }
         return pem + '-----END PRIVATE KEY-----';

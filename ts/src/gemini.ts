@@ -606,7 +606,7 @@ export default class gemini extends Exchange {
             const minAmount = this.safeNumber (minAmountParts, 0);
             const amountPrecisionString = cells[2].replace ('<td>', '');
             const amountPrecisionParts = amountPrecisionString.split (' ');
-            const idLength = marketId.length - 0;
+            const idLength = marketId.length;
             const startingIndex = idLength - 3;
             const pricePrecisionString = cells[3].replace ('<td>', '');
             const pricePrecisionParts = pricePrecisionString.split (' ');

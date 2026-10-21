@@ -1139,8 +1139,9 @@ export default class cryptocom extends Exchange {
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         if (since !== undefined) {
             request['start_ts'] = since - duration * 1000;
-            if (limitResolved !== undefined) {
-                request['end_ts'] = this.sum (since, duration * limitResolved * 1000);
+            if (limit !== undefined) {
+                const countLimit: int = this.parseToInt (Math.min (limit, 300));
+                request['end_ts'] = this.sum (since, duration * countLimit * 1000);
             } else {
                 request['end_ts'] = until;
             }
@@ -3418,7 +3419,8 @@ export default class cryptocom extends Exchange {
 
     paramsToString (object: any, level: number): string {
         const maxLevel = 3;
-        if (level >= maxLevel) {
+        const depth: int = this.parseToInt (level);
+        if (depth >= maxLevel) {
             return object.toString ();
         }
         if (typeof object === 'string') {

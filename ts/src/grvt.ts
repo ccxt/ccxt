@@ -2215,22 +2215,21 @@ export default class grvt extends Exchange {
     }
 
     eipMessageForOrder (order: Dict, structureType: Str): Dict {
-        const priceMultiplier = '1000000000';
+        const priceMultiplier: int = 1000000000;
         const orderLegs: Dict[] = this.safeList (order, 'legs', []);
         const legs: List = [];
         for (let i = 0; i < orderLegs.length; i++) {
             const leg = orderLegs[i];
             const market = this.market (leg['instrument']);
-            const bigInt10 = this.convertToBigIntCustom ('10');
             const precisionValue = this.precisionFromString (this.safeString (market['precision'], 'base'));
-            const precisionValueStr = precisionValue.toString ();
-            const sizeMultiplier = Math.pow (bigInt10, this.convertToBigIntCustom (precisionValueStr));
+            const sizeMultiplier = Math.pow (10, precisionValue);
             const size = leg['size'];
             const sizeParts = size.split ('.');
             const sizeDec = this.safeString (sizeParts, 1, '');
             const sizeDecLength = sizeDec.length + 0; // php tr
-            const sizeDecLengthStr = sizeDecLength.toString ();
-            const sizeInteger = this.convertToBigIntCustom (size.replace ('.', '')) * sizeMultiplier / (Math.pow (bigInt10, this.convertToBigIntCustom (sizeDecLengthStr)));
+            const sizeDigits = parseInt (size.replace ('.', ''));
+            let denominator = Math.pow (10, sizeDecLength);
+            const sizeInteger = sizeDigits * sizeMultiplier / denominator;
             const legOrder: Dict = {
                 'assetID': market['info']['instrument_hash'],
                 'contractSize': this.parseToInt (sizeInteger),
@@ -2242,9 +2241,9 @@ export default class grvt extends Exchange {
                 const limitParts = price.split ('.');
                 const limitDec = this.safeString (limitParts, 1, '');
                 const limitDecLength = limitDec.length + 0; // php tr
-                const limitDecLengthStr = limitDecLength.toString ();
-                const powerNum = (limitDecLengthStr === '0') ? 0 : this.convertToBigIntCustom (limitDecLengthStr);
-                const priceInteger = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (priceMultiplier) / (Math.pow (bigInt10, powerNum)));
+                const priceDigits = parseInt (price.replace ('.', ''));
+                denominator = Math.pow (10, limitDecLength);
+                const priceInteger = priceDigits * priceMultiplier / denominator;
                 legOrder['limitPrice'] = this.parseToInt (priceInteger);
             } else {
                 legOrder['limitPrice'] = 0; // should be zero to validate type-check

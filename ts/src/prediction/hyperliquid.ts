@@ -631,10 +631,13 @@ export default class hyperliquid extends Exchange {
         const parts = midStr.split ('.');
         const intPart = parts[0];
         const intPartLength = intPart.length;
-        const significantDigits = (intPartLength > 5) ? intPartLength : 5;
         const szDecimalsInt = this.parseToInt (szDecimals);
         const maxDecimals = 8 - szDecimalsInt;
-        const digitsLeft = significantDigits - intPartLength;
+        // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
+        let digitsLeft: int = 0;
+        if (intPartLength <= 5) {
+            digitsLeft = 5 - intPartLength;
+        }
         const cappedDecimals = (maxDecimals < digitsLeft) ? maxDecimals : digitsLeft;
         // appends max (1, cappedDecimals) - 1 zeros
         let zeros = '';

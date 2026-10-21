@@ -1616,24 +1616,18 @@ export default class digifinex extends Exchange {
             const until = this.safeInteger (params, 'until');
             request['symbol'] = market['id'];
             request['period'] = this.safeString (this.timeframes, timeframe, timeframe);
-            let startTimeMs: Int = since;
             const duration = this.parseTimeframe (timeframe);
-            if (startTimeMs === undefined) {
-                if ((limit !== undefined) || (until !== undefined)) {
-                    const endTime: int = (until !== undefined) ? until : this.milliseconds ();
-                    const startLimit: int = (limit !== undefined) ? limit : 200;
-                    startTimeMs = endTime - (startLimit * duration * 1000);
-                }
-            }
-            if (startTimeMs !== undefined) {
-                const startTime = this.parseToInt (startTimeMs / 1000);
+            if ((since !== undefined) || (limit !== undefined) || (until !== undefined)) {
+                const endTime: int = (until !== undefined) ? until : this.milliseconds ();
+                const startLimit: int = (limit !== undefined) ? limit : 200;
+                const startTime = (since !== undefined) ? this.parseToInt (since / 1000) : this.parseToInt ((endTime - (startLimit * duration * 1000)) / 1000);
                 request['start_time'] = startTime;
                 if ((limit !== undefined) || (until !== undefined)) {
                     if (until !== undefined) {
                         const endByUntil = this.parseToInt (until / 1000);
                         if (limit !== undefined) {
-                            const endByLimit = this.sum (startTime, limit * duration);
-                            request['end_time'] = Math.min (endByLimit, endByUntil);
+                            const endByLimit = this.parseToInt (this.sum (startTime, limit * duration));
+                            request['end_time'] = (endByLimit < endByUntil) ? endByLimit : endByUntil;
                         } else {
                             request['end_time'] = endByUntil;
                         }

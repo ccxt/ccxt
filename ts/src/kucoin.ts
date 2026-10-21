@@ -3407,8 +3407,7 @@ export default class kucoin extends Exchange {
         if (since !== undefined) {
             request['startAt'] = this.parseToInt (Math.floor (since / denominator));
         } else if (limit !== undefined) {
-            const startAt = now - limit * duration;
-            request['startAt'] = this.parseToInt (Math.floor (startAt / denominator));
+            request['startAt'] = this.parseToInt (Math.floor ((now - limit * duration) / denominator));
         }
         request['endAt'] = this.parseToInt (Math.floor (endAt / denominator));
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, paramsPaginate);
@@ -3493,8 +3492,7 @@ export default class kucoin extends Exchange {
         if (since !== undefined) {
             request['startAt'] = this.parseToInt (Math.floor (since / denominator));
         } else if (limit !== undefined) {
-            const startAt = now - limit * duration;
-            request['startAt'] = this.parseToInt (Math.floor (startAt / denominator));
+            request['startAt'] = this.parseToInt (Math.floor ((now - limit * duration) / denominator));
         }
         request['endAt'] = this.parseToInt (Math.floor (endAt / denominator));
         const response = await this.publicGetMarketCandles (this.extend (request, paramsPaginate));

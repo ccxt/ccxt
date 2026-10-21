@@ -2186,3 +2186,479 @@ export function hx4G32SelfTest (): string[] {
     }
     return problems;
 }
+
+// hx4 G35
+// Every Multiply/Subtract left after the typed passes becomes an inline func literal that
+// replays the helper's dispatch (derefScalar boxes, int/int64/float64, Subtract's ToFloat64).
+const HX4G35_TPL: { [k: string]: string[] } = {
+    'Multiply': [ 'func(a, b any) any {', '\tk := func(v any) (int64, float64, int) {', '\t\tfor {', '\t\t\tswitch p := v.(type) {', '\t\t\tcase int:', '\t\t\t\treturn int64(p), 0, 1', '\t\t\tcase int64:', '\t\t\t\treturn p, 0, 1', '\t\t\tcase float64:', '\t\t\t\treturn 0, p, 2', '\t\t\tcase *int:', '\t\t\t\tif p == nil {', '\t\t\t\t\treturn 0, 0, 0', '\t\t\t\t}', '\t\t\t\tv = *p', '\t\t\tcase *int64:', '\t\t\t\tif p == nil {', '\t\t\t\t\treturn 0, 0, 0', '\t\t\t\t}', '\t\t\t\tv = *p', '\t\t\tcase *float64:', '\t\t\t\tif p == nil {', '\t\t\t\t\treturn 0, 0, 0', '\t\t\t\t}', '\t\t\t\tv = *p', '\t\t\tcase *any:', '\t\t\t\tif p == nil {', '\t\t\t\t\treturn 0, 0, 0', '\t\t\t\t}', '\t\t\t\tv = *p', '\t\t\tdefault:', '\t\t\t\treturn 0, 0, 0', '\t\t\t}', '\t\t}', '\t}', '\tx, xf, xk := k(a)', '\ty, yf, yk := k(b)', '\tif (xk == 0) || (yk == 0) {', '\t\treturn nil', '\t}', '\tif yk == 1 {', '\t\tif xk == 2 {', '\t\t\tx = int64(xf)', '\t\t}', '\t\treturn x * y', '\t}', '\tif xk == 1 {', '\t\txf = float64(x)', '\t}', '\tif r := xf * yf; r != math.Trunc(r) {', '\t\treturn r', '\t}', '\treturn int64(xf * yf)', '}' ],
+    'Subtract': [ 'func(a, b any) any {', '\tk := func(v any) (float64, bool) {', '\t\tfor {', '\t\t\tswitch p := v.(type) {', '\t\t\tcase nil:', '\t\t\t\treturn 0, false', '\t\t\tcase int:', '\t\t\t\treturn float64(p), true', '\t\t\tcase int64:', '\t\t\t\treturn float64(p), true', '\t\t\tcase float64:', '\t\t\t\treturn p, true', '\t\t\tcase string:', '\t\t\t\tif f, e := strconv.ParseFloat(p, 64); e == nil {', '\t\t\t\t\treturn f, true', '\t\t\t\t}', '\t\t\t\treturn math.NaN(), true', '\t\t\tcase *int:', '\t\t\t\tif p == nil {', '\t\t\t\t\treturn 0, false', '\t\t\t\t}', '\t\t\t\tv = *p', '\t\t\tcase *int64:', '\t\t\t\tif p == nil {', '\t\t\t\t\treturn 0, false', '\t\t\t\t}', '\t\t\t\tv = *p', '\t\t\tcase *float64:', '\t\t\t\tif p == nil {', '\t\t\t\t\treturn 0, false', '\t\t\t\t}', '\t\t\t\tv = *p', '\t\t\tcase *string:', '\t\t\t\tif p == nil {', '\t\t\t\t\treturn 0, false', '\t\t\t\t}', '\t\t\t\tv = *p', '\t\t\tcase *any:', '\t\t\t\tif p == nil {', '\t\t\t\t\treturn 0, false', '\t\t\t\t}', '\t\t\t\tv = *p', '\t\t\tcase *bool:', '\t\t\t\treturn math.NaN(), p != nil', '\t\t\tcase *[]string:', '\t\t\t\treturn math.NaN(), p != nil', '\t\t\tcase *[]any:', '\t\t\t\treturn math.NaN(), p != nil', '\t\t\tcase *map[string]any:', '\t\t\t\treturn math.NaN(), p != nil', '\t\t\tcase []string:', '\t\t\t\treturn math.NaN(), p != nil', '\t\t\tcase []any:', '\t\t\t\treturn math.NaN(), p != nil', '\t\t\tcase map[string]any:', '\t\t\t\treturn math.NaN(), p != nil', '\t\t\tdefault:', '\t\t\t\treturn math.NaN(), true', '\t\t\t}', '\t\t}', '\t}', '\tx, xo := k(a)', '\ty, yo := k(b)', '\tif !xo || !yo {', '\t\treturn nil', '\t}', '\tif r := x - y; r != math.Trunc(r) {', '\t\treturn r', '\t}', '\treturn int64(x - y)', '}' ],
+};
+const HX4G35_RX = /(?<![\w.])(?:ccxt\.)?(Multiply|Subtract)\(/;
+
+function hx4G35AddImport (content: string, pkg: string): string {
+    if (new RegExp ('^import "' + pkg + '"$', 'm').test (content) || new RegExp ('^\\s*"' + pkg + '"$', 'm').test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const at = lines.findIndex ((l) => l.startsWith ('// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md'));
+    if (at < 0) {
+        throw new Error ('hx4 G35: no generated header to import ' + pkg + ' under');
+    }
+    lines.splice (at + 2, 0, 'import "' + pkg + '"', '');
+    return lines.join ('\n');
+}
+
+// rewrites the leftmost (outermost) remaining call; a nested call is rewritten on a later round,
+// so its literal is indented from the line it lands on
+function hx4G35RewriteOnce (text: string): string | null {
+    const masked = goArithMask (text);
+    const m = HX4G35_RX.exec (masked);
+    if (m === null) {
+        return null;
+    }
+    const open = m.index + m[0].length - 1;
+    const close = goArithClose (masked, open);
+    if (close < 0) {
+        throw new Error ('hx4 G35: unbalanced ' + m[1] + ' call');
+    }
+    const args = text.slice (open + 1, close);
+    const lineStart = text.lastIndexOf ('\n', m.index) + 1;
+    const indent = /^\t*/.exec (text.slice (lineStart))[0];
+    const lit = HX4G35_TPL[m[1]].map ((l, i) => (i === 0) ? l : indent + l).join ('\n');
+    return text.slice (0, m.index) + lit + '(' + args + ')' + text.slice (close + 1);
+}
+
+// gofmt aligns composite-literal keys per section: an entry whose value now spans lines takes a
+// single blank after its colon and splits the alignment of the single-line entries around it
+const HX4G35_KEY_RX = /^(\t+)("(?:[^"\\]|\\.)*"|\w+):( +)(.*)$/;
+
+function hx4G35SingleLine (value: string): boolean {
+    const m = goArithMask (value);
+    let depth = 0;
+    for (const c of m) {
+        if ((c === '(') || (c === '[') || (c === '{')) { depth++; } else if ((c === ')') || (c === ']') || (c === '}')) { depth--; }
+    }
+    return depth === 0;
+}
+
+function hx4G35AlignSection (lines: string[], from: number, to: number) {
+    let width = 0;
+    for (let i = from; i < to; i++) {
+        width = Math.max (width, HX4G35_KEY_RX.exec (lines[i])[2].length);
+    }
+    for (let i = from; i < to; i++) {
+        const m = HX4G35_KEY_RX.exec (lines[i]);
+        lines[i] = m[1] + m[2] + ':' + ' '.repeat (width - m[2].length + 1) + m[4];
+    }
+}
+
+function hx4G35AlignKeys (content: string): string {
+    const lines = content.split ('\n');
+    for (let k = 0; k < lines.length; k++) {
+        const m = HX4G35_KEY_RX.exec (lines[k]);
+        if ((m === null) || !m[4].endsWith ('func(a, b any) any {') || (m[3] === ' ')) {
+            continue;
+        }
+        lines[k] = m[1] + m[2] + ': ' + m[4];
+        const single = (i: number) => { const e = HX4G35_KEY_RX.exec (lines[i]); return (e !== null) && (e[1] === m[1]) && hx4G35SingleLine (e[4]); };
+        let up = k;
+        while ((up > 0) && single (up - 1)) { up--; }
+        hx4G35AlignSection (lines, up, k);
+        let end = k + 1;
+        while ((end < lines.length) && !lines[end].startsWith (m[1] + '}')) { end++; }
+        let down = end + 1;
+        while ((down < lines.length) && single (down)) { down++; }
+        hx4G35AlignSection (lines, end + 1, down);
+    }
+    return lines.join ('\n');
+}
+
+export function hx4G35InlineMulSub (content: string): string {
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !HX4G35_RX.test (goArithMask (content))) {
+        return content;
+    }
+    let usesSub = false;
+    for (let next = hx4G35RewriteOnce (content); next !== null; next = hx4G35RewriteOnce (content)) {
+        usesSub = usesSub || (next.indexOf ('strconv.ParseFloat(p, 64)') >= 0);
+        content = next;
+    }
+    content = hx4G35AlignKeys (content);
+    content = hx4G35AddImport (content, 'math');
+    return usesSub ? hx4G35AddImport (content, 'strconv') : content;
+}
+
+export function hx4G35Check (): string[] {
+    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
+    const problems: string[] = [];
+    const ok = (c: boolean, what: string) => { if (!c) { problems.push ('hx4 G35: ' + what); } };
+    const out = hx4G35InlineMulSub (head + 'func (this *K) F(a any, d any) any {\n\tif true {\n\t\treturn this.Sum(a, Subtract(Multiply(a, d), 1)) // c\n\t}\n\treturn ccxt.Multiply(a, \"Multiply(x)\")\n}\n');
+    ok (!/(?<![\w.])(?:ccxt\.)?(Multiply|Subtract)\(/.test (goArithMask (out)), 'calls left: ' + out);
+    ok (out.includes ('\t\treturn this.Sum(a, func(a, b any) any {\n\t\t\tk := func(v any) (float64, bool) {'), 'statement indent: ' + out);
+    ok (out.includes ('\t\t}(func(a, b any) any {\n\t\t\tk := func(v any) (int64, float64, int) {'), 'nested literal indent: ' + out);
+    ok (out.includes ('\t\t}(a, d), 1)) // c\n'), 'args and trailing comment kept: ' + out);
+    ok (out.includes ('}(a, \"Multiply(x)\")'), 'string literal untouched: ' + out);
+    ok (out.includes ('\nimport \"strconv\"\n') && out.includes ('\nimport \"math\"\n'), 'imports: ' + out);
+    const mulOnly = hx4G35InlineMulSub (head + 'import \"math\"\n\nfunc F(a any) any {\n\treturn Multiply(a, 2)\n}\n');
+    ok (!mulOnly.includes ('strconv') && (mulOnly.split ('import \"math\"').length === 2), 'Multiply needs only math: ' + mulOnly);
+    ok (hx4G35InlineMulSub ('package ccxt\nfunc F(a any) any {\n\treturn Multiply(a, 2)\n}\n').includes ('Multiply(a, 2)'), 'hand-written file untouched');
+    const kv = hx4G35InlineMulSub (head + 'func F(a any) any {\n\treturn map[string]any{\n\t\t"id":   1,\n\t\t"num":  Multiply(a, 2),\n\t\t"nonce": 2,\n\t\t"x":    3,\n\t}\n}\n');
+    ok (kv.includes ('\t\t"id": 1,\n\t\t"num": func(a, b any) any {') && kv.includes ('\t\t"nonce": 2,\n\t\t"x":     3,\n'), 'key alignment sections: ' + kv);
+    return problems;
+}
+
+// hx4 G36
+// Last-resort lowering of the Divide/Mod/OpNeg/MathMin/MathMax/MathFloor/MathCeil/MathRound/MathAbs calls the
+// typed passes above leave: each becomes an inline closure that repeats the exchange_helpers.go body (and its
+// derefScalar / ToFloat64 / IsInteger / ParseInt steps) with stdlib calls only, so the result box is identical.
+const HX4G36_HELPERS = [ 'Divide', 'Mod', 'OpNeg', 'MathMin', 'MathMax', 'MathFloor', 'MathCeil', 'MathRound', 'MathAbs' ];
+const HX4G36_DEREF = [
+    'd := func(v any) any {',
+    '\tfor {',
+    '\t\tswitch p := v.(type) {',
+    '\t\tcase *any:',
+    '\t\t\tif p == nil {',
+    '\t\t\t\treturn nil',
+    '\t\t\t}',
+    '\t\t\tv = *p',
+    '\t\t\tcontinue',
+    '\t\tcase *string, *int64, *float64, *bool, *int, *[]string, *[]any, *map[string]any:',
+    '\t\t\tif r := reflect.ValueOf(p); !r.IsZero() {',
+    '\t\t\t\treturn r.Elem().Interface()',
+    '\t\t\t}',
+    '\t\t\treturn nil',
+    '\t\tcase map[string]any, []any, []string:',
+    '\t\t\tif reflect.ValueOf(p).IsZero() {',
+    '\t\t\t\treturn nil',
+    '\t\t\t}',
+    '\t\t}',
+    '\t\treturn v',
+    '\t}',
+    '}',
+];
+const HX4G36_TOFLOAT = [
+    'f := func(v any) float64 {',
+    '\tr := reflect.ValueOf(v)',
+    '\tswitch r.Kind() {',
+    '\tcase reflect.Int, reflect.Int64:',
+    '\t\treturn float64(r.Int())',
+    '\tcase reflect.Float64:',
+    '\t\treturn r.Float()',
+    '\tcase reflect.String:',
+    '\t\tif x, err := (strconv.ParseFloat)(r.String(), 64); err == nil {',
+    '\t\t\treturn x',
+    '\t\t}',
+    '\t}',
+    '\treturn math.NaN()',
+    '}',
+];
+const HX4G36_INTEGRAL = [ 'if r == math.Trunc(r) {', '\treturn int64(r)', '}', 'return r' ];
+
+// closure head + body lines (unindented) for one helper
+function hx4G36Template (helper: string): { head: string, body: string[] } {
+    const nilPair = [ 'a, b = d(a), d(b)', 'if a == nil || b == nil {', '\treturn nil', '}' ];
+    if (helper === 'Divide') {
+        return { 'head': 'func(a, b any) any {', 'body': [ ...HX4G36_DEREF, ...nilPair,
+            'av, bv := reflect.ValueOf(a), reflect.ValueOf(b)',
+            'if !av.Type().ConvertibleTo(bv.Type()) {', '\treturn nil', '}',
+            'switch bv.Kind() {',
+            'case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Float32, reflect.Float64:',
+            '\tt := reflect.TypeOf(float64(0))',
+            '\tx, y := av.Convert(t).Float(), bv.Convert(t).Float()',
+            '\tif y == 0.0 {', '\t\treturn nil', '\t}',
+            '\tr := x / y',
+            ...HX4G36_INTEGRAL.map ((l) => '\t' + l),
+            '}',
+            'return nil' ] };
+    }
+    if (helper === 'Mod') {
+        return { 'head': 'func(a, b any) any {', 'body': [ ...HX4G36_DEREF, ...HX4G36_TOFLOAT, ...nilPair, 'r := (math.Mod)(f(a), f(b))', ...HX4G36_INTEGRAL ] };
+    }
+    if ((helper === 'MathMin') || (helper === 'MathMax')) {
+        return { 'head': 'func(a, b any) any {', 'body': [ ...HX4G36_DEREF, ...HX4G36_TOFLOAT, ...nilPair,
+            'x, y := f(a), f(b)', 'if x ' + ((helper === 'MathMin') ? '<' : '>') + ' y {', '\treturn x', '}', 'return y' ] };
+    }
+    if (helper === 'OpNeg') {
+        return { 'head': 'func(v any) any {', 'body': [ ...HX4G36_DEREF,
+            'r := reflect.ValueOf(d(v))',
+            'switch r.Kind() {',
+            'case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:', '\treturn -r.Int()',
+            'case reflect.Float32, reflect.Float64:', '\treturn -r.Float()',
+            'case reflect.Complex64, reflect.Complex128:', '\treturn -r.Complex()',
+            '}',
+            'return nil' ] };
+    }
+    if (helper === 'MathAbs') {
+        return { 'head': 'func(v any) float64 {', 'body': [ ...HX4G36_DEREF,
+            'switch n := d(v).(type) {',
+            'case float64:', '\treturn math.Abs(n)',
+            'case float32:', '\treturn math.Abs(float64(n))',
+            'case int:', '\treturn math.Abs(float64(n))',
+            'case int64:', '\treturn math.Abs(float64(n))',
+            'case int32:', '\treturn math.Abs(float64(n))',
+            'case int16:', '\treturn math.Abs(float64(n))',
+            'case int8:', '\treturn math.Abs(float64(n))',
+            'case uint, uint64, uint32, uint16, uint8:', '\treturn float64(reflect.ValueOf(n).Uint())',
+            '}',
+            'return 0' ] };
+    }
+    const fn = 'math.' + helper.slice (4);    // MathFloor / MathCeil / MathRound
+    return { 'head': 'func(v any) float64 {', 'body': [ ...HX4G36_DEREF,
+        'switch n := d(v).(type) {',
+        'case float64:', '\treturn ' + fn + '(n)',
+        'case int:', '\treturn ' + fn + '(float64(n))',
+        'case int64:', '\treturn ' + fn + '(float64(n))',
+        '}',
+        'return 0' ] };
+}
+
+function hx4G36AddImport (content: string, pkg: string): string {
+    if (new RegExp ('^import "' + pkg + '"$', 'm').test (content) || new RegExp ('^\\s+"' + pkg + '"$', 'm').test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const at = lines.findIndex ((l) => l.startsWith ('// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md'));
+    if (at < 0) {
+        return content;
+    }
+    lines.splice (at + 2, 0, 'import "' + pkg + '"', '');
+    return lines.join ('\n');
+}
+
+type Hx4G36Aligner = { alignGoCompositeEntries: (entries: string[]) => string[], findGoTrailingCommentStart: (line: string) => number };
+
+// a rewritten call that sits in a keyed composite-literal entry turns that entry multi-line, which
+// ends gofmt's alignment section there: re-run the printer's key alignment over the whole literal
+function hx4G36Realign (lines: string[], at: number, aligner: Hx4G36Aligner): void {
+    const ind = /^\t*/.exec (lines[at])[0].length;
+    const depth = (l: string) => /^\t*/.exec (l)[0].length;
+    let top = at;
+    while ((top > 0) && (lines[top - 1].trim () !== '') && (depth (lines[top - 1]) >= ind)) {
+        top--;
+    }
+    let bottom = at;
+    while ((bottom + 1 < lines.length) && (lines[bottom + 1].trim () !== '') && (depth (lines[bottom + 1]) >= ind)) {
+        bottom++;
+    }
+    if ((top === 0) || !/\{$/.test (lines[top - 1]) || (depth (lines[top - 1]) !== ind - 1) || (lines[bottom + 1] === undefined) || !/^\t*\}/.test (lines[bottom + 1]) || (depth (lines[bottom + 1]) !== ind - 1)) {
+        return;
+    }
+    const entries: string[][] = [];
+    for (let k = top; k <= bottom; k++) {
+        const l = lines[k];
+        const starts = (depth (l) === ind) && !/^\t*[})\]]/.test (l);
+        if (starts) {
+            if (!/^\t*"(?:[^"\\]|\\.)*": /.test (l)) {
+                return;                 // a comment line, an unkeyed element or a spread: leave the literal alone
+            }
+            entries.push ([ l ]);
+        } else if (entries.length === 0) {
+            return;
+        } else {
+            entries[entries.length - 1].push (l);
+        }
+    }
+    const texts = entries.map ((e) => {
+        const first = e[0].replace (/^(\t*"(?:[^"\\]|\\.)*":) +/, '$1 ');
+        const all = [ first, ...e.slice (1) ];
+        const last = all[all.length - 1];
+        const ci = aligner.findGoTrailingCommentStart (last);
+        const code = (ci < 0) ? last.trimEnd () : last.slice (0, ci).trimEnd ();
+        const bare = code.endsWith (',') ? code.slice (0, -1) : code;
+        all[all.length - 1] = (ci < 0) ? bare : bare + ' ' + last.slice (ci).trimEnd ();
+        return all.join ('\n');
+    });
+    if (entries.some ((e) => !e[e.length - 1].replace (/\s*\/\/.*$/, '').trimEnd ().endsWith (','))) {
+        return;
+    }
+    const aligned = aligner.alignGoCompositeEntries (texts).join ('\n').split ('\n');
+    lines.splice (top, bottom - top + 1, ...aligned);
+}
+
+const HX4G36_MARK = '\u0001hx4G36\u0001';
+
+export function hx4G36Inline (content: string, aligner?: Hx4G36Aligner): string {
+    if (content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) {
+        return content;
+    }
+    const rx = new RegExp ('(?<![\\w.])(?:ccxt\\.)?(' + HX4G36_HELPERS.join ('|') + ')\\(', 'g');
+    let masked = goArithMask (content);
+    // a package-level name the closures call must not be shadowed anywhere in the file
+    if (/(?<![\w.])(?:math|reflect|strconv)\s*(?::=|,\s*\w+\s*:?=)|\bvar (?:math|reflect|strconv)\b|[(,]\s*(?:math|reflect|strconv)\s+[\w*[]/.test (masked)) {
+        return content;
+    }
+    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }))
+        .filter ((c) => !/\bfunc\s*(?:\([^)]*\)\s*)?$/.test (masked.slice (Math.max (0, c.start - 80), c.start)));
+    calls.sort ((x, y) => y.start - x.start);
+    let text = content;
+    const used = new Set<string> ();
+    let marked = false;
+    for (const call of calls) {
+        const close = goArithClose (masked, call.open);
+        if (close < 0) {
+            continue;
+        }
+        const spans = goArithArgs (masked, call.open, close);
+        const expected = [ 'Divide', 'Mod', 'MathMin', 'MathMax' ].includes (call.helper) ? 2 : 1;
+        if ((spans.length !== expected) || spans.some (([ s, e ]) => masked.slice (s, e).trim () === '')) {
+            continue;
+        }
+        const lineStart = text.lastIndexOf ('\n', call.start - 1) + 1;
+        const indent = /^\t*/.exec (text.slice (lineStart))[0];
+        const tpl = hx4G36Template (call.helper);
+        const body = tpl.body.map ((l) => indent + '\t' + l).join ('\n');
+        const args = spans.map (([ s, e ]) => text.slice (s, e).trim ()).join (', ');
+        let native = tpl.head + '\n' + body + '\n' + indent + '}(' + args + ')';
+        for (const pkg of [ 'math', 'reflect', 'strconv' ]) {
+            if (new RegExp ('\\b' + pkg + '\\.').test (body)) {
+                used.add (pkg);
+            }
+        }
+        const keyed = /^\t*"(?:[^"\\]|\\.)*":/.test (text.slice (lineStart, call.start)) && (aligner !== undefined);
+        const maskedNative = goArithMask (native);
+        if (keyed) {
+            native = HX4G36_MARK + native;
+            marked = true;
+        }
+        text = text.slice (0, call.start) + native + text.slice (close + 1);
+        masked = masked.slice (0, call.start) + (keyed ? ' '.repeat (HX4G36_MARK.length) : '') + maskedNative + masked.slice (close + 1);
+    }
+    if (marked) {
+        const lines = text.split ('\n');
+        for (let k = lines.length - 1; k >= 0; k--) {
+            if (lines[k].includes (HX4G36_MARK)) {
+                lines[k] = lines[k].split (HX4G36_MARK).join ('');
+                hx4G36Realign (lines, k, aligner as Hx4G36Aligner);
+            }
+        }
+        text = lines.join ('\n');
+    }
+    for (const pkg of [ 'strconv', 'reflect', 'math' ]) {
+        if (used.has (pkg)) {
+            text = hx4G36AddImport (text, pkg);
+            if (!new RegExp ('^import "' + pkg + '"$|^\\s+"' + pkg + '"$', 'm').test (text)) {
+                return content;     // no header to splice the import into: keep the helpers
+            }
+        }
+    }
+    return text;
+}
+
+export function hx4G36Check (aligner?: Hx4G36Aligner): string[] {
+    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
+    const problems: string[] = [];
+    const run = (body: string) => hx4G36Inline (head + 'func (this *K) F(a any, b any) any {\n' + body + '\n}\n', aligner);
+    const nested = run ('\treturn MathFloor(Divide(Divide(a, 1000), 60))');
+    if (/(?<![\w.])(Divide|MathFloor)\(/.test (nested) || !nested.includes ('import "math"') || !nested.includes ('import "reflect"') || nested.includes ('import "strconv"')) {
+        problems.push ('hx4 G36: nested calls not lowered: ' + nested);
+    }
+    const pro = run ('\treturn ccxt.OpNeg(ccxt.MathMin(a, b))');
+    if (/ccxt\.(OpNeg|MathMin)\(/.test (pro) || !pro.includes ('return -r.Int()') || !pro.includes ('if x < y {') || !pro.includes ('import "strconv"')) {
+        problems.push ('hx4 G36: ccxt.-prefixed calls not lowered: ' + pro);
+    }
+    // a declaration of the helper itself and a shadowed package name stay untouched
+    const decl = hx4G36Inline (head + 'func Mod(a, b any) any {\n\treturn nil\n}\n', aligner);
+    if (!decl.includes ('func Mod(a, b any) any {')) {
+        problems.push ('hx4 G36: helper declaration rewritten: ' + decl);
+    }
+    const shadow = run ('\tmath := 1\n\treturn Divide(a, math)');
+    if (!shadow.includes ('Divide(a, math)')) {
+        problems.push ('hx4 G36: shadowed math rewritten: ' + shadow);
+    }
+    const hand = hx4G36Inline ('package ccxt\n\nfunc F(a any) any {\n\treturn OpNeg(a)\n}\n', aligner);
+    const headless = hx4G36Inline ('package ccxt\n\n// IT IS GENERATED AND WILL BE OVERWRITTEN\n\nfunc F(a any) any {\n\treturn OpNeg(a)\n}\n', aligner);
+    if (!headless.includes ('return OpNeg(a)')) {
+        problems.push ('hx4 G36: rewrote a file it cannot import into: ' + headless);
+    }
+    if (!hand.includes ('OpNeg(a)')) {
+        problems.push ('hx4 G36: hand-written file rewritten: ' + hand);
+    }
+    if (aligner !== undefined) {
+        const lit = run ('\treturn map[string]any{\n\t\t"amount": 1,\n\t\t"price":  Divide(a, 10000),\n\t\t"x":      2,\n\t\t"longer": 3,\n\t}');
+        if (!lit.includes ('\t\t"amount": 1,\n\t\t"price": func(a, b any) any {') || !lit.includes ('}(a, 10000),\n\t\t"x":      2,\n\t\t"longer": 3,')) {
+            problems.push ('hx4 G36: composite literal not re-aligned: ' + lit);
+        }
+    }
+    return problems;
+}
+
+// hx4 G37
+// Last tier for the ordered comparisons no typed pass proved: the helper's own dispatch inlined as a
+// `func(a, b any) bool {..}(X, Y)` literal (derefScalar unboxing, int/int64/float64 order, IsEqual for the
+// OrEqual/LessThan arms; exhaustively checked against exchange_helpers.go). Operands are evaluated once.
+const HX4G37_UNBOX = 'for _, p := range []*any{&a, &b} {\n\tfor {\n\t\tswitch (*p).(type) {\n\t\tcase *string, *int64, *float64, *bool, *int, *[]string, *[]any, *map[string]any, *any:\n\t\t\tr := reflect.ValueOf(*p)\n\t\t\t_, again := (*p).(*any)\n\t\t\tif *p = nil; !r.IsNil() {\n\t\t\t\t*p = r.Elem().Interface()\n\t\t\t}\n\t\t\tif again && *p != nil {\n\t\t\t\tcontinue\n\t\t\t}\n\t\tcase map[string]any, []any, []string:\n\t\t\tif reflect.ValueOf(*p).IsNil() {\n\t\t\t\t*p = nil\n\t\t\t}\n\t\t}\n\t\tbreak\n\t}\n}\nnum := func(v any) (int64, float64, int) {\n\tswitch n := v.(type) {\n\tcase int:\n\t\treturn int64(n), float64(n), 1\n\tcase int64:\n\t\treturn n, float64(n), 1\n\tcase float64:\n\t\treturn 0, n, 2\n\t}\n\treturn 0, 0, 0\n}\nia, fa, ka := num(a)\nib, fb, kb := num(b)\ngt := (a != nil && b == nil) || (ka == 1 && kb == 1 && ia > ib) || (ka*kb > 1 && fa > fb)\n';
+const HX4G37_EQ = 'eq := (a == nil && b == nil) || (ka == 1 && kb == 1 && ia == ib) || (ka*kb > 1 && fa == fb)\nswitch x := a.(type) {\ncase bool, string:\n\teq = x == b\ncase uint8:\n\tswitch y := b.(type) {\n\tcase uint8:\n\t\teq = x == y\n\tcase int64:\n\t\teq = int64(x) == y\n\tcase float64:\n\t\teq = float64(x) == y\n\t}\n}\nif t := reflect.TypeOf(a); t != nil && t.Kind() == reflect.Pointer && t.Elem().PkgPath() == "sync" && t.Elem().Name() == "Map" && reflect.ValueOf(a).IsNil() {\n\teq = true\n}\n';
+const HX4G37_RESULT: { [h: string]: string } = { 'IsGreaterThan': 'gt', 'IsGreaterThanOrEqual': 'gt || eq', 'IsLessThan': '!gt && !eq', 'IsLessThanOrEqual': '!gt || eq' };
+
+function hx4G37Literal (helper: string, a: string, b: string, indent: string): string {
+    const body = HX4G37_UNBOX + ((helper === 'IsGreaterThan') ? '' : HX4G37_EQ) + 'return ' + HX4G37_RESULT[helper] + '\n';
+    const lines = body.split ('\n').slice (0, -1).map ((l) => indent + '\t' + l);
+    return 'func(a, b any) bool {\n' + lines.join ('\n') + '\n' + indent + '}(' + a + ', ' + b + ')';
+}
+
+function hx4G37AddReflectImport (content: string): string {
+    if (/^import "reflect"$/m.test (content) || /^\s*"reflect"$/m.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const at = lines.findIndex ((l) => l.startsWith ('// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md'));
+    if (at < 0) {
+        return content;
+    }
+    lines.splice (at + 2, 0, 'import "reflect"', '');
+    return lines.join ('\n');
+}
+
+export function hx4G37InlineComparisons (content: string): string {
+    const rx = /(?<![\w.])(?:ccxt\.)?(IsGreaterThanOrEqual|IsLessThanOrEqual|IsGreaterThan|IsLessThan)\(/g;
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !rx.test (content)) {
+        return content;
+    }
+    rx.lastIndex = 0;
+    let masked = goArithMask (content);
+    if (/(?<![\w.])reflect\s*(?::=|,)|\bvar reflect\b|[(,]\s*reflect\s+\w/.test (masked)) {
+        return content;  // a local named `reflect` would shadow the package
+    }
+    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
+    calls.sort ((x, y) => y.start - x.start);  // innermost / rightmost first keeps earlier offsets valid
+    let text = content;
+    let changed = false;
+    for (const call of calls) {
+        const close = goArithClose (masked, call.open);
+        if (close < 0) {
+            continue;
+        }
+        const spans = goArithArgs (masked, call.open, close);
+        if (spans.length !== 2) {
+            continue;
+        }
+        const lineStart = text.lastIndexOf ('\n', call.start) + 1;
+        const indent = (/^\t*/.exec (text.slice (lineStart)) as RegExpExecArray)[0];
+        const [ a, b ] = spans.map (([ s, e ]) => text.slice (s, e).trim ());
+        const native = hx4G37Literal (call.helper, a, b, indent);
+        text = text.slice (0, call.start) + native + text.slice (close + 1);
+        masked = masked.slice (0, call.start) + goArithMask (native) + masked.slice (close + 1);
+        changed = true;
+    }
+    return changed ? hx4G37AddReflectImport (text) : text;
+}
+
+export function hx4G37Check (): string[] {
+    const problems: string[] = [];
+    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
+    const out = hx4G37InlineComparisons (head + 'func (this *K) F(o any, n any) any {\n\tif IsLessThan(o, n) && ccxt.IsGreaterThan(GetValue(o, \"a, b\"), IsGreaterThanOrEqual(n, 1)) {\n\t}\n\treturn nil\n}\n');
+    if (/Is(?:Greater|Less)Than/.test (out.replace (/\/\/[^\n]*/g, ''))) {
+        problems.push ('hx4 G37: helper left: ' + out);
+    }
+    if (!out.includes ('import "reflect"\n') || !out.includes ('\t}(o, n) && func(a, b any) bool {\n') || !out.includes ('\t\treturn gt || eq\n\t}(n, 1)) {\n')) {
+        problems.push ('hx4 G37: shape: ' + out);
+    }
+    if (!out.includes ('\t\treturn !gt && !eq\n') || out.indexOf ('reflect.Pointer') < 0) {
+        problems.push ('hx4 G37: LessThan arm: ' + out);
+    }
+    const shadow = head + 'func F(reflect any) any {\n\treturn IsLessThan(reflect, 1)\n}\n';
+    if (hx4G37InlineComparisons (shadow) !== shadow) {
+        problems.push ('hx4 G37: shadowed reflect rewritten');
+    }
+    return problems;
+}

@@ -1363,11 +1363,13 @@ export default class bitstamp extends Exchange {
             if (since !== undefined) {
                 const start = this.parseToInt (since / 1000);
                 request['start'] = start;
-                let end = this.sum (start, duration * limit - 1);
                 if (untilIsDefined) {
-                    end = Math.min (end, this.parseToInt (until / 1000));
+                    // Math.min (start + duration * limit - 1, untilSeconds) on integers
+                    const untilSeconds = this.parseToInt (until / 1000);
+                    request['end'] = ((untilSeconds - start) < duration * limit - 1) ? untilSeconds : this.sum (start, duration * limit - 1);
+                } else {
+                    request['end'] = this.sum (start, duration * limit - 1);
                 }
-                request['end'] = end;
             } else if (untilIsDefined) {
                 const untilEnd = this.parseToInt (until / 1000);
                 request['end'] = untilEnd;
@@ -1378,17 +1380,17 @@ export default class bitstamp extends Exchange {
             if (since === undefined) {
                 request['limit'] = 1000;
                 if (untilIsDefined) {
-                    const untilEnd = this.parseToInt (until / 1000);
-                    request['start'] = untilEnd - (duration * 1000) - 1;
-                    request['end'] = untilEnd;
+                    const untilEndDefault = this.parseToInt (until / 1000);
+                    request['start'] = untilEndDefault - (duration * 1000) - 1;
+                    request['end'] = untilEndDefault;
                 }
             } else {
-                const start = this.parseToInt (since / 1000);
-                request['start'] = start;
+                const startDefault = this.parseToInt (since / 1000);
+                request['start'] = startDefault;
                 if (untilIsDefined) {
                     request['end'] = this.parseToInt (until / 1000);
                 } else {
-                    request['end'] = this.sum (start, duration * 1000 - 1);
+                    request['end'] = this.sum (startDefault, duration * 1000 - 1);
                 }
                 request['limit'] = 1000;
             }

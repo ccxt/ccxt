@@ -102,7 +102,8 @@ export default class lbank extends lbankRest {
             'pair': market['id'],
         };
         if (since !== undefined) {
-            message['start'] = this.parseToInt (since / 1000);
+            const sinceInt = this.parseToInt (since);
+            message['start'] = this.parseToInt (sinceInt / 1000);
         }
         if (limit !== undefined) {
             message['size'] = limit;

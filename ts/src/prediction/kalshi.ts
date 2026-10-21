@@ -250,7 +250,10 @@ export default class kalshi extends Exchange {
         let cursor: Str = undefined;
         // don't request a full 1000-market page (3+ MB) when the caller wants fewer
         const pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 1000);
-        const limit = (maxMarkets < pageLimit) ? maxMarkets : pageLimit;
+        let limit = pageLimit;
+        if (maxMarkets < pageLimit) {
+            limit = maxMarkets;
+        }
         // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
         // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
         // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override
@@ -1348,14 +1351,12 @@ export default class kalshi extends Exchange {
     override parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         const id = this.safeString (trade, 'trade_id');
         const ts = this.parse8601 (this.safeString (trade, 'created_time'));
-        const priceDollars = this.safeNumber2 (trade, 'yes_price_dollars', 'price_dollars');
         const priceCents = this.safeNumber2 (trade, 'yes_price', 'price');
-        let price: Num = undefined;
-        if (priceDollars !== undefined) {
-            price = priceDollars;
-        } else if (priceCents !== undefined) {
-            price = priceCents / 100;
+        let centsPrice: Num = undefined;
+        if (priceCents !== undefined) {
+            centsPrice = priceCents / 100;
         }
+        const price = this.safeNumber2 (trade, 'yes_price_dollars', 'price_dollars', centsPrice);
         const amountFp = this.safeNumber2 (trade, 'count_fp', 'size_fp');
         const amount = this.safeNumber (trade, 'count', amountFp);
         const rawSide = this.safeStringLower (trade, 'taker_side');
@@ -1475,24 +1476,18 @@ export default class kalshi extends Exchange {
             side = 'sell';
         }
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
-        let price: Num = undefined;
+        let centsKey: Str = 'yes_price';
+        let dollarsKey: Str = 'yes_price_dollars';
         if (sideLeg === 'no') {
-            price = this.safeNumber (fill, 'no_price_dollars');
-            if (price === undefined) {
-                const noCents = this.safeNumber (fill, 'no_price');
-                if (noCents !== undefined) {
-                    price = noCents / 100;
-                }
-            }
-        } else {
-            price = this.safeNumber (fill, 'yes_price_dollars');
-            if (price === undefined) {
-                const yesCents = this.safeNumber (fill, 'yes_price');
-                if (yesCents !== undefined) {
-                    price = yesCents / 100;
-                }
-            }
+            centsKey = 'no_price';
+            dollarsKey = 'no_price_dollars';
         }
+        const legCents = this.safeNumber (fill, centsKey);
+        let centsPrice: Num = undefined;
+        if (legCents !== undefined) {
+            centsPrice = legCents / 100;
+        }
+        const price = this.safeNumber (fill, dollarsKey, centsPrice);
         const amount = this.safeNumber2 (fill, 'count_fp', 'count');
         let cost: Num = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
@@ -1687,13 +1682,12 @@ export default class kalshi extends Exchange {
         const marketResult = this.safeStringUpper (settlement, 'market_result');
         const won = (marketResult === heldLabel);
         // kalshi reports money as dollar keys on V2, else cents
-        let payout = this.safeNumber (settlement, 'revenue_dollars');
-        if (payout === undefined) {
-            const revenueCents = this.safeNumber (settlement, 'revenue');
-            if (revenueCents !== undefined) {
-                payout = revenueCents / 100;
-            }
+        const revenueCents = this.safeNumber (settlement, 'revenue');
+        let centsPayout: Num = undefined;
+        if (revenueCents !== undefined) {
+            centsPayout = revenueCents / 100;
         }
+        const payout = this.safeNumber (settlement, 'revenue_dollars', centsPayout);
         let costKey: Str = 'no_total_cost';
         if (heldYes) {
             costKey = 'yes_total_cost';
@@ -1702,13 +1696,12 @@ export default class kalshi extends Exchange {
         if (heldYes) {
             costDollarsKey = 'yes_total_cost_dollars';
         }
-        let cost = this.safeNumber (settlement, costDollarsKey);
-        if (cost === undefined) {
-            const costCents = this.safeNumber (settlement, costKey);
-            if (costCents !== undefined) {
-                cost = costCents / 100;
-            }
+        const costCents = this.safeNumber (settlement, costKey);
+        let centsCost: Num = undefined;
+        if (costCents !== undefined) {
+            centsCost = costCents / 100;
         }
+        const cost = this.safeNumber (settlement, costDollarsKey, centsCost);
         let pnl: Num = undefined;
         if ((payout !== undefined) && (cost !== undefined)) {
             pnl = payout - cost;
@@ -2312,9 +2305,12 @@ export default class kalshi extends Exchange {
         }
         const rawEvents: any[] = [];
         const eventTickersLength = eventTickers.length;
+        const hasLimit = (limit !== undefined);
+        const limitOrZero = hasLimit ? limit : 0;
+        const limitValue = this.parseToInt (limitOrZero);
         for (let ei = 0; ei < eventTickersLength; ei++) {
             const collectedLength = rawEvents.length;
-            if ((limit !== undefined) && (collectedLength >= limit)) {
+            if (hasLimit && (collectedLength >= limitValue)) {
                 break;
             }
             // the series search can rank a ticker whose /events/{ticker} endpoint 404s (a series-only
@@ -2425,18 +2421,22 @@ export default class kalshi extends Exchange {
     async fetchSeriesEvents (seriesTickers: string[], status: Str, limit: Int, rest: Dict = {}): Promise<any[]> {
         const rawEvents: any[] = [];
         const seriesTickersLength = seriesTickers.length;
-        const pageLimit = this.safeInteger (this.options, 'defaultFetchEventsLimit', 200);
+        const pageLimit = this.parseToInt (this.safeInteger (this.options, 'defaultFetchEventsLimit', 200));
         const maxPages = this.safeInteger (this.options, 'maxEventPagesPerSeries', 20);
+        const hasLimit = (limit !== undefined);
+        const limitOrZero = hasLimit ? limit : 0;
+        const limitValue = this.parseToInt (limitOrZero);
         for (let si = 0; si < seriesTickersLength; si++) {
             const collectedLength = rawEvents.length;
-            if ((limit !== undefined) && (collectedLength >= limit)) {
+            if (hasLimit && (collectedLength >= limitValue)) {
                 break;
             }
             let cursor: Str = undefined;
             for (let page = 0; page < maxPages; page++) {
                 let reqLimit = pageLimit;
-                if (limit !== undefined) {
-                    const remaining = limit - rawEvents.length;
+                if (hasLimit && (limitValue !== undefined)) {
+                    const collectedSoFar = rawEvents.length;
+                    const remaining = this.parseToInt (limitValue - collectedSoFar);
                     if (remaining < reqLimit) {
                         reqLimit = remaining;
                     }
@@ -2461,7 +2461,7 @@ export default class kalshi extends Exchange {
                 }
                 cursor = this.safeString (response, 'cursor');
                 const collectedAfterPage = rawEvents.length;
-                if ((limit !== undefined) && (collectedAfterPage >= limit)) {
+                if (hasLimit && (collectedAfterPage >= limitValue)) {
                     break;
                 }
                 if ((cursor === undefined) || (cursor === '') || (pageEventsLength < reqLimit)) {
@@ -2568,10 +2568,12 @@ export default class kalshi extends Exchange {
         // resolved and the resolution deadline are aggregated from the child markets too
         let totalVolume = 0;
         let totalLiquidity = 0;
-        let earliestCreated: Int = undefined;
+        // seeded from the first market, which the loop re-reads, so the min/max stays the same
+        const firstMarket = this.safeDict (rawMarkets, 0, {});
+        let earliestCreated = this.parse8601 (this.safeString (firstMarket, 'open_time'));
         let anyActive = false;
         let allResolved = true;
-        let latestClose: Int = undefined;
+        let latestClose = this.parse8601 (this.safeString (firstMarket, 'close_time'));
         for (let i = 0; i < rawMarkets.length; i++) {
             const rawMarket = rawMarkets[i];
             const parsed = this.parseMarket (rawMarket);
