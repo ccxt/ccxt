@@ -48,7 +48,7 @@ export default class interactivebrokers extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
-                'fetchClosedOrders': true,
+                'fetchClosedOrders': false,
                 'fetchCurrencies': false,
                 'fetchDeposit': false,
                 'fetchDepositAddress': false,
@@ -70,7 +70,7 @@ export default class interactivebrokers extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': false,
-                'fetchOpenOrders': true,
+                'fetchOpenOrders': false,
                 'fetchOrder': true,
                 'fetchOrderBook': false,
                 'fetchOrderBooks': false,
@@ -641,13 +641,7 @@ export default class interactivebrokers extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOpenOrders': {
-                        'marginMode': false,
-                        'limit': undefined,
-                        'trigger': false,
-                        'trailing': false,
-                        'symbolRequired': false,
-                    },
+                    'fetchOpenOrders': undefined,
                     'fetchOrders': {
                         'marginMode': false,
                         'limit': undefined,
@@ -657,16 +651,7 @@ export default class interactivebrokers extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchClosedOrders': {
-                        'marginMode': false,
-                        'limit': undefined,
-                        'daysBack': 1, // current brokerage session only
-                        'daysBackCanceled': 1,
-                        'untilDays': undefined,
-                        'trigger': false,
-                        'trailing': false,
-                        'symbolRequired': false,
-                    },
+                    'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
@@ -844,12 +829,12 @@ export default class interactivebrokers extends Exchange {
             //
             //     [
             //         {
-            //             "position": 0.0012,
-            //             "conid": "479624278",
-            //             "avgCost": 82000,
+            //             "position": 0.04,
+            //             "conid": "495759171",
+            //             "avgCost": 2428.04,
             //             "currency": "USD",
-            //             "description": "BTC",
-            //             "assetClass": "CRYPTO",
+            //             "description": "ETH CRYPTO",
+            //             "secType": "CRYPTO",
             //             ...
             //         }
             //     ]
@@ -904,7 +889,7 @@ export default class interactivebrokers extends Exchange {
         //
         //     {
         //         "ledger": { "USD": { "cashbalance": 1000.0, ... }, "BASE": { "timestamp": 1702582321, ... } },
-        //         "positions": [ { "position": 0.0012, "conid": "479624278", "assetClass": "CRYPTO", ... } ],
+        //         "positions": [ { "position": 0.04, "conid": "495759171", "description": "ETH CRYPTO", "secType": "CRYPTO", ... } ],
         //         "orders": [ { "conid": 479624278, "side": "BUY", "status": "Submitted", "price": "80000", "remainingQuantity": 0.001, "cashCcy": "USD", ... } ]
         //     }
         //
@@ -935,7 +920,8 @@ export default class interactivebrokers extends Exchange {
         const positionAssetClasses = this.safeList (balanceOptions, 'positionAssetClasses', [ 'CRYPTO' ]);
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
-            const assetClass = this.safeString (position, 'assetClass');
+            // portfolio2 positions have "secType", the cached portfolio positions have "assetClass"
+            const assetClass = this.safeString2 (position, 'secType', 'assetClass');
             if (!this.inArray (assetClass, positionAssetClasses)) {
                 continue;
             }
@@ -1029,10 +1015,12 @@ export default class interactivebrokers extends Exchange {
         if (description === undefined) {
             return undefined;
         }
-        if (this.safeString (position, 'assetClass') === 'CRYPTO') {
-            return this.safeCurrencyCode (description);
-        }
+        const assetClass = this.safeString2 (position, 'secType', 'assetClass');
         const parts = description.split (' ');
+        if (assetClass === 'CRYPTO') {
+            // "ETH CRYPTO" -> ETH
+            return this.safeCurrencyCode (parts[0]);
+        }
         return parts.join ('.'); // 'BRK B' -> 'BRK.B', as in parseMarket
     }
 
@@ -2437,7 +2425,7 @@ export default class interactivebrokers extends Exchange {
      * @name interactivebrokers#fetchLiveOrdersRaw
      * @description fetches the raw live orders of the current brokerage session, retries once when the first request only starts the order subscription
      * @ignore
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-open-orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw orders
      */
@@ -2451,75 +2439,45 @@ export default class interactivebrokers extends Exchange {
             response = await this.privateGetIserverAccountOrders (params);
         }
         //
-        //     {
-        //         "orders": [
-        //             {
-        //                 "acct": "U1234567",
-        //                 "conid": 265598,
-        //                 "orderId": 1234568790,
-        //                 "cashCcy": "USD",
-        //                 "remainingQuantity": 5.0,
-        //                 "filledQuantity": 0.0,
-        //                 "totalSize": 5.0,
-        //                 "status": "Submitted",
-        //                 "origOrderType": "LIMIT",
-        //                 "orderType": "Limit",
-        //                 "side": "BUY",
-        //                 "price": "185.50",
-        //                 "timeInForce": "CLOSE",
-        //                 "lastExecutionTime_r": 1702317649000,
-        //                 ...
-        //             }
-        //         ],
-        //         "snapshot": true
-        //     }
+        //    {
+        //        "orders": [
+        //            {
+        //                "acct": "U3448646",
+        //                "exchange": "PAXOS",
+        //                "conidex": "495759171@PAXOS",
+        //                "conid": 495759171,
+        //                "account": "U3448646",
+        //                "orderId": 2086144502,
+        //                "cashCcy": "USD",
+        //                "sizeAndFills": "0/0.01",
+        //                "orderDesc": "Buy 0.01 ETH Crypto Limit 2000.00, Minutes",
+        //                "description1": "ETH",
+        //                "ticker": "ETH",
+        //                "secType": "CRYPTO",
+        //                "remainingQuantity": 0.01,
+        //                "filledQuantity": 0,
+        //                "totalSize": 0.01,
+        //                "companyName": "Ethereum cryptocurrency",
+        //                "status": "Cancelled",
+        //                "order_ccp_status": null,
+        //                "origOrderType": "LIMIT",
+        //                "supportsTaxOpt": "1",
+        //                "lastExecutionTime": "261021082714",
+        //                "orderType": "Limit",
+        //                "bgColor": "#FFFFFF",
+        //                "fgColor": "#AA0000",
+        //                "order_ref": "4649850",
+        //                "isEventTrading": "0",
+        //                "price": "2000.00",
+        //                "timeInForce": "PAX",
+        //                "lastExecutionTime_r": 1792571234000,
+        //                "side": "BUY"
+        //            }
+        //        ],
+        //        "snapshot": true
+        //    }
         //
         return this.safeList (response, 'orders', []) as Dict[];
-    }
-
-    /**
-     * @method
-     * @name interactivebrokers#fetchOpenOrders
-     * @description fetch all unfilled currently open orders of the current brokerage session
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
-     * @param {string} [symbol] unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
-     * @param {int} [limit] the maximum number of open order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        const orders = await this.fetchOrders (symbol, since, undefined, params);
-        const result: Order[] = [];
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] === 'open') {
-                result.push (orders[i]);
-            }
-        }
-        return this.filterBySinceLimit (result, since, limit) as Order[];
-    }
-
-    /**
-     * @method
-     * @name interactivebrokers#fetchClosedOrders
-     * @description fetches information on multiple closed orders of the current brokerage session
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
-     * @param {string} [symbol] unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        const orders = await this.fetchOrders (symbol, since, undefined, params);
-        const result: Order[] = [];
-        for (let i = 0; i < orders.length; i++) {
-            const status = orders[i]['status'];
-            if ((status === 'closed') || (status === 'canceled') || (status === 'rejected')) {
-                result.push (orders[i]);
-            }
-        }
-        return this.filterBySinceLimit (result, since, limit) as Order[];
     }
 
     parseOrderStatus (status: Str): Str {

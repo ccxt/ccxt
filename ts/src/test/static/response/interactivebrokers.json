@@ -3,6 +3,201 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchBalance": [
+            {
+                "description": "default",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 2086144502,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0/0.01",
+                            "orderDesc": "Buy 0.01 ETH Crypto Limit 2000.00, Minutes",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0.01,
+                            "filledQuantity": 0,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Submitted",
+                            "order_ccp_status": "Submitted",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261021082714",
+                            "orderType": "Limit",
+                            "bgColor": "#000000",
+                            "fgColor": "#00F000",
+                            "order_ref": "4649850",
+                            "isEventTrading": "0",
+                            "price": "2000.00",
+                            "timeInForce": "PAX",
+                            "lastExecutionTime_r": 1792571234000,
+                            "side": "BUY"
+                        }
+                    ],
+                    "snapshot": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "ledger": {
+                            "USD": {
+                                "commoditymarketvalue": 0,
+                                "futuremarketvalue": 0,
+                                "settledcash": 586.1,
+                                "exchangerate": 1,
+                                "sessionid": 1,
+                                "cashbalance": 586.1,
+                                "corporatebondsmarketvalue": 0,
+                                "warrantsmarketvalue": 0,
+                                "netliquidationvalue": 684.26,
+                                "interest": 0,
+                                "unrealizedpnl": 1.04,
+                                "stockmarketvalue": 0,
+                                "moneyfunds": 0,
+                                "currency": "USD",
+                                "realizedpnl": 0,
+                                "funds": 0,
+                                "acctcode": "U3448646",
+                                "issueroptionsmarketvalue": 0,
+                                "key": "LedgerList",
+                                "timestamp": 1792571315,
+                                "severity": 0,
+                                "stockoptionmarketvalue": 0,
+                                "futuresonlypnl": 0,
+                                "tbondsmarketvalue": 0,
+                                "futureoptionmarketvalue": 0,
+                                "cashbalancefxsegment": 0,
+                                "secondkey": "USD",
+                                "tbillsmarketvalue": 0,
+                                "endofbundle": 1,
+                                "dividends": 0,
+                                "cryptocurrencyvalue": 98.1597
+                            },
+                            "BASE": {
+                                "commoditymarketvalue": 0,
+                                "futuremarketvalue": 0,
+                                "settledcash": 586.1,
+                                "exchangerate": 1,
+                                "sessionid": 1,
+                                "cashbalance": 586.1,
+                                "corporatebondsmarketvalue": 0,
+                                "warrantsmarketvalue": 0,
+                                "netliquidationvalue": 684.26,
+                                "interest": 0,
+                                "unrealizedpnl": 1.04,
+                                "stockmarketvalue": 0,
+                                "moneyfunds": 0,
+                                "currency": "BASE",
+                                "realizedpnl": 0,
+                                "funds": 0,
+                                "acctcode": "U3448646",
+                                "issueroptionsmarketvalue": 0,
+                                "key": "LedgerList",
+                                "timestamp": 1792571315,
+                                "severity": 0,
+                                "stockoptionmarketvalue": 0,
+                                "futuresonlypnl": 0,
+                                "tbondsmarketvalue": 0,
+                                "futureoptionmarketvalue": 0,
+                                "cashbalancefxsegment": 0,
+                                "secondkey": "BASE",
+                                "tbillsmarketvalue": 0,
+                                "dividends": 0,
+                                "cryptocurrencyvalue": 98.1597
+                            }
+                        },
+                        "positions": [
+                            {
+                                "position": 0.04,
+                                "conid": "495759171",
+                                "avgCost": 2428.04,
+                                "avgPrice": 2428.04,
+                                "currency": "USD",
+                                "description": "ETH CRYPTO",
+                                "isLastToLoq": false,
+                                "marketPrice": 2453.992431640625,
+                                "marketValue": 98.159697265625,
+                                "realizedPnl": 0,
+                                "secType": "CRYPTO",
+                                "timestamp": 1792571315,
+                                "unrealizedPnl": 1.038097265624998,
+                                "assetClass": "CRYPTO",
+                                "sector": null,
+                                "group": null,
+                                "model": ""
+                            }
+                        ],
+                        "orders": [
+                            {
+                                "acct": "U3448646",
+                                "exchange": "PAXOS",
+                                "conidex": "495759171@PAXOS",
+                                "conid": 495759171,
+                                "account": "U3448646",
+                                "orderId": 2086144502,
+                                "cashCcy": "USD",
+                                "sizeAndFills": "0/0.01",
+                                "orderDesc": "Buy 0.01 ETH Crypto Limit 2000.00, Minutes",
+                                "description1": "ETH",
+                                "ticker": "ETH",
+                                "secType": "CRYPTO",
+                                "remainingQuantity": 0.01,
+                                "filledQuantity": 0,
+                                "totalSize": 0.01,
+                                "companyName": "Ethereum cryptocurrency",
+                                "status": "Submitted",
+                                "order_ccp_status": "Submitted",
+                                "origOrderType": "LIMIT",
+                                "supportsTaxOpt": "1",
+                                "lastExecutionTime": "261021082714",
+                                "orderType": "Limit",
+                                "bgColor": "#000000",
+                                "fgColor": "#00F000",
+                                "order_ref": "4649850",
+                                "isEventTrading": "0",
+                                "price": "2000.00",
+                                "timeInForce": "PAX",
+                                "lastExecutionTime_r": 1792571234000,
+                                "side": "BUY"
+                            }
+                        ]
+                    },
+                    "USD": {
+                        "free": 566.1,
+                        "used": 20,
+                        "total": 586.1
+                    },
+                    "ETH": {
+                        "free": 0.04,
+                        "used": 0,
+                        "total": 0.04
+                    },
+                    "timestamp": 1792571315000,
+                    "datetime": "2026-10-21T08:28:35.000Z",
+                    "free": {
+                        "USD": 566.1,
+                        "ETH": 0.04
+                    },
+                    "used": {
+                        "USD": 20,
+                        "ETH": 0
+                    },
+                    "total": {
+                        "USD": 586.1,
+                        "ETH": 0.04
+                    }
+                }
+            },
+            
+        ],
         "cancelOrder": [
             {
                 "description": "spot without symbol",

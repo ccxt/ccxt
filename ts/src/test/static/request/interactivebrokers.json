@@ -3,6 +3,26 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchClosedOrders": [
+            {
+                "description": "spot crypto",
+                "method": "fetchClosedOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "default",
+                "method": "fetchBalance",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders",
+                "input": [],
+                "output": null
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "spot without symbol",
