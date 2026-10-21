@@ -56,14 +56,24 @@ find_package (simdjson QUIET)
 # and the giant copy (and its rename race) disappears entirely.
 set (CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> crT <TARGET> <LINK_FLAGS> <OBJECTS>")
 
-# ccxt-core: the hand-written engine runtime (see cpp/ccxt-core/CMakeLists.txt).
+# ccxt-base: the hand-written engine runtime (see cpp/ccxt-base/CMakeLists.txt).
 # Separate package so runtime edits rebuild only its ~7 TUs, not the venue TUs.
-add_subdirectory (ccxt-core)
+add_subdirectory (ccxt-base)
 
+# The venue monolith is split by tier, mirroring the rust crate split
+# (ccxt / ccxt-pro / ccxt-prediction over ccxt-base): pro and prediction
+# TUs derive from the REST classes, so they link ccxt and rebuild on their
+# own when only their tier changes.
 add_library (ccxt STATIC
     ccxt/base/Exchange.SetMarkets.cpp
     ccxt/exchanges/ExchangeFactory.cpp
+)
+
+add_library (ccxt_pro STATIC
     ccxt/pro/ProExchangeFactory.cpp
+)
+
+add_library (ccxt_prediction STATIC
     ccxt/prediction/PredictionFactory.cpp
 )
 
@@ -73,14 +83,24 @@ add_library (ccxt STATIC
 file (GLOB EXCHANGE_TUS ${CMAKE_CURRENT_SOURCE_DIR}/ccxt/exchanges/tu_*.cpp)
 file (GLOB PRO_TUS ${CMAKE_CURRENT_SOURCE_DIR}/ccxt/pro/tu_*.cpp)
 file (GLOB PREDICTION_TUS ${CMAKE_CURRENT_SOURCE_DIR}/ccxt/prediction/tu_*.cpp)
-target_sources (ccxt PRIVATE ${EXCHANGE_TUS} ${PRO_TUS} ${PREDICTION_TUS})
+target_sources (ccxt PRIVATE ${EXCHANGE_TUS})
+target_sources (ccxt_pro PRIVATE ${PRO_TUS})
+target_sources (ccxt_prediction PRIVATE ${PREDICTION_TUS})
 # the out-of-line setMarkets definition (see Exchange.SetMarkets.cpp) stays in
 # this package: it includes the generated Exchange.h + Exchange.SetMarkets.inc.
 set_source_files_properties (ccxt/base/Exchange.SetMarkets.cpp PROPERTIES COMPILE_OPTIONS "-O2")
 target_include_directories (ccxt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # the engine runtime (value model, exchange core, helpers, ws) + its deps
-# (threads/curl/ssl/simdjson) come transitively from the ccxt-core package.
-target_link_libraries (ccxt PUBLIC ccxt_core)
+# (threads/curl/ssl/simdjson) come transitively from the ccxt-base package.
+target_link_libraries (ccxt PUBLIC ccxt_base)
+# tier libs are header-only consumers of the REST classes (the pro/prediction
+# TUs derive from them); the executables own the whole-archive link of all
+# three libs, so no tier links another tier (avoids duplicate link items):
+#   ccxt-pro -> ccxt headers, ccxt-prediction -> ccxt headers  (rust-parity graph)
+add_library (ccxt_headers INTERFACE)
+target_include_directories (ccxt_headers INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries (ccxt_pro PUBLIC ccxt_headers ccxt_base)
+target_link_libraries (ccxt_prediction PUBLIC ccxt_headers ccxt_base)
 
 # The value model underpins everything else (ordered dicts, reference semantics), so it
 # is its own binary and runs first.
@@ -91,7 +111,10 @@ add_executable (ccxt-tests tests/main.cpp)
 # WHOLE_ARCHIVE: the per-exchange tu_*.cpp units register their factories via
 # static initialisers and are referenced nowhere else, so the linker would
 # dead-strip every one of them without this.
-target_link_libraries (ccxt-tests PRIVATE "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>")
+target_link_libraries (ccxt-tests PRIVATE
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>"
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt_pro>"
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt_prediction>")
 # The testMainClass TU is enormous; debug info generation dominates its compile
 # time, and the test binary is never meaningfully debugged with gdb.
 target_compile_options (ccxt-tests PRIVATE -g0)
@@ -104,12 +127,15 @@ target_link_libraries (ccxt-smoke-binance PRIVATE ccxt)
 
 # typed-layer gate: Types.h structs + the PascalCase typed API over the dynamic core
 add_executable (ccxt-typed-smoke tests/typed_smoke.cpp)
-target_link_libraries (ccxt-typed-smoke PRIVATE ccxt)
+target_link_libraries (ccxt-typed-smoke PRIVATE ccxt ccxt_pro)
 target_compile_options (ccxt-typed-smoke PRIVATE -g0)
 
 # live-test CLI: ccxt-cli <exchangeId> <method> [args...] -- runs real HTTP calls
 add_executable (ccxt-cli cli/main.cpp)
-target_link_libraries (ccxt-cli PRIVATE "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>")
+target_link_libraries (ccxt-cli PRIVATE
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>"
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt_pro>"
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt_prediction>")
 # -O2 so the inline header machinery (Value.h OrderedMap methods, inline
 # helpers) compiles optimized IN THIS TU: inline definitions are ODR-merged
 # per binary and the first TU's copies win the link — the probe experiment
@@ -134,5 +160,8 @@ set_tests_properties (static-response-binance PROPERTIES WORKING_DIRECTORY ${CCX
 
 # setMarkets profile probe (perf/gdb hot-path analysis; not a shipped binary)
 add_executable (setmarkets-probe tests/setmarkets_probe.cpp)
-target_link_libraries (setmarkets-probe PRIVATE "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>")
+target_link_libraries (setmarkets-probe PRIVATE
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>"
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt_pro>"
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt_prediction>")
 target_compile_options (setmarkets-probe PRIVATE -g0 -O2)
