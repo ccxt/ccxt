@@ -1070,6 +1070,8 @@ public class Bingx extends BingxApi
                     put( "100419", PermissionDenied.class );
                     put( "100437", BadRequest.class );
                     put( "101204", InsufficientFunds.class );
+                    put( "101205", InvalidOrder.class );
+                    put( "101400", InvalidOrder.class );
                     put( "110425", InvalidOrder.class );
                     put( "100490", BadSymbol.class );
                     put( "101481", DuplicateOrderId.class );
