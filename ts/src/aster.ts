@@ -2015,7 +2015,7 @@ export default class aster extends Exchange {
         return this.parseFundingRateHistories (response, market);
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (contract: Dict, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "symbol": "BTCUSDT",

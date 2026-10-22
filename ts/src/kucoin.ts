@@ -10371,7 +10371,7 @@ export default class kucoin extends Exchange {
         return this.parseFundingRateHistories (result, market, since, limit);
     }
 
-    override parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (info: Dict, market: Market = undefined): FundingRateHistory {
         //
         // uta
         //     {

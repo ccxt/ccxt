@@ -1381,7 +1381,7 @@ export default class extended extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbolValue, sinceResolved, limitResolved) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (info: Dict, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //       "m": "BTC-USD",

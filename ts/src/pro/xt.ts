@@ -2,7 +2,7 @@
 
 import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Balances, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { Balances, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -165,7 +165,7 @@ export default class xt extends xtRest {
         return cache.length;
     }
 
-    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: NullableDict) {
         orderbook['nonce'] = this.safeInteger2 (delta, 'i', 'u');
         const obAsks: Dict[] = this.safeList (delta, 'a', []);
         const obBids: Dict[] = this.safeList (delta, 'b', []);

@@ -3,7 +3,7 @@
 
 import deepcoinRest from '../deepcoin.js';
 import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
-import type { Dict, FeeString, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Dict, FeeString, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, NullableDict } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -857,7 +857,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    override handleBookDelta (orderbook: WsOrderBook, entry: any) {
+    override handleBookDelta (orderbook: WsOrderBook, entry: NullableDict) {
         const data = this.safeDict (entry, 'd', {});
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];

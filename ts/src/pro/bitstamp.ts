@@ -189,7 +189,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: NullableDict) {
         const timestamp = this.safeTimestamp (delta, 'timestamp');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);

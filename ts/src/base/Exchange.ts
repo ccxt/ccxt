@@ -3368,7 +3368,7 @@ export class BaseExchange {
         }
     }
 
-    handleBookDelta (orderbook: WsOrderBook, delta: any) {
+    handleBookDelta (orderbook: WsOrderBook, delta: NullableDict) {
         throw new NotSupported (this.id + ' handleBookDelta not supported yet');
     }
 
@@ -3902,7 +3902,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parsePosition() is not supported yet');
     }
 
-    parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
+    parseFundingRateHistory (info: Dict, market: Market = undefined): FundingRateHistory {
         throw new NotSupported (this.id + ' parseFundingRateHistory() is not supported yet');
     }
 
@@ -9089,7 +9089,7 @@ export class BaseExchange {
         });
     }
 
-    parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
+    parseLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
         throw new NotSupported (this.id + ' parseLiquidation () is not supported yet');
     }
 

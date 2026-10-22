@@ -4,7 +4,7 @@ import lunoRest from '../luno.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str } from '../base/types.js';
+import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -281,7 +281,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    override handleBookDelta (orderbook: WsOrderBook, message: any) {
+    override handleBookDelta (orderbook: WsOrderBook, message: NullableDict) {
         //
         //  create
         //     {

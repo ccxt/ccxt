@@ -2003,7 +2003,7 @@ export default class bitstamp extends Exchange {
         return this.parseFundingRateHistories (values, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (contract: Dict, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "funding_rate": "0.0024",

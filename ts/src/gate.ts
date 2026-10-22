@@ -8114,7 +8114,7 @@ export default class gate extends Exchange {
         return this.parseLiquidations (this.toArray (response), market, since, limit);
     }
 
-    override parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
+    override parseLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
         //
         // fetchLiquidations
         //

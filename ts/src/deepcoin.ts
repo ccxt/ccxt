@@ -2939,7 +2939,7 @@ export default class deepcoin extends Exchange {
         return this.parseFundingRateHistories (rows, market, since, limit);
     }
 
-    override parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
+    override parseFundingRateHistory (info: Dict, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "instrumentID": "ETHUSD",

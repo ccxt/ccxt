@@ -8868,7 +8868,7 @@ export default class bybit extends Exchange {
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
-    override parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
+    override parseLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
         //
         //     {
         //         "symbol": "ETHPERP",
