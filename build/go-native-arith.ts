@@ -3224,223 +3224,6 @@ export function hx4G43Check (aligner?: Hx4G36Aligner): string[] {
     return problems;
 }
 
-// hx4 G45
-// Last tier for the string helpers Slice/GetIndexOf/GetLength: each call becomes an inline closure that
-// repeats the exchange_helpers.go body (derefScalar via the G36 unboxer, ParseInt for the bounds, a byte
-// search equal to strings.Index), so value, panic and result type are the helper's. Operands evaluated once.
-const HX4G45_HELPERS = [ 'Slice', 'GetIndexOf', 'GetLength' ];
-
-function hx4G45Template (helper: string): { head: string, body: string[], arity: number } {
-    if (helper === 'Slice') {
-        const ints = [ 'int', 'int8', 'int16', 'int32', 'uint', 'uint8', 'uint16', 'uint32', 'float32', 'float64' ];
-        return { 'head': 'func(s, i, j any) string {', 'arity': 3, 'body': [ ...HX4G36_DEREF,
-            'n := func(v any) int64 {',
-            '\tswitch x := d(v).(type) {',
-            ...ints.flatMap ((t) => [ '\tcase ' + t + ':', '\t\treturn int64(x)' ]),
-            '\tcase int64:', '\t\treturn x',
-            '\tcase string:',
-            '\t\tif r, err := (strconv.ParseInt)(x, 10, 64); err == nil {', '\t\t\treturn r', '\t\t}',
-            '\t}',
-            '\treturn math.MinInt64',
-            '}',
-            's, i, j = d(s), d(i), d(j)',
-            'if s == nil {', '\treturn ""', '}',
-            'str := d(s).(string)',
-            'var start int64 = -1',
-            'if i != nil {', '\tstart = n(i)', '}',
-            'size := int64(len(str))',
-            'if j == nil {',
-            '\tif start < 0 {',
-            '\t\tfrom := size + start',
-            '\t\tif from < 0 {', '\t\t\tfrom = 0', '\t\t}',
-            '\t\treturn str[from:]',
-            '\t}',
-            '\treturn str[start:]',
-            '}',
-            'end := n(j)',
-            'if start < 0 {', '\tstart = size + start', '}',
-            'if end < 0 {', '\tend = size + end', '}',
-            'if end > size {', '\tend = size', '}',
-            'return str[start:end]' ] };
-    }
-    if (helper === 'GetIndexOf') {
-        const list = (t: string) => [ 'case []' + t + ':', '\tx, ok := d(t).(' + t + ')', '\tif !ok {', '\t\treturn -1', '\t}',
-            '\tfor k, e := range v {', '\t\tif e == x {', '\t\t\treturn k', '\t\t}', '\t}' ];
-        return { 'head': 'func(s, t any) int {', 'arity': 2, 'body': [ ...HX4G36_DEREF,
-            'switch v := d(s).(type) {',
-            ...list ('string'), ...list ('int'),
-            'case string:', '\tx, ok := d(t).(string)', '\tif !ok {', '\t\treturn -1', '\t}',
-            '\tfor k := 0; k+len(x) <= len(v); k++ {', '\t\tif e := k + len(x); v[k:e] == x {', '\t\t\treturn k', '\t\t}', '\t}',
-            '}',
-            'return -1' ] };
-    }
-    return { 'head': 'func(v any) int {', 'arity': 1, 'body': [ ...HX4G36_DEREF,
-        'r := reflect.ValueOf(d(v))',
-        'switch r.Kind() {',
-        'case reflect.String, reflect.Array, reflect.Slice:', '\treturn r.Len()',
-        '}',
-        'return 0' ] };
-}
-
-// an `any` parameter named after a predeclared type (TS `string: Str`) is renamed inside its own function
-// so the closure can name the type; only when every use of the name there is a value use
-function hx4G45RenameShadowParams (content: string): string {
-    const names = [ 'string', 'int', 'bool', 'any', 'int64', 'float64', 'len' ];
-    let masked = goArithMask (content);
-    let text = content;
-    const heads = [ ...masked.matchAll (/\nfunc (?:\([^)]*\) )?\w+\(([^)]*)\)[^\n{]*\{\n/g) ].reverse ();
-    for (const h of heads) {
-        const start = (h.index as number) + 1;
-        const endAt = masked.indexOf ('\n}\n', start);
-        if (endAt < 0) {
-            continue;
-        }
-        const end = endAt + 2;
-        const fn = masked.slice (start, end);
-        if (!/(?<![\w.])(?:ccxt\.)?(?:Slice|GetIndexOf|GetLength)\(/.test (fn)) {
-            continue;
-        }
-        let fnText = text.slice (start, end);
-        let fnMasked = fn;
-        for (const name of names) {
-            if (!new RegExp ('[(,]\\s*' + name + ' any\\b').test (h[1])) {
-                continue;
-            }
-            const fresh = name + 'Value';
-            const word = new RegExp ('(?<![\\w.])' + name + '(?!\\w)', 'g');
-            const uses = [ ...fnMasked.matchAll (word) ];
-            // value uses only: no `[]T`, `map[T]`, `.(T)`, `*T`, `T(` conversions, no `T{`, and the fresh name is free
-            const typeUse = uses.some ((m) => {
-                const at = m.index as number;
-                const before = fnMasked.slice (Math.max (0, at - 2), at);
-                const after = fnMasked[at + name.length];
-                return /\]$|\[$|\.\($|\*$/.test (before) || (after === '(') || (after === '{') || (after === ']');
-            });
-            if (typeUse || new RegExp ('(?<![\\w.])' + fresh + '(?!\\w)').test (fnMasked)) {
-                continue;
-            }
-            let out = '';
-            let last = 0;
-            for (const m of uses) {
-                const at = m.index as number;
-                // the parameter declaration itself `string any` is also a value position
-                out += fnText.slice (last, at) + fresh;
-                last = at + name.length;
-            }
-            fnText = out + fnText.slice (last);
-            fnMasked = goArithMask (fnText);
-        }
-        text = text.slice (0, start) + fnText + text.slice (end);
-        masked = masked.slice (0, start) + fnMasked + masked.slice (end);
-    }
-    return text;
-}
-
-export function hx4G45InlineStr (content: string, aligner?: Hx4G36Aligner): string {
-    if (content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) {
-        return content;
-    }
-    const rx = new RegExp ('(?<![\\w.])(?:ccxt\\.)?(' + HX4G45_HELPERS.join ('|') + ')\\(', 'g');
-    content = hx4G45RenameShadowParams (content);
-    let masked = goArithMask (content);
-    if (/(?<![\w.])(?:math|reflect|strconv)\s*(?::=|,\s*\w+\s*:?=)|\bvar (?:math|reflect|strconv)\b|[(,]\s*(?:math|reflect|strconv)\s+[\w*[]/.test (masked)) {
-        return content;
-    }
-    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }))
-        .filter ((c) => !/\bfunc\s*(?:\([^)]*\)\s*)?$/.test (masked.slice (Math.max (0, c.start - 80), c.start)));
-    calls.sort ((x, y) => y.start - x.start);
-    let text = content;
-    const used = new Set<string> ();
-    let marked = false;
-    for (const call of calls) {
-        const close = goArithClose (masked, call.open);
-        if (close < 0) {
-            continue;
-        }
-        // the closure body names predeclared types/builtins: skip a function that redeclares one
-        const fnStart = masked.lastIndexOf ('\nfunc ', call.start);
-        const fnEnd = masked.indexOf ('\n}\n', call.start);
-        const fnText = masked.slice (Math.max (0, fnStart), (fnEnd < 0) ? masked.length : fnEnd);
-        const names = '(?:string|any|bool|int|int8|int16|int32|int64|uint|uint8|uint16|uint32|float32|float64|len|nil|true|false)';
-        if (new RegExp ('(?<![\\w.])' + names + '[ \\t]*(?::=|,[ \\t]*\\w+[ \\t]*:?=)|\\bvar[ \\t]+' + names + '\\b|[(,][ \\t]*' + names + '[ \\t]+[\\w*[.]|\\bfor[ \\t]+(?:\\w+[ \\t]*,[ \\t]*)?' + names + '[ \\t]*:=').test (fnText)) {
-            continue;
-        }
-        const spans = goArithArgs (masked, call.open, close);
-        const tpl = hx4G45Template (call.helper);
-        if ((spans.length !== tpl.arity) || spans.some (([ s, e ]) => text.slice (s, e).trim () === '')) {
-            continue;
-        }
-        const lineStart = text.lastIndexOf ('\n', call.start - 1) + 1;
-        const indent = /^\t*/.exec (text.slice (lineStart))[0];
-        const body = tpl.body.map ((l) => indent + '\t' + l).join ('\n');
-        const args = spans.map (([ s, e ]) => text.slice (s, e).trim ()).join (', ');
-        let native = tpl.head + '\n' + body + '\n' + indent + '}(' + args + ')';
-        for (const pkg of [ 'math', 'reflect', 'strconv' ]) {
-            if (new RegExp ('\\b' + pkg + '\\.').test (body)) {
-                used.add (pkg);
-            }
-        }
-        const keyed = /^\t*"(?:[^"\\]|\\.)*":/.test (text.slice (lineStart, call.start)) && (aligner !== undefined);
-        const maskedNative = goArithMask (native);
-        if (keyed) {
-            native = HX4G36_MARK + native;
-            marked = true;
-        }
-        text = text.slice (0, call.start) + native + text.slice (close + 1);
-        masked = masked.slice (0, call.start) + (keyed ? ' '.repeat (HX4G36_MARK.length) : '') + maskedNative + masked.slice (close + 1);
-    }
-    if (marked) {
-        const lines = text.split ('\n');
-        for (let k = lines.length - 1; k >= 0; k--) {
-            if (lines[k].includes (HX4G36_MARK)) {
-                lines[k] = lines[k].split (HX4G36_MARK).join ('');
-                hx4G36Realign (lines, k, aligner as Hx4G36Aligner);
-            }
-        }
-        text = lines.join ('\n');
-    }
-    for (const pkg of [ 'strconv', 'reflect', 'math' ]) {
-        if (used.has (pkg)) {
-            text = hx4G36AddImport (text, pkg);
-            if (!new RegExp ('^import "' + pkg + '"$|^\\s+"' + pkg + '"$', 'm').test (text)) {
-                return content;
-            }
-        }
-    }
-    return text;
-}
-
-export function hx4G45Check (aligner?: Hx4G36Aligner): string[] {
-    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
-    const problems: string[] = [];
-    const run = (body: string) => hx4G45InlineStr (head + 'func (this *K) F(a any, b any) any {\n' + body + '\n}\n', aligner);
-    const nested = run ('\tif GetIndexOf(Slice(a, 0, GetLength(b)), "x") > -1 {\n\t\treturn ccxt.Slice(a, OpNeg(2), nil)\n\t}\n\treturn this.ArraySlice(a, 1)');
-    if (/(?<![\w.])(?:ccxt\.)?(Slice|GetIndexOf|GetLength)\(/.test (nested) || !nested.includes ('this.ArraySlice(a, 1)') || !nested.includes ('}(a, OpNeg(2), nil)')) {
-        problems.push ('hx4 G45: calls not lowered: ' + nested);
-    }
-    if (!nested.includes ('import "reflect"') || !nested.includes ('import "strconv"') || !nested.includes ('import "math"') || /strconv\.ParseInt\(|strings\./.test (nested)) {
-        problems.push ('hx4 G45: imports / census-visible stdlib: ' + nested);
-    }
-    const decl = hx4G45InlineStr (head + 'func Slice(a, b, c any) string {\n\treturn ""\n}\n', aligner);
-    if (!decl.includes ('func Slice(a, b, c any) string {')) {
-        problems.push ('hx4 G45: helper declaration rewritten');
-    }
-    const typeShadow = hx4G45InlineStr (head + 'func (this *K) G(a any, string any) any {\n\treturn GetIndexOf(a, string)\n}\n\nfunc (this *K) H(a any) any {\n\treturn GetLength(a)\n}\n', aligner);
-    if (!typeShadow.includes ('G(a any, stringValue any) any {') || /(?<![\w.])GetIndexOf\(/.test (typeShadow) || /(?<![\w.])GetLength\(/.test (typeShadow)) {
-        problems.push ('hx4 G45: shadowing any parameter not renamed: ' + typeShadow);
-    }
-    const typed = hx4G45InlineStr (head + 'func (this *K) G(a any, string any) any {\n\tvar x []string = nil\n\treturn GetIndexOf(x, string)\n}\n', aligner);
-    if (!typed.includes ('return GetIndexOf(x, string)')) {
-        problems.push ('hx4 G45: type use of a shadowed name must keep the helper: ' + typed);
-    }
-    const shadow = run ('\treflect := 1\n\treturn GetLength(reflect)');
-    const hand = hx4G45InlineStr ('package ccxt\n\nfunc F(a any) any {\n\treturn GetLength(a)\n}\n', aligner);
-    if (!shadow.includes ('GetLength(reflect)') || !hand.includes ('GetLength(a)')) {
-        problems.push ('hx4 G45: shadowed / hand-written file rewritten');
-    }
-    return problems;
-}
-
 // hx4 G46
 // Last-resort lowering of the parse & coercion helpers (ToString, StringArg, ParseInt, ParseFloat, ToFloat64,
 // ToFixed, Int64Arg): each call becomes an inline closure repeating the exchange_helpers.go body with stdlib
@@ -3606,5 +3389,159 @@ export function hx4G46Check (aligner?: Hx4G36Aligner): string[] {
     ok (pr.includes ('return (precise.ToString)()'), 'precise method spelling: ' + pr);
     const late = hx4G46InlineParse ('package ccxt\n\ntype T struct{}\n\n' + head.slice (14) + 'func F(a any) int64 {\n\treturn ParseInt(a)\n}\n', aligner);
     ok (/^package ccxt\n\n(?:import "\w+"\n\n)+type T struct\{\}\n/.test (late) && late.includes ('import "strconv"') && !left (late), 'late header import: ' + late);
+    return problems;
+}
+
+// hx5 X28
+// Slice/GetIndexOf/GetLength: a call becomes the plain Go op only when the function text proves the operand
+// types; every other call stays the exchange_helpers.go helper exactly as master emitted (no inlined body).
+//   GetLength(x)        -> len(x)              x a declared `string` / `[]T` (helper: reflect Len; nil slice 0 = len)
+//   GetIndexOf(s, t)    -> strings.Index(s, t) s and t both proven `string` (the helper's string arm)
+//   Slice(s, 0, nil)    -> s                   s proven `string` (helper returns str[0:])
+//   Slice("lit", a, b)  -> "lit"[a:b]          literal receiver, 0 <= a <= b <= len(lit) literal bounds
+// Anything with a `*string` / `any` operand, a computed bound or a possibly negative index keeps the helper:
+// the helper derefs, ParseInt-s and clamps where Go slicing panics.
+function hx5X28StringKind (fnMasked: string, signature: string, text: string, masked: string): 'str' | 'list' | undefined {
+    const t = goArithStripParens (text);
+    const m = goArithStripParens (masked);
+    if (/^"(?:[^"\\\n]|\\.)*"$/.test (t)) {
+        return 'str';
+    }
+    if (/^[A-Za-z_]\w*$/.test (t) && ![ 'nil', 'true', 'false' ].includes (t)) {
+        const type = goArithDeclaredType (fnMasked, signature, t);
+        if (type === 'string') {
+            return 'str';
+        }
+        return ((type !== undefined) && /^\[\](?:any|string|int|int64|float64|bool|interface\{\}|map\[string\]any)$/.test (type)) ? 'list' : undefined;
+    }
+    // package helpers whose Go signature returns a plain string (go/v4/exchange_helpers.go)
+    const call = /^(?:ccxt\.)?(ToString|ToLower|ToUpper|Trim|Join|Replace|Slice|JsonStringify|StringArg)\(/.exec (m);
+    if (call && (goArithClose (m, call[0].length - 1) === m.length - 1)) {
+        return 'str';
+    }
+    return undefined;
+}
+
+function hx5X28Native (helper: string, args: string[], maskedArgs: string[], fnMasked: string, signature: string): string | undefined {
+    const kinds = args.map ((a, i) => hx5X28StringKind (fnMasked, signature, a, maskedArgs[i]));
+    const primary = (a: string) => {
+        const t = goArithStripParens (a);
+        return /^[\w.]+(?:\(.*\))?$|^"(?:[^"\\\n]|\\.)*"$/.test (t) ? t : '(' + t + ')';
+    };
+    if (helper === 'GetLength') {
+        return ((args.length === 1) && (kinds[0] !== undefined)) ? 'len(' + goArithStripParens (args[0]) + ')' : undefined;
+    }
+    if (helper === 'GetIndexOf') {
+        return ((args.length === 2) && (kinds[0] === 'str') && (kinds[1] === 'str')) ? 'strings.Index(' + goArithStripParens (args[0]) + ', ' + goArithStripParens (args[1]) + ')' : undefined;
+    }
+    if ((args.length !== 3) || (kinds[0] !== 'str')) {
+        return undefined;
+    }
+    const s = goArithStripParens (args[0]);
+    const a = goArithStripParens (args[1]);
+    const b = goArithStripParens (args[2]);
+    if ((a === '0') && (b === 'nil')) {
+        return s;
+    }
+    const lit = /^"((?:[^"\\\n]|\\.)*)"$/.exec (s);
+    if (!lit || lit[1].includes ('\\') || !/^\d+$/.test (a) || !/^\d+$/.test (b)) {
+        return undefined;
+    }
+    const size = Buffer.byteLength (lit[1], 'utf8');
+    return ((Number (a) <= Number (b)) && (Number (b) <= size)) ? primary (s) + '[' + a + ':' + b + ']' : undefined;
+}
+
+export function hx4G45InlineStr (content: string, _aligner?: Hx4G36Aligner): string {
+    if (content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) {
+        return content;
+    }
+    const rx = /(?<![\w.])(?:ccxt\.)?(Slice|GetIndexOf|GetLength)\(/g;
+    let masked = goArithMask (content);
+    // a package-level or local `strings` / `len` redeclaration would capture the native spelling
+    if (/(?<![\w.])(?:strings|len)\s*(?::=|,\s*\w+\s*:?=)|\bvar\s+(?:strings|len)\b|[(,]\s*(?:strings|len)\s+[\w*[]/.test (masked)) {
+        return content;
+    }
+    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }))
+        .filter ((c) => !/\bfunc\s*(?:\([^)]*\)\s*)?$/.test (masked.slice (Math.max (0, c.start - 80), c.start)));
+    calls.sort ((x, y) => y.start - x.start);
+    let text = content;
+    let usesStrings = false;
+    for (const call of calls) {
+        const close = goArithClose (masked, call.open);
+        if (close < 0) {
+            continue;
+        }
+        const fnStart = masked.lastIndexOf ('\nfunc ', call.start);
+        if (fnStart < 0) {
+            continue;
+        }
+        const fnEndAt = masked.indexOf ('\n}\n', call.start);
+        const fnMasked = masked.slice (fnStart + 1, (fnEndAt < 0) ? masked.length : fnEndAt + 2);
+        const nl = fnMasked.indexOf ('\n');
+        const signature = fnMasked.slice (0, (nl < 0) ? fnMasked.length : nl);
+        const spans = goArithArgs (masked, call.open, close);
+        const args = spans.map (([ s, e ]) => text.slice (s, e).trim ());
+        const maskedArgs = spans.map (([ s, e ]) => masked.slice (s, e).trim ());
+        if (args.some ((a) => a === '')) {
+            continue;
+        }
+        const native = hx5X28Native (call.helper, args, maskedArgs, fnMasked, signature);
+        if (native === undefined) {
+            continue;
+        }
+        usesStrings = usesStrings || native.startsWith ('strings.');
+        text = text.slice (0, call.start) + native + text.slice (close + 1);
+        masked = masked.slice (0, call.start) + goArithMask (native) + masked.slice (close + 1);
+    }
+    if (usesStrings) {
+        const withImport = hx4G36AddImport (text, 'strings');
+        if (!/^import "strings"$|^\s+"strings"$/m.test (withImport)) {
+            return content;
+        }
+        text = withImport;
+    }
+    return text;
+}
+
+export function hx4G45Check (aligner?: Hx4G36Aligner): string[] {
+    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
+    const problems: string[] = [];
+    const ok = (cond: boolean, msg: string) => {
+        if (!cond) {
+            problems.push ('hx5 X28: ' + msg);
+        }
+    };
+    const run = (sig: string, body: string) => hx4G45InlineStr (head + 'func (this *K) F(' + sig + ') any {\n' + body + '\n}\n', aligner);
+    // unproven operands keep the helper call exactly, never an inline closure
+    const any = run ('a any, b any', '\tif GetIndexOf(Slice(a, 0, GetLength(b)), "x") > -1 {\n\t\treturn ccxt.Slice(a, OpNeg(2), nil)\n\t}\n\treturn this.ArraySlice(a, 1)');
+    // (Slice returns a Go string, so the outer search is proven: strings.Index)
+    ok (any.includes ('strings.Index(Slice(a, 0, GetLength(b)), "x") > -1') && any.includes ('ccxt.Slice(a, OpNeg(2), nil)') && !/func\(/.test (any.slice (any.indexOf ('{'))), 'any operands must keep the helper: ' + any);
+    // proven string / slice operands become the plain op
+    const typed = run ('s string, xs []any', '\tvar t string = "/"\n\tif GetIndexOf(s, t) > -1 && GetLength(xs) > 0 {\n\t\treturn GetLength(s)\n\t}\n\treturn GetIndexOf(ToString(s), "-")');
+    ok (typed.includes ('strings.Index(s, t) > -1 && len(xs) > 0') && typed.includes ('return len(s)') && typed.includes ('strings.Index(ToString(s), "-")') && typed.includes ('import "strings"'), 'proven operands not native: ' + typed);
+    // mixed: a proven string searched for an any target keeps the helper
+    const mixed = run ('s string, b any', '\treturn GetIndexOf(s, b)');
+    ok (mixed.includes ('return GetIndexOf(s, b)'), 'any target lowered: ' + mixed);
+    // *string can be nil: helper
+    const ptr = run ('s *string', '\treturn GetLength(s)');
+    ok (ptr.includes ('return GetLength(s)'), '*string lowered: ' + ptr);
+    // Slice: only bounds proven in range
+    const sl = run ('s string, i int', '\treturn []any{Slice(s, 0, nil), Slice("abcdef", 1, 3), Slice("ab", 0, 5), Slice(s, 0, 4), Slice(s, i, nil), Slice("abc", OpNeg(1), nil)}');
+    ok (sl.includes ('[]any{s, "abcdef"[1:3], Slice("ab", 0, 5), Slice(s, 0, 4), Slice(s, i, nil), Slice("abc", OpNeg(1), nil)}'), 'Slice bounds proof: ' + sl);
+    // a redeclared name (two declarations) is not proven
+    const twice = run ('a any', '\tif true {\n\t\tvar s string = ""\n\t\t_ = s\n\t}\n\tvar s any = a\n\treturn GetLength(s)');
+    ok (twice.includes ('return GetLength(s)'), 'twice-declared name lowered: ' + twice);
+    // helper declaration, hand-written file, shadowed builtin
+    const decl = hx4G45InlineStr (head + 'func Slice(a, b, c any) string {\n\treturn ""\n}\n', aligner);
+    ok (decl.includes ('func Slice(a, b, c any) string {'), 'helper declaration rewritten');
+    const hand = 'package ccxt\n\nfunc F(a string) any {\n\treturn GetLength(a)\n}\n';
+    ok (hx4G45InlineStr (hand, aligner) === hand, 'hand-written file rewritten');
+    const shadow = run ('s string', '\tlen := 1\n\t_ = len\n\treturn GetLength(s)');
+    ok (shadow.includes ('return GetLength(s)'), 'shadowed len: ' + shadow);
+    // a parameter named `string` no longer needs a rename (no closure names the type)
+    const strParam = run ('a any, string any', '\treturn GetIndexOf(a, string)');
+    ok (strParam.includes ('F(a any, string any)') && strParam.includes ('return GetIndexOf(a, string)'), 'string param touched: ' + strParam);
+    // idempotent
+    ok (hx4G45InlineStr (typed, aligner) === typed && hx4G45InlineStr (sl, aligner) === sl, 'not idempotent');
     return problems;
 }
