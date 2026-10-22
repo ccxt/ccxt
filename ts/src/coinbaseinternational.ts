@@ -569,8 +569,7 @@ export default class coinbaseinternational extends Exchange {
         //     }
         //
         const instruments = this.safeList (response, 'result', []);
-        const parsedMarkets = this.parseMarkets (instruments);
-        return parsedMarkets;
+        return this.parseMarkets (instruments);
     }
 
     override parseMarket (market: Dict): Market {
@@ -1910,12 +1909,11 @@ export default class coinbaseinternational extends Exchange {
         //     }
         //
         const result = this.safeList (response, 'result', []);
-        const positions = this.parsePositions (result);
         if (this.isEmpty (symbols)) {
-            return positions;
+            return this.parsePositions (result);
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayPositions (positions, 'symbol', symbolsNormalized);
+        return this.parsePositions (result, symbolsNormalized);
     }
 
     /**
