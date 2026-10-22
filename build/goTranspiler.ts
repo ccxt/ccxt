@@ -4609,9 +4609,9 @@ class NewTranspiler {
             [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
             
             [/\.Append\(/g, '.(Appender).Append('],
-            // WS caches are stored as any. Clear needs the same interface dispatch
-            // as Append; the any conversion also accepts statically typed caches.
-            [/\b(\w+(?:\.\w+)*)\.Clear\(\)/g, 'any($1).(interface{ Clear() }).Clear()'],
+            // Order caches are stored as any. Keep Clear calls on concrete cache
+            // locals and unrelated types statically checked.
+            [/(?<![\w.])(cachedOrders|this\.Orders)\.Clear\(\)/g, '$1.(interface{ Clear() }).Clear()'],
             [/stored\.\(Appender\)\.Append\(this\.ParseOHLCV/g, "stored.Append(this.ParseOHLCV"],
             [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
             // `const stored = new ArrayCache (limit)` prints as a short declaration; the ws regexes
@@ -8772,6 +8772,28 @@ async function runLocalTypeAudit () {
     process.exit (pass ? 0 : 1);
 }
 
+function goCacheClearSelfTest (): string[] {
+    const driver = new NewTranspiler ();
+    const cases = [
+        [ 'cachedOrders.Clear()', 'cachedOrders.(interface{ Clear() }).Clear()' ],
+        [ 'this.Orders.Clear()', 'this.Orders.(interface{ Clear() }).Clear()' ],
+        [ 'arrayCache.Clear()', 'arrayCache.Clear()' ],
+        [ 'cacheClearById.Clear()', 'cacheClearById.Clear()' ],
+        [ 'cacheClearTimestamp.Clear()', 'cacheClearTimestamp.Clear()' ],
+        [ 'cacheClearBySide.Clear()', 'cacheClearBySide.Clear()' ],
+        [ 'buffer.Clear()', 'buffer.Clear()' ],
+        [ 'other.Orders.Clear()', 'other.Orders.Clear()' ],
+    ];
+    const problems: string[] = [];
+    for (const [ input, expected ] of cases) {
+        const actual = driver.regexAll (input, driver.getWsRegexes ());
+        if (actual !== expected) {
+            problems.push (`cache clear: ${input} became ${actual}, expected ${expected}`);
+        }
+    }
+    return problems;
+}
+
 async function runMain () {
     if (process.argv.includes ('--audit-local-types')) {
         await runLocalTypeAudit ();
@@ -8782,7 +8804,9 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
+        const cacheClearProblems = goCacheClearSelfTest ();
         const problems = g10kArithSelfTest ().concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ());
+        problems.push (...cacheClearProblems);
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
