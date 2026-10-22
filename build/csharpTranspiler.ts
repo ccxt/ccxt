@@ -13323,11 +13323,9 @@ export function hx4C33NativeHelperCalls (objectNull: boolean, content: string): 
         if (args.length !== 2) return undefined;
         const [ x, k ] = args;
         const lit = /^"[ ]*"$/.test (masks[1]) && /^"(?:[^"\\]|\\.)*"$/.test (k);
-        if (helper === 'getIndexOf') {
-            // the target is read only by the matched arm: keep it side-effect free
-            if (!lit && !/^[A-Za-z_]\w*$/.test (k)) return undefined;
-            return sw (x, `IList<object> c33a => c33a.IndexOf(${k}), IList<string> c33t => c33t.IndexOf((string)(object)${k}), string c33s => c33s.IndexOf((string)(object)${k}), _ => -1`);
-        }
+        // hx5 X04: no inline getIndexOf switch. A declared string receiver is made native by hx4 C04 / C16;
+        // every other receiver keeps the helper call (its -1 for an unmatched box and its casts stay in one place)
+        if (helper === 'getIndexOf') return undefined;
         if (helper === 'inOp') {
             if (!lit) return undefined;
             return sw (x, `null => false, IList<object> c33a => c33a.Contains(${k}), IList<string> c33t => c33t.Contains(${k}), List<Int64> c33g => c33g.Contains((Int64)(object)${k}), IDictionary<string, object> c33d => c33d.ContainsKey(${k}), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey(${k}), _ => false`);
@@ -13387,7 +13385,6 @@ function hx4C33SnippetChecks (): string[] {
         [ 'isEqual int', '        if (isEqual(x, -1)) { }', 'Int64 c33l => c33l == -1, int c33i => c33i == -1,' ],
         [ 'isEqual int ulong', '        if (isEqual(x, 0)) { }', 'ulong c33z => c33z == 0UL, _ => false' ],
         [ 'inOp lit', '        if (inOp(x, "k")) { }', 'IDictionary<string, object> c33d => c33d.ContainsKey("k")' ],
-        [ 'getIndexOf', '        int p = getIndexOf(x, "?");', 'string c33s => c33s.IndexOf((string)(object)"?"), _ => -1 })' ],
         [ 'nested', '        if (isTrue(isEqual(x, null))) { }', 'if ((((object)((((object)(x)) == null))) switch {' ],
     ];
     const keeps: [string, string][] = [
@@ -13397,6 +13394,8 @@ function hx4C33SnippetChecks (): string[] {
         [ 'isEqual big int', '        if (isEqual(x, 100000000)) { }' ],
         [ 'inOp name key', '        if (inOp(x, y)) { }' ],
         [ 'getIndexOf call target', '        int p = getIndexOf(x, this.f(x, y));' ],
+        // hx5 X04: an object receiver with a literal needle keeps the plain helper call
+        [ 'getIndexOf object receiver', '        int p = getIndexOf(x, "?");' ],
         [ 'in string', '        string s = "isTrue(x)"; // isTrue(x)' ],
     ];
     for (const [ name, body, expected ] of cases) {
