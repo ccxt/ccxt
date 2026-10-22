@@ -2058,7 +2058,7 @@ func (this *Bullish) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...a
 	}
 	var tradingAccountId *string = SafeStringPtr(r1.Value)
 	var paginate *bool = this.SafeBool(params, "paginate", false)
-	if paginate != nil && *paginate == true {
+	if paginate != nil && *paginate {
 		var paramsPagination any = this.HandlePaginationParams("fetchOrders", since, params)
 
 		r2 := <-this.FetchPaginatedCallDynamicAsync("fetchOrders", symbol, since, limit, paramsPagination, 100)
@@ -2627,7 +2627,7 @@ func (this *Bullish) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 		request["type"] = ToUpper(typeVar)
 	}
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
-	if postOnly != nil && *postOnly == true {
+	if postOnly != nil && *postOnly {
 		request["type"] = "POST_ONLY"
 	}
 	if amount != nil {
@@ -2637,7 +2637,7 @@ func (this *Bullish) editOrderBody(ch chan AsyncResult[map[string]any], id strin
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
-		if postOnly != nil && *postOnly == true {
+		if postOnly != nil && *postOnly {
 			return this.OmitDict(params, "postOnly")
 		}
 		return params
@@ -3806,7 +3806,7 @@ func (this *Bullish) transferBody(ch chan AsyncResult[map[string]any], code stri
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	var transfer map[string]any = this.ParseTransfer(response, currency)
-	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
+	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		transfer["fromAccount"] = fromAccount
 		transfer["toAccount"] = toAccount
 		transfer["amount"] = amount

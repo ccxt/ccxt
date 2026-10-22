@@ -1721,7 +1721,7 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side *string = nil
 	if isBuyer != nil {
 		side = SafeStringPtr(func() string {
-			if isBuyer != nil && *isBuyer == true {
+			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
 			return "sell"
@@ -1941,7 +1941,7 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 	}()
 	var paramsRequest any = this.Omit(paramsBase, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty")
 	var response any = map[string]any{}
-	if testOrder != nil && *testOrder == true {
+	if testOrder != nil && *testOrder {
 
 		r1 := <-this.PrivatePostOpenapiV1OrderTest(this.Extend(request, paramsRequest))
 		if r1.Err != nil {
@@ -2585,7 +2585,7 @@ func (this *Coinsph) withdrawBody(ch chan EndpointResult[map[string]any], code s
 	var paramsWithdrawTag map[string]any = MapTyped(tagparamsWithdrawTagVariable[1])
 	var options map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var warning *bool = this.SafeBool(options, "warning", true)
-	if warning != nil && *warning == true {
+	if warning != nil && *warning {
 		panic(InvalidAddress(this.Id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account"))
 	}
 	var networkCode *string = this.SafeString(paramsWithdrawTag, "network")

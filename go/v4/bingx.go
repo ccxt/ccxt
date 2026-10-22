@@ -1293,7 +1293,7 @@ func (this *Bingx) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ..
 		return nil
 	}
 	var isSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	if isSandbox != nil && *isSandbox == true {
+	if isSandbox != nil && *isSandbox {
 
 		ch <- AsyncResult[any]{Value: map[string]any{}}
 		return nil
@@ -1717,7 +1717,7 @@ func (this *Bingx) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...an
 	_ = params
 	var requests []any = []any{this.FetchSwapMarketsAsync(params)}
 	var isSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	if isSandbox == nil || *isSandbox != true {
+	if !(isSandbox != nil && *isSandbox) {
 		requests = append(requests, this.FetchInverseSwapMarketsAsync(params))
 		requests = append(requests, this.FetchSpotMarketsAsync(params)) // sandbox is swap only
 	}
@@ -2951,15 +2951,15 @@ func (this *Bingx) ParseOpenInterest(interest any, optionalArgs ...any) map[stri
 	var symbol *string = this.SafeSymbol(id, market, "-", "swap")
 	var openInterest *float64 = this.SafeNumber(interest, "openInterest")
 	var inverse *bool = this.SafeBool(market, "inverse", false)
-	var isInverse bool = (inverse != nil && *inverse == true)
+	var isInverse any = (inverse)
 	var openInterestAmount *float64 = func() *float64 {
-		if isInverse {
+		if EvalTruthy(isInverse) {
 			return openInterest
 		}
 		return nil
 	}()
 	var openInterestValue *float64 = func() *float64 {
-		if isInverse {
+		if EvalTruthy(isInverse) {
 			return nil
 		}
 		return openInterest
@@ -4237,7 +4237,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (timeInForce != nil && *timeInForce == "PostOnly"), paramsMarketType)
 	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
 	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
-	if (postOnly == true) || (timeInForce != nil && *timeInForce == "PostOnly") {
+	if (postOnly) || (timeInForce != nil && *timeInForce == "PostOnly") {
 		request["timeInForce"] = "PostOnly"
 	} else if timeInForce != nil && *timeInForce == "IOC" {
 		request["timeInForce"] = "IOC"
@@ -4425,13 +4425,13 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var positionSide string
 		var hedged *bool = this.SafeBool(paramsTakeProfit, "hedged", false)
 		paramsOrder = func() any {
-			if hedged != nil && *hedged == true {
+			if hedged != nil && *hedged {
 				return this.Omit(paramsTakeProfit, "reduceOnly")
 			}
 			return paramsTakeProfit
 		}()
-		if hedged != nil && *hedged == true {
-			if IsEqual(reduceOnly, true) {
+		if hedged != nil && *hedged {
+			if EvalTruthy(reduceOnly) {
 				positionSide = func() string {
 					if IsEqual(side, "buy") {
 						return "SHORT"
@@ -4453,7 +4453,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var closePosition *bool = this.SafeBool(paramsOrder, "closePosition", false)
 		if cost != nil {
 			request["quoteOrderQty"] = this.ParseToNumeric(this.CostToPrecision(symbol, cost))
-		} else if closePosition == nil || *closePosition != true {
+		} else if !(closePosition != nil && *closePosition) {
 			var amountReq any = amount
 			if market["inverse"] != true {
 				amountReq = this.ParseToNumeric(this.AmountToPrecision(symbol, amount))
@@ -4529,7 +4529,7 @@ func (this *Bingx) createOrderBody(ch chan AsyncResult[map[string]any], symbol s
 	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsOmitted))
 	var response any = nil
 	if market["swap"] == true {
-		if test != nil && *test == true {
+		if test != nil && *test {
 
 			r1 := <-this.SwapV2PrivatePostTradeOrderTest(request)
 			if r1.Err != nil {
@@ -4744,7 +4744,7 @@ func (this *Bingx) createOrdersBody(ch chan AsyncResult[any], orders any, option
 		response = r1.Raw
 	} else {
 		var sync *bool = this.SafeBool(params, "sync", false)
-		if sync != nil && *sync == true {
+		if sync != nil && *sync {
 			request["sync"] = true
 		}
 		request["data"] = this.Json(ordersRequests)
@@ -5312,7 +5312,7 @@ func (this *Bingx) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, 
 	var paramsOmitted map[string]any = this.OmitDict(params, "twap")
 	var response map[string]any = nil
 	var market map[string]any = nil
-	if isTwapOrder != nil && *isTwapOrder == true {
+	if isTwapOrder != nil && *isTwapOrder {
 		var twapRequest map[string]any = map[string]any{
 			"mainOrderId": id,
 		}
@@ -5750,7 +5750,7 @@ func (this *Bingx) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, o
 	var paramsOmitted map[string]any = this.OmitDict(params, "twap")
 	var response map[string]any = nil
 	var market map[string]any = nil
-	if isTwapOrder != nil && *isTwapOrder == true {
+	if isTwapOrder != nil && *isTwapOrder {
 		var twapRequest map[string]any = map[string]any{
 			"mainOrderId": id,
 		}
@@ -5979,7 +5979,7 @@ func (this *Bingx) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	} else {
 		var isTwapOrder *bool = this.SafeBool(paramsSubType, "twap", false)
 		var paramsOmitted map[string]any = this.OmitDict(paramsSubType, "twap")
-		if isTwapOrder != nil && *isTwapOrder == true {
+		if isTwapOrder != nil && *isTwapOrder {
 
 			r2 := <-this.SwapV1PrivateGetTwapOpenOrders(this.Extend(request, paramsOmitted))
 			if r2.Err != nil {
@@ -6327,7 +6327,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], 
 	} else {
 		var isTwapOrder *bool = this.SafeBool(paramsStandard, "twap", false)
 		var paramsOmitted map[string]any = this.OmitDict(paramsStandard, "twap")
-		if isTwapOrder != nil && *isTwapOrder == true {
+		if isTwapOrder != nil && *isTwapOrder {
 			request["pageIndex"] = 1
 			request["pageSize"] = func() any {
 				if limit == nil {
@@ -8619,7 +8619,7 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 	var access any = GetValue(section, 2)
 	var isSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var url any = this.ImplodeHostname(GetValue(this.Urls["api"], typeVar))
-	if (isSandbox != nil && *isSandbox == true) && (url == nil) {
+	if (isSandbox != nil && *isSandbox) && (url == nil) {
 		panic(NotSupported(this.Id + " does not have a testnet/sandbox URL for " + *typeVar + " endpoints"))
 	}
 	var pathValue string = this.ImplodeParams(path, params)

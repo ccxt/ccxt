@@ -2692,7 +2692,7 @@ func (this *Bitso) HandleErrors(httpCode any, reason any, url any, method any, h
 				success = false
 			}
 		}
-		if !IsEqual(success, true) {
+		if !EvalTruthy(success) {
 			var feedback string = this.Id + " " + this.Json(response)
 			var error map[string]any = SafeMapTyped(response, "error")
 			if error == nil {

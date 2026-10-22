@@ -968,7 +968,7 @@ func (this *Woofipro) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalA
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	var topic string = "executionreport"
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 		topic = "algoexecutionreport"
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
@@ -1044,7 +1044,7 @@ func (this *Woofipro) watchMyTradesBody(ch chan ccxt.AsyncResult[[]any], optiona
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	var topic string = "executionreport"
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 		topic = "algoexecutionreport"
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "stop")

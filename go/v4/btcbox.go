@@ -1190,7 +1190,7 @@ func (this *Btcbox) HandleErrors(httpCode any, reason any, url any, method any, 
 		return nil // resort to defaultErrorHandler
 	}
 	var result *bool = this.SafeBool(response, "result")
-	if (result == nil) || (result != nil && *result == true) {
+	if (result == nil) || (result != nil && *result) {
 		return nil // either public API (no error codes expected) or success
 	}
 	var code *string = this.SafeString(response, "code")

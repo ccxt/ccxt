@@ -57,7 +57,7 @@ func testWatchTradesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 
 		}
 		now = exchange.Milliseconds()
-		if success == true {
+		if success {
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response)
 			for i := 0; i < GetArrayLength(response); i++ {
 				TestTrade(exchange, skippedProperties, method, GetValue(response, i), symbol, now, true)

@@ -508,13 +508,13 @@ func (this *Upbit) fetchCurrencyByIdBody(ch chan EndpointResult[map[string]any],
 	var walletLocked *bool = this.SafeBool(memberInfo, "wallet_locked")
 	var locked *bool = this.SafeBool(memberInfo, "locked")
 	var active bool = true
-	if (canWithdraw != nil) && (canWithdraw == nil || *canWithdraw != true) {
+	if (canWithdraw != nil) && (!(canWithdraw != nil && *canWithdraw)) {
 		active = false
 	} else if walletState == nil || *walletState != "working" {
 		active = false
-	} else if walletLocked != nil && *walletLocked == true {
+	} else if walletLocked != nil && *walletLocked {
 		active = false
-	} else if locked != nil && *locked == true {
+	} else if locked != nil && *locked {
 		active = false
 	}
 	var maxOnetimeWithdrawal *string = this.SafeString(withdrawLimits, "onetime")
@@ -1838,7 +1838,7 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[map[string]any], symbol s
 	}
 	var response any = nil
 	var paramsRequest any = this.Omit(paramsOrdType, []any{"timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test"})
-	if test != nil && *test == true {
+	if test != nil && *test {
 
 		r1 := <-this.PrivatePostOrdersTest(this.Extend(request, paramsRequest))
 		if r1.Err != nil {

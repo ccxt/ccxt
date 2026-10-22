@@ -2188,7 +2188,7 @@ func (this *Woo) editOrderBody(ch chan AsyncResult[map[string]any], id string, s
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"})
-	var isConditional bool = (isTrigger != nil && *isTrigger == true) || isTrailing || (triggerPrice != nil) || (!IsEqual(this.SafeValue(paramsOmitted, "childOrders"), nil))
+	var isConditional bool = (isTrigger != nil && *isTrigger) || isTrailing || (triggerPrice != nil) || (!IsEqual(this.SafeValue(paramsOmitted, "childOrders"), nil))
 	var response map[string]any = nil
 	if isConditional {
 		if isByClientOrder {
@@ -2262,7 +2262,7 @@ func (this *Woo) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, op
 	_ = params
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trigger", "stop"})
-	if (isTrigger == nil || *isTrigger != true) && (symbol == nil) {
+	if (!(isTrigger != nil && *isTrigger)) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
 	if this.Markets == nil {
@@ -2282,7 +2282,7 @@ func (this *Woo) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, op
 	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	var isByClientOrder bool = (clientOrderIdExchangeSpecific != nil)
 	var response map[string]any = nil
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 		if isByClientOrder {
 			request["clientAlgoOrderId"] = clientOrderIdExchangeSpecific
 		} else {
@@ -4257,7 +4257,7 @@ func (this *Woo) transferBody(ch chan AsyncResult[map[string]any], code string, 
 	var transfer map[string]any = this.ParseTransfer(data, currency)
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
-	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
+	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		transfer["amount"] = amount
 		transfer["fromAccount"] = fromAccount
 		transfer["toAccount"] = toAccount
@@ -4614,7 +4614,7 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		if (method == "POST") && ((path == "trade/algoOrder") || (path == "trade/order")) {
 			var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-			if isSandboxMode == nil || *isSandboxMode != true {
+			if !(isSandboxMode != nil && *isSandboxMode) {
 				var applicationId string = "bc830de7-50f3-460b-9ee0-f430f83f9dad"
 				var brokerId *string = this.SafeString(this.Options, "brokerId", applicationId)
 				var isTrigger bool = (strings.Index(path, "algo") > -1)

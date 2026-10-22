@@ -2467,7 +2467,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		var orderType any = nil
 		if IsEqual(side, "buy") {
 			var requestType int = func() int {
-				if reduceOnly != nil && *reduceOnly == true {
+				if reduceOnly != nil && *reduceOnly {
 					return 4
 				}
 				return 1
@@ -2475,7 +2475,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 			request["type"] = requestType
 		} else {
 			var requestType int = func() int {
-				if reduceOnly != nil && *reduceOnly == true {
+				if reduceOnly != nil && *reduceOnly {
 					return 3
 				}
 				return 2
@@ -2512,7 +2512,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		paramsRequest = this.OmitDict(paramsMarginMode, []any{"reduceOnly", "timeInForce", "postOnly"})
 	} else {
 		postOnlyParsed = func() int {
-			if postOnly == true {
+			if postOnly {
 				return 1
 			}
 			return 2
@@ -5839,7 +5839,7 @@ func (this *Digifinex) HandleMarginModeAndParams(methodName any, optionalArgs ..
 		if marginMode == nil || *marginMode != "cross" {
 			panic(NotSupported(this.Id + " only cross margin is supported"))
 		}
-	} else if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true) {
+	} else if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin) {
 		return SafeStringPtr("cross"), MapTyped(paramsMarginMode)
 	}
 	return SafeStringPtr(marginMode), MapTyped(paramsMarginMode)

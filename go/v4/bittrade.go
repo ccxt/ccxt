@@ -1726,7 +1726,7 @@ func (this *Bittrade) ParseCurrency(currency any) map[string]any {
 	var countryDisabled *bool = this.SafeBool(currency, "country-disabled")
 	var visible *bool = this.SafeBool(currency, "visible", false)
 	var state *string = this.SafeString(currency, "state")
-	var active bool = (visible != nil && *visible == true) && (depositEnabled != nil && *depositEnabled == true) && (withdrawEnabled != nil && *withdrawEnabled == true) && (state != nil && *state == "online") && (countryDisabled == nil || *countryDisabled != true)
+	var active bool = (visible != nil && *visible) && (depositEnabled != nil && *depositEnabled == true) && (withdrawEnabled != nil && *withdrawEnabled == true) && (state != nil && *state == "online") && (countryDisabled == nil || *countryDisabled != true)
 	var name *string = this.SafeString(currency, "display-name")
 	var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "withdraw-precision"))))
 	return this.SafeCurrencyStructure(map[string]any{

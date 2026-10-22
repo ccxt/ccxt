@@ -238,7 +238,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan ccxt.AsyncResult[any], optiona
 		var unified []any = r.Value
 		var isUnifiedMargin *bool = this.SafeBool(unified, 0, false)
 		var isUnifiedAccount *bool = this.SafeBool(unified, 1, false)
-		if (isUsdcSettled == true) && (isUnifiedMargin == nil || *isUnifiedMargin != true) && (isUnifiedAccount == nil || *isUnifiedAccount != true) {
+		if (isUsdcSettled == true) && (!(isUnifiedMargin != nil && *isUnifiedMargin)) && (!(isUnifiedAccount != nil && *isUnifiedAccount)) {
 			url = ccxt.GetValue(ccxt.GetValue(url, accessibility), "usdc")
 		} else {
 			url = ccxt.GetValue(ccxt.GetValue(url, accessibility), "contract")
@@ -3117,7 +3117,7 @@ func (this *Bybit) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], op
 		"spot":    "outboundAccountInfo",
 		"unified": "wallet",
 	}
-	if isUnifiedAccount != nil && *isUnifiedAccount == true {
+	if isUnifiedAccount != nil && *isUnifiedAccount {
 		// unified account
 		if subType != nil && *subType == "inverse" {
 			messageHash += ":contract"
@@ -3125,7 +3125,7 @@ func (this *Bybit) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], op
 			messageHash += ":unified"
 		}
 	}
-	if (isUnifiedMargin == nil || *isUnifiedMargin != true) && (isUnifiedAccount == nil || *isUnifiedAccount != true) {
+	if (!(isUnifiedMargin != nil && *isUnifiedMargin)) && (!(isUnifiedAccount != nil && *isUnifiedAccount)) {
 		// normal account using v5
 		if typeVar != nil && *typeVar == "spot" {
 			messageHash += ":spot"
@@ -3133,7 +3133,7 @@ func (this *Bybit) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], op
 			messageHash += ":contract"
 		}
 	}
-	if isUnifiedMargin != nil && *isUnifiedMargin == true {
+	if isUnifiedMargin != nil && *isUnifiedMargin {
 		// unified margin account using v5
 		if typeVar != nil && *typeVar == "spot" {
 			messageHash += ":spot"
@@ -3679,7 +3679,7 @@ func (this *Bybit) HandleErrorMessage(client any, message any) any {
 				panic(ccxt.ExchangeError(feedback))
 			}
 			var success *bool = this.SafeBool(message, "success")
-			if (success != nil) && (success == nil || *success != true) {
+			if (success != nil) && (!(success != nil && *success)) {
 				var ret_msg *string = this.SafeString(message, "ret_msg")
 				var request map[string]any = ccxt.SafeMapTyped(message, "request")
 				var op *string = this.SafeString(request, "op")

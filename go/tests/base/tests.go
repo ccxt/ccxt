@@ -2005,10 +2005,10 @@ func (this *testMainClass) TestHasProps(exchange ccxt.ICoreExchange) {
 	var watchOrderBookSkips any = this.GetSkips(exchange, "watchOrderBook")
 	var fetchOrderBookSkips any = this.GetSkips(exchange, "fetchOrderBook")
 	// ensure with hardcoded list of required methods
-	if EvalTruthy(this.WsTests) && (!IsEqual(exchange.SafeBool(exchange.GetHas(), "watchOrderBook", false), true)) && !IsString(watchOrderBookSkips) {
+	if EvalTruthy(this.WsTests) && (!EvalTruthy(exchange.SafeBool(exchange.GetHas(), "watchOrderBook", false))) && !IsString(watchOrderBookSkips) {
 		Dump("[TEST_FAILURE] Method \"watchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange")
 		ExitScript(1)
-	} else if !EvalTruthy(this.WsTests) && (!IsEqual(exchange.SafeBool(exchange.GetHas(), "fetchOrderBook", false), true)) && !IsString(fetchOrderBookSkips) {
+	} else if !EvalTruthy(this.WsTests) && (!EvalTruthy(exchange.SafeBool(exchange.GetHas(), "fetchOrderBook", false))) && !IsString(fetchOrderBookSkips) {
 		Dump("[TEST_FAILURE] Method \"fetchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange")
 		ExitScript(1)
 	}
@@ -3072,7 +3072,7 @@ func (this *testMainClass) testExchangeWsStaticallyBody(ch chan ccxt.AsyncResult
 			// and would leak state across entries otherwise
 			var exchange ccxt.ICoreExchange = this.InitOfflineExchange(exchangeName, true)
 			var isDisabled any = ccxt.DerefScalar(exchange.SafeBool(result, "disabled", false))
-			if isDisabled == true {
+			if EvalTruthy(isDisabled) {
 				continue
 			}
 			var disabledString any = ccxt.DerefScalar(exchange.SafeString(result, "disabled", ""))
@@ -3299,7 +3299,7 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan ccxt.AsyncR
 				continue
 			}
 			var isDisabled any = ccxt.DerefScalar(exchange.SafeBool(result, "disabled", false))
-			if isDisabled == true {
+			if EvalTruthy(isDisabled) {
 				continue
 			}
 			var disabledString any = ccxt.DerefScalar(exchange.SafeString(result, "disabled", ""))
@@ -3307,11 +3307,11 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan ccxt.AsyncR
 				continue
 			}
 			var isDisabledCSharp any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledCS", false))
-			if (isDisabledCSharp == true) && (this.Lang == "C#") {
+			if EvalTruthy((isDisabledCSharp)) && (this.Lang == "C#") {
 				continue
 			}
 			var isDisabledGo any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledGO", false))
-			if (isDisabledGo == true) && (this.Lang == "GO") {
+			if EvalTruthy((isDisabledGo)) && (this.Lang == "GO") {
 				continue
 			}
 			var isDisabledRust any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledRS", false))
@@ -3319,7 +3319,7 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan ccxt.AsyncR
 				continue
 			}
 			var isDisabledJava any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledJava", false))
-			if (isDisabledJava == true) && (this.Lang == "java") {
+			if EvalTruthy((isDisabledJava)) && (this.Lang == "java") {
 				continue
 			}
 			var typeVar any = ccxt.DerefScalar(exchange.SafeString(exchangeData, "outputType"))
@@ -3389,22 +3389,22 @@ func (this *testMainClass) testExchangeResponseStaticallyBody(ch chan ccxt.Async
 			// exchange.Setoptions(exchange.GetdeepExtend() (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests)
 			exchange.ExtendExchangeOptions(exchange.DeepExtend(oldExchangeOptions, testExchangeOptions))
 			var isDisabled any = ccxt.DerefScalar(exchange.SafeBool(result, "disabled", false))
-			if isDisabled == true {
+			if EvalTruthy(isDisabled) {
 				continue
 			}
 			var isDisabledCSharp any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledCS", false))
-			if (isDisabledCSharp == true) && (this.Lang == "C#") {
+			if EvalTruthy((isDisabledCSharp)) && (this.Lang == "C#") {
 				continue
 			}
 			var isDisabledPHP any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledPHP", false))
-			if (isDisabledPHP == true) && (this.Lang == "PHP") {
+			if EvalTruthy((isDisabledPHP)) && (this.Lang == "PHP") {
 				continue
 			}
 			if (!IsEqual(testName, nil)) && (!IsEqual(testName, description)) {
 				continue
 			}
 			var isDisabledGO any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledGO", false))
-			if (isDisabledGO == true) && (this.Lang == "GO") {
+			if EvalTruthy((isDisabledGO)) && (this.Lang == "GO") {
 				continue
 			}
 			var isDisabledRust any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledRS", false))
@@ -3412,7 +3412,7 @@ func (this *testMainClass) testExchangeResponseStaticallyBody(ch chan ccxt.Async
 				continue
 			}
 			var isDisabledJava any = ccxt.DerefScalar(exchange.SafeBool(result, "disabledJava", false))
-			if (isDisabledJava == true) && (this.Lang == "java") {
+			if EvalTruthy((isDisabledJava)) && (this.Lang == "java") {
 				continue
 			}
 			var skipKeys any = this.EffectiveSkipKeys(exchange, exchangeData, result)
@@ -3456,27 +3456,27 @@ func (this *testMainClass) CheckIfExchangeIsDisabled(exchangeName any, exchangeD
 	// prediction-market exchanges exist only in the async namespaces in python/php,
 	// so their fixtures declare asyncOnly and the sync harness skips them
 	var isAsyncOnly any = ccxt.DerefScalar(exchange.SafeBool(exchangeData, "asyncOnly", false))
-	if (isAsyncOnly == true) && EvalTruthy(IsSync()) {
+	if EvalTruthy((isAsyncOnly)) && EvalTruthy(IsSync()) {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is async-only, skipped by the sync test harness"))
 		return true
 	}
 	var isDisabledPy any = ccxt.DerefScalar(exchange.SafeBool(exchangeData, "disabledPy", false))
-	if (isDisabledPy == true) && (this.Lang == "PY") {
+	if EvalTruthy((isDisabledPy)) && (this.Lang == "PY") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in python"))
 		return true
 	}
 	var isDisabledPHP any = ccxt.DerefScalar(exchange.SafeBool(exchangeData, "disabledPHP", false))
-	if (isDisabledPHP == true) && (this.Lang == "PHP") {
+	if EvalTruthy((isDisabledPHP)) && (this.Lang == "PHP") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in php"))
 		return true
 	}
 	var isDisabledCSharp any = ccxt.DerefScalar(exchange.SafeBool(exchangeData, "disabledCS", false))
-	if (isDisabledCSharp == true) && (this.Lang == "C#") {
+	if EvalTruthy((isDisabledCSharp)) && (this.Lang == "C#") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in c#"))
 		return true
 	}
 	var isDisabledGO any = ccxt.DerefScalar(exchange.SafeBool(exchangeData, "disabledGO", false))
-	if (isDisabledGO == true) && (this.Lang == "GO") {
+	if EvalTruthy((isDisabledGO)) && (this.Lang == "GO") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in go"))
 		return true
 	}
@@ -3486,7 +3486,7 @@ func (this *testMainClass) CheckIfExchangeIsDisabled(exchangeName any, exchangeD
 		return true
 	}
 	var isDisabledJava any = ccxt.DerefScalar(exchange.SafeBool(exchangeData, "disabledJava", false))
-	if (isDisabledJava == true) && (this.Lang == "java") {
+	if EvalTruthy((isDisabledJava)) && (this.Lang == "java") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in java"))
 		return true
 	}
@@ -4080,7 +4080,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 	var inverseConditionalBatchOrder any = exchange.SafeDict(inverseConditionalBatchOrders, 0, map[string]any{})
 	var inverseConditionalClientOrderId any = ccxt.DerefScalar(exchange.SafeString(inverseConditionalBatchOrder, "newClientOrderId"))
 	Assert(!IsEqual(inverseConditionalClientOrderId, nil), "binance createOrders - inverse conditional order must send newClientOrderId")
-	Assert(IsEqual(StartsWith(inverseConditionalClientOrderId, inverseSwapId), true), Add(Add(Add("binance createOrders - inverse conditional clientOrderId: ", inverseConditionalClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
+	Assert(StartsWith(inverseConditionalClientOrderId, inverseSwapId), Add(Add(Add("binance createOrders - inverse conditional clientOrderId: ", inverseConditionalClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
 	// quarterly futures use the prefix of their fapi/dapi side, not the inverse one
 	var linearFutureOrderRequest any = map[string]any{}
 
@@ -4167,7 +4167,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 	}
 	var optionClientOrderId any = ccxt.DerefScalar(exchange.SafeString(optionOrderRequest, "clientOrderId"))
 	Assert(!IsEqual(optionClientOrderId, nil), "binance - option order must send clientOrderId")
-	Assert(IsEqual(StartsWith(optionClientOrderId, inverseSwapId), true), Add(Add(Add("binance - option clientOrderId: ", optionClientOrderId), " does not start with the option broker id "), inverseSwapId))
+	Assert(StartsWith(optionClientOrderId, inverseSwapId), Add(Add(Add("binance - option clientOrderId: ", optionClientOrderId), " does not start with the option broker id "), inverseSwapId))
 	// the implicit order endpoints inject the broker id of their api section
 	// skipped in the sync flavours: callExchangeMethodDynamically is async-only there
 	if !EvalTruthy(IsSync()) {
@@ -4245,7 +4245,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		var implicitDapiBatchOrder any = exchange.SafeDict(implicitDapiBatchOrders, 0, map[string]any{})
 		var implicitDapiBatchClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitDapiBatchOrder, "newClientOrderId"))
 		Assert(!IsEqual(implicitDapiBatchClientOrderId, nil), "binance - implicit dapi batch order must inject newClientOrderId")
-		Assert(IsEqual(StartsWith(implicitDapiBatchClientOrderId, inverseSwapId), true), Add(Add(Add("binance - implicit dapi batch clientOrderId: ", implicitDapiBatchClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
+		Assert(StartsWith(implicitDapiBatchClientOrderId, inverseSwapId), Add(Add(Add("binance - implicit dapi batch clientOrderId: ", implicitDapiBatchClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
 		// the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
 		var implicitFapiAlgoOrderRequest any = map[string]any{}
 
@@ -4284,7 +4284,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		}
 		var implicitFapiClientAlgoId any = ccxt.DerefScalar(exchange.SafeString(implicitFapiAlgoOrderRequest, "clientAlgoId"))
 		Assert(!IsEqual(implicitFapiClientAlgoId, nil), "binance - implicit fapi algo order must inject clientAlgoId")
-		Assert(IsEqual(StartsWith(implicitFapiClientAlgoId, swapId), true), Add(Add(Add("binance - implicit fapi clientAlgoId: ", implicitFapiClientAlgoId), " does not start with swapId"), swapId))
+		Assert(StartsWith(implicitFapiClientAlgoId, swapId), Add(Add(Add("binance - implicit fapi clientAlgoId: ", implicitFapiClientAlgoId), " does not start with swapId"), swapId))
 		// the papi order endpoints resolve the broker id from the path, not from the api section
 		var implicitPapiUmOrderRequest any = map[string]any{}
 
@@ -4321,7 +4321,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		}
 		var implicitPapiUmClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiUmOrderRequest, "newClientOrderId"))
 		Assert(!IsEqual(implicitPapiUmClientOrderId, nil), "binance - implicit papi um order must inject newClientOrderId")
-		Assert(IsEqual(StartsWith(implicitPapiUmClientOrderId, swapId), true), Add(Add(Add("binance - implicit papi um clientOrderId: ", implicitPapiUmClientOrderId), " does not start with swapId"), swapId))
+		Assert(StartsWith(implicitPapiUmClientOrderId, swapId), Add(Add(Add("binance - implicit papi um clientOrderId: ", implicitPapiUmClientOrderId), " does not start with swapId"), swapId))
 		var implicitPapiCmOrderRequest any = map[string]any{}
 
 		{
@@ -4357,7 +4357,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		}
 		var implicitPapiCmClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiCmOrderRequest, "newClientOrderId"))
 		Assert(!IsEqual(implicitPapiCmClientOrderId, nil), "binance - implicit papi cm order must inject newClientOrderId")
-		Assert(IsEqual(StartsWith(implicitPapiCmClientOrderId, inverseSwapId), true), Add(Add(Add("binance - implicit papi cm clientOrderId: ", implicitPapiCmClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
+		Assert(StartsWith(implicitPapiCmClientOrderId, inverseSwapId), Add(Add(Add("binance - implicit papi cm clientOrderId: ", implicitPapiCmClientOrderId), " does not start with inverseSwapId"), inverseSwapId))
 		var implicitPapiMarginOrderRequest any = map[string]any{}
 
 		{
@@ -4393,7 +4393,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		}
 		var implicitPapiMarginClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiMarginOrderRequest, "newClientOrderId"))
 		Assert(!IsEqual(implicitPapiMarginClientOrderId, nil), "binance - implicit papi margin order must inject newClientOrderId")
-		Assert(IsEqual(StartsWith(implicitPapiMarginClientOrderId, spotId), true), Add(Add(Add("binance - implicit papi margin clientOrderId: ", implicitPapiMarginClientOrderId), " does not start with spotId"), spotId))
+		Assert(StartsWith(implicitPapiMarginClientOrderId, spotId), Add(Add(Add("binance - implicit papi margin clientOrderId: ", implicitPapiMarginClientOrderId), " does not start with spotId"), spotId))
 		var implicitSapiMarginOrderRequest any = map[string]any{}
 
 		{
@@ -4429,7 +4429,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		}
 		var implicitSapiMarginClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitSapiMarginOrderRequest, "newClientOrderId"))
 		Assert(!IsEqual(implicitSapiMarginClientOrderId, nil), "binance - implicit sapi margin order must inject newClientOrderId")
-		Assert(IsEqual(StartsWith(implicitSapiMarginClientOrderId, spotId), true), Add(Add(Add("binance - implicit sapi margin clientOrderId: ", implicitSapiMarginClientOrderId), " does not start with spotId"), spotId))
+		Assert(StartsWith(implicitSapiMarginClientOrderId, spotId), Add(Add(Add("binance - implicit sapi margin clientOrderId: ", implicitSapiMarginClientOrderId), " does not start with spotId"), spotId))
 		// the papi um algo order endpoint takes clientAlgoId
 		var implicitPapiUmAlgoOrderRequest any = map[string]any{}
 
@@ -4468,7 +4468,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		}
 		var implicitPapiUmClientAlgoId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiUmAlgoOrderRequest, "clientAlgoId"))
 		Assert(!IsEqual(implicitPapiUmClientAlgoId, nil), "binance - implicit papi um algo order must inject clientAlgoId")
-		Assert(IsEqual(StartsWith(implicitPapiUmClientAlgoId, swapId), true), Add(Add(Add("binance - implicit papi um clientAlgoId: ", implicitPapiUmClientAlgoId), " does not start with swapId"), swapId))
+		Assert(StartsWith(implicitPapiUmClientAlgoId, swapId), Add(Add(Add("binance - implicit papi um clientAlgoId: ", implicitPapiUmClientAlgoId), " does not start with swapId"), swapId))
 		// the papi cm conditional order endpoint takes newClientStrategyId
 		var implicitPapiCmConditionalOrderRequest any = map[string]any{}
 
@@ -4506,7 +4506,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		}
 		var implicitPapiCmStrategyId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiCmConditionalOrderRequest, "newClientStrategyId"))
 		Assert(!IsEqual(implicitPapiCmStrategyId, nil), "binance - implicit papi cm conditional order must inject newClientStrategyId")
-		Assert(IsEqual(StartsWith(implicitPapiCmStrategyId, inverseSwapId), true), Add(Add(Add("binance - implicit papi cm newClientStrategyId: ", implicitPapiCmStrategyId), " does not start with inverseSwapId"), inverseSwapId))
+		Assert(StartsWith(implicitPapiCmStrategyId, inverseSwapId), Add(Add(Add("binance - implicit papi cm newClientStrategyId: ", implicitPapiCmStrategyId), " does not start with inverseSwapId"), inverseSwapId))
 		var implicitPapiUmConditionalOrderRequest any = map[string]any{}
 
 		{
@@ -4543,7 +4543,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		}
 		var implicitPapiUmStrategyId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiUmConditionalOrderRequest, "newClientStrategyId"))
 		Assert(!IsEqual(implicitPapiUmStrategyId, nil), "binance - implicit papi um conditional order must inject newClientStrategyId")
-		Assert(IsEqual(StartsWith(implicitPapiUmStrategyId, swapId), true), Add(Add(Add("binance - implicit papi um newClientStrategyId: ", implicitPapiUmStrategyId), " does not start with swapId"), swapId))
+		Assert(StartsWith(implicitPapiUmStrategyId, swapId), Add(Add(Add("binance - implicit papi um newClientStrategyId: ", implicitPapiUmStrategyId), " does not start with swapId"), swapId))
 		// the eapi order endpoints take clientOrderId
 		var implicitEapiOrderRequest any = map[string]any{}
 
@@ -4579,7 +4579,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		}
 		var implicitEapiClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitEapiOrderRequest, "clientOrderId"))
 		Assert(!IsEqual(implicitEapiClientOrderId, nil), "binance - implicit eapi order must inject clientOrderId")
-		Assert(IsEqual(StartsWith(implicitEapiClientOrderId, inverseSwapId), true), Add(Add(Add("binance - implicit eapi clientOrderId: ", implicitEapiClientOrderId), " does not start with the option broker id "), inverseSwapId))
+		Assert(StartsWith(implicitEapiClientOrderId, inverseSwapId), Add(Add(Add("binance - implicit eapi clientOrderId: ", implicitEapiClientOrderId), " does not start with the option broker id "), inverseSwapId))
 		var implicitEapiBatchRequest any = map[string]any{}
 
 		{
@@ -4618,7 +4618,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		var implicitEapiBatchOrder any = exchange.SafeDict(implicitEapiBatchOrders, 0, map[string]any{})
 		var implicitEapiBatchClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitEapiBatchOrder, "clientOrderId"))
 		Assert(!IsEqual(implicitEapiBatchClientOrderId, nil), "binance - implicit eapi batch order must inject clientOrderId")
-		Assert(IsEqual(StartsWith(implicitEapiBatchClientOrderId, inverseSwapId), true), Add(Add(Add("binance - implicit eapi batch clientOrderId: ", implicitEapiBatchClientOrderId), " does not start with the option broker id "), inverseSwapId))
+		Assert(StartsWith(implicitEapiBatchClientOrderId, inverseSwapId), Add(Add(Add("binance - implicit eapi batch clientOrderId: ", implicitEapiBatchClientOrderId), " does not start with the option broker id "), inverseSwapId))
 		// the equity order endpoint takes clientOrderId
 		var implicitEquityOrderRequest any = map[string]any{}
 
@@ -4655,7 +4655,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		}
 		var implicitEquityClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitEquityOrderRequest, "clientOrderId"))
 		Assert(!IsEqual(implicitEquityClientOrderId, nil), "binance - implicit equity order must inject clientOrderId")
-		Assert(IsEqual(StartsWith(implicitEquityClientOrderId, spotId), true), Add(Add(Add("binance - implicit equity clientOrderId: ", implicitEquityClientOrderId), " does not start with spotId"), spotId))
+		Assert(StartsWith(implicitEquityClientOrderId, spotId), Add(Add(Add("binance - implicit equity clientOrderId: ", implicitEquityClientOrderId), " does not start with spotId"), spotId))
 		// the order list endpoints inject a listClientOrderId and one client order id per leg
 		var implicitOcoListRequest any = map[string]any{}
 
@@ -4695,9 +4695,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		var ocoAboveClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOcoListRequest, "aboveClientOrderId"))
 		var ocoBelowClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOcoListRequest, "belowClientOrderId"))
 		Assert(!IsEqual(ocoListClientOrderId, nil), "binance - implicit oco list must inject listClientOrderId")
-		Assert(IsEqual(StartsWith(ocoListClientOrderId, spotId), true), Add(Add(Add("binance - implicit oco listClientOrderId: ", ocoListClientOrderId), " does not start with spotId"), spotId))
-		Assert((!IsEqual(ocoAboveClientOrderId, nil)) && (IsEqual(StartsWith(ocoAboveClientOrderId, spotId), true)), "binance - implicit oco aboveClientOrderId must inject the spot broker id")
-		Assert((!IsEqual(ocoBelowClientOrderId, nil)) && (IsEqual(StartsWith(ocoBelowClientOrderId, spotId), true)), "binance - implicit oco belowClientOrderId must inject the spot broker id")
+		Assert(StartsWith(ocoListClientOrderId, spotId), Add(Add(Add("binance - implicit oco listClientOrderId: ", ocoListClientOrderId), " does not start with spotId"), spotId))
+		Assert((!IsEqual(ocoAboveClientOrderId, nil)) && (StartsWith(ocoAboveClientOrderId, spotId)), "binance - implicit oco aboveClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(ocoBelowClientOrderId, nil)) && (StartsWith(ocoBelowClientOrderId, spotId)), "binance - implicit oco belowClientOrderId must inject the spot broker id")
 		var implicitOtocoListRequest any = map[string]any{}
 
 		{
@@ -4739,9 +4739,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		var otocoWorkingClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOtocoListRequest, "workingClientOrderId"))
 		var otocoPendingAboveClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOtocoListRequest, "pendingAboveClientOrderId"))
 		var otocoPendingBelowClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOtocoListRequest, "pendingBelowClientOrderId"))
-		Assert((!IsEqual(otocoWorkingClientOrderId, nil)) && (IsEqual(StartsWith(otocoWorkingClientOrderId, spotId), true)), "binance - implicit otoco workingClientOrderId must inject the spot broker id")
-		Assert((!IsEqual(otocoPendingAboveClientOrderId, nil)) && (IsEqual(StartsWith(otocoPendingAboveClientOrderId, spotId), true)), "binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id")
-		Assert((!IsEqual(otocoPendingBelowClientOrderId, nil)) && (IsEqual(StartsWith(otocoPendingBelowClientOrderId, spotId), true)), "binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(otocoWorkingClientOrderId, nil)) && (StartsWith(otocoWorkingClientOrderId, spotId)), "binance - implicit otoco workingClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(otocoPendingAboveClientOrderId, nil)) && (StartsWith(otocoPendingAboveClientOrderId, spotId)), "binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(otocoPendingBelowClientOrderId, nil)) && (StartsWith(otocoPendingBelowClientOrderId, spotId)), "binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id")
 		var implicitSapiMarginOcoRequest any = map[string]any{}
 
 		{
@@ -4776,8 +4776,8 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		}
 		var sapiMarginOcoLimitClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitSapiMarginOcoRequest, "limitClientOrderId"))
 		var sapiMarginOcoStopClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitSapiMarginOcoRequest, "stopClientOrderId"))
-		Assert((!IsEqual(sapiMarginOcoLimitClientOrderId, nil)) && (IsEqual(StartsWith(sapiMarginOcoLimitClientOrderId, spotId), true)), "binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id")
-		Assert((!IsEqual(sapiMarginOcoStopClientOrderId, nil)) && (IsEqual(StartsWith(sapiMarginOcoStopClientOrderId, spotId), true)), "binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(sapiMarginOcoLimitClientOrderId, nil)) && (StartsWith(sapiMarginOcoLimitClientOrderId, spotId)), "binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(sapiMarginOcoStopClientOrderId, nil)) && (StartsWith(sapiMarginOcoStopClientOrderId, spotId)), "binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id")
 		var implicitPapiMarginOcoRequest any = map[string]any{}
 
 		{
@@ -4811,11 +4811,11 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 
 		}
 		var papiMarginOcoListClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiMarginOcoRequest, "listClientOrderId"))
-		Assert((!IsEqual(papiMarginOcoListClientOrderId, nil)) && (IsEqual(StartsWith(papiMarginOcoListClientOrderId, spotId), true)), "binance - implicit papi margin oco listClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(papiMarginOcoListClientOrderId, nil)) && (StartsWith(papiMarginOcoListClientOrderId, spotId)), "binance - implicit papi margin oco listClientOrderId must inject the spot broker id")
 		var papiMarginOcoLimitClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiMarginOcoRequest, "limitClientOrderId"))
 		var papiMarginOcoStopClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitPapiMarginOcoRequest, "stopClientOrderId"))
-		Assert((!IsEqual(papiMarginOcoLimitClientOrderId, nil)) && (IsEqual(StartsWith(papiMarginOcoLimitClientOrderId, spotId), true)), "binance - implicit papi margin oco limitClientOrderId must inject the spot broker id")
-		Assert((!IsEqual(papiMarginOcoStopClientOrderId, nil)) && (IsEqual(StartsWith(papiMarginOcoStopClientOrderId, spotId), true)), "binance - implicit papi margin oco stopClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(papiMarginOcoLimitClientOrderId, nil)) && (StartsWith(papiMarginOcoLimitClientOrderId, spotId)), "binance - implicit papi margin oco limitClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(papiMarginOcoStopClientOrderId, nil)) && (StartsWith(papiMarginOcoStopClientOrderId, spotId)), "binance - implicit papi margin oco stopClientOrderId must inject the spot broker id")
 		var implicitLegacyOcoRequest any = map[string]any{}
 
 		{
@@ -4851,9 +4851,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		var legacyOcoListClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitLegacyOcoRequest, "listClientOrderId"))
 		var legacyOcoLimitClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitLegacyOcoRequest, "limitClientOrderId"))
 		var legacyOcoStopClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitLegacyOcoRequest, "stopClientOrderId"))
-		Assert((!IsEqual(legacyOcoListClientOrderId, nil)) && (IsEqual(StartsWith(legacyOcoListClientOrderId, spotId), true)), "binance - implicit legacy oco listClientOrderId must inject the spot broker id")
-		Assert((!IsEqual(legacyOcoLimitClientOrderId, nil)) && (IsEqual(StartsWith(legacyOcoLimitClientOrderId, spotId), true)), "binance - implicit legacy oco limitClientOrderId must inject the spot broker id")
-		Assert((!IsEqual(legacyOcoStopClientOrderId, nil)) && (IsEqual(StartsWith(legacyOcoStopClientOrderId, spotId), true)), "binance - implicit legacy oco stopClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(legacyOcoListClientOrderId, nil)) && (StartsWith(legacyOcoListClientOrderId, spotId)), "binance - implicit legacy oco listClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(legacyOcoLimitClientOrderId, nil)) && (StartsWith(legacyOcoLimitClientOrderId, spotId)), "binance - implicit legacy oco limitClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(legacyOcoStopClientOrderId, nil)) && (StartsWith(legacyOcoStopClientOrderId, spotId)), "binance - implicit legacy oco stopClientOrderId must inject the spot broker id")
 		var implicitOtoListRequest any = map[string]any{}
 
 		{
@@ -4892,9 +4892,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		var otoListClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOtoListRequest, "listClientOrderId"))
 		var otoWorkingClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOtoListRequest, "workingClientOrderId"))
 		var otoPendingClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOtoListRequest, "pendingClientOrderId"))
-		Assert((!IsEqual(otoListClientOrderId, nil)) && (IsEqual(StartsWith(otoListClientOrderId, spotId), true)), "binance - implicit oto listClientOrderId must inject the spot broker id")
-		Assert((!IsEqual(otoWorkingClientOrderId, nil)) && (IsEqual(StartsWith(otoWorkingClientOrderId, spotId), true)), "binance - implicit oto workingClientOrderId must inject the spot broker id")
-		Assert((!IsEqual(otoPendingClientOrderId, nil)) && (IsEqual(StartsWith(otoPendingClientOrderId, spotId), true)), "binance - implicit oto pendingClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(otoListClientOrderId, nil)) && (StartsWith(otoListClientOrderId, spotId)), "binance - implicit oto listClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(otoWorkingClientOrderId, nil)) && (StartsWith(otoWorkingClientOrderId, spotId)), "binance - implicit oto workingClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(otoPendingClientOrderId, nil)) && (StartsWith(otoPendingClientOrderId, spotId)), "binance - implicit oto pendingClientOrderId must inject the spot broker id")
 		var implicitOpoListRequest any = map[string]any{}
 
 		{
@@ -4933,9 +4933,9 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		var opoListClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOpoListRequest, "listClientOrderId"))
 		var opoWorkingClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOpoListRequest, "workingClientOrderId"))
 		var opoPendingClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOpoListRequest, "pendingClientOrderId"))
-		Assert((!IsEqual(opoListClientOrderId, nil)) && (IsEqual(StartsWith(opoListClientOrderId, spotId), true)), "binance - implicit opo listClientOrderId must inject the spot broker id")
-		Assert((!IsEqual(opoWorkingClientOrderId, nil)) && (IsEqual(StartsWith(opoWorkingClientOrderId, spotId), true)), "binance - implicit opo workingClientOrderId must inject the spot broker id")
-		Assert((!IsEqual(opoPendingClientOrderId, nil)) && (IsEqual(StartsWith(opoPendingClientOrderId, spotId), true)), "binance - implicit opo pendingClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(opoListClientOrderId, nil)) && (StartsWith(opoListClientOrderId, spotId)), "binance - implicit opo listClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(opoWorkingClientOrderId, nil)) && (StartsWith(opoWorkingClientOrderId, spotId)), "binance - implicit opo workingClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(opoPendingClientOrderId, nil)) && (StartsWith(opoPendingClientOrderId, spotId)), "binance - implicit opo pendingClientOrderId must inject the spot broker id")
 		var implicitOpocoListRequest any = map[string]any{}
 
 		{
@@ -4978,10 +4978,10 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		var opocoWorkingClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOpocoListRequest, "workingClientOrderId"))
 		var opocoPendingAboveClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOpocoListRequest, "pendingAboveClientOrderId"))
 		var opocoPendingBelowClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitOpocoListRequest, "pendingBelowClientOrderId"))
-		Assert((!IsEqual(opocoListClientOrderId, nil)) && (IsEqual(StartsWith(opocoListClientOrderId, spotId), true)), "binance - implicit opoco listClientOrderId must inject the spot broker id")
-		Assert((!IsEqual(opocoWorkingClientOrderId, nil)) && (IsEqual(StartsWith(opocoWorkingClientOrderId, spotId), true)), "binance - implicit opoco workingClientOrderId must inject the spot broker id")
-		Assert((!IsEqual(opocoPendingAboveClientOrderId, nil)) && (IsEqual(StartsWith(opocoPendingAboveClientOrderId, spotId), true)), "binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id")
-		Assert((!IsEqual(opocoPendingBelowClientOrderId, nil)) && (IsEqual(StartsWith(opocoPendingBelowClientOrderId, spotId), true)), "binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(opocoListClientOrderId, nil)) && (StartsWith(opocoListClientOrderId, spotId)), "binance - implicit opoco listClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(opocoWorkingClientOrderId, nil)) && (StartsWith(opocoWorkingClientOrderId, spotId)), "binance - implicit opoco workingClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(opocoPendingAboveClientOrderId, nil)) && (StartsWith(opocoPendingAboveClientOrderId, spotId)), "binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id")
+		Assert((!IsEqual(opocoPendingBelowClientOrderId, nil)) && (StartsWith(opocoPendingBelowClientOrderId, spotId)), "binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id")
 		// the cancel-replace endpoint creates a new order and takes newClientOrderId for it
 		var implicitCancelReplaceRequest any = map[string]any{}
 
@@ -5020,7 +5020,7 @@ func (this *testMainClass) testBinanceBody(ch chan ccxt.AsyncResult[any]) any {
 		}
 		var cancelReplaceClientOrderId any = ccxt.DerefScalar(exchange.SafeString(implicitCancelReplaceRequest, "newClientOrderId"))
 		Assert(!IsEqual(cancelReplaceClientOrderId, nil), "binance - implicit cancel-replace must inject newClientOrderId")
-		Assert(IsEqual(StartsWith(cancelReplaceClientOrderId, spotId), true), Add(Add(Add("binance - implicit cancel-replace newClientOrderId: ", cancelReplaceClientOrderId), " does not start with spotId"), spotId))
+		Assert(StartsWith(cancelReplaceClientOrderId, spotId), Add(Add(Add("binance - implicit cancel-replace newClientOrderId: ", cancelReplaceClientOrderId), " does not start with spotId"), spotId))
 	}
 	if !EvalTruthy(IsSync()) {
 

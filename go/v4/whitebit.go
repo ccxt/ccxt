@@ -1546,7 +1546,7 @@ func (this *Whitebit) fetchTradingLimitsBody(ch chan EndpointResult[map[string]a
 		var hasAmountLimits bool = (amountLimits != nil) && (this.SafeNumber(amountLimits, "min") != nil) && (this.SafeNumber(amountLimits, "max") != nil)
 		var hasPriceLimits bool = (priceLimits != nil) && (this.SafeNumber(priceLimits, "min") != nil) && (this.SafeNumber(priceLimits, "max") != nil)
 		var hasCostLimits bool = (costLimits != nil) && (this.SafeNumber(costLimits, "min") != nil) && (this.SafeNumber(costLimits, "max") != nil)
-		if (hasAmountLimits == true) && (hasPriceLimits == true) && (hasCostLimits == true) {
+		if (hasAmountLimits) && (hasPriceLimits) && (hasCostLimits) {
 			AddElementToObject(result, symbol, map[string]any{
 				"info": market,
 				"limits": map[string]any{
@@ -1966,7 +1966,7 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 		request["market"] = market["id"]
 	}
 	// Try active orders first (if enabled)
-	if checkActive != nil && *checkActive == true {
+	if checkActive != nil && *checkActive {
 
 		{
 			func(this *Whitebit) (ret_ any) {
@@ -2019,7 +2019,7 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 		}
 	}
 	// Try executed orders (if enabled)
-	if checkExecuted != nil && *checkExecuted == true {
+	if checkExecuted != nil && *checkExecuted {
 
 		{
 			func(this *Whitebit) (ret_ any) {
@@ -6019,7 +6019,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 		}
 		// {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
 		var success *bool = this.SafeBool(response, "success", true)
-		if success == nil || *success != true {
+		if !(success != nil && *success) {
 			var errMsg map[string]any = SafeMapTyped(response, "message")
 			var errKeys []string = nil
 			if errMsg != nil {

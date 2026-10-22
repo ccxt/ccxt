@@ -287,7 +287,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
 	var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
-	if (checksum == true) && (receivedSnapshot != nil && *receivedSnapshot == true) {
+	if (checksum == true) && (receivedSnapshot != nil && *receivedSnapshot) {
 		var storedAsks ccxt.IOrderBookSide = orderbook.GetAsks()
 		var storedBids ccxt.IOrderBookSide = orderbook.GetBids()
 		var asksLength int = ccxt.GetArrayLength(storedAsks)
@@ -313,7 +313,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 			return
 		}
 	}
-	if receivedSnapshot != nil && *receivedSnapshot == true {
+	if receivedSnapshot != nil && *receivedSnapshot {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }

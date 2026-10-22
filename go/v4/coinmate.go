@@ -1165,7 +1165,7 @@ func (this *Coinmate) withdrawBody(ch chan EndpointResult[map[string]any], code 
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var transaction map[string]any = this.ParseTransaction(data, currency)
 	var fillResponseFromRequest *bool = this.SafeBool(withdrawOptions, "fillResponseFromRequest", true)
-	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
+	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		transaction["amount"] = amount
 		transaction["currency"] = code
 		transaction["address"] = address

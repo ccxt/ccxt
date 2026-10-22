@@ -114,7 +114,7 @@ func (this *Kucoin) negotiateBody(ch chan ccxt.AsyncResult[any], privateChannel 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var connectId string = "public"
-	if privateChannel == true {
+	if ccxt.EvalTruthy(privateChannel) {
 		connectId = "private"
 	}
 	if isFuturesMethod == true {
@@ -297,7 +297,7 @@ func (this *Kucoin) subscribePublicUtaBody(ch chan ccxt.AsyncResult[any], messag
 	if subscription != nil {
 		var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
 		action = func() any {
-			if unsubscribe != nil && *unsubscribe == true {
+			if unsubscribe != nil && *unsubscribe {
 				return "unsubscribe"
 			}
 			return action
@@ -344,7 +344,7 @@ func (this *Kucoin) subscribePrivateUtaBody(ch chan ccxt.AsyncResult[any], messa
 	if subscription != nil {
 		var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
 		action = func() any {
-			if unsubscribe != nil && *unsubscribe == true {
+			if unsubscribe != nil && *unsubscribe {
 				return "unsubscribe"
 			}
 			return action
@@ -891,7 +891,7 @@ func (this *Kucoin) subscribePublicMultipleUtaBody(ch chan ccxt.AsyncResult[any]
 	if subscription != nil {
 		var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
 		action = func() any {
-			if unsubscribe != nil && *unsubscribe == true {
+			if unsubscribe != nil && *unsubscribe {
 				return "unsubscribe"
 			}
 			return action
@@ -2688,7 +2688,7 @@ func (this *Kucoin) HandleSubscriptionStatus(client any, message any) {
 		ccxt.CallDynamically(method, client, message, subscription)
 	}
 	var isUnSub *bool = this.SafeBool(subscription, "unsubscribe", false)
-	if isUnSub != nil && *isUnSub == true {
+	if isUnSub != nil && *isUnSub {
 		var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 		var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 		for i := 0; i < len(messageHashes); i++ {
@@ -3606,7 +3606,7 @@ func (this *Kucoin) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], o
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
-	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot == true) {
+	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
 
 		r4 := <-client.(ccxt.ClientInterface).Future(*uniformType + ":fetchBalanceSnapshot")
 		if r4.Err != nil {
@@ -3674,7 +3674,7 @@ func (this *Kucoin) SetBalanceCache(client any, typeVar any) {
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
-	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true {
+	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -4738,7 +4738,7 @@ func (this *Kucoin) HandleMessage(client any, message any) {
 		this.HandleSubject(client, message)
 	} else if ccxt.InOp(message, "result") {
 		var result *bool = this.SafeBool(message, "result", true)
-		if result == nil || *result != true {
+		if !(result != nil && *result) {
 			this.HandleErrorMessage(client, message)
 		}
 		this.HandleSubscriptionStatus(client, message)

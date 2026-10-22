@@ -1891,7 +1891,7 @@ func (this *BaseExchange) AfterConstruct(optionalArgs ...any) {
 	this.InitRestRateLimiter()
 	// sanbox mode
 	var isSandbox *bool = this.SafeBool2(this.Options, "sandbox", "testnet", false)
-	if isSandbox != nil && *isSandbox == true {
+	if isSandbox != nil && *isSandbox {
 		this.DerivedExchange.SetSandboxMode(isSandbox)
 	}
 	// compatibility for sandbox/testnet options in userConfig
@@ -2857,7 +2857,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 	if average == nil {
 		if (!IsEqual(filled, nil)) && (cost != nil) && Precise.StringGt(filled, "0") {
 			var filledTimesContractSize *string = Precise.StringMul(filled, contractSize)
-			if inverse != nil && *inverse == true {
+			if inverse != nil && *inverse {
 				average = Precise.StringDiv(filledTimesContractSize, cost)
 			} else {
 				average = Precise.StringDiv(cost, filledTimesContractSize)
@@ -2880,7 +2880,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 		}
 		// contract trading
 		var filledTimesContractSize *string = Precise.StringMul(filled, contractSize)
-		if inverse != nil && *inverse == true {
+		if inverse != nil && *inverse {
 			cost = Precise.StringDiv(filledTimesContractSize, multiplyPrice)
 		} else {
 			cost = Precise.StringMul(filledTimesContractSize, multiplyPrice)
@@ -3135,7 +3135,7 @@ func (this *BaseExchange) SafeTrade(trade any, optionalArgs ...any) Trade {
 		var multiplyPrice *string = price
 		if contractSize != nil {
 			var inverse *bool = this.SafeBool(market, "inverse", false)
-			if inverse != nil && *inverse == true {
+			if inverse != nil && *inverse {
 				multiplyPrice = Precise.StringDiv("1", price)
 			}
 			multiplyPrice = Precise.StringMul(multiplyPrice, contractSize)
@@ -3865,7 +3865,7 @@ func (this *BaseExchange) fetchWebEndpointBody(ch chan AsyncResult[any], method 
 		}
 
 	}
-	if muteOnFailure != nil && *muteOnFailure == true {
+	if muteOnFailure != nil && *muteOnFailure {
 
 		return nil
 	} else {
@@ -4275,7 +4275,7 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 			PanicOnError(market)
 			var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 			var contract *bool = this.SafeBool(market, "contract", false)
-			if (contract != nil && *contract == true) && (noSymbols || ((!IsEqual(symbolsNormalized, nil)) && this.InArray(symbol, symbolsNormalized))) {
+			if (contract != nil && *contract) && (noSymbols || ((!IsEqual(symbolsNormalized, nil)) && this.InArray(symbol, symbolsNormalized))) {
 				AddElementToObject(tiers, symbol, this.DerivedExchange.ParseMarketLeverageTiers(item, market))
 			}
 		}
@@ -4289,7 +4289,7 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 			PanicOnError(market)
 			var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
 			var contract *bool = this.SafeBool(market, "contract", false)
-			if (contract != nil && *contract == true) && (noSymbols || ((!IsEqual(symbolsNormalized, nil)) && this.InArray(symbol, symbolsNormalized))) {
+			if (contract != nil && *contract) && (noSymbols || ((!IsEqual(symbolsNormalized, nil)) && this.InArray(symbol, symbolsNormalized))) {
 				AddElementToObject(tiers, symbol, this.DerivedExchange.ParseMarketLeverageTiers(item, market))
 			}
 		}
@@ -5374,7 +5374,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 		if IsEqual(price, nil) {
 			panic(ArgumentsRequired(this.Id + " buildOHLCVC() requires a price argument"))
 		}
-		if (skipZeroPrices != nil && *skipZeroPrices == true) && !(IsGreaterThan(price, 0)) && !(IsLessThan(price, 0)) {
+		if (skipZeroPrices != nil && *skipZeroPrices) && !(IsGreaterThan(price, 0)) && !(IsLessThan(price, 0)) {
 			continue
 		}
 		var isNewCandle bool = (candle == OpNeg(1))
@@ -7423,13 +7423,13 @@ func (this *BaseExchange) IsPostOnly(isMarketOrder any, exchangeSpecificParam an
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
 	var timeInForcePostOnly bool = (timeInForce != nil && *timeInForce == "PO")
-	if !IsEqual(postOnly, true) {
+	if !EvalTruthy(postOnly) {
 		postOnly = timeInForcePostOnly
 	}
-	if !IsEqual(postOnly, true) {
+	if !EvalTruthy(postOnly) {
 		postOnly = exchangeSpecificParam
 	}
-	if IsEqual(postOnly, true) {
+	if EvalTruthy(postOnly) {
 		if ioc || fok {
 			panic(InvalidOrder(Add(this.Id+" postOnly orders cannot have timeInForce equal to ", timeInForce)))
 		} else if EvalTruthy(isMarketOrder) {
@@ -7457,13 +7457,13 @@ func (this *BaseExchange) HandlePostOnly(isMarketOrder any, exchangeSpecificPost
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
 	var po bool = (timeInForce != nil && *timeInForce == "PO")
-	if !IsEqual(postOnly, true) {
+	if !EvalTruthy(postOnly) {
 		postOnly = po
 	}
-	if !IsEqual(postOnly, true) {
+	if !EvalTruthy(postOnly) {
 		postOnly = exchangeSpecificPostOnlyOption
 	}
-	if IsEqual(postOnly, true) {
+	if EvalTruthy(postOnly) {
 		if ioc || fok {
 			panic(InvalidOrder(Add(this.Id+" postOnly orders cannot have timeInForce equal to ", timeInForce)))
 		} else if EvalTruthy(isMarketOrder) {

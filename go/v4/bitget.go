@@ -3883,12 +3883,12 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan EndpointResult[[]any], param
 				var entry map[string]any = SafeMapTyped(data, j)
 				var entrySymbol *string = this.SafeString(entry, "symbol")
 				var entryBorrowable *bool = this.SafeBool(entry, "isBorrowable", true)
-				if (entryBorrowable != nil && *entryBorrowable == true) && (*this.SafeBool(entry, "isCrossBorrowable", true)) {
+				if (entryBorrowable != nil && *entryBorrowable) && (*this.SafeBool(entry, "isCrossBorrowable", true)) {
 					crossKeys = append(crossKeys, entrySymbol)
 				}
 				var isolatedBase *bool = this.SafeBool(entry, "isIsolatedBaseBorrowable", true)
 				var isolatedQuote *bool = this.SafeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true)
-				if (entryBorrowable != nil && *entryBorrowable == true) && ((isolatedBase != nil && *isolatedBase == true) || (isolatedQuote != nil && *isolatedQuote == true)) {
+				if (entryBorrowable != nil && *entryBorrowable) && ((isolatedBase != nil && *isolatedBase) || (isolatedQuote != nil && *isolatedQuote)) {
 					isolatedKeys = append(isolatedKeys, entrySymbol)
 				}
 			}
@@ -5169,7 +5169,7 @@ func (this *Bitget) withdrawBody(ch chan EndpointResult[map[string]any], code st
 	result["type"] = "withdrawal"
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var fillResponseFromRequest *bool = this.SafeBool(withdrawOptions, "fillResponseFromRequest", true)
-	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
+	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		result["currency"] = code
 		result["amount"] = amount
 		result["tag"] = tag
@@ -6968,7 +6968,7 @@ func (this *Bitget) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs 
 		paramsMarginMode = this.Omit(paramsMarginMode, "margin")
 		var request map[string]any = map[string]any{}
 		if marketType != nil && *marketType == "spot" {
-			if (marginMode != nil) || (utaMargin != nil && *utaMargin == true) {
+			if (marginMode != nil) || (utaMargin != nil && *utaMargin) {
 				request["category"] = "MARGIN"
 			} else {
 				request["category"] = "SPOT"
@@ -7029,7 +7029,7 @@ func (this *Bitget) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs 
 	if marketType != nil && *marketType == "spot" {
 		var margin *bool = this.SafeBool(paramsMarginMode, "margin", false)
 		paramsMarginMode = this.Omit(paramsMarginMode, "margin")
-		if (marginMode != nil) || (margin != nil && *margin == true) {
+		if (marginMode != nil) || (margin != nil && *margin) {
 
 			r3 := <-this.PublicMarginGetV2MarginCurrencies(paramsMarginMode)
 			if r3.Err != nil {
@@ -7254,7 +7254,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 	}
 	if paginate {
 		var limitForPagination int = func() int {
-			if useHistoryEndpointForPagination != nil && *useHistoryEndpointForPagination == true {
+			if useHistoryEndpointForPagination != nil && *useHistoryEndpointForPagination {
 				return maxLimitForHistoryEndpoint
 			}
 			return maxLimitForRecentEndpoint
@@ -7355,7 +7355,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opti
 	}
 	// if historical endpoint is needed, we should re-set the variables
 	var historicalEndpointNeeded bool = false
-	if (!IsEqual(calculatedStartTime, nil) && IsLessThanOrEqual(calculatedStartTime, recentEndpointBoundaryTs)) || (useHistoryEndpoint != nil && *useHistoryEndpoint == true) {
+	if (!IsEqual(calculatedStartTime, nil) && IsLessThanOrEqual(calculatedStartTime, recentEndpointBoundaryTs)) || (useHistoryEndpoint != nil && *useHistoryEndpoint) {
 		historicalEndpointNeeded = true
 		// only for "historical-candles" - ensure we use correct max limit
 		limitResolved = mathMin(limitResolved, maxLimitForHistoryEndpoint)
@@ -8600,7 +8600,7 @@ func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 	var hedgedparamsProductTypeVariable []any = this.HandleParamBool(paramsProductType, "hedged", false)
 	hedged = GetValue(hedgedparamsProductTypeVariable, 0)
 	paramsProductType = GetValue(hedgedparamsProductTypeVariable, 1)
-	if reduceOnly != nil && *reduceOnly == true {
+	if reduceOnly != nil && *reduceOnly {
 		if (hedged == true) || isStopLossOrTakeProfitTrigger {
 			var reduceOnlyPosSide string = "short"
 			if IsEqual(side, "sell") {
@@ -8820,7 +8820,7 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 			}
 			request["marginMode"] = marginModeRequest
 			var requestSide any = side
-			if reduceOnly != nil && *reduceOnly == true {
+			if reduceOnly != nil && *reduceOnly {
 				if hedged != true {
 					request["reduceOnly"] = "YES"
 				} else {
@@ -9296,7 +9296,7 @@ func (this *Bitget) editOrderBody(ch chan AsyncResult[map[string]any], id string
 		var cost *string = this.SafeString(paramsOmitted, "cost")
 		paramsOmitted = this.Omit(paramsOmitted, "cost")
 		var editMarketBuyOrderRequiresPrice *bool = this.SafeBool(this.Options, "editMarketBuyOrderRequiresPrice", true)
-		if ((editMarketBuyOrderRequiresPrice != nil && *editMarketBuyOrderRequiresPrice == true) || (cost != nil)) && isMarketOrder && (IsEqual(side, "buy")) {
+		if ((editMarketBuyOrderRequiresPrice != nil && *editMarketBuyOrderRequiresPrice) || (cost != nil)) && isMarketOrder && (IsEqual(side, "buy")) {
 			if (price == nil) && (cost == nil) {
 				panic(InvalidOrder(this.Id + " editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params"))
 			} else {
@@ -12535,7 +12535,7 @@ func (this *Bitget) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ..
 	}
 	var method *string = nil
 	var useHistoryEndpoint *bool = this.SafeBool(paramsPaginate, "useHistoryEndpoint", false)
-	if useHistoryEndpoint != nil && *useHistoryEndpoint == true {
+	if useHistoryEndpoint != nil && *useHistoryEndpoint {
 		method = SafeStringPtr("privateMixGetV2MixPositionHistoryPosition")
 	} else {
 		method, paramsPaginate = this.HandleOptionStringAndParams(paramsPaginate, "fetchPositions", "method", "privateMixGetV2MixPositionAllPosition")
@@ -16641,7 +16641,7 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) any {
 	}
 	var headersResult any = requestHeaders
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
-	if (sandboxMode != nil && *sandboxMode == true) && (path != "v2/public/time") && (path != "v3/market/current-fund-rate") {
+	if (sandboxMode != nil && *sandboxMode) && (path != "v2/public/time") && (path != "v3/market/current-fund-rate") {
 		// https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
 		if headersResult == nil {
 			headersResult = map[string]any{}

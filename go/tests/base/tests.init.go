@@ -83,10 +83,9 @@ func baseTestsInitBody(ch chan ccxt.AsyncResult[any]) any {
 	TestUnique()
 	TestUrlencodeNested()
 
-
-	r3 := <-TestFetchHistoryAsync()
-	if r3.Err != nil {
-		panic(r3.Err)
+	r2 := <-TestFetchHistoryAsync()
+	if r2.Err != nil {
+		panic(r2.Err)
 	}
 	TestIo()
 	TestIsJsonEncodedObject()

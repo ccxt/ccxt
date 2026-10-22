@@ -1592,7 +1592,7 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[map[string]any
 	if isMarket {
 		defaultTif = "Ioc"
 	}
-	if postOnly != nil && *postOnly == true {
+	if postOnly != nil && *postOnly {
 		defaultTif = "Alo"
 	}
 	var tif string = this.Capitalize(this.SafeStringLower(params, "timeInForce", defaultTif)) // eslint-disable-line
@@ -2938,7 +2938,7 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan ccxt.AsyncResult[any], bu
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var payload map[string]any = map[string]any{
 		"hyperliquidChain": func() string {
-			if isSandboxMode != nil && *isSandboxMode == true {
+			if isSandboxMode != nil && *isSandboxMode {
 				return "Testnet"
 			}
 			return "Mainnet"
@@ -2987,7 +2987,7 @@ func (this *Hyperliquid) initializeClientBody(ch chan ccxt.AsyncResult[any]) any
 		panic(r.Err)
 	}
 	var buildFee *bool = this.SafeBool(this.Options, "builderFee", false)
-	if buildFee == nil || *buildFee != true {
+	if !(buildFee != nil && *buildFee) {
 
 		return nil
 	}
@@ -3062,7 +3062,7 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
 	var apiGroup *string = ccxt.SafeStringPtr(ccxt.GetValue(api, 0))
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var baseUrl *string = nil
-	if sandboxMode != nil && *sandboxMode == true {
+	if sandboxMode != nil && *sandboxMode {
 		var testUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "test")
 		baseUrl = this.SafeString(testUrls, apiGroup, this.SafeString(testUrls, "public", ""))
 	} else {

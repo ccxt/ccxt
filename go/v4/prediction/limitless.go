@@ -611,7 +611,7 @@ func (this *Limitless) ParseMarket(raw any) any {
 	// market is tradeable only while it is FUNDED and not yet expired
 	var isExpired *bool = this.SafeBool(raw, "expired", false)
 	var marketStatus *string = this.SafeString(raw, "status")
-	var active bool = (isExpired == nil || *isExpired != true) && (marketStatus != nil && *marketStatus == "FUNDED")
+	var active bool = (!(isExpired != nil && *isExpired)) && (marketStatus != nil && *marketStatus == "FUNDED")
 	// expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
 	var expiryTimestamp *int64 = this.SafeInteger(raw, "expirationTimestamp")
 	// limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure

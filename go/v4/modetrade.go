@@ -2752,7 +2752,7 @@ func (this *Modetrade) cancelOrderBody(ch chan AsyncResult[map[string]any], id a
 	_ = params
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
-	if (trigger == nil || *trigger != true) && (symbol == nil) {
+	if (!(trigger != nil && *trigger)) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
 	if this.Markets == nil {
@@ -2774,7 +2774,7 @@ func (this *Modetrade) cancelOrderBody(ch chan AsyncResult[map[string]any], id a
 	var isByClientOrder bool = (clientOrderIdExchangeSpecific != nil)
 	var paramsClientOrder map[string]any = this.OmitDict(paramsOmitted, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	var response map[string]any = nil
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 		if isByClientOrder {
 			request["client_order_id"] = clientOrderIdExchangeSpecific
 
@@ -2834,7 +2834,7 @@ func (this *Modetrade) cancelOrderBody(ch chan AsyncResult[map[string]any], id a
 	} else {
 		extendParams["id"] = id
 	}
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 
 		ch <- AsyncResult[map[string]any]{Value: this.Extend(OrderToMap(this.ParseOrder(response)), extendParams)}
 		return nil
@@ -3031,7 +3031,7 @@ func (this *Modetrade) fetchOrderBody(ch chan AsyncResult[map[string]any], id an
 	var clientOrderId *string = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"})
 	var response map[string]any = nil
-	if trigger != nil && *trigger == true {
+	if trigger != nil && *trigger {
 		if (clientOrderId != nil) && (clientOrderId == nil || *clientOrderId != "") {
 			request["client_order_id"] = clientOrderId
 
@@ -3143,7 +3143,7 @@ func (this *Modetrade) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	}
 	var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	var maxLimit int = func() int {
-		if isTrigger != nil && *isTrigger == true {
+		if isTrigger != nil && *isTrigger {
 			return 100
 		}
 		return 500
@@ -3178,12 +3178,12 @@ func (this *Modetrade) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	} else {
 		request["size"] = maxLimit
 	}
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 		request["algo_type"] = "STOP"
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_t", request, paramsOmitted)
 	var response map[string]any = nil
-	if isTrigger != nil && *isTrigger == true {
+	if isTrigger != nil && *isTrigger {
 
 		r2 := <-this.V1PrivateGetAlgoOrders(this.Extend(requestUntil, paramsUntil))
 		if r2.Err != nil {
@@ -4550,7 +4550,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 		var isOrder bool = (path == "algo/order") || (path == "order") || (path == "batch-order")
 		if isPostOrPut && isOrder {
 			var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-			if isSandboxMode == nil || *isSandboxMode != true {
+			if !(isSandboxMode != nil && *isSandboxMode) {
 				var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXTMODE")
 				if path == "batch-order" {
 					var ordersList []any = SafeListTyped(paramsSorted, "orders")

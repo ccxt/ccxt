@@ -1234,7 +1234,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan ccxt.AsyncResult[any
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		var isSubscribed *bool = this.SafeBool(subscription, marketId, false)
-		if isSubscribed == nil || *isSubscribed != true {
+		if !(isSubscribed != nil && *isSubscribed) {
 			if marketId != nil {
 				ccxt.AddElementToObject(subscription, marketId, true)
 			}

@@ -1035,7 +1035,7 @@ func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var open *string = this.SafeString(ticker, "open24h")
 	var spot *bool = this.SafeBool(marketResolved, "spot", false)
 	var quoteVolume *string = func() *string {
-		if spot != nil && *spot == true {
+		if spot != nil && *spot {
 			return this.SafeString(ticker, "volCurrency24h")
 		}
 		return nil
@@ -1872,7 +1872,7 @@ func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	var triggerPriceSlTp *string = this.SafeString2(query, "stopLossPrice", "takeProfitPrice")
 	var timeInForce *string = this.SafeString(query, "timeInForce", "GTC")
 	var isHedged *bool = this.SafeBool(query, "hedged", false)
-	if isHedged != nil && *isHedged == true {
+	if isHedged != nil && *isHedged {
 		request["positionSide"] = func() string {
 			if IsEqual(side, "buy") {
 				return "long"
@@ -2179,7 +2179,7 @@ func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar string, side stri
 	var market map[string]any = this.Market(symbol)
 	var hedged *bool = this.SafeBool(params, "hedged", false)
 	var positionSide string = "net"
-	if hedged != nil && *hedged == true {
+	if hedged != nil && *hedged {
 		positionSide = func() string {
 			if side == "buy" {
 				return "short"
@@ -2284,16 +2284,16 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 	if clientOrderId != nil {
 		request["clientOrderId"] = clientOrderId
 	} else {
-		if (isTrigger == nil || *isTrigger != true) && (isTpsl == nil || *isTpsl != true) {
+		if (!(isTrigger != nil && *isTrigger)) && (!(isTpsl != nil && *isTpsl)) {
 			request["orderId"] = ToString(id)
-		} else if isTpsl != nil && *isTpsl == true {
+		} else if isTpsl != nil && *isTpsl {
 			request["tpslId"] = ToString(id)
-		} else if isTrigger != nil && *isTrigger == true {
+		} else if isTrigger != nil && *isTrigger {
 			request["algoId"] = ToString(id)
 		}
 	}
 	var query map[string]any = this.OmitDict(params, []any{"orderId", "clientOrderId", "stop", "trigger", "tpsl"})
-	if isTpsl != nil && *isTpsl == true {
+	if isTpsl != nil && *isTpsl {
 
 		r1 := <-this.CancelOrdersAsync([]any{id}, symbol, params)
 		if r1.Err != nil {
@@ -2304,7 +2304,7 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[map[string]any], id any,
 
 		ch <- AsyncResult[map[string]any]{Value: first}
 		return nil
-	} else if isTrigger != nil && *isTrigger == true {
+	} else if isTrigger != nil && *isTrigger {
 
 		r2 := <-this.PrivatePostTradeCancelAlgo(this.Extend(request, query))
 		if r2.Err != nil {
@@ -2447,14 +2447,14 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	method, paramsMethod := this.HandleOptionStringAndParams(paramsPaginate, "fetchOpenOrders", "method", "privateGetTradeOrdersPending")
 	var query map[string]any = this.OmitDict(paramsMethod, []any{"method", "stop", "trigger", "tpsl", "TPSL"})
 	var response any = nil
-	if (isTpSl != nil && *isTpSl == true) || (method != nil && *method == "privateGetTradeOrdersTpslPending") {
+	if (isTpSl != nil && *isTpSl) || (method != nil && *method == "privateGetTradeOrdersTpslPending") {
 
 		r2 := <-this.PrivateGetTradeOrdersTpslPending(this.Extend(request, query))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
 		response = r2.Value
-	} else if (isTrigger != nil && *isTrigger == true) || (method != nil && *method == "privateGetTradeOrdersAlgoPending") {
+	} else if (isTrigger != nil && *isTrigger) || (method != nil && *method == "privateGetTradeOrdersAlgoPending") {
 		request["orderType"] = "trigger"
 
 		r3 := <-this.PrivateGetTradeOrdersAlgoPending(this.Extend(request, query))
@@ -4521,7 +4521,7 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs
 	method, paramsMethod := this.HandleOptionStringAndParams(paramsPaginate, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory")
 	var query map[string]any = this.OmitDict(paramsMethod, []any{"method", "stop", "trigger", "tpsl", "TPSL"})
 	var response any = nil
-	if (isTrigger != nil && *isTrigger == true) || (method != nil && *method == "privateGetTradeOrdersTpslHistory") {
+	if (isTrigger != nil && *isTrigger) || (method != nil && *method == "privateGetTradeOrdersTpslHistory") {
 
 		r2 := <-this.PrivateGetTradeOrdersTpslHistory(this.Extend(request, query))
 		if r2.Err != nil {

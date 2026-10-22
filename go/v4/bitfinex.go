@@ -2398,7 +2398,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	}
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
-	var postOnly bool = ((postOnlyParam != nil && *postOnlyParam == true) || (timeInForce != nil && *timeInForce == "PO"))
+	var postOnly bool = ((postOnlyParam != nil && *postOnlyParam) || (timeInForce != nil && *timeInForce == "PO"))
 	if (ioc || fok) && (price == nil) {
 		panic(InvalidOrder(this.Id + " createOrder() requires a price argument with IOC and FOK orders"))
 	}
@@ -2424,7 +2424,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	if postOnly {
 		flags = this.Sum(flags, 4096)
 	}
-	if reduceOnly != nil && *reduceOnly == true {
+	if reduceOnly != nil && *reduceOnly {
 		flags = this.Sum(flags, 1024)
 	}
 	if !IsEqual(flags, 0) {
@@ -3936,7 +3936,7 @@ func (this *Bitfinex) withdrawBody(ch chan EndpointResult[map[string]any], code 
 	}
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var includeFee *bool = this.SafeBool(withdrawOptions, "includeFee", false)
-	if includeFee != nil && *includeFee == true {
+	if includeFee != nil && *includeFee {
 		request["fee_deduct"] = 1
 	}
 
@@ -5474,7 +5474,7 @@ func (this *Bitfinex) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 			request["price_aux_limit"] = this.PriceToPrecision(symbol, price)
 		}
 	}
-	var postOnly bool = ((postOnlyParam != nil && *postOnlyParam == true) || (timeInForce != nil && *timeInForce == "PO"))
+	var postOnly bool = ((postOnlyParam != nil && *postOnlyParam) || (timeInForce != nil && *timeInForce == "PO"))
 	if (!IsEqual(typeVar, "market")) && (triggerPrice == nil) {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
@@ -5483,7 +5483,7 @@ func (this *Bitfinex) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 	if postOnly {
 		flags = this.Sum(flags, 4096)
 	}
-	if reduceOnly != nil && *reduceOnly == true {
+	if reduceOnly != nil && *reduceOnly {
 		flags = this.Sum(flags, 1024)
 	}
 	if !IsEqual(flags, 0) {

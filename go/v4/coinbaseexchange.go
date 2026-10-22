@@ -2236,7 +2236,7 @@ func (this *Coinbaseexchange) createOrderBody(ch chan AsyncResult[map[string]any
 		request["time_in_force"] = timeInForce
 	}
 	var postOnly *bool = this.SafeBool2(params, "postOnly", "post_only", false)
-	if postOnly != nil && *postOnly == true {
+	if postOnly != nil && *postOnly {
 		request["post_only"] = true
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"})
