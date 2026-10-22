@@ -12556,7 +12556,7 @@ impl std::ops::DerefMut for ${coreName} {
     // dispatch inline (public `Value::len`, `value::side_entries_as_value`, `ws_client::value_subs_remove`).
     // Not for rust/tests (no `crate::value`); innermost-first so nested calls rewrite too.
     hx4R29InlineCollectionHelpers(content: string): string {
-        const names = [ 'in_op', 'object_keys', 'get_array_length', 'remove' ];
+        const names = [ 'in_op', 'object_keys', 'remove' ]; // hx5 X35
         if (!names.some(n => content.includes(n + '('))) return content;
         const loose = (v: string) => `(match ${v} { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })`;
         const eq = `(match (__r29e, __r29v) { (Value::Null, Value::Null) => true, (Value::Bool(__p), Value::Bool(__q)) => __p == __q, (Value::Str(__p), Value::Str(__q)) => __p == __q, (Value::Int(__p), Value::Int(__q)) => __p == __q, (Value::Float(__p), Value::Float(__q)) => __p == __q, (__p, __q) => matches!((${loose('__p')}, ${loose('__q')}), (Some(__x), Some(__y)) if __x == __y) })`;
@@ -12568,15 +12568,15 @@ impl std::ops::DerefMut for ${coreName} {
             if (name === 'object_keys' && a.length === 1) {
                 return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__m) => Value::List(__m.keys().filter(|__k| __k.as_str() != "__ws_subs_url" && __k.as_str() != "__ws_sub_ref").map(|__k| Value::Str(__k.clone().into())).collect()), _ => Value::List(vec![]) } })`;
             }
-            if (name === 'get_array_length' && a.length === 1) {
-                return `({ let __r29o: &Value = ${a[0]}; match __r29o { Value::Dict(__d) if __d.contains_key("__sideKind") && !__d.contains_key("__cacheKind") && !matches!(__d.get("__book_cache_id"), Some(Value::Int(_))) => Value::Int(crate::value::side_entries_as_value(__r29o).map(|__s| __s.len()).unwrap_or(0) as i64), _ => Value::Int(__r29o.len() as i64) } })`;
-            }
+            // hx5 X35 — no inline `get_array_length` match: the call text is left untouched, so an
+            // unproven operand keeps master's helper call (`Value::len` counts chars, and the helper also
+            // unwraps book/cache/side markers, so no plain `.len()` on a `&Value` matches it).
             if (name === 'remove' && a.length === 2 && a[0].startsWith('&mut ')) {
                 return `{ let __r29o: &mut Value = ${a[0]}; let __r29k: &Value = ${a[1]}; match (__r29o, __r29k) { (Value::Dict(__m), Value::Str(__k)) => { if let Some(Value::Str(__u)) = __m.get("__ws_subs_url") { crate::pro::ws_client::value_subs_remove(__u, __k); } std::sync::Arc::make_mut(__m).shift_remove(&**__k); } (Value::Arr(__a), Value::Int(__i)) => { let __i = *__i as usize; let __a = std::sync::Arc::make_mut(__a); if __i < __a.len() { __a.remove(__i); } } _ => {} } }`;
             }
             return undefined;
         };
-        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|get_array_length|remove)\(/g;
+        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|remove)\(/g; // hx5 X35: get_array_length dropped
         // Repeat until no rewrite applies: each round replaces calls whose args hold no further helper call.
         for (let round = 0; round < 8; round++) {
             const masked = this.maskStringsAndComments(content);
@@ -12590,7 +12590,7 @@ impl std::ops::DerefMut for ${coreName} {
                 const close = this.closeParenAt(content, open);
                 if (close < 0) continue;
                 const inner = content.slice(open + 1, close);
-                if (/(?<![A-Za-z0-9_:.])(in_op|object_keys|get_array_length|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
+                if (/(?<![A-Za-z0-9_:.])(in_op|object_keys|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
                 const text = build(name, this.splitTopLevelCommas(inner));
                 if (text === undefined) continue;
                 if (name === 'remove' && !/^\s*;/.test(content.slice(close + 1, close + 8))) continue;
