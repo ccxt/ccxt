@@ -12619,9 +12619,7 @@ impl std::ops::DerefMut for ${coreName} {
         const pad = (a: string[], start: boolean) => `({ let __r31s: &Value = ${a[0]}; let __r31l: &Value = ${a[1]}; let __r31p: &Value = ${a[2]}; let __t: usize = match ${i64v('__r31l')} { Some(__v) => __v as usize, None => 0 }; let __p: String = match __r31p { Value::Str(__x) => __x.to_string(), _ => " ".to_string() }; match __r31s { Value::Str(__sv) => { if __sv.chars().count() >= __t { Value::Str(__sv.clone()) } else { let __need = __t - __sv.chars().count(); let __fill = __p.repeat((__need / __p.chars().count().max(1)).max(1)); Value::Str(${start ? 'format!("{}{}", __fill, __sv)' : 'format!("{}{}", __sv, __fill)'}.into()) } } _ => Value::Null } })`;
         const build = (name: string, args: string[]): string | undefined => {
             const a = args.map(s => s.trim());
-            if (name === 'to_string_val' && a.length === 1) {
-                return `({ let __r31v: &Value = ${a[0]}; Value::Str(${str('__r31v')}.into()) })`;
-            }
+            if (name === 'to_string_val') return this.x42ToStr(a); // hx5 X42: proven native or helper
             if (name === 'join' && a.length === 2) {
                 return `({ let __r31a: &Value = ${a[0]}; let __r31d: &Value = ${a[1]}; let __r31j: String = ${str('__r31d')}; match __r31a { Value::Arr(__a) => Value::Str(__a.iter().map(|__r31e| ${str('__r31e')}).collect::<Vec<String>>().join(&__r31j).into()), _ => Value::Str(String::new().into()) } })`;
             }
@@ -12739,6 +12737,18 @@ impl std::ops::DerefMut for ${coreName} {
             content = out + content.slice(at);
         }
         return content;
+    }
+
+    // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
+    // (helper = `Value::Str(stringify_simple(..))`, identity on Str, so the box itself is
+    // the result and E is evaluated once). Every other operand keeps the helper call verbatim:
+    // `Display` differs from `stringify_simple` on Arr/Dict and the `__precise` dict.
+    // parse_int/parse_float are emitted as `crate::runtime::parse_*`, never inlined by r31: left alone.
+    x42ToStr(a: string[]): string | undefined {
+        if (a.length !== 1) return undefined;
+        const m = /^&\s*(Value::Str\(([\s\S]*)\))$/.exec(a[0]);
+        if (m === null || this.closeParenAt(m[1], 'Value::Str'.length) !== m[1].length - 1) return undefined;
+        return m[1];
     }
 }
 
