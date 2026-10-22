@@ -1607,19 +1607,38 @@ export default class bybit extends bybitRest {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
-                this.spawn (this.loadPositionsSnapshot, client, messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash, symbols);
             }
         } else {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string) {
-        // as only one ws channel gives positions for all types, for snapshot must load all positions
-        const fetchFunctions = [
-            this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'linear' }),
-            this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'inverse' }),
-        ];
+    async loadPositionsSnapshot (client: Client, messageHash: string, symbols: Strings = undefined) {
+        // position/list needs a category per call (and settleCoin for linear), so fetch one page per needed pair
+        const pairs: Dict = {};
+        if ((symbols !== undefined) && (symbols.length > 0)) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                if (market['contract'] === true) {
+                    const subType = (market['linear'] === true) ? 'linear' : 'inverse';
+                    pairs[subType + ':' + market['settleId']] = [ subType, market['settleId'] ];
+                }
+            }
+        } else {
+            const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
+            pairs[defaultSubType] = [ defaultSubType, undefined ];
+        }
+        const fetchFunctions = [];
+        const keys = Object.keys (pairs);
+        for (let i = 0; i < keys.length; i++) {
+            const pair = pairs[keys[i]];
+            const request: Dict = { 'type': 'swap', 'subType': pair[0] };
+            if ((pair[0] === 'linear') && (pair[1] !== undefined)) {
+                request['settleCoin'] = pair[1];
+            }
+            fetchFunctions.push (this.fetchPositions (undefined, request));
+        }
         const promises = await Promise.all (fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache: ArrayCacheBySymbolBySide = this.positions;

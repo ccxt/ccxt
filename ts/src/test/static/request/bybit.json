@@ -56,7 +56,7 @@
                         "clientOrderId": "bybit1"
                     }
                 ],
-                "output": { "symbol": "LTCUSDT", "orderLinkId": "bybit1", "category": "spot", "qty": "0.22", "price": "73", "clientOrderId": "bybit1" }
+                "output": { "symbol": "LTCUSDT", "orderLinkId": "bybit1", "category": "spot", "qty": "0.22", "price": "73" }
             }
         ],
         "fetchCurrencies": [
@@ -1416,8 +1416,7 @@
                 "method": "setMarginMode",
                 "url": "https://api-testnet.bybit.com/v5/account/set-margin-mode",
                 "input": [
-                    "isolated",
-                    "BTC/USDT:USDT"
+                    "isolated"
                 ],
                 "output": { "setMarginMode": "ISOLATED_MARGIN" }
             },
@@ -1426,8 +1425,7 @@
                 "method": "setMarginMode",
                 "url": "https://api-testnet.bybit.com/v5/account/set-margin-mode",
                 "input": [
-                    "cross",
-                    "BTC/USDT:USDT"
+                    "cross"
                 ],
                 "output": { "setMarginMode": "REGULAR_MARGIN" }
             }
