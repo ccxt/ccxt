@@ -1355,7 +1355,7 @@ public class Bitso extends BitsoApi
             if (Boolean.TRUE.equals(markerInParams))
             {
                 paramsMarker = this.extend(parameters, new HashMap<String, Object>() {{
-                    put( "marker", ((Long) (switch ((Object) (((Map<String, Object>)parameters).get("marker"))) { case null -> (Long) null; case Long hx4J42v1 -> hx4J42v1; case Integer hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Double hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Float hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case java.math.BigDecimal hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Object hx4J42v1 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v1))); } catch (Exception hx4J42v1e) { yield (Long) null; } } })) );
+                    put( "marker", Helpers.parseInt(((Map<String, Object>)parameters).get("marker")) );
                 }});
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1632,7 +1632,7 @@ public class Bitso extends BitsoApi
             if (Boolean.TRUE.equals(markerInParams))
             {
                 paramsMarker = this.extend(parameters, new HashMap<String, Object>() {{
-                    put( "marker", ((Long) (switch ((Object) (((Map<String, Object>)parameters).get("marker"))) { case null -> (Long) null; case Long hx4J42v0 -> hx4J42v0; case Integer hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Double hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Float hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case java.math.BigDecimal hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Object hx4J42v0 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v0))); } catch (Exception hx4J42v0e) { yield (Long) null; } } })) );
+                    put( "marker", Helpers.parseInt(((Map<String, Object>)parameters).get("marker")) );
                 }});
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2100,7 +2100,7 @@ public class Bitso extends BitsoApi
             Object entry = (depositResponse == null || i < 0 || i >= depositResponse.size() ? null : depositResponse.get(i));
             String currencyId = this.safeString(entry, "currency");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            if ((java.util.Objects.equals(codes, null)) || ((!java.util.Objects.equals(code, null)) && ((switch ((Object)(codes)) { case List<?> j39v7 -> ((Object)(code)) != null && j39v7.contains(code); case Map<?, ?> j39v6 -> ((Object)(code)) instanceof String && j39v6.containsKey(code); case null, default -> false; }))))
+            if ((java.util.Objects.equals(codes, null)) || ((!java.util.Objects.equals(code, null)) && ((switch ((Object)(codes)) { case List<?> j39v5 -> ((Object)(code)) != null && j39v5.contains(code); case Map<?, ?> j39v4 -> ((Object)(code)) instanceof String && j39v4.containsKey(code); case null, default -> false; }))))
             {
                 if (!java.util.Objects.equals(code, null))
                 {
@@ -2124,7 +2124,7 @@ public class Bitso extends BitsoApi
         {
             String currencyId = (withdrawalKeys == null || i < 0 || i >= withdrawalKeys.size() ? null : withdrawalKeys.get(i));
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codes, null)) || ((switch ((Object)(codes)) { case List<?> j39v5 -> ((Object)(code)) != null && j39v5.contains(code); case Map<?, ?> j39v4 -> ((Object)(code)) instanceof String && j39v4.containsKey(code); case null, default -> false; }))))
+            if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codes, null)) || ((switch ((Object)(codes)) { case List<?> j39v3 -> ((Object)(code)) != null && j39v3.contains(code); case Map<?, ?> j39v2 -> ((Object)(code)) instanceof String && j39v2.containsKey(code); case null, default -> false; }))))
             {
                 Double withdrawFee = this.parseNumber((withdrawalResponse == null || currencyId == null ? null : withdrawalResponse.get(currencyId)));
                 Map<String, Object> resultValue = (Map<String, Object>) this.safeDict(result, code, (Object) null);
@@ -2308,7 +2308,7 @@ public class Bitso extends BitsoApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v9 -> { synchronized (j39v9) { yield new ArrayList<Object>(j39v9.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 endpoint = (endpoint + ("?" + this.urlencode(query)));
             }
@@ -2329,7 +2329,7 @@ public class Bitso extends BitsoApi
             Object request = String.join("", (List<String>)content);
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") && !java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v8 -> { synchronized (j39v8) { yield new ArrayList<Object>(j39v8.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     String jsonBody = this.json(query);
                     requestBody = jsonBody;
@@ -2358,7 +2358,7 @@ public class Bitso extends BitsoApi
         {
             return null;  // fallback to default error handler
         }
-        if ((switch ((Object)(response)) { case List<?> j39v11 -> j39v11.contains("success"); case Map<?, ?> j39v10 -> j39v10.containsKey("success"); case null, default -> false; }))
+        if ((switch ((Object)(response)) { case List<?> j39v9 -> j39v9.contains("success"); case Map<?, ?> j39v8 -> j39v8.containsKey("success"); case null, default -> false; }))
         {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}

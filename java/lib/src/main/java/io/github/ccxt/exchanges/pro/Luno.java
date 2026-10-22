@@ -436,7 +436,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      */
     public Boolean reduceOrderVolume(Object orderSide, String orderId, String tradedAmount)
     {
-        Integer sideLength = (switch ((Object)(orderSide)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
+        Integer sideLength = (switch ((Object)(orderSide)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
         for (var i = 0; (sideLength != null && i < sideLength); i++)
         {
             Object order = Helpers.GetValue(orderSide, i);

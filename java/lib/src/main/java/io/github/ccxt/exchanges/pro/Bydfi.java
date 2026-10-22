@@ -117,7 +117,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Long reqid;
         synchronized (this) {
         reqid = (Long) this.sum(this.safeInteger(this.options, "reqid", 0), 1);
-        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "reqid"; Object j39v3 = reqid; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+        Helpers.addElementToObject(this.options, "reqid", reqid);
         }
         return reqid;
     }
@@ -1253,7 +1253,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object unsubHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            String subHash = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a0f), java.util.regex.Matcher.quoteReplacement(hx4J43a0r)); }).apply(((String)unsubHash)).apply("unsubscribe::", "");
+            String subHash = Helpers.replace(((String)unsubHash), "unsubscribe::", "");
             this.cleanUnsubscription(client, subHash, (String) (unsubHash), subHashIsPrefix);
         }
         this.cleanCache(subscription);

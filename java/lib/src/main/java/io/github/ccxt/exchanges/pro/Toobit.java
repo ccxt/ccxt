@@ -176,7 +176,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         } else
         {
             // check private streams
-            for (var i = 0; i < (switch ((Object)(message)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
+            for (var i = 0; i < (switch ((Object)(message)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
             {
                 Object item = Helpers.GetValue(message, i);
                 String eventVar = this.safeString(item, "e");
@@ -1281,7 +1281,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if ((switch ((Object)(this.positions)) { case List<?> j39v8 -> ((Object)(type)) != null && j39v8.contains(type); case Map<?, ?> j39v7 -> ((Object)(type)) instanceof String && j39v7.containsKey(type); case null, default -> false; }))
+        if ((switch ((Object)(this.positions)) { case List<?> j39v5 -> ((Object)(type)) != null && j39v5.contains(type); case Map<?, ?> j39v4 -> ((Object)(type)) instanceof String && j39v4.containsKey(type); case null, default -> false; }))
         {
             return;
         }
@@ -1305,7 +1305,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v11 = new HashMap<String, Object>(); j39v11.put("type", type); yield j39v11; } });
+            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>(); j39v6.put("type", type); yield j39v6; } });
             List<Position> positions = (this.fetchPositions((List<String>) null, parameters)).join();
             Helpers.addElementToObject(this.positions, type, new ArrayCache.ArrayCacheBySymbolBySide());
             Object cache = Helpers.GetValue(this.positions, type);
@@ -1357,7 +1357,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
-        if (!((switch ((Object)(this.positions)) { case List<?> j39v18 -> ((Object)(accountType)) != null && j39v18.contains(accountType); case Map<?, ?> j39v17 -> ((Object)(accountType)) instanceof String && j39v17.containsKey(accountType); case null, default -> false; })))
+        if (!((switch ((Object)(this.positions)) { case List<?> j39v11 -> ((Object)(accountType)) != null && j39v11.contains(accountType); case Map<?, ?> j39v10 -> ((Object)(accountType)) instanceof String && j39v10.containsKey(accountType); case null, default -> false; })))
         {
             Helpers.addElementToObject(this.positions, accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
@@ -1369,7 +1369,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             rawPositions = new ArrayList<Object>(Arrays.asList(message));
         }
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(rawPositions)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(rawPositions)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; }); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
@@ -1510,7 +1510,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 String url = this.getUserStreamUrl();
                 Client client = this.client(url);
-                List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v19 -> { synchronized (j39v19) { yield new ArrayList<Object>(j39v19.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
                 {
                     Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));

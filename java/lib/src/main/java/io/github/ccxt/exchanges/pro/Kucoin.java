@@ -127,7 +127,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 connectId = "private";
             }
-            if ((switch ((Object) (java.util.Objects.requireNonNullElse(isFuturesMethod, false))) { case null -> false; case Boolean hx4J40v2 -> hx4J40v2.booleanValue(); case Long hx4J40v2 -> hx4J40v2 != 0L; case Integer hx4J40v2 -> hx4J40v2 != 0; case Double hx4J40v2 -> hx4J40v2 != 0.0; case String hx4J40v2 -> !hx4J40v2.isEmpty(); case List<?> hx4J40v2 -> !hx4J40v2.isEmpty(); case Map<?, ?> hx4J40v2 -> true; default -> false; }))
+            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isFuturesMethod, false)))
             {
                 connectId = (connectId + "Futures");
             }
@@ -141,7 +141,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             // so that multiple calls don't asynchronously
             // fetch different urls and overwrite each other
             urls.put(connectId, this.spawnWithResult("negotiateHelper", privateChannel, connectId, parameters));
-            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "urls"; Object j39v3 = urls; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+            Helpers.addElementToObject(this.options, "urls", urls);
             future = (urls == null || connectId == null ? null : urls.get(connectId));
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
@@ -203,7 +203,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Long requestId;
         synchronized (this) {
         requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "requestId"; Object j39v6 = requestId; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+        Helpers.addElementToObject(this.options, "requestId", requestId);
         }
         return requestId;
     }
@@ -348,12 +348,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                         }})).join();
                         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                         String utaTokenString = this.safeString(data, "token");
-                        { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v14 = "utaTokenLastUpdate"; Object j39v15 = now; if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
-                        { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v11 = "utaToken"; Object j39v12 = utaTokenString; if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
+                        Helpers.addElementToObject(this.options, "utaTokenLastUpdate", now);
+                        Helpers.addElementToObject(this.options, "utaToken", utaTokenString);
                         client.resolve(utaTokenString, messageHash);
                     } catch(Exception e)
                     {
-                        { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v8 = "utaToken"; Object j39v9 = null; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
+                        Helpers.addElementToObject(this.options, "utaToken", null);
                         client.reject(e, messageHash);
                     }
                 }
@@ -2020,12 +2020,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (java.util.Objects.equals(nonce, null))
             {
                 Object cacheLength = ((List<?>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).size();
-                List<Object> subscriptions = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v21 -> { synchronized (j39v21) { yield new ArrayList<Object>(j39v21.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> subscriptions = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 Object subscription = null;
                 for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
                 {
                     Object key = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
-                    if ((((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(key, ((String)topicSymbol)) >= 0) && (((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(key, ((String)topicChannel)) >= 0))
+                    if ((Helpers.getIndexOf(key, ((String)topicSymbol)) >= 0) && (Helpers.getIndexOf(key, ((String)topicChannel)) >= 0))
                     {
                         subscription = Helpers.GetValue(client.subscriptions, key);
                         break;
@@ -2033,7 +2033,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
                 Long limit = this.safeInteger(subscription, "limit");
                 Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 5);
-                if (((java.util.function.BiPredicate<Object, Object>) (hx4J40v1A, hx4J40v1B) -> { try { if (hx4J40v1A == null && hx4J40v1B == null) { return true; } if (hx4J40v1A == null || hx4J40v1B == null) { return false; } java.util.function.Predicate<Object> hx4J40v1N = hx4J40v1o -> { try { Double.parseDouble(String.valueOf(hx4J40v1o)); return true; } catch (Exception hx4J40v1e) { return false; } }; if (!hx4J40v1A.getClass().equals(hx4J40v1B.getClass()) && !(hx4J40v1N.test(hx4J40v1A) && hx4J40v1N.test(hx4J40v1B))) { return false; } java.util.function.Predicate<Object> hx4J40v1I = hx4J40v1o -> hx4J40v1o instanceof Byte || hx4J40v1o instanceof Short || hx4J40v1o instanceof Integer || hx4J40v1o instanceof Long || hx4J40v1o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v1o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v1o instanceof Float || hx4J40v1o instanceof Double || hx4J40v1o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v1o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; if (hx4J40v1I.test(hx4J40v1A) && hx4J40v1I.test(hx4J40v1B)) { java.util.function.ToLongFunction<Object> hx4J40v1L = hx4J40v1o -> hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof java.math.BigDecimal ? ((Number) hx4J40v1o).longValue() : Long.parseLong(String.valueOf(hx4J40v1o)); return hx4J40v1L.applyAsLong(hx4J40v1A) == hx4J40v1L.applyAsLong(hx4J40v1B); } if (hx4J40v1A instanceof Double || hx4J40v1B instanceof Double) { return hx4J40v1D.applyAsDouble(hx4J40v1A) == hx4J40v1D.applyAsDouble(hx4J40v1B); } if (hx4J40v1A instanceof Float || hx4J40v1B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v1F = hx4J40v1o -> hx4J40v1o instanceof Float || hx4J40v1o instanceof Double || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal ? ((Number) hx4J40v1o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v1o)); return hx4J40v1F.apply(hx4J40v1A).floatValue() == hx4J40v1F.apply(hx4J40v1B).floatValue(); } if (hx4J40v1A instanceof String && hx4J40v1B instanceof String) { return hx4J40v1A.equals(hx4J40v1B); } if (hx4J40v1A instanceof Boolean && hx4J40v1B instanceof Boolean) { return hx4J40v1A.equals(hx4J40v1B); } if (hx4J40v1N.test(hx4J40v1A) && hx4J40v1N.test(hx4J40v1B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v1A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v1B))) == 0; } return false; } catch (Exception hx4J40v1e) { return false; } }).test(cacheLength, snapshotDelay))
+                if (Helpers.isEqual(cacheLength, snapshotDelay))
                 {
                     this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, limit, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
                 }
@@ -2099,7 +2099,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Map<String, Object> utaParams = new HashMap<String, Object>() {{
                     put( "uta", true );
                 }};
-                if (((java.util.function.BiPredicate<Object, Object>) (hx4J40v0A, hx4J40v0B) -> { try { if (hx4J40v0A == null && hx4J40v0B == null) { return true; } if (hx4J40v0A == null || hx4J40v0B == null) { return false; } java.util.function.Predicate<Object> hx4J40v0N = hx4J40v0o -> { try { Double.parseDouble(String.valueOf(hx4J40v0o)); return true; } catch (Exception hx4J40v0e) { return false; } }; if (!hx4J40v0A.getClass().equals(hx4J40v0B.getClass()) && !(hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B))) { return false; } java.util.function.Predicate<Object> hx4J40v0I = hx4J40v0o -> hx4J40v0o instanceof Byte || hx4J40v0o instanceof Short || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Long || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v0o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; if (hx4J40v0I.test(hx4J40v0A) && hx4J40v0I.test(hx4J40v0B)) { java.util.function.ToLongFunction<Object> hx4J40v0L = hx4J40v0o -> hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).longValue() : Long.parseLong(String.valueOf(hx4J40v0o)); return hx4J40v0L.applyAsLong(hx4J40v0A) == hx4J40v0L.applyAsLong(hx4J40v0B); } if (hx4J40v0A instanceof Double || hx4J40v0B instanceof Double) { return hx4J40v0D.applyAsDouble(hx4J40v0A) == hx4J40v0D.applyAsDouble(hx4J40v0B); } if (hx4J40v0A instanceof Float || hx4J40v0B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v0F = hx4J40v0o -> hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v0o)); return hx4J40v0F.apply(hx4J40v0A).floatValue() == hx4J40v0F.apply(hx4J40v0B).floatValue(); } if (hx4J40v0A instanceof String && hx4J40v0B instanceof String) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0A instanceof Boolean && hx4J40v0B instanceof Boolean) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v0A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v0B))) == 0; } return false; } catch (Exception hx4J40v0e) { return false; } }).test(cacheLength, snapshotDelay))
+                if (Helpers.isEqual(cacheLength, snapshotDelay))
                 {
                     this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, limit, utaParams); } catch(Exception _e) { throw new RuntimeException(_e); } });
                 }
@@ -2127,7 +2127,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             return -1;
         }
-        for (var i = 0; i < (switch ((Object)(cache)) { case null -> 0; case List<?> j39v25 -> j39v25.size(); case String j39v26 -> j39v26.length(); case Object j39v27 -> j39v27.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v27) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(cache)) { case null -> 0; case List<?> j39v5 -> j39v5.size(); case String j39v6 -> j39v6.length(); case Object j39v7 -> j39v7.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v7) : 0; }); i++)
         {
             Map<String, Object> delta = (Map<String, Object>) this.safeDict(cache, i, (Object) null);
             Long deltaStart = this.safeIntegerN(delta, new ArrayList<Object>(Arrays.asList("sequenceStart", "sequence", "O")));
@@ -2141,7 +2141,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 return i;
             }
         }
-        return (switch ((Object)(cache)) { case null -> 0; case List<?> j39v22 -> j39v22.size(); case String j39v23 -> j39v23.length(); case Object j39v24 -> j39v24.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v24) : 0; });
+        return (switch ((Object)(cache)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
     }
 
     public void handleBookDelta(Object orderbook, Object delta)
@@ -2225,9 +2225,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 orderbook.put("nonce", null);
                 orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
             }
-            { Map<Object, Object> j39v33 = (Map<Object, Object>) (Map<?, ?>) (limits); Object j39v34 = symbol; Object j39v35 = limit; if (j39v33 == null) { if (j39v34 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v33) { if (j39v35 == null && j39v33 instanceof java.util.concurrent.ConcurrentHashMap) { j39v33.remove(j39v34); } else { j39v33.put(j39v34, j39v35); } } }
+            Helpers.addElementToObject(limits, symbol, limit);
         }
-        { Map<Object, Object> j39v30 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v31 = "orderBookLimits"; Object j39v32 = limits; if (j39v30 == null) { if (j39v31 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v30) { if (j39v32 == null && j39v30 instanceof java.util.concurrent.ConcurrentHashMap) { j39v30.remove(j39v31); } else { j39v30.put(j39v31, j39v32); } } }
+        Helpers.addElementToObject(this.options, "orderBookLimits", limits);
     }
 
     public void handleSubscriptionStatus(Client client, Map<String, Object> message)
@@ -2886,7 +2886,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     public String getMyTradesMessageHashSuffix(Object topic)
     {
         String suffix = "-spot";
-        if (((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(topic, "contractMarket") >= 0)
+        if (Helpers.getIndexOf(topic, "contractMarket") >= 0)
         {
             suffix = "-contract";
         }
@@ -3178,10 +3178,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return BaseExchange.supplyAsync(() -> {
 
             Boolean uta = (java.util.Objects.equals(type, "unified"));
-            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v37 = new HashMap<String, Object>();
-                j39v37.put("type", type);
-                j39v37.put("uta", uta);
-                yield j39v37; } });
+            Map<String, Object> parameters = (switch (0) { default -> { HashMap<String, Object> j39v8 = new HashMap<String, Object>();
+                j39v8.put("type", type);
+                j39v8.put("uta", uta);
+                yield j39v8; } });
             Balances response = (this.fetchBalance(parameters)).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache

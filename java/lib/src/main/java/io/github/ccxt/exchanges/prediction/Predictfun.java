@@ -1097,8 +1097,8 @@ public class Predictfun extends PredictfunApi
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                Boolean prevIsDigit = (i > 0) && (((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(digits, Helpers.GetValue(chars, (((long) i) - 1L))) >= 0);
-                Boolean nextIsDigit = (((((long) i) + 1L) < (((List<?>)chars).size()))) && (((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(digits, Helpers.GetValue(chars, (((long) i) + 1L))) >= 0);
+                Boolean prevIsDigit = (i > 0) && (Helpers.getIndexOf(digits, Helpers.GetValue(chars, (((long) i) - 1L))) >= 0);
+                Boolean nextIsDigit = (((((long) i) + 1L) < (((List<?>)chars).size()))) && (Helpers.getIndexOf(digits, Helpers.GetValue(chars, (((long) i) + 1L))) >= 0);
                 keep = !(Boolean.TRUE.equals(prevIsDigit) && Boolean.TRUE.equals(nextIsDigit));
             }
             if (Boolean.TRUE.equals(keep))
@@ -1904,8 +1904,8 @@ public class Predictfun extends PredictfunApi
         super.setSandboxMode(enable);
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
-        { Map<Object, Object> j39v29 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v30 = "sandboxMode"; Object j39v31 = enable; if (j39v29 == null) { if (j39v30 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v29) { if (j39v31 == null && j39v29 instanceof java.util.concurrent.ConcurrentHashMap) { j39v29.remove(j39v30); } else { j39v29.put(j39v30, j39v31); } } }
-        { Map<Object, Object> j39v26 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v27 = "chainId"; Object j39v28 = ((Boolean.TRUE.equals(enable))) ? 97 : 56; if (j39v26 == null) { if (j39v27 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v26) { if (j39v28 == null && j39v26 instanceof java.util.concurrent.ConcurrentHashMap) { j39v26.remove(j39v27); } else { j39v26.put(j39v27, j39v28); } } }
+        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        Helpers.addElementToObject(this.options, "chainId", ((Boolean.TRUE.equals(enable))) ? 97 : 56);
         Helpers.addElementToObject(this.requiredCredentials, "apiKey", !Boolean.TRUE.equals(enable));
         if (!java.util.Objects.equals(wasSandbox, enable))
         {
@@ -1914,16 +1914,16 @@ public class Predictfun extends PredictfunApi
             // costs no re-authentication. the sandbox token is not kept: it dies with the switch
             if (Boolean.TRUE.equals(enable))
             {
-                { Map<Object, Object> j39v23 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v24 = "backupJwtToken"; Object j39v25 = this.safeString(this.options, "jwtToken"); if (j39v23 == null) { if (j39v24 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v23) { if (j39v25 == null && j39v23 instanceof java.util.concurrent.ConcurrentHashMap) { j39v23.remove(j39v24); } else { j39v23.put(j39v24, j39v25); } } }
-                { Map<Object, Object> j39v20 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v21 = "backupJwtTokenExpiresAt"; Object j39v22 = this.safeInteger(this.options, "jwtTokenExpiresAt", 0); if (j39v20 == null) { if (j39v21 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v20) { if (j39v22 == null && j39v20 instanceof java.util.concurrent.ConcurrentHashMap) { j39v20.remove(j39v21); } else { j39v20.put(j39v21, j39v22); } } }
-                { Map<Object, Object> j39v17 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v18 = "jwtToken"; Object j39v19 = null; if (j39v17 == null) { if (j39v18 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v17) { if (j39v19 == null && j39v17 instanceof java.util.concurrent.ConcurrentHashMap) { j39v17.remove(j39v18); } else { j39v17.put(j39v18, j39v19); } } }
-                { Map<Object, Object> j39v14 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v15 = "jwtTokenExpiresAt"; Object j39v16 = 0; if (j39v14 == null) { if (j39v15 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v14) { if (j39v16 == null && j39v14 instanceof java.util.concurrent.ConcurrentHashMap) { j39v14.remove(j39v15); } else { j39v14.put(j39v15, j39v16); } } }
+                Helpers.addElementToObject(this.options, "backupJwtToken", this.safeString(this.options, "jwtToken"));
+                Helpers.addElementToObject(this.options, "backupJwtTokenExpiresAt", this.safeInteger(this.options, "jwtTokenExpiresAt", 0));
+                Helpers.addElementToObject(this.options, "jwtToken", null);
+                Helpers.addElementToObject(this.options, "jwtTokenExpiresAt", 0);
             } else
             {
-                { Map<Object, Object> j39v11 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v12 = "jwtToken"; Object j39v13 = this.safeString(this.options, "backupJwtToken"); if (j39v11 == null) { if (j39v12 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v11) { if (j39v13 == null && j39v11 instanceof java.util.concurrent.ConcurrentHashMap) { j39v11.remove(j39v12); } else { j39v11.put(j39v12, j39v13); } } }
-                { Map<Object, Object> j39v8 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v9 = "jwtTokenExpiresAt"; Object j39v10 = this.safeInteger(this.options, "backupJwtTokenExpiresAt", 0); if (j39v8 == null) { if (j39v9 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v8) { if (j39v10 == null && j39v8 instanceof java.util.concurrent.ConcurrentHashMap) { j39v8.remove(j39v9); } else { j39v8.put(j39v9, j39v10); } } }
-                { Map<Object, Object> j39v5 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v6 = "backupJwtToken"; Object j39v7 = null; if (j39v5 == null) { if (j39v6 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v5) { if (j39v7 == null && j39v5 instanceof java.util.concurrent.ConcurrentHashMap) { j39v5.remove(j39v6); } else { j39v5.put(j39v6, j39v7); } } }
-                { Map<Object, Object> j39v2 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v3 = "backupJwtTokenExpiresAt"; Object j39v4 = 0; if (j39v2 == null) { if (j39v3 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v2) { if (j39v4 == null && j39v2 instanceof java.util.concurrent.ConcurrentHashMap) { j39v2.remove(j39v3); } else { j39v2.put(j39v3, j39v4); } } }
+                Helpers.addElementToObject(this.options, "jwtToken", this.safeString(this.options, "backupJwtToken"));
+                Helpers.addElementToObject(this.options, "jwtTokenExpiresAt", this.safeInteger(this.options, "backupJwtTokenExpiresAt", 0));
+                Helpers.addElementToObject(this.options, "backupJwtToken", null);
+                Helpers.addElementToObject(this.options, "backupJwtTokenExpiresAt", 0);
             }
         }
     }
@@ -2023,11 +2023,11 @@ public class Predictfun extends PredictfunApi
             {
                 throw new AuthenticationError((this.id + " authenticate() did not return a token")) ;
             }
-            { Map<Object, Object> j39v35 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v36 = "jwtToken"; Object j39v37 = token; if (j39v35 == null) { if (j39v36 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v35) { if (j39v37 == null && j39v35 instanceof java.util.concurrent.ConcurrentHashMap) { j39v35.remove(j39v36); } else { j39v35.put(j39v36, j39v37); } } }
+            Helpers.addElementToObject(this.options, "jwtToken", token);
             // measured from before the round trip, so the cached window closes a little early rather
             // than a little late
             Long tokenExpiresIn = this.safeInteger(this.options, "tokenExpiresIn", 86400000);
-            { Map<Object, Object> j39v32 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v33 = "jwtTokenExpiresAt"; Object j39v34 = this.sum(now, tokenExpiresIn); if (j39v32 == null) { if (j39v33 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v32) { if (j39v34 == null && j39v32 instanceof java.util.concurrent.ConcurrentHashMap) { j39v32.remove(j39v33); } else { j39v32.put(j39v33, j39v34); } } }
+            Helpers.addElementToObject(this.options, "jwtTokenExpiresAt", this.sum(now, tokenExpiresIn));
             return token;
         });
 
@@ -2626,17 +2626,17 @@ public class Predictfun extends PredictfunApi
             Integer removedLength = ((List<?>)removed).size();
             for (var i = 0; (removedLength != null && i < removedLength); i++)
             {
-                ((List<Object>)rows).add(this.extend(response, (switch (0) { default -> { HashMap<String, Object> j39v39 = new HashMap<String, Object>();
-                    j39v39.put("orderHash", (removed == null || i < 0 || i >= removed.size() ? null : removed.get(i)));
-                    j39v39.put("status", "CANCELLED");
-                    yield j39v39; } })));
+                ((List<Object>)rows).add(this.extend(response, (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                    j39v3.put("orderHash", (removed == null || i < 0 || i >= removed.size() ? null : removed.get(i)));
+                    j39v3.put("status", "CANCELLED");
+                    yield j39v3; } })));
             }
             Integer noopLength = ((List<?>)noop).size();
             for (var i = 0; (noopLength != null && i < noopLength); i++)
             {
                 // accepted, but nothing was resting to pull: the order had already filled, expired,
                 // was never booked, or had been removed before - so the status is left unknown
-                ((List<Object>)rows).add(this.extend(response, (switch (0) { default -> { HashMap<String, Object> j39v38 = new HashMap<String, Object>(); j39v38.put("orderHash", (noop == null || i < 0 || i >= noop.size() ? null : noop.get(i))); yield j39v38; } })));
+                ((List<Object>)rows).add(this.extend(response, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>(); j39v2.put("orderHash", (noop == null || i < 0 || i >= noop.size() ? null : noop.get(i))); yield j39v2; } })));
             }
             return this.parsePredictionOrders(rows, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
@@ -3004,8 +3004,8 @@ public class Predictfun extends PredictfunApi
         // or aged out before its window closes is replayed for the life of the process
         if ((statusCode != null && ((Number) statusCode).doubleValue() == 401))
         {
-            { Map<Object, Object> j39v43 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v44 = "jwtToken"; Object j39v45 = null; if (j39v43 == null) { if (j39v44 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v43) { if (j39v45 == null && j39v43 instanceof java.util.concurrent.ConcurrentHashMap) { j39v43.remove(j39v44); } else { j39v43.put(j39v44, j39v45); } } }
-            { Map<Object, Object> j39v40 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v41 = "jwtTokenExpiresAt"; Object j39v42 = 0; if (j39v40 == null) { if (j39v41 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v40) { if (j39v42 == null && j39v40 instanceof java.util.concurrent.ConcurrentHashMap) { j39v40.remove(j39v41); } else { j39v40.put(j39v41, j39v42); } } }
+            Helpers.addElementToObject(this.options, "jwtToken", null);
+            Helpers.addElementToObject(this.options, "jwtTokenExpiresAt", 0);
         }
         String error = this.safeString(response, "error");
         this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
@@ -3033,13 +3033,13 @@ public class Predictfun extends PredictfunApi
         Map<String, Object> exchanges = (Map<String, Object>) this.safeDict(this.options, "exchanges", new HashMap<String, Object>() {{}});
         Map<String, Object> byChain = (Map<String, Object>) this.safeDict(exchanges, this.numberToString(chainIdValue), new HashMap<String, Object>() {{}});
         String identifier = "CTF_EXCHANGE";
-        if ((switch ((Object) (isNegRisk)) { case null -> false; case Boolean hx4J40v11 -> hx4J40v11.booleanValue(); case Long hx4J40v11 -> hx4J40v11 != 0L; case Integer hx4J40v11 -> hx4J40v11 != 0; case Double hx4J40v11 -> hx4J40v11 != 0.0; case String hx4J40v11 -> !hx4J40v11.isEmpty(); case List<?> hx4J40v11 -> !hx4J40v11.isEmpty(); case Map<?, ?> hx4J40v11 -> true; default -> false; }) && (switch ((Object) (isYieldBearing)) { case null -> false; case Boolean hx4J40v10 -> hx4J40v10.booleanValue(); case Long hx4J40v10 -> hx4J40v10 != 0L; case Integer hx4J40v10 -> hx4J40v10 != 0; case Double hx4J40v10 -> hx4J40v10 != 0.0; case String hx4J40v10 -> !hx4J40v10.isEmpty(); case List<?> hx4J40v10 -> !hx4J40v10.isEmpty(); case Map<?, ?> hx4J40v10 -> true; default -> false; }))
+        if (Helpers.isTrue(isNegRisk) && Helpers.isTrue(isYieldBearing))
         {
             identifier = "YIELD_BEARING_NEG_RISK_CTF_EXCHANGE";
-        } else if ((switch ((Object) (isNegRisk)) { case null -> false; case Boolean hx4J40v9 -> hx4J40v9.booleanValue(); case Long hx4J40v9 -> hx4J40v9 != 0L; case Integer hx4J40v9 -> hx4J40v9 != 0; case Double hx4J40v9 -> hx4J40v9 != 0.0; case String hx4J40v9 -> !hx4J40v9.isEmpty(); case List<?> hx4J40v9 -> !hx4J40v9.isEmpty(); case Map<?, ?> hx4J40v9 -> true; default -> false; }))
+        } else if (Helpers.isTrue(isNegRisk))
         {
             identifier = "NEG_RISK_CTF_EXCHANGE";
-        } else if ((switch ((Object) (isYieldBearing)) { case null -> false; case Boolean hx4J40v8 -> hx4J40v8.booleanValue(); case Long hx4J40v8 -> hx4J40v8 != 0L; case Integer hx4J40v8 -> hx4J40v8 != 0; case Double hx4J40v8 -> hx4J40v8 != 0.0; case String hx4J40v8 -> !hx4J40v8.isEmpty(); case List<?> hx4J40v8 -> !hx4J40v8.isEmpty(); case Map<?, ?> hx4J40v8 -> true; default -> false; }))
+        } else if (Helpers.isTrue(isYieldBearing))
         {
             identifier = "YIELD_BEARING_CTF_EXCHANGE";
         }
@@ -3061,13 +3061,13 @@ public class Predictfun extends PredictfunApi
         Map<String, Object> tokens = (Map<String, Object>) this.safeDict(this.options, "conditionalTokens", new HashMap<String, Object>() {{}});
         Map<String, Object> byChain = (Map<String, Object>) this.safeDict(tokens, this.numberToString(chainIdValue), new HashMap<String, Object>() {{}});
         String identifier = "CONDITIONAL_TOKENS";
-        if ((switch ((Object) (isNegRisk)) { case null -> false; case Boolean hx4J40v7 -> hx4J40v7.booleanValue(); case Long hx4J40v7 -> hx4J40v7 != 0L; case Integer hx4J40v7 -> hx4J40v7 != 0; case Double hx4J40v7 -> hx4J40v7 != 0.0; case String hx4J40v7 -> !hx4J40v7.isEmpty(); case List<?> hx4J40v7 -> !hx4J40v7.isEmpty(); case Map<?, ?> hx4J40v7 -> true; default -> false; }) && (switch ((Object) (isYieldBearing)) { case null -> false; case Boolean hx4J40v6 -> hx4J40v6.booleanValue(); case Long hx4J40v6 -> hx4J40v6 != 0L; case Integer hx4J40v6 -> hx4J40v6 != 0; case Double hx4J40v6 -> hx4J40v6 != 0.0; case String hx4J40v6 -> !hx4J40v6.isEmpty(); case List<?> hx4J40v6 -> !hx4J40v6.isEmpty(); case Map<?, ?> hx4J40v6 -> true; default -> false; }))
+        if (Helpers.isTrue(isNegRisk) && Helpers.isTrue(isYieldBearing))
         {
             identifier = "YIELD_BEARING_NEG_RISK_CONDITIONAL_TOKENS";
-        } else if ((switch ((Object) (isNegRisk)) { case null -> false; case Boolean hx4J40v5 -> hx4J40v5.booleanValue(); case Long hx4J40v5 -> hx4J40v5 != 0L; case Integer hx4J40v5 -> hx4J40v5 != 0; case Double hx4J40v5 -> hx4J40v5 != 0.0; case String hx4J40v5 -> !hx4J40v5.isEmpty(); case List<?> hx4J40v5 -> !hx4J40v5.isEmpty(); case Map<?, ?> hx4J40v5 -> true; default -> false; }))
+        } else if (Helpers.isTrue(isNegRisk))
         {
             identifier = "NEG_RISK_CONDITIONAL_TOKENS";
-        } else if ((switch ((Object) (isYieldBearing)) { case null -> false; case Boolean hx4J40v4 -> hx4J40v4.booleanValue(); case Long hx4J40v4 -> hx4J40v4 != 0L; case Integer hx4J40v4 -> hx4J40v4 != 0; case Double hx4J40v4 -> hx4J40v4 != 0.0; case String hx4J40v4 -> !hx4J40v4.isEmpty(); case List<?> hx4J40v4 -> !hx4J40v4.isEmpty(); case Map<?, ?> hx4J40v4 -> true; default -> false; }))
+        } else if (Helpers.isTrue(isYieldBearing))
         {
             identifier = "YIELD_BEARING_CONDITIONAL_TOKENS";
         }
@@ -3088,7 +3088,7 @@ public class Predictfun extends PredictfunApi
         Map<String, Object> adapters = (Map<String, Object>) this.safeDict(this.options, "adapters", new HashMap<String, Object>() {{}});
         Map<String, Object> byChain = (Map<String, Object>) this.safeDict(adapters, this.numberToString(chainIdValue), new HashMap<String, Object>() {{}});
         String identifier = "NEG_RISK_ADAPTER";
-        if ((switch ((Object) (isYieldBearing)) { case null -> false; case Boolean hx4J40v3 -> hx4J40v3.booleanValue(); case Long hx4J40v3 -> hx4J40v3 != 0L; case Integer hx4J40v3 -> hx4J40v3 != 0; case Double hx4J40v3 -> hx4J40v3 != 0.0; case String hx4J40v3 -> !hx4J40v3.isEmpty(); case List<?> hx4J40v3 -> !hx4J40v3.isEmpty(); case Map<?, ?> hx4J40v3 -> true; default -> false; }))
+        if (Helpers.isTrue(isYieldBearing))
         {
             identifier = "YIELD_BEARING_NEG_RISK_ADAPTER";
         }
@@ -3686,7 +3686,7 @@ public class Predictfun extends PredictfunApi
         // topic that was turned down. the unnarrowed pair is always listed, the narrowed ones are
         // whatever is already live on this connection plus the hash watch () is about to register
         List<Object> hashes = new ArrayList<Object>(Arrays.asList("orders", "myTrades"));
-        List<Object> futures = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v46 -> { synchronized (j39v46) { yield new ArrayList<Object>(j39v46.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> futures = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer futuresLength = ((List<?>)futures).size();
         for (var i = 0; (futuresLength != null && i < futuresLength); i++)
         {
@@ -3777,7 +3777,7 @@ public class Predictfun extends PredictfunApi
         synchronized (this) {
         Long previous = this.safeInteger(this.options, "requestId", 0);
         next = (Long) this.sum(previous, 1);
-        { Map<Object, Object> j39v47 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v48 = "requestId"; Object j39v49 = next; if (j39v47 == null) { if (j39v48 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v47) { if (j39v49 == null && j39v47 instanceof java.util.concurrent.ConcurrentHashMap) { j39v47.remove(j39v48); } else { j39v47.put(j39v48, j39v49); } } }
+        Helpers.addElementToObject(this.options, "requestId", next);
         }
         return next;
     }
@@ -4420,7 +4420,7 @@ public class Predictfun extends PredictfunApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v50 -> { synchronized (j39v50) { yield new ArrayList<Object>(j39v50.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

@@ -560,13 +560,13 @@ public class Lighter extends LighterApi
     {
         if (!(((Map<?, ?>)this.options).containsKey("auths")))
         {
-            { Map<Object, Object> j39v12 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v13 = "auths"; Object j39v14 = new HashMap<String, Object>() {{}}; if (j39v12 == null) { if (j39v13 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v12) { if (j39v14 == null && j39v12 instanceof java.util.concurrent.ConcurrentHashMap) { j39v12.remove(j39v13); } else { j39v12.put(j39v13, j39v14); } } }
+            Helpers.addElementToObject(this.options, "auths", new HashMap<String, Object>() {{}});
         }
-        if (!((switch ((Object)(this.options.get("auths"))) { case List<?> j39v11 -> ((Object)(strAccountIndex)) != null && j39v11.contains(strAccountIndex); case Map<?, ?> j39v10 -> ((Object)(strAccountIndex)) instanceof String && j39v10.containsKey(strAccountIndex); case null, default -> false; })))
+        if (!((switch ((Object)(this.options.get("auths"))) { case List<?> j39v4 -> ((Object)(strAccountIndex)) != null && j39v4.contains(strAccountIndex); case Map<?, ?> j39v3 -> ((Object)(strAccountIndex)) instanceof String && j39v3.containsKey(strAccountIndex); case null, default -> false; })))
         {
             Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), strAccountIndex, new HashMap<String, Object>() {{}});
         }
-        if (!((switch ((Object)(Helpers.GetValue(this.options.get("auths"), strAccountIndex))) { case List<?> j39v9 -> ((Object)(strApiKeyIndex)) != null && j39v9.contains(strApiKeyIndex); case Map<?, ?> j39v8 -> ((Object)(strApiKeyIndex)) instanceof String && j39v8.containsKey(strApiKeyIndex); case null, default -> false; })))
+        if (!((switch ((Object)(Helpers.GetValue(this.options.get("auths"), strAccountIndex))) { case List<?> j39v2 -> ((Object)(strApiKeyIndex)) != null && j39v2.contains(strApiKeyIndex); case Map<?, ?> j39v1 -> ((Object)(strApiKeyIndex)) instanceof String && j39v1.containsKey(strApiKeyIndex); case null, default -> false; })))
         {
             Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), strAccountIndex), strApiKeyIndex, new HashMap<String, Object>() {{
     put( "signer", null );
@@ -634,7 +634,7 @@ public class Lighter extends LighterApi
         }
         // apiKeyIndex = this.randNumber (2);
         Integer defaultApiKeyIndex = 254;
-        { Map<Object, Object> j39v17 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v18 = "apiKeyIndex"; Object j39v19 = defaultApiKeyIndex; if (j39v17 == null) { if (j39v18 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v17) { if (j39v19 == null && j39v17 instanceof java.util.concurrent.ConcurrentHashMap) { j39v17.remove(j39v18); } else { j39v17.put(j39v18, j39v19); } } } // default to a value to avoid overriding other keys
+        Helpers.addElementToObject(this.options, "apiKeyIndex", defaultApiKeyIndex); // default to a value to avoid overriding other keys
         return new ArrayList<Object>(Arrays.asList(defaultApiKeyIndex, paramsApiKeyIndex));
     }
 
@@ -697,7 +697,7 @@ public class Lighter extends LighterApi
                         throw new ArgumentsRequired((((((((this.id + " ") + methodName1) + "() requires an ") + optionName1) + " or ") + optionName2) + " parameter")) ;
                     }
                     accountIndex = account.get("index");
-                    { Map<Object, Object> j39v20 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v21 = "accountIndex"; Object j39v22 = accountIndex; if (j39v20 == null) { if (j39v21 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v20) { if (j39v22 == null && j39v20 instanceof java.util.concurrent.ConcurrentHashMap) { j39v20.remove(j39v21); } else { j39v20.put(j39v21, j39v22); } } }
+                    Helpers.addElementToObject(this.options, "accountIndex", accountIndex);
                 }
             }
             return new ArrayList<Object>(Arrays.asList(this.parseToInt(accountIndex), paramsAccountIndex));
@@ -846,18 +846,18 @@ public class Lighter extends LighterApi
                 if (Boolean.TRUE.equals(isStandardTier))
                 {
                     standardTier = true;
-                    { Map<Object, Object> j39v36 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v37 = "builderFee"; Object j39v38 = false; if (j39v36 == null) { if (j39v37 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v36) { if (j39v38 == null && j39v36 instanceof java.util.concurrent.ConcurrentHashMap) { j39v36.remove(j39v37); } else { j39v36.put(j39v37, j39v38); } } }
+                    Helpers.addElementToObject(this.options, "builderFee", false);
                 } else
                 {
                     Long builder = this.safeInteger(this.options, "integratorAccountIndex", 718718);
                     Long takerFeeRate = this.safeInteger(this.options, "integratorTakerFee", 1000);
                     Long makerFeeRate = this.safeInteger(this.options, "integratorMakerFee", 1000);
                     (this.approveBuilderFee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex, new HashMap<String, Object>() {{}})).join();
-                    { Map<Object, Object> j39v33 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v34 = "approvedBuilderFee"; Object j39v35 = true; if (j39v33 == null) { if (j39v34 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v33) { if (j39v35 == null && j39v33 instanceof java.util.concurrent.ConcurrentHashMap) { j39v33.remove(j39v34); } else { j39v33.put(j39v34, j39v35); } } }
+                    Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
                 }
             } catch(Exception e)
             {
-                { Map<Object, Object> j39v30 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v31 = "builderFee"; Object j39v32 = false; if (j39v30 == null) { if (j39v31 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v30) { if (j39v32 == null && j39v30 instanceof java.util.concurrent.ConcurrentHashMap) { j39v30.remove(j39v31); } else { j39v30.put(j39v31, j39v32); } } }
+                Helpers.addElementToObject(this.options, "builderFee", false);
             }
             if (Boolean.TRUE.equals(standardTier))
             {
@@ -902,7 +902,7 @@ public class Lighter extends LighterApi
             String tier = this.safeString(accountLimits, "user_tier");
             Boolean isStandard = (java.util.Objects.equals(tier, "standard"));
             tiersForAccountIndexes.put(accountIndexStr, isStandard);
-            { Map<Object, Object> j39v39 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v40 = "tiersForAccountIndexes"; Object j39v41 = tiersForAccountIndexes; if (j39v39 == null) { if (j39v40 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v39) { if (j39v41 == null && j39v39 instanceof java.util.concurrent.ConcurrentHashMap) { j39v39.remove(j39v40); } else { j39v39.put(j39v40, j39v41); } } }
+            Helpers.addElementToObject(this.options, "tiersForAccountIndexes", tiersForAccountIndexes);
             return isStandard;
         }).thenApply(res -> (Boolean) res);
 
@@ -993,8 +993,8 @@ public class Lighter extends LighterApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        { Map<Object, Object> j39v52 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v53 = "sandboxMode"; Object j39v54 = enable; if (j39v52 == null) { if (j39v53 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v52) { if (j39v54 == null && j39v52 instanceof java.util.concurrent.ConcurrentHashMap) { j39v52.remove(j39v53); } else { j39v52.put(j39v53, j39v54); } } }
-        { Map<Object, Object> j39v49 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v50 = "chainId"; Object j39v51 = ((Boolean.TRUE.equals(enable))) ? 300 : 304; if (j39v49 == null) { if (j39v50 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v49) { if (j39v51 == null && j39v49 instanceof java.util.concurrent.ConcurrentHashMap) { j39v49.remove(j39v50); } else { j39v49.put(j39v50, j39v51); } } }
+        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        Helpers.addElementToObject(this.options, "chainId", ((Boolean.TRUE.equals(enable))) ? 300 : 304);
     }
 
     public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -1252,11 +1252,11 @@ public class Lighter extends LighterApi
                 Boolean isStandardTier = (this.checkIfStandardTier(accountIndex)).join();
                 if (Boolean.TRUE.equals(isStandardTier))
                 {
-                    { Map<Object, Object> j39v60 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v61 = "builderFee"; Object j39v62 = false; if (j39v60 == null) { if (j39v61 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v60) { if (j39v62 == null && j39v60 instanceof java.util.concurrent.ConcurrentHashMap) { j39v60.remove(j39v61); } else { j39v60.put(j39v61, j39v62); } } }
+                    Helpers.addElementToObject(this.options, "builderFee", false);
                 }
             } catch(Exception e)
             {
-                { Map<Object, Object> j39v57 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v58 = "builderFee"; Object j39v59 = false; if (j39v57 == null) { if (j39v58 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v57) { if (j39v59 == null && j39v57 instanceof java.util.concurrent.ConcurrentHashMap) { j39v57.remove(j39v58); } else { j39v57.put(j39v58, j39v59); } } }
+                Helpers.addElementToObject(this.options, "builderFee", false);
             }
             List<Object> groupingTypeparamsGroupingTypeVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "groupingType", 3L);
             Long groupingType = (Long) ((List<Object>) groupingTypeparamsGroupingTypeVariable).get(0);
@@ -1636,37 +1636,37 @@ public class Lighter extends LighterApi
                 Double amountPrecision = (((java.util.Objects.equals(amountDecimals, null)))) ? null : this.parseNumber(this.parsePrecision(amountDecimals));
                 Double pricePrecision = (((java.util.Objects.equals(priceDecimals, null)))) ? null : this.parseNumber(this.parsePrecision(priceDecimals));
                 Double quoteMultiplier = this.safeNumber(market, "quote_multiplier", (Object) null);
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v63 = new HashMap<String, Object>();
-                    j39v63.put("id", id);
-                    j39v63.put("symbol", symbol);
-                    j39v63.put("base", base);
-                    j39v63.put("quote", quote);
-                    j39v63.put("settle", settle);
-                    j39v63.put("baseId", baseId);
-                    j39v63.put("quoteId", quoteId);
-                    j39v63.put("settleId", settleId);
-                    j39v63.put("type", type);
-                    j39v63.put("spot", java.util.Objects.equals(type, "spot"));
-                    j39v63.put("margin", false);
-                    j39v63.put("swap", java.util.Objects.equals(type, "swap"));
-                    j39v63.put("future", false);
-                    j39v63.put("option", false);
-                    j39v63.put("active", java.util.Objects.equals(this.safeString(market, "status"), "active"));
-                    j39v63.put("contract", java.util.Objects.equals(type, "swap"));
-                    j39v63.put("linear", (((java.util.Objects.equals(type, "swap")))) ? true : null);
-                    j39v63.put("inverse", (((java.util.Objects.equals(type, "swap")))) ? false : null);
-                    j39v63.put("taker", this.safeNumber(market, "taker_fee", (Object) null));
-                    j39v63.put("maker", this.safeNumber(market, "maker_fee", (Object) null));
-                    j39v63.put("contractSize", quoteMultiplier);
-                    j39v63.put("expiry", null);
-                    j39v63.put("expiryDatetime", null);
-                    j39v63.put("strike", null);
-                    j39v63.put("optionType", null);
-                    j39v63.put("precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+                    j39v5.put("id", id);
+                    j39v5.put("symbol", symbol);
+                    j39v5.put("base", base);
+                    j39v5.put("quote", quote);
+                    j39v5.put("settle", settle);
+                    j39v5.put("baseId", baseId);
+                    j39v5.put("quoteId", quoteId);
+                    j39v5.put("settleId", settleId);
+                    j39v5.put("type", type);
+                    j39v5.put("spot", java.util.Objects.equals(type, "spot"));
+                    j39v5.put("margin", false);
+                    j39v5.put("swap", java.util.Objects.equals(type, "swap"));
+                    j39v5.put("future", false);
+                    j39v5.put("option", false);
+                    j39v5.put("active", java.util.Objects.equals(this.safeString(market, "status"), "active"));
+                    j39v5.put("contract", java.util.Objects.equals(type, "swap"));
+                    j39v5.put("linear", (((java.util.Objects.equals(type, "swap")))) ? true : null);
+                    j39v5.put("inverse", (((java.util.Objects.equals(type, "swap")))) ? false : null);
+                    j39v5.put("taker", this.safeNumber(market, "taker_fee", (Object) null));
+                    j39v5.put("maker", this.safeNumber(market, "maker_fee", (Object) null));
+                    j39v5.put("contractSize", quoteMultiplier);
+                    j39v5.put("expiry", null);
+                    j39v5.put("expiryDatetime", null);
+                    j39v5.put("strike", null);
+                    j39v5.put("optionType", null);
+                    j39v5.put("precision", new HashMap<String, Object>() {{
                         put( "amount", amountPrecision );
                         put( "price", pricePrecision );
                     }});
-                    j39v63.put("limits", new HashMap<String, Object>() {{
+                    j39v5.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1684,9 +1684,9 @@ public class Lighter extends LighterApi
                             put( "max", Lighter.this.safeNumber(market, "order_quote_limit", (Object) null) );
                         }} );
                     }});
-                    j39v63.put("created", null);
-                    j39v63.put("info", market);
-                    yield j39v63; } }));
+                    j39v5.put("created", null);
+                    j39v5.put("info", market);
+                    yield j39v5; } }));
             }
             return result;
         });
@@ -2335,8 +2335,8 @@ public class Lighter extends LighterApi
                         String codeId = this.safeString(asset, "symbol");
                         String code = this.safeCurrencyCode(codeId, (Map<String, Object>) null);
                         Map<String, Object> balance = (Map<String, Object>) this.safeDict(result, code, this.account());
-                        { Map<Object, Object> j39v74 = (Map<Object, Object>) (Map<?, ?>) (balance); Object j39v75 = "total"; Object j39v76 = Precise.stringAdd(balance.get("total"), this.safeString(asset, "balance")); if (j39v74 == null) { if (j39v75 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v74) { if (j39v76 == null && j39v74 instanceof java.util.concurrent.ConcurrentHashMap) { j39v74.remove(j39v75); } else { j39v74.put(j39v75, j39v76); } } }
-                        { Map<Object, Object> j39v71 = (Map<Object, Object>) (Map<?, ?>) (balance); Object j39v72 = "used"; Object j39v73 = Precise.stringAdd(balance.get("used"), this.safeString(asset, "locked_balance")); if (j39v71 == null) { if (j39v72 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v71) { if (j39v73 == null && j39v71 instanceof java.util.concurrent.ConcurrentHashMap) { j39v71.remove(j39v72); } else { j39v71.put(j39v72, j39v73); } } }
+                        Helpers.addElementToObject(balance, "total", Precise.stringAdd(balance.get("total"), this.safeString(asset, "balance")));
+                        Helpers.addElementToObject(balance, "used", Precise.stringAdd(balance.get("used"), this.safeString(asset, "locked_balance")));
                         if (!java.util.Objects.equals(code, null))
                         {
                             result.put(code, balance);
@@ -2349,8 +2349,8 @@ public class Lighter extends LighterApi
                     String perpFree = this.safeString(perpBalance, "free", "0");
                     String perpUSDCTotal = this.safeString(account, "collateral", "0");
                     String perpUSDCFree = this.safeString(account, "available_balance", "0");
-                    { Map<Object, Object> j39v68 = (Map<Object, Object>) (Map<?, ?>) (perpBalance); Object j39v69 = "total"; Object j39v70 = Precise.stringAdd(perpTotal, perpUSDCTotal); if (j39v68 == null) { if (j39v69 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v68) { if (j39v70 == null && j39v68 instanceof java.util.concurrent.ConcurrentHashMap) { j39v68.remove(j39v69); } else { j39v68.put(j39v69, j39v70); } } }
-                    { Map<Object, Object> j39v65 = (Map<Object, Object>) (Map<?, ?>) (perpBalance); Object j39v66 = "free"; Object j39v67 = Precise.stringAdd(perpFree, perpUSDCFree); if (j39v65 == null) { if (j39v66 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v65) { if (j39v67 == null && j39v65 instanceof java.util.concurrent.ConcurrentHashMap) { j39v65.remove(j39v66); } else { j39v65.put(j39v66, j39v67); } } }
+                    Helpers.addElementToObject(perpBalance, "total", Precise.stringAdd(perpTotal, perpUSDCTotal));
+                    Helpers.addElementToObject(perpBalance, "free", Precise.stringAdd(perpFree, perpUSDCFree));
                     result.put("USDC", perpBalance);
                 }
             }
@@ -4237,7 +4237,7 @@ public class Lighter extends LighterApi
                 put( "Authorization", Lighter.this.createAuth(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); }))) );
             }};
         }
-        if (((List<Object>) switch ((Object)(parameters)) { case Map<?, ?> j39v77 -> { synchronized (j39v77) { yield new ArrayList<Object>(j39v77.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+        if (((List<Object>) switch ((Object)(parameters)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {

@@ -1373,7 +1373,7 @@ public class Cex extends CexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "orderId", ((Long) (switch ((Object) (id)) { case null -> (Long) null; case Long hx4J42v2 -> hx4J42v2; case Integer hx4J42v2 -> Long.valueOf(hx4J42v2.longValue()); case Double hx4J42v2 -> Long.valueOf(hx4J42v2.longValue()); case Float hx4J42v2 -> Long.valueOf(hx4J42v2.longValue()); case java.math.BigDecimal hx4J42v2 -> Long.valueOf(hx4J42v2.longValue()); case Object hx4J42v2 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v2))); } catch (Exception hx4J42v2e) { yield (Long) null; } } })) );
+                put( "orderId", Helpers.parseInt(id) );
             }};
             List<Order> result = (this.fetchOpenOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
             Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
@@ -1402,7 +1402,7 @@ public class Cex extends CexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "orderId", ((Long) (switch ((Object) (id)) { case null -> (Long) null; case Long hx4J42v1 -> hx4J42v1; case Integer hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Double hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Float hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case java.math.BigDecimal hx4J42v1 -> Long.valueOf(hx4J42v1.longValue()); case Object hx4J42v1 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v1))); } catch (Exception hx4J42v1e) { yield (Long) null; } } })) );
+                put( "orderId", Helpers.parseInt(id) );
             }};
             List<Order> result = (this.fetchClosedOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
             Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
@@ -1643,7 +1643,7 @@ public class Cex extends CexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "orderId", ((Long) (switch ((Object) (id)) { case null -> (Long) null; case Long hx4J42v0 -> hx4J42v0; case Integer hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Double hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Float hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case java.math.BigDecimal hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Object hx4J42v0 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v0))); } catch (Exception hx4J42v0e) { yield (Long) null; } } })) );
+                put( "orderId", Helpers.parseInt(id) );
                 put( "cancelRequestId", ("c_" + String.valueOf((Cex.this.milliseconds()))) );
                 put( "timestamp", Cex.this.milliseconds() );
             }};

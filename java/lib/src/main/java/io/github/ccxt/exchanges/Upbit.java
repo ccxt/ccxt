@@ -788,7 +788,7 @@ public class Upbit extends UpbitApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
@@ -2759,10 +2759,10 @@ public class Upbit extends UpbitApi
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
             }
-            Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend((switch (0) { default -> { HashMap<String, Object> j39v9 = new HashMap<String, Object>();
-                j39v9.put("currency", currency.get("id"));
-                j39v9.put("net_type", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
-                yield j39v9; } }), paramsNetworkCode))).join();
+            Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                j39v4.put("currency", currency.get("id"));
+                j39v4.put("net_type", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
+                yield j39v4; } }), paramsNetworkCode))).join();
             //
             //    {
             //        currency: 'XRP',
@@ -2917,7 +2917,7 @@ public class Upbit extends UpbitApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v11 -> { synchronized (j39v11) { yield new ArrayList<Object>(j39v11.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -2938,7 +2938,7 @@ public class Upbit extends UpbitApi
                 put( "access_key", Upbit.this.apiKey );
                 put( "nonce", nonce );
             }};
-            Integer hasQuery = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v10 -> { synchronized (j39v10) { yield new ArrayList<Object>(j39v10.keySet()); } } case null, default -> new ArrayList<Object>(); }).size();
+            Integer hasQuery = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size();
             String auth = null;
             if (Boolean.TRUE.equals(hasBody))
             {

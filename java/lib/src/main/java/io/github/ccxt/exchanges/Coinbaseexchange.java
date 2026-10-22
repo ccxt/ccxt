@@ -1980,7 +1980,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 {
                     if (!java.util.Objects.equals(price, null))
                     {
-                        cost = ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(amount, price);
+                        cost = Helpers.multiply(amount, price);
                     }
                 }
                 if (!java.util.Objects.equals(cost, null))
@@ -2624,8 +2624,8 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             if (java.util.Objects.equals(accounts, null))
             {
                 accounts = (this.privateGetCoinbaseAccounts(new HashMap<String, Object>() {{}})).join();
-                { Map<Object, Object> j39v8 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v9 = "coinbaseAccounts"; Object j39v10 = accounts; if (j39v8 == null) { if (j39v9 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v8) { if (j39v10 == null && j39v8 instanceof java.util.concurrent.ConcurrentHashMap) { j39v8.remove(j39v9); } else { j39v8.put(j39v9, j39v10); } } } // cache it
-                { Map<Object, Object> j39v5 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v6 = "coinbaseAccountsByCurrencyId"; Object j39v7 = this.indexBy(accounts, "currency"); if (j39v5 == null) { if (j39v6 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v5) { if (j39v7 == null && j39v5 instanceof java.util.concurrent.ConcurrentHashMap) { j39v5.remove(j39v6); } else { j39v5.put(j39v6, j39v7); } } }
+                Helpers.addElementToObject(this.options, "coinbaseAccounts", accounts); // cache it
+                Helpers.addElementToObject(this.options, "coinbaseAccountsByCurrencyId", this.indexBy(accounts, "currency"));
             }
             String currencyId = (String) currency.get("id");
             Map<String, Object> account = (Map<String, Object>) this.safeDict(this.options.get("coinbaseAccountsByCurrencyId"), currencyId, (Object) null);
@@ -2658,7 +2658,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 request = (request + ("?" + this.urlencode(query)));
             }
@@ -2676,7 +2676,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             String payload = "";
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v11 -> { synchronized (j39v11) { yield new ArrayList<Object>(j39v11.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     requestBody = this.json(query);
                     payload = requestBody;
@@ -2737,7 +2737,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
             if (!(response instanceof String))
             {
-                if ((switch ((Object)(response)) { case List<?> j39v15 -> j39v15.contains("message"); case Map<?, ?> j39v14 -> j39v14.containsKey("message"); case null, default -> false; }))
+                if ((switch ((Object)(response)) { case List<?> j39v8 -> j39v8.contains("message"); case Map<?, ?> j39v7 -> j39v7.containsKey("message"); case null, default -> false; }))
                 {
                     throw new ExchangeError(((this.id + " ") + this.json(response))) ;
                 }

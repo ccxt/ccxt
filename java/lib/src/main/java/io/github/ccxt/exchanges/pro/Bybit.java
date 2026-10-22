@@ -202,7 +202,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Long requestId;
         synchronized (this) {
         requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "requestId"; Object j39v3 = requestId; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+        Helpers.addElementToObject(this.options, "requestId", requestId);
         }
         return requestId;
     }
@@ -459,7 +459,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("ticker:" + symbolValue);
             String url = (this.getUrlByMarketType(symbolValue, false, "watchTicker", parameters)).join();
-            Object paramsValue = this.cleanParams((Map<String, Object>) (parameters));
+            Map<String, Object> paramsValue = (Map<String, Object>) this.cleanParams((Map<String, Object>) (parameters));
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTicker", new HashMap<String, Object>() {{}});
             String topic = this.safeString(options, "name", "tickers");
             if ((!java.util.Objects.equals(market.get("spot"), true)) && !java.util.Objects.equals(topic, "tickers"))
@@ -468,7 +468,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             topic = (topic + ("." + market.get("id")));
             List<Object> topics = new ArrayList<Object>(Arrays.asList(topic));
-            return (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v17 -> (Map<String, Object>) hx4J40v17; case Object hx4J40v17 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v17.getClass().getName()); })))).join();
+            return (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, paramsValue)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -495,7 +495,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<String> symbolsValue = this.marketSymbols(symbols, (Object) null, false, false, false);
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsValue == null || 0 >= ((List<?>)symbolsValue).size() ? null : ((List<?>)symbolsValue).get(0)), null), false, "watchTickers", parameters)).join();
-            Object paramsValue = this.cleanParams((Map<String, Object>) (parameters));
+            Map<String, Object> paramsValue = (Map<String, Object>) this.cleanParams((Map<String, Object>) (parameters));
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTickers", new HashMap<String, Object>() {{}});
             String topic = this.safeString(options, "name", "tickers");
             List<String> marketIds = this.marketIds(symbolsValue);
@@ -506,7 +506,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 ((List<Object>)topics).add(((topic + ".") + marketId));
                 messageHashes.add(("ticker:" + (symbolsValue == null || i < 0 || i >= symbolsValue.size() ? null : symbolsValue.get(i))));
             }
-            Object ticker = (this.watchTopics(url, messageHashes, topics, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v15 -> (Map<String, Object>) hx4J40v15; case Object hx4J40v15 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v15.getClass().getName()); })))).join();
+            Object ticker = (this.watchTopics(url, messageHashes, topics, paramsValue)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -577,7 +577,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v13 -> (Map<String, Object>) hx4J40v13; case Object hx4J40v13 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v13.getClass().getName()); })))).join();
+            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); })))).join();
         });
 
     }
@@ -763,7 +763,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<String> symbolsValue = this.marketSymbols(symbols, (Object) null, false, false, false);
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsValue == null || 0 >= ((List<?>)symbolsValue).size() ? null : ((List<?>)symbolsValue).get(0)), null), false, "watchBidsAsks", parameters)).join();
-            Object paramsValue = this.cleanParams((Map<String, Object>) (parameters));
+            Map<String, Object> paramsValue = (Map<String, Object>) this.cleanParams((Map<String, Object>) (parameters));
             List<String> marketIds = this.marketIds(symbolsValue);
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
@@ -773,7 +773,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 ((List<Object>)topics).add(topic);
                 messageHashes.add(("bidask:" + (symbolsValue == null || i < 0 || i >= symbolsValue.size() ? null : symbolsValue.get(i))));
             }
-            Object ticker = (this.watchTopics(url, messageHashes, topics, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v11 -> (Map<String, Object>) hx4J40v11; case Object hx4J40v11 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v11.getClass().getName()); })))).join();
+            Object ticker = (this.watchTopics(url, messageHashes, topics, paramsValue)).join();
             if (this.newUpdates)
             {
                 return ticker;
@@ -1082,7 +1082,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)), null), false, "watchOrderBook", parameters)).join();
-            Object paramsValue = this.cleanParams((Map<String, Object>) (parameters));
+            Map<String, Object> paramsValue = (Map<String, Object>) this.cleanParams((Map<String, Object>) (parameters));
             Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
             Integer defaultLimit = (((java.util.Objects.equals(market.get("option"), true)))) ? 100 : 50;
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
@@ -1110,7 +1110,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 String messageHash = ("orderbook:" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchTopics(url, messageHashes, topics, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchTopics(url, messageHashes, topics, paramsValue)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -1181,7 +1181,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
+            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
         });
 
     }
@@ -1280,9 +1280,9 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v25 -> j39v25.size(); case String j39v26 -> j39v26.length(); case Object j39v27 -> j39v27.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v27) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 
@@ -1333,8 +1333,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 throw new ArgumentsRequired((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
-            Object paramsValue = this.cleanParams((Map<String, Object>) (parameters));
-            String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)), null), false, "watchTrades", ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
+            Map<String, Object> paramsValue = (Map<String, Object>) this.cleanParams((Map<String, Object>) (parameters));
+            String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)), null), false, "watchTrades", paramsValue)).join();
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
@@ -1346,7 +1346,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 String messageHash = ("trade:" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            List<Object> trades = (List<Object>) (this.watchTopics(url, messageHashes, topics, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
+            List<Object> trades = (List<Object>) (this.watchTopics(url, messageHashes, topics, paramsValue)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -2691,7 +2691,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         if (java.util.Objects.equals(topic, "wallet"))
         {
             Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
-            for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v29 -> j39v29.size(); case String j39v30 -> j39v30.length(); case Object j39v31 -> j39v31.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v31) : 0; }); i++)
+            for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
             {
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 account = this.safeStringLower(result, "accountType");
@@ -2802,7 +2802,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
             Client client = this.client(url);
             List<Object> newTopics = new ArrayList<Object>(Arrays.asList());
-            Object topicsLength = (switch ((Object)(topics)) { case null -> 0; case List<?> j39v38 -> j39v38.size(); case String j39v39 -> j39v39.length(); case Object j39v40 -> j39v40.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v40) : 0; });
+            Object topicsLength = (switch ((Object)(topics)) { case null -> 0; case List<?> j39v5 -> j39v5.size(); case String j39v6 -> j39v6.length(); case Object j39v7 -> j39v7.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v7) : 0; });
             Object messageHashesLength = ((List<?>)messageHashes).size();
             if ((((Number) topicsLength).longValue() == ((Number) messageHashesLength).longValue()))
             {
@@ -2820,7 +2820,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 // recorded on any subscription so a later call with a new hash
                 // does not resend already-subscribed topics.
                 Map<String, Object> subscribedTopics = new HashMap<String, Object>() {{}};
-                List<Object> subscriptionHashes = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v36 -> { synchronized (j39v36) { yield new ArrayList<Object>(j39v36.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> subscriptionHashes = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
                 {
                     Map<String, Object> existing = (Map<String, Object>) this.safeDict(client.subscriptions, (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i)), new HashMap<String, Object>() {{}});
@@ -2828,7 +2828,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                     Integer recordedLength = ((List<?>)recordedTopics).size();
                     for (var j = 0; (recordedLength != null && j < recordedLength); j++)
                     {
-                        { Map<Object, Object> j39v33 = (Map<Object, Object>) (Map<?, ?>) (subscribedTopics); Object j39v34 = (recordedTopics == null || j < 0 || j >= recordedTopics.size() ? null : recordedTopics.get(j)); Object j39v35 = true; if (j39v33 == null) { if (j39v34 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v33) { if (j39v35 == null && j39v33 instanceof java.util.concurrent.ConcurrentHashMap) { j39v33.remove(j39v34); } else { j39v33.put(j39v34, j39v35); } } }
+                        Helpers.addElementToObject(subscribedTopics, (recordedTopics == null || j < 0 || j >= recordedTopics.size() ? null : recordedTopics.get(j)), true);
                     }
                 }
                 for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, topicsLength); i++)
@@ -2992,7 +2992,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Boolean foundSubscription = false;
             if (!java.util.Objects.equals(reqId, null))
             {
-                List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v41 -> { synchronized (j39v41) { yield new ArrayList<Object>(j39v41.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v8 -> { synchronized (j39v8) { yield new ArrayList<Object>(j39v8.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
                     Object messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -3015,7 +3015,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 if (!java.util.Objects.equals(reqId, null))
                 {
                     client.reject(error, reqId);
-                } else if ((switch ((Object) (error)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield AuthenticationError.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> AuthenticationError.class.isInstance(hx4J44v0); }))
+                } else if (Helpers.isInstance(error, AuthenticationError.class))
                 {
                     String authenticatedHash = "authenticated";
                     client.reject(error, authenticatedHash);
@@ -3240,7 +3240,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //     },
         // }
         String reqId = this.safeString(message, "req_id");
-        List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v43 -> { synchronized (j39v43) { yield new ArrayList<Object>(j39v43.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v9 -> { synchronized (j39v9) { yield new ArrayList<Object>(j39v9.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

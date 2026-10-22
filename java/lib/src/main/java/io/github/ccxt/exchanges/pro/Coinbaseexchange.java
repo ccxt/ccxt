@@ -840,11 +840,11 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                             previousOrder.put("trades", new ArrayList<Object>(Arrays.asList()));
                         }
                         ((List<Object>)previousOrder.get("trades")).add(trade);
-                        { Map<Object, Object> j39v9 = (Map<Object, Object>) (Map<?, ?>) (previousOrder); Object j39v10 = "lastTradeTimestamp"; Object j39v11 = trade.get("timestamp"); if (j39v9 == null) { if (j39v10 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v9) { if (j39v11 == null && j39v9 instanceof java.util.concurrent.ConcurrentHashMap) { j39v9.remove(j39v10); } else { j39v9.put(j39v10, j39v11); } } }
+                        Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", trade.get("timestamp"));
                         String totalCost = "0";
                         String totalAmount = "0";
                         Object trades = previousOrder.get("trades");
-                        for (var i = 0; i < (switch ((Object)(trades)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
+                        for (var i = 0; i < (switch ((Object)(trades)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
                         {
                             Map<String, Object> tradeEntry = (Map<String, Object>) this.safeDict(trades, i, (Object) null);
                             totalCost = this.safeString(tradeEntry, "cost", "0");
@@ -892,7 +892,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                             if (!java.util.Objects.equals((order == null || key == null ? null : order.get(key)), null))
                             {
-                                { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (previousOrder); Object j39v2 = key; Object j39v3 = (order == null || key == null ? null : order.get(key)); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+                                Helpers.addElementToObject(previousOrder, key, (order == null || key == null ? null : order.get(key)));
                             }
                         }
                         // update the newUpdates count
@@ -1065,9 +1065,9 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 

@@ -172,7 +172,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             Client client = this.client(url);
-            String kind = (((switch ((Object) ((java.util.Objects.requireNonNullElse(bidAsk, false)))) { case null -> false; case Boolean hx4J40v15 -> hx4J40v15.booleanValue(); case Long hx4J40v15 -> hx4J40v15 != 0L; case Integer hx4J40v15 -> hx4J40v15 != 0; case Double hx4J40v15 -> hx4J40v15 != 0.0; case String hx4J40v15 -> !hx4J40v15.isEmpty(); case List<?> hx4J40v15 -> !hx4J40v15.isEmpty(); case Map<?, ?> hx4J40v15 -> true; default -> false; }))) ? "bidask" : "ticker";
+            String kind = ((Helpers.isTrue((java.util.Objects.requireNonNullElse(bidAsk, false))))) ? "bidask" : "ticker";
             for (var i = 0; i < ((List<?>)normalized).size(); i++)
             {
                 Map<String, Object> market = this.market((normalized == null || i < 0 || i >= normalized.size() ? null : normalized.get(i)));
@@ -187,7 +187,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 String source = explicitSource;
                 if (java.util.Objects.equals(source, null))
                 {
-                    source = (((Boolean.TRUE.equals(isRfq) && !(switch ((Object) (java.util.Objects.requireNonNullElse(bidAsk, false))) { case null -> false; case Boolean hx4J40v14 -> hx4J40v14.booleanValue(); case Long hx4J40v14 -> hx4J40v14 != 0L; case Integer hx4J40v14 -> hx4J40v14 != 0; case Double hx4J40v14 -> hx4J40v14 != 0.0; case String hx4J40v14 -> !hx4J40v14.isEmpty(); case List<?> hx4J40v14 -> !hx4J40v14.isEmpty(); case Map<?, ?> hx4J40v14 -> true; default -> false; })))) ? "External" : "Venue";
+                    source = (((Boolean.TRUE.equals(isRfq) && !Helpers.isTrue(java.util.Objects.requireNonNullElse(bidAsk, false))))) ? "External" : "Venue";
                 }
                 HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
                 mapLiteral2.put("stock", marketStock);
@@ -208,7 +208,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                     String baseId = this.safeString(market, "baseId", "");
                     String ticker = (baseId == null ? null : ((String)baseId).replaceFirst(java.util.regex.Pattern.quote(".US"), ""));
                     topic = ((channel + ".") + ticker);
-                } else if ((switch ((Object) (java.util.Objects.requireNonNullElse(bidAsk, false))) { case null -> false; case Boolean hx4J40v13 -> hx4J40v13.booleanValue(); case Long hx4J40v13 -> hx4J40v13 != 0L; case Integer hx4J40v13 -> hx4J40v13 != 0; case Double hx4J40v13 -> hx4J40v13 != 0.0; case String hx4J40v13 -> !hx4J40v13.isEmpty(); case List<?> hx4J40v13 -> !hx4J40v13.isEmpty(); case Map<?, ?> hx4J40v13 -> true; default -> false; }))
+                } else if (Helpers.isTrue(java.util.Objects.requireNonNullElse(bidAsk, false)))
                 {
                     if ((java.util.Objects.equals(source, "External")) || (java.util.Objects.equals(this.safeString(market, "executionModel"), "rfq")) || Boolean.TRUE.equals(isRfq))
                     {
@@ -235,11 +235,11 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 String messageHash = ((((kind + ":") + symbol) + "@") + topic);
                 String subscriptionKey = ("marketData:" + topic);
                 Map<String, Object> subscriptions = (Map<String, Object>) this.safeDict(client.subscriptions, subscriptionKey, new HashMap<String, Object>() {{}});
-                if ((switch ((Object) (java.util.Objects.requireNonNullElse(unwatch, false))) { case null -> false; case Boolean hx4J40v12 -> hx4J40v12.booleanValue(); case Long hx4J40v12 -> hx4J40v12 != 0L; case Integer hx4J40v12 -> hx4J40v12 != 0; case Double hx4J40v12 -> hx4J40v12 != 0.0; case String hx4J40v12 -> !hx4J40v12.isEmpty(); case List<?> hx4J40v12 -> !hx4J40v12.isEmpty(); case Map<?, ?> hx4J40v12 -> true; default -> false; }))
+                if (Helpers.isTrue(java.util.Objects.requireNonNullElse(unwatch, false)))
                 {
                     subscriptions = this.omit(subscriptions, messageHash);
                     this.cleanUnsubscription(client, messageHash, ("unsubscribe:" + messageHash), false);
-                    if ((switch ((Object) (java.util.Objects.requireNonNullElse(bidAsk, false))) { case null -> false; case Boolean hx4J40v11 -> hx4J40v11.booleanValue(); case Long hx4J40v11 -> hx4J40v11 != 0L; case Integer hx4J40v11 -> hx4J40v11 != 0; case Double hx4J40v11 -> hx4J40v11 != 0.0; case String hx4J40v11 -> !hx4J40v11.isEmpty(); case List<?> hx4J40v11 -> !hx4J40v11.isEmpty(); case Map<?, ?> hx4J40v11 -> true; default -> false; }))
+                    if (Helpers.isTrue(java.util.Objects.requireNonNullElse(bidAsk, false)))
                     {
                         ((Map<String,Object>)this.bidsasks).remove(symbol);
                     } else
@@ -257,7 +257,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 ((Map)client.subscriptions).put(subscriptionKey, subscriptions);
                 List<String> subscriptionHashes = new ArrayList<String>(subscriptions.keySet());
                 Integer subscriptionsLength = ((List<?>)subscriptionHashes).size();
-                if (!(switch ((Object) (java.util.Objects.requireNonNullElse(unwatch, false))) { case null -> false; case Boolean hx4J40v10 -> hx4J40v10.booleanValue(); case Long hx4J40v10 -> hx4J40v10 != 0L; case Integer hx4J40v10 -> hx4J40v10 != 0; case Double hx4J40v10 -> hx4J40v10 != 0.0; case String hx4J40v10 -> !hx4J40v10.isEmpty(); case List<?> hx4J40v10 -> !hx4J40v10.isEmpty(); case Map<?, ?> hx4J40v10 -> true; default -> false; }) || (java.util.Objects.equals(subscriptionsLength, 0)))
+                if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(unwatch, false)) || (java.util.Objects.equals(subscriptionsLength, 0)))
                 {
                     if (!this.inArray(topic, topics))
                     {
@@ -272,7 +272,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires at least one matching market")) ;
             }
             Map<String, Object> payload = this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source", "interval", "channel")));
-            if ((switch ((Object) (java.util.Objects.requireNonNullElse(unwatch, false))) { case null -> false; case Boolean hx4J40v9 -> hx4J40v9.booleanValue(); case Long hx4J40v9 -> hx4J40v9 != 0L; case Integer hx4J40v9 -> hx4J40v9 != 0; case Double hx4J40v9 -> hx4J40v9 != 0.0; case String hx4J40v9 -> !hx4J40v9.isEmpty(); case List<?> hx4J40v9 -> !hx4J40v9.isEmpty(); case Map<?, ?> hx4J40v9 -> true; default -> false; }))
+            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(unwatch, false)))
             {
                 Integer topicsLength = ((List<?>)topics).size();
                 if ((topicsLength != null && topicsLength > 0))
@@ -289,7 +289,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 (this.watchPublic(topics, messageHashes, payload, false)).join();
             }
-            Object tickers = (((switch ((Object) ((java.util.Objects.requireNonNullElse(bidAsk, false)))) { case null -> false; case Boolean hx4J40v8 -> hx4J40v8.booleanValue(); case Long hx4J40v8 -> hx4J40v8 != 0L; case Integer hx4J40v8 -> hx4J40v8 != 0; case Double hx4J40v8 -> hx4J40v8 != 0.0; case String hx4J40v8 -> !hx4J40v8.isEmpty(); case List<?> hx4J40v8 -> !hx4J40v8.isEmpty(); case Map<?, ?> hx4J40v8 -> true; default -> false; }))) ? this.bidsasks : this.tickers;
+            Object tickers = ((Helpers.isTrue((java.util.Objects.requireNonNullElse(bidAsk, false))))) ? this.bidsasks : this.tickers;
             return this.filterByArray(tickers, "symbol", symbolsResolved, true);
         });
 
@@ -435,7 +435,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 if (java.util.Objects.equals(messageHash, "unsubscribe:positions"))
                 {
                     Object cache = this.positions;
-                    List<Object> keys = ((List<Object>) switch ((Object)(cache)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                    List<Object> keys = ((List<Object>) switch ((Object)(cache)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
                     for (var j = 0; j < ((List<?>)keys).size(); j++)
                     {
                         Object symbol = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
@@ -444,7 +444,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 } else
                 {
                     String symbol = (messageHash == null ? null : ((String)messageHash).replaceFirst("unsubscribe:positions:", ""));
-                    if ((switch ((Object)(this.positions)) { case List<?> j39v5 -> ((Object)(symbol)) != null && j39v5.contains(symbol); case Map<?, ?> j39v4 -> ((Object)(symbol)) instanceof String && j39v4.containsKey(symbol); case null, default -> false; }))
+                    if ((switch ((Object)(this.positions)) { case List<?> j39v2 -> ((Object)(symbol)) != null && j39v2.contains(symbol); case Map<?, ?> j39v1 -> ((Object)(symbol)) instanceof String && j39v1.containsKey(symbol); case null, default -> false; }))
                     {
                         ((Map<String,Object>)this.positions).remove(symbol);
                     }
@@ -1464,7 +1464,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Boolean isStockMarket = (java.util.Objects.equals(market.get("stock"), true)) || ((!java.util.Objects.equals(marketId, null)) && ((((String)marketId).indexOf(".US_") >= 0) || (((String)marketId).indexOf(".HK_") >= 0)));
             Integer defaultSnapshotDelay = ((Boolean.TRUE.equals(isStockMarket))) ? 0 : 10;
             Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", defaultSnapshotDelay);
-            if (((java.util.function.BiPredicate<Object, Object>) (hx4J40v0A, hx4J40v0B) -> { try { if (hx4J40v0A == null && hx4J40v0B == null) { return true; } if (hx4J40v0A == null || hx4J40v0B == null) { return false; } java.util.function.Predicate<Object> hx4J40v0N = hx4J40v0o -> { try { Double.parseDouble(String.valueOf(hx4J40v0o)); return true; } catch (Exception hx4J40v0e) { return false; } }; if (!hx4J40v0A.getClass().equals(hx4J40v0B.getClass()) && !(hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B))) { return false; } java.util.function.Predicate<Object> hx4J40v0I = hx4J40v0o -> hx4J40v0o instanceof Byte || hx4J40v0o instanceof Short || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Long || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v0o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; if (hx4J40v0I.test(hx4J40v0A) && hx4J40v0I.test(hx4J40v0B)) { java.util.function.ToLongFunction<Object> hx4J40v0L = hx4J40v0o -> hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).longValue() : Long.parseLong(String.valueOf(hx4J40v0o)); return hx4J40v0L.applyAsLong(hx4J40v0A) == hx4J40v0L.applyAsLong(hx4J40v0B); } if (hx4J40v0A instanceof Double || hx4J40v0B instanceof Double) { return hx4J40v0D.applyAsDouble(hx4J40v0A) == hx4J40v0D.applyAsDouble(hx4J40v0B); } if (hx4J40v0A instanceof Float || hx4J40v0B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v0F = hx4J40v0o -> hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v0o)); return hx4J40v0F.apply(hx4J40v0A).floatValue() == hx4J40v0F.apply(hx4J40v0B).floatValue(); } if (hx4J40v0A instanceof String && hx4J40v0B instanceof String) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0A instanceof Boolean && hx4J40v0B instanceof Boolean) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v0A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v0B))) == 0; } return false; } catch (Exception hx4J40v0e) { return false; } }).test(cacheLength, snapshotDelay))
+            if (Helpers.isEqual(cacheLength, snapshotDelay))
             {
                 this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, (Long) null, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
@@ -1508,7 +1508,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String, Object> firstDelta = (Map<String, Object>) this.safeDict(cache, 0, (Object) null);
         Long nonce = this.safeInteger(orderbook, "nonce");
         Long firstDeltaStart = this.safeInteger(firstDelta, "U");
-        Integer cacheLength = (switch ((Object)(cache)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; });
+        Integer cacheLength = (switch ((Object)(cache)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; });
         if (java.util.Objects.equals(nonce, null))
         {
             return cacheLength;
@@ -1735,11 +1735,11 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         }
         Map<String, Object> marketResolved = this.safeMarket(this.safeString(data, "s"), market, (String) null, (String) null);
         Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(request, marketResolved);
-        { Map<Object, Object> j39v17 = (Map<Object, Object>) (Map<?, ?>) (parsed); Object j39v18 = "info"; Object j39v19 = data; if (j39v17 == null) { if (j39v18 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v17) { if (j39v19 == null && j39v17 instanceof java.util.concurrent.ConcurrentHashMap) { j39v17.remove(j39v18); } else { j39v17.put(j39v18, j39v19); } } }
+        Helpers.addElementToObject(parsed, "info", data);
         if (java.util.Objects.equals(eventVar, "rfqFilled"))
         {
             Long tradeMicroseconds = this.safeInteger(data, "T", 0);
-            { Map<Object, Object> j39v14 = (Map<Object, Object>) (Map<?, ?>) (parsed); Object j39v15 = "lastTradeTimestamp"; Object j39v16 = this.parseToInt((((double) tradeMicroseconds) / ((double) 1000))); if (j39v14 == null) { if (j39v15 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v14) { if (j39v16 == null && j39v14 instanceof java.util.concurrent.ConcurrentHashMap) { j39v14.remove(j39v15); } else { j39v14.put(j39v15, j39v16); } } }
+            Helpers.addElementToObject(parsed, "lastTradeTimestamp", this.parseToInt((((double) tradeMicroseconds) / ((double) 1000))));
         }
         return parsed;
     }
@@ -1840,7 +1840,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     put( "locked", Backpack.this.safeString(data, "L") );
     put( "staked", Backpack.this.safeString(data, "S") );
 }});
-        { Map<Object, Object> j39v23 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v24 = "wsBalanceAssets"; Object j39v25 = assets; if (j39v23 == null) { if (j39v24 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v23) { if (j39v25 == null && j39v23 instanceof java.util.concurrent.ConcurrentHashMap) { j39v23.remove(j39v24); } else { j39v23.put(j39v24, j39v25); } } }
+        Helpers.addElementToObject(this.options, "wsBalanceAssets", assets);
         Map<String, Object> response = (Map<String, Object>) this.parseBalance(assets);
         Map<String, Object> parsed = (Map<String, Object>) this.safeDict(new HashMap<String, Object>() {{
             put( "balances", response );
@@ -1848,7 +1848,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Long microseconds = this.safeInteger(data, "E", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         parsed.put("timestamp", timestamp);
-        { Map<Object, Object> j39v20 = (Map<Object, Object>) (Map<?, ?>) (parsed); Object j39v21 = "datetime"; Object j39v22 = this.iso8601(timestamp); if (j39v20 == null) { if (j39v21 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v20) { if (j39v22 == null && j39v20 instanceof java.util.concurrent.ConcurrentHashMap) { j39v20.remove(j39v21); } else { j39v20.put(j39v21, j39v22); } } }
+        Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
         parsed.put("info", assets);
         this.balance = parsed;
         client.resolve(parsed, "balance");

@@ -1082,7 +1082,7 @@ public class Indodax extends IndodaxApi
                 return this.parseOrders(rawOrders, market, since, limit, new HashMap<String, Object>() {{}});
             }
             // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-            List<Object> marketIds = ((List<Object>) switch ((Object)(rawOrders)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> marketIds = ((List<Object>) switch ((Object)(rawOrders)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
             List<Object> exchangeOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
@@ -1777,7 +1777,7 @@ public class Indodax extends IndodaxApi
             Object query = this.omit(parameters, this.extractParams(path));
             String requestPath = ("/" + this.implodeParams(path, parameters));
             url = (url + requestPath);
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));
             }
@@ -1832,7 +1832,7 @@ public class Indodax extends IndodaxApi
             return null;  // public endpoints may return []-arrays
         }
         String error = this.safeString(response, "error", "");
-        if (!((switch ((Object)(response)) { case List<?> j39v8 -> j39v8.contains("success"); case Map<?, ?> j39v7 -> j39v7.containsKey("success"); case null, default -> false; })) && java.util.Objects.equals(error, ""))
+        if (!((switch ((Object)(response)) { case List<?> j39v7 -> j39v7.contains("success"); case Map<?, ?> j39v6 -> j39v6.containsKey("success"); case null, default -> false; })) && java.util.Objects.equals(error, ""))
         {
             return null;  // no 'success' property on public responses
         }
@@ -1844,7 +1844,7 @@ public class Indodax extends IndodaxApi
         if (java.util.Objects.equals(this.safeInteger(response, "success", 0), 1L))
         {
             // { success: 1, return: { orders: [] }}
-            if (!((switch ((Object)(response)) { case List<?> j39v6 -> j39v6.contains("return"); case Map<?, ?> j39v5 -> j39v5.containsKey("return"); case null, default -> false; })))
+            if (!((switch ((Object)(response)) { case List<?> j39v5 -> j39v5.contains("return"); case Map<?, ?> j39v4 -> j39v4.containsKey("return"); case null, default -> false; })))
             {
                 throw new ExchangeError(((this.id + ": malformed response: ") + this.json(response))) ;
             } else

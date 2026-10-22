@@ -3198,7 +3198,7 @@ public class Hitbtc extends HitbtcApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Object requestAmount = this.currencyToPrecision((String) (code), amount, (String) null);
+            String requestAmount = (String) this.currencyToPrecision((String) (code), amount, (String) null);
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromAccountValue = ((String)fromAccount).toLowerCase();
             String toAccountValue = ((String)toAccount).toLowerCase();

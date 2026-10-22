@@ -1544,7 +1544,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             return false;
         } catch(Exception error)
         {
-            if ((switch ((Object) (error)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield AuthenticationError.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> AuthenticationError.class.isInstance(hx4J44v0); }))
+            if ((error instanceof AuthenticationError))
             {
                 String messageHash = "authenticated";
                 client.reject(error, messageHash);

@@ -384,7 +384,7 @@ public Object describe()
                     Object tagKey = this.normalizeTagKey(tagLabel);
                     for (var wi = 0; wi < ((List<?>)wanted).size(); wi++)
                     {
-                        if (((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(tagKey, (wanted == null || wi < 0 || wi >= wanted.size() ? null : wanted.get(wi))) >= 0)
+                        if (Helpers.getIndexOf(tagKey, (wanted == null || wi < 0 || wi >= wanted.size() ? null : wanted.get(wi))) >= 0)
                         {
                             matched = true;
                             break;
@@ -469,7 +469,7 @@ public Object describe()
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> seen = new HashMap<String, Object>() {{}};
-        List<Object> keys = ((List<Object>) switch ((Object)(this.events)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(this.events)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object eventVar = Helpers.GetValue(this.events, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
@@ -659,7 +659,7 @@ public Object describe()
             String replacementValue = this.safeString(replacements, replacementKey);
             if (!java.util.Objects.equals(replacementValue, null))
             {
-                s = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a1 -> (hx4J43b1, hx4J43c1) -> { if (hx4J43a1 == null) { return null; } String hx4J43a1s = String.valueOf(hx4J43a1); String hx4J43a1f = (hx4J43b1 == null) ? "" : String.valueOf(hx4J43b1); if (hx4J43a1f.isEmpty()) { return hx4J43a1s; } String hx4J43a1r = (hx4J43c1 == null) ? "" : String.valueOf(hx4J43c1); return hx4J43a1s.replace(hx4J43a1f, hx4J43a1r); }).apply(((String)s)).apply(replacementKey, replacementValue);
+                s = Helpers.replaceAll(((String)s), replacementKey, replacementValue);
             }
         }
         List<Object> rawParts = new ArrayList<Object>(Arrays.asList(((String)s).split(java.util.regex.Pattern.quote("-"))));
@@ -805,7 +805,7 @@ public Object describe()
                         Object suffix = ocId;
                         if ((idLen != null && idLen > 6))
                         {
-                            suffix = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { ocId, (((long) idLen) - 6L), null });
+                            suffix = Helpers.slice(ocId, (((long) idLen) - 6L), null);
                         }
                         ocSymbol = ((ocSymbol + "_") + ((String)suffix).toUpperCase());
                     }
@@ -835,7 +835,7 @@ public Object describe()
         {
             return;
         }
-        List<Object> marketKeys = ((List<Object>) switch ((Object)(this.markets)) { case Map<?, ?> j39v10 -> { synchronized (j39v10) { yield new ArrayList<Object>(j39v10.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> marketKeys = ((List<Object>) switch ((Object)(this.markets)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)marketKeys).size(); i++)
         {
             this.indexMarketOutcomes((this.markets == null ? null : ((Map<?, ?>)this.markets).get((marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)))));
@@ -1012,14 +1012,14 @@ public Object describe()
         Object colonIndex = ((String)outcomeSymbol).indexOf(":");
         if ((((Integer) colonIndex) >= 0))
         {
-            marketPart = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { outcomeSymbol, 0, colonIndex });
+            marketPart = Helpers.slice(outcomeSymbol, 0, colonIndex);
         }
         if ((((String)marketPart).indexOf("0x") == 0))
         {
             return null;
         }
         // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
-        String normalized = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); if (hx4J43a0f.isEmpty()) { return hx4J43a0s; } String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replace(hx4J43a0f, hx4J43a0r); }).apply(((String)((String)marketPart).toLowerCase())).apply("-", "_");
+        String normalized = ((String)marketPart).toLowerCase().replace("-", "_");
         List<Object> rawWords = new ArrayList<Object>(Arrays.asList(((String)normalized).split(java.util.regex.Pattern.quote("_"))));
         Object words = new ArrayList<Object>(Arrays.asList());
         Boolean hasLetters = false;
@@ -1037,7 +1037,7 @@ public Object describe()
             Object chars = this.stringToCharsArray(word);
             for (var ci = 0; ci < ((List<?>)chars).size(); ci++)
             {
-                if (((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(letters, (chars == null || ci < 0 || ci >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(ci))) >= 0)
+                if (Helpers.getIndexOf(letters, (chars == null || ci < 0 || ci >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(ci))) >= 0)
                 {
                     wordHasLetters = true;
                     break;
@@ -1087,7 +1087,7 @@ public Object describe()
                 {
                     // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
                     // plain miss (the guidance-rich throw below); let real transport errors propagate
-                    if (!((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield BadSymbol.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> BadSymbol.class.isInstance(hx4J44v0); })))
+                    if (!(Helpers.isInstance(e, BadSymbol.class)))
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
@@ -2126,7 +2126,7 @@ public Object describe()
             return "";
         }
         // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-        Object stripped = this.remove0xPrefix(address);
+        String stripped = (String) this.remove0xPrefix(address);
         return ("000000000000000000000000" + stripped);
     }
 
@@ -2181,7 +2181,7 @@ public Object describe()
             throw new ArgumentsRequired((this.id + " intToRlpHex() requires a value argument")) ;
         }
         // an integer as its minimal big-endian byte hex; 0 is the empty byte string
-        if ((switch ((Object) (value)) { case null -> false; case Long hx4J40v2 -> hx4J40v2 == 0L; case Integer hx4J40v2 -> hx4J40v2 == 0L; case Double hx4J40v2 -> hx4J40v2 == 0L; case Float hx4J40v2 -> hx4J40v2.doubleValue() == 0L; case java.math.BigDecimal hx4J40v2 -> hx4J40v2.stripTrailingZeros().scale() <= 0 && hx4J40v2.longValue() == 0L; case Object hx4J40v2 -> { try { String hx4J40v2t = String.valueOf(hx4J40v2); Double.parseDouble(hx4J40v2t); yield new java.math.BigDecimal(hx4J40v2t).compareTo(java.math.BigDecimal.valueOf(0L)) == 0; } catch (NumberFormatException hx4J40v2x) { yield false; } } }))
+        if (Helpers.isEqual(value, 0))
         {
             return "";
         }
@@ -2201,11 +2201,11 @@ public Object describe()
         Object h = this.remove0xPrefix(hexValue);
         Object start = 0;
         Integer total = ((String)h).length();
-        while ((((total != null && !(((Number) start).doubleValue() >= total)))) && (java.util.Objects.equals(((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { h, start, ((Object) (switch ((Object) (start)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1"); default -> (Object) null; })) }), "0")))
+        while ((((total != null && !(((Number) start).doubleValue() >= total)))) && (java.util.Objects.equals(Helpers.slice(h, start, ((Object) (switch ((Object) (start)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1"); default -> (Object) null; }))), "0")))
         {
             start = ((Object) (switch ((Object) (start)) { case null -> (Object) null; case Long hx4J40v0 -> (Object) (hx4J40v0 + 1L); case Integer hx4J40v0 -> (Object) (hx4J40v0.longValue() + 1L); case Double hx4J40v0 -> (Object) (hx4J40v0 + ((double) 1L)); case String hx4J40v0 -> (Object) (hx4J40v0 + "1"); default -> (Object) null; }));
         }
-        h = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { h, start, null });
+        h = Helpers.slice(h, start, null);
         if (java.util.Objects.equals(h, ""))
         {
             return "";

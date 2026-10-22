@@ -315,7 +315,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String interval = this.safeString(keyParts, 1);
         String marketId = key;
         marketId = (marketId == null ? null : ((String)marketId).replaceFirst("trade:", ""));
-        marketId = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a0f), java.util.regex.Matcher.quoteReplacement(hx4J43a0r)); }).apply(marketId).apply((String)(interval + ":"), (String)"");
+        marketId = Helpers.replace(marketId, (String)(interval + ":"), (String)"");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Object timeframe = this.findTimeframe(interval, (Object) null);
         String symbol = (String) market.get("symbol");
@@ -870,10 +870,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             if (Boolean.TRUE.equals(isRaw))
             {
-                Object deltas = (message == null || 1 >= ((List<?>)message).size() ? null : ((List<?>)message).get(1));
-                for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v12 -> j39v12.size(); case String j39v13 -> j39v13.length(); case Object j39v14 -> j39v14.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v14) : 0; }); i++)
+                List<Object> deltas = (List<Object>) this.safeList(message, 1, new ArrayList<Object>(Arrays.asList()));
+                for (var i = 0; i < ((List<?>)deltas).size(); i++)
                 {
-                    Object delta = Helpers.GetValue(deltas, i);
+                    Object delta = (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i));
                     Double delta2 = this.safeNumber(delta, 2, (Object) null);
                     Object size = (((!java.util.Objects.equals(delta2, null) && (delta2 == null || !(delta2 >= 0))))) ? ((Object) (delta2 == null ? null : -delta2)) : delta2;
                     String side = (((!java.util.Objects.equals(delta2, null) && (delta2 == null || !(delta2 >= 0))))) ? "asks" : "bids";
@@ -884,8 +884,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 }
             } else
             {
-                Object deltas = (message == null || 1 >= ((List<?>)message).size() ? null : ((List<?>)message).get(1));
-                for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; }); i++)
+                List<Object> deltas = (List<Object>) this.safeList(message, 1, new ArrayList<Object>(Arrays.asList()));
+                for (var i = 0; i < ((List<?>)deltas).size(); i++)
                 {
                     List<Object> delta = (List<Object>) this.safeList(deltas, i, (Object) null);
                     Double deltaAmount = this.safeNumber(delta, 2, (Object) null);
@@ -977,7 +977,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String payload = String.join(":", (List<String>)stringArray);
         Object localChecksum = this.crc32(payload, true);
         Long responseChecksum = this.safeInteger(message, 2);
-        if (!((java.util.function.BiPredicate<Object, Object>) (hx4J40v0A, hx4J40v0B) -> { try { if (hx4J40v0A == null && hx4J40v0B == null) { return true; } if (hx4J40v0A == null || hx4J40v0B == null) { return false; } java.util.function.Predicate<Object> hx4J40v0N = hx4J40v0o -> { try { Double.parseDouble(String.valueOf(hx4J40v0o)); return true; } catch (Exception hx4J40v0e) { return false; } }; if (!hx4J40v0A.getClass().equals(hx4J40v0B.getClass()) && !(hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B))) { return false; } java.util.function.Predicate<Object> hx4J40v0I = hx4J40v0o -> hx4J40v0o instanceof Byte || hx4J40v0o instanceof Short || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Long || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v0o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; if (hx4J40v0I.test(hx4J40v0A) && hx4J40v0I.test(hx4J40v0B)) { java.util.function.ToLongFunction<Object> hx4J40v0L = hx4J40v0o -> hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).longValue() : Long.parseLong(String.valueOf(hx4J40v0o)); return hx4J40v0L.applyAsLong(hx4J40v0A) == hx4J40v0L.applyAsLong(hx4J40v0B); } if (hx4J40v0A instanceof Double || hx4J40v0B instanceof Double) { return hx4J40v0D.applyAsDouble(hx4J40v0A) == hx4J40v0D.applyAsDouble(hx4J40v0B); } if (hx4J40v0A instanceof Float || hx4J40v0B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v0F = hx4J40v0o -> hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v0o)); return hx4J40v0F.apply(hx4J40v0A).floatValue() == hx4J40v0F.apply(hx4J40v0B).floatValue(); } if (hx4J40v0A instanceof String && hx4J40v0B instanceof String) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0A instanceof Boolean && hx4J40v0B instanceof Boolean) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v0A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v0B))) == 0; } return false; } catch (Exception hx4J40v0e) { return false; } }).test(responseChecksum, localChecksum))
+        if (!Helpers.isEqual(responseChecksum, localChecksum))
         {
             ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
             ((Map<String,Object>)this.orderbooks).remove((String)symbol);
@@ -1093,7 +1093,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Object rawBalance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(rawBalance, 1);
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-            Object balance = this.parseWsBalance(rawBalance);
+            Map<String, Object> balance = (Map<String, Object>) this.parseWsBalance(rawBalance);
             String balanceType = this.safeString(rawBalance, 0);
             Map<String, Object> oldBalance = (Map<String, Object>) this.safeDict(this.balance, balanceType, new HashMap<String, Object>() {{}});
             if (!java.util.Objects.equals(code, null))

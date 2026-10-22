@@ -817,7 +817,7 @@ public class Grvt extends GrvtApi
             //        "status": "success"
             //    }
             //
-            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "signInExpiration"; Object j39v3 = (now + 86400000L); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } } // 24 hours
+            Helpers.addElementToObject(this.options, "signInExpiration", (now + 86400000L)); // 24 hours
             return response;
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -850,7 +850,7 @@ public class Grvt extends GrvtApi
             //        "status": "success"
             //    }
             //
-            { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "signInExpiration"; Object j39v6 = (now + 86400000L); if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } } // 24 hours
+            Helpers.addElementToObject(this.options, "signInExpiration", (now + 86400000L)); // 24 hours
             return response;
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -897,7 +897,7 @@ public class Grvt extends GrvtApi
             }
             if (Boolean.TRUE.equals(found))
             {
-                { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v14 = "approvedBuilderFee"; Object j39v15 = true; if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
+                Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
             } else
             {
                 try
@@ -926,10 +926,10 @@ public class Grvt extends GrvtApi
                     {
                         throw new ExchangeError(("Builder authorization failed, " + this.json(authResponse))) ;
                     }
-                    { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v11 = "approvedBuilderFee"; Object j39v12 = true; if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
+                    Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
                 } catch(Exception e)
                 {
-                    { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v8 = "builderFee"; Object j39v9 = false; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } } // disable builder fee if an error occurs
+                    Helpers.addElementToObject(this.options, "builderFee", false); // disable builder fee if an error occurs
                 }
             }
             return null;  // just c#
@@ -2201,7 +2201,7 @@ public class Grvt extends GrvtApi
     {
         List<Object> matchedResults = new ArrayList<Object>(Arrays.asList());
         List<Object> nonMatchedResults = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(transfers)) { case null -> 0; case List<?> j39v18 -> j39v18.size(); case String j39v19 -> j39v19.length(); case Object j39v20 -> j39v20.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v20) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(transfers)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
             Object transfer = Helpers.GetValue(transfers, i);
             if ((java.util.Objects.requireNonNullElse(onlyMainAccount, true) && java.util.Objects.equals(this.safeString(transfer, "fromAccount"), "0") && java.util.Objects.equals(this.safeString(transfer, "toAccount"), "0")) || (!java.util.Objects.requireNonNullElse(onlyMainAccount, true) && (!java.util.Objects.equals(this.safeString(transfer, "fromAccount"), "0") || !java.util.Objects.equals(this.safeString(transfer, "toAccount"), "0"))))
@@ -2261,17 +2261,17 @@ public class Grvt extends GrvtApi
                 toSubAccount = (((java.util.Objects.equals(toAccount, "trading")))) ? tradingAccountId : fundingAccountId;
                 paramsFundingAccountId = paramsFunding;
             }
-            Object request = (switch (0) { default -> { HashMap<String, Object> j39v21 = new HashMap<String, Object>();
-                j39v21.put("from_account_id", this.safeString(paramsFundingAccountId, "from_account_id", defaultFromAccountId));
-                j39v21.put("from_sub_account_id", this.safeString(paramsFundingAccountId, "from_sub_account_id", fromSubAccount));
-                j39v21.put("to_account_id", this.safeString(paramsFundingAccountId, "to_account_id", defaultFromAccountId));
-                j39v21.put("to_sub_account_id", this.safeString(paramsFundingAccountId, "to_sub_account_id", toSubAccount));
-                j39v21.put("currency", currency.get("id"));
-                j39v21.put("num_tokens", this.currencyToPrecision((String) (code), amount, (String) null));
-                j39v21.put("signature", this.defaultSignature());
-                j39v21.put("transfer_type", "STANDARD");
-                j39v21.put("transfer_metadata", null);
-                yield j39v21; } });
+            Object request = (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                j39v4.put("from_account_id", this.safeString(paramsFundingAccountId, "from_account_id", defaultFromAccountId));
+                j39v4.put("from_sub_account_id", this.safeString(paramsFundingAccountId, "from_sub_account_id", fromSubAccount));
+                j39v4.put("to_account_id", this.safeString(paramsFundingAccountId, "to_account_id", defaultFromAccountId));
+                j39v4.put("to_sub_account_id", this.safeString(paramsFundingAccountId, "to_sub_account_id", toSubAccount));
+                j39v4.put("currency", currency.get("id"));
+                j39v4.put("num_tokens", this.currencyToPrecision((String) (code), amount, (String) null));
+                j39v4.put("signature", this.defaultSignature());
+                j39v4.put("transfer_type", "STANDARD");
+                j39v4.put("transfer_metadata", null);
+                yield j39v4; } });
             request = this.createSignedRequest((Map<String, Object>) (request), "EIP712_TRANSFER_TYPE", currency, (String) null);
             Map<String, Object> response = null;
             try
@@ -2399,7 +2399,7 @@ public class Grvt extends GrvtApi
             Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> result1 = (Map<String, Object>) this.safeDict((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "result", new HashMap<String, Object>() {{}});
             String mainAccountId = this.safeString(result1, "main_account_id");
-            { Map<Object, Object> j39v25 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v26 = "userMainAccountId"; Object j39v27 = mainAccountId; if (j39v25 == null) { if (j39v26 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v25) { if (j39v27 == null && j39v25 instanceof java.util.concurrent.ConcurrentHashMap) { j39v25.remove(j39v26); } else { j39v25.put(j39v26, j39v27); } } }
+            Helpers.addElementToObject(this.options, "userMainAccountId", mainAccountId);
             if (Boolean.TRUE.equals(accountIsUndefined))
             {
                 List<Object> subAccountIds = (List<Object>) this.safeList((responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)), "sub_account_ids", new ArrayList<Object>(Arrays.asList()));
@@ -2413,7 +2413,7 @@ public class Grvt extends GrvtApi
                     throw new ArgumentsRequired(((this.id + " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ") + this.json(subAccountIds))) ;
                 }
                 String subAccountId = this.safeString(subAccountIds, 0);
-                { Map<Object, Object> j39v22 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v23 = "accountId"; Object j39v24 = subAccountId; if (j39v22 == null) { if (j39v23 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v22) { if (j39v24 == null && j39v22 instanceof java.util.concurrent.ConcurrentHashMap) { j39v22.remove(j39v23); } else { j39v22.put(j39v23, j39v24); } } }
+                Helpers.addElementToObject(this.options, "accountId", subAccountId);
             }
             return true;
         }).thenApply(res -> (Boolean) res);
@@ -2621,14 +2621,14 @@ public class Grvt extends GrvtApi
                 }
                 // trigger by
                 String triggerPriceType = this.safeStringUpper(paramsTriggerPrices, "triggerPriceType", "LAST");
-                Helpers.addElementToObject(orderRequest.get("metadata"), "trigger", (switch (0) { default -> { HashMap<String, Object> j39v30 = new HashMap<String, Object>();
-                    j39v30.put("trigger_type", selectedType);
-                    j39v30.put("tpsl", (switch (0) { default -> { HashMap<String, Object> j39v29 = new HashMap<String, Object>();
-            j39v29.put("trigger_by", triggerPriceType);
-            j39v29.put("trigger_price", selectedPrice);
-            j39v29.put("close_position", this.safeBool(paramsTriggerPrices, "closePosition", false));
-            yield j39v29; } }));
-                    yield j39v30; } }));
+                Helpers.addElementToObject(orderRequest.get("metadata"), "trigger", (switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>();
+                    j39v6.put("trigger_type", selectedType);
+                    j39v6.put("tpsl", (switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+            j39v5.put("trigger_by", triggerPriceType);
+            j39v5.put("trigger_price", selectedPrice);
+            j39v5.put("close_position", this.safeBool(paramsTriggerPrices, "closePosition", false));
+            yield j39v5; } }));
+                    yield j39v6; } }));
             }
             Object paramsTrigger = paramsTriggerPrices;
             if (Boolean.TRUE.equals(isTriggerOrder))
@@ -2717,7 +2717,7 @@ public class Grvt extends GrvtApi
 
     public Object convertToBigIntCustom(Object x)
     {
-        return ((Long) (switch ((Object) (x)) { case null -> (Long) null; case Long hx4J42v5 -> hx4J42v5; case Integer hx4J42v5 -> Long.valueOf(hx4J42v5.longValue()); case Double hx4J42v5 -> Long.valueOf(hx4J42v5.longValue()); case Float hx4J42v5 -> Long.valueOf(hx4J42v5.longValue()); case java.math.BigDecimal hx4J42v5 -> Long.valueOf(hx4J42v5.longValue()); case Object hx4J42v5 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v5))); } catch (Exception hx4J42v5e) { yield (Long) null; } } }));
+        return Helpers.parseInt(x);
     }
 
     public Object eipMessageForOrder(Map<String, Object> order, String structureType)
@@ -2739,9 +2739,9 @@ public class Grvt extends GrvtApi
             List<Object> sizeParts = new ArrayList<Object>(Arrays.asList(((String)size).split(java.util.regex.Pattern.quote("."))));
             String sizeDec = this.safeString(sizeParts, 1, "");
             Object sizeDecLength = (((long) sizeDec.length()) + 0L); // php tr
-            Object sizeDigits = ((Long) (switch ((Object) ((size == null ? null : ((String)size).replaceFirst(java.util.regex.Pattern.quote("."), "")))) { case null -> (Long) null; case Long hx4J42v4 -> hx4J42v4; case Integer hx4J42v4 -> Long.valueOf(hx4J42v4.longValue()); case Double hx4J42v4 -> Long.valueOf(hx4J42v4.longValue()); case Float hx4J42v4 -> Long.valueOf(hx4J42v4.longValue()); case java.math.BigDecimal hx4J42v4 -> Long.valueOf(hx4J42v4.longValue()); case Object hx4J42v4 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v4))); } catch (Exception hx4J42v4e) { yield (Long) null; } } }));
+            Object sizeDigits = Helpers.parseInt((size == null ? null : ((String)size).replaceFirst(java.util.regex.Pattern.quote("."), "")));
             Object denominator = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(sizeDecLength, null)));
-            Object sizeInteger = ((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(sizeDigits, sizeMultiplier), denominator);
+            Object sizeInteger = ((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(Helpers.multiply(sizeDigits, sizeMultiplier), denominator);
             Map<String, Object> legOrder = new HashMap<String, Object>() {{
                 put( "assetID", Helpers.GetValue(market.get("info"), "instrument_hash") );
                 put( "contractSize", Grvt.this.parseToInt(sizeInteger) );
@@ -2754,9 +2754,9 @@ public class Grvt extends GrvtApi
                 List<Object> limitParts = new ArrayList<Object>(Arrays.asList(((String)price).split(java.util.regex.Pattern.quote("."))));
                 String limitDec = this.safeString(limitParts, 1, "");
                 Object limitDecLength = (((long) limitDec.length()) + 0L); // php tr
-                Object priceDigits = ((Long) (switch ((Object) ((price == null ? null : ((String)price).replaceFirst(java.util.regex.Pattern.quote("."), "")))) { case null -> (Long) null; case Long hx4J42v3 -> hx4J42v3; case Integer hx4J42v3 -> Long.valueOf(hx4J42v3.longValue()); case Double hx4J42v3 -> Long.valueOf(hx4J42v3.longValue()); case Float hx4J42v3 -> Long.valueOf(hx4J42v3.longValue()); case java.math.BigDecimal hx4J42v3 -> Long.valueOf(hx4J42v3.longValue()); case Object hx4J42v3 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v3))); } catch (Exception hx4J42v3e) { yield (Long) null; } } }));
+                Object priceDigits = Helpers.parseInt((price == null ? null : ((String)price).replaceFirst(java.util.regex.Pattern.quote("."), "")));
                 denominator = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(limitDecLength, null)));
-                Object priceInteger = ((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(priceDigits, priceMultiplier), denominator);
+                Object priceInteger = ((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(Helpers.multiply(priceDigits, priceMultiplier), denominator);
                 legOrder.put("limitPrice", this.parseToInt(priceInteger));
             } else
             {
@@ -2777,7 +2777,7 @@ public class Grvt extends GrvtApi
         if (java.util.Objects.equals(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE") && Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
         {
             returnValue.put("builder", order.get("builder"));
-            returnValue.put("builderFee", this.parseToInt(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(this.convertToBigIntCustom(this.feeAmountMultiplier()), ((Double) (switch ((Object) (order.get("builder_fee"))) { case null -> Double.valueOf(0.0); case Double hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case Float hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case Long hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case Integer hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case java.math.BigDecimal hx4J42v2 -> Double.valueOf(hx4J42v2.doubleValue()); case Object hx4J42v2 -> { String hx4J42v2s; try { hx4J42v2s = String.valueOf(hx4J42v2); } catch (Exception hx4J42v2e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v2s)); } catch (NumberFormatException hx4J42v2e) { yield Double.valueOf(0.0); } } }))))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue.put("builderFee", this.parseToInt(Helpers.multiply(this.convertToBigIntCustom(this.feeAmountMultiplier()), Helpers.parseFloat(order.get("builder_fee"))))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return returnValue;
     }
@@ -3836,11 +3836,11 @@ public class Grvt extends GrvtApi
 
     public Map<String, Object> createSignedRequest(Map<String, Object> request, Object structureType, Object currencyObj, String signerAddress)
     {
-        Object messageData = null;
+        Map<String, Object> messageData = null;
         if (java.util.Objects.equals(structureType, "EIP712_TRANSFER_TYPE"))
         {
             Object amountMultiplier = this.convertToBigIntCustom("1000000");
-            Object amountInt = ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(request.get("num_tokens"), amountMultiplier);
+            Object amountInt = Helpers.multiply(request.get("num_tokens"), amountMultiplier);
             if (java.util.Objects.equals(currencyObj, null))
             {
                 throw new ExchangeError((this.id + " createSignedRequest() missing currencyObj")) ;
@@ -3869,22 +3869,22 @@ public class Grvt extends GrvtApi
                 hx4NewMap2.put("fromAccount", request.get("from_account_id"));
                 hx4NewMap2.put("toEthAddress", request.get("to_eth_address"));
                 hx4NewMap2.put("tokenCurrency", ((Map<String, Object>)currencyObj).get("numericId"));
-                hx4NewMap2.put("numTokens", this.parseToInt(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(request.get("num_tokens"), amountMultiplier)));
+                hx4NewMap2.put("numTokens", this.parseToInt(Helpers.multiply(request.get("num_tokens"), amountMultiplier)));
                 hx4NewMap2.put("nonce", Helpers.GetValue(request.get("signature"), "nonce"));
                 hx4NewMap2.put("expiration", Helpers.GetValue(request.get("signature"), "expiration"));
                 messageData = hx4NewMap2;
             }
         } else if (java.util.Objects.equals(structureType, "EIP712_ORDER_TYPE") || java.util.Objects.equals(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE"))
         {
-            messageData = this.eipMessageForOrder((Map<String, Object>) (request), (String) (structureType));
+            messageData = (Map<String, Object>) this.eipMessageForOrder((Map<String, Object>) (request), (String) (structureType));
         } else if (java.util.Objects.equals(structureType, "EIP712_BUILDER_APPROVAL_TYPE"))
         {
             Object amountMultiplier = this.convertToBigIntCustom(this.feeAmountMultiplier());
             messageData = new HashMap<String, Object>() {{
                 put( "mainAccountID", request.get("main_account_id") );
                 put( "builderAccountID", request.get("builder_account_id") );
-                put( "maxFutureFeeRate", Grvt.this.parseToInt(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(((Double) (switch ((Object) (request.get("max_futures_fee_rate"))) { case null -> Double.valueOf(0.0); case Double hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Float hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Long hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Integer hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case java.math.BigDecimal hx4J42v1 -> Double.valueOf(hx4J42v1.doubleValue()); case Object hx4J42v1 -> { String hx4J42v1s; try { hx4J42v1s = String.valueOf(hx4J42v1); } catch (Exception hx4J42v1e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v1s)); } catch (NumberFormatException hx4J42v1e) { yield Double.valueOf(0.0); } } })), amountMultiplier)) );
-                put( "maxSpotFeeRate", Grvt.this.parseToInt(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(((Double) (switch ((Object) (request.get("max_spot_fee_rate"))) { case null -> Double.valueOf(0.0); case Double hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Float hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Long hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Integer hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case java.math.BigDecimal hx4J42v0 -> Double.valueOf(hx4J42v0.doubleValue()); case Object hx4J42v0 -> { String hx4J42v0s; try { hx4J42v0s = String.valueOf(hx4J42v0); } catch (Exception hx4J42v0e) { yield (Double) null; } try { yield Double.valueOf(Double.parseDouble(hx4J42v0s)); } catch (NumberFormatException hx4J42v0e) { yield Double.valueOf(0.0); } } })), amountMultiplier)) );
+                put( "maxFutureFeeRate", Grvt.this.parseToInt(Helpers.multiply(Helpers.parseFloat(request.get("max_futures_fee_rate")), amountMultiplier)) );
+                put( "maxSpotFeeRate", Grvt.this.parseToInt(Helpers.multiply(Helpers.parseFloat(request.get("max_spot_fee_rate")), amountMultiplier)) );
                 put( "nonce", Helpers.GetValue(request.get("signature"), "nonce") );
                 put( "expiration", Helpers.GetValue(request.get("signature"), "expiration") );
             }};
@@ -3902,7 +3902,7 @@ public class Grvt extends GrvtApi
         String ethEncodedMessageHashed = ("0x" + this.hash(ethEncodedMessage, keccak(), "hex"));
         Boolean usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
-        Object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
+        String privateKeyWithoutZero = (String) this.remove0xPrefix(secretOrPrivkey);
         Map<String,Object> signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1(), null);
         Helpers.addElementToObject(request.get("signature"), "r", this.formatSignatureRS(signature.get("r")));
         Helpers.addElementToObject(request.get("signature"), "s", this.formatSignatureRS(signature.get("s")));
@@ -3943,7 +3943,7 @@ public class Grvt extends GrvtApi
         Long until = (Long) this.safeInteger2(parameters, "until", "till");
         if (!java.util.Objects.equals(until, null))
         {
-            request.put(key, this.numberToString(this.parseToInt(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(until, java.util.Objects.requireNonNullElse(multiplier, 1)))));
+            request.put(key, this.numberToString(this.parseToInt(Helpers.multiply(until, java.util.Objects.requireNonNullElse(multiplier, 1)))));
             return new ArrayList<Object>(Arrays.asList(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till")))));
         }
         return new ArrayList<Object>(Arrays.asList(request, parameters));
@@ -3952,7 +3952,7 @@ public class Grvt extends GrvtApi
     public Long requestId()
     {
         Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        { Map<Object, Object> j39v42 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v43 = "requestId"; Object j39v44 = requestId; if (j39v42 == null) { if (j39v43 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v42) { if (j39v44 == null && j39v42 instanceof java.util.concurrent.ConcurrentHashMap) { j39v42.remove(j39v43); } else { j39v42.put(j39v43, j39v44); } } }
+        Helpers.addElementToObject(this.options, "requestId", requestId);
         return requestId;
     }
 
@@ -3972,7 +3972,7 @@ public class Grvt extends GrvtApi
         String queryString = "";
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v45 -> { synchronized (j39v45) { yield new ArrayList<Object>(j39v45.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 queryString = this.urlencode(query);
                 url = (url + ("?" + queryString));
@@ -4037,12 +4037,12 @@ public class Grvt extends GrvtApi
         if (((String)url).endsWith("auth/api_key/login") || ((String)url).endsWith("auth/wallet/login"))
         {
             String accountId = this.safeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id");
-            { Map<Object, Object> j39v50 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v51 = "AuthAccountId"; Object j39v52 = accountId; if (j39v50 == null) { if (j39v51 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v50) { if (j39v52 == null && j39v50 instanceof java.util.concurrent.ConcurrentHashMap) { j39v50.remove(j39v51); } else { j39v50.put(j39v51, j39v52); } } }
+            Helpers.addElementToObject(this.options, "AuthAccountId", accountId);
             String cookie = this.safeString2(headers, "Set-Cookie", "set-cookie");
             if (!java.util.Objects.equals(cookie, null))
             {
                 Object cookieValue = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)cookie).split(java.util.regex.Pattern.quote(";")))), 0);
-                { Map<Object, Object> j39v46 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v47 = "AuthCookieValue"; Object j39v48 = cookieValue; if (j39v46 == null) { if (j39v47 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v46) { if (j39v48 == null && j39v46 instanceof java.util.concurrent.ConcurrentHashMap) { j39v46.remove(j39v47); } else { j39v46.put(j39v47, j39v48); } } }
+                Helpers.addElementToObject(this.options, "AuthCookieValue", cookieValue);
             }
             if (java.util.Objects.equals(this.safeString(this.options, "AuthCookieValue"), null) || java.util.Objects.equals(this.safeString(this.options, "AuthAccountId"), null))
             {

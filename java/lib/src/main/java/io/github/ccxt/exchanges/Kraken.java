@@ -834,61 +834,61 @@ public class Kraken extends KrakenApi
                 {
                     symbol = (((base + "/") + quote));
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v8 = new HashMap<String, Object>();
-                    j39v8.put("id", id);
-                    j39v8.put("wsId", this.safeString(market, "wsname"));
-                    j39v8.put("symbol", symbol);
-                    j39v8.put("base", base);
-                    j39v8.put("quote", quote);
-                    j39v8.put("settle", null);
-                    j39v8.put("baseId", baseId);
-                    j39v8.put("quoteId", quoteId);
-                    j39v8.put("settleId", null);
-                    j39v8.put("altname", Helpers.GetValue(market, "altname"));
-                    j39v8.put("type", "spot");
-                    j39v8.put("spot", spot);
-                    j39v8.put("margin", ((leverageBuyLength != null && leverageBuyLength > 0)));
-                    j39v8.put("swap", false);
-                    j39v8.put("future", false);
-                    j39v8.put("option", false);
-                    j39v8.put("active", isActive);
-                    j39v8.put("contract", false);
-                    j39v8.put("linear", null);
-                    j39v8.put("inverse", null);
-                    j39v8.put("taker", taker);
-                    j39v8.put("maker", maker);
-                    j39v8.put("contractSize", null);
-                    j39v8.put("expiry", null);
-                    j39v8.put("expiryDatetime", null);
-                    j39v8.put("strike", null);
-                    j39v8.put("optionType", null);
-                    j39v8.put("precision", (switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>();
-                        j39v6.put("amount", precisionAmount);
-                        j39v6.put("price", precisionPrice);
-                        yield j39v6; } }));
-                    j39v8.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-                        j39v5.put("leverage", (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                            j39v4.put("min", this.parseNumber("1"));
-                            j39v4.put("max", this.safeNumber(leverageBuy, (((long) leverageBuyLength) - 1L), 1));
-                            yield j39v4; } }));
-                        j39v5.put("amount", new HashMap<String, Object>() {{
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                    j39v4.put("id", id);
+                    j39v4.put("wsId", this.safeString(market, "wsname"));
+                    j39v4.put("symbol", symbol);
+                    j39v4.put("base", base);
+                    j39v4.put("quote", quote);
+                    j39v4.put("settle", null);
+                    j39v4.put("baseId", baseId);
+                    j39v4.put("quoteId", quoteId);
+                    j39v4.put("settleId", null);
+                    j39v4.put("altname", Helpers.GetValue(market, "altname"));
+                    j39v4.put("type", "spot");
+                    j39v4.put("spot", spot);
+                    j39v4.put("margin", ((leverageBuyLength != null && leverageBuyLength > 0)));
+                    j39v4.put("swap", false);
+                    j39v4.put("future", false);
+                    j39v4.put("option", false);
+                    j39v4.put("active", isActive);
+                    j39v4.put("contract", false);
+                    j39v4.put("linear", null);
+                    j39v4.put("inverse", null);
+                    j39v4.put("taker", taker);
+                    j39v4.put("maker", maker);
+                    j39v4.put("contractSize", null);
+                    j39v4.put("expiry", null);
+                    j39v4.put("expiryDatetime", null);
+                    j39v4.put("strike", null);
+                    j39v4.put("optionType", null);
+                    j39v4.put("precision", (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                        j39v3.put("amount", precisionAmount);
+                        j39v3.put("price", precisionPrice);
+                        yield j39v3; } }));
+                    j39v4.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                        j39v2.put("leverage", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                            j39v1.put("min", this.parseNumber("1"));
+                            j39v1.put("max", this.safeNumber(leverageBuy, (((long) leverageBuyLength) - 1L), 1));
+                            yield j39v1; } }));
+                        j39v2.put("amount", new HashMap<String, Object>() {{
                             put( "min", Kraken.this.safeNumber(market, "ordermin", (Object) null) );
                             put( "max", null );
                         }});
-                        j39v5.put("price", new HashMap<String, Object>() {{
+                        j39v2.put("price", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }});
-                        j39v5.put("cost", new HashMap<String, Object>() {{
+                        j39v2.put("cost", new HashMap<String, Object>() {{
                             put( "min", Kraken.this.safeNumber(market, "costmin", (Object) null) );
                             put( "max", null );
                         }});
-                        yield j39v5; } }));
-                    j39v8.put("created", null);
-                    j39v8.put("info", market);
-                    yield j39v8; } }));
+                        yield j39v2; } }));
+                    j39v4.put("created", null);
+                    j39v4.put("info", market);
+                    yield j39v4; } }));
             }
-            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "marketsByAltname"; Object j39v3 = this.indexBy(result, "altname"); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+            Helpers.addElementToObject(this.options, "marketsByAltname", this.indexBy(result, "altname"));
             return result;
         });
 
@@ -1041,7 +1041,7 @@ public class Kraken extends KrakenApi
                 // also, add map in commonCurrencies:
                 if ((!java.util.Objects.equals(id, null)) && (!java.util.Objects.equals(code, null)))
                 {
-                    { Map<Object, Object> j39v9 = (Map<Object, Object>) (Map<?, ?>) (this.commonCurrencies); Object j39v10 = id; Object j39v11 = code; if (j39v9 == null) { if (j39v10 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v9) { if (j39v11 == null && j39v9 instanceof java.util.concurrent.ConcurrentHashMap) { j39v9.remove(j39v10); } else { j39v9.put(j39v10, j39v11); } } }
+                    Helpers.addElementToObject(this.commonCurrencies, id, code);
                 }
             } else
             {
@@ -2194,8 +2194,8 @@ public class Kraken extends KrakenApi
             quoteIdStart = 4;
             quoteIdEnd = 7;
         }
-        String baseId = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { id, baseIdStart, baseIdEnd });
-        String quoteId = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { id, quoteIdStart, quoteIdEnd });
+        String baseId = Helpers.slice(id, baseIdStart, baseIdEnd);
+        String quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
@@ -2552,10 +2552,10 @@ public class Kraken extends KrakenApi
         {
             if (java.util.Objects.equals(cost, null) && (!java.util.Objects.equals(amount, null)))
             {
-                { Map<Object, Object> j39v42 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v43 = "volume"; Object j39v44 = this.costToPrecision(symbol, this.numberToString(amount)); if (j39v42 == null) { if (j39v43 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v42) { if (j39v44 == null && j39v42 instanceof java.util.concurrent.ConcurrentHashMap) { j39v42.remove(j39v43); } else { j39v42.put(j39v43, j39v44); } } }
+                Helpers.addElementToObject(request, "volume", this.costToPrecision(symbol, this.numberToString(amount)));
             } else
             {
-                { Map<Object, Object> j39v39 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v40 = "volume"; Object j39v41 = this.costToPrecision(symbol, cost); if (j39v39 == null) { if (j39v40 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v39) { if (j39v41 == null && j39v39 instanceof java.util.concurrent.ConcurrentHashMap) { j39v39.remove(j39v40); } else { j39v39.put(j39v40, j39v41); } } }
+                Helpers.addElementToObject(request, "volume", this.costToPrecision(symbol, cost));
             }
             String extendedOflags = "viqc";
             if (!java.util.Objects.equals(flags, null))
@@ -2565,14 +2565,14 @@ public class Kraken extends KrakenApi
             request.put("oflags", extendedOflags);
         } else if (Boolean.TRUE.equals(isLimitOrder) && !Boolean.TRUE.equals(isTrailingAmountOrder) && !Boolean.TRUE.equals(isTrailingPercentOrder))
         {
-            { Map<Object, Object> j39v36 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v37 = "price"; Object j39v38 = this.priceToPrecision(symbol, price); if (j39v36 == null) { if (j39v37 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v36) { if (j39v38 == null && j39v36 instanceof java.util.concurrent.ConcurrentHashMap) { j39v36.remove(j39v37); } else { j39v36.put(j39v37, j39v38); } } }
+            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
         }
         Boolean reduceOnly = (Boolean) this.safeBool2(paramsOmitted2, "reduceOnly", "reduce_only", (Object) null);
         if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
         {
             if (Boolean.TRUE.equals(isStopLossTriggerOrder))
             {
-                { Map<Object, Object> j39v33 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v34 = "price"; Object j39v35 = this.priceToPrecision(symbol, stopLossTriggerPrice); if (j39v33 == null) { if (j39v34 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v33) { if (j39v35 == null && j39v33 instanceof java.util.concurrent.ConcurrentHashMap) { j39v33.remove(j39v34); } else { j39v33.put(j39v34, j39v35); } } }
+                Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, stopLossTriggerPrice));
                 if (Boolean.TRUE.equals(isLimitOrder))
                 {
                     request.put("ordertype", "stop-loss-limit");
@@ -2582,7 +2582,7 @@ public class Kraken extends KrakenApi
                 }
             } else if (Boolean.TRUE.equals(isTakeProfitTriggerOrder))
             {
-                { Map<Object, Object> j39v30 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v31 = "price"; Object j39v32 = this.priceToPrecision(symbol, takeProfitTriggerPrice); if (j39v30 == null) { if (j39v31 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v30) { if (j39v32 == null && j39v30 instanceof java.util.concurrent.ConcurrentHashMap) { j39v30.remove(j39v31); } else { j39v30.put(j39v31, j39v32); } } }
+                Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, takeProfitTriggerPrice));
                 if (Boolean.TRUE.equals(isLimitOrder))
                 {
                     request.put("ordertype", "take-profit-limit");
@@ -2593,7 +2593,7 @@ public class Kraken extends KrakenApi
             }
             if (Boolean.TRUE.equals(isLimitOrder))
             {
-                { Map<Object, Object> j39v27 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v28 = "price2"; Object j39v29 = this.priceToPrecision(symbol, price); if (j39v27 == null) { if (j39v28 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v27) { if (j39v29 == null && j39v27 instanceof java.util.concurrent.ConcurrentHashMap) { j39v27.remove(j39v28); } else { j39v27.put(j39v28, j39v29); } } }
+                Helpers.addElementToObject(request, "price2", this.priceToPrecision(symbol, price));
             }
         } else if (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder))
         {
@@ -2613,22 +2613,22 @@ public class Kraken extends KrakenApi
                 if (!java.util.Objects.equals(trailingLimitPercent, null))
                 {
                     String trailingLimitPercentString = (((((String)trailingLimitPercent).endsWith(((String)"%"))))) ? ((offset + trailingLimitPercent)) : (((offset + trailingLimitPercent) + "%"));
-                    { Map<Object, Object> j39v24 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v25 = "price"; Object j39v26 = trailingPercentString; if (j39v24 == null) { if (j39v25 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v24) { if (j39v26 == null && j39v24 instanceof java.util.concurrent.ConcurrentHashMap) { j39v24.remove(j39v25); } else { j39v24.put(j39v25, j39v26); } } }
+                    Helpers.addElementToObject(request, "price", trailingPercentString);
                     request.put("price2", trailingLimitPercentString);
                 } else if (!java.util.Objects.equals(trailingLimitAmount, null))
                 {
-                    { Map<Object, Object> j39v21 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v22 = "price"; Object j39v23 = trailingAmountString; if (j39v21 == null) { if (j39v22 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v21) { if (j39v23 == null && j39v21 instanceof java.util.concurrent.ConcurrentHashMap) { j39v21.remove(j39v22); } else { j39v21.put(j39v22, j39v23); } } }
-                    { Map<Object, Object> j39v18 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v19 = "price2"; Object j39v20 = trailingLimitAmountString; if (j39v18 == null) { if (j39v19 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v18) { if (j39v20 == null && j39v18 instanceof java.util.concurrent.ConcurrentHashMap) { j39v18.remove(j39v19); } else { j39v18.put(j39v19, j39v20); } } }
+                    Helpers.addElementToObject(request, "price", trailingAmountString);
+                    Helpers.addElementToObject(request, "price2", trailingLimitAmountString);
                 }
             } else
             {
                 request.put("ordertype", "trailing-stop");
                 if (!java.util.Objects.equals(trailingPercent, null))
                 {
-                    { Map<Object, Object> j39v15 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v16 = "price"; Object j39v17 = trailingPercentString; if (j39v15 == null) { if (j39v16 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v15) { if (j39v17 == null && j39v15 instanceof java.util.concurrent.ConcurrentHashMap) { j39v15.remove(j39v16); } else { j39v15.put(j39v16, j39v17); } } }
+                    Helpers.addElementToObject(request, "price", trailingPercentString);
                 } else
                 {
-                    { Map<Object, Object> j39v12 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v13 = "price"; Object j39v14 = trailingAmountString; if (j39v12 == null) { if (j39v13 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v12) { if (j39v14 == null && j39v12 instanceof java.util.concurrent.ConcurrentHashMap) { j39v12.remove(j39v13); } else { j39v12.put(j39v13, j39v14); } } }
+                    Helpers.addElementToObject(request, "price", trailingAmountString);
                 }
             }
         }
@@ -2880,7 +2880,7 @@ public class Kraken extends KrakenApi
                 throw new ArgumentsRequired((this.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
             } else
             {
-                for (var i = 0; i < (switch ((Object)(orderTrades)) { case null -> 0; case List<?> j39v49 -> j39v49.size(); case String j39v50 -> j39v50.length(); case Object j39v51 -> j39v51.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v51) : 0; }); i++)
+                for (var i = 0; i < (switch ((Object)(orderTrades)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
                 {
                     Object orderTrade = Helpers.GetValue(orderTrades, i);
                     if ((orderTrade instanceof String))
@@ -2943,7 +2943,7 @@ public class Kraken extends KrakenApi
                 //     }
                 //
                 Object rawTrades = this.safeValue(response, "result");
-                List<Object> ids = ((List<Object>) switch ((Object)(rawTrades)) { case Map<?, ?> j39v46 -> { synchronized (j39v46) { yield new ArrayList<Object>(j39v46.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> ids = ((List<Object>) switch ((Object)(rawTrades)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var i = 0; i < ((List<?>)ids).size(); i++)
                 {
                     Helpers.addElementToObject(Helpers.GetValue(rawTrades, (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i))), "id", (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)));
@@ -3591,7 +3591,7 @@ public class Kraken extends KrakenApi
     public Object parseTransactionsByType(String type, Object transactions, String code, Long since, Long limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(transactions)) { case null -> 0; case List<?> j39v53 -> j39v53.size(); case String j39v54 -> j39v54.length(); case Object j39v55 -> j39v55.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v55) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(transactions)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; }); i++)
         {
             Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (this.extend(new HashMap<String, Object>() {{
                 put( "type", type );
@@ -4388,12 +4388,12 @@ public class Kraken extends KrakenApi
             if (!(response instanceof String))
             {
                 String message = ((this.id + " ") + body);
-                if ((switch ((Object)(response)) { case List<?> j39v69 -> j39v69.contains("error"); case Map<?, ?> j39v68 -> j39v68.containsKey("error"); case null, default -> false; }))
+                if ((switch ((Object)(response)) { case List<?> j39v21 -> j39v21.contains("error"); case Map<?, ?> j39v20 -> j39v20.containsKey("error"); case null, default -> false; }))
                 {
-                    Integer numErrors = (switch ((Object)(Helpers.GetValue(response, "error"))) { case null -> 0; case List<?> j39v65 -> j39v65.size(); case String j39v66 -> j39v66.length(); case Object j39v67 -> j39v67.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v67) : 0; });
+                    Integer numErrors = (switch ((Object)(Helpers.GetValue(response, "error"))) { case null -> 0; case List<?> j39v17 -> j39v17.size(); case String j39v18 -> j39v18.length(); case Object j39v19 -> j39v19.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v19) : 0; });
                     if ((numErrors != null && numErrors > 0))
                     {
-                        for (var i = 0; i < (switch ((Object)(Helpers.GetValue(response, "error"))) { case null -> 0; case List<?> j39v61 -> j39v61.size(); case String j39v62 -> j39v62.length(); case Object j39v63 -> j39v63.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v63) : 0; }); i++)
+                        for (var i = 0; i < (switch ((Object)(Helpers.GetValue(response, "error"))) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; }); i++)
                         {
                             Object error = Helpers.GetValue(Helpers.GetValue(response, "error"), i);
                             this.throwExactlyMatchedException(this.exceptions.get("exact"), error, message);
@@ -4403,7 +4403,7 @@ public class Kraken extends KrakenApi
                     }
                 }
                 // handleCreateOrdersErrors:
-                if ((switch ((Object)(response)) { case List<?> j39v57 -> j39v57.contains("result"); case Map<?, ?> j39v56 -> j39v56.containsKey("result"); case null, default -> false; }))
+                if ((switch ((Object)(response)) { case List<?> j39v13 -> j39v13.contains("result"); case Map<?, ?> j39v12 -> j39v12.containsKey("result"); case null, default -> false; }))
                 {
                     Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                     if (result.containsKey("orders"))

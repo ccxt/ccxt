@@ -295,7 +295,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
-                { Map<Object, Object> j39v3 = (Map<Object, Object>) (Map<?, ?>) (result); Object j39v4 = Helpers.GetValue(ticker, "symbol"); Object j39v5 = ticker; if (j39v3 == null) { if (j39v4 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v3) { if (j39v5 == null && j39v3 instanceof java.util.concurrent.ConcurrentHashMap) { j39v3.remove(j39v4); } else { j39v3.put(j39v4, j39v5); } } }
+                Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
                 return result;
             }
             return this.filterByArray(this.bidsasks, "symbol", symbolsResolved, true);
@@ -629,7 +629,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(((Object)(data) instanceof Map<?, ?> j39v6 && ((Object)(i)) instanceof String && j39v6.containsKey(i) ? j39v6.get(i) : null), (Map<String, Object>) null);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(Helpers.GetValue(data, i), (Map<String, Object>) null);
             tradesArray.append(trade);
         }
         Helpers.addElementToObject(this.trades, symbol, tradesArray);
@@ -824,7 +824,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                     {
                         ((Map<String, Object>)parsed).put("fees", fees);
                     }
-                    { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (parsed); Object j39v8 = "trades"; Object j39v9 = this.safeList(order, "trades", (Object) null); if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
+                    Helpers.addElementToObject(parsed, "trades", this.safeList(order, "trades", (Object) null));
                     parsed.put("timestamp", this.safeInteger(order, "timestamp"));
                     parsed.put("datetime", this.safeString(order, "datetime"));
                 }
@@ -1091,11 +1091,11 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 Map<String, Object> emptyCaches = new HashMap<String, Object>() {{}};
                 this.positions = emptyCaches;
                 Map<String, Object> emptySnapshots = new HashMap<String, Object>() {{}};
-                { Map<Object, Object> j39v17 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v18 = "loadedPositionsSnapshots"; Object j39v19 = emptySnapshots; if (j39v17 == null) { if (j39v18 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v17) { if (j39v19 == null && j39v17 instanceof java.util.concurrent.ConcurrentHashMap) { j39v17.remove(j39v18); } else { j39v17.put(j39v18, j39v19); } } }
+                Helpers.addElementToObject(this.options, "loadedPositionsSnapshots", emptySnapshots);
             }
             // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
             String subaccountIdKey = this.numberToString(subaccountId);
-            if (!((switch ((Object)(this.positions)) { case List<?> j39v16 -> ((Object)(subaccountIdKey)) != null && j39v16.contains(subaccountIdKey); case Map<?, ?> j39v15 -> ((Object)(subaccountIdKey)) instanceof String && j39v15.containsKey(subaccountIdKey); case null, default -> false; })))
+            if (!((switch ((Object)(this.positions)) { case List<?> j39v2 -> ((Object)(subaccountIdKey)) != null && j39v2.contains(subaccountIdKey); case Map<?, ?> j39v1 -> ((Object)(subaccountIdKey)) instanceof String && j39v1.containsKey(subaccountIdKey); case null, default -> false; })))
             {
                 Helpers.addElementToObject(this.positions, subaccountIdKey, new ArrayCache.ArrayCacheBySymbolBySide());
             }
@@ -1113,7 +1113,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                     ((io.github.ccxt.ws.ArrayCache) cache).append((positionsSnapshot == null || i < 0 || i >= positionsSnapshot.size() ? null : positionsSnapshot.get(i)));
                 }
                 loadedSnapshots.put(subaccountIdKey, true);
-                { Map<Object, Object> j39v11 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v12 = "loadedPositionsSnapshots"; Object j39v13 = loadedSnapshots; if (j39v11 == null) { if (j39v12 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v11) { if (j39v13 == null && j39v11 instanceof java.util.concurrent.ConcurrentHashMap) { j39v11.remove(j39v12); } else { j39v11.put(j39v12, j39v13); } } }
+                Helpers.addElementToObject(this.options, "loadedPositionsSnapshots", loadedSnapshots);
             }
             String topic = (this.numberToString(subaccountId) + ".balances");
             String messageHash = ("positions:" + topic);
@@ -1220,7 +1220,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             if (((String)name).indexOf("-") >= 0)
             {
                 // position deltas carry instrument names and do not belong into the balance structure
-                if ((!java.util.Objects.equals(this.positions, null)) && ((switch ((Object)(this.positions)) { case List<?> j39v31 -> ((Object)(subaccountIdKey)) != null && j39v31.contains(subaccountIdKey); case Map<?, ?> j39v30 -> ((Object)(subaccountIdKey)) instanceof String && j39v30.containsKey(subaccountIdKey); case null, default -> false; })))
+                if ((!java.util.Objects.equals(this.positions, null)) && ((switch ((Object)(this.positions)) { case List<?> j39v4 -> ((Object)(subaccountIdKey)) != null && j39v4.contains(subaccountIdKey); case Map<?, ?> j39v3 -> ((Object)(subaccountIdKey)) instanceof String && j39v3.containsKey(subaccountIdKey); case null, default -> false; })))
                 {
                     Object position = this.handlePositionDelta(subaccountIdKey, (Map<String, Object>) (entry));
                     ((List<Object>)positionUpdates).add(position);
@@ -1238,10 +1238,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 account = this.account();
             }
             // the channel and the balance state are both subaccount-scoped, so the streamed new_balance is the authoritative absolute total
-            { Map<Object, Object> j39v27 = (Map<Object, Object>) (Map<?, ?>) (account); Object j39v28 = "total"; Object j39v29 = this.safeString(entry, "new_balance"); if (j39v27 == null) { if (j39v28 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v27) { if (j39v29 == null && j39v27 instanceof java.util.concurrent.ConcurrentHashMap) { j39v27.remove(j39v28); } else { j39v27.put(j39v28, j39v29); } } }
+            Helpers.addElementToObject(account, "total", this.safeString(entry, "new_balance"));
             // the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
-            { Map<Object, Object> j39v24 = (Map<Object, Object>) (Map<?, ?>) (account); Object j39v25 = "free"; Object j39v26 = null; if (j39v24 == null) { if (j39v25 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v24) { if (j39v26 == null && j39v24 instanceof java.util.concurrent.ConcurrentHashMap) { j39v24.remove(j39v25); } else { j39v24.put(j39v25, j39v26); } } }
-            { Map<Object, Object> j39v21 = (Map<Object, Object>) (Map<?, ?>) (account); Object j39v22 = "used"; Object j39v23 = null; if (j39v21 == null) { if (j39v22 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v21) { if (j39v23 == null && j39v21 instanceof java.util.concurrent.ConcurrentHashMap) { j39v21.remove(j39v22); } else { j39v21.put(j39v22, j39v23); } } }
+            Helpers.addElementToObject(account, "free", null);
+            Helpers.addElementToObject(account, "used", null);
             subBalance.put(code, account);
             updated = true;
         }
@@ -1282,7 +1282,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             return false;
         } catch(Exception error)
         {
-            if ((switch ((Object) (error)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield AuthenticationError.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> AuthenticationError.class.isInstance(hx4J44v0); }))
+            if ((error instanceof AuthenticationError))
             {
                 String messageHash = "authenticated";
                 client.reject(error, messageHash);
@@ -1345,7 +1345,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             String id = this.safeString(message, "id");
             // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
-            List<Object> subscriptionKeys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v32 -> { synchronized (j39v32) { yield new ArrayList<Object>(j39v32.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> subscriptionKeys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
             Boolean matched = false;
             for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
             {

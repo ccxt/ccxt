@@ -993,9 +993,9 @@ public class Poloniex extends PoloniexApi
 
             Object markets = (super.loadMarkets(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();
             Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId", (Object) null);
-            if ((java.util.Objects.equals(currenciesByNumericId, null)) || (switch ((Object) (java.util.Objects.requireNonNullElse(reload, false))) { case null -> false; case Boolean hx4J40v5 -> hx4J40v5.booleanValue(); case Long hx4J40v5 -> hx4J40v5 != 0L; case Integer hx4J40v5 -> hx4J40v5 != 0; case Double hx4J40v5 -> hx4J40v5 != 0.0; case String hx4J40v5 -> !hx4J40v5.isEmpty(); case List<?> hx4J40v5 -> !hx4J40v5.isEmpty(); case Map<?, ?> hx4J40v5 -> true; default -> false; }))
+            if ((java.util.Objects.equals(currenciesByNumericId, null)) || Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)))
             {
-                { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "currenciesByNumericId"; Object j39v6 = this.indexBy(this.currencies, "numericId"); if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+                Helpers.addElementToObject(this.options, "currenciesByNumericId", this.indexBy(this.currencies, "numericId"));
             }
             return markets;
         });
@@ -2691,7 +2691,7 @@ public class Poloniex extends PoloniexApi
                 {
                     amountKey = "amount";
                 }
-                { Map<Object, Object> j39v16 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v17 = amountKey; Object j39v18 = quoteAmount; if (j39v16 == null) { if (j39v17 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v16) { if (j39v18 == null && j39v16 instanceof java.util.concurrent.ConcurrentHashMap) { j39v16.remove(j39v17); } else { j39v16.put(j39v17, j39v18); } } }
+                Helpers.addElementToObject(request, amountKey, quoteAmount);
             } else
             {
                 String amountKey = "sz";
@@ -2699,7 +2699,7 @@ public class Poloniex extends PoloniexApi
                 {
                     amountKey = "quantity";
                 }
-                { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v14 = amountKey; Object j39v15 = this.amountToPrecision(symbol, amount); if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
+                Helpers.addElementToObject(request, amountKey, this.amountToPrecision(symbol, amount));
             }
         } else
         {
@@ -2708,13 +2708,13 @@ public class Poloniex extends PoloniexApi
             {
                 amountKey = "quantity";
             }
-            { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v11 = amountKey; Object j39v12 = this.amountToPrecision(symbol, amount); if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
+            Helpers.addElementToObject(request, amountKey, this.amountToPrecision(symbol, amount));
             String priceKey = "px";
             if (java.util.Objects.equals(market.get("spot"), true))
             {
                 priceKey = "price";
             }
-            { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v8 = priceKey; Object j39v9 = this.priceToPrecision(symbol, price); if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
+            Helpers.addElementToObject(request, priceKey, this.priceToPrecision(symbol, price));
         }
         String clientOrderId = this.safeString2(queryOmitted, "clientOrderId", "clOrdId");
         if (!java.util.Objects.equals(clientOrderId, null))
@@ -3586,7 +3586,7 @@ public class Poloniex extends PoloniexApi
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
-            Object amountToPrecision = this.currencyToPrecision((String) (code), amount, (String) null);
+            String amountToPrecision = (String) this.currencyToPrecision((String) (code), amount, (String) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "amount", amountToPrecision );
                 put( "currency", currency.get("id") );
@@ -4008,7 +4008,7 @@ public class Poloniex extends PoloniexApi
             for (var i = 0; i < ((List<?>)entries).size(); i++)
             {
                 Object entry = (entries == null || i < 0 || i >= entries.size() ? null : entries.get(i));
-                List<Object> currencies = ((List<Object>) switch ((Object)(entry)) { case Map<?, ?> j39v21 -> { synchronized (j39v21) { yield new ArrayList<Object>(j39v21.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> currencies = ((List<Object>) switch ((Object)(entry)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 String currencyId = this.safeString(currencies, 0);
                 data.put((String)currencyId, Helpers.GetValue(entry, currencyId));
             }
@@ -4042,7 +4042,7 @@ public class Poloniex extends PoloniexApi
         //
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         List<Object> codesValue = this.marketCodes(codes);
-        List<Object> responseKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v24 -> { synchronized (j39v24) { yield new ArrayList<Object>(j39v24.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> responseKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)responseKeys).size(); i++)
         {
             Object currencyId = (responseKeys == null || i < 0 || i >= responseKeys.size() ? null : responseKeys.get(i));
@@ -4059,7 +4059,7 @@ public class Poloniex extends PoloniexApi
                     for (var j = 0; j < ((List<?>)childChains).size(); j++)
                     {
                         String rawNetworkId = this.safeString(childChains, j, "");
-                        String networkId = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a0f), java.util.regex.Matcher.quoteReplacement(hx4J43a0r)); }).apply(rawNetworkId).apply((String)code, (String)"");
+                        String networkId = Helpers.replace(rawNetworkId, (String)code, (String)"");
                         String networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
                         Map<String, Object> networkInfo = (Map<String, Object>) this.safeDict(response, networkId, (Object) null);
                         Map<String, Object> networkObject = new HashMap<String, Object>() {{}};
@@ -4608,7 +4608,7 @@ public class Poloniex extends PoloniexApi
         mapLiteral10.put("positionMargin", this.parseNumber(positionMargin));
         mapLiteral10.put("initialMargin", initialMargin);
         mapLiteral10.put("initialMarginPercentage", null);
-        mapLiteral10.put("leverage", ((Long) (switch ((Object) (leverage)) { case null -> (Long) null; case Long hx4J42v0 -> hx4J42v0; case Integer hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Double hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Float hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case java.math.BigDecimal hx4J42v0 -> Long.valueOf(hx4J42v0.longValue()); case Object hx4J42v0 -> { try { yield Long.valueOf(Long.parseLong(String.valueOf(hx4J42v0))); } catch (Exception hx4J42v0e) { yield (Long) null; } } })));
+        mapLiteral10.put("leverage", Helpers.parseInt(leverage));
         mapLiteral10.put("marginRatio", this.safeNumber(position, "mgnRatio", (Object) null));
         mapLiteral10.put("stopLossPrice", this.safeNumber(position, "slTrgPx", (Object) null));
         mapLiteral10.put("takeProfitPrice", this.safeNumber(position, "tpTrgPx", (Object) null));

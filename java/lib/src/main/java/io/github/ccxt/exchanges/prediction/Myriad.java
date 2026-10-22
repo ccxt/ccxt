@@ -536,7 +536,7 @@ public class Myriad extends MyriadApi
                 result = (this.myriadPublicGetQuestionsId(this.extend(request, parameters))).join();
             } catch(Exception e)
             {
-                if (((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v1 -> { Throwable hx4J44v1u = hx4J44v1; while ((hx4J44v1u instanceof java.util.concurrent.CompletionException || hx4J44v1u instanceof java.util.concurrent.ExecutionException) && hx4J44v1u.getCause() != null) { hx4J44v1u = hx4J44v1u.getCause(); } yield RateLimitExceeded.class.isInstance(hx4J44v1u); } case Object hx4J44v1 -> RateLimitExceeded.class.isInstance(hx4J44v1); })) || ((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield AuthenticationError.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> AuthenticationError.class.isInstance(hx4J44v0); })))
+                if ((Helpers.isInstance(e, RateLimitExceeded.class)) || (Helpers.isInstance(e, AuthenticationError.class)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -1600,7 +1600,7 @@ public class Myriad extends MyriadApi
         }
         if ((((Integer) dotIndex) > -1))
         {
-            return ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { scaled, 0, dotIndex });
+            return Helpers.slice(scaled, 0, dotIndex);
         }
         return scaled;
     }
@@ -2446,7 +2446,7 @@ public class Myriad extends MyriadApi
         String result = "0";
         for (var i = 0; (n != null && i < n); i++)
         {
-            Integer v = ((java.util.function.ToIntBiFunction<Object, Object>) (hx4J41s, hx4J41t) -> (hx4J41s instanceof List<?> hx4J41l) ? hx4J41l.indexOf(hx4J41t) : (hx4J41s instanceof String hx4J41x && hx4J41t instanceof String hx4J41y) ? hx4J41x.indexOf(hx4J41y) : -1).applyAsInt(digits, (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i)));
+            Integer v = Helpers.getIndexOf(digits, (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i)));
             if ((v != null && v > -1))
             {
                 String mul = Precise.stringMul(result, "16");
@@ -2607,33 +2607,33 @@ public class Myriad extends MyriadApi
             // reassigned local into the anonymous inner class it emits for a map literal)
             Boolean winner = winnerRaw;
             Object settleFraction = settleFractionRaw;
-            ((List<Object>)outcomes).add((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                j39v4.put("id", outcomeCompositeId);
-                j39v4.put("outcomeId", outcomeCompositeId);
-                j39v4.put("outcome", outcomeHandle);
-                j39v4.put("market", marketSymbol);
-                j39v4.put("label", outcomeLabel);
-                j39v4.put("active", active);
-                j39v4.put("winner", winner);
-                j39v4.put("settleFraction", settleFraction);
-                j39v4.put("precision", new HashMap<String, Object>() {{
+            ((List<Object>)outcomes).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("id", outcomeCompositeId);
+                j39v2.put("outcomeId", outcomeCompositeId);
+                j39v2.put("outcome", outcomeHandle);
+                j39v2.put("market", marketSymbol);
+                j39v2.put("label", outcomeLabel);
+                j39v2.put("active", active);
+                j39v2.put("winner", winner);
+                j39v2.put("settleFraction", settleFraction);
+                j39v2.put("precision", new HashMap<String, Object>() {{
                     put( "amount", 0.01 );
                     put( "price", 0.001 );
                 }});
-                j39v4.put("info", (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                    j39v3.put("networkId", networkId);
-                    j39v3.put("marketId", marketId);
-                    j39v3.put("slug", slug);
-                    j39v3.put("outcomeId", outcomeId);
-                    j39v3.put("outcomeLabel", outcomeLabel);
-                    j39v3.put("outcomePrice", price);
-                    j39v3.put("volume24h", volume24h);
-                    j39v3.put("state", state);
-                    j39v3.put("tradingModel", this.safeString(raw, "tradingModel", "amm"));
-                    j39v3.put("tokenAddress", tokenAddress);
-                    j39v3.put("tokenDecimals", tokenDecimals);
-                    yield j39v3; } }));
-                yield j39v4; } }));
+                j39v2.put("info", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("networkId", networkId);
+                    j39v1.put("marketId", marketId);
+                    j39v1.put("slug", slug);
+                    j39v1.put("outcomeId", outcomeId);
+                    j39v1.put("outcomeLabel", outcomeLabel);
+                    j39v1.put("outcomePrice", price);
+                    j39v1.put("volume24h", volume24h);
+                    j39v1.put("state", state);
+                    j39v1.put("tradingModel", this.safeString(raw, "tradingModel", "amm"));
+                    j39v1.put("tokenAddress", tokenAddress);
+                    j39v1.put("tokenDecimals", tokenDecimals);
+                    yield j39v1; } }));
+                yield j39v2; } }));
         }
         String marketTradingModel = this.safeString(raw, "tradingModel", "amm");
         String marketExecutionModel = "clob";
@@ -2965,37 +2965,37 @@ public class Myriad extends MyriadApi
                     previousClose = previousCloseValue;
                     if ((previousCloseValue == null || previousCloseValue != 0))
                     {
-                        percentage = ((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply((((double) changeValue) / ((double) previousCloseValue)), 100);
+                        percentage = Helpers.multiply((((double) changeValue) / ((double) previousCloseValue)), 100);
                     }
                 }
                 break;
             }
         }
-        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-            j39v5.put("outcome", this.safeString(market, "outcome"));
-            j39v5.put("outcomeId", this.safeString(market, "id"));
-            j39v5.put("label", this.safeString(market, "label"));
-            j39v5.put("market", this.safeString(market, "market"));
-            j39v5.put("timestamp", null);
-            j39v5.put("datetime", null);
-            j39v5.put("high", null);
-            j39v5.put("low", null);
-            j39v5.put("bid", price);
-            j39v5.put("bidVolume", null);
-            j39v5.put("ask", price);
-            j39v5.put("askVolume", null);
-            j39v5.put("vwap", null);
-            j39v5.put("open", previousClose);
-            j39v5.put("close", price);
-            j39v5.put("last", price);
-            j39v5.put("previousClose", previousClose);
-            j39v5.put("change", change);
-            j39v5.put("percentage", percentage);
-            j39v5.put("average", price);
-            j39v5.put("baseVolume", this.safeNumber(raw, "volumeNotional24h", (Object) null));
-            j39v5.put("quoteVolume", this.safeNumber(raw, "volume24h", (Object) null));
-            j39v5.put("info", raw);
-            yield j39v5; } }), market));
+        return (Map<String, Object>) (this.safePredictionTicker((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+            j39v3.put("outcome", this.safeString(market, "outcome"));
+            j39v3.put("outcomeId", this.safeString(market, "id"));
+            j39v3.put("label", this.safeString(market, "label"));
+            j39v3.put("market", this.safeString(market, "market"));
+            j39v3.put("timestamp", null);
+            j39v3.put("datetime", null);
+            j39v3.put("high", null);
+            j39v3.put("low", null);
+            j39v3.put("bid", price);
+            j39v3.put("bidVolume", null);
+            j39v3.put("ask", price);
+            j39v3.put("askVolume", null);
+            j39v3.put("vwap", null);
+            j39v3.put("open", previousClose);
+            j39v3.put("close", price);
+            j39v3.put("last", price);
+            j39v3.put("previousClose", previousClose);
+            j39v3.put("change", change);
+            j39v3.put("percentage", percentage);
+            j39v3.put("average", price);
+            j39v3.put("baseVolume", this.safeNumber(raw, "volumeNotional24h", (Object) null));
+            j39v3.put("quoteVolume", this.safeNumber(raw, "volume24h", (Object) null));
+            j39v3.put("info", raw);
+            yield j39v3; } }), market));
     }
 
     /**
@@ -3712,29 +3712,29 @@ public class Myriad extends MyriadApi
             ((List<Object>)marketsList).add(this.parseMyriadMarket((Map<String, Object>) (rawMarket), questionSlug));
         }
         String endDate = this.safeString(rawEvent, "expiresAt", this.safeString(rawEvent, "endDate"));
-        return this.extend(rawEvent, (switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>();
-            j39v6.put("id", this.safeString(rawEvent, "id"));
-            j39v6.put("slug", questionSlug);
-            j39v6.put("event", (((!java.util.Objects.equals(questionSlug, null) && !java.util.Objects.equals(questionSlug, "")))) ? this.shortenSlug((String) (questionSlug)) : null);
-            j39v6.put("title", this.safeString(rawEvent, "title"));
-            j39v6.put("description", this.safeString(rawEvent, "description"));
-            j39v6.put("markets", marketsList);
-            j39v6.put("volume", this.safeNumber2(rawEvent, "volumeNotional24h", "volume24h", (Object) null));
-            j39v6.put("liquidity", this.safeNumber(rawEvent, "liquidity", (Object) null));
-            j39v6.put("url", this.safeString(rawEvent, "url"));
-            j39v6.put("image", this.safeString(rawEvent, "imageUrl", this.safeString(rawEvent, "image")));
-            j39v6.put("active", this.safeBool(rawEvent, "active", (Object) null));
-            j39v6.put("resolved", this.safeBool(rawEvent, "resolved", false));
-            j39v6.put("category", this.safeString(rawEvent, "category"));
-            j39v6.put("tags", this.safeList(rawEvent, "tags", (Object) null));
-            j39v6.put("created", this.parse8601(this.safeString(rawEvent, "createdAt")));
-            j39v6.put("createdDatetime", this.safeString(rawEvent, "createdAt"));
-            j39v6.put("end", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
-            j39v6.put("endDatetime", endDate);
-            j39v6.put("lastUpdatedAt", this.parse8601(this.safeString(rawEvent, "updatedAt")));
-            j39v6.put("resolutionSource", this.safeString(rawEvent, "resolutionSource"));
-            j39v6.put("info", rawEvent);
-            yield j39v6; } }));
+        return this.extend(rawEvent, (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+            j39v4.put("id", this.safeString(rawEvent, "id"));
+            j39v4.put("slug", questionSlug);
+            j39v4.put("event", (((!java.util.Objects.equals(questionSlug, null) && !java.util.Objects.equals(questionSlug, "")))) ? this.shortenSlug((String) (questionSlug)) : null);
+            j39v4.put("title", this.safeString(rawEvent, "title"));
+            j39v4.put("description", this.safeString(rawEvent, "description"));
+            j39v4.put("markets", marketsList);
+            j39v4.put("volume", this.safeNumber2(rawEvent, "volumeNotional24h", "volume24h", (Object) null));
+            j39v4.put("liquidity", this.safeNumber(rawEvent, "liquidity", (Object) null));
+            j39v4.put("url", this.safeString(rawEvent, "url"));
+            j39v4.put("image", this.safeString(rawEvent, "imageUrl", this.safeString(rawEvent, "image")));
+            j39v4.put("active", this.safeBool(rawEvent, "active", (Object) null));
+            j39v4.put("resolved", this.safeBool(rawEvent, "resolved", false));
+            j39v4.put("category", this.safeString(rawEvent, "category"));
+            j39v4.put("tags", this.safeList(rawEvent, "tags", (Object) null));
+            j39v4.put("created", this.parse8601(this.safeString(rawEvent, "createdAt")));
+            j39v4.put("createdDatetime", this.safeString(rawEvent, "createdAt"));
+            j39v4.put("end", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
+            j39v4.put("endDatetime", endDate);
+            j39v4.put("lastUpdatedAt", this.parse8601(this.safeString(rawEvent, "updatedAt")));
+            j39v4.put("resolutionSource", this.safeString(rawEvent, "resolutionSource"));
+            j39v4.put("info", rawEvent);
+            yield j39v4; } }));
     }
 
     public Long requestId(String url)
@@ -3742,7 +3742,7 @@ public class Myriad extends MyriadApi
         Object existing = this.safeValue(this.options, "requestId");
         if (java.util.Objects.equals(existing, null))
         {
-            { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v8 = "requestId"; Object j39v9 = this.createSafeDictionary(); if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
+            Helpers.addElementToObject(this.options, "requestId", this.createSafeDictionary());
         }
         Object options = this.options.get("requestId");
         Long previousValue = this.safeInteger(options, url, 0);
@@ -3787,7 +3787,7 @@ public class Myriad extends MyriadApi
             Object connectSent = this.safeValue(client.subscriptions, "connect");
             if (java.util.Objects.equals(connectSent, null))
             {
-                { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v11 = "wsConnected"; Object j39v12 = false; if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
+                Helpers.addElementToObject(this.options, "wsConnected", false);
                 Long requestId = this.requestId((String) (url));
                 // give the anonymous connect a name so the params object is non-empty (PHP serialises an
                 // empty array as a JSON array, which Centrifugo rejects)
@@ -3856,17 +3856,17 @@ public class Myriad extends MyriadApi
                 if (line.length() > 0)
                 {
                     Object parsed = Helpers.parseJson(line);
-                    this.handleCentrifugoFrame(client, parsed);
+                    this.handleCentrifugoFrame(client, (Map<String, Object>) (parsed));
                 }
             }
             return;
         }
-        this.handleCentrifugoFrame(client, message);
+        this.handleCentrifugoFrame(client, (Map<String, Object>) (message));
     }
 
-    public void handleCentrifugoFrame(Client client, Object msg)
+    public void handleCentrifugoFrame(Client client, Map<String, Object> msg)
     {
-        List<Object> keys = ((List<Object>) switch ((Object)(msg)) { case Map<?, ?> j39v16 -> { synchronized (j39v16) { yield new ArrayList<Object>(j39v16.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<String> keys = new ArrayList<String>(msg.keySet());
         Integer keysLength = ((List<?>)keys).size();
         if (java.util.Objects.equals(keysLength, 0))
         {
@@ -3877,7 +3877,7 @@ public class Myriad extends MyriadApi
         if (!java.util.Objects.equals(connectReply, null))
         {
             // connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
-            { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v14 = "wsConnected"; Object j39v15 = true; if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
+            Helpers.addElementToObject(this.options, "wsConnected", true);
             client.resolve(true, "centrifugoConnected");
             return;
         }
@@ -4530,7 +4530,7 @@ public class Myriad extends MyriadApi
                     balances.put(id, this.numberToString(this.safeNumber(p, "contracts", 0)));
                 }
             }
-            { Map<Object, Object> j39v17 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v18 = "positionBalances"; Object j39v19 = balances; if (j39v17 == null) { if (j39v18 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v17) { if (j39v19 == null && j39v17 instanceof java.util.concurrent.ConcurrentHashMap) { j39v17.remove(j39v18); } else { j39v17.put(j39v18, j39v19); } } }
+            Helpers.addElementToObject(this.options, "positionBalances", balances);
             return null;
         });
 
@@ -4568,9 +4568,9 @@ public class Myriad extends MyriadApi
             String updated = Precise.stringAdd(prior, deltaShares);
             if (!java.util.Objects.equals(posId, null))
             {
-                { Map<Object, Object> j39v23 = (Map<Object, Object>) (Map<?, ?>) (balances); Object j39v24 = posId; Object j39v25 = updated; if (j39v23 == null) { if (j39v24 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v23) { if (j39v25 == null && j39v23 instanceof java.util.concurrent.ConcurrentHashMap) { j39v23.remove(j39v24); } else { j39v23.put(j39v24, j39v25); } } }
+                Helpers.addElementToObject(balances, posId, updated);
             }
-            { Map<Object, Object> j39v20 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v21 = "positionBalances"; Object j39v22 = balances; if (j39v20 == null) { if (j39v21 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v20) { if (j39v22 == null && j39v20 instanceof java.util.concurrent.ConcurrentHashMap) { j39v20.remove(j39v21); } else { j39v20.put(j39v21, j39v22); } } }
+            Helpers.addElementToObject(this.options, "positionBalances", balances);
             contracts = this.parseNumber(updated);
         }
         HashMap<String, Object> mapLiteral18 = new HashMap<String, Object>();
@@ -4667,7 +4667,7 @@ public class Myriad extends MyriadApi
         String bodyValue = null;
         if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            List<Object> queryKeys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v26 -> { synchronized (j39v26) { yield new ArrayList<Object>(j39v26.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> queryKeys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
             Integer queryKeysLength = ((List<?>)queryKeys).size();
             if ((queryKeysLength != null && queryKeysLength > 0))
             {

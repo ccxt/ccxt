@@ -784,7 +784,7 @@ public class Derive extends DeriveApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "sandboxMode"; Object j39v3 = enable; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+        Helpers.addElementToObject(this.options, "sandboxMode", enable);
     }
 
     /**
@@ -1964,7 +1964,7 @@ public class Derive extends DeriveApi
         for (var i = 0; i < ((List<?>)tradesArray).size(); i++)
         {
             Object rawTrade = (tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i));
-            Boolean isFetchTrades = !((switch ((Object)(rawTrade)) { case List<?> j39v5 -> j39v5.contains("order_id"); case Map<?, ?> j39v4 -> j39v4.containsKey("order_id"); case null, default -> false; }));
+            Boolean isFetchTrades = !((switch ((Object)(rawTrade)) { case List<?> j39v2 -> j39v2.contains("order_id"); case Map<?, ?> j39v1 -> j39v1.containsKey("order_id"); case null, default -> false; }));
             String liquidityRole = this.safeString(rawTrade, "liquidity_role");
             if (Boolean.TRUE.equals(isFetchTrades) && (java.util.Objects.equals(liquidityRole, "maker")))
             {
@@ -4186,7 +4186,7 @@ public class Derive extends DeriveApi
         }};
         // margin requirements come as negative subaccount-level contributions in usd terms (initial_margin = collaterals_initial_margin + positions_initial_margin, verified on live data), so they are attributed to the usdc settlement currency and clamped by the usdc cash below; other collaterals stay total-only because the shared margin pool cannot be split per currency
         String usedUsd = "0";
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; }); i++)
         {
             Map<String, Object> subaccount = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String positionsMargin = this.safeString(subaccount, "positions_initial_margin", "0");
@@ -4642,7 +4642,7 @@ public class Derive extends DeriveApi
             String amountString = this.decimalToPrecision(this.numberToString(amount), TRUNCATE, decimals, DECIMAL_PLACES);
             // the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
             String one = "1";
-            String scale = ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { int hx4J43a0n = (hx4J43b0 instanceof Integer ? (Integer) hx4J43b0 : hx4J43b0 instanceof Long ? ((Long) hx4J43b0).intValue() : hx4J43b0 instanceof Double ? ((Double) hx4J43b0).intValue() : hx4J43b0 instanceof Float ? ((Float) hx4J43b0).intValue() : hx4J43b0 instanceof java.math.BigDecimal ? ((java.math.BigDecimal) hx4J43b0).intValue() : hx4J43b0 instanceof String ? Integer.parseInt((String) hx4J43b0) : Integer.parseInt(String.valueOf(hx4J43b0))); String hx4J43a0s = (hx4J43a0 == null) ? null : hx4J43a0.toString(); String hx4J43a0p = (hx4J43c0 == null) ? null : hx4J43c0.toString(); if (hx4J43a0p.isEmpty()) { throw new IllegalArgumentException("padStr must not be empty"); } while (hx4J43a0s.length() < hx4J43a0n) { hx4J43a0s += hx4J43a0p; } return hx4J43a0s.substring(0, hx4J43a0n); }).apply(one).apply(((Number)(decimals + 1L)).intValue(), ((String)"0").charAt(0));
+            String scale = Helpers.padEnd(one, ((Number)(decimals + 1L)).intValue(), ((String)"0").charAt(0));
             String amountScaled = Precise.stringMul(amountString, scale);
             String nonce = this.nonceString();
             Long signatureExpiry = this.safeInteger(paramsOmitted, "signature_expiry_sec", (this.seconds() + 7776000L));
@@ -4920,7 +4920,7 @@ public class Derive extends DeriveApi
             if (!(((Map<?, ?>)this.options).containsKey("subaccount_id")))
             {
                 // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
-                { Map<Object, Object> j39v13 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v14 = "subaccount_id"; Object j39v15 = subaccountIdInt; if (j39v13 == null) { if (j39v14 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v13) { if (j39v15 == null && j39v13 instanceof java.util.concurrent.ConcurrentHashMap) { j39v13.remove(j39v14); } else { j39v13.put(j39v14, j39v15); } } }
+                Helpers.addElementToObject(this.options, "subaccount_id", subaccountIdInt);
             }
             return new ArrayList<Object>(Arrays.asList(subaccountIdInt, paramsSubaccountId));
         }
@@ -4939,7 +4939,7 @@ public class Derive extends DeriveApi
         Map<String, Object> paramsDeriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable.second();
         if ((!java.util.Objects.equals(deriveWalletAddress, null)) && (!java.util.Objects.equals(deriveWalletAddress, "")))
         {
-            { Map<Object, Object> j39v16 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v17 = "deriveWalletAddress"; Object j39v18 = deriveWalletAddress; if (j39v16 == null) { if (j39v17 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v16) { if (j39v18 == null && j39v16 instanceof java.util.concurrent.ConcurrentHashMap) { j39v16.remove(j39v17); } else { j39v16.put(j39v17, j39v18); } } }
+            Helpers.addElementToObject(this.options, "deriveWalletAddress", deriveWalletAddress);
             return new ArrayList<Object>(Arrays.asList(deriveWalletAddress, paramsDeriveWalletAddress));
         }
         String optionsWallet = this.safeString(this.options, "deriveWalletAddress");

@@ -835,7 +835,7 @@ public class Toobit extends ToobitApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.commonGetApiV1ExchangeInfo(parameters)).join();
-            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "exchangeInfo"; Object j39v3 = response; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } } // we store it in options for later use in fetchMarkets
+            Helpers.addElementToObject(this.options, "exchangeInfo", response); // we store it in options for later use in fetchMarkets
             //
             //    {
             //        "timezone": "UTC",
@@ -1060,7 +1060,7 @@ public class Toobit extends ToobitApi
             Object response = cachedInfo;
             if (!java.util.Objects.equals(cachedInfo, null))
             {
-                { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v5 = "exchangeInfo"; Object j39v6 = null; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } } // reset it to avoid using old cached data
+                Helpers.addElementToObject(this.options, "exchangeInfo", null); // reset it to avoid using old cached data
             } else
             {
                 response = (this.commonGetApiV1ExchangeInfo(parameters)).join();
@@ -2252,7 +2252,7 @@ public class Toobit extends ToobitApi
             }
         }
         Object paramsOmitted = this.omit(paramsTrigger, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
-        if (!((switch ((Object)(paramsOmitted)) { case List<?> j39v8 -> j39v8.contains("newClientOrderId"); case Map<?, ?> j39v7 -> j39v7.containsKey("newClientOrderId"); case null, default -> false; })))
+        if (!((switch ((Object)(paramsOmitted)) { case List<?> j39v2 -> j39v2.contains("newClientOrderId"); case Map<?, ?> j39v1 -> j39v1.containsKey("newClientOrderId"); case null, default -> false; })))
         {
             request.put("newClientOrderId", this.uuid());
         }
@@ -2774,7 +2774,7 @@ public class Toobit extends ToobitApi
             }
             for (var i = 0; i < ((List<?>)responseList).size(); i++)
             {
-                ((List<Object>)ordersList).add((switch (0) { default -> { HashMap<String, Object> j39v9 = new HashMap<String, Object>(); j39v9.put("result", (responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i))); yield j39v9; } }));
+                ((List<Object>)ordersList).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>(); j39v3.put("result", (responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i))); yield j39v3; } }));
             }
             return this.parseOrders(ordersList, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -3673,7 +3673,7 @@ public class Toobit extends ToobitApi
             // Public endpoints
             if (!Boolean.TRUE.equals(isPost))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v10 -> { synchronized (j39v10) { yield new ArrayList<Object>(j39v10.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

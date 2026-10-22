@@ -4006,7 +4006,7 @@ public class Hashkey extends HashkeyApi
 
     public Object parseOrderSideAndReduceOnly(Object unparsed)
     {
-        List<Object> parts = (List<Object>) ((java.util.function.BiFunction<Object, Object, Object>) (hx4J43a0, hx4J43b0) -> { if (hx4J43a0 == null || hx4J43b0 == null) { return java.util.Collections.emptyList(); } return Arrays.asList(String.valueOf(hx4J43a0).split(java.util.regex.Pattern.quote(String.valueOf(hx4J43b0)))); }).apply(unparsed, "_");
+        List<Object> parts = (List<Object>) Helpers.split(unparsed, "_");
         Object side = (parts == null || 0 >= parts.size() ? null : parts.get(0));
         Boolean reduceOnly = null;
         String secondPart = this.safeString(parts, 1);

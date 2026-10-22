@@ -636,7 +636,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
 
     public void handleBookDeltas(Object orderbook, Object deltas)
     {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
             this.handleBookDelta(orderbook, Helpers.GetValue(deltas, i));
         }
@@ -996,7 +996,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Map<String, Object> subscriptions = (Map<String, Object>) this.safeDict(wsOptions, "gen2Subscriptions", new HashMap<String, Object>() {{}});
         subscriptions.put((String)subscriptionType, subscription);
         wsOptions.put("gen2Subscriptions", subscriptions);
-        { Map<Object, Object> j39v15 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v16 = "ws"; Object j39v17 = wsOptions; if (j39v15 == null) { if (j39v16 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v15) { if (j39v17 == null && j39v15 instanceof java.util.concurrent.ConcurrentHashMap) { j39v15.remove(j39v16); } else { j39v15.put(j39v16, j39v17); } } }
+        Helpers.addElementToObject(this.options, "ws", wsOptions);
         List<Object> request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
     put( "ticket", "ccxt" );
 }}));
@@ -1030,7 +1030,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             put( "authorization", ("Bearer " + jwtToken) );
         }} );
     }});
-                { Map<Object, Object> j39v19 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v20 = "ws"; Object j39v21 = wsOptions; if (j39v19 == null) { if (j39v20 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v19) { if (j39v21 == null && j39v19 instanceof java.util.concurrent.ConcurrentHashMap) { j39v19.remove(j39v20); } else { j39v19.put(j39v20, j39v21); } } }
+                Helpers.addElementToObject(this.options, "ws", wsOptions);
             }
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "privateGen2");
             Client client = this.client(url);
@@ -1263,12 +1263,12 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             this.handlePong(client, message);
             return;
         }
-        if (((switch ((Object)(message)) { case List<?> j39v28 -> j39v28.contains("pong"); case Map<?, ?> j39v27 -> j39v27.containsKey("pong"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v26 -> j39v26.contains("PINGPONG"); case Map<?, ?> j39v25 -> j39v25.containsKey("PINGPONG"); case null, default -> false; })))
+        if (((switch ((Object)(message)) { case List<?> j39v9 -> j39v9.contains("pong"); case Map<?, ?> j39v8 -> j39v8.containsKey("pong"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v7 -> j39v7.contains("PINGPONG"); case Map<?, ?> j39v6 -> j39v6.containsKey("PINGPONG"); case null, default -> false; })))
         {
             this.handlePong(client, message);
             return;
         }
-        if ((switch ((Object)(message)) { case List<?> j39v24 -> j39v24.contains("ping"); case Map<?, ?> j39v23 -> j39v23.containsKey("ping"); case null, default -> false; }))
+        if ((switch ((Object)(message)) { case List<?> j39v5 -> j39v5.contains("ping"); case Map<?, ?> j39v4 -> j39v4.containsKey("ping"); case null, default -> false; }))
         {
             this.handlePing(client, message);
             return;

@@ -373,15 +373,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        Object inverse = false;
-        if (java.util.Objects.equals(isInverse, null))
-        {
-            inverse = java.util.Objects.equals(marketResolved.get("inverse"), true);
-        } else
-        {
-            inverse = isInverse;
-        }
-        String baseVolumeKey = (((switch ((Object) (inverse)) { case null -> false; case Boolean hx4J40v1 -> hx4J40v1.booleanValue(); case Long hx4J40v1 -> hx4J40v1 != 0L; case Integer hx4J40v1 -> hx4J40v1 != 0; case Double hx4J40v1 -> hx4J40v1 != 0.0; case String hx4J40v1 -> !hx4J40v1.isEmpty(); case List<?> hx4J40v1 -> !hx4J40v1.isEmpty(); case Map<?, ?> hx4J40v1 -> true; default -> false; }))) ? "m" : "v";
+        Boolean inverse = (java.util.Objects.equals(isInverse, true)) || ((java.util.Objects.equals(isInverse, null)) && (java.util.Objects.equals(marketResolved.get("inverse"), true)));
+        String baseVolumeKey = ((Boolean.TRUE.equals(inverse))) ? "m" : "v";
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", marketResolved.get("symbol") );
             put( "timestamp", timestamp );
@@ -1781,15 +1774,15 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     }
                     String url = ((baseUrl + "?listenKey=") + listenKey);
                     Client client = this.client(url);
-                    List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v13 -> { synchronized (j39v13) { yield new ArrayList<Object>(j39v13.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                    List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
                     for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
                     {
                         Object messageHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
                         client.reject(error, messageHash);
                     }
                 }
-                { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v11 = "listenKey"; Object j39v12 = null; if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
-                { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v8 = "lastAuthenticatedTime"; Object j39v9 = 0; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
+                Helpers.addElementToObject(this.options, "listenKey", null);
+                Helpers.addElementToObject(this.options, "lastAuthenticatedTime", 0);
                 return null;
             }
             // whether or not to schedule another listenKey keepAlive request
@@ -1838,8 +1831,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     {
                         throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                     }
-                    { Map<Object, Object> j39v17 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v18 = "listenKey"; Object j39v19 = listenKey; if (j39v17 == null) { if (j39v18 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v17) { if (j39v19 == null && j39v17 instanceof java.util.concurrent.ConcurrentHashMap) { j39v17.remove(j39v18); } else { j39v17.put(j39v18, j39v19); } } }
-                    { Map<Object, Object> j39v14 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v15 = "lastAuthenticatedTime"; Object j39v16 = time; if (j39v14 == null) { if (j39v15 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v14) { if (j39v16 == null && j39v14 instanceof java.util.concurrent.ConcurrentHashMap) { j39v14.remove(j39v15); } else { j39v14.put(j39v15, j39v16); } } }
+                    Helpers.addElementToObject(this.options, "listenKey", listenKey);
+                    Helpers.addElementToObject(this.options, "lastAuthenticatedTime", time);
                     this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
                     // settle the flight: client.resolve () removes the future from
                     // client.futures and wakes every waiter
@@ -2199,7 +2192,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             return;
         }
         // public subscriptions
-        if ((switch ((Object)(message)) { case List<?> j39v21 -> j39v21.contains("ping"); case Map<?, ?> j39v20 -> j39v20.containsKey("ping"); case null, default -> false; }))
+        if ((switch ((Object)(message)) { case List<?> j39v3 -> j39v3.contains("ping"); case Map<?, ?> j39v2 -> j39v2.containsKey("ping"); case null, default -> false; }))
         {
             this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
             return;

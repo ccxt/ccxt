@@ -1392,15 +1392,15 @@ public class Zebpay extends ZebpayApi
             {
                 throw new ExchangeError((this.id + " spot market orders require cost in params")) ;
             }
-            { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v11 = "quoteOrderAmount"; Object j39v12 = this.costToPrecision(symbol, quoteOrderQty); if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
+            Helpers.addElementToObject(request, "quoteOrderAmount", this.costToPrecision(symbol, quoteOrderQty));
         } else
         {
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v8 = "stopLossPrice"; Object j39v9 = this.priceToPrecision(symbol, triggerPrice); if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
+                Helpers.addElementToObject(request, "stopLossPrice", this.priceToPrecision(symbol, triggerPrice));
             }
-            { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v5 = "amount"; Object j39v6 = this.amountToPrecision(symbol, amount); if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
-            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (request); Object j39v2 = "price"; Object j39v3 = this.priceToPrecision(symbol, price); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+            Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
+            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
         }
         return new ArrayList<Object>(Arrays.asList(request, paramsOmitted));
     }
@@ -2030,30 +2030,30 @@ public class Zebpay extends ZebpayApi
                     continue;
                 }
                 String symbol = ((base + "/") + quote);
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v13 = new HashMap<String, Object>();
-                    j39v13.put("id", id);
-                    j39v13.put("symbol", symbol);
-                    j39v13.put("base", base);
-                    j39v13.put("quote", quote);
-                    j39v13.put("baseId", baseId);
-                    j39v13.put("quoteId", quoteId);
-                    j39v13.put("type", "spot");
-                    j39v13.put("spot", true);
-                    j39v13.put("swap", false);
-                    j39v13.put("margin", false);
-                    j39v13.put("future", false);
-                    j39v13.put("option", false);
-                    j39v13.put("active", null);
-                    j39v13.put("contract", null);
-                    j39v13.put("taker", this.safeNumber(market, "takerFee", (Object) null));
-                    j39v13.put("maker", this.safeNumber(market, "makerFee", (Object) null));
-                    j39v13.put("strike", null);
-                    j39v13.put("optionType", null);
-                    j39v13.put("precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("id", id);
+                    j39v1.put("symbol", symbol);
+                    j39v1.put("base", base);
+                    j39v1.put("quote", quote);
+                    j39v1.put("baseId", baseId);
+                    j39v1.put("quoteId", quoteId);
+                    j39v1.put("type", "spot");
+                    j39v1.put("spot", true);
+                    j39v1.put("swap", false);
+                    j39v1.put("margin", false);
+                    j39v1.put("future", false);
+                    j39v1.put("option", false);
+                    j39v1.put("active", null);
+                    j39v1.put("contract", null);
+                    j39v1.put("taker", this.safeNumber(market, "takerFee", (Object) null));
+                    j39v1.put("maker", this.safeNumber(market, "makerFee", (Object) null));
+                    j39v1.put("strike", null);
+                    j39v1.put("optionType", null);
+                    j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Zebpay.this.safeNumber(market, "lotSz", (Object) null) );
                         put( "price", Zebpay.this.safeNumber(market, "tickSz", (Object) null) );
                     }});
-                    j39v13.put("limits", new HashMap<String, Object>() {{
+                    j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "amount", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -2067,8 +2067,8 @@ public class Zebpay extends ZebpayApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v13.put("info", market);
-                    yield j39v13; } }));
+                    j39v1.put("info", market);
+                    yield j39v1; } }));
             }
             return result;
         });
@@ -2122,37 +2122,37 @@ public class Zebpay extends ZebpayApi
                 String settle = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
                 String status = this.safeString(market, "status");
                 String symbol = ((base + "/") + quote);
-                ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v14 = new HashMap<String, Object>();
-                    j39v14.put("id", id);
-                    j39v14.put("symbol", ((symbol + ":") + settle));
-                    j39v14.put("base", base);
-                    j39v14.put("quote", quote);
-                    j39v14.put("baseId", baseId);
-                    j39v14.put("quoteId", quoteId);
-                    j39v14.put("spot", false);
-                    j39v14.put("margin", false);
-                    j39v14.put("swap", true);
-                    j39v14.put("future", false);
-                    j39v14.put("type", "swap");
-                    j39v14.put("option", false);
-                    j39v14.put("active", (java.util.Objects.equals(status, "Open")));
-                    j39v14.put("contract", true);
-                    j39v14.put("taker", this.safeNumber(market, "takerFee", (Object) null));
-                    j39v14.put("maker", this.safeNumber(market, "makerFee", (Object) null));
-                    j39v14.put("strike", null);
-                    j39v14.put("optionType", null);
-                    j39v14.put("precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                    j39v2.put("id", id);
+                    j39v2.put("symbol", ((symbol + ":") + settle));
+                    j39v2.put("base", base);
+                    j39v2.put("quote", quote);
+                    j39v2.put("baseId", baseId);
+                    j39v2.put("quoteId", quoteId);
+                    j39v2.put("spot", false);
+                    j39v2.put("margin", false);
+                    j39v2.put("swap", true);
+                    j39v2.put("future", false);
+                    j39v2.put("type", "swap");
+                    j39v2.put("option", false);
+                    j39v2.put("active", (java.util.Objects.equals(status, "Open")));
+                    j39v2.put("contract", true);
+                    j39v2.put("taker", this.safeNumber(market, "takerFee", (Object) null));
+                    j39v2.put("maker", this.safeNumber(market, "makerFee", (Object) null));
+                    j39v2.put("strike", null);
+                    j39v2.put("optionType", null);
+                    j39v2.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Zebpay.this.safeNumber(market, "lotSz", (Object) null) );
                         put( "price", Zebpay.this.safeNumber(market, "tickSz", (Object) null) );
                     }});
-                    j39v14.put("limits", new HashMap<String, Object>() {{
+                    j39v2.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", Zebpay.this.safeNumber(market, "minLeverage", (Object) null) );
                             put( "max", Zebpay.this.safeNumber(market, "maxLeverage", (Object) null) );
                         }} );
                     }});
-                    j39v14.put("info", market);
-                    yield j39v14; } })));
+                    j39v2.put("info", market);
+                    yield j39v2; } })));
             }
             return result;
         });
@@ -2366,7 +2366,7 @@ public class Zebpay extends ZebpayApi
         String timestamp = String.valueOf(this.milliseconds());
         Object signature = "";
         Object query = this.omit(paramsOmitted, this.extractParams(path));
-        Integer queryLength = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v15 -> { synchronized (j39v15) { yield new ArrayList<Object>(j39v15.keySet()); } } case null, default -> new ArrayList<Object>(); }).size();
+        Integer queryLength = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size();
         String access = this.safeString(api, 0, "public");
         if (java.util.Objects.equals(access, "public"))
         {

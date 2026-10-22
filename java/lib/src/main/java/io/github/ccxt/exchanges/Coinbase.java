@@ -1101,7 +1101,7 @@ public class Coinbase extends CoinbaseApi
         return BaseExchange.supplyAsync(() -> {
 
             // v2 did't have an endpoint for all historical trades
-            Object request = this.prepareAccountRequest(limit, parameters);
+            Map<String, Object> request = (Map<String, Object>) this.prepareAccountRequest(limit, parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1132,7 +1132,7 @@ public class Coinbase extends CoinbaseApi
         return BaseExchange.supplyAsync(() -> {
 
             // v2 did't have an endpoint for all historical trades
-            Object request = this.prepareAccountRequest(limit, parameters);
+            Map<String, Object> request = (Map<String, Object>) this.prepareAccountRequest(limit, parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2308,11 +2308,11 @@ public class Coinbase extends CoinbaseApi
                 List<Object> fiatData = (List<Object>) this.safeList(fiatResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 List<Object> cryptoData = (List<Object>) this.safeList(cryptoResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> exchangeRates = (this.v2PublicGetExchangeRates(parameters)).join();
-                { Map<Object, Object> j39v3 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v4 = "fetchCurrencies"; Object j39v5 = this.extend(options, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                Helpers.addElementToObject(this.options, "fetchCurrencies", this.extend(options, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
                     j39v2.put("currencies", this.arrayConcat(fiatData, cryptoData));
                     j39v2.put("exchangeRates", exchangeRates);
                     j39v2.put("timestamp", now);
-                    yield j39v2; } })); if (j39v3 == null) { if (j39v4 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v3) { if (j39v5 == null && j39v3 instanceof java.util.concurrent.ConcurrentHashMap) { j39v3.remove(j39v4); } else { j39v3.put(j39v4, j39v5); } } }
+                    yield j39v2; } })));
             }
             return this.safeDict(this.options, "fetchCurrencies", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
@@ -2447,8 +2447,8 @@ public class Coinbase extends CoinbaseApi
                     }
                 }
             }
-            { Map<Object, Object> j39v9 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v10 = "networks"; Object j39v11 = this.extend(networks, this.options.get("networks")); if (j39v9 == null) { if (j39v10 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v9) { if (j39v11 == null && j39v9 instanceof java.util.concurrent.ConcurrentHashMap) { j39v9.remove(j39v10); } else { j39v9.put(j39v10, j39v11); } } }
-            { Map<Object, Object> j39v6 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v7 = "networksById"; Object j39v8 = this.extend(networksById, this.options.get("networksById")); if (j39v6 == null) { if (j39v7 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v6) { if (j39v8 == null && j39v6 instanceof java.util.concurrent.ConcurrentHashMap) { j39v6.remove(j39v7); } else { j39v6.put(j39v7, j39v8); } } }
+            Helpers.addElementToObject(this.options, "networks", this.extend(networks, this.options.get("networks")));
+            Helpers.addElementToObject(this.options, "networksById", this.extend(networksById, this.options.get("networksById")));
             return result;
         });
 
@@ -3006,7 +3006,7 @@ public class Coinbase extends CoinbaseApi
                     }
                     response.put("accounts", accounts);
                     response.put("has_next", this.safeBool(page, "has_next", false));
-                    { Map<Object, Object> j39v12 = (Map<Object, Object>) (Map<?, ?>) (response); Object j39v13 = "cursor"; Object j39v14 = this.safeString(page, "cursor"); if (j39v12 == null) { if (j39v13 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v12) { if (j39v14 == null && j39v12 instanceof java.util.concurrent.ConcurrentHashMap) { j39v12.remove(j39v13); } else { j39v12.put(j39v13, j39v14); } } }
+                    Helpers.addElementToObject(response, "cursor", this.safeString(page, "cursor"));
                 }
             } else
             {
@@ -6080,18 +6080,18 @@ public class Coinbase extends CoinbaseApi
             // Also it's not possible that the question mark is first character, only check > 0 here.
             if ((((Integer) quesPos) > 0))
             {
-                uri = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { uri, 0, quesPos });
+                uri = Helpers.slice(uri, 0, quesPos);
             }
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         String nonce = this.randomBytes(16);
         String aud = "retail_rest_api_proxy";
-        if ((switch ((Object) (java.util.Objects.requireNonNullElse(useEddsa, false))) { case null -> false; case Boolean hx4J40v5 -> hx4J40v5.booleanValue(); case Long hx4J40v5 -> hx4J40v5 != 0L; case Integer hx4J40v5 -> hx4J40v5 != 0; case Double hx4J40v5 -> hx4J40v5 != 0.0; case String hx4J40v5 -> !hx4J40v5.isEmpty(); case List<?> hx4J40v5 -> !hx4J40v5.isEmpty(); case Map<?, ?> hx4J40v5 -> true; default -> false; }))
+        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             aud = "cdp_service";
         }
         String iss = "coinbase-cloud";
-        if ((switch ((Object) (java.util.Objects.requireNonNullElse(useEddsa, false))) { case null -> false; case Boolean hx4J40v4 -> hx4J40v4.booleanValue(); case Long hx4J40v4 -> hx4J40v4 != 0L; case Integer hx4J40v4 -> hx4J40v4 != 0; case Double hx4J40v4 -> hx4J40v4 != 0.0; case String hx4J40v4 -> !hx4J40v4.isEmpty(); case List<?> hx4J40v4 -> !hx4J40v4.isEmpty(); case Map<?, ?> hx4J40v4 -> true; default -> false; }))
+        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             iss = "cdp";
         }
@@ -6104,7 +6104,7 @@ public class Coinbase extends CoinbaseApi
         request.put("iat", seconds);
         if (!java.util.Objects.equals(uri, null))
         {
-            if (!(switch ((Object) (java.util.Objects.requireNonNullElse(useEddsa, false))) { case null -> false; case Boolean hx4J40v2 -> hx4J40v2.booleanValue(); case Long hx4J40v2 -> hx4J40v2 != 0L; case Integer hx4J40v2 -> hx4J40v2 != 0; case Double hx4J40v2 -> hx4J40v2 != 0.0; case String hx4J40v2 -> !hx4J40v2.isEmpty(); case List<?> hx4J40v2 -> !hx4J40v2.isEmpty(); case Map<?, ?> hx4J40v2 -> true; default -> false; }))
+            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
             {
                 request.put("uri", uri);
             } else
@@ -6112,7 +6112,7 @@ public class Coinbase extends CoinbaseApi
                 request.put("uris", new ArrayList<Object>(Arrays.asList(uri)));
             }
         }
-        if ((switch ((Object) (java.util.Objects.requireNonNullElse(useEddsa, false))) { case null -> false; case Boolean hx4J40v1 -> hx4J40v1.booleanValue(); case Long hx4J40v1 -> hx4J40v1 != 0L; case Integer hx4J40v1 -> hx4J40v1 != 0; case Double hx4J40v1 -> hx4J40v1 != 0.0; case String hx4J40v1 -> !hx4J40v1.isEmpty(); case List<?> hx4J40v1 -> !hx4J40v1.isEmpty(); case Map<?, ?> hx4J40v1 -> true; default -> false; }))
+        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
         {
             Object byteArray = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(byteArray, 0, 32);
@@ -6159,7 +6159,7 @@ public class Coinbase extends CoinbaseApi
         String savedPath = fullPath;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v18 -> { synchronized (j39v18) { yield new ArrayList<Object>(j39v18.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 fullPath = (fullPath + ("?" + this.urlencodeWithArrayRepeat(query)));
             }
@@ -6187,7 +6187,7 @@ public class Coinbase extends CoinbaseApi
                 String payload = "";
                 if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
-                    if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v17 -> { synchronized (j39v17) { yield new ArrayList<Object>(j39v17.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                    if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                     {
                         requestBody = this.json(query);
                         payload = requestBody;
@@ -6196,7 +6196,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     if (!Boolean.TRUE.equals(isV3))
                     {
-                        if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v16 -> { synchronized (j39v16) { yield new ArrayList<Object>(j39v16.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                        if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                         {
                             payload = (payload + ("?" + this.urlencode(query)));
                         }
@@ -6263,7 +6263,7 @@ public class Coinbase extends CoinbaseApi
                 }
                 if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
-                    if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v15 -> { synchronized (j39v15) { yield new ArrayList<Object>(j39v15.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                    if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
                     {
                         requestBody = this.json(query);
                     }
@@ -6358,7 +6358,7 @@ public class Coinbase extends CoinbaseApi
             }
         }
         Boolean advancedTrade = (Boolean) this.safeBool(this.options, "advanced", (Object) null);
-        if (!((switch ((Object)(response)) { case List<?> j39v20 -> j39v20.contains("data"); case Map<?, ?> j39v19 -> j39v19.containsKey("data"); case null, default -> false; })) && (!java.util.Objects.equals(advancedTrade, true)))
+        if (!((switch ((Object)(response)) { case List<?> j39v8 -> j39v8.contains("data"); case Map<?, ?> j39v7 -> j39v7.containsKey("data"); case null, default -> false; })) && (!java.util.Objects.equals(advancedTrade, true)))
         {
             throw new ExchangeError(((this.id + " failed due to a malformed response ") + this.json(response))) ;
         }
@@ -6384,7 +6384,7 @@ public class Coinbase extends CoinbaseApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object request = this.prepareAccountRequest((Long) null, parameters);
+            Map<String, Object> request = (Map<String, Object>) this.prepareAccountRequest((Long) null, parameters);
             Map<String, Object> response = (this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseDepositAddresses(data, codes, false, new HashMap<String, Object>() {{}});

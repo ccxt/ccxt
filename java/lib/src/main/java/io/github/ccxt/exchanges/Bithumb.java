@@ -1216,7 +1216,7 @@ public class Bithumb extends BithumbApi
                 for (var i = 0; (responsesLength != null && i < responsesLength); i++)
                 {
                     Object response = (responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i));
-                    if (Boolean.TRUE.equals(this.isDictionary(response)) && ((switch ((Object)(response)) { case List<?> j39v17 -> j39v17.contains("data"); case Map<?, ?> j39v16 -> j39v16.containsKey("data"); case null, default -> false; })) && (!java.util.Objects.equals(Helpers.GetValue(response, "data"), null)))
+                    if (Boolean.TRUE.equals(this.isDictionary(response)) && ((switch ((Object)(response)) { case List<?> j39v15 -> j39v15.contains("data"); case Map<?, ?> j39v14 -> j39v14.containsKey("data"); case null, default -> false; })) && (!java.util.Objects.equals(Helpers.GetValue(response, "data"), null)))
                     {
                         response = Helpers.GetValue(response, "data");
                     }
@@ -2067,13 +2067,13 @@ public class Bithumb extends BithumbApi
             {
                 throw new InvalidOrder((this.id + " createOrder() did not return an order id")) ;
             }
-            return this.extend(this.parseOrder(response, market), (switch (0) { default -> { HashMap<String, Object> j39v18 = new HashMap<String, Object>();
-                j39v18.put("info", response);
-                j39v18.put("symbol", symbol);
-                j39v18.put("type", type);
-                j39v18.put("side", side);
-                j39v18.put("id", id);
-                yield j39v18; } }));
+            return this.extend(this.parseOrder(response, market), (switch (0) { default -> { HashMap<String, Object> j39v16 = new HashMap<String, Object>();
+                j39v16.put("info", response);
+                j39v16.put("symbol", symbol);
+                j39v16.put("type", type);
+                j39v16.put("side", side);
+                j39v16.put("id", id);
+                yield j39v16; } }));
         }).thenApply(Order::new);
 
     }
@@ -3817,7 +3817,7 @@ public class Bithumb extends BithumbApi
         }
         String url = (this.implodeHostname(apiUrl) + endpoint);
         Object query = this.omit(parameters, this.extractParams(path));
-        List<Object> queryKeys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v19 -> { synchronized (j39v19) { yield new ArrayList<Object>(j39v19.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> queryKeys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v17 -> { synchronized (j39v17) { yield new ArrayList<Object>(j39v17.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer queryKeysLength = ((List<?>)queryKeys).size();
         Boolean hasQuery = ((queryKeysLength != null && queryKeysLength > 0));
         if (java.util.Objects.equals(apiName, "public"))
@@ -3926,7 +3926,7 @@ public class Bithumb extends BithumbApi
             }
             throw new ExchangeError((String)feedback) ;
         }
-        if ((switch ((Object)(response)) { case List<?> j39v21 -> j39v21.contains("status"); case Map<?, ?> j39v20 -> j39v20.containsKey("status"); case null, default -> false; }))
+        if ((switch ((Object)(response)) { case List<?> j39v19 -> j39v19.contains("status"); case Map<?, ?> j39v18 -> j39v18.containsKey("status"); case null, default -> false; }))
         {
             // generation 1:
             //

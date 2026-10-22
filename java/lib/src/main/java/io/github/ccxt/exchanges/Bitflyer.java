@@ -442,7 +442,7 @@ public class Bitflyer extends BitflyerApi
                         String currencyIds = this.safeString(splitAlias, 0);
                         baseId = (currencyIds == null ? null : ((String)currencyIds).substring(0, Math.max(((String)currencyIds).length() - 3, 0)));
                         quoteId = (currencyIds == null ? null : ((String)currencyIds).substring(Math.max(((String)currencyIds).length() - 3, 0)));
-                        List<Object> splitId = (List<Object>) ((java.util.function.BiFunction<Object, Object, Object>) (hx4J43a0, hx4J43b0) -> { if (hx4J43a0 == null || hx4J43b0 == null) { return java.util.Collections.emptyList(); } return Arrays.asList(String.valueOf(hx4J43a0).split(java.util.regex.Pattern.quote(String.valueOf(hx4J43b0)))); }).apply(id, currencyIds);
+                        List<Object> splitId = (List<Object>) Helpers.split(id, currencyIds);
                         String expiryDate = this.safeString(splitId, 1);
                         if (java.util.Objects.equals(expiryDate, null))
                         {
@@ -539,7 +539,7 @@ public class Bitflyer extends BitflyerApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "currency_code");

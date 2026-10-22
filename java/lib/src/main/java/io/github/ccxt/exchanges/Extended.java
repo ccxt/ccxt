@@ -527,9 +527,9 @@ public class Extended extends ExtendedApi
 
             Object markets = (super.loadMarkets(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();
             Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId", (Object) null);
-            if ((java.util.Objects.equals(currenciesByNumericId, null)) || (switch ((Object) (java.util.Objects.requireNonNullElse(reload, false))) { case null -> false; case Boolean hx4J40v6 -> hx4J40v6.booleanValue(); case Long hx4J40v6 -> hx4J40v6 != 0L; case Integer hx4J40v6 -> hx4J40v6 != 0; case Double hx4J40v6 -> hx4J40v6 != 0.0; case String hx4J40v6 -> !hx4J40v6.isEmpty(); case List<?> hx4J40v6 -> !hx4J40v6.isEmpty(); case Map<?, ?> hx4J40v6 -> true; default -> false; }))
+            if ((java.util.Objects.equals(currenciesByNumericId, null)) || Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)))
             {
-                { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "currenciesByNumericId"; Object j39v3 = this.indexByStringifiedNumericId((Map<String, Object>) (this.currencies)); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+                Helpers.addElementToObject(this.options, "currenciesByNumericId", this.indexByStringifiedNumericId((Map<String, Object>) (this.currencies)));
             }
             return markets;
         });
@@ -1467,10 +1467,10 @@ public class Extended extends ExtendedApi
         String sideRaw = this.safeString2(trade, "S", "side");
         String side = (((!java.util.Objects.equals(sideRaw, null)))) ? ((String)sideRaw).toLowerCase() : null;
         String feeCost = this.safeString(trade, "fee");
-        Map<String, Object> fee = (((java.util.Objects.equals(feeCost, null)))) ? null : (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-            j39v4.put("cost", feeCost);
-            j39v4.put("currency", (((java.util.Objects.equals(marketResolved, null)))) ? null : marketResolved.get("settle"));
-            yield j39v4; } });
+        Map<String, Object> fee = (((java.util.Objects.equals(feeCost, null)))) ? null : (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("cost", feeCost);
+            j39v1.put("currency", (((java.util.Objects.equals(marketResolved, null)))) ? null : marketResolved.get("settle"));
+            yield j39v1; } });
         Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
@@ -1823,7 +1823,7 @@ public class Extended extends ExtendedApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v5 -> j39v5.size(); case String j39v6 -> j39v6.length(); case Object j39v7 -> j39v7.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v7) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "asset");
@@ -2215,7 +2215,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
             Object amountString = this.currencyToPrecision((String) (code), amount, (String) null);
             String accountId = this.safeString(account, "accountId");
-            Object settlement = this.createWithdrawalSettlementData(address, ((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), paramsWithdrawTag);
+            Map<String, Object> settlement = (Map<String, Object>) this.createWithdrawalSettlementData(address, ((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), paramsWithdrawTag);
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("accountId", accountId);
             request.put("amount", amountString);
@@ -2355,7 +2355,7 @@ public class Extended extends ExtendedApi
                 throw new ArgumentsRequired((this.id + " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
             }
             Object amountString = this.currencyToPrecision((String) (code), amount, (String) null);
-            Object settlement = this.createTransferSettlementData(((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), toVault, toL2Key, parameters);
+            Map<String, Object> settlement = (Map<String, Object>) this.createTransferSettlementData(((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), toVault, toL2Key, parameters);
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("fromAccount", fromAccountResolved);
             request.put("toAccount", toAccount);
@@ -3004,7 +3004,7 @@ public class Extended extends ExtendedApi
                 return this.safeDict(this.options, "account", new HashMap<String, Object>() {{}});
             }
             Object accountData = (this.fetchAccount(parameters)).join();
-            { Map<Object, Object> j39v8 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v9 = "account"; Object j39v10 = ((Map<String, Object>)accountData).get("info"); if (j39v8 == null) { if (j39v9 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v8) { if (j39v10 == null && j39v8 instanceof java.util.concurrent.ConcurrentHashMap) { j39v8.remove(j39v9); } else { j39v8.put(j39v9, j39v10); } } }
+            Helpers.addElementToObject(this.options, "account", ((Map<String, Object>)accountData).get("info"));
             return this.safeDict(this.options, "account", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -3244,11 +3244,11 @@ public class Extended extends ExtendedApi
             {
                 request.put("cancelId", cancelId);
             }
-            Object settlement = this.createOrderSettlementData(isBuy, amountString, priceString, settlementParams);
+            Map<String, Object> settlement = (Map<String, Object>) this.createOrderSettlementData(isBuy, amountString, priceString, settlementParams);
             request.put("settlement", new HashMap<String, Object>() {{
         put( "signature", new HashMap<String, Object>() {{
-            put( "r", ((Map<String, Object>)settlement).get("r") );
-            put( "s", ((Map<String, Object>)settlement).get("s") );
+            put( "r", settlement.get("r") );
+            put( "s", settlement.get("s") );
         }} );
         put( "starkKey", starkKey );
         put( "collateralPosition", collateralPosition );
@@ -3271,14 +3271,14 @@ public class Extended extends ExtendedApi
                     String stopLossTriggerPriceType = this.safeString(stopLoss, "triggerPriceType");
                     String stopLossExecutionPrice = this.safeString(stopLoss, "price");
                     String stopLossType = this.safeString(stopLoss, "type");
-                    Object stopLossSettlement = this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), amountString, stopLossExecutionPrice, settlementParams);
+                    Map<String, Object> stopLossSettlement = (Map<String, Object>) this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), amountString, stopLossExecutionPrice, settlementParams);
                     Map<String, Object> requestStopLoss = new HashMap<String, Object>() {{
                         put( "triggerPrice", Extended.this.priceToPrecision(symbol, stopLossTrigger) );
                         put( "price", Extended.this.priceToPrecision(symbol, stopLossExecutionPrice) );
                         put( "settlement", new HashMap<String, Object>() {{
                             put( "signature", new HashMap<String, Object>() {{
-                                put( "r", ((Map<String, Object>)stopLossSettlement).get("r") );
-                                put( "s", ((Map<String, Object>)stopLossSettlement).get("s") );
+                                put( "r", stopLossSettlement.get("r") );
+                                put( "s", stopLossSettlement.get("s") );
                             }} );
                             put( "starkKey", starkKey );
                             put( "collateralPosition", collateralPosition );
@@ -3300,14 +3300,14 @@ public class Extended extends ExtendedApi
                     String takeProfitTriggerPriceType = this.safeString(takeProfit, "triggerPriceType");
                     String takeProfitExecutionPrice = this.safeString(takeProfit, "price");
                     String takeProfitType = this.safeString(takeProfit, "type");
-                    Object takeProfitSettlement = this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), amountString, takeProfitExecutionPrice, settlementParams);
+                    Map<String, Object> takeProfitSettlement = (Map<String, Object>) this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), amountString, takeProfitExecutionPrice, settlementParams);
                     Map<String, Object> requestTakeProfit = new HashMap<String, Object>() {{
                         put( "triggerPrice", Extended.this.priceToPrecision(symbol, takeProfitTrigger) );
                         put( "price", Extended.this.priceToPrecision(symbol, takeProfitExecutionPrice) );
                         put( "settlement", new HashMap<String, Object>() {{
                             put( "signature", new HashMap<String, Object>() {{
-                                put( "r", ((Map<String, Object>)takeProfitSettlement).get("r") );
-                                put( "s", ((Map<String, Object>)takeProfitSettlement).get("s") );
+                                put( "r", takeProfitSettlement.get("r") );
+                                put( "s", takeProfitSettlement.get("s") );
                             }} );
                             put( "starkKey", starkKey );
                             put( "collateralPosition", collateralPosition );
@@ -4233,7 +4233,7 @@ public class Extended extends ExtendedApi
             }
         }
         String url = (((this.implodeHostname(baseApiUrl) + "/api/") + version) + endpoint);
-        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE") || Boolean.TRUE.equals(queryPost)) && (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v17 -> { synchronized (j39v17) { yield new ArrayList<Object>(j39v17.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0))
+        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE") || Boolean.TRUE.equals(queryPost)) && (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0))
         {
             url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));
         }

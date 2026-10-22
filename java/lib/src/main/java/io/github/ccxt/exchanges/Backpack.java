@@ -1258,7 +1258,7 @@ public class Backpack extends BackpackApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> response = (this.publicGetApiV1Securities(parameters)).join();
-            { Map<Object, Object> j39v2 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v3 = "securities"; Object j39v4 = response; if (j39v2 == null) { if (j39v3 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v2) { if (j39v4 == null && j39v2 instanceof java.util.concurrent.ConcurrentHashMap) { j39v2.remove(j39v3); } else { j39v2.put(j39v3, j39v4); } } }
+            Helpers.addElementToObject(this.options, "securities", response);
             return response;
         });
 
@@ -1777,7 +1777,7 @@ public class Backpack extends BackpackApi
                     put( "stock", true );
                 }});
             }
-            Object request = this.stockDataRequest("fetchTickers", (Map<String, Object>) (requestParams), (Map<String, Object>) null);
+            Map<String, Object> request = (Map<String, Object>) this.stockDataRequest("fetchTickers", (Map<String, Object>) (requestParams), (Map<String, Object>) null);
             Object response = (this.publicGetApiV1Tickers(request)).join();
             Object tickers = this.parseTickers(response, (List<String>) null, new HashMap<String, Object>() {{}});
             Map<String,Object> responseById = this.indexBy(response, "symbol");
@@ -1845,7 +1845,7 @@ public class Backpack extends BackpackApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object request = this.stockDataRequest("fetchTicker", (Map<String, Object>) (parameters), market);
+            Map<String, Object> request = (Map<String, Object>) this.stockDataRequest("fetchTicker", (Map<String, Object>) (parameters), market);
             Map<String, Object> response = (this.publicGetApiV1Ticker(request)).join();
             return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
@@ -2010,9 +2010,9 @@ public class Backpack extends BackpackApi
             Map<String, Object> market = this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object dataRequest = this.stockDataRequest("fetchOHLCV", (Map<String, Object>) (parameters), market);
+            Map<String, Object> dataRequest = (Map<String, Object>) this.stockDataRequest("fetchOHLCV", (Map<String, Object>) (parameters), market);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)dataRequest).get("symbol") );
+                put( "symbol", dataRequest.get("symbol") );
                 put( "interval", interval );
             }};
             List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(this.omit(dataRequest, "symbol"), "fetchOHLCV", "until", (Long) null);
@@ -2647,7 +2647,7 @@ public class Backpack extends BackpackApi
         //         }
         //     }
         //
-        List<Object> balanceKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> balanceKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)balanceKeys).size(); i++)
         {
@@ -3197,7 +3197,7 @@ public class Backpack extends BackpackApi
             Map<String, Object> query = this.omit(paramsResolved, "clientOrderId");
             Map<String, Object> response = (this.privatePostApiV1Rfq(this.extend(query, request))).join();
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
-            { Map<Object, Object> j39v6 = (Map<Object, Object>) (Map<?, ?>) (order); Object j39v7 = "type"; Object j39v8 = type; if (j39v6 == null) { if (j39v7 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v6) { if (j39v8 == null && j39v6 instanceof java.util.concurrent.ConcurrentHashMap) { j39v6.remove(j39v7); } else { j39v6.put(j39v7, j39v8); } } }
+            Helpers.addElementToObject(order, "type", type);
             return order;
         });
 
@@ -3765,7 +3765,7 @@ public class Backpack extends BackpackApi
         if (!java.util.Objects.equals(rfq, null))
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(rfq, market);
-            { Map<Object, Object> j39v9 = (Map<Object, Object>) (Map<?, ?>) (parsed); Object j39v10 = "info"; Object j39v11 = order; if (j39v9 == null) { if (j39v10 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v9) { if (j39v11 == null && j39v9 instanceof java.util.concurrent.ConcurrentHashMap) { j39v9.remove(j39v10); } else { j39v9.put(j39v10, j39v11); } } }
+            Helpers.addElementToObject(parsed, "info", order);
             return (Order) parsed;
         }
         //
@@ -4213,13 +4213,13 @@ public class Backpack extends BackpackApi
     public String generateBatchPayload(Object parameters, Object ts, Object recvWindow, Object instruction)
     {
         String payload = "";
-        for (var i = 0; i < (switch ((Object)(parameters)) { case null -> 0; case List<?> j39v15 -> j39v15.size(); case String j39v16 -> j39v16.length(); case Object j39v17 -> j39v17.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v17) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(parameters)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.safeDict(parameters, i, new HashMap<String, Object>() {{}});
             Map<String,Object> sortedOrder = this.keysort(order);
             String orderQuery = this.urlencode(sortedOrder);
             payload = (payload + (((("instruction=" + instruction) + "&") + orderQuery) + "&"));
-            if (((java.util.function.BiPredicate<Object, Object>) (hx4J40v0A, hx4J40v0B) -> { try { if (hx4J40v0A == null && hx4J40v0B == null) { return true; } if (hx4J40v0A == null || hx4J40v0B == null) { return false; } java.util.function.Predicate<Object> hx4J40v0N = hx4J40v0o -> { try { Double.parseDouble(String.valueOf(hx4J40v0o)); return true; } catch (Exception hx4J40v0e) { return false; } }; if (!hx4J40v0A.getClass().equals(hx4J40v0B.getClass()) && !(hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B))) { return false; } java.util.function.Predicate<Object> hx4J40v0I = hx4J40v0o -> hx4J40v0o instanceof Byte || hx4J40v0o instanceof Short || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Long || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicInteger || hx4J40v0o instanceof java.util.concurrent.atomic.AtomicLong || ((hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(hx4J40v0o)).stripTrailingZeros().scale() <= 0); java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; if (hx4J40v0I.test(hx4J40v0A) && hx4J40v0I.test(hx4J40v0B)) { java.util.function.ToLongFunction<Object> hx4J40v0L = hx4J40v0o -> hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).longValue() : Long.parseLong(String.valueOf(hx4J40v0o)); return hx4J40v0L.applyAsLong(hx4J40v0A) == hx4J40v0L.applyAsLong(hx4J40v0B); } if (hx4J40v0A instanceof Double || hx4J40v0B instanceof Double) { return hx4J40v0D.applyAsDouble(hx4J40v0A) == hx4J40v0D.applyAsDouble(hx4J40v0B); } if (hx4J40v0A instanceof Float || hx4J40v0B instanceof Float) { java.util.function.Function<Object, Float> hx4J40v0F = hx4J40v0o -> hx4J40v0o instanceof Float || hx4J40v0o instanceof Double || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal ? ((Number) hx4J40v0o).floatValue() : Float.parseFloat(String.valueOf(hx4J40v0o)); return hx4J40v0F.apply(hx4J40v0A).floatValue() == hx4J40v0F.apply(hx4J40v0B).floatValue(); } if (hx4J40v0A instanceof String && hx4J40v0B instanceof String) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0A instanceof Boolean && hx4J40v0B instanceof Boolean) { return hx4J40v0A.equals(hx4J40v0B); } if (hx4J40v0N.test(hx4J40v0A) && hx4J40v0N.test(hx4J40v0B)) { return new java.math.BigDecimal(String.valueOf(hx4J40v0A)).compareTo(new java.math.BigDecimal(String.valueOf(hx4J40v0B))) == 0; } return false; } catch (Exception hx4J40v0e) { return false; } }).test(i, ((((switch ((Object)(parameters)) { case null -> 0; case List<?> j39v12 -> j39v12.size(); case String j39v13 -> j39v13.length(); case Object j39v14 -> j39v14.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v14) : 0; })) - 1L))))
+            if (Helpers.isEqual(i, ((((switch ((Object)(parameters)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; })) - 1L))))
             {
                 payload = (payload + ((("timestamp=" + ts) + "&window=") + recvWindow));
             }

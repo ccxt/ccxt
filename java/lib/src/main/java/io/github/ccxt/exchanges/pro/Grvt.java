@@ -166,7 +166,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         Long newValue;
         synchronized (this) {
         newValue = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        { Map<Object, Object> j39v2 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v3 = "requestId"; Object j39v4 = newValue; if (j39v2 == null) { if (j39v3 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v2) { if (j39v4 == null && j39v2 instanceof java.util.concurrent.ConcurrentHashMap) { j39v2.remove(j39v3); } else { j39v2.put(j39v3, j39v4); } } }
+        Helpers.addElementToObject(this.options, "requestId", newValue);
         }
         return newValue;
     }

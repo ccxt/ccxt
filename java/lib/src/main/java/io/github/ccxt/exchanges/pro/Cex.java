@@ -78,7 +78,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Object requestId;
         synchronized (this) {
         requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "requestId"; Object j39v3 = requestId; if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+        Helpers.addElementToObject(this.options, "requestId", requestId);
         }
         return (String) (String.valueOf(requestId));
     }
@@ -190,7 +190,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Client client = (Client)this.safeValue(this.clients, url);
             if (!java.util.Objects.equals(client, null))
             {
-                List<Object> subscriptionKeys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> subscriptionKeys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
                 {
                     Object subscriptionKey = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
@@ -244,7 +244,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Object tradeParts = trade;
         if (!(trade instanceof List))
         {
-            tradeParts = ((java.util.function.BiFunction<Object, Object, Object>) (hx4J43a1, hx4J43b1) -> { if (hx4J43a1 == null || hx4J43b1 == null) { return java.util.Collections.emptyList(); } return Arrays.asList(String.valueOf(hx4J43a1).split(java.util.regex.Pattern.quote(String.valueOf(hx4J43b1)))); }).apply(trade, ":");
+            tradeParts = Helpers.split(trade, ":");
         }
         String side = this.safeString(tradeParts, 0);
         Long timestamp = this.safeInteger(tradeParts, 1);
@@ -1192,7 +1192,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
 
     public String pairToSymbol(Object pair)
     {
-        List<Object> parts = (List<Object>) ((java.util.function.BiFunction<Object, Object, Object>) (hx4J43a0, hx4J43b0) -> { if (hx4J43a0 == null || hx4J43b0 == null) { return java.util.Collections.emptyList(); } return Arrays.asList(String.valueOf(hx4J43a0).split(java.util.regex.Pattern.quote(String.valueOf(hx4J43b0)))); }).apply(pair, ":");
+        List<Object> parts = (List<Object>) Helpers.split(pair, ":");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
@@ -1258,9 +1258,9 @@ public class Cex extends io.github.ccxt.exchanges.Cex
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 

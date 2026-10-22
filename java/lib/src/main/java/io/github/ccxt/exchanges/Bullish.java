@@ -1196,8 +1196,8 @@ public class Bullish extends BullishApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchTrades", since, paramsPaginate);
-                return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, ((Map<String, Object>) (switch ((Object) (paramsPagination)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })), maxLimit, true)).join();
+                Map<String, Object> paramsPagination = (Map<String, Object>) this.handlePaginationParams("fetchTrades", since, paramsPaginate);
+                return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPagination, maxLimit, true)).join();
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1272,8 +1272,8 @@ public class Bullish extends BullishApi
                 Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
                 if (Boolean.TRUE.equals(paginate))
                 {
-                    Object paramsPagination = this.handlePaginationParams("fetchMyTrades", since, paramsPaginate);
-                    return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, ((Map<String, Object>) (switch ((Object) (paramsPagination)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })), 100L, true)).join();
+                    Map<String, Object> paramsPagination = (Map<String, Object>) this.handlePaginationParams("fetchMyTrades", since, paramsPaginate);
+                    return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPagination, 100L, true)).join();
                 }
                 Object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate, "createdAtDatetime[gte]", "createdAtDatetime[lte]");
                 if (!java.util.Objects.equals(limit, null))
@@ -1606,7 +1606,7 @@ public class Bullish extends BullishApi
                     }
                 } catch(Exception e)
                 {
-                    if ((switch ((Object) (e)) { case null -> false; case Throwable hx4J44v0 -> { Throwable hx4J44v0u = hx4J44v0; while ((hx4J44v0u instanceof java.util.concurrent.CompletionException || hx4J44v0u instanceof java.util.concurrent.ExecutionException) && hx4J44v0u.getCause() != null) { hx4J44v0u = hx4J44v0u.getCause(); } yield RateLimitExceeded.class.isInstance(hx4J44v0u); } case Object hx4J44v0 -> RateLimitExceeded.class.isInstance(hx4J44v0); }))
+                    if (Helpers.isInstance(e, RateLimitExceeded.class))
                     {
                         throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
@@ -1742,8 +1742,8 @@ public class Bullish extends BullishApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchFundingRateHistory", since, paramsPaginate);
-                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, ((Map<String, Object>) (switch ((Object) (paramsPagination)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })), maxLimit, true)).join();
+                Map<String, Object> paramsPagination = (Map<String, Object>) this.handlePaginationParams("fetchFundingRateHistory", since, paramsPaginate);
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPagination, maxLimit, true)).join();
             }
             Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(market.get("swap"), true))
@@ -1777,13 +1777,13 @@ public class Bullish extends BullishApi
             {
                 Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String datetime = this.safeString(entry, "updatedAtDatetime");
-                ((List<Object>)rates).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                    j39v3.put("info", entry);
-                    j39v3.put("symbol", symbol);
-                    j39v3.put("fundingRate", this.safeNumber(entry, "fundingRate", (Object) null));
-                    j39v3.put("timestamp", this.parse8601(datetime));
-                    j39v3.put("datetime", datetime);
-                    yield j39v3; } }));
+                ((List<Object>)rates).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("info", entry);
+                    j39v1.put("symbol", symbol);
+                    j39v1.put("fundingRate", this.safeNumber(entry, "fundingRate", (Object) null));
+                    j39v1.put("timestamp", this.parse8601(datetime));
+                    j39v1.put("datetime", datetime);
+                    yield j39v1; } }));
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
@@ -1819,8 +1819,8 @@ public class Bullish extends BullishApi
             Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (Boolean.TRUE.equals(paginate))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchOrders", since, parameters);
-                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, ((Map<String, Object>) (switch ((Object) (paramsPagination)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), 100L, true)).join();
+                Map<String, Object> paramsPagination = (Map<String, Object>) this.handlePaginationParams("fetchOrders", since, parameters);
+                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, paramsPagination, 100L, true)).join();
             }
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1945,8 +1945,8 @@ public class Bullish extends BullishApi
             }
             String sinceDate = this.iso8601(sinceResolved);
             String untilDate = this.iso8601(until);
-            { Map<Object, Object> j39v7 = (Map<Object, Object>) (Map<?, ?>) (paramsResult); Object j39v8 = java.util.Objects.requireNonNullElse(sinceKey, "createdAtDatetime[gte]"); Object j39v9 = sinceDate; if (j39v7 == null) { if (j39v8 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v7) { if (j39v9 == null && j39v7 instanceof java.util.concurrent.ConcurrentHashMap) { j39v7.remove(j39v8); } else { j39v7.put(j39v8, j39v9); } } }
-            { Map<Object, Object> j39v4 = (Map<Object, Object>) (Map<?, ?>) (paramsResult); Object j39v5 = java.util.Objects.requireNonNullElse(untilKey, "createdAtDatetime[lte]"); Object j39v6 = untilDate; if (j39v4 == null) { if (j39v5 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v4) { if (j39v6 == null && j39v4 instanceof java.util.concurrent.ConcurrentHashMap) { j39v4.remove(j39v5); } else { j39v4.put(j39v5, j39v6); } } }
+            Helpers.addElementToObject(paramsResult, java.util.Objects.requireNonNullElse(sinceKey, "createdAtDatetime[gte]"), sinceDate);
+            Helpers.addElementToObject(paramsResult, java.util.Objects.requireNonNullElse(untilKey, "createdAtDatetime[lte]"), untilDate);
         }
         return paramsResult;
     }
@@ -2743,7 +2743,7 @@ public class Bullish extends BullishApi
             {
                 throw new ArgumentsRequired((this.id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
             }
-            { Map<Object, Object> j39v10 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v11 = "tradingAccountId"; Object j39v12 = tradingAccountId; if (j39v10 == null) { if (j39v11 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v10) { if (j39v12 == null && j39v10 instanceof java.util.concurrent.ConcurrentHashMap) { j39v10.remove(j39v11); } else { j39v10.put(j39v11, j39v12); } } }
+            Helpers.addElementToObject(this.options, "tradingAccountId", tradingAccountId);
             return this.safeString(this.options, "tradingAccountId");
         });
 
@@ -3012,7 +3012,7 @@ public class Bullish extends BullishApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String symbol = this.safeString(balance, "assetSymbol");
@@ -3169,8 +3169,8 @@ public class Bullish extends BullishApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                Object paramsPagination = this.handlePaginationParams("fetchTransfers", since, paramsPaginate);
-                return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, ((Map<String, Object>) (switch ((Object) (paramsPagination)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })), maxLimit, true)).join();
+                Map<String, Object> paramsPagination = (Map<String, Object>) this.handlePaginationParams("fetchTransfers", since, paramsPaginate);
+                return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsPagination, maxLimit, true)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tradingAccountId", tradingAccountId );
@@ -3637,9 +3637,9 @@ public class Bullish extends BullishApi
             //
             String token = this.safeString(response, "token");
             String authorizer = this.safeString(response, "authorizer");
-            { Map<Object, Object> j39v19 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v20 = "authorizer"; Object j39v21 = authorizer; if (j39v19 == null) { if (j39v20 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v19) { if (j39v21 == null && j39v19 instanceof java.util.concurrent.ConcurrentHashMap) { j39v19.remove(j39v20); } else { j39v19.put(j39v20, j39v21); } } }
+            Helpers.addElementToObject(this.options, "authorizer", authorizer);
             this.token = token;
-            { Map<Object, Object> j39v16 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v17 = "tokenExpires"; Object j39v18 = this.sum(this.milliseconds(), (((1000L * 60L) * 60L) * 24L)); if (j39v16 == null) { if (j39v17 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v16) { if (j39v18 == null && j39v16 instanceof java.util.concurrent.ConcurrentHashMap) { j39v16.remove(j39v17); } else { j39v16.put(j39v17, j39v18); } } } // token expires in 24 hours
+            Helpers.addElementToObject(this.options, "tokenExpires", this.sum(this.milliseconds(), (((1000L * 60L) * 60L) * 24L))); // token expires in 24 hours
             return token;
         });
 

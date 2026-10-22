@@ -726,7 +726,7 @@ public class Gemini extends GeminiApi
             //        ]
             //    }
             //
-            { Map<Object, Object> j39v1 = (Map<Object, Object>) (Map<?, ?>) (this.options); Object j39v2 = "tradingPairs"; Object j39v3 = this.safeList(data, "tradingPairs", (Object) null); if (j39v1 == null) { if (j39v2 instanceof String) { throw new NullPointerException(); } throw new IllegalArgumentException("Target is neither Map nor List: null"); } synchronized (j39v1) { if (j39v3 == null && j39v1 instanceof java.util.concurrent.ConcurrentHashMap) { j39v1.remove(j39v2); } else { j39v1.put(j39v2, j39v3); } } }
+            Helpers.addElementToObject(this.options, "tradingPairs", this.safeList(data, "tradingPairs", (Object) null));
             List<Object> currenciesArray = (List<Object>) this.safeList(data, "currencies", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(currenciesArray);
         });
@@ -753,16 +753,16 @@ public class Gemini extends GeminiApi
             networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put((String)networkCode, (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                    j39v4.put("info", rawCurrency);
-                    j39v4.put("id", networkId);
-                    j39v4.put("network", networkCode);
-                    j39v4.put("active", null);
-                    j39v4.put("deposit", null);
-                    j39v4.put("withdraw", null);
-                    j39v4.put("fee", null);
-                    j39v4.put("precision", precision);
-                    j39v4.put("limits", new HashMap<String, Object>() {{
+                networks.put((String)networkCode, (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("info", rawCurrency);
+                    j39v1.put("id", networkId);
+                    j39v1.put("network", networkCode);
+                    j39v1.put("active", null);
+                    j39v1.put("deposit", null);
+                    j39v1.put("withdraw", null);
+                    j39v1.put("fee", null);
+                    j39v1.put("precision", precision);
+                    j39v1.put("limits", new HashMap<String, Object>() {{
         put( "deposit", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
@@ -772,7 +772,7 @@ public class Gemini extends GeminiApi
             put( "max", null );
         }} );
     }});
-                    yield j39v4; } }));
+                    yield j39v1; } }));
             }
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -834,7 +834,7 @@ public class Gemini extends GeminiApi
 
             Object data = (this.fetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>", (String) null)).join();
             String error = (this.id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
-            List<Object> tables = (List<Object>) ((java.util.function.BiFunction<Object, Object, Object>) (hx4J43a1, hx4J43b1) -> { if (hx4J43a1 == null || hx4J43b1 == null) { return java.util.Collections.emptyList(); } return Arrays.asList(String.valueOf(hx4J43a1).split(java.util.regex.Pattern.quote(String.valueOf(hx4J43b1)))); }).apply(data, "tbody>");
+            List<Object> tables = (List<Object>) Helpers.split(data, "tbody>");
             Integer numTables = (tables == null ? 0 : tables.size());
             if (((numTables == null || numTables < 2)))
             {
@@ -881,43 +881,43 @@ public class Gemini extends GeminiApi
                 String cell3 = this.safeString(cells, 3, "");
                 String pricePrecisionString = cell3.replaceFirst("<td>", "");
                 List<Object> pricePrecisionParts = new ArrayList<Object>(Arrays.asList(((String)pricePrecisionString).split(java.util.regex.Pattern.quote(" "))));
-                String quoteId = this.safeStringLower(pricePrecisionParts, 1, ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { marketId, startingIndex, idLength }));
-                String baseId = this.safeStringLower(amountPrecisionParts, 1, ((java.util.function.Function<Object, java.util.function.BiFunction<Object, Object, String>>) hx4J43a0 -> (hx4J43b0, hx4J43c0) -> { if (hx4J43a0 == null) { return null; } String hx4J43a0s = String.valueOf(hx4J43a0); String hx4J43a0f = (hx4J43b0 == null) ? "" : String.valueOf(hx4J43b0); String hx4J43a0r = (hx4J43c0 == null) ? "" : String.valueOf(hx4J43c0); return hx4J43a0s.replaceFirst(java.util.regex.Pattern.quote(hx4J43a0f), java.util.regex.Matcher.quoteReplacement(hx4J43a0r)); }).apply(marketId).apply((String)quoteId, (String)""));
+                String quoteId = this.safeStringLower(pricePrecisionParts, 1, Helpers.slice(marketId, startingIndex, idLength));
+                String baseId = this.safeStringLower(amountPrecisionParts, 1, Helpers.replace(marketId, (String)quoteId, (String)""));
                 String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                 String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
                 if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                 {
                     continue;
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-                    j39v5.put("id", marketId);
-                    j39v5.put("symbol", ((base + "/") + quote));
-                    j39v5.put("base", base);
-                    j39v5.put("quote", quote);
-                    j39v5.put("settle", null);
-                    j39v5.put("baseId", baseId);
-                    j39v5.put("quoteId", quoteId);
-                    j39v5.put("settleId", null);
-                    j39v5.put("type", "spot");
-                    j39v5.put("spot", true);
-                    j39v5.put("margin", false);
-                    j39v5.put("swap", false);
-                    j39v5.put("future", false);
-                    j39v5.put("option", false);
-                    j39v5.put("active", null);
-                    j39v5.put("contract", false);
-                    j39v5.put("linear", null);
-                    j39v5.put("inverse", null);
-                    j39v5.put("contractSize", null);
-                    j39v5.put("expiry", null);
-                    j39v5.put("expiryDatetime", null);
-                    j39v5.put("strike", null);
-                    j39v5.put("optionType", null);
-                    j39v5.put("precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                    j39v2.put("id", marketId);
+                    j39v2.put("symbol", ((base + "/") + quote));
+                    j39v2.put("base", base);
+                    j39v2.put("quote", quote);
+                    j39v2.put("settle", null);
+                    j39v2.put("baseId", baseId);
+                    j39v2.put("quoteId", quoteId);
+                    j39v2.put("settleId", null);
+                    j39v2.put("type", "spot");
+                    j39v2.put("spot", true);
+                    j39v2.put("margin", false);
+                    j39v2.put("swap", false);
+                    j39v2.put("future", false);
+                    j39v2.put("option", false);
+                    j39v2.put("active", null);
+                    j39v2.put("contract", false);
+                    j39v2.put("linear", null);
+                    j39v2.put("inverse", null);
+                    j39v2.put("contractSize", null);
+                    j39v2.put("expiry", null);
+                    j39v2.put("expiryDatetime", null);
+                    j39v2.put("strike", null);
+                    j39v2.put("optionType", null);
+                    j39v2.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Gemini.this.safeNumber(amountPrecisionParts, 0, (Object) null) );
                         put( "price", Gemini.this.safeNumber(pricePrecisionParts, 0, (Object) null) );
                     }});
-                    j39v5.put("limits", new HashMap<String, Object>() {{
+                    j39v2.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -935,9 +935,9 @@ public class Gemini extends GeminiApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v5.put("created", null);
-                    j39v5.put("info", row);
-                    yield j39v5; } }));
+                    j39v2.put("created", null);
+                    j39v2.put("info", row);
+                    yield j39v2; } }));
             }
             return result;
         });
@@ -1169,13 +1169,13 @@ public class Gemini extends GeminiApi
             } else
             {
                 Object quoteCurrencies = this.handleOption("fetchMarketsFromAPI", "quoteCurrencies", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < (switch ((Object)(quoteCurrencies)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
+                for (var i = 0; i < (switch ((Object)(quoteCurrencies)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; }); i++)
                 {
                     String quoteCurrency = this.safeString(quoteCurrencies, i, "");
                     if ((marketIdWithoutPerp.endsWith(((String)quoteCurrency))))
                     {
                         Long quoteLength = this.parseToInt((((long) (-1)) * quoteCurrency.length()));
-                        baseId = ((java.util.function.Function<Object[], String>) (hx4J41a) -> { if (hx4J41a[0] == null) return null; String hx4J41s = (String) hx4J41a[0]; java.util.function.ToIntFunction<Object> hx4J41i = (hx4J41o) -> (hx4J41o instanceof Integer hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Long hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Double hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof Float hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof java.math.BigDecimal hx4J41n) ? hx4J41n.intValue() : (hx4J41o instanceof String hx4J41n) ? Integer.parseInt(hx4J41n) : Integer.parseInt(String.valueOf(hx4J41o)); int hx4J41b = (hx4J41a[1] != null) ? hx4J41i.applyAsInt(hx4J41a[1]) : -1; if (hx4J41a[2] == null) { if (hx4J41b < 0) return hx4J41s.substring(Math.max(hx4J41s.length() + hx4J41b, 0)); if (hx4J41b > hx4J41s.length()) return ""; return hx4J41s.substring(hx4J41b); } int hx4J41e = hx4J41i.applyAsInt(hx4J41a[2]); if (hx4J41b < 0) hx4J41b = hx4J41s.length() + hx4J41b; if (hx4J41e < 0) hx4J41e = hx4J41s.length() + hx4J41e; if (hx4J41b < 0) hx4J41b = 0; if (hx4J41e > hx4J41s.length()) hx4J41e = hx4J41s.length(); if (hx4J41b > hx4J41e) hx4J41b = hx4J41e; return hx4J41s.substring(hx4J41b, hx4J41e); }).apply(new Object[] { marketIdWithoutPerp, 0, quoteLength });
+                        baseId = Helpers.slice(marketIdWithoutPerp, 0, quoteLength);
                         quoteId = quoteCurrency;
                         if (Boolean.TRUE.equals(isPerp))
                         {
@@ -1672,7 +1672,7 @@ public class Gemini extends GeminiApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
@@ -2533,10 +2533,10 @@ public class Gemini extends GeminiApi
                 put( "network", networkId );
             }};
             List<Object> response = (this.privatePostV1AddressesNetwork(this.extend(request, paramsNetworkCode))).join();
-            Object results = this.parseDepositAddresses(response, new ArrayList<Object>(Arrays.asList(codeValue)), false, (switch (0) { default -> { HashMap<String, Object> j39v12 = new HashMap<String, Object>();
-                j39v12.put("network", networkCode);
-                j39v12.put("currency", codeValue);
-                yield j39v12; } }));
+            Object results = this.parseDepositAddresses(response, new ArrayList<Object>(Arrays.asList(codeValue)), false, (switch (0) { default -> { HashMap<String, Object> j39v9 = new HashMap<String, Object>();
+                j39v9.put("network", networkCode);
+                j39v9.put("currency", codeValue);
+                yield j39v9; } }));
             // one address structure per network, like every other venue (the endpoint is scoped to a
             // single network, so the last address the venue lists for it wins — same as before)
             return this.indexBy(results, "network");
@@ -2578,7 +2578,7 @@ public class Gemini extends GeminiApi
             }
         } else
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v13 -> { synchronized (j39v13) { yield new ArrayList<Object>(j39v13.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v10 -> { synchronized (j39v10) { yield new ArrayList<Object>(j39v10.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
