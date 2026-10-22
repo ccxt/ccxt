@@ -564,7 +564,10 @@ export default class kalshi extends Exchange {
         const liquidity = this.safeNumber2 (raw, 'liquidity_dollars', 'liquidity');
         const openInt = this.safeNumber2 (raw, 'open_interest_fp', 'open_interest');
         // Derive series ticker: drop last hyphen-segment from event_ticker
-        const eventParts: string[] = ((eventTicker !== undefined) && (eventTicker !== '')) ? eventTicker.split ('-') : [];
+        let eventParts: string[] = [];
+        if ((eventTicker !== undefined) && (eventTicker !== '')) {
+            eventParts = eventTicker.split ('-');
+        }
         let seriesTicker = eventTicker;
         const eventPartsLength = eventParts.length;
         if (eventPartsLength > 1) {
