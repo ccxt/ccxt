@@ -7602,7 +7602,8 @@ class BaseExchange(object):
             if currentSince >= current:
                 break
             tasks.append(self.safe_deterministic_call(method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted))
-            currentSince = currentSince + step - 1
+            # this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+            currentSince = self.sum(currentSince, step) - 1
         results = tasks
         result = []
         for i in range(0, len(results)):
@@ -7628,7 +7629,7 @@ class BaseExchange(object):
             try:
                 if cursorValue is not None:
                     if cursorIncrement is not None:
-                        cursorValue = self.parse_to_int(cursorValue) + cursorIncrement
+                        cursorValue = self.sum(self.parse_to_int(cursorValue), cursorIncrement)
                     paramsOmitted[cursorSent] = cursorValue
                 response = None
                 if method == 'fetchAccounts':
@@ -7705,8 +7706,8 @@ class BaseExchange(object):
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
-                    iteration = (i + str(1))
-                    incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + str(responseLength)
+                    iteration = (i + 1)
+                    incrementalMessage = 'Incremental pagination call ' + str(iteration) + ' method ' + method + ' response length ' + str(responseLength)
                     self.log(incrementalMessage)
                 if responseLength == 0:
                     shouldBreak = True
