@@ -136,7 +136,7 @@ public partial class whitebit : ccxt.whitebit
                 this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
             }
             // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
-            if (!((((object)((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))) switch { null => false, IList<object> c33a => c33a.Contains("unknown"), IList<string> c33t => c33t.Contains("unknown"), List<Int64> c33g => c33g.Contains((Int64)(object)"unknown"), IDictionary<string, object> c33d => c33d.ContainsKey("unknown"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("unknown"), _ => false })))
+            if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), "unknown")))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 var stored = new ArrayCacheByTimestamp(limit);
@@ -1061,7 +1061,7 @@ public partial class whitebit : ccxt.whitebit
                     { "method", method },
                     { "params", marketIdsNew },
                 };
-                if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(client.subscriptions, method))
+                if (inOp(client.subscriptions, method))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove((string)method);
                 }
@@ -1278,7 +1278,7 @@ public partial class whitebit : ccxt.whitebit
             if (!(subscription is true))
             {
                 Int64? subId = this.safeInteger(subscription, "id");
-                if (((subId != null)) && (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(subId, id)))
+                if (((subId != null)) && (isEqual(subId, id)))
                 {
                     object method = this.safeValue(subscription, "method");
                     if ((method != null))

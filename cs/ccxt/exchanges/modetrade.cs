@@ -3787,7 +3787,7 @@ public partial class modetrade : Exchange
             string ts = this.nonce().ToString();
             url = url + pathWithParams;
             object apiKey = this.apiKey;
-            if ((((object)(apiKey)) switch { IList<object> c33a => c33a.IndexOf("ed25519:"), IList<string> c33t => c33t.IndexOf((string)(object)"ed25519:"), string c33s => c33s.IndexOf((string)(object)"ed25519:"), _ => -1 }) < 0)
+            if (getIndexOf(apiKey, "ed25519:") < 0)
             {
                 apiKey = ("ed25519:" + (apiKey));
             }
@@ -3814,7 +3814,7 @@ public partial class modetrade : Exchange
                 signedBody = ((method == "DELETE")) ? "" : null;
             }
             object secret = this.secret;
-            if ((((object)(secret)) switch { IList<object> c33a => c33a.IndexOf("ed25519:"), IList<string> c33t => c33t.IndexOf((string)(object)"ed25519:"), string c33s => c33s.IndexOf((string)(object)"ed25519:"), _ => -1 }) >= 0)
+            if (getIndexOf(secret, "ed25519:") >= 0)
             {
                 List<object> parts = ((string)secret).Split(new [] {"ed25519:"}, StringSplitOptions.None).ToList<object>();
                 secret = (parts != null && 1 < parts.Count ? parts[1] : null);

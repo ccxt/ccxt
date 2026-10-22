@@ -289,7 +289,7 @@ public partial class myriad : PredictionExchange
         }
         List<object> flatMarkets = new List<object>() {};
         Dictionary<string, object> eventsDict = new Dictionary<string, object>() {};
-        for (int i = 0; i < (((object)(rawMarkets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(rawMarkets); i++)
         {
             object raw = getValue(rawMarkets, i);
             Dictionary<string, object> m = this.parseMyriadMarket(raw);
@@ -335,7 +335,7 @@ public partial class myriad : PredictionExchange
             }, rest));
             bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             object found = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
-            for (int j = 0; j < (((object)(found)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
+            for (int j = 0; j < getArrayLength(found); j++)
             {
                 object raw = getValue(found, j);
                 object networkId = this.safeString(raw, "networkId");
@@ -387,7 +387,7 @@ public partial class myriad : PredictionExchange
             }, rest));
             bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             object rawMarkets = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
-            int rawMarketsLength = (((object)(rawMarkets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+            int rawMarketsLength = getArrayLength(rawMarkets);
             if ((rawMarketsLength == 0))
             {
                 break;
@@ -537,7 +537,7 @@ public partial class myriad : PredictionExchange
             }, rest));
             bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             object found = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
-            for (int j = 0; j < (((object)(found)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
+            for (int j = 0; j < getArrayLength(found); j++)
             {
                 object raw = getValue(found, j);
                 string? questionId = this.safeString(raw, "id");
@@ -584,7 +584,7 @@ public partial class myriad : PredictionExchange
             Dictionary<string, object> response = await this.myriadPublicGetQuestions(this.extend(request, rest));
             bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             object rawQuestions = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
-            int rawQuestionsLength = (((object)(rawQuestions)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+            int rawQuestionsLength = getArrayLength(rawQuestions);
             if ((rawQuestionsLength == 0))
             {
                 break;
@@ -861,7 +861,7 @@ public partial class myriad : PredictionExchange
             throw new ExchangeError ((this.id + " signEvmTransaction() missing rHex")) ;
         }
         int rHexLength = rHex.Length;
-        if (!(((object)((((Int64)rHexLength % 2L)))) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }))
+        if (!isEqual((((Int64)rHexLength % 2L)), 0))
         {
             rHex = ("0" + rHex);
         }
@@ -870,7 +870,7 @@ public partial class myriad : PredictionExchange
             throw new ExchangeError ((this.id + " signEvmTransaction() missing sHex")) ;
         }
         int sHexLength = sHex.Length;
-        if (!(((object)((((Int64)sHexLength % 2L)))) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }))
+        if (!isEqual((((Int64)sHexLength % 2L)), 0))
         {
             sHex = ("0" + sHex);
         }
@@ -1495,7 +1495,7 @@ public partial class myriad : PredictionExchange
         }
         if (dotIndex > -1)
         {
-            return ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(scaled, 0, dotIndex);
+            return slice(scaled, 0, dotIndex);
         }
         return scaled;
     }
@@ -2797,9 +2797,9 @@ public partial class myriad : PredictionExchange
                 {
                     object previousCloseValue = (priceValue - changeValue);
                     previousClose = previousCloseValue;
-                    if (!(((object)(previousCloseValue)) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }))
+                    if (!isEqual(previousCloseValue, 0))
                     {
-                        percentage = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((((((object)(changeValue)) is var c31v0) && (((object)(previousCloseValue)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : (object)(Convert.ToDouble(c31v0) / Convert.ToDouble(c31v1))) : null), 100);
+                        percentage = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(divide(changeValue, previousCloseValue), 100);
                     }
                 }
                 break;
@@ -3308,7 +3308,7 @@ public partial class myriad : PredictionExchange
         bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object rows = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
         List<object> trades = new List<object>() {};
-        for (int i = 0; i < (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(rows); i++)
         {
             IDictionary<string, object> row = this.safeDict(rows, i);
             string? action = this.safeString(row, "action");
@@ -4033,7 +4033,7 @@ public partial class myriad : PredictionExchange
         {
             throw new ArgumentsRequired ((this.id + " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
         }
-        int symbolsLength = (((object)(outcomes)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int symbolsLength = getArrayLength(outcomes);
         string? url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         await this.connectCentrifugo(url);
         await this.loadOutcomes(outcomes);

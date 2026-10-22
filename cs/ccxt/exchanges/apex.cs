@@ -582,7 +582,7 @@ public partial class apex : Exchange
         string? name = this.safeString(currency, "displayName");
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object chains = (this.options.ContainsKey("_temp_currencies_chains") ? this.options["_temp_currencies_chains"] : null);
-        for (int j = 0; j < (((object)(chains)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
+        for (int j = 0; j < getArrayLength(chains); j++)
         {
             IDictionary<string, object> chain = this.safeDict(chains, j);
             List<object> tokens = this.safeList(chain, "tokens", new List<object>() {});
@@ -1407,10 +1407,10 @@ public partial class apex : Exchange
                 if (((marketsById != null)) && (((newMarketId != null) && (marketsById?.ContainsKey(newMarketId) == true))))
                 {
                     object markets = (marketsById != null && newMarketId != null && marketsById.ContainsKey(newMarketId) ? marketsById[newMarketId] : null);
-                    int numMarkets = (((object)(markets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+                    int numMarkets = getArrayLength(markets);
                     if (numMarkets > 0)
                     {
-                        if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(getValue(getValue(markets, 0), "id2"), marketId))
+                        if (isEqual(getValue(getValue(markets, 0), "id2"), marketId))
                         {
                             marketResolved = getValue(markets, 0);
                         }
@@ -1442,7 +1442,7 @@ public partial class apex : Exchange
         string? symbolChar = this.safeString(symbol, (index - 1));
         if (index > 0 && symbolChar != "-")
         {
-            return ((((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(symbol, 0, index) + "-") + ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(symbol, index, null));
+            return ((slice(symbol, 0, index) + "-") + slice(symbol, index, null));
         }
         return ((string?)((object)(symbol)));
     }

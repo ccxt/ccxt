@@ -1998,10 +1998,10 @@ public partial class opinion : PredictionExchange
         {
             IDictionary<string, object> market = this.safeDict(this.markets, (marketKeys != null && i < marketKeys.Count ? marketKeys[i] : null));
             IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
-            if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(this.safeInteger(info, "marketId"), marketId))
+            if (isEqual(this.safeInteger(info, "marketId"), marketId))
             {
                 List<object> outcomes = this.safeList(market, "outcomes", new List<object>() {});
-                int index = ((((object)(outcomeSide)) switch { Int64 c33l => c33l == 2, int c33i => c33i == 2, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 2, decimal c33m => c33m == 2, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 2, uint c33u => (Int64)c33u == 2, short c33h => (Int64)c33h == 2, ushort c33v => (Int64)c33v == 2, byte c33y => (Int64)c33y == 2, sbyte c33e => (Int64)c33e == 2, ulong c33z => c33z == 2UL, _ => false })) ? 1 : 0;
+                int index = (isEqual(outcomeSide, 2)) ? 1 : 0;
                 return this.safeDict(outcomes, index);
             }
         }
@@ -2264,23 +2264,23 @@ public partial class opinion : PredictionExchange
     public virtual string? parseWsOrderStatus(object status)
     {
         // per the venue docs: 1 pending, 2 finished, 3 canceled, 4 expired, 5 failed
-        if ((((object)(status)) switch { Int64 c33l => c33l == 1, int c33i => c33i == 1, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 1, decimal c33m => c33m == 1, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 1, uint c33u => (Int64)c33u == 1, short c33h => (Int64)c33h == 1, ushort c33v => (Int64)c33v == 1, byte c33y => (Int64)c33y == 1, sbyte c33e => (Int64)c33e == 1, ulong c33z => c33z == 1UL, _ => false }))
+        if (isEqual(status, 1))
         {
             return "open";
         }
-        if ((((object)(status)) switch { Int64 c33l => c33l == 2, int c33i => c33i == 2, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 2, decimal c33m => c33m == 2, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 2, uint c33u => (Int64)c33u == 2, short c33h => (Int64)c33h == 2, ushort c33v => (Int64)c33v == 2, byte c33y => (Int64)c33y == 2, sbyte c33e => (Int64)c33e == 2, ulong c33z => c33z == 2UL, _ => false }))
+        if (isEqual(status, 2))
         {
             return "closed";
         }
-        if ((((object)(status)) switch { Int64 c33l => c33l == 3, int c33i => c33i == 3, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 3, decimal c33m => c33m == 3, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 3, uint c33u => (Int64)c33u == 3, short c33h => (Int64)c33h == 3, ushort c33v => (Int64)c33v == 3, byte c33y => (Int64)c33y == 3, sbyte c33e => (Int64)c33e == 3, ulong c33z => c33z == 3UL, _ => false }))
+        if (isEqual(status, 3))
         {
             return "canceled";
         }
-        if ((((object)(status)) switch { Int64 c33l => c33l == 4, int c33i => c33i == 4, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 4, decimal c33m => c33m == 4, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 4, uint c33u => (Int64)c33u == 4, short c33h => (Int64)c33h == 4, ushort c33v => (Int64)c33v == 4, byte c33y => (Int64)c33y == 4, sbyte c33e => (Int64)c33e == 4, ulong c33z => c33z == 4UL, _ => false }))
+        if (isEqual(status, 4))
         {
             return "expired";
         }
-        if ((((object)(status)) switch { Int64 c33l => c33l == 5, int c33i => c33i == 5, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 5, decimal c33m => c33m == 5, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 5, uint c33u => (Int64)c33u == 5, short c33h => (Int64)c33h == 5, ushort c33v => (Int64)c33v == 5, byte c33y => (Int64)c33y == 5, sbyte c33e => (Int64)c33e == 5, ulong c33z => c33z == 5UL, _ => false }))
+        if (isEqual(status, 5))
         {
             return "rejected";
         }

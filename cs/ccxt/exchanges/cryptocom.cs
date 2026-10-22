@@ -1436,7 +1436,7 @@ public partial class cryptocom : Exchange
             request["start_ts"] = (since - (duration * 1000L));
             if ((limit != null))
             {
-                Int64? countLimit = this.parseToInt((((((object)(limit)) is var c31v0) && (((object)(300)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null));
+                Int64? countLimit = this.parseToInt(mathMin(limit, 300));
                 request["end_ts"] = this.sum(since, ((duration * countLimit) * 1000));
             } else
             {
@@ -4011,7 +4011,7 @@ public partial class cryptocom : Exchange
             List<object> objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
             paramsKeys = this.sort(objectKeys);
         }
-        for (int i = 0; i < (((object)(paramsKeys)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(paramsKeys); i++)
         {
             object key = getValue(paramsKeys, i);
             returnString = add(returnString, key);
@@ -4021,7 +4021,7 @@ public partial class cryptocom : Exchange
                 returnString = (returnString + ("null"));
             } else if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                for (int j = 0; j < (((object)(value)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
+                for (int j = 0; j < getArrayLength(value); j++)
                 {
                     returnString = add(returnString, this.paramsToString(getValue(value, j), add(level, 1)));
                 }

@@ -835,7 +835,7 @@ public partial class gemini : Exchange
             string? cell3 = this.safeString(cells, 3, "");
             string pricePrecisionString = cell3.Replace("<td>", (string)"");
             List<object> pricePrecisionParts = pricePrecisionString.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
-            string? quoteId = this.safeStringLower(pricePrecisionParts, 1, ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(marketId, startingIndex, idLength));
+            string? quoteId = this.safeStringLower(pricePrecisionParts, 1, slice(marketId, startingIndex, idLength));
             string? baseId = this.safeStringLower(amountPrecisionParts, 1, marketId.Replace(quoteId, (string)""));
             string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
@@ -1113,13 +1113,13 @@ public partial class gemini : Exchange
             } else
             {
                 object quoteCurrencies = this.handleOption("fetchMarketsFromAPI", "quoteCurrencies", new List<object>() {});
-                for (int i = 0; i < (((object)(quoteCurrencies)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+                for (int i = 0; i < getArrayLength(quoteCurrencies); i++)
                 {
                     string? quoteCurrency = this.safeString(quoteCurrencies, i, "");
                     if (marketIdWithoutPerp.EndsWith(quoteCurrency))
                     {
                         Int64? quoteLength = this.parseToInt(((Int64)(-1) * quoteCurrency.Length));
-                        baseId = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(marketIdWithoutPerp, 0, quoteLength);
+                        baseId = slice(marketIdWithoutPerp, 0, quoteLength);
                         quoteId = quoteCurrency;
                         if (isPerp)
                         {
@@ -1580,7 +1580,7 @@ public partial class gemini : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -2418,7 +2418,7 @@ public partial class gemini : Exchange
         {
             this.checkRequiredCredentials();
             object apiKey = this.apiKey;
-            if ((((object)(apiKey)) switch { IList<object> c33a => c33a.IndexOf("account"), IList<string> c33t => c33t.IndexOf((string)(object)"account"), string c33s => c33s.IndexOf((string)(object)"account"), _ => -1 }) < 0)
+            if (getIndexOf(apiKey, "account") < 0)
             {
                 throw new AuthenticationError ((this.id + " sign() requires an account-key, master-keys are not-supported")) ;
             }

@@ -4747,7 +4747,7 @@ public partial class hashkey : Exchange
                 }
             }
         }
-        if ((!(((object)(code)) switch { Int64 c33l => c33l == 200, int c33i => c33i == 200, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 200, decimal c33m => c33m == 200, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 200, uint c33u => (Int64)c33u == 200, short c33h => (Int64)c33h == 200, ushort c33v => (Int64)c33v == 200, byte c33y => (Int64)c33y == 200, sbyte c33e => (Int64)c33e == 200, ulong c33z => c33z == 200UL, _ => false })) || errorInArray)
+        if ((!isEqual(code, 200)) || errorInArray)
         {
             string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), responseCodeString, feedback);

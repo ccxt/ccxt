@@ -577,10 +577,10 @@ public partial class kalshi : PredictionExchange
     {
         List<object> tickers = new List<object>() {};
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
-        for (int i = 0; i < (((object)(outcomeSymbols)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(outcomeSymbols); i++)
         {
             object outcomeSymbol = getValue(outcomeSymbols, i);
-            if ((((object)(outcomeSymbol)) switch { IList<object> c33a => c33a.IndexOf(":"), IList<string> c33t => c33t.IndexOf((string)(object)":"), string c33s => c33s.IndexOf((string)(object)":"), _ => -1 }) >= 0)
+            if (getIndexOf(outcomeSymbol, ":") >= 0)
             {
                 continue;
             }
@@ -630,7 +630,7 @@ public partial class kalshi : PredictionExchange
                 this.indexMarketOutcomes(parsed);
             }
         }
-        for (int i = 0; i < (((object)(outcomeSymbols)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(outcomeSymbols); i++)
         {
             if (!this.hasOutcome(getValue(outcomeSymbols, i)))
             {
@@ -660,7 +660,7 @@ public partial class kalshi : PredictionExchange
         }
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
-        if ((((object)(code)) switch { Int64 c33l => c33l == 400, int c33i => c33i == 400, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 400, decimal c33m => c33m == 400, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 400, uint c33u => (Int64)c33u == 400, short c33h => (Int64)c33h == 400, ushort c33v => (Int64)c33v == 400, byte c33y => (Int64)c33y == 400, sbyte c33e => (Int64)c33e == 400, ulong c33z => c33z == 400UL, _ => false }))
+        if (isEqual(code, 400))
         {
             string feedback = ((this.id + " ") + (body));
             throw new BadRequest (feedback) ;
@@ -1272,7 +1272,7 @@ public partial class kalshi : PredictionExchange
                     continue;
                 }
                 object grouped = (outcomesByTicker.ContainsKey(marketTicker) ? outcomesByTicker[marketTicker] : null);
-                for (int j = 0; j < (((object)(grouped)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
+                for (int j = 0; j < getArrayLength(grouped); j++)
                 {
                     Dictionary<string, object> ticker = this.parsePredictionTicker(raw, getValue(grouped, j));
                     string? symbolKey = this.safeString(ticker, "outcome");
@@ -2637,16 +2637,15 @@ public partial class kalshi : PredictionExchange
             }
             rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchSeriesEvents(seriesTickers, status,ccxt.BaseExchange.ToInt64ArgRequired(fetchCap), rest));
         }
-        int rawEventsLength = (((object)(rawEvents)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int rawEventsLength = getArrayLength(rawEvents);
         List<object> result = new List<object>() {};
         for (int di = 0; di < rawEventsLength; di++)
         {
             Dictionary<string, object> parsedEvent = this.parseEvent(getValue(rawEvents, di));
             result.Add(parsedEvent);
             // register the parsed markets so populateOutcomes can index their outcomes
-            object parsedMarketsRaw = (parsedEvent != null && parsedEvent.ContainsKey("markets") ? parsedEvent["markets"] : null);
-            object parsedMarkets = ((parsedMarketsRaw != null)) ? parsedMarketsRaw : new List<object>() {};
-            int parsedMarketsLength = (((object)(parsedMarkets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+            object parsedMarkets = (parsedEvent != null && parsedEvent.ContainsKey("markets") ? parsedEvent["markets"] : null);
+            int parsedMarketsLength = getArrayLength(parsedMarkets);
             for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
                 object m = getValue(parsedMarkets, mi);
@@ -3138,8 +3137,8 @@ public partial class kalshi : PredictionExchange
             // Signing payload: {timestamp}{METHOD}{path}, where path is the full request path
             // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
             // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
-            int tradeApiIndex = (((object)(baseUrl)) switch { IList<object> c33a => c33a.IndexOf("/trade-api"), IList<string> c33t => c33t.IndexOf((string)(object)"/trade-api"), string c33s => c33s.IndexOf((string)(object)"/trade-api"), _ => -1 });
-            object versionPrefix = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(baseUrl, tradeApiIndex, null);
+            int tradeApiIndex = getIndexOf(baseUrl, "/trade-api");
+            object versionPrefix = slice(baseUrl, tradeApiIndex, null);
             string? pathForSigning = ((string)add(add(versionPrefix, "/"), implodedPath));
             string? payload = ((string)((timestamp + method) + pathForSigning));
             // RSA-PSS SHA-256 signature with the private key PEM

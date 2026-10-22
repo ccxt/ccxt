@@ -684,7 +684,7 @@ public partial class bithumb : Exchange
                     bool active = true;
                     if (((market is IList<object>) || (market.GetType().IsGenericType && market.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                     {
-                        int numElements = (((object)(market)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+                        int numElements = getArrayLength(market);
                         if ((numElements == 0))
                         {
                             active = false;
@@ -790,7 +790,7 @@ public partial class bithumb : Exchange
             }
         } else
         {
-            for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+            for (int i = 0; i < getArrayLength(response); i++)
             {
                 IDictionary<string, object> entry = this.safeDict(response, i);
                 Dictionary<string, object> account = this.account();
@@ -1172,7 +1172,7 @@ public partial class bithumb : Exchange
             for (int i = 0; i < responsesLength; i++)
             {
                 object response = (responses != null && i < responses.Count ? responses[i] : null);
-                if ((((object)(this.isDictionary(response))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }) && ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("data"), IList<string> c33t => c33t.Contains("data"), List<Int64> c33g => c33g.Contains((Int64)(object)"data"), IDictionary<string, object> c33d => c33d.ContainsKey("data"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("data"), _ => false })) && (!(getValue(response, "data") == null)))
+                if (isTrue(this.isDictionary(response)) && (inOp(response, "data")) && (!(getValue(response, "data") == null)))
                 {
                     response = getValue(response, "data");
                 }
@@ -1187,9 +1187,9 @@ public partial class bithumb : Exchange
                 if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {
                     tickers = response;
-                } else if ((((object)(this.isDictionary(response))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
+                } else if (isTrue(this.isDictionary(response)))
                 {
-                    if (((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("market"), IList<string> c33t => c33t.Contains("market"), List<Int64> c33g => c33g.Contains((Int64)(object)"market"), IDictionary<string, object> c33d => c33d.ContainsKey("market"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("market"), _ => false })) || ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("trade_date"), IList<string> c33t => c33t.Contains("trade_date"), List<Int64> c33g => c33g.Contains((Int64)(object)"trade_date"), IDictionary<string, object> c33d => c33d.ContainsKey("trade_date"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("trade_date"), _ => false })) || ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("trade_timestamp"), IList<string> c33t => c33t.Contains("trade_timestamp"), List<Int64> c33g => c33g.Contains((Int64)(object)"trade_timestamp"), IDictionary<string, object> c33d => c33d.ContainsKey("trade_timestamp"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("trade_timestamp"), _ => false })))
+                    if ((inOp(response, "market")) || (inOp(response, "trade_date")) || (inOp(response, "trade_timestamp")))
                     {
                         tickers = new List<object>() {response};
                     } else
@@ -1207,7 +1207,7 @@ public partial class bithumb : Exchange
                         }
                     }
                 }
-                for (int j = 0; j < (((object)(tickers)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
+                for (int j = 0; j < getArrayLength(tickers); j++)
                 {
                     object entry = getValue(tickers, j);
                     string? marketId = this.safeString(entry, "market", expectedMarketId);
@@ -3597,7 +3597,7 @@ public partial class bithumb : Exchange
             return ((string?)((object)(null)));
         }
         object finalNumberStr = numberStr;
-        while ((((object)(finalNumberStr)) switch { IList<object> c33a => c33a.IndexOf(","), IList<string> c33t => c33t.IndexOf((string)(object)","), string c33s => c33s.IndexOf((string)(object)","), _ => -1 }) > -1)
+        while (getIndexOf(finalNumberStr, ",") > -1)
         {
             finalNumberStr = ((string)finalNumberStr).Replace(",", (string)"");
         }
@@ -3620,7 +3620,7 @@ public partial class bithumb : Exchange
             if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 string encodedKey = (this.encodeURIComponent(key) + "[]");
-                for (int j = 0; j < (((object)(value)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
+                for (int j = 0; j < getArrayLength(value); j++)
                 {
                     object item = getValue(value, j);
                     string? valueString = this.safeString(value, j);
@@ -3772,7 +3772,7 @@ public partial class bithumb : Exchange
             }
             throw new ExchangeError (feedback) ;
         }
-        if ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("status"), IList<string> c33t => c33t.Contains("status"), List<Int64> c33g => c33g.Contains((Int64)(object)"status"), IDictionary<string, object> c33d => c33d.ContainsKey("status"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("status"), _ => false }))
+        if (inOp(response, "status"))
         {
             // generation 1:
             //

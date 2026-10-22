@@ -506,7 +506,7 @@ public partial class bitflyer : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "currency_code");
@@ -678,7 +678,7 @@ public partial class bitflyer : Exchange
         if ((side != null))
         {
             string idInner = (side + "_child_order_acceptance_id");
-            if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(trade, idInner))
+            if (inOp(trade, idInner))
             {
                 order = this.safeString(trade, idInner);
             }

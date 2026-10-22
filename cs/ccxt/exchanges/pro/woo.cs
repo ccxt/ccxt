@@ -1340,7 +1340,7 @@ public partial class woo : ccxt.woo
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             // algoexecutionreportv2
-            for (int i = 0; i < (((object)(data)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+            for (int i = 0; i < getArrayLength(data); i++)
             {
                 object order = getValue(data, i);
                 string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));

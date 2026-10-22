@@ -1553,7 +1553,7 @@ public partial class xt : Exchange
     public override IList<object> parseMarkets(object markets)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (((object)(markets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(markets); i++)
         {
             Dictionary<string, object> parsed = this.parseMarket(getValue(markets, i));
             if ((parsed != null))
@@ -1886,7 +1886,7 @@ public partial class xt : Exchange
         if ((limit != null))
         {
             int maxLimit = ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) ? 1000 : 1500; // spot : derivatives max limit
-            limitResolved = (((((object)(limit)) is var c31v0) && (((object)(maxLimit)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
+            limitResolved = mathMin(limit, maxLimit);
             request["limit"] = limitResolved;
         } else
         {
@@ -3023,7 +3023,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString2(balance, "currency", "coin");
@@ -5462,7 +5462,7 @@ public partial class xt : Exchange
         //     }
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> entry = this.safeDict(response, i);
             string? marketId = this.safeString(entry, "symbol");

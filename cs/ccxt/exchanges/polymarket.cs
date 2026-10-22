@@ -470,7 +470,7 @@ public partial class polymarket : Exchange
         object instruments = (responses != null && 0 < responses.Count ? responses[0] : null);
         object assets = (responses != null && 1 < responses.Count ? responses[1] : null);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < (((object)(instruments)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(instruments); i++)
         {
             object instrument = getValue(instruments, i);
             string? baseId = this.safeString(instrument, "base_asset");
@@ -515,7 +515,7 @@ public partial class polymarket : Exchange
             { "type", "fiat" },
             { "networks", new Dictionary<string, object>() {} },
         });
-        for (int i = 0; i < (((object)(assets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(assets); i++)
         {
             object asset = getValue(assets, i);
             string? currencyId = this.safeString(asset, "asset");
@@ -739,7 +739,7 @@ public partial class polymarket : Exchange
         //
         Dictionary<string, object> merged = new Dictionary<string, object>() {};
         object statistics = (responses != null && 1 < responses.Count ? responses[1] : null);
-        for (int i = 0; i < (((object)(statistics)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(statistics); i++)
         {
             object entry = getValue(statistics, i);
             string? instrumentId = this.safeString(entry, "instrument_id");
@@ -747,7 +747,7 @@ public partial class polymarket : Exchange
             merged[(string)instrumentId] = this.omit(entry, "klines");
         }
         object bbos = (responses != null && 2 < responses.Count ? responses[2] : null);
-        for (int i = 0; i < (((object)(bbos)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(bbos); i++)
         {
             object entry = getValue(bbos, i);
             string? instrumentId = this.safeString(entry, "instrument_id");
@@ -757,7 +757,7 @@ public partial class polymarket : Exchange
         }
         object tickers = (responses != null && 0 < responses.Count ? responses[0] : null);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (((object)(tickers)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(tickers); i++)
         {
             object entry = getValue(tickers, i);
             string? instrumentId = this.safeString(entry, "instrument_id");
@@ -1020,7 +1020,7 @@ public partial class polymarket : Exchange
         bool? paginate = false;
         object paramsOmitted = parameters;
         IList<object> paginateparamsOmittedVariable = (IList<object>)this.handleOptionAndParams(paramsOmitted, "fetchOHLCV", "paginate");
-        paginate = (((object)(paginateparamsOmittedVariable[0])) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false });
+        paginate = isTrue(paginateparamsOmittedVariable[0]);
         paramsOmitted = paginateparamsOmittedVariable[1];
         if ((paginate == true))
         {
@@ -1186,7 +1186,7 @@ public partial class polymarket : Exchange
         bool? paginate = false;
         object paramsOmitted = parameters;
         IList<object> paginateparamsOmittedVariable = (IList<object>)this.handleOptionAndParams(paramsOmitted, "fetchFundingRateHistory", "paginate");
-        paginate = (((object)(paginateparamsOmittedVariable[0])) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false });
+        paginate = isTrue(paginateparamsOmittedVariable[0]);
         paramsOmitted = paginateparamsOmittedVariable[1];
         if ((paginate == true))
         {
@@ -1375,7 +1375,7 @@ public partial class polymarket : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict with the signable row and the body entry
      */
-    public virtual Dictionary<string, object> createOrderRequest(IDictionary<string, object> market, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(IDictionary<string, object> market, object type, object side, object amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "trailingPercent", "trailingAmount"});
@@ -2633,7 +2633,7 @@ public partial class polymarket : Exchange
         {
             object row = response[i];
             string? rowId = this.safeString(row, "instrument_id");
-            if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(rowId, (market.ContainsKey("id") ? market["id"] : null)))
+            if (isEqual(rowId, (market.ContainsKey("id") ? market["id"] : null)))
             {
                 return ccxt.BaseExchange.ToLeverage(this.parseLeverage(row, market));
             }
@@ -2844,7 +2844,7 @@ public partial class polymarket : Exchange
 
     public virtual string signHash(object hash, object privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(hash, -64, null), ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
         string? sVal = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)));
@@ -2957,7 +2957,7 @@ public partial class polymarket : Exchange
                 return credentials;
             }
             object refreshAfter = (expires - margin);
-            if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(this.milliseconds(), refreshAfter))
+            if (isLessThan(this.milliseconds(), refreshAfter))
             {
                 return credentials;
             }
@@ -3035,7 +3035,7 @@ public partial class polymarket : Exchange
     public virtual object compactSignable(object row)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (((object)(row)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(row); i++)
         {
             if (!(getValue(row, i) == null))
             {
@@ -3086,11 +3086,11 @@ public partial class polymarket : Exchange
         config ??= new Dictionary<string, object>();
         if ((path is "account/orders"))
         {
-            return ((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("order_id"), IList<string> c33t => c33t.Contains("order_id"), List<Int64> c33g => c33g.Contains((Int64)(object)"order_id"), IDictionary<string, object> c33d => c33d.ContainsKey("order_id"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("order_id"), _ => false })) ? 1 : 10;
+            return (inOp(parameters, "order_id")) ? 1 : 10;
         }
         if ((path is "account/open-orders"))
         {
-            return ((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("instrument_id"), IList<string> c33t => c33t.Contains("instrument_id"), List<Int64> c33g => c33g.Contains((Int64)(object)"instrument_id"), IDictionary<string, object> c33d => c33d.ContainsKey("instrument_id"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("instrument_id"), _ => false })) ? 1 : 20;
+            return (inOp(parameters, "instrument_id")) ? 1 : 20;
         }
         if (((path is "trade/orders")) || ((path is "trade/orders-coid")))
         {
@@ -3099,7 +3099,7 @@ public partial class polymarket : Exchange
             int argsLength = args.Count;
             return this.sum(1, this.parseToInt(((double)argsLength / 20)));
         }
-        if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(path, "info/book"))
+        if (isEqual(path, "info/book"))
         {
             Int64? depth = this.safeInteger(parameters, "depth", 100);
             if ((depth == null || depth <= 10))
@@ -3190,7 +3190,7 @@ public partial class polymarket : Exchange
             string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), error, feedback);
-            if ((((object)(code)) switch { Int64 c33l => c33l == 400, int c33i => c33i == 400, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 400, decimal c33m => c33m == 400, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 400, uint c33u => (Int64)c33u == 400, short c33h => (Int64)c33h == 400, ushort c33v => (Int64)c33v == 400, byte c33y => (Int64)c33y == 400, sbyte c33e => (Int64)c33e == 400, ulong c33z => c33z == 400UL, _ => false }))
+            if (isEqual(code, 400))
             {
                 throw new BadRequest (feedback) ;
             }

@@ -999,7 +999,7 @@ public partial class derive : ccxt.derive
         }
         // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
         string subaccountIdKey = this.numberToString(subaccountId);
-        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(this.positions, subaccountIdKey)))
+        if (!(inOp(this.positions, subaccountIdKey)))
         {
             ((IDictionary<string,object>)this.positions)[subaccountIdKey] = new ArrayCacheBySymbolBySide();
         }
@@ -1122,7 +1122,7 @@ public partial class derive : ccxt.derive
             if ((name?.IndexOf("-", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 // position deltas carry instrument names and do not belong into the balance structure
-                if (((this.positions != null)) && (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(this.positions, subaccountIdKey)))
+                if (((this.positions != null)) && (inOp(this.positions, subaccountIdKey)))
                 {
                     object position = this.handlePositionDelta(subaccountIdKey, entry);
                     positionUpdates.Add(position);

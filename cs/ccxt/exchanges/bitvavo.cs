@@ -537,7 +537,7 @@ public partial class bitvavo : Exchange
     {
         List<object> result = new List<object>() {};
         IDictionary<string, object> fees = ((IDictionary<string, object>)this.fees);
-        for (int i = 0; i < (((object)(markets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(markets); i++)
         {
             IDictionary<string, object> market = this.safeDict(markets, i);
             string? id = this.safeString(market, "market");
@@ -1220,7 +1220,7 @@ public partial class bitvavo : Exchange
             // https://github.com/ccxt/ccxt/issues/9227
             int duration = this.parseTimeframe(timeframeVar);
             request["start"] = since;
-            object sinceLimit = ((limit == null)) ? 1440 : (((((object)(limit)) is var c31v0) && (((object)(1440)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
+            object sinceLimit = ((limit == null)) ? 1440 : mathMin(limit, 1440);
             request["end"] = this.sum(since, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(sinceLimit, duration), 1000));
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, parameters);
@@ -1228,7 +1228,7 @@ public partial class bitvavo : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((limit != null))
         {
-            requestUntil["limit"] = (((((object)(limit)) is var c31v2) && (((object)(1440)) is var c31v3)) ? (((c31v2 == null) || (c31v3 == null)) ? null : ((Convert.ToDouble(c31v2) < Convert.ToDouble(c31v3)) ? c31v2 : c31v3)) : null); // default 1440, max 1440
+            requestUntil["limit"] = mathMin(limit, 1440); // default 1440, max 1440
         } else if ((since != null))
         {
             requestUntil["limit"] = 1440;
@@ -1286,7 +1286,7 @@ public partial class bitvavo : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "symbol");
@@ -3042,7 +3042,7 @@ public partial class bitvavo : Exchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("noMarket")) && !((((object)(parameters)) switch { null => false, IList<object> c33a => c33a.Contains("market"), IList<string> c33t => c33t.Contains("market"), List<Int64> c33g => c33g.Contains((Int64)(object)"market"), IDictionary<string, object> c33d => c33d.ContainsKey("market"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("market"), _ => false })))
+        if ((((IDictionary<string, object>)config).ContainsKey("noMarket")) && !(inOp(parameters, "market")))
         {
             return ((IDictionary<string,object>)config)["noMarket"];
         }

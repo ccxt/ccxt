@@ -4093,7 +4093,7 @@ public partial class woofipro : Exchange
             string ts = this.nonce().ToString();
             url = url + pathWithParams;
             object apiKey = this.apiKey;
-            if ((((object)(apiKey)) switch { IList<object> c33a => c33a.IndexOf("ed25519:"), IList<string> c33t => c33t.IndexOf((string)(object)"ed25519:"), string c33s => c33s.IndexOf((string)(object)"ed25519:"), _ => -1 }) < 0)
+            if (getIndexOf(apiKey, "ed25519:") < 0)
             {
                 apiKey = ("ed25519:" + (apiKey));
             }

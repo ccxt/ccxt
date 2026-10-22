@@ -871,10 +871,10 @@ public partial class deepcoin : Exchange
                 object endTime = add(since, (((duration * numberOfCandles)) * 1000));
                 if ((until != null))
                 {
-                    endTime = (((((object)(endTime)) is var c31v0) && (((object)(until)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
+                    endTime = mathMin(endTime, until);
                 }
                 Int64 now = this.milliseconds();
-                request["after"] = (((((object)(endTime)) is var c31v2) && (((object)(now)) is var c31v3)) ? (((c31v2 == null) || (c31v3 == null)) ? null : ((Convert.ToDouble(c31v2) < Convert.ToDouble(c31v3)) ? c31v2 : c31v3)) : null);
+                request["after"] = mathMin(endTime, now);
             }
         }
         Dictionary<string, object> response = null;
@@ -3649,7 +3649,7 @@ public partial class deepcoin : Exchange
         {
             sCode = retCode;
         }
-        if ((!(((object)(code)) switch { Int64 c33l => c33l == 200, int c33i => c33i == 200, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 200, decimal c33m => c33m == 200, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 200, uint c33u => (Int64)c33u == 200, short c33h => (Int64)c33h == 200, ushort c33v => (Int64)c33v == 200, byte c33y => (Int64)c33y == 200, sbyte c33e => (Int64)c33e == 200, ulong c33z => c33z == 200UL, _ => false })) || (messageCode != "0") || ((sCode != null) && sCode != "0"))
+        if ((!isEqual(code, 200)) || (messageCode != "0") || ((sCode != null) && sCode != "0"))
         {
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), messageCode, feedback);
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), sCode, feedback);

@@ -693,7 +693,7 @@ public partial class modetrade : ccxt.modetrade
             string ts = this.nonce().ToString();
             string auth = ts;
             object secret = this.secret;
-            if ((((object)(secret)) switch { IList<object> c33a => c33a.IndexOf("ed25519:"), IList<string> c33t => c33t.IndexOf((string)(object)"ed25519:"), string c33s => c33s.IndexOf((string)(object)"ed25519:"), _ => -1 }) >= 0)
+            if (getIndexOf(secret, "ed25519:") >= 0)
             {
                 List<object> parts = ((string)secret).Split(new [] {"ed25519:"}, StringSplitOptions.None).ToList<object>();
                 secret = (parts != null && 1 < parts.Count ? parts[1] : null);
@@ -1006,7 +1006,7 @@ public partial class modetrade : ccxt.modetrade
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             // algoexecutionreport
-            for (int i = 0; i < (((object)(data)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+            for (int i = 0; i < getArrayLength(data); i++)
             {
                 object order = getValue(data, i);
                 string? tradeIdStr = this.safeString(data, "tradeId");

@@ -1004,7 +1004,7 @@ public partial class paradex : ccxt.paradex
         Int64? blockLength = this.parseToInt(this.sbeReadUint(frameHex, 0, 2));
         Int64? templateId = this.parseToInt(this.sbeReadUint(frameHex, 2, 2));
         Int64? schemaId = this.parseToInt(this.sbeReadUint(frameHex, 4, 2));
-        if (((schemaId != 1)) || (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) && !c32Eq(c32a, c32b); }))(frameLength, this.sum(blockLength, 8))))
+        if (((schemaId != 1)) || (isLessThan(frameLength, this.sum(blockLength, 8))))
         {
             return null;
         }
@@ -1082,8 +1082,8 @@ public partial class paradex : ccxt.paradex
             // plain variables as slice bounds, php gets end - start unparenthesized
             Int64? middle = (position + 1);
             Int64? next = (position + 2);
-            int high = digits.IndexOf(((string)((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(frameHex, position, middle)), StringComparison.Ordinal);
-            int low = digits.IndexOf(((string)((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(frameHex, middle, next)), StringComparison.Ordinal);
+            int high = digits.IndexOf(((string)slice(frameHex, position, middle)), StringComparison.Ordinal);
+            int low = digits.IndexOf(((string)slice(frameHex, middle, next)), StringComparison.Ordinal);
             result = this.parseToInt(this.sum(result, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((high * 16L), factor), ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(low, factor)));
             factor = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(factor, 256));
             position = this.parseToInt(next);
@@ -1148,7 +1148,7 @@ public partial class paradex : ccxt.paradex
         Int64? size = this.parseToInt(length);
         Int64? start = (first * 2);
         Int64 end = this.sum(start, (size * 2));
-        return this.binaryToString(this.base16ToBinary(((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(frameHex, start, end)));
+        return this.binaryToString(this.base16ToBinary(slice(frameHex, start, end)));
     }
 
     public virtual object sbeReadAddress(object frameHex, object offset)
@@ -1157,21 +1157,21 @@ public partial class paradex : ccxt.paradex
         Int64? first = this.parseToInt(offset);
         Int64? rawStart = (first * 2);
         Int64? rawEnd = (rawStart + 64);
-        string? raw = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(frameHex, rawStart, rawEnd);
+        string? raw = slice(frameHex, rawStart, rawEnd);
         int start = 63;
         for (int i = 0; i < 63; i++)
         {
             Int64 next = (i + 1L);
-            if (!((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(raw, i, next), "0"))
+            if (!isEqual(slice(raw, i, next), "0"))
             {
                 start = i;
                 break;
             }
         }
-        return ("0x" + ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(raw, start, 64));
+        return ("0x" + slice(raw, start, 64));
     }
 
-    public virtual object sbeReadVarStrings(object frameHex, object offset, object count, object frameLength)
+    public virtual List<object> sbeReadVarStrings(object frameHex, object offset, object count, object frameLength)
     {
         // the var-data section: count strings, each prefixed with a uint8 length. Returns undefined
         // when the frame ends before all of them, and only the strings present when a trailing one is
@@ -1190,7 +1190,7 @@ public partial class paradex : ccxt.paradex
             Int64? next = this.parseToInt(this.sum(position, 1, length));
             if ((next != null && (end == null || next > end)))
             {
-                return null;
+                return ((List<object>)((object)(null)));
             }
             result.Add(this.sbeReadString(frameHex, (position + 1), length));
             position = next;
@@ -1211,8 +1211,8 @@ public partial class paradex : ccxt.paradex
         {
             return ((Dictionary<string, object>)((object)(null)));
         }
-        object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (((object)(strings)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
             return ((Dictionary<string, object>)((object)(null)));
@@ -1231,7 +1231,7 @@ public partial class paradex : ccxt.paradex
         };
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "id", this.safeString(strings, 1) },
-            { "market", getValue(strings, 0) },
+            { "market", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "side", this.sbeReadEnum(frameHex, 32, sides) },
             { "size", this.sbeReadDecimal(frameHex, 41) },
             { "price", this.sbeReadDecimal(frameHex, 33) },
@@ -1272,7 +1272,7 @@ public partial class paradex : ccxt.paradex
             Int64? entryLength = this.parseToInt(this.sbeReadUint(frameHex, position, 2));
             Int64? numInGroup = this.parseToInt(this.sbeReadUint(frameHex, (position + 2), 2));
             position = this.parseToInt((position + 4));
-            if ((((entryLength == null || entryLength < 16))) || (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } return c32Gt(c32a, c32b); }))(this.parseToInt(this.sum(position, (numInGroup * entryLength))), frameEnd)))
+            if ((((entryLength == null || entryLength < 16))) || (isGreaterThan(this.parseToInt(this.sum(position, (numInGroup * entryLength))), frameEnd)))
             {
                 return ((Dictionary<string, object>)((object)(null)));
             }
@@ -1286,15 +1286,15 @@ public partial class paradex : ccxt.paradex
                 position = this.parseToInt(this.sum(position, entryLength));
             }
         }
-        object strings = this.sbeReadVarStrings(frameHex, position, 1, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (((object)(strings)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        List<object> strings = this.sbeReadVarStrings(frameHex, position, 1, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
             return ((Dictionary<string, object>)((object)(null)));
         }
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "seq_no", this.sbeReadInt64(frameHex, 16) },
-            { "market", getValue(strings, 0) },
+            { "market", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "last_updated_at", this.sbeReadTimestamp(frameHex, 8) },
             { "update_type", "s" },
             { "inserts", inserts },
@@ -1318,8 +1318,8 @@ public partial class paradex : ccxt.paradex
         {
             return ((Dictionary<string, object>)((object)(null)));
         }
-        object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (((object)(strings)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
             return ((Dictionary<string, object>)((object)(null)));
@@ -1331,7 +1331,7 @@ public partial class paradex : ccxt.paradex
             settlementTwapEstimate = this.sbeReadDecimal(frameHex, 248);
         }
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
-            { "symbol", getValue(strings, 0) },
+            { "symbol", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "mark_price", this.sbeReadDecimal(frameHex, 24) },
             { "last_traded_price", this.sbeReadDecimal(frameHex, 40) },
             { "bid", this.sbeReadDecimal(frameHex, 72) },
@@ -1359,14 +1359,14 @@ public partial class paradex : ccxt.paradex
         {
             return ((Dictionary<string, object>)((object)(null)));
         }
-        object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (((object)(strings)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
             return ((Dictionary<string, object>)((object)(null)));
         }
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
-            { "market", getValue(strings, 0) },
+            { "market", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "funding_index", this.sbeReadDecimal(frameHex, 32) },
             { "funding_premium", this.sbeReadDecimal(frameHex, 48) },
             { "funding_rate", this.sbeReadDecimal(frameHex, 24) },
@@ -1391,8 +1391,8 @@ public partial class paradex : ccxt.paradex
         {
             return ((Dictionary<string, object>)((object)(null)));
         }
-        object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 4, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (((object)(strings)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 4, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 4)
         {
             return ((Dictionary<string, object>)((object)(null)));
@@ -1433,13 +1433,13 @@ public partial class paradex : ccxt.paradex
         Dictionary<string, object> order = new Dictionary<string, object>() {
             { "account", this.sbeReadAddress(frameHex, 84) },
             { "avg_fill_price", this.sbeReadDecimal(frameHex, 60) },
-            { "client_id", getValue(strings, 1) },
+            { "client_id", (strings != null && 1 < strings.Count ? strings[1] : null) },
             { "created_at", this.sbeReadTimestamp(frameHex, 68) },
             { "flags", flags },
-            { "id", getValue(strings, 0) },
+            { "id", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "instruction", this.sbeReadEnum(frameHex, 27, timeInForces) },
             { "last_updated_at", this.sbeReadTimestamp(frameHex, 76) },
-            { "market", getValue(strings, 2) },
+            { "market", (strings != null && 2 < strings.Count ? strings[2] : null) },
             { "price", this.sbeReadDecimal(frameHex, 28) },
             { "published_at", this.sbeReadTimestamp(frameHex, 124) },
             { "received_at", this.sbeReadTimestamp(frameHex, 116) },
@@ -1454,9 +1454,9 @@ public partial class paradex : ccxt.paradex
             { "type", this.sbeReadEnum(frameHex, 26, orderTypes) },
         };
         // an empty cancel reason is sent for every live order, parseOrder reads any reason as canceled
-        if (!(getValue(strings, 3) is ""))
+        if (!((strings != null && 3 < strings.Count ? strings[3] : null) is ""))
         {
-            order["cancel_reason"] = getValue(strings, 3);
+            order["cancel_reason"] = (strings != null && 3 < strings.Count ? strings[3] : null);
         }
         return order;
     }
@@ -1466,7 +1466,7 @@ public partial class paradex : ccxt.paradex
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         List<object> flags = new List<object>() {};
         Int64? bits = this.parseToInt(this.sbeReadUint(frameHex, offset, 1));
-        for (int i = 0; i < (((object)(names)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(names); i++)
         {
             Int64? bit = this.parseToInt(((Int64?)((double?)bits % 2)));
             if (((bit == 1)) && (!(getValue(names, i) is "")))
@@ -1493,8 +1493,8 @@ public partial class paradex : ccxt.paradex
         {
             return ((Dictionary<string, object>)((object)(null)));
         }
-        object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 6, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (((object)(strings)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 6, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 5)
         {
             return ((Dictionary<string, object>)((object)(null)));
@@ -1517,15 +1517,15 @@ public partial class paradex : ccxt.paradex
         };
         Dictionary<string, object> fill = new Dictionary<string, object>() {
             { "account", this.sbeReadAddress(frameHex, 67) },
-            { "client_id", getValue(strings, 2) },
+            { "client_id", (strings != null && 2 < strings.Count ? strings[2] : null) },
             { "created_at", this.sbeReadTimestamp(frameHex, 59) },
             { "fee", this.sbeReadDecimal(frameHex, 43) },
             { "fee_currency", this.safeString(strings, 5) },
             { "fill_type", this.sbeReadEnum(frameHex, 24, fillTypes) },
-            { "id", getValue(strings, 0) },
+            { "id", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "liquidity", this.sbeReadEnum(frameHex, 26, liquidities) },
-            { "market", getValue(strings, 4) },
-            { "order_id", getValue(strings, 1) },
+            { "market", (strings != null && 4 < strings.Count ? strings[4] : null) },
+            { "order_id", (strings != null && 1 < strings.Count ? strings[1] : null) },
             { "price", this.sbeReadDecimal(frameHex, 27) },
             { "realized_funding", this.sbeReadDecimal(frameHex, 107) },
             { "realized_pnl", this.sbeReadDecimal(frameHex, 51) },
@@ -1558,8 +1558,8 @@ public partial class paradex : ccxt.paradex
         {
             return ((Dictionary<string, object>)((object)(null)));
         }
-        object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (((object)(strings)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
             return ((Dictionary<string, object>)((object)(null)));
@@ -1587,12 +1587,12 @@ public partial class paradex : ccxt.paradex
             { "cached_funding_index", this.sbeReadDecimal(frameHex, 145) },
             { "cost", this.sbeReadDecimal(frameHex, 129) },
             { "cost_usd", this.sbeReadDecimal(frameHex, 137) },
-            { "id", add(add(account, "-"), getValue(strings, 0)) },
+            { "id", add(add(account, "-"), (strings != null && 0 < strings.Count ? strings[0] : null)) },
             { "last_fill_id", this.safeString(strings, 1) },
             { "last_updated_at", this.sbeReadTimestamp(frameHex, 81) },
             { "leverage", this.sbeReadDecimal(frameHex, 73) },
             { "liquidation_price", this.sbeReadDecimal(frameHex, 65) },
-            { "market", getValue(strings, 0) },
+            { "market", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "realized_positional_pnl", this.sbeReadDecimal(frameHex, 49) },
             { "seq_no", this.sbeReadInt64(frameHex, 16) },
             { "side", side },
@@ -1618,8 +1618,8 @@ public partial class paradex : ccxt.paradex
         {
             return ((Dictionary<string, object>)((object)(null)));
         }
-        object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : (((object)(strings)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
             return ((Dictionary<string, object>)((object)(null)));
@@ -1636,7 +1636,7 @@ public partial class paradex : ccxt.paradex
             { "maintenance_margin_requirement", this.sbeReadDecimal(frameHex, 48) },
             { "margin_cushion", this.sbeReadDecimal(frameHex, 112) },
             { "seq_no", this.sbeReadInt64(frameHex, 16) },
-            { "settlement_asset", getValue(strings, 0) },
+            { "settlement_asset", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "status", this.sbeReadEnum(frameHex, 120, statuses) },
             { "total_collateral", this.sbeReadDecimal(frameHex, 24) },
             { "updated_at", this.sbeReadTimestamp(frameHex, 72) },

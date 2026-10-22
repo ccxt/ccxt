@@ -669,7 +669,7 @@ public partial class upbit : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -993,7 +993,7 @@ public partial class upbit : Exchange
                 idsString = (idsString + ",");
             }
             idsString = (idsString + id);
-            if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(idsString.Length, maxQueryLength))
+            if (isGreaterThanOrEqual(idsString.Length, maxQueryLength))
             {
                 queries.Add(idsString);
                 idsString = "";

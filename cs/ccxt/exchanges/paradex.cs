@@ -2166,7 +2166,7 @@ public partial class paradex : Exchange
     { "type", "felt" },
 }};
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {};
-        if ((((object)(modify)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
+        if (isTrue(modify))
         {
             orderReq["id"] = getValue(request, "id");
             orderFields.Add(new Dictionary<string, object>() {
@@ -2819,7 +2819,7 @@ public partial class paradex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? currencyId = this.safeString(balance, "token");

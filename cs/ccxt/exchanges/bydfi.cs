@@ -1046,7 +1046,7 @@ public partial class bydfi : Exchange
             }
             Int64? sinceInt = this.parseToInt(since);
             object sinceEnd = add(sinceInt, timeDelta);
-            until = (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } return c32Gt(c32a, c32b); }))(sinceEnd, now)) ? now : sinceEnd;
+            until = (isGreaterThan(sinceEnd, now)) ? now : sinceEnd;
         }
         request["startTime"] = startTime;
         request["endTime"] = until;
@@ -2070,7 +2070,7 @@ public partial class bydfi : Exchange
             // until is undefined but since is defined
             Int64? sinceInt = this.parseToInt(since);
             object delta = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(now, sinceInt);
-            if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } return c32Gt(c32a, c32b); }))(delta, sevenDays))
+            if (isGreaterThan(delta, sevenDays))
             {
                 until = (sinceInt + sevenDays);
             } else
@@ -2993,7 +2993,7 @@ public partial class bydfi : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? symbol = this.safeString(balance, "asset");
@@ -3274,7 +3274,7 @@ public partial class bydfi : Exchange
             // until is undefined but since is defined
             Int64? sinceInt = this.parseToInt(since);
             object delta = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(now, sinceInt);
-            if (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } return c32Gt(c32a, c32b); }))(delta, sevenDays))
+            if (isGreaterThan(delta, sevenDays))
             {
                 until = (sinceInt + sevenDays);
             } else

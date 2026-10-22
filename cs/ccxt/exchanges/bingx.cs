@@ -6630,7 +6630,7 @@ public partial class bingx : Exchange
             if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 string arrStr = "[";
-                for (int j = 0; j < (((object)(value)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
+                for (int j = 0; j < getArrayLength(value); j++)
                 {
                     object arrayElement = getValue(value, j);
                     if (j > 0)
@@ -7211,7 +7211,7 @@ public partial class bingx : Exchange
             if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 object arrStr = null;
-                for (int j = 0; j < (((object)(value)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
+                for (int j = 0; j < getArrayLength(value); j++)
                 {
                     object arrayElement = getValue(value, j);
                     bool isString = ((arrayElement is string));
@@ -7314,7 +7314,7 @@ public partial class bingx : Exchange
         //     ]
         //
         List<object> tiers = new List<object>() {};
-        for (int i = 0; i < (((object)(info)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(info); i++)
         {
             IDictionary<string, object> tier = this.safeDict(info, i);
             string tierString = this.safeString(tier, "tier");

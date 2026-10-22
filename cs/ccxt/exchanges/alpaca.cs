@@ -2521,9 +2521,9 @@ public partial class alpaca : Exchange
             {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 int baseLength = (positionSymbol.Length - 3);
-                if ((baseLength > 0) && ((((object)(((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(positionSymbol, baseLength, null))) is "USD")))
+                if ((baseLength > 0) && ((((object)(slice(positionSymbol, baseLength, null))) is "USD")))
                 {
-                    baseId = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(positionSymbol, 0, baseLength);
+                    baseId = slice(positionSymbol, 0, baseLength);
                 }
             }
             if ((baseId == null))

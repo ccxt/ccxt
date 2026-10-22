@@ -860,7 +860,7 @@ public partial class mercado : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin_pair", (market.ContainsKey("id") ? market["id"] : null) },
-            { "order_id", (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(id)) },
+            { "order_id", parseInt(id) },
         };
         Dictionary<string, object> response = await this.privatePostGetOrder(this.extend(request, parameters));
         IDictionary<string, object> responseData = this.safeDict(response, "response_data", new Dictionary<string, object>() {});
@@ -893,7 +893,7 @@ public partial class mercado : Exchange
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
-            { "quantity", (((Func<object, object, object>)(static (object hx4pa, object hx4pb) => Math.Round((double)hx4pa, (int)hx4pb)))(amount, 10)) },
+            { "quantity", toFixed(amount, 10) },
             { "address", address },
         };
         if ((code == "BRL"))

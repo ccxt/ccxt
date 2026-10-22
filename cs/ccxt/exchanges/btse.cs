@@ -1113,7 +1113,7 @@ public partial class btse : Exchange
         }
         object rates = this.parseFundingRateHistories(data, market, since, limit);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (((object)(rates)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(rates); i++)
         {
             object rate = getValue(rates, i);
             Int64? timestamp = this.safeInteger(rate, "timestamp");
@@ -1205,7 +1205,7 @@ public partial class btse : Exchange
         Dictionary<string, object> totals = new Dictionary<string, object>() {};
         Dictionary<string, object> frees = new Dictionary<string, object>() {};
         Dictionary<string, object> useds = new Dictionary<string, object>() {};
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> row = this.safeDict(response, i);
             List<object> assets = this.safeList(row, "assets");
@@ -4122,7 +4122,7 @@ public partial class btse : Exchange
         {
             rows = new List<object>() {response};
         }
-        for (int i = 0; i < (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(rows); i++)
         {
             IDictionary<string, object> row = this.safeDict(rows, i);
             string? status = this.safeString(row, "status");

@@ -977,7 +977,7 @@ public partial class mexc : ccxt.mexc
         {
             int cacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
-            if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(cacheLength, snapshotDelay))
+            if (isEqual(cacheLength, snapshotDelay))
             {
                 this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, limit, new Dictionary<string, object>() {}});
             }
@@ -2136,12 +2136,12 @@ public partial class mexc : ccxt.mexc
 
     public virtual void handleUnsubscriptions(WebSocketClient client, object messageHashes)
     {
-        for (int i = 0; i < (((object)(messageHashes)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
             object messageHash = getValue(messageHashes, i);
             string subMessageHash = ((string)messageHash).Replace("unsubscribe:", (string)"");
             this.cleanUnsubscription(client, subMessageHash, messageHash);
-            if ((((object)(messageHash)) switch { IList<object> c33a => c33a.IndexOf("ticker"), IList<string> c33t => c33t.IndexOf((string)(object)"ticker"), string c33s => c33s.IndexOf((string)(object)"ticker"), _ => -1 }) >= 0)
+            if (getIndexOf(messageHash, "ticker") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:ticker:", (string)"");
                 if (((string)symbol).IndexOf("unsubscribe", StringComparison.Ordinal) >= 0)
@@ -2156,14 +2156,14 @@ public partial class mexc : ccxt.mexc
                 {
                     this.tickers.Remove(symbol);
                 }
-            } else if ((((object)(messageHash)) switch { IList<object> c33a => c33a.IndexOf("bidask"), IList<string> c33t => c33t.IndexOf((string)(object)"bidask"), string c33s => c33s.IndexOf((string)(object)"bidask"), _ => -1 }) >= 0)
+            } else if (getIndexOf(messageHash, "bidask") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:bidask:", (string)"");
                 if ((this.bidsasks != null && this.bidsasks.ContainsKey(symbol)))
                 {
                     this.bidsasks.Remove(symbol);
                 }
-            } else if ((((object)(messageHash)) switch { IList<object> c33a => c33a.IndexOf("candles"), IList<string> c33t => c33t.IndexOf((string)(object)"candles"), string c33s => c33s.IndexOf((string)(object)"candles"), _ => -1 }) >= 0)
+            } else if (getIndexOf(messageHash, "candles") >= 0)
             {
                 List<object> splitHashes = ((string)messageHash).Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
                 object symbol = this.safeString(splitHashes, 2);
@@ -2176,21 +2176,21 @@ public partial class mexc : ccxt.mexc
                 {
                     this.ohlcvs.Remove((string)symbol);
                 }
-            } else if ((((object)(messageHash)) switch { IList<object> c33a => c33a.IndexOf("orderbook"), IList<string> c33t => c33t.IndexOf((string)(object)"orderbook"), string c33s => c33s.IndexOf((string)(object)"orderbook"), _ => -1 }) >= 0)
+            } else if (getIndexOf(messageHash, "orderbook") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:orderbook:", (string)"");
                 if ((this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                 }
-            } else if ((((object)(messageHash)) switch { IList<object> c33a => c33a.IndexOf("trades"), IList<string> c33t => c33t.IndexOf((string)(object)"trades"), string c33s => c33s.IndexOf((string)(object)"trades"), _ => -1 }) >= 0)
+            } else if (getIndexOf(messageHash, "trades") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:trades:", (string)"");
                 if ((this.trades != null && this.trades.ContainsKey(symbol)))
                 {
                     this.trades.Remove(symbol);
                 }
-            } else if ((((object)(messageHash)) switch { IList<object> c33a => c33a.IndexOf("fundingRate"), IList<string> c33t => c33t.IndexOf((string)(object)"fundingRate"), string c33s => c33s.IndexOf((string)(object)"fundingRate"), _ => -1 }) >= 0)
+            } else if (getIndexOf(messageHash, "fundingRate") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:fundingRate:", (string)"");
                 if ((this.fundingRates != null && this.fundingRates.ContainsKey(symbol)))
@@ -2378,7 +2378,7 @@ public partial class mexc : ccxt.mexc
             this.handleProtobufMessage(client, decodedMessage);
             return;
         }
-        if ((((object)(message)) switch { null => false, IList<object> c33a => c33a.Contains("msg"), IList<string> c33t => c33t.Contains("msg"), List<Int64> c33g => c33g.Contains((Int64)(object)"msg"), IDictionary<string, object> c33d => c33d.ContainsKey("msg"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("msg"), _ => false }))
+        if (inOp(message, "msg"))
         {
             this.handleSubscriptionStatus(client, message);
             return;

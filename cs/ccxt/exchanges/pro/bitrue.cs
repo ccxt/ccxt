@@ -487,7 +487,7 @@ public partial class bitrue : ccxt.bitrue
     public virtual List<object> parseContractBidsAsks(object bidsAsks, object symbol)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (((object)(bidsAsks)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(bidsAsks); i++)
         {
             List<object> level = this.safeList(bidsAsks, i);
             double? price = this.safeNumber(level, 0);
@@ -741,7 +741,7 @@ public partial class bitrue : ccxt.bitrue
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey((string)symbol) ? this.ohlcvs[(string)symbol] : null), timeframe)))
+        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey((string)symbol) ? this.ohlcvs[(string)symbol] : null), timeframe)))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey((string)symbol) ? this.ohlcvs[(string)symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);

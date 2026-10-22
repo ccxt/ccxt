@@ -400,7 +400,7 @@ public partial class hollaex : ccxt.hollaex
         string? channel = this.safeString(message, "topic");
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         // usually the first message is an empty array
-        int dataLength = (((object)(data)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int dataLength = getArrayLength(data);
         if ((dataLength == 0))
         {
             return;
@@ -420,7 +420,7 @@ public partial class hollaex : ccxt.hollaex
             rawOrders = data;
         }
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        for (int i = 0; i < (((object)(rawOrders)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(rawOrders); i++)
         {
             object order = getValue(rawOrders, i);
             ccxt.Order parsed = this.parseOrder(order);

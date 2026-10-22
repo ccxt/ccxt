@@ -311,7 +311,7 @@ public partial class sxbet : PredictionExchange
     public virtual object filterRawMarketsByFixture(object rawMarkets, string? sportXeventId)
     {
         List<object> result = new List<object>() {};
-        int rawMarketsLength = (((object)(rawMarkets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int rawMarketsLength = getArrayLength(rawMarkets);
         for (int i = 0; i < rawMarketsLength; i++)
         {
             object raw = getValue(rawMarkets, i);
@@ -518,7 +518,7 @@ public partial class sxbet : PredictionExchange
         if (queriesLength > 0)
         {
             List<object> filtered = new List<object>() {};
-            int preFilterLength = (((object)(rawMarkets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+            int preFilterLength = getArrayLength(rawMarkets);
             for (int i = 0; i < preFilterLength; i++)
             {
                 if (this.matchesEventQuery(getValue(rawMarkets, i), queries))
@@ -530,7 +530,7 @@ public partial class sxbet : PredictionExchange
         }
         Dictionary<string, object> grouped = new Dictionary<string, object>() {};
         List<object> order = new List<object>() {};
-        int rawMarketsLength = (((object)(rawMarkets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int rawMarketsLength = getArrayLength(rawMarkets);
         for (int i = 0; i < rawMarketsLength; i++)
         {
             object raw = getValue(rawMarkets, i);
@@ -588,7 +588,7 @@ public partial class sxbet : PredictionExchange
         }, parameters), null);
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
         rawMarkets = this.filterRawMarketsByFixture(rawMarkets, id);
-        int rawMarketsLength = (((object)(rawMarkets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int rawMarketsLength = getArrayLength(rawMarkets);
         if ((rawMarketsLength == 0))
         {
             throw new BadSymbol (((this.id + " fetchEvent() could not find an active fixture ") + id)) ;
@@ -653,7 +653,7 @@ public partial class sxbet : PredictionExchange
         string? teamOneName = null;
         string? teamTwoName = null;
         string? leagueLabel = null;
-        int rawMarketsLength = (((object)(rawMarkets)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int rawMarketsLength = getArrayLength(rawMarkets);
         for (int i = 0; i < rawMarketsLength; i++)
         {
             object raw = getValue(rawMarkets, i);
@@ -811,7 +811,7 @@ public partial class sxbet : PredictionExchange
         string? lengthHex = ((hex == null) ? null : hex.Substring(Math.Min(64, hex.Length), Math.Min(128, hex.Length) - Math.Min(64, hex.Length)));
         Int64? length = this.parseToInt(this.hexToInt(lengthHex));
         Int64 dataEnd = this.sum(128, (length * 2));
-        string? dataHex = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(hex, 128, dataEnd);
+        string? dataHex = slice(hex, 128, dataEnd);
         return ((string?)((object)(this.decode(this.base16ToBinary(dataHex)))));
     }
 
@@ -2348,12 +2348,12 @@ public partial class sxbet : PredictionExchange
         object sortedAsks = this.safeList(sides, "asks", new List<object>() {});
         if ((limit != null))
         {
-            int bidsLength = (((object)(sortedBids)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+            int bidsLength = getArrayLength(sortedBids);
             if ((limit < bidsLength))
             {
                 sortedBids = this.arraySlice(sortedBids, 0, limit);
             }
-            int asksLength = (((object)(sortedAsks)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+            int asksLength = getArrayLength(sortedAsks);
             if ((limit < asksLength))
             {
                 sortedAsks = this.arraySlice(sortedAsks, 0, limit);
@@ -2729,7 +2729,7 @@ public partial class sxbet : PredictionExchange
         }
         string? held = this.safeString((this.options.ContainsKey("wsBookVersions") ? this.options["wsBookVersions"] : null), marketHash, "");
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
-        if ((held != "") && (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(version, held)))
+        if ((held != "") && (isLessThanOrEqual(version, held)))
         {
             return refreshed;
         }
@@ -2778,11 +2778,11 @@ public partial class sxbet : PredictionExchange
         //         "outcomeTwo": []
         //     }
         //
-        int rowsLength = (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int rowsLength = getArrayLength(rows);
         for (int i = 0; i < rowsLength; i++)
         {
             object refreshed = this.applySxbetWsSnapshot(getValue(rows, i));
-            int refreshedLength = (((object)(refreshed)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+            int refreshedLength = getArrayLength(refreshed);
             for (int j = 0; j < refreshedLength; j++)
             {
                 object sym = getValue(refreshed, j);
@@ -2858,7 +2858,7 @@ public partial class sxbet : PredictionExchange
         //
         IDictionary<string, object> watchedTickers = this.safeDict(this.options, "wsWatchedTickers", new Dictionary<string, object>() {});
         List<object> watchedSyms = new List<object>(watchedTickers.Keys);
-        int rowsLength = (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int rowsLength = getArrayLength(rows);
         for (int i = 0; i < rowsLength; i++)
         {
             IDictionary<string, object> entry = this.safeDict(rows, i);
@@ -2973,10 +2973,11 @@ public partial class sxbet : PredictionExchange
         //                  "totalStake": "1000000", "weightedAverageOdds": "40000000000000000000",
         //                  "betTime": "2026-07-31T18:22:41.000Z", ... } }
         //
-        int rowsLength = (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int rowsLength = getArrayLength(rows);
         for (int i = 0; i < rowsLength; i++)
         {
-            IDictionary<string, object> row = this.safeDict(getValue(rows, i), "trade", getValue(rows, i));
+            object rawRow = getValue(rows, i);
+            IDictionary<string, object> row = this.safeDict(rawRow, "trade", rawRow);
             IDictionary<string, object> trade = ((IDictionary<string, object>)this.parseSxbetV3PublicTrade(row));
             string? sym = this.safeString(trade, "outcome");
             if ((sym == null))
@@ -3034,10 +3035,11 @@ public partial class sxbet : PredictionExchange
         //
         //     FillV3 rows - identical to GET /fills-v3
         //
-        int rowsLength = (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int rowsLength = getArrayLength(rows);
         for (int i = 0; i < rowsLength; i++)
         {
-            IDictionary<string, object> row = this.safeDict(getValue(rows, i), "fill", getValue(rows, i));
+            object rawRow = getValue(rows, i);
+            IDictionary<string, object> row = this.safeDict(rawRow, "fill", rawRow);
             IDictionary<string, object> trade = ((IDictionary<string, object>)this.parseSxbetV3Fill(row));
             string? sym = this.safeString(trade, "outcome");
             if ((sym == null))
@@ -3092,10 +3094,11 @@ public partial class sxbet : PredictionExchange
         //
         //     OrderV3 rows - identical to GET /orders-v3 (plus INACTIVE states with inactiveReason)
         //
-        int rowsLength = (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int rowsLength = getArrayLength(rows);
         for (int i = 0; i < rowsLength; i++)
         {
-            IDictionary<string, object> row = this.safeDict(getValue(rows, i), "order", getValue(rows, i));
+            object rawRow = getValue(rows, i);
+            IDictionary<string, object> row = this.safeDict(rawRow, "order", rawRow);
             Dictionary<string, object> order = this.parsePredictionOrder(row);
             if ((this.orders == null))
             {
@@ -3142,7 +3145,7 @@ public partial class sxbet : PredictionExchange
         this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
-        if ((((object)(code)) switch { Int64 c33l => c33l == 400, int c33i => c33i == 400, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 400, decimal c33m => c33m == 400, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 400, uint c33u => (Int64)c33u == 400, short c33h => (Int64)c33h == 400, ushort c33v => (Int64)c33v == 400, byte c33y => (Int64)c33y == 400, sbyte c33e => (Int64)c33e == 400, ulong c33z => c33z == 400UL, _ => false }))
+        if (isEqual(code, 400))
         {
             throw new BadRequest (feedback) ;
         }
@@ -3189,7 +3192,7 @@ public partial class sxbet : PredictionExchange
         bool sendAsQuery = ((method == "GET"));
         if ((method == "DELETE"))
         {
-            bool hasOrdersList = ((((object)(query)) switch { null => false, IList<object> c33a => c33a.Contains("orders"), IList<string> c33t => c33t.Contains("orders"), List<Int64> c33g => c33g.Contains((Int64)(object)"orders"), IDictionary<string, object> c33d => c33d.ContainsKey("orders"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("orders"), _ => false }));
+            bool hasOrdersList = (inOp(query, "orders"));
             sendAsQuery = !hasOrdersList;
         }
         string? bodyValue = null;

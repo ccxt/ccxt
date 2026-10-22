@@ -2474,7 +2474,7 @@ public partial class blofin : Exchange
         string? currencyId = this.safeString(firstChain, "currency");
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        int chainsLength = (((object)(chains)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int chainsLength = getArrayLength(chains);
         for (int i = 0; i < chainsLength; i++)
         {
             IDictionary<string, object> chain = this.safeDict(chains, i);
@@ -2641,7 +2641,7 @@ public partial class blofin : Exchange
         // a list of GET /asset/currencies rows for one currency, see fetchCurrencies
         //
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
-        int chainsLength = (((object)(fee)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int chainsLength = getArrayLength(fee);
         for (int i = 0; i < chainsLength; i++)
         {
             IDictionary<string, object> chain = this.safeDict(fee, i);
@@ -3135,7 +3135,7 @@ public partial class blofin : Exchange
             object orderIds = this.parseIds(ids);
             if ((tpslIds != null))
             {
-                for (int i = 0; i < (((object)(tpslIds)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+                for (int i = 0; i < getArrayLength(tpslIds); i++)
                 {
                     request.Add(new Dictionary<string, object>() {
                         { "tpslId", getValue(tpslIds, i) },
@@ -3143,7 +3143,7 @@ public partial class blofin : Exchange
                     });
                 }
             }
-            for (int i = 0; i < (((object)(orderIds)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+            for (int i = 0; i < getArrayLength(orderIds); i++)
             {
                 if ((trigger == true))
                 {
@@ -3161,7 +3161,7 @@ public partial class blofin : Exchange
             }
         } else
         {
-            for (int i = 0; i < (((object)(clientOrderIds)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+            for (int i = 0; i < getArrayLength(clientOrderIds); i++)
             {
                 request.Add(new Dictionary<string, object>() {
                     { "instId", (market.ContainsKey("id") ? market["id"] : null) },

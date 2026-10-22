@@ -1233,7 +1233,7 @@ public partial class whitebit : Exchange
                 if ((networkId != null))
                 {
                     int networkLength = networkId.Length;
-                    networkId = ((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(networkId, 1, (networkLength - 1));
+                    networkId = slice(networkId, 1, (networkLength - 1));
                     string? networkCode = this.networkIdToCode(networkId, code);
                     if ((networkCode != null))
                     {
@@ -2645,7 +2645,7 @@ public partial class whitebit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
-            { "orderId", (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(id)) },
+            { "orderId", parseInt(id) },
         };
         Dictionary<string, object> response = await this.v4PrivatePostOrderCancel(this.extend(request, parameters));
         //
@@ -2823,7 +2823,7 @@ public partial class whitebit : Exchange
             string? id = ((string)balanceKeys[i]);
             string? code = this.safeCurrencyCode(id);
             object balance = getValue(response, id);
-            if ((balance != null) && (((object)(this.isDictionary(balance))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
+            if ((balance != null) && isTrue(this.isDictionary(balance)))
             {
                 Dictionary<string, object> account = this.account();
                 account["free"] = this.safeString2(balance, "available", "main_balance");
@@ -3186,7 +3186,7 @@ public partial class whitebit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "orderId", (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(id)) },
+            { "orderId", parseInt(id) },
         };
         IDictionary<string, object> market = null;
         if ((symbol != null))
@@ -4254,7 +4254,7 @@ public partial class whitebit : Exchange
     public virtual object parseFundingHistories(object contracts, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (((object)(contracts)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(contracts); i++)
         {
             IDictionary<string, object> contract = this.safeDict(contracts, i);
             result.Add(this.parseFundingHistory(contract, market));
@@ -4940,11 +4940,11 @@ public partial class whitebit : Exchange
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
-        if (((((object)(code)) switch { Int64 c33l => c33l == 418, int c33i => c33i == 418, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 418, decimal c33m => c33m == 418, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 418, uint c33u => (Int64)c33u == 418, short c33h => (Int64)c33h == 418, ushort c33v => (Int64)c33v == 418, byte c33y => (Int64)c33y == 418, sbyte c33e => (Int64)c33e == 418, ulong c33z => c33z == 418UL, _ => false })) || ((((object)(code)) switch { Int64 c33l => c33l == 429, int c33i => c33i == 429, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 429, decimal c33m => c33m == 429, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 429, uint c33u => (Int64)c33u == 429, short c33h => (Int64)c33h == 429, ushort c33v => (Int64)c33v == 429, byte c33y => (Int64)c33y == 429, sbyte c33e => (Int64)c33e == 429, ulong c33z => c33z == 429UL, _ => false })))
+        if ((isEqual(code, 418)) || (isEqual(code, 429)))
         {
             throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + reason) + " ") + (body))) ;
         }
-        if ((((object)(code)) switch { Int64 c33l => c33l == 404, int c33i => c33i == 404, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 404, decimal c33m => c33m == 404, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 404, uint c33u => (Int64)c33u == 404, short c33h => (Int64)c33h == 404, ushort c33v => (Int64)c33v == 404, byte c33y => (Int64)c33y == 404, sbyte c33e => (Int64)c33e == 404, ulong c33z => c33z == 404UL, _ => false }))
+        if (isEqual(code, 404))
         {
             throw new ExchangeError ((((this.id + " ") + code.ToString()) + " endpoint not found")) ;
         }

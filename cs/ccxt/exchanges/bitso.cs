@@ -1288,7 +1288,7 @@ public partial class bitso : Exchange
         if (markerInParams)
         {
             paramsMarker = this.extend(parameters, new Dictionary<string, object>() {
-                { "marker", (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))((((IDictionary<string, object>)parameters).ContainsKey("marker") ? ((IDictionary<string, object>)parameters)["marker"] : null))) },
+                { "marker", parseInt((((IDictionary<string, object>)parameters).ContainsKey("marker") ? ((IDictionary<string, object>)parameters)["marker"] : null)) },
             });
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1542,7 +1542,7 @@ public partial class bitso : Exchange
         if (markerInParams)
         {
             paramsMarker = this.extend(parameters, new Dictionary<string, object>() {
-                { "marker", (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))((((IDictionary<string, object>)parameters).ContainsKey("marker") ? ((IDictionary<string, object>)parameters)["marker"] : null))) },
+                { "marker", parseInt((((IDictionary<string, object>)parameters).ContainsKey("marker") ? ((IDictionary<string, object>)parameters)["marker"] : null)) },
             });
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1971,7 +1971,7 @@ public partial class bitso : Exchange
             object entry = depositResponse[i];
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            if (((codes == null)) || (((code != null)) && (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(codes, code))))
+            if (((codes == null)) || (((code != null)) && (inOp(codes, code))))
             {
                 if ((code != null))
                 {
@@ -1995,7 +1995,7 @@ public partial class bitso : Exchange
         {
             string? currencyId = ((string)withdrawalKeys[i]);
             string? code = this.safeCurrencyCode(currencyId);
-            if (((code != null)) && (((codes == null)) || (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(codes, code))))
+            if (((code != null)) && (((codes == null)) || (inOp(codes, code))))
             {
                 double? withdrawFee = this.parseNumber((currencyId != null && withdrawalResponse.ContainsKey(currencyId) ? withdrawalResponse[currencyId] : null));
                 IDictionary<string, object> resultValue = this.safeDict(result, code);
@@ -2224,7 +2224,7 @@ public partial class bitso : Exchange
         {
             return null;  // fallback to default error handler
         }
-        if ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("success"), IList<string> c33t => c33t.Contains("success"), List<Int64> c33g => c33g.Contains((Int64)(object)"success"), IDictionary<string, object> c33d => c33d.ContainsKey("success"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("success"), _ => false }))
+        if (inOp(response, "success"))
         {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
@@ -2232,7 +2232,7 @@ public partial class bitso : Exchange
             bool? success = this.safeBool(response, "success", false);
             if ((success is string))
             {
-                if (((((object)(success)) is "true")) || (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(success, "1")))
+                if (((((object)(success)) is "true")) || (isEqual(success, "1")))
                 {
                     success = true;
                 } else

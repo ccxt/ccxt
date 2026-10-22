@@ -1383,7 +1383,7 @@ public partial class deribit : Exchange
             { "info", balance },
         };
         List<object> summaries = new List<object>() {};
-        if ((((object)(balance)) switch { null => false, IList<object> c33a => c33a.Contains("summaries"), IList<string> c33t => c33t.Contains("summaries"), List<Int64> c33g => c33g.Contains((Int64)(object)"summaries"), IDictionary<string, object> c33d => c33d.ContainsKey("summaries"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("summaries"), _ => false }))
+        if (inOp(balance, "summaries"))
         {
             summaries = this.safeList(balance, "summaries", new List<object>() {});
         } else
@@ -1850,7 +1850,7 @@ public partial class deribit : Exchange
         int defaultLimit = 1000;
         Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
         Int64? limitResolved = (((since == null)) && ((limit == null))) ? defaultLimit : limit;
-        object sinceResolved = ((since == null)) ? null : (((((object)(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(since, 1))) is var c31v0) && (((object)(0)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) > Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
+        object sinceResolved = ((since == null)) ? null : mathMax(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(since, 1), 0);
         if ((since == null))
         {
             request["start_timestamp"] = (now - ((((windowLimit - 1)) * duration) * 1000));

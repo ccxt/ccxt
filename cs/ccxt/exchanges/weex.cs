@@ -1829,7 +1829,7 @@ public partial class weex : Exchange
         Dictionary<string, object> paramsOmitted = this.omit(paramsHistorical, new List<object>() {"historical", "until", "price"});
         List<object> response = null;
         // hardcap threshold
-        object limitResolved = ((limit == null)) ? null : (((((object)(limit)) is var c31v0) && (((object)(1000)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
+        object limitResolved = ((limit == null)) ? null : mathMin(limit, 1000);
         if ((historical == true))
         {
             if ((priceType != null))
@@ -4887,7 +4887,7 @@ public partial class weex : Exchange
             { "type", type },
         };
         string parsedType = "reduce";
-        if ((((object)(type)) switch { Int64 c33l => c33l == 1, int c33i => c33i == 1, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 1, decimal c33m => c33m == 1, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 1, uint c33u => (Int64)c33u == 1, short c33h => (Int64)c33h == 1, ushort c33v => (Int64)c33v == 1, byte c33y => (Int64)c33y == 1, sbyte c33e => (Int64)c33e == 1, ulong c33z => c33z == 1UL, _ => false }))
+        if (isEqual(type, 1))
         {
             parsedType = "add";
         }
@@ -5004,7 +5004,7 @@ public partial class weex : Exchange
         if (marketId.EndsWith("SUSDT"))
         {
             int baseLength = (marketId.Length - 5);
-            return (((Func<object, object, object, string>)(static (s36s, s36a, s36b) => { if (s36s == null) { return null; } var s36str = (string)s36s; var s36start = s36a != null ? Convert.ToInt32(s36a) : -1; if (s36b == null) { if (s36start < 0) { var s36inner = s36str.Length + s36start; s36inner = s36inner < 0 ? 0 : s36inner; return s36str[(s36inner)..]; } else { return s36str[s36start..]; } } else { var s36end = Convert.ToInt32(s36b); if (s36start < 0) { s36start = s36str.Length + s36start; } if (s36end < 0) { s36end = s36str.Length + s36end; } if (s36end > s36str.Length) { s36end = s36str.Length; } return s36str[s36start..s36end]; } }))(marketId, 0, baseLength) + "USDT");
+            return (slice(marketId, 0, baseLength) + "USDT");
         }
         return ((string?)((object)(marketId)));
     }

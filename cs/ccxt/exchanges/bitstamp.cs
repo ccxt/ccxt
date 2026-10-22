@@ -2008,7 +2008,7 @@ public partial class bitstamp : Exchange
         {
             responseList = new List<object>() {};
         }
-        for (int i = 0; i < (((object)(responseList)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(responseList); i++)
         {
             IDictionary<string, object> currencyBalance = this.safeDict(responseList, i);
             string? currencyId = this.safeString(currencyBalance, "currency");
@@ -2118,7 +2118,7 @@ public partial class bitstamp : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", fees },
         };
-        for (int i = 0; i < (((object)(fees)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(fees); i++)
         {
             Dictionary<string, object> fee = this.parseTradingFee(getValue(fees, i));
             string? symbol = ((string)(fee != null && fee.ContainsKey("symbol") ? fee["symbol"] : null));
@@ -2255,7 +2255,7 @@ public partial class bitstamp : Exchange
     {
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
         string? code = this.safeString(currency, "code");
-        for (int j = 0; j < (((object)(fee)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
+        for (int j = 0; j < getArrayLength(fee); j++)
         {
             IDictionary<string, object> networkEntry = this.safeDict(fee, j);
             string? networkId = this.safeString(networkEntry, "network");
@@ -3106,7 +3106,7 @@ public partial class bitstamp : Exchange
             List<object> keys = new List<object>(((IDictionary<string,object>)item).Keys);
             for (int i = 0; i < keys.Count; i++)
             {
-                if ((((object)(keys[i])) switch { IList<object> c33a => c33a.IndexOf("_"), IList<string> c33t => c33t.IndexOf((string)(object)"_"), string c33s => c33s.IndexOf((string)(object)"_"), _ => -1 }) >= 0)
+                if (getIndexOf(keys[i], "_") >= 0)
                 {
                     string marketId = ((string)keys[i]).Replace("_", (string)"");
                     market = this.safeMarket(marketId, market);

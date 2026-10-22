@@ -310,11 +310,11 @@ public partial class mudrex : Exchange
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), text, ((this.id + " ") + text));
             string msg = ((this.id + " ") + text);
             string low = text.ToLower();
-            if ((((object)(code)) switch { Int64 c33l => c33l == 401, int c33i => c33i == 401, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 401, decimal c33m => c33m == 401, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 401, uint c33u => (Int64)c33u == 401, short c33h => (Int64)c33h == 401, ushort c33v => (Int64)c33v == 401, byte c33y => (Int64)c33y == 401, sbyte c33e => (Int64)c33e == 401, ulong c33z => c33z == 401UL, _ => false }) || low.IndexOf("auth", StringComparison.Ordinal) >= 0)
+            if (isEqual(code, 401) || low.IndexOf("auth", StringComparison.Ordinal) >= 0)
             {
                 throw new AuthenticationError (msg) ;
             }
-            if ((((object)(code)) switch { Int64 c33l => c33l == 429, int c33i => c33i == 429, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 429, decimal c33m => c33m == 429, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 429, uint c33u => (Int64)c33u == 429, short c33h => (Int64)c33h == 429, ushort c33v => (Int64)c33v == 429, byte c33y => (Int64)c33y == 429, sbyte c33e => (Int64)c33e == 429, ulong c33z => c33z == 429UL, _ => false }) || low.IndexOf("rate", StringComparison.Ordinal) >= 0)
+            if (isEqual(code, 429) || low.IndexOf("rate", StringComparison.Ordinal) >= 0)
             {
                 throw new RateLimitExceeded (msg) ;
             }
@@ -322,7 +322,7 @@ public partial class mudrex : Exchange
             {
                 throw new InsufficientFunds (msg) ;
             }
-            if ((((object)(code)) switch { Int64 c33l => c33l == 400, int c33i => c33i == 400, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 400, decimal c33m => c33m == 400, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 400, uint c33u => (Int64)c33u == 400, short c33h => (Int64)c33h == 400, ushort c33v => (Int64)c33v == 400, byte c33y => (Int64)c33y == 400, sbyte c33e => (Int64)c33e == 400, ulong c33z => c33z == 400UL, _ => false }))
+            if (isEqual(code, 400))
             {
                 throw new BadRequest (msg) ;
             }
@@ -478,7 +478,7 @@ public partial class mudrex : Exchange
         object data = this.safeValue(response, "data", new List<object>() {});
         object rows = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? data : this.safeList(data, "items", new List<object>() {});
         Dictionary<string, object> resultTickers = new Dictionary<string, object>() {};
-        for (int i = 0; i < (((object)(rows)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(rows); i++)
         {
             object t = getValue(rows, i);
             string? sym = this.safeString(t, "symbol");
@@ -561,7 +561,7 @@ public partial class mudrex : Exchange
                     items = this.safeList(data, "results", new List<object>() {});
                     itemsLength = (items?.Count ?? 0);
                 }
-                if (((itemsLength == 0)) && ((((object)(data)) switch { null => false, IList<object> c33a => c33a.Contains("symbol"), IList<string> c33t => c33t.Contains("symbol"), List<Int64> c33g => c33g.Contains((Int64)(object)"symbol"), IDictionary<string, object> c33d => c33d.ContainsKey("symbol"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("symbol"), _ => false })))
+                if (((itemsLength == 0)) && (inOp(data, "symbol")))
                 {
                     items = new List<object>() {data};
                 }
@@ -1371,11 +1371,11 @@ public partial class mudrex : Exchange
             for (int i = 0; i < (positions?.Count ?? 0); i++)
             {
                 object p = positions[i];
-                if ((side != null) && !((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(getValue(p, "side"), side))
+                if ((side != null) && !isEqual(getValue(p, "side"), side))
                 {
                     continue;
                 }
-                if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(getValue(p, "symbol"), (market.ContainsKey("symbol") ? market["symbol"] : null)))
+                if (isEqual(getValue(p, "symbol"), (market.ContainsKey("symbol") ? market["symbol"] : null)))
                 {
                     positionId = this.safeString(p, "id");
                     break;
@@ -1435,7 +1435,7 @@ public partial class mudrex : Exchange
             for (int i = 0; i < (positions?.Count ?? 0); i++)
             {
                 object p = positions[i];
-                if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(getValue(p, "symbol"), symbol))
+                if (isEqual(getValue(p, "symbol"), symbol))
                 {
                     positionId = this.safeString(p, "id");
                     break;
@@ -1525,7 +1525,7 @@ public partial class mudrex : Exchange
                 if ((this.safeString(entry, "fee_type") == "TRANSACTION"))
                 {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if (((market == null)) || (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(this.safeString(entry, "symbol"), (market.ContainsKey("id") ? market["id"] : null))))
+                    if (((market == null)) || (isEqual(this.safeString(entry, "symbol"), (market.ContainsKey("id") ? market["id"] : null))))
                     {
                         transactionsCount = (transactionsCount + 1);
                     }
@@ -1570,7 +1570,7 @@ public partial class mudrex : Exchange
             string? rebate = null;
             for (int j = 0; j < (rebateKeys?.Count ?? 0); j++)
             {
-                if (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(rebateKeys[j], (transactionKeys != null && i < transactionKeys.Count ? transactionKeys[i] : null)))
+                if (isEqual(rebateKeys[j], (transactionKeys != null && i < transactionKeys.Count ? transactionKeys[i] : null)))
                 {
                     rebate = this.safeString(rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice

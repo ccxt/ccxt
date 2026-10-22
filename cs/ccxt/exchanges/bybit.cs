@@ -2461,9 +2461,9 @@ public partial class bybit : Exchange
             { "settleId", settle },
             { "active", false },
             { "type", "option" },
-            { "subType", (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(bs, settle)) ? "inverse" : "linear" },
-            { "linear", (!((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(bs, settle)) },
-            { "inverse", (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(bs, settle)) },
+            { "subType", (isEqual(bs, settle)) ? "inverse" : "linear" },
+            { "linear", (!isEqual(bs, settle)) },
+            { "inverse", (isEqual(bs, settle)) },
             { "spot", false },
             { "swap", false },
             { "future", false },
@@ -5533,7 +5533,7 @@ public partial class bybit : Exchange
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         bool isMarketBuyAndCostInferable = (lowerCaseType == "market") && ((side == "buy")) && (((price != null)) || ((cost != null)));
         bool isMarketOrder = lowerCaseType == "market";
-        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && isMarketOrder && (((object)(isUTA)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }) && !isMarketBuyAndCostInferable)
+        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && isMarketOrder && isTrue(isUTA) && !isMarketBuyAndCostInferable)
         {
             // UTA account can specify the cost of the order on both sides
             if (((cost != null)) || ((price != null)))
@@ -8231,7 +8231,7 @@ public partial class bybit : Exchange
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
             object rawPosition = positions[i];
-            if (((((object)(rawPosition)) switch { null => false, IList<object> c33a => c33a.Contains("data"), IList<string> c33t => c33t.Contains("data"), List<Int64> c33g => c33g.Contains((Int64)(object)"data"), IDictionary<string, object> c33d => c33d.ContainsKey("data"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("data"), _ => false })) && ((((object)(rawPosition)) switch { null => false, IList<object> c33a => c33a.Contains("is_valid"), IList<string> c33t => c33t.Contains("is_valid"), List<Int64> c33g => c33g.Contains((Int64)(object)"is_valid"), IDictionary<string, object> c33d => c33d.ContainsKey("is_valid"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("is_valid"), _ => false })))
+            if ((inOp(rawPosition, "data")) && (inOp(rawPosition, "is_valid")))
             {
                 // futures only
                 rawPosition = this.safeDict(rawPosition, "data");
@@ -9204,13 +9204,13 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
-        Int64? sinceResolved = ((since == null)) ? (this.milliseconds() - (86400000L * 30L)) : since; // last 30 days
+        Int64? sinceResolved = ((since == null)) ? (this.milliseconds() - 2592000000) : since; // last 30 days
         request["startTime"] = sinceResolved;
         Int64? endTime = this.safeInteger2(parameters, "until", "endTime");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"until"}));
         if ((endTime == null))
         {
-            endTime = (sinceResolved + (86400000L * 30L)); // since + 30 days
+            endTime = (sinceResolved + 2592000000); // since + 30 days
         }
         request["endTime"] = endTime;
         Dictionary<string, object> response = await this.privateGetV5SpotMarginTradeInterestRateHistory(this.extend(request, paramsOmitted));
@@ -9737,7 +9737,7 @@ public partial class bybit : Exchange
         object fees = this.safeDict(response, "result", new Dictionary<string, object>() {});
         fees = this.safeList(fees, "list", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < (((object)(fees)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(fees); i++)
         {
             Dictionary<string, object> fee = this.parseTradingFee(getValue(fees, i));
             string? symbol = ((string)(fee != null && fee.ContainsKey("symbol") ? fee["symbol"] : null));
@@ -10128,7 +10128,7 @@ public partial class bybit : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (((object)(volatility)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(volatility); i++)
         {
             IDictionary<string, object> entry = this.safeDict(volatility, i);
             Int64? timestamp = this.safeInteger(entry, "time");
@@ -10594,7 +10594,7 @@ public partial class bybit : Exchange
         {
             string? marketId = ((string)keys[i]);
             object entry = (marketId != null && grouped.ContainsKey(marketId) ? grouped[marketId] : null);
-            for (int j = 0; j < (((object)(entry)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); j++)
+            for (int j = 0; j < getArrayLength(entry); j++)
             {
                 Int64? id = this.safeInteger(getValue(entry, j), "id");
                 ((IDictionary<string,object>)getValue(entry, j))["id"] = id;
@@ -10622,7 +10622,7 @@ public partial class bybit : Exchange
         //  ]
         //
         List<object> tiers = new List<object>() {};
-        for (Int64 i = 0; (i < ((((object)(info)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }))); i++)
+        for (Int64 i = 0; (i < (getArrayLength(info))); i++)
         {
             IDictionary<string, object> tier = this.safeDict(info, i);
             string? marketId = this.safeString(tier, "symbol");

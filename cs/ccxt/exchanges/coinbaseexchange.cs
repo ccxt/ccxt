@@ -961,7 +961,7 @@ public partial class coinbaseexchange : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1512,7 +1512,7 @@ public partial class coinbaseexchange : Exchange
         object until = this.safeValue2(paramsPaginate, "until", "end");
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, new List<object>() {"until"});
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        Int64? cappedLimit = this.parseToInt(((limit == null)) ? 300 : (((((object)(limit)) is var c31v0) && (((object)(300)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null));
+        Int64? cappedLimit = this.parseToInt(((limit == null)) ? 300 : mathMin(limit, 300));
         Int64? limitResolved = ((since != null)) ? cappedLimit : limit;
         if ((since != null))
         {
@@ -1522,7 +1522,7 @@ public partial class coinbaseexchange : Exchange
                 if ((parsedTimeframe != null))
                 {
                     Int64? parsedTimeframeMilliseconds = (parsedTimeframe * 1000);
-                    if (this.isRoundNumber(((Int64?)(((((object)(since)) is var c31v2) && (((object)(parsedTimeframeMilliseconds)) is var c31v3)) ? (((c31v2 == null) || (c31v3 == null) || !((c31v2 is string) || (c31v2 is Int64) || (c31v2 is int) || (c31v2 is uint) || (c31v2 is double))) ? null : (object)Convert.ToInt64(Convert.ToDouble(c31v2) % Convert.ToDouble(c31v3))) : null))))
+                    if (this.isRoundNumber(mod(since, parsedTimeframeMilliseconds)))
                     {
                         request["end"] = this.iso8601(this.sum(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(((cappedLimit * parsedTimeframeMilliseconds)), parsedTimeframeMilliseconds), since));
                     } else
@@ -2564,7 +2564,7 @@ public partial class coinbaseexchange : Exchange
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
-        if (((((object)(code)) switch { Int64 c33l => c33l == 400, int c33i => c33i == 400, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 400, decimal c33m => c33m == 400, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 400, uint c33u => (Int64)c33u == 400, short c33h => (Int64)c33h == 400, ushort c33v => (Int64)c33v == 400, byte c33y => (Int64)c33y == 400, sbyte c33e => (Int64)c33e == 400, ulong c33z => c33z == 400UL, _ => false })) || ((((object)(code)) switch { Int64 c33l => c33l == 404, int c33i => c33i == 404, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 404, decimal c33m => c33m == 404, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 404, uint c33u => (Int64)c33u == 404, short c33h => (Int64)c33h == 404, ushort c33v => (Int64)c33v == 404, byte c33y => (Int64)c33y == 404, sbyte c33e => (Int64)c33e == 404, ulong c33z => c33z == 404UL, _ => false })))
+        if ((isEqual(code, 400)) || (isEqual(code, 404)))
         {
             if ((getValue(body, 0) is "{"))
             {
@@ -2588,7 +2588,7 @@ public partial class coinbaseexchange : Exchange
         object response = await this.fetch2(path, api, method, parameters, config);
         if (!(response is string))
         {
-            if ((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("message"), IList<string> c33t => c33t.Contains("message"), List<Int64> c33g => c33g.Contains((Int64)(object)"message"), IDictionary<string, object> c33d => c33d.ContainsKey("message"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("message"), _ => false }))
+            if (inOp(response, "message"))
             {
                 throw new ExchangeError (((this.id + " ") + this.json(response))) ;
             }

@@ -3959,12 +3959,12 @@ public partial class bitget : Exchange
                 string? priceStep = this.safeString(market, "priceEndStep");
                 string? amountStep = this.safeString(market, "sizeMultiplier");
                 var precise = new Precise(priceStep);
-                precise.decimals = (((((object)(precise.decimals)) is var c31v0) && (((object)(priceDecimals)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) > Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
+                precise.decimals = mathMax(precise.decimals, priceDecimals);
                 precise.reduce();
                 string priceString = ((object)precise).ToString();
                 pricePrecision = this.parseNumber(priceString);
                 var preciseAmount = new Precise(amountStep);
-                preciseAmount.decimals = (((((object)(preciseAmount.decimals)) is var c31v2) && (((object)(amountDecimals)) is var c31v3)) ? (((c31v2 == null) || (c31v3 == null)) ? null : ((Convert.ToDouble(c31v2) > Convert.ToDouble(c31v3)) ? c31v2 : c31v3)) : null);
+                preciseAmount.decimals = mathMax(preciseAmount.decimals, amountDecimals);
                 preciseAmount.reduce();
                 string amountString = ((object)preciseAmount).ToString();
                 amountPrecision = this.parseNumber(amountString);
@@ -4648,7 +4648,7 @@ public partial class bitget : Exchange
         //
         List<object> tiers = new List<object>() {};
         object minNotional = 0;
-        for (int i = 0; i < (((object)(info)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(info); i++)
         {
             object item = getValue(info, i);
             double? minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue");
@@ -6761,7 +6761,7 @@ public partial class bitget : Exchange
                 object untilStartTime = (untilEndTime - recentDuration);
                 calculatedStartTime = untilStartTime;
                 // we do not need to set "startTime" here
-                if (((recentEndpointAvailableDays != null)) && (((Func<object, object, bool>)(static (c32a, c32b) => { bool c32Gt(object x, object y) { if (x != null && y == null) return true; if (x == null || y == null) return false; if (x is int || x is uint) x = Convert.ToInt64(x); if (y is int || y is uint) y = Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) > Convert.ToInt64(y); if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) > Convert.ToDouble(y); if (x.GetType() == typeof(string)) return ((string)x).CompareTo((string)y) > 0; return false; } bool c32Int(object v) { Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } bool c32Eq(object x, object y) { if (x == null && y == null) return true; if (x == null || y == null) return false; try { if (x.GetType() != y.GetType() && (!Double.TryParse(x.ToString(), out _) || !Double.TryParse(y.ToString(), out _))) return false; if (c32Int(x) && c32Int(y)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(Int64) && y.GetType() == typeof(Int64)) return Convert.ToInt64(x) == Convert.ToInt64(y); if (x.GetType() == typeof(decimal) || y.GetType() == typeof(decimal)) return Convert.ToDecimal(x) == Convert.ToDecimal(y); if (x.GetType() == typeof(int)) return (int)x == (int)y; if (x.GetType() == typeof(double) || y.GetType() == typeof(double)) return Convert.ToDouble(x) == Convert.ToDouble(y); if (x.GetType() == typeof(Single) || y.GetType() == typeof(Single)) return Convert.ToSingle(x) == Convert.ToSingle(y); if (x.GetType() == typeof(string)) return ((string)x) == ((string)y); if (x.GetType() == typeof(bool)) return ((bool)x) == ((bool)y); return false; } catch { return false; } } return !c32Gt(c32a, c32b) || c32Eq(c32a, c32b); }))(untilStartTime, (now - (((recentEndpointAvailableDays - 1)) * msInDay)))))
+                if (((recentEndpointAvailableDays != null)) && (isLessThanOrEqual(untilStartTime, (now - (((recentEndpointAvailableDays - 1)) * msInDay)))))
                 {
                     historicalEndpointNeeded = true;
                 }
@@ -7094,7 +7094,7 @@ public partial class bitget : Exchange
         //         "balance": "0.01"
         //     }
         //
-        for (int i = 0; i < (((object)(balance)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(balance); i++)
         {
             IDictionary<string, object> entry = this.safeDict(balance, i);
             Dictionary<string, object> account = this.account();
@@ -7164,7 +7164,7 @@ public partial class bitget : Exchange
         //           // "symbol": "BTCUSDT" // only for isolated margin
         //       }
         //
-        for (int i = 0; i < (((object)(balance)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(balance); i++)
         {
             IDictionary<string, object> entry = this.safeDict(balance, i);
             Dictionary<string, object> account = this.account();
@@ -12346,7 +12346,7 @@ public partial class bitget : Exchange
     public virtual object parseFundingHistories(object contracts, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < (((object)(contracts)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(contracts); i++)
         {
             IDictionary<string, object> contract = this.safeDict(contracts, i);
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.

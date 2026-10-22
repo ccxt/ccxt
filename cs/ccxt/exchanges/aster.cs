@@ -2467,7 +2467,7 @@ public partial class aster : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "asset");
@@ -3763,7 +3763,7 @@ public partial class aster : Exchange
         }
         if ((limit != null))
         {
-            request["limit"] = (((((object)(limit)) is var c31v0) && (((object)(1000)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
+            request["limit"] = mathMin(limit, 1000);
         }
         if ((since != null))
         {
@@ -4212,7 +4212,7 @@ public partial class aster : Exchange
         if ((leverageString != null))
         {
             Int64? leverage = this.parseToInt(leverageString);
-            bool rational = this.isRoundNumber(((Int64?)(((((object)(1000)) is var c31v2) && (((object)(leverage)) is var c31v3)) ? (((c31v2 == null) || (c31v3 == null) || !((c31v2 is string) || (c31v2 is Int64) || (c31v2 is int) || (c31v2 is uint) || (c31v2 is double))) ? null : (object)Convert.ToInt64(Convert.ToDouble(c31v2) % Convert.ToDouble(c31v3))) : null)));
+            bool rational = this.isRoundNumber(mod(1000, leverage));
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
             if (!rational)
             {
@@ -4428,7 +4428,7 @@ public partial class aster : Exchange
         {
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
             Int64? leverage = this.parseToInt(leverageString);
-            bool rational = this.isRoundNumber(((Int64?)(((((object)(1000)) is var c31v4) && (((object)(leverage)) is var c31v5)) ? (((c31v4 == null) || (c31v5 == null) || !((c31v4 is string) || (c31v4 is Int64) || (c31v4 is int) || (c31v4 is uint) || (c31v4 is double))) ? null : (object)Convert.ToInt64(Convert.ToDouble(c31v4) % Convert.ToDouble(c31v5))) : null)));
+            bool rational = this.isRoundNumber(mod(1000, leverage));
             if (!rational)
             {
                 initialMarginPercentageString = Precise.stringDiv(Precise.stringAdd(initialMarginPercentageString, "1e-8"), "1", 8);
@@ -5067,7 +5067,7 @@ public partial class aster : Exchange
         {
             object key = keys[i];
             object value = (values != null && key != null && values.ContainsKey((string)key) ? values[(string)key] : null);
-            bool isObj = ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) || (((object)(this.isDictionary(value))) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false });
+            bool isObj = ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) || isTrue(this.isDictionary(value));
             string? valueJsonified = isObj ? this.json(value) : value.ToString();
             string encoded = this.encodeURIComponent(valueJsonified);
             encodedString = add(encodedString, add(add(add(key, "="), encoded), "&"));

@@ -2154,7 +2154,7 @@ public partial class toobit : Exchange
             }
         }
         object paramsOmitted = this.omit(paramsTrigger, new List<object>() {"stopLoss", "takeProfit"});
-        if (!((((object)(paramsOmitted)) switch { null => false, IList<object> c33a => c33a.Contains("newClientOrderId"), IList<string> c33t => c33t.Contains("newClientOrderId"), List<Int64> c33g => c33g.Contains((Int64)(object)"newClientOrderId"), IDictionary<string, object> c33d => c33d.ContainsKey("newClientOrderId"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("newClientOrderId"), _ => false })))
+        if (!(inOp(paramsOmitted, "newClientOrderId")))
         {
             request["newClientOrderId"] = this.uuid();
         }

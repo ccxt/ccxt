@@ -1722,7 +1722,7 @@ public partial class indodax : Exchange
             return null;  // public endpoints may return []-arrays
         }
         string? error = this.safeString(response, "error", "");
-        if (!((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("success"), IList<string> c33t => c33t.Contains("success"), List<Int64> c33g => c33g.Contains((Int64)(object)"success"), IDictionary<string, object> c33d => c33d.ContainsKey("success"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("success"), _ => false })) && error == "")
+        if (!(inOp(response, "success")) && error == "")
         {
             return null;  // no 'success' property on public responses
         }
@@ -1734,7 +1734,7 @@ public partial class indodax : Exchange
         if ((this.safeInteger(response, "success", 0) == 1))
         {
             // { success: 1, return: { orders: [] }}
-            if (!((((object)(response)) switch { null => false, IList<object> c33a => c33a.Contains("return"), IList<string> c33t => c33t.Contains("return"), List<Int64> c33g => c33g.Contains((Int64)(object)"return"), IDictionary<string, object> c33d => c33d.ContainsKey("return"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("return"), _ => false })))
+            if (!(inOp(response, "return")))
             {
                 throw new ExchangeError (((this.id + ": malformed response: ") + this.json(response))) ;
             } else

@@ -805,7 +805,7 @@ public partial class bitfinex : Exchange
     public virtual object getCurrencyName(string? code)
     {
         // temporary fix for transpiler recognition, even though this is in parent class
-        if (((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))((this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code))
+        if (inOp((this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code))
         {
             return getValue((this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code);
         }
@@ -1080,6 +1080,7 @@ public partial class bitfinex : Exchange
         //         ]
         //     ]
         //
+        List<object> networks = this.safeList(response, 8, new List<object>() {});
         Dictionary<string, object> indexed = new Dictionary<string, object>() {
             { "sym", this.indexBy(this.safeList(response, 1, new List<object>() {}), 0) },
             { "label", this.indexBy(this.safeList(response, 2, new List<object>() {}), 0) },
@@ -1088,14 +1089,14 @@ public partial class bitfinex : Exchange
             { "pool", this.indexBy(this.safeList(response, 5, new List<object>() {}), 0) },
             { "explorer", this.indexBy(this.safeList(response, 6, new List<object>() {}), 0) },
             { "fees", this.indexBy(this.safeList(response, 7, new List<object>() {}), 0) },
-            { "networks", this.safeList(response, 8, new List<object>() {}) },
+            { "networks", networks },
             { "statuses", this.indexBy(this.safeList(response, 9, new List<object>() {}), 0) },
             { "marginables", this.safeList(response, 10, new List<object>() {}) },
         };
         Dictionary<string, object> indexedNetworks = new Dictionary<string, object>() {};
-        for (int i = 0; i < (((object)(indexed["networks"])) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < networks.Count; i++)
         {
-            List<object> networkObj = this.safeList(indexed["networks"], i);
+            List<object> networkObj = this.safeList(networks, i);
             string? networkId = this.safeString(networkObj, 0);
             List<object> valuesList = this.safeList(networkObj, 1);
             string? networkName = this.safeString(valuesList, 0);
@@ -1111,7 +1112,7 @@ public partial class bitfinex : Exchange
     public virtual Dictionary<string, object> parseCurrenciesCustom(object ids, IDictionary<string, object> indexed, IDictionary<string, object> indexedNetworks)
     {
         List<object> allowedIds = new List<object>() {};
-        for (int i = 0; i < (((object)(ids)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(ids); i++)
         {
             object id = getValue(ids, i);
             if (((string)id).EndsWith("F0"))
@@ -1533,7 +1534,7 @@ public partial class bitfinex : Exchange
         //            FRR_AMOUNT_AVAILABLE
         //     ]
         //
-        int length = (((object)(ticker)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int length = getArrayLength(ticker);
         // the list shapes (fetchTickers) carry the market id in slot 0, the singular
         // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
         // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
@@ -1896,7 +1897,7 @@ public partial class bitfinex : Exchange
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,timeframeVar, paramsPaginate, 10000));
         }
         Dictionary<string, object> market = this.market(symbol);
-        object limitResolved = ((limitVar == null)) ? 10000 : (((((object)(limitVar)) is var c31v0) && (((object)(10000)) is var c31v1)) ? (((c31v0 == null) || (c31v1 == null)) ? null : ((Convert.ToDouble(c31v0) < Convert.ToDouble(c31v1)) ? c31v0 : c31v1)) : null);
+        object limitResolved = ((limitVar == null)) ? 10000 : mathMin(limitVar, 10000);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeframe", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
@@ -2412,7 +2413,7 @@ public partial class bitfinex : Exchange
         } else
         {
             request = new Dictionary<string, object>() {
-                { "id", (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(id)) },
+                { "id", parseInt(id) },
             };
         }
         object paramsOmitted = ((cid != null)) ? this.omit(parameters, new List<object>() {"cid", "clientOrderId"}) : parameters;
@@ -2532,7 +2533,7 @@ public partial class bitfinex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", new List<object> {(((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(id))} },
+            { "id", new List<object> {parseInt(id)} },
         };
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOpenOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
         IDictionary<string, object> order = this.safeDict(orders, 0);
@@ -2558,7 +2559,7 @@ public partial class bitfinex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", new List<object> {(((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(id))} },
+            { "id", new List<object> {parseInt(id)} },
         };
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
         IDictionary<string, object> order = this.safeDict(orders, 0);
@@ -2772,7 +2773,7 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        Int64? orderId = (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(id));
+        Int64? orderId = parseInt(id);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", orderId },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2996,7 +2997,7 @@ public partial class bitfinex : Exchange
         //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         //     ]
         //
-        int transactionLength = (((object)(transaction)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int transactionLength = getArrayLength(transaction);
         Int64? timestamp = null;
         Int64? updated = null;
         string? code = null;
@@ -3603,11 +3604,11 @@ public partial class bitfinex : Exchange
         {
             throw new ExchangeError ((this.id + " returned empty response")) ;
         }
-        if ((((object)(statusCode)) switch { Int64 c33l => c33l == 429, int c33i => c33i == 429, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 429, decimal c33m => c33m == 429, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 429, uint c33u => (Int64)c33u == 429, short c33h => (Int64)c33h == 429, ushort c33v => (Int64)c33v == 429, byte c33y => (Int64)c33y == 429, sbyte c33e => (Int64)c33e == 429, ulong c33z => c33z == 429UL, _ => false }))
+        if (isEqual(statusCode, 429))
         {
             throw new RateLimitExceeded ((string)((this.id + " ") + (body))) ;
         }
-        if ((((object)(statusCode)) switch { Int64 c33l => c33l == 500, int c33i => c33i == 500, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 500, decimal c33m => c33m == 500, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 500, uint c33u => (Int64)c33u == 500, short c33h => (Int64)c33h == 500, ushort c33v => (Int64)c33v == 500, byte c33y => (Int64)c33y == 500, sbyte c33e => (Int64)c33e == 500, ulong c33z => c33z == 500UL, _ => false }))
+        if (isEqual(statusCode, 500))
         {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             string? errorCode = this.safeString(response, 1, "");
@@ -4275,7 +4276,7 @@ public partial class bitfinex : Exchange
         //         0.0025               // funding payment cap
         //     ]
         //
-        int interestLength = (((object)(interest)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int interestLength = getArrayLength(interest);
         int openInterestIndex = ((interestLength == 23)) ? 17 : 18;
         Int64? timestamp = this.safeInteger(interest, 1);
         string? marketId = this.safeString(interest, 0);

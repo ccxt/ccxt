@@ -830,7 +830,7 @@ public partial class poloniex : Exchange
         //             "1740770099999",
         //           ],
         //
-        int ohlcvLength = (((object)(ohlcv)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int ohlcvLength = getArrayLength(ohlcv);
         bool isContract = (ohlcvLength == 9);
         if (isContract)
         {
@@ -2124,7 +2124,7 @@ public partial class poloniex : Exchange
 
     public virtual object parseOpenOrders(object orders, IDictionary<string, object> market, object result)
     {
-        for (int i = 0; i < (((object)(orders)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             IDictionary<string, object> order = ((IDictionary<string, object>)getValue(orders, i));
             Dictionary<string, object> extended = this.extend(order, new Dictionary<string, object>() {
@@ -3059,7 +3059,7 @@ public partial class poloniex : Exchange
             return this.safeBalance(result);
         }
         // for spot
-        for (int i = 0; i < (((object)(response)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 }); i++)
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> account = this.safeDict(response, i, new Dictionary<string, object>() {});
             List<object> balances = this.safeList(account, "balances", new List<object>() {});
@@ -3263,7 +3263,7 @@ public partial class poloniex : Exchange
         List<object> bidsResult = new List<object>() {};
         for (int i = 0; i < asks.Count; i++)
         {
-            if ((((object)((((Int64)i % 2L)))) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }))
+            if (isEqual((((Int64)i % 2L)), 0))
             {
                 double? price = this.safeNumber(asks, i);
                 double? amount = this.safeNumber(asks, this.sum(i, 1));
@@ -3272,7 +3272,7 @@ public partial class poloniex : Exchange
         }
         for (int i = 0; i < bids.Count; i++)
         {
-            if ((((object)((((Int64)i % 2L)))) switch { Int64 c33l => c33l == 0, int c33i => c33i == 0, double c33d => Math.Abs(c33d) <= 16777217 && Convert.ToDecimal(c33d) == 0, decimal c33m => c33m == 0, float c33f => Math.Abs(c33f) <= 16777217 && Convert.ToDecimal(c33f) == 0, uint c33u => (Int64)c33u == 0, short c33h => (Int64)c33h == 0, ushort c33v => (Int64)c33v == 0, byte c33y => (Int64)c33y == 0, sbyte c33e => (Int64)c33e == 0, ulong c33z => c33z == 0UL, _ => false }))
+            if (isEqual((((Int64)i % 2L)), 0))
             {
                 double? price = this.safeNumber(bids, i);
                 double? amount = this.safeNumber(bids, this.sum(i, 1));
@@ -3347,7 +3347,7 @@ public partial class poloniex : Exchange
     public virtual List<object> prepareRequestForDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!(((Func<object, object, bool>)(static (c34o, c34k) => { if (c34o == null || c34k == null) return false; if (c34o is IList<object>) return ((IList<object>)c34o).Contains(c34k); else if (c34o is IList<string>) return ((IList<string>)c34o).Contains((string)c34k); else if (c34o is List<Int64>) return ((List<Int64>)c34o).Contains((Int64)c34k); else if (c34o is IDictionary<string, object>) { if (c34k is string) return ((IDictionary<string, object>)c34o).ContainsKey((string)c34k); else return false; } else if (c34o is System.Collections.IDictionary || (c34o.GetType().IsGenericType && c34o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) return ConvertToDictionaryOfStringObject(c34o).ContainsKey((string)c34k); else return false; }))(this.currencies, code)))
+        if (!(inOp(this.currencies, code)))
         {
             throw new BadSymbol ((((this.id + " fetchDepositAddress(): can not recognize ") + code) + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
         }
@@ -4008,7 +4008,7 @@ public partial class poloniex : Exchange
         status = this.parseTransactionStatus(status);
         string? txid = this.safeString(transactionValue, "txid");
         string type = "deposit";
-        if ((((object)(transactionValue)) switch { null => false, IList<object> c33a => c33a.Contains("withdrawalRequestsId"), IList<string> c33t => c33t.Contains("withdrawalRequestsId"), List<Int64> c33g => c33g.Contains((Int64)(object)"withdrawalRequestsId"), IDictionary<string, object> c33d => c33d.ContainsKey("withdrawalRequestsId"), object c33o when c33o is System.Collections.IDictionary || (c33o.GetType().IsGenericType && c33o.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>)) => ConvertToDictionaryOfStringObject(c33o).ContainsKey("withdrawalRequestsId"), _ => false }))
+        if (inOp(transactionValue, "withdrawalRequestsId"))
         {
             type = "withdrawal";
         }
@@ -4385,7 +4385,7 @@ public partial class poloniex : Exchange
             { "positionMargin", this.parseNumber(positionMargin) },
             { "initialMargin", initialMargin },
             { "initialMarginPercentage", null },
-            { "leverage", (((Func<object, Int64?>)(static (object hx4pa) => { try { return Convert.ToInt64(Math.Floor(Convert.ToDouble(hx4pa))); } catch (Exception) { return null; } }))(leverage)) },
+            { "leverage", parseInt(leverage) },
             { "marginRatio", this.safeNumber(position, "mgnRatio") },
             { "stopLossPrice", this.safeNumber(position, "slTrgPx") },
             { "takeProfitPrice", this.safeNumber(position, "tpTrgPx") },

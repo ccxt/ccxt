@@ -111,7 +111,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             return "wss://www.deribit.com/ws/api/v2";
         }
-        if ((((object)(isPrivate)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
+        if (isTrue(isPrivate))
         {
             return getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "wsPrivate");
         }
@@ -121,7 +121,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public override object ping(WebSocketClient client)
     {
         Int64? refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
-        bool isPrivateClient = (((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(client.url, this.getWsUrl(true)));
+        bool isPrivateClient = (isEqual(client.url, this.getWsUrl(true)));
         if (isPrivateClient && ((refreshAt != null)) && ((refreshAt == null || this.milliseconds() >= refreshAt)))
         {
             // re-authenticate in-band before the session expires, also while no watch call is pending
@@ -178,7 +178,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         object paramsResolved = this.handleRouteAndParams("subscribe", parameters);
         object url = this.getWsUrl(false);
         string method = "public/subscribe";
-        if ((((object)(isPrivate)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
+        if (isTrue(isPrivate))
         {
             url = this.getWsUrl(true);
             method = "private/subscribe";
@@ -197,7 +197,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             { "id", this.requestId() },
         };
         Dictionary<string, object> extendedRequest = this.deepExtend(request, paramsResolved);
-        int channelsLength = (((object)(channels)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int channelsLength = getArrayLength(channels);
         if ((channelsLength == 1))
         {
             return await this.watch(url, getValue(messageHashes, 0), extendedRequest, getValue(channels, 0), extendedRequest);
@@ -225,14 +225,14 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         object paramsResolved = this.handleRouteAndParams("unSubscribe", parameters);
         object url = this.getWsUrl(false);
         string method = "public/unsubscribe";
-        if ((((object)(isPrivate)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
+        if (isTrue(isPrivate))
         {
             url = this.getWsUrl(true);
             method = "private/unsubscribe";
             await this.authenticate();
         }
         List<object> unWatchMessageHashes = new List<object>() {};
-        int channelsLength = (((object)(channels)) switch { null => 0, byte[] c33y => c33y.Length, IList<object> c33a => c33a.Count, IList<string> c33t => c33t.Count, List<Dictionary<string, object>> c33p => c33p.Count, IList<IList<object>> c33q => c33q.Count, List<List<object>> c33r => c33r.Count, List<List<string>> c33w => c33w.Count, string c33s => c33s.Length, System.Collections.ICollection c33c => c33c.Count, _ => 0 });
+        int channelsLength = getArrayLength(channels);
         for (int i = 0; i < channelsLength; i++)
         {
             unWatchMessageHashes.Add(("unsubscribe:" + (getValue(channels, i))));
@@ -276,7 +276,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return ccxt.BaseExchange.ToBalances(await this.subscribe(new List<object>() {channel}, new List<object>() {"balance"}, true, paramsCurrency));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
     {
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
@@ -352,7 +352,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return await this.unSubscribe(new List<object>() {channel}, true, paramsInterval);
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object message)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel");
@@ -484,7 +484,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return await this.unSubscribe(new List<object>() {channel}, true, paramsInterval);
     }
 
-    public virtual void handleOrders(WebSocketClient client, object message)
+    public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
     {
         if ((this.orders == null))
         {
@@ -602,7 +602,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return await this.unSubscribe(channels, true, paramsInterval);
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
     {
         if ((this.positions == null))
         {
@@ -988,7 +988,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         client.resolve(ccxt.BaseExchange.FromTicker(ticker), channel);
     }
 
-    public virtual void handleBidAsk(WebSocketClient client, object message)
+    public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
     {
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
@@ -1291,7 +1291,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return await this.unSubscribe(channels, (interval is "raw"), paramsInterval);
     }
 
-    public virtual object handleTrades(WebSocketClient client, object message)
+    public virtual object handleTrades(WebSocketClient client, Dictionary<string, object> message)
     {
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel", "");
@@ -1368,7 +1368,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         IDictionary<string, object> paramsDepthEndpoint = ((IDictionary<string, object>)useDepthEndpointparamsDepthEndpointVariable[1]);
         IDictionary<string, object> paramsChannel = paramsDepthEndpoint;
         object descriptor = ((string)interval);
-        if ((((object)(useDepthEndpoint)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
+        if (isTrue(useDepthEndpoint))
         {
             IList<object> depthparamsDepthVariable = (IList<object>)this.handleOptionAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
             var depth = depthparamsDepthVariable[0];
@@ -1435,7 +1435,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         IDictionary<string, object> paramsDepthEndpoint = ((IDictionary<string, object>)useDepthEndpointparamsDepthEndpointVariable[1]);
         object paramsChannel = paramsDepthEndpoint;
         object descriptor = ((string)interval);
-        if ((((object)(useDepthEndpoint)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
+        if (isTrue(useDepthEndpoint))
         {
             IList<object> depthparamsDepthVariable = (IList<object>)this.handleOptionAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
             var depth = depthparamsDepthVariable[0];
@@ -1484,7 +1484,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         } else
         {
             Int64? previousChangeId = this.safeInteger(data, "prev_change_id");
-            if ((type != "snapshot") && (!(((object)((orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null))) == null)) && (!((Func<object, object, bool>)(static (c34x, c34y) => { bool c34Int(object v) { if (v == null) return false; Type t = v.GetType(); if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(uint) || t == typeof(ulong) || t == typeof(ushort)) return true; if (t == typeof(float) || t == typeof(double) || t == typeof(decimal)) { decimal d = Convert.ToDecimal(v); return d == Math.Floor(d); } return false; } try { if (c34x == null && c34y == null) return true; else if (c34x == null || c34y == null) return false; if (c34x.GetType() != c34y.GetType() && (!Double.TryParse(c34x.ToString(), out _) || !Double.TryParse(c34y.ToString(), out _))) return false; if (c34Int(c34x) && c34Int(c34y)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(Int64) && c34y.GetType() == typeof(Int64)) return Convert.ToInt64(c34x) == Convert.ToInt64(c34y); if (c34x.GetType() == typeof(decimal) || c34y.GetType() == typeof(decimal)) return Convert.ToDecimal(c34x) == Convert.ToDecimal(c34y); else if (c34x.GetType() == typeof(int)) return (int)c34x == (int)c34y; else if (c34x.GetType() == typeof(double) || c34y.GetType() == typeof(double)) return Convert.ToDouble(c34x) == Convert.ToDouble(c34y); else if (c34x.GetType() == typeof(Single) || c34y.GetType() == typeof(Single)) return Convert.ToSingle(c34x) == Convert.ToSingle(c34y); else if (c34x.GetType() == typeof(string)) return ((string)c34x) == ((string)c34y); else if (c34x.GetType() == typeof(bool)) return ((bool)c34x) == ((bool)c34y); else return false; } catch (Exception) { return false; } }))(previousChangeId, (orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null))))
+            if ((type != "snapshot") && (!(((object)((orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null))) == null)) && (!isEqual(previousChangeId, (orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null))))
             {
                 // drop the stale book and reject only this channels future
                 ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
@@ -1590,7 +1590,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         return ((bool?)((object)(true)));
     }
 
-    public async virtual Task handleHeartbeat(WebSocketClient client, object message)
+    public async virtual Task handleHeartbeat(WebSocketClient client, Dictionary<string, object> message)
     {
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? data = this.safeString(parameters, "data");
@@ -1764,7 +1764,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         isPrivate ??= false;
         object paramsResolved = this.handleRouteAndParams("requestWs", parameters);
         object url = this.getWsUrl(true);
-        if ((((object)(isPrivate)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }))
+        if (isTrue(isPrivate))
         {
             await this.authenticate();
         }
@@ -2287,7 +2287,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("unsubscribeAllWs", parameters);
-        string method = (((object)(isPrivate)) switch { null => false, bool c33b => c33b, int c33i => c33i != 0, uint c33u => c33u != 0, Int64 c33l => c33l != 0, double c33d => c33d != 0, string c33s => c33s != "", IList<object> c33a => c33a.Count > 0, IList<string> c33t => c33t.Count > 0, IList<int> c33n => ((IList<string>)(object)c33n).Count > 0, IList<Int64> c33m => ((IList<string>)(object)c33m).Count > 0, IList<double> c33f => c33f.Count > 0, IDictionary<string, object> => true, _ => false }) ? "private/unsubscribe_all" : "public/unsubscribe_all";
+        string method = isTrue(isPrivate) ? "private/unsubscribe_all" : "public/unsubscribe_all";
         return await this.requestWs(method, paramsResolved, isPrivate);
     }
 
