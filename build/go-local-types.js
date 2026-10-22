@@ -10782,6 +10782,20 @@ function hx5X32TextIsStringLiteral (text) {
     return /^(?:'[^'\\]*'|"[^"\\]*")$/.test (t);
 }
 
+// `Str` / `string | undefined`: a string-only union with an undefined/null member
+function hx5X32NullableStringParam (goTranspiler, param) {
+    let type;
+    try {
+        type = goTranspiler.checkerOrUndefined?.()?.getTypeAtLocation (param);
+    } catch (e) {
+        return false;
+    }
+    const parts = ((type !== undefined) && (typeof type.isUnionType === 'function') && type.isUnionType ()) ? type.getTypes () : [];
+    const strings = parts.filter ((p) => (p.flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral)) !== 0);
+    return (strings.length > 0) && (strings.length < parts.length)
+        && parts.every ((p) => (p.flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral | ts.TypeFlags.Undefined | ts.TypeFlags.Null)) !== 0);
+}
+
 function installHx5X32StringPtrParams (goTranspiler) {
     if ((goTranspiler === undefined) || goTranspiler.__hx5X32Installed
         || (typeof goTranspiler.goParameterCallSitesPassType !== 'function') || (typeof goTranspiler.goTextArgMatchesType !== 'function')
@@ -10828,6 +10842,16 @@ function installHx5X32StringPtrParams (goTranspiler) {
         }
         return (goType === '*string') && widenedSites (this, fn, index);
     };
+    let proving = 0;
+    const upstreamParamType = goTranspiler.goNativeParameterType;
+    goTranspiler.goNativeParameterType = function (param) {
+        proving++;
+        try {
+            return upstreamParamType.call (this, param);
+        } finally {
+            proving--;
+        }
+    };
     const upstreamArgs = goTranspiler.printArgsForCallExpression;
     goTranspiler.printArgsForCallExpression = function (node, identation) {
         const printed = upstreamArgs.call (this, node, identation);
@@ -10840,14 +10864,20 @@ function installHx5X32StringPtrParams (goTranspiler) {
         if ((typeof calleeName === 'string') && Object.prototype.hasOwnProperty.call (this.unifiedStringParams ?? {}, calleeName)) {
             return printed; // unified string args keep their StringArg/deref printing
         }
+        if (proving > 0) {
+            return printed;
+        }
         const decl = hx5X32CallDeclaration (this, node);
         if (decl === undefined) {
             return printed;
         }
+        // never probe while a parameter proof is in flight: that print only feeds type inference,
+        // and a nested proof would cache the in-flight parameter's re-entry answer (`any`)
         const wrap = args.map ((a, i) => {
             const param = decl.parameters?.[i];
             return (param !== undefined) && (param.dotDotDotToken === undefined) && (param.initializer === undefined)
-                && (this.goNativeParameterType (param) === '*string') && (upstreamArgType.call (this, a) === 'string');
+                && hx5X32NullableStringParam (this, param)
+                && (upstreamArgType.call (this, a) === 'string') && (this.goNativeParameterType (param) === '*string');
         });
         if (!wrap.some ((w) => w)) {
             return printed;
